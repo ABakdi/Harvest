@@ -249,5 +249,53 @@
         "type": "int"
       }
     }
-  }
+  },
+  "navGranary": "Granary",
+  "granaryTitle": "Granary",
+  "logExpense": "Log an expense",
+  "amountLabel": "Amount",
+  "noteLabel": "Note (optional)",
+  "catFood": "Food",
+  "catTransport": "Transport",
+  "catBills": "Bills",
+  "catShopping": "Shopping",
+  "catHealth": "Health",
+  "catEntertainment": "Fun",
+  "catOther": "Other",
+  "todaySpending": "Today",
+  "budgetTitle": "Monthly budget",
+  "budgetSpentOf": "{spent} of {budget} this month",
+  "@budgetSpentOf": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetFloating": "{spent} / {limit} today",
+  "@budgetFloating": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetSet": "Set a monthly budget",
+  "budgetAmountLabel": "Budget for the month",
+  "currencyLabel": "Currency symbol",
+  "granaryEmpty": "Nothing logged today. What did you spend?",
+  "repeatSuggestionTitle": "Same as the last 3 days?",
+  "logIt": "Log it",
+  "questLogExpenses": "Log your expenses",
+  "notifExpenseTitle": "What did you spend today? 💰",
+  "notifExpenseBody": "Log it in two taps and keep the granary honest.",
+  "remindersExpense": "Expense check-in",
+  "statsSpending": "Spending by category",
+  "deleted": "Removed"
 }

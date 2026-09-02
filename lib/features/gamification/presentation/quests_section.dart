@@ -66,6 +66,7 @@ class _QuestCard extends ConsumerWidget {
       'habitsEarly' => l10n.questHabitsEarly,
       'projectUnits20' => l10n.questProjectUnits20,
       'todos2' => l10n.questTodos2,
+      'logExpenses' => l10n.questLogExpenses,
       _ => l10n.questActions4,
     };
     final reward = view.template.reward == QuestReward.xp

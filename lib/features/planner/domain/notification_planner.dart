@@ -19,8 +19,15 @@ abstract final class ReminderIds {
   static const eveningPlan = 102;
   static const primeTime = 103;
   static const streakRisk = 104;
+  static const expenses = 105;
 
-  static const List<int> all = [morning, eveningPlan, primeTime, streakRisk];
+  static const List<int> all = [
+    morning,
+    eveningPlan,
+    primeTime,
+    streakRisk,
+    expenses,
+  ];
 }
 
 /// Settings keys for reminder configuration. Times are stored as
@@ -30,6 +37,7 @@ abstract final class ReminderKeys {
   static const morningTime = 'reminders.morningTime';
   static const eveningTime = 'reminders.eveningTime';
   static const streakNudge = 'reminders.streakNudge';
+  static const expenseTime = 'reminders.expenseTime';
 }
 
 /// Plans the day's reminder notifications (anti-spam rules):
@@ -86,6 +94,23 @@ class NotificationPlanner {
       );
     }
 
+    if (!await _expensesLoggedToday(at)) {
+      final expenseAt = _todayAt(await _timeSetting(
+        ReminderKeys.expenseTime,
+        const TimeOfDay(hour: 20, minute: 0),
+      ), at);
+      if (expenseAt.isAfter(at)) {
+        await _notifications.schedule(
+          id: ReminderIds.expenses,
+          channelId: NotificationChannels.reminders,
+          title: l10n.notifExpenseTitle,
+          body: l10n.notifExpenseBody,
+          when: expenseAt,
+          payload: 'finances',
+        );
+      }
+    }
+
     if (!goalMet) {
       final prime = await _primeTime(at);
       if (prime != null && prime.isAfter(at)) {
@@ -114,13 +139,29 @@ class NotificationPlanner {
     }
   }
 
-  /// Called after every check-in: once the goal is met, the urgency
-  /// notifications have nothing left to say.
+  /// Called after every check-in or expense log: whatever is already
+  /// done today has nothing left to nag about.
   Future<void> reevaluate({DateTime? now}) async {
-    if (await _goalMetToday(now ?? DateTime.now())) {
+    final at = now ?? DateTime.now();
+    if (await _goalMetToday(at)) {
       await _notifications.cancel(ReminderIds.primeTime);
       await _notifications.cancel(ReminderIds.streakRisk);
     }
+    if (await _expensesLoggedToday(at)) {
+      await _notifications.cancel(ReminderIds.expenses);
+    }
+  }
+
+  Future<bool> _expensesLoggedToday(DateTime now) async {
+    final row = await (_db.select(_db.expenses)
+          ..where(
+            (e) =>
+                e.harvestDay.equals(HarvestDay.of(now).key) &
+                e.deletedAt.isNull(),
+          )
+          ..limit(1))
+        .getSingleOrNull();
+    return row != null;
   }
 
   /// The learned logging window: median first-check-in time over the

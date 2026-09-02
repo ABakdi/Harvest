@@ -14,6 +14,9 @@ import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/finances/presentation/granary_screen.dart';
+import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/presentation/quests_section.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
@@ -28,6 +31,9 @@ class FieldScreen extends ConsumerWidget {
     final items = ref.watch(todayFieldProvider);
     final xp = ref.watch(xpTotalProvider).value ?? 0;
     final streak = ref.watch(globalStreakProvider).value;
+    final budget = ref.watch(budgetSnapshotProvider);
+    final symbol =
+        ref.watch(financeSettingsProvider).value?.symbol ?? r'$';
 
     return Scaffold(
       appBar: AppBar(
@@ -71,6 +77,34 @@ class FieldScreen extends ConsumerWidget {
               rankLabel: _rankLabel(l10n, FarmerRank.forXp(xp)),
             ),
           ),
+          if (budget != null) ...[
+            const SizedBox(height: HarvestSpacing.sm),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: HarvestSpacing.md,
+              ),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: ActionChip(
+                  avatar: Icon(
+                    Icons.savings,
+                    size: 18,
+                    color: budgetColor(
+                      Theme.of(context).colorScheme,
+                      budget.status,
+                    ),
+                  ),
+                  label: Text(
+                    l10n.budgetFloating(
+                      '$symbol${formatMinor(budget.spentToday)}',
+                      '$symbol${formatMinor(budget.floatingDailyLimit)}',
+                    ),
+                  ),
+                  onPressed: () => context.go(AppRoutes.finances),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: HarvestSpacing.md),
           const QuestsSection(),
           const SizedBox(height: HarvestSpacing.sm),

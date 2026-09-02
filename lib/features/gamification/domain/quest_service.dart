@@ -76,6 +76,13 @@ final questPool = <QuestTemplate>[
     amount: 25,
     progress: (db, day) => _distinctChecked(db, day, CommitmentType.todo),
   ),
+  const QuestTemplate(
+    id: 'logExpenses',
+    target: 1,
+    reward: QuestReward.xp,
+    amount: 25,
+    progress: _expensesLogged,
+  ),
   QuestTemplate(
     id: 'actions4',
     target: 4,
@@ -117,6 +124,16 @@ Future<int> _distinctChecked(
     seen.add(checkIn.commitmentUuid);
   }
   return seen.length;
+}
+
+Future<int> _expensesLogged(HarvestDatabase db, HarvestDay day) async {
+  final row = await (db.select(db.expenses)
+        ..where(
+          (e) => e.harvestDay.equals(day.key) & e.deletedAt.isNull(),
+        )
+        ..limit(1))
+      .getSingleOrNull();
+  return row == null ? 0 : 1;
 }
 
 Future<int> _projectUnits(HarvestDatabase db, HarvestDay day) async {

@@ -33,6 +33,11 @@ class HarvestShell extends StatelessWidget {
             label: l10n.navField,
           ),
           NavigationDestination(
+            icon: const Icon(Icons.savings_outlined),
+            selectedIcon: const Icon(Icons.savings),
+            label: l10n.navGranary,
+          ),
+          NavigationDestination(
             icon: const Icon(Icons.insights_outlined),
             selectedIcon: const Icon(Icons.insights),
             label: l10n.navStats,

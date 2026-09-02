@@ -439,4 +439,93 @@ class AppLocalizationsEn extends AppLocalizations {
   String statsStreakOf(int current, int best) {
     return '$current now · best $best';
   }
+
+  @override
+  String get navGranary => 'Granary';
+
+  @override
+  String get granaryTitle => 'Granary';
+
+  @override
+  String get logExpense => 'Log an expense';
+
+  @override
+  String get amountLabel => 'Amount';
+
+  @override
+  String get noteLabel => 'Note (optional)';
+
+  @override
+  String get catFood => 'Food';
+
+  @override
+  String get catTransport => 'Transport';
+
+  @override
+  String get catBills => 'Bills';
+
+  @override
+  String get catShopping => 'Shopping';
+
+  @override
+  String get catHealth => 'Health';
+
+  @override
+  String get catEntertainment => 'Fun';
+
+  @override
+  String get catOther => 'Other';
+
+  @override
+  String get todaySpending => 'Today';
+
+  @override
+  String get budgetTitle => 'Monthly budget';
+
+  @override
+  String budgetSpentOf(String spent, String budget) {
+    return '$spent of $budget this month';
+  }
+
+  @override
+  String budgetFloating(String spent, String limit) {
+    return '$spent / $limit today';
+  }
+
+  @override
+  String get budgetSet => 'Set a monthly budget';
+
+  @override
+  String get budgetAmountLabel => 'Budget for the month';
+
+  @override
+  String get currencyLabel => 'Currency symbol';
+
+  @override
+  String get granaryEmpty => 'Nothing logged today. What did you spend?';
+
+  @override
+  String get repeatSuggestionTitle => 'Same as the last 3 days?';
+
+  @override
+  String get logIt => 'Log it';
+
+  @override
+  String get questLogExpenses => 'Log your expenses';
+
+  @override
+  String get notifExpenseTitle => 'What did you spend today? 💰';
+
+  @override
+  String get notifExpenseBody =>
+      'Log it in two taps and keep the granary honest.';
+
+  @override
+  String get remindersExpense => 'Expense check-in';
+
+  @override
+  String get statsSpending => 'Spending by category';
+
+  @override
+  String get deleted => 'Removed';
 }

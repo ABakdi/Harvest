@@ -437,4 +437,92 @@ class AppLocalizationsAr extends AppLocalizations {
   String statsStreakOf(int current, int best) {
     return '$current الآن · الأفضل $best';
   }
+
+  @override
+  String get navGranary => 'المخزن';
+
+  @override
+  String get granaryTitle => 'المخزن';
+
+  @override
+  String get logExpense => 'سجّل مصروفًا';
+
+  @override
+  String get amountLabel => 'المبلغ';
+
+  @override
+  String get noteLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get catFood => 'طعام';
+
+  @override
+  String get catTransport => 'مواصلات';
+
+  @override
+  String get catBills => 'فواتير';
+
+  @override
+  String get catShopping => 'تسوق';
+
+  @override
+  String get catHealth => 'صحة';
+
+  @override
+  String get catEntertainment => 'ترفيه';
+
+  @override
+  String get catOther => 'أخرى';
+
+  @override
+  String get todaySpending => 'اليوم';
+
+  @override
+  String get budgetTitle => 'الميزانية الشهرية';
+
+  @override
+  String budgetSpentOf(String spent, String budget) {
+    return '$spent من $budget هذا الشهر';
+  }
+
+  @override
+  String budgetFloating(String spent, String limit) {
+    return '$spent / $limit اليوم';
+  }
+
+  @override
+  String get budgetSet => 'حدد ميزانية شهرية';
+
+  @override
+  String get budgetAmountLabel => 'ميزانية الشهر';
+
+  @override
+  String get currencyLabel => 'رمز العملة';
+
+  @override
+  String get granaryEmpty => 'لا شيء مسجل اليوم. ماذا أنفقت؟';
+
+  @override
+  String get repeatSuggestionTitle => 'نفس الأيام الثلاثة الماضية؟';
+
+  @override
+  String get logIt => 'سجّله';
+
+  @override
+  String get questLogExpenses => 'سجّل مصاريفك';
+
+  @override
+  String get notifExpenseTitle => 'ماذا أنفقت اليوم؟ 💰';
+
+  @override
+  String get notifExpenseBody => 'سجّله بلمستين وأبقِ المخزن صادقًا.';
+
+  @override
+  String get remindersExpense => 'تذكير المصاريف';
+
+  @override
+  String get statsSpending => 'الإنفاق حسب الفئة';
+
+  @override
+  String get deleted => 'حُذف';
 }

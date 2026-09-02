@@ -17,6 +17,8 @@ Future<void> appBootstrap(Ref ref) async {
     switch (payload) {
       case 'planner':
         router.go(AppRoutes.planner);
+      case 'finances':
+        router.go(AppRoutes.finances);
       default:
         router.go(AppRoutes.field);
     }

@@ -877,6 +877,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{current} now · best {best}'**
   String statsStreakOf(int current, int best);
+
+  /// No description provided for @navGranary.
+  ///
+  /// In en, this message translates to:
+  /// **'Granary'**
+  String get navGranary;
+
+  /// No description provided for @granaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Granary'**
+  String get granaryTitle;
+
+  /// No description provided for @logExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Log an expense'**
+  String get logExpense;
+
+  /// No description provided for @amountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amountLabel;
+
+  /// No description provided for @noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get noteLabel;
+
+  /// No description provided for @catFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get catFood;
+
+  /// No description provided for @catTransport.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport'**
+  String get catTransport;
+
+  /// No description provided for @catBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get catBills;
+
+  /// No description provided for @catShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get catShopping;
+
+  /// No description provided for @catHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get catHealth;
+
+  /// No description provided for @catEntertainment.
+  ///
+  /// In en, this message translates to:
+  /// **'Fun'**
+  String get catEntertainment;
+
+  /// No description provided for @catOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get catOther;
+
+  /// No description provided for @todaySpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todaySpending;
+
+  /// No description provided for @budgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly budget'**
+  String get budgetTitle;
+
+  /// No description provided for @budgetSpentOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {budget} this month'**
+  String budgetSpentOf(String spent, String budget);
+
+  /// No description provided for @budgetFloating.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} / {limit} today'**
+  String budgetFloating(String spent, String limit);
+
+  /// No description provided for @budgetSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a monthly budget'**
+  String get budgetSet;
+
+  /// No description provided for @budgetAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget for the month'**
+  String get budgetAmountLabel;
+
+  /// No description provided for @currencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency symbol'**
+  String get currencyLabel;
+
+  /// No description provided for @granaryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged today. What did you spend?'**
+  String get granaryEmpty;
+
+  /// No description provided for @repeatSuggestionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as the last 3 days?'**
+  String get repeatSuggestionTitle;
+
+  /// No description provided for @logIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get logIt;
+
+  /// No description provided for @questLogExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Log your expenses'**
+  String get questLogExpenses;
+
+  /// No description provided for @notifExpenseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you spend today? 💰'**
+  String get notifExpenseTitle;
+
+  /// No description provided for @notifExpenseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it in two taps and keep the granary honest.'**
+  String get notifExpenseBody;
+
+  /// No description provided for @remindersExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense check-in'**
+  String get remindersExpense;
+
+  /// No description provided for @statsSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category'**
+  String get statsSpending;
+
+  /// No description provided for @deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get deleted;
 }
 
 class _AppLocalizationsDelegate

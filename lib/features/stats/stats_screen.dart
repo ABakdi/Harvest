@@ -4,6 +4,10 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/presentation/expense_sheet.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -24,6 +28,9 @@ class StatsScreen extends ConsumerWidget {
         ref.watch(activeCommitmentsProvider).value ?? const [];
     final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
     final streaks = ref.watch(commitmentStreaksProvider).value ?? const {};
+    final spending = ref.watch(monthByCategoryProvider).value ?? const {};
+    final symbol =
+        ref.watch(financeSettingsProvider).value?.symbol ?? r'$';
 
     final projects = commitments
         .where((c) => c.type == CommitmentType.project)
@@ -102,6 +109,19 @@ class StatsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+                ],
+                if (spending.isNotEmpty) ...[
+                  const SizedBox(height: HarvestSpacing.lg),
+                  _SectionTitle(l10n.statsSpending),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(HarvestSpacing.md),
+                      child: _SpendingBreakdown(
+                        spending: spending,
+                        symbol: symbol,
+                      ),
+                    ),
+                  ),
                 ],
                 if (habits.isNotEmpty) ...[
                   const SizedBox(height: HarvestSpacing.lg),
@@ -279,6 +299,71 @@ class _Empty extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+
+/// Month-to-date spending per category, biggest first.
+class _SpendingBreakdown extends StatelessWidget {
+  const _SpendingBreakdown({required this.spending, required this.symbol});
+
+  final Map<ExpenseCategory, int> spending;
+  final String symbol;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final entries = spending.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final max = entries.first.value;
+
+    return Column(
+      children: [
+        for (final entry in entries)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: HarvestSpacing.xs),
+            child: Row(
+              children: [
+                Icon(
+                  categoryIcon(entry.key),
+                  size: 20,
+                  color: theme.colorScheme.secondary,
+                ),
+                const SizedBox(width: HarvestSpacing.sm),
+                SizedBox(
+                  width: 88,
+                  child: Text(
+                    categoryLabel(l10n, entry.key),
+                    style: theme.textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(HarvestRadii.chip),
+                    child: LinearProgressIndicator(
+                      value: entry.value / max,
+                      minHeight: 8,
+                      backgroundColor:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                      valueColor: AlwaysStoppedAnimation(
+                        theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: HarvestSpacing.sm),
+                Text(
+                  '$symbol${formatMinor(entry.value)}',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
