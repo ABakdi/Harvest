@@ -199,6 +199,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'العربية'**
   String get langArabic;
+
+  /// No description provided for @addCommitment.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant a seed'**
+  String get addCommitment;
+
+  /// No description provided for @typeHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit'**
+  String get typeHabit;
+
+  /// No description provided for @typeProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get typeProject;
+
+  /// No description provided for @typeTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'To-Do'**
+  String get typeTodo;
+
+  /// No description provided for @titleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get titleLabel;
+
+  /// No description provided for @titleHintHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Exercise, Practice Spanish'**
+  String get titleHintHabit;
+
+  /// No description provided for @titleHintProject.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Read Atomic Habits'**
+  String get titleHintProject;
+
+  /// No description provided for @titleHintTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Call the dentist'**
+  String get titleHintTodo;
+
+  /// No description provided for @scheduleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get scheduleLabel;
+
+  /// No description provided for @scheduleDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get scheduleDaily;
+
+  /// No description provided for @scheduleWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays'**
+  String get scheduleWeekly;
+
+  /// No description provided for @scheduleInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Every X days'**
+  String get scheduleInterval;
+
+  /// No description provided for @scheduleTimesPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'X per week'**
+  String get scheduleTimesPerWeek;
+
+  /// No description provided for @everyDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} days'**
+  String everyDaysLabel(int count);
+
+  /// No description provided for @timesPerWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times per week'**
+  String timesPerWeekLabel(int count);
+
+  /// No description provided for @totalTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total target (pages, minutes…)'**
+  String get totalTargetLabel;
+
+  /// No description provided for @dailyCommitmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily commitment'**
+  String get dailyCommitmentLabel;
+
+  /// No description provided for @dueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned for'**
+  String get dueLabel;
+
+  /// No description provided for @dueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dueToday;
+
+  /// No description provided for @dueTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get dueTomorrow;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @undoCheckInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo today\'s check-in?'**
+  String get undoCheckInTitle;
+
+  /// No description provided for @undoCheckInBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes what you logged for \"{title}\" today.'**
+  String undoCheckInBody(String title);
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @logProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Water this crop'**
+  String get logProgressTitle;
+
+  /// No description provided for @logQuantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'How much did you get done?'**
+  String get logQuantityLabel;
+
+  /// No description provided for @logRemainingToday.
+  ///
+  /// In en, this message translates to:
+  /// **'You can log {count} more today'**
+  String logRemainingToday(int count);
+
+  /// No description provided for @log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get log;
+
+  /// No description provided for @cappedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily cap reached — the field rests too.'**
+  String get cappedMessage;
+
+  /// No description provided for @xpEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} XP'**
+  String xpEarned(int count);
+
+  /// No description provided for @projectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} · today {today}/{daily}'**
+  String projectSubtitle(int done, int total, int today, int daily);
+
+  /// No description provided for @todoOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get todoOverdue;
+
+  /// No description provided for @rankSprout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get rankSprout;
+
+  /// No description provided for @rankSeedling.
+  ///
+  /// In en, this message translates to:
+  /// **'Seedling'**
+  String get rankSeedling;
+
+  /// No description provided for @rankGardener.
+  ///
+  /// In en, this message translates to:
+  /// **'Gardener'**
+  String get rankGardener;
+
+  /// No description provided for @rankHarvester.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvester'**
+  String get rankHarvester;
+
+  /// No description provided for @rankMasterFarmer.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Farmer'**
+  String get rankMasterFarmer;
 }
 
 class _AppLocalizationsDelegate

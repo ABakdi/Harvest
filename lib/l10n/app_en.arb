@@ -16,5 +16,94 @@
   "settingsLanguage": "Language",
   "langSystem": "System",
   "langEnglish": "English",
-  "langArabic": "العربية"
+  "langArabic": "العربية",
+  "addCommitment": "Plant a seed",
+  "typeHabit": "Habit",
+  "typeProject": "Project",
+  "typeTodo": "To-Do",
+  "titleLabel": "Title",
+  "titleHintHabit": "e.g. Exercise, Practice Spanish",
+  "titleHintProject": "e.g. Read Atomic Habits",
+  "titleHintTodo": "e.g. Call the dentist",
+  "scheduleLabel": "Schedule",
+  "scheduleDaily": "Daily",
+  "scheduleWeekly": "Weekdays",
+  "scheduleInterval": "Every X days",
+  "scheduleTimesPerWeek": "X per week",
+  "everyDaysLabel": "Every {count} days",
+  "@everyDaysLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timesPerWeekLabel": "{count} times per week",
+  "@timesPerWeekLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalTargetLabel": "Total target (pages, minutes…)",
+  "dailyCommitmentLabel": "Daily commitment",
+  "dueLabel": "Planned for",
+  "dueToday": "Today",
+  "dueTomorrow": "Tomorrow",
+  "save": "Save",
+  "cancel": "Cancel",
+  "undoCheckInTitle": "Undo today's check-in?",
+  "undoCheckInBody": "This removes what you logged for \"{title}\" today.",
+  "@undoCheckInBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "undo": "Undo",
+  "logProgressTitle": "Water this crop",
+  "logQuantityLabel": "How much did you get done?",
+  "logRemainingToday": "You can log {count} more today",
+  "@logRemainingToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "log": "Log",
+  "cappedMessage": "Daily cap reached — the field rests too.",
+  "xpEarned": "+{count} XP",
+  "@xpEarned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "projectSubtitle": "{done} of {total} · today {today}/{daily}",
+  "@projectSubtitle": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "today": {
+        "type": "int"
+      },
+      "daily": {
+        "type": "int"
+      }
+    }
+  },
+  "todoOverdue": "Overdue",
+  "rankSprout": "Sprout",
+  "rankSeedling": "Seedling",
+  "rankGardener": "Gardener",
+  "rankHarvester": "Harvester",
+  "rankMasterFarmer": "Master Farmer"
 }

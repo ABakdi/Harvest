@@ -61,4 +61,130 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get langArabic => 'العربية';
+
+  @override
+  String get addCommitment => 'Plant a seed';
+
+  @override
+  String get typeHabit => 'Habit';
+
+  @override
+  String get typeProject => 'Project';
+
+  @override
+  String get typeTodo => 'To-Do';
+
+  @override
+  String get titleLabel => 'Title';
+
+  @override
+  String get titleHintHabit => 'e.g. Exercise, Practice Spanish';
+
+  @override
+  String get titleHintProject => 'e.g. Read Atomic Habits';
+
+  @override
+  String get titleHintTodo => 'e.g. Call the dentist';
+
+  @override
+  String get scheduleLabel => 'Schedule';
+
+  @override
+  String get scheduleDaily => 'Daily';
+
+  @override
+  String get scheduleWeekly => 'Weekdays';
+
+  @override
+  String get scheduleInterval => 'Every X days';
+
+  @override
+  String get scheduleTimesPerWeek => 'X per week';
+
+  @override
+  String everyDaysLabel(int count) {
+    return 'Every $count days';
+  }
+
+  @override
+  String timesPerWeekLabel(int count) {
+    return '$count times per week';
+  }
+
+  @override
+  String get totalTargetLabel => 'Total target (pages, minutes…)';
+
+  @override
+  String get dailyCommitmentLabel => 'Daily commitment';
+
+  @override
+  String get dueLabel => 'Planned for';
+
+  @override
+  String get dueToday => 'Today';
+
+  @override
+  String get dueTomorrow => 'Tomorrow';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get undoCheckInTitle => 'Undo today\'s check-in?';
+
+  @override
+  String undoCheckInBody(String title) {
+    return 'This removes what you logged for \"$title\" today.';
+  }
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get logProgressTitle => 'Water this crop';
+
+  @override
+  String get logQuantityLabel => 'How much did you get done?';
+
+  @override
+  String logRemainingToday(int count) {
+    return 'You can log $count more today';
+  }
+
+  @override
+  String get log => 'Log';
+
+  @override
+  String get cappedMessage => 'Daily cap reached — the field rests too.';
+
+  @override
+  String xpEarned(int count) {
+    return '+$count XP';
+  }
+
+  @override
+  String projectSubtitle(int done, int total, int today, int daily) {
+    return '$done of $total · today $today/$daily';
+  }
+
+  @override
+  String get todoOverdue => 'Overdue';
+
+  @override
+  String get rankSprout => 'Sprout';
+
+  @override
+  String get rankSeedling => 'Seedling';
+
+  @override
+  String get rankGardener => 'Gardener';
+
+  @override
+  String get rankHarvester => 'Harvester';
+
+  @override
+  String get rankMasterFarmer => 'Master Farmer';
 }
