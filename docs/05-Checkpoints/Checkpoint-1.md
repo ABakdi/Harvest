@@ -59,6 +59,24 @@ the v1 release.
   gradients used deliberately (primary action, XP bar, gauges), never
   as wallpaper.
 
+## Round 2 — dogfooding findings
+
+Testing the v0.9.0 candidate by hand surfaced five more items:
+
+| # | Finding | Plan |
+| :- | :--- | :--- |
+| P1 | Calendar marker dots get ugly past a few items | Replace dots with a small **count badge** |
+| P2 | **Bug:** to-dos planted on a future date still show on today's field | Field filter must respect the planned day; regression test added |
+| P3 | Deadlines are static text | Live countdown on the card: days → hours, and a **ticking clock** once 3 hours remain |
+| P4 | Single-currency finances don't match reality | Default currency setting (DZD by default); every expense and savings pot carries its own currency (DZD / USD / EUR); one savings card per currency |
+| P5 | No exchange rates | Rates in settings: DZD↔USD and DZD↔EUR entered manually, EUR↔USD fetched from the ECB (Frankfurter API); amounts show the default-currency conversion in parentheses; aggregates convert before summing |
+
+Decisions: schema v5 adds `expenses.currency`; rates and per-currency
+savings live in settings storage; conversion is best-effort — a missing
+rate means no parenthetical and face-value aggregation, never a block
+(local-first: the rate fetch is optional network, everything else works
+offline).
+
 ## v1 release criteria
 
 - [x] G1–G11 implemented and verified on the emulator (mini-timer chip,
@@ -70,6 +88,11 @@ the v1 release.
 - [x] Dark pass done across new surfaces (all verification ran in dark); RTL re-verified at v0.2.1 and new screens use directional APIs only
 - [x] Docs updated (specs reflect what shipped), phases ticked
 - [x] Tagged v0.9.0 and release APK built
+- [x] Round 2 findings P1–P5 closed — verified live: count badges,
+      future to-dos off today (with regression test), deadline
+      countdown widget, per-expense currency with parenthetical
+      conversions aggregating into the gauge, manual DZD rates +
+      fetched EUR→USD (API moved to frankfurter.dev — fixed)
 
 Everything after this list is **v1.x / Phase 3+** territory (gym &
 health, screen time, sync).

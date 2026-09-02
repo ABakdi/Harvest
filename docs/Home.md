@@ -76,3 +76,9 @@ mindmap
       XP & Levels
       Coins & Quests
 ```
+ make the app have a logo use green asthetics and some icon along the idea of thw app.
+  put a seperate tab to manage savings like log a saving and withdraw from saving to keep record of that
+  also add a wallet and i can add and withdraw from it a wallet is meant to be spent savinggs are meant to be saved, when I with draw from savnig i get an a prompt to put to wallet or no
+  when i log an expense it says withdraw from wlet or no, i can widraw from wallet without loging the expense, and when i withdrwa fom saving it gets logged to either as an expense, or to wallet i always type something in there.
+  add debts so i can mange those too  by logging a debt and paying off, a debt is an ammout and to whom its owed (no interest), and pay off by date, and advanced ptions to meind me by, and i keep getting remonded untill the debt is setteled.
+  remove the todays quest section and it's logic from the tasks page
