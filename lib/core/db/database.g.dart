@@ -1162,7 +1162,7 @@ class CheckInsCompanion extends UpdateCompanion<CheckInRow> {
   }
 }
 
-class $StreaksTable extends Streaks with TableInfo<$StreaksTable, Streak> {
+class $StreaksTable extends Streaks with TableInfo<$StreaksTable, StreakRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1249,7 +1249,7 @@ class $StreaksTable extends Streaks with TableInfo<$StreaksTable, Streak> {
   static const String $name = 'streaks';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Streak> instance, {
+    Insertable<StreakRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1304,9 +1304,9 @@ class $StreaksTable extends Streaks with TableInfo<$StreaksTable, Streak> {
   @override
   Set<GeneratedColumn> get $primaryKey => {scope};
   @override
-  Streak map(Map<String, dynamic> data, {String? tablePrefix}) {
+  StreakRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Streak(
+    return StreakRow(
       scope: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}scope'],
@@ -1340,7 +1340,7 @@ class $StreaksTable extends Streaks with TableInfo<$StreaksTable, Streak> {
   }
 }
 
-class Streak extends DataClass implements Insertable<Streak> {
+class StreakRow extends DataClass implements Insertable<StreakRow> {
   /// `global`, or a commitment uuid for individual streaks.
   final String scope;
   final int current;
@@ -1348,7 +1348,7 @@ class Streak extends DataClass implements Insertable<Streak> {
   final String? lastEarnedDay;
   final int freezesStored;
   final DateTime updatedAt;
-  const Streak({
+  const StreakRow({
     required this.scope,
     required this.current,
     required this.best,
@@ -1383,12 +1383,12 @@ class Streak extends DataClass implements Insertable<Streak> {
     );
   }
 
-  factory Streak.fromJson(
+  factory StreakRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Streak(
+    return StreakRow(
       scope: serializer.fromJson<String>(json['scope']),
       current: serializer.fromJson<int>(json['current']),
       best: serializer.fromJson<int>(json['best']),
@@ -1410,14 +1410,14 @@ class Streak extends DataClass implements Insertable<Streak> {
     };
   }
 
-  Streak copyWith({
+  StreakRow copyWith({
     String? scope,
     int? current,
     int? best,
     Value<String?> lastEarnedDay = const Value.absent(),
     int? freezesStored,
     DateTime? updatedAt,
-  }) => Streak(
+  }) => StreakRow(
     scope: scope ?? this.scope,
     current: current ?? this.current,
     best: best ?? this.best,
@@ -1427,8 +1427,8 @@ class Streak extends DataClass implements Insertable<Streak> {
     freezesStored: freezesStored ?? this.freezesStored,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  Streak copyWithCompanion(StreaksCompanion data) {
-    return Streak(
+  StreakRow copyWithCompanion(StreaksCompanion data) {
+    return StreakRow(
       scope: data.scope.present ? data.scope.value : this.scope,
       current: data.current.present ? data.current.value : this.current,
       best: data.best.present ? data.best.value : this.best,
@@ -1444,7 +1444,7 @@ class Streak extends DataClass implements Insertable<Streak> {
 
   @override
   String toString() {
-    return (StringBuffer('Streak(')
+    return (StringBuffer('StreakRow(')
           ..write('scope: $scope, ')
           ..write('current: $current, ')
           ..write('best: $best, ')
@@ -1467,7 +1467,7 @@ class Streak extends DataClass implements Insertable<Streak> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Streak &&
+      (other is StreakRow &&
           other.scope == this.scope &&
           other.current == this.current &&
           other.best == this.best &&
@@ -1476,7 +1476,7 @@ class Streak extends DataClass implements Insertable<Streak> {
           other.updatedAt == this.updatedAt);
 }
 
-class StreaksCompanion extends UpdateCompanion<Streak> {
+class StreaksCompanion extends UpdateCompanion<StreakRow> {
   final Value<String> scope;
   final Value<int> current;
   final Value<int> best;
@@ -1502,7 +1502,7 @@ class StreaksCompanion extends UpdateCompanion<Streak> {
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : scope = Value(scope);
-  static Insertable<Streak> custom({
+  static Insertable<StreakRow> custom({
     Expression<String>? scope,
     Expression<int>? current,
     Expression<int>? best,
@@ -4450,14 +4450,17 @@ class $$StreaksTableTableManager
         RootTableManager<
           _$HarvestDatabase,
           $StreaksTable,
-          Streak,
+          StreakRow,
           $$StreaksTableFilterComposer,
           $$StreaksTableOrderingComposer,
           $$StreaksTableAnnotationComposer,
           $$StreaksTableCreateCompanionBuilder,
           $$StreaksTableUpdateCompanionBuilder,
-          (Streak, BaseReferences<_$HarvestDatabase, $StreaksTable, Streak>),
-          Streak,
+          (
+            StreakRow,
+            BaseReferences<_$HarvestDatabase, $StreaksTable, StreakRow>,
+          ),
+          StreakRow,
           PrefetchHooks Function()
         > {
   $$StreaksTableTableManager(_$HarvestDatabase db, $StreaksTable table)
@@ -4519,14 +4522,14 @@ typedef $$StreaksTableProcessedTableManager =
     ProcessedTableManager<
       _$HarvestDatabase,
       $StreaksTable,
-      Streak,
+      StreakRow,
       $$StreaksTableFilterComposer,
       $$StreaksTableOrderingComposer,
       $$StreaksTableAnnotationComposer,
       $$StreaksTableCreateCompanionBuilder,
       $$StreaksTableUpdateCompanionBuilder,
-      (Streak, BaseReferences<_$HarvestDatabase, $StreaksTable, Streak>),
-      Streak,
+      (StreakRow, BaseReferences<_$HarvestDatabase, $StreaksTable, StreakRow>),
+      StreakRow,
       PrefetchHooks Function()
     >;
 typedef $$LedgerTableCreateCompanionBuilder = LedgerCompanion Function({

@@ -52,6 +52,7 @@ class CheckIns extends Table {
 }
 
 /// Current and best streaks; derived state, never synced.
+@DataClassName('StreakRow')
 class Streaks extends Table {
   /// `global`, or a commitment uuid for individual streaks.
   TextColumn get scope => text()();

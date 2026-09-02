@@ -3,6 +3,7 @@ import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
+import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -36,9 +37,10 @@ final class CheckInCapped extends CheckInResult {
 /// Writes check-ins with validation, XP ledger entries, and outbox rows —
 /// the single path through which effort enters the database.
 class CheckInService {
-  CheckInService(this._db);
+  CheckInService(this._db, this._streaks);
 
   final HarvestDatabase _db;
+  final StreakService _streaks;
   static const _uuid = Uuid();
 
   /// Logs [quantity] units for [commitment] on today's Harvest Day.
@@ -104,6 +106,8 @@ class CheckInService {
           );
     });
 
+    await _streaks.onCheckIn(commitment, harvestDay);
+
     return capped
         ? CheckInCapped(quantityLogged: toLog, xpEarned: xp)
         : CheckInSuccess(quantityLogged: toLog, xpEarned: xp);
@@ -137,6 +141,7 @@ class CheckInService {
             );
       }
     });
+    await _streaks.onUndo(commitment, harvestDay);
   }
 
   Future<int> _loggedOn(String commitmentUuid, HarvestDay day) async {
@@ -154,5 +159,7 @@ class CheckInService {
 }
 
 @Riverpod(keepAlive: true)
-CheckInService checkInService(Ref ref) =>
-    CheckInService(ref.watch(databaseProvider));
+CheckInService checkInService(Ref ref) => CheckInService(
+      ref.watch(databaseProvider),
+      ref.watch(streakServiceProvider),
+    );

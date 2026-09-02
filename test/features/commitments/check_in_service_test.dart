@@ -6,6 +6,7 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
+import 'package:harvest/features/gamification/domain/streak_service.dart';
 
 void main() {
   late HarvestDatabase db;
@@ -31,7 +32,7 @@ void main() {
 
   setUp(() {
     db = HarvestDatabase.forTesting(NativeDatabase.memory());
-    service = CheckInService(db);
+    service = CheckInService(db, StreakService(db));
   });
 
   tearDown(() => db.close());
