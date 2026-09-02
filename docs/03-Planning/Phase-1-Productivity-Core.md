@@ -4,18 +4,18 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 
 ## M1.1 — Commitments
 - [ ] Create/edit/archive Habits (all four schedule types), Projects (target + daily commitment), To-Dos (optional due day)
-- [ ] Schedule engine: "what is due on Harvest Day X?" — pure Dart, heavily unit-tested
+- [x] Schedule engine: "what is due on Harvest Day X?" — pure Dart, heavily unit-tested
 - [ ] Vacation-mode pause for habits
 
 ## M1.2 — Check-ins
-- [ ] One-tap check-in for habits/to-dos with undo (same day)
-- [ ] Quantity sheet for projects; 2× over-log cap enforced ([[Business-Rules]])
+- [x] One-tap check-in for habits/to-dos with undo (same day)
+- [x] Quantity sheet for projects; 2× over-log cap enforced ([[Business-Rules]])
 - [ ] Haptic + sprite celebration; project 100% completion moment
-- [ ] Append-only history, archive-safe
+- [x] Append-only history, archive-safe
 
 ## M1.3 — The Field (dashboard v1)
-- [ ] Today view: due commitments as CropCards, urgency-ordered ([[Dashboard-and-Widgets]])
-- [ ] Streak flame + XP bar header
+- [x] Today view: due commitments as CropCards, urgency-ordered ([[Dashboard-and-Widgets]])
+- [x] Streak flame + XP bar header
 - [ ] Pull-down: tomorrow's plan view
 
 ## M1.4 — Streak engine
