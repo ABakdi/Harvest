@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
@@ -13,6 +14,7 @@ import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
+import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
@@ -109,19 +111,37 @@ class FieldScreen extends ConsumerWidget {
           const QuestsSection(),
           const SizedBox(height: HarvestSpacing.sm),
           Expanded(
-            child: items.isEmpty
-                ? const _EmptyField()
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(
-                      HarvestSpacing.md,
-                      HarvestSpacing.sm,
-                      HarvestSpacing.md,
-                      96,
+            // Pulling the field down opens tomorrow's plan.
+            child: RefreshIndicator(
+              displacement: 32,
+              onRefresh: () async {
+                unawaited(context.push(AppRoutes.planner));
+              },
+              child: items.isEmpty
+                  ? LayoutBuilder(
+                      builder: (context, constraints) => ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: constraints.maxHeight,
+                            child: const _EmptyField(),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        HarvestSpacing.md,
+                        HarvestSpacing.sm,
+                        HarvestSpacing.md,
+                        96,
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) =>
+                          _CropTile(item: items[index]),
                     ),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) =>
-                        _CropTile(item: items[index]),
-                  ),
+            ),
           ),
         ],
       ),
@@ -161,8 +181,7 @@ class _CropTile extends ConsumerWidget {
           ? item.projectProgress
           : null,
       onTap: () => unawaited(_onTap(context, ref)),
-      onLongPress: () =>
-          unawaited(context.push(AppRoutes.pomodoro, extra: commitment)),
+      onLongPress: () => unawaited(showCropOptions(context, commitment)),
     );
   }
 
@@ -177,7 +196,7 @@ class _CropTile extends ConsumerWidget {
           commitment.dailyCommitment ?? 0,
         );
       case CommitmentType.habit:
-        return l10n.typeHabit;
+        return commitment.isPaused ? l10n.pausedLabel : l10n.typeHabit;
       case CommitmentType.todo:
         return l10n.typeTodo;
     }
@@ -188,6 +207,11 @@ class _CropTile extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(checkInControllerProvider.notifier);
     final commitment = item.commitment;
+
+    if (commitment.isPaused) {
+      await showCropOptions(context, commitment);
+      return;
+    }
 
     // Done already → offer same-day undo.
     if (item.isDone && item.loggedToday > 0) {
@@ -220,6 +244,15 @@ class _CropTile extends ConsumerWidget {
 
     final result = await controller.checkIn(commitment);
     if (result is CheckInSuccess) {
+      if (context.mounted) {
+        final box = context.findRenderObject() as RenderBox?;
+        if (box != null) {
+          showCheckInBurst(
+            context,
+            box.localToGlobal(box.size.center(Offset.zero)),
+          );
+        }
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text(l10n.xpEarned(result.xpEarned)),
@@ -232,6 +265,7 @@ class _CropTile extends ConsumerWidget {
   Future<void> _showQuantitySheet(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context, rootNavigator: true);
     final controller = ref.read(checkInControllerProvider.notifier);
     final commitment = item.commitment;
     final remaining = commitment.maxUnitsPerDay - item.loggedToday;
@@ -288,6 +322,21 @@ class _CropTile extends ConsumerWidget {
                   Navigator.of(sheetContext).pop();
                   final result =
                       await controller.checkIn(commitment, quantity: quantity);
+                  final logged = switch (result) {
+                    CheckInSuccess(:final quantityLogged) => quantityLogged,
+                    CheckInCapped(:final quantityLogged) => quantityLogged,
+                  };
+                  final completed = logged > 0 &&
+                      item.totalLogged + logged >=
+                          (commitment.totalTarget ?? 0);
+                  if (completed) {
+                    await _celebrateCompletion(
+                      ref,
+                      navigator,
+                      item.totalLogged + logged,
+                    );
+                    return;
+                  }
                   final message = switch (result) {
                     CheckInSuccess(:final xpEarned) =>
                       l10n.xpEarned(xpEarned),
@@ -310,7 +359,38 @@ class _CropTile extends ConsumerWidget {
       },
     );
   }
+
+  /// The 100% moment: a celebration dialog, then the crop retires to
+  /// the barn (auto-archive) with its history intact.
+  Future<void> _celebrateCompletion(
+    WidgetRef ref,
+    NavigatorState navigator,
+    int total,
+  ) async {
+    final context = navigator.context;
+    if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.projectDoneTitle),
+        content: Text(
+          l10n.projectDoneBody(item.commitment.title, total),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.toTheBarn),
+          ),
+        ],
+      ),
+    );
+    await ref
+        .read(commitmentEditorProvider.notifier)
+        .archive(item.commitment.uuid);
+  }
 }
+
 
 class _EmptyField extends StatelessWidget {
   const _EmptyField();
