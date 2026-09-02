@@ -1,3 +1,5 @@
+import 'package:harvest/core/db/database.dart';
+import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:workmanager/workmanager.dart';
 
 /// The 3 AM day-reset background job (business rule #1).
@@ -22,8 +24,14 @@ abstract final class DayResetJob {
 @pragma('vm:entry-point')
 void _dispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    // Phase 1 wires the real reset here: streak evaluation, freeze
-    // consumption, quest generation, notification scheduling.
+    // Runs in a background isolate: open a fresh database connection,
+    // judge the completed days, and close it again.
+    final db = HarvestDatabase();
+    try {
+      await StreakService(db).reconcile();
+    } finally {
+      await db.close();
+    }
     return true;
   });
 }

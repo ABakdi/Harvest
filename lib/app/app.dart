@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/app/bootstrap.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
@@ -10,6 +11,7 @@ class HarvestApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(appBootstrapProvider);
     final themeMode =
         ref.watch(themeModeSettingProvider).value ?? ThemeMode.system;
     final locale = ref.watch(localeSettingProvider).value;
