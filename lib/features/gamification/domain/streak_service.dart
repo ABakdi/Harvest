@@ -288,6 +288,7 @@ class StreakService {
           (c) =>
               c.type.equals(CommitmentType.habit.name) &
               c.archivedAt.isNull() &
+              c.pausedAt.isNull() & // vacation mode: not judged
               c.deletedAt.isNull(),
         ))
       .get();

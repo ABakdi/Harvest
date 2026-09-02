@@ -16,6 +16,7 @@ class Commitment {
     this.totalTarget,
     this.dailyCommitment,
     this.dueDay,
+    this.pausedAt,
     this.archivedAt,
   })  : assert(
           type != CommitmentType.habit || schedule != null,
@@ -42,9 +43,14 @@ class Commitment {
   /// To-dos only: the Harvest Day this is planned for.
   final HarvestDay? dueDay;
 
+  /// Habits only: vacation mode. A paused habit is neither due nor
+  /// judged, and its streak survives the break.
+  final DateTime? pausedAt;
+
   final DateTime? archivedAt;
 
   bool get isArchived => archivedAt != null;
+  bool get isPaused => pausedAt != null;
 
   /// Over-log cap (business rule #2): max units for a project in one day.
   int get maxUnitsPerDay =>
@@ -67,6 +73,7 @@ class Commitment {
         totalTarget: totalTarget ?? this.totalTarget,
         dailyCommitment: dailyCommitment ?? this.dailyCommitment,
         dueDay: dueDay ?? this.dueDay,
+        pausedAt: pausedAt,
         archivedAt: archivedAt ?? this.archivedAt,
       );
 }

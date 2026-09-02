@@ -68,4 +68,10 @@ class CommitmentEditor extends _$CommitmentEditor {
 
   Future<void> archive(String uuid) =>
       ref.read(commitmentsRepositoryProvider).archive(uuid);
+
+  Future<void> updateCommitment(Commitment commitment) =>
+      ref.read(commitmentsRepositoryProvider).update(commitment);
+
+  Future<void> setPaused(String uuid, {required bool paused}) =>
+      ref.read(commitmentsRepositoryProvider).setPaused(uuid, paused: paused);
 }

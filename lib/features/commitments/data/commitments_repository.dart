@@ -113,6 +113,19 @@ class CommitmentsRepository {
         await _appendOutbox('commitments', commitment.uuid, 'update');
       });
 
+  /// Vacation mode on/off for a habit.
+  Future<void> setPaused(String uuid, {required bool paused}) =>
+      _db.transaction(() async {
+        await (_db.update(_db.commitments)..where((c) => c.uuid.equals(uuid)))
+            .write(
+          CommitmentsCompanion(
+            pausedAt: Value(paused ? DateTime.now() : null),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        await _appendOutbox('commitments', uuid, 'update');
+      });
+
   Future<void> archive(String uuid) => _db.transaction(() async {
         await (_db.update(_db.commitments)..where((c) => c.uuid.equals(uuid)))
             .write(
@@ -148,6 +161,7 @@ class CommitmentsRepository {
         totalTarget: row.totalTarget,
         dailyCommitment: row.dailyCommitment,
         dueDay: row.dueDay == null ? null : HarvestDay.parse(row.dueDay!),
+        pausedAt: row.pausedAt,
         archivedAt: row.archivedAt,
       );
 
@@ -161,6 +175,7 @@ class CommitmentsRepository {
         totalTarget: Value(c.totalTarget),
         dailyCommitment: Value(c.dailyCommitment),
         dueDay: Value(c.dueDay?.key),
+        pausedAt: Value(c.pausedAt),
         archivedAt: Value(c.archivedAt),
       );
 }

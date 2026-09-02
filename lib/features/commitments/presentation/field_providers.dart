@@ -43,7 +43,8 @@ List<FieldItem> todayField(Ref ref) {
     );
 
     final visible = switch (commitment.type) {
-      CommitmentType.habit => loggedNow > 0 ||
+      CommitmentType.habit => commitment.isPaused ||
+          loggedNow > 0 ||
           commitment.schedule!.isDueOn(
             today,
             doneDaysThisWeek: weekDone[commitment.uuid] ?? 0,
@@ -56,7 +57,10 @@ List<FieldItem> todayField(Ref ref) {
   }
 
   items.sort((a, b) {
-    if (a.isDone != b.isDone) return a.isDone ? 1 : -1;
+    // Paused crops rest at the bottom, done ones just above them.
+    final aRank = a.commitment.isPaused ? 2 : (a.isDone ? 1 : 0);
+    final bRank = b.commitment.isPaused ? 2 : (b.isDone ? 1 : 0);
+    if (aRank != bRank) return aRank - bRank;
     return a.commitment.createdAt.compareTo(b.commitment.createdAt);
   });
   return items;

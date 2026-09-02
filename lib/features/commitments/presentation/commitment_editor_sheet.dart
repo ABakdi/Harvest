@@ -11,7 +11,10 @@ import 'package:harvest/features/commitments/presentation/check_in_controller.da
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-Future<void> showCommitmentEditor(BuildContext context) =>
+Future<void> showCommitmentEditor(
+  BuildContext context, {
+  Commitment? existing,
+}) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -20,13 +23,17 @@ Future<void> showCommitmentEditor(BuildContext context) =>
           top: Radius.circular(HarvestRadii.sheet),
         ),
       ),
-      builder: (_) => const _EditorSheet(),
+      builder: (_) => _EditorSheet(existing: existing),
     );
 
 enum _ScheduleKind { daily, weekly, interval, timesPerWeek }
 
 class _EditorSheet extends ConsumerStatefulWidget {
-  const _EditorSheet();
+  const _EditorSheet({this.existing});
+
+  /// Non-null puts the sheet in edit mode: type is fixed, fields are
+  /// prefilled, and saving updates instead of creating.
+  final Commitment? existing;
 
   @override
   ConsumerState<_EditorSheet> createState() => _EditorSheetState();
@@ -43,6 +50,38 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   final _dailyController = TextEditingController();
   var _dueToday = true;
   var _saving = false;
+
+  bool get _editing => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing == null) return;
+    _type = existing.type;
+    _titleController.text = existing.title;
+    _totalController.text = '${existing.totalTarget ?? ''}';
+    _dailyController.text = '${existing.dailyCommitment ?? ''}';
+    _dueToday = existing.dueDay == null ||
+        existing.dueDay!.compareTo(HarvestDay.today()) <= 0;
+    switch (existing.schedule) {
+      case DailySchedule():
+        _scheduleKind = _ScheduleKind.daily;
+      case WeeklySchedule(:final weekdays):
+        _scheduleKind = _ScheduleKind.weekly;
+        _weekdays
+          ..clear()
+          ..addAll(weekdays);
+      case IntervalSchedule(:final everyDays):
+        _scheduleKind = _ScheduleKind.interval;
+        _intervalDays = everyDays;
+      case TimesPerWeekSchedule(:final times):
+        _scheduleKind = _ScheduleKind.timesPerWeek;
+        _timesPerWeek = times;
+      case null:
+        break;
+    }
+  }
 
   @override
   void dispose() {
@@ -70,6 +109,13 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     setState(() => _saving = true);
     final editor = ref.read(commitmentEditorProvider.notifier);
     final title = _titleController.text.trim();
+
+    if (_editing) {
+      await _saveEdit(editor, title);
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+
     switch (_type) {
       case CommitmentType.habit:
         final schedule = switch (_scheduleKind) {
@@ -99,6 +145,32 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  Future<void> _saveEdit(CommitmentEditor editor, String title) async {
+    final existing = widget.existing!;
+    final schedule = switch (_scheduleKind) {
+      _ScheduleKind.daily => const DailySchedule(),
+      _ScheduleKind.weekly => WeeklySchedule(weekdays: {..._weekdays}),
+      _ScheduleKind.interval => IntervalSchedule(
+          everyDays: _intervalDays,
+          anchorDay: existing.schedule is IntervalSchedule
+              ? (existing.schedule! as IntervalSchedule).anchorDay
+              : HarvestDay.today(),
+        ),
+      _ScheduleKind.timesPerWeek => TimesPerWeekSchedule(times: _timesPerWeek),
+    };
+    await editor.updateCommitment(
+      existing.copyWith(
+        title: title,
+        schedule: existing.type == CommitmentType.habit ? schedule : null,
+        totalTarget: int.tryParse(_totalController.text),
+        dailyCommitment: int.tryParse(_dailyController.text),
+        dueDay: existing.type == CommitmentType.todo
+            ? (_dueToday ? HarvestDay.today() : HarvestDay.today().next)
+            : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -115,13 +187,14 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              l10n.addCommitment,
+              _editing ? l10n.editSeed : l10n.addCommitment,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: HarvestSpacing.md),
-            SegmentedButton<CommitmentType>(
+            if (!_editing)
+              SegmentedButton<CommitmentType>(
               segments: [
                 ButtonSegment(
                   value: CommitmentType.habit,
@@ -139,9 +212,9 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
                   icon: const Icon(Icons.check),
                 ),
               ],
-              selected: {_type},
-              onSelectionChanged: (s) => setState(() => _type = s.first),
-            ),
+                selected: {_type},
+                onSelectionChanged: (s) => setState(() => _type = s.first),
+              ),
             const SizedBox(height: HarvestSpacing.md),
             TextField(
               controller: _titleController,
