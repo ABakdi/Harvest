@@ -35,12 +35,25 @@ class GamificationRepository {
     return query.watchSingle().map((row) => row.read(sum) ?? 0);
   }
 
+  /// Lifetime coin balance — earnings minus spending over the ledger.
+  Stream<int> watchCoinTotal() {
+    final sum = _db.ledger.delta.sum();
+    final query = _db.selectOnly(_db.ledger)
+      ..addColumns([sum])
+      ..where(_db.ledger.kind.equals('coin'));
+    return query.watchSingle().map((row) => row.read(sum) ?? 0);
+  }
+
   /// The global streak row; zeros until the streak engine writes it.
-  Stream<({int current, int best})> watchGlobalStreak() {
+  Stream<({int current, int best, int freezes})> watchGlobalStreak() {
     final query = _db.select(_db.streaks)
       ..where((s) => s.scope.equals('global'));
     return query.watchSingleOrNull().map(
-          (row) => (current: row?.current ?? 0, best: row?.best ?? 0),
+          (row) => (
+            current: row?.current ?? 0,
+            best: row?.best ?? 0,
+            freezes: row?.freezesStored ?? 0,
+          ),
         );
   }
 }
@@ -54,5 +67,9 @@ Stream<int> xpTotal(Ref ref) =>
     ref.watch(gamificationRepositoryProvider).watchXpTotal();
 
 @riverpod
-Stream<({int current, int best})> globalStreak(Ref ref) =>
+Stream<({int current, int best, int freezes})> globalStreak(Ref ref) =>
     ref.watch(gamificationRepositoryProvider).watchGlobalStreak();
+
+@riverpod
+Stream<int> coinTotal(Ref ref) =>
+    ref.watch(gamificationRepositoryProvider).watchCoinTotal();

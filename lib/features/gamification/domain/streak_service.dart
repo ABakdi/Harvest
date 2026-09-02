@@ -14,6 +14,10 @@ part 'streak_service.g.dart';
 /// Coin rewards for global streak milestones.
 const streakMilestoneCoins = {7: 50, 30: 200, 100: 1000};
 
+/// Streak Freeze economy: price in coins and the storage cap.
+const freezeCost = 100;
+const maxFreezesStored = 2;
+
 /// Maintains the global and per-habit streaks (business rules #1 and #4).
 ///
 /// Two entry points keep it correct:
@@ -139,6 +143,41 @@ class StreakService {
         freezesStored: streak.freezesStored,
       );
     }
+  }
+
+  /// Buys one Streak Freeze with coins. Returns false when the balance
+  /// is short or the shed is full (max [maxFreezesStored]).
+  Future<bool> buyFreeze({HarvestDay? day}) async {
+    final today = day ?? HarvestDay.today();
+    final streak = await _row(globalScope);
+    if (streak.freezesStored >= maxFreezesStored) return false;
+
+    final sum = _db.ledger.delta.sum();
+    final query = _db.selectOnly(_db.ledger)
+      ..addColumns([sum])
+      ..where(_db.ledger.kind.equals('coin'));
+    final balance = (await query.getSingle()).read(sum) ?? 0;
+    if (balance < freezeCost) return false;
+
+    await _db.transaction(() async {
+      await _db.into(_db.ledger).insert(
+            LedgerCompanion.insert(
+              uuid: _uuid.v4(),
+              kind: 'coin',
+              delta: -freezeCost,
+              reason: 'freeze:buy',
+              harvestDay: today.key,
+            ),
+          );
+      await _write(
+        scope: globalScope,
+        current: streak.current,
+        best: streak.best,
+        lastEarnedDay: streak.lastEarnedDay,
+        freezesStored: streak.freezesStored + 1,
+      );
+    });
+    return true;
   }
 
   // -------------------------------------------------------- reconcile

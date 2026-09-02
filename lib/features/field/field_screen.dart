@@ -13,6 +13,8 @@ import 'package:harvest/features/commitments/presentation/check_in_controller.da
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
+import 'package:harvest/features/gamification/presentation/quests_section.dart';
+import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 class FieldScreen extends ConsumerWidget {
@@ -31,7 +33,14 @@ class FieldScreen extends ConsumerWidget {
         actions: [
           Padding(
             padding: const EdgeInsetsDirectional.only(end: HarvestSpacing.md),
-            child: StreakFlame(days: streak?.current ?? 0),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(HarvestRadii.button),
+              onTap: () => unawaited(showStreakSheet(context)),
+              child: Padding(
+                padding: const EdgeInsets.all(HarvestSpacing.xs),
+                child: StreakFlame(days: streak?.current ?? 0),
+              ),
+            ),
           ),
         ],
       ),
@@ -52,6 +61,8 @@ class FieldScreen extends ConsumerWidget {
               rankLabel: _rankLabel(l10n, FarmerRank.forXp(xp)),
             ),
           ),
+          const SizedBox(height: HarvestSpacing.md),
+          const QuestsSection(),
           const SizedBox(height: HarvestSpacing.sm),
           Expanded(
             child: items.isEmpty

@@ -96,13 +96,13 @@ final globalStreakProvider = GlobalStreakProvider._();
 final class GlobalStreakProvider
     extends
         $FunctionalProvider<
-          AsyncValue<({int best, int current})>,
-          ({int best, int current}),
-          Stream<({int best, int current})>
+          AsyncValue<({int best, int current, int freezes})>,
+          ({int best, int current, int freezes}),
+          Stream<({int best, int current, int freezes})>
         >
     with
-        $FutureModifier<({int best, int current})>,
-        $StreamProvider<({int best, int current})> {
+        $FutureModifier<({int best, int current, int freezes})>,
+        $StreamProvider<({int best, int current, int freezes})> {
   GlobalStreakProvider._()
     : super(
         from: null,
@@ -119,14 +119,47 @@ final class GlobalStreakProvider
 
   @$internal
   @override
-  $StreamProviderElement<({int best, int current})> $createElement(
+  $StreamProviderElement<({int best, int current, int freezes})> $createElement(
     $ProviderPointer pointer,
   ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<({int best, int current})> create(Ref ref) {
+  Stream<({int best, int current, int freezes})> create(Ref ref) {
     return globalStreak(ref);
   }
 }
 
-String _$globalStreakHash() => r'845714106f95816ccabb62f9d418d734bd68fa24';
+String _$globalStreakHash() => r'e7a97de60cdbf64d9fba712615a6ef71885b6062';
+
+@ProviderFor(coinTotal)
+final coinTotalProvider = CoinTotalProvider._();
+
+final class CoinTotalProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
+    with $FutureModifier<int>, $StreamProvider<int> {
+  CoinTotalProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'coinTotalProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$coinTotalHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<int> create(Ref ref) {
+    return coinTotal(ref);
+  }
+}
+
+String _$coinTotalHash() => r'5de7c782932d0edeca79841574cd6a517f1ab578';
