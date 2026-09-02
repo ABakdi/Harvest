@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/core/l10n_loader.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
@@ -9,6 +11,12 @@ part 'pomodoro_controller.g.dart';
 
 /// Notification id reserved for the ongoing timer.
 const _timerNotificationId = 9001;
+
+/// Action ids on the ongoing timer notification.
+abstract final class PomodoroActions {
+  static const pause = 'pomodoro.pause';
+  static const abandon = 'pomodoro.abandon';
+}
 
 /// Drives the pomodoro state machine. All timing derives from wall-clock
 /// instants persisted by [PomodoroService]; [evaluate] advances the
@@ -21,7 +29,13 @@ class PomodoroController extends _$PomodoroController {
   Future<PomodoroSnapshot?> build() async {
     final snapshot = await ref.watch(pomodoroServiceProvider).loadActive();
     if (snapshot == null) return null;
-    return _advance(snapshot);
+    final advanced = await _advance(snapshot);
+    // A process restart clears the ongoing notification; re-post it for
+    // a session that is still running.
+    if (advanced == snapshot && advanced.isRunning) {
+      await _showOngoing(advanced);
+    }
+    return advanced;
   }
 
   PomodoroService get _service => ref.read(pomodoroServiceProvider);
@@ -50,6 +64,7 @@ class PomodoroController extends _$PomodoroController {
     final paused = snapshot.copyWith(
       clearEndsAt: true,
       pausedRemaining: remaining.isNegative ? Duration.zero : remaining,
+      userPaused: true,
     );
     await _service.saveActive(paused);
     await _cancelOngoing();
@@ -62,6 +77,7 @@ class PomodoroController extends _$PomodoroController {
     final running = snapshot.copyWith(
       endsAt: DateTime.now().add(snapshot.pausedRemaining!),
       clearPausedRemaining: true,
+      userPaused: false,
     );
     await _service.saveActive(running);
     await _showOngoing(running);
@@ -134,11 +150,18 @@ class PomodoroController extends _$PomodoroController {
 
   Future<void> _showOngoing(PomodoroSnapshot snapshot) async {
     final notifications = ref.read(notificationServiceProvider);
+    final l10n = await localizationsFromSettings(ref.read(databaseProvider));
     await notifications.showCountdown(
       id: _timerNotificationId,
       channelId: NotificationChannels.pomodoro,
-      title: 'Harvest',
+      title: snapshot.phase == PomodoroPhase.focus
+          ? l10n.phaseFocus
+          : l10n.phaseShortBreak,
       until: snapshot.endsAt!,
+      actions: [
+        (PomodoroActions.pause, l10n.pause),
+        (PomodoroActions.abandon, l10n.abandonSession),
+      ],
     );
   }
 

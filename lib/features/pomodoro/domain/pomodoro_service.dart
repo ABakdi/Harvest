@@ -46,6 +46,7 @@ class PomodoroSnapshot {
     this.commitmentUuid,
     this.endsAt,
     this.pausedRemaining,
+    this.userPaused = false,
   }) : assert(
           (endsAt == null) != (pausedRemaining == null),
           'exactly one of endsAt / pausedRemaining must be set',
@@ -63,6 +64,7 @@ class PomodoroSnapshot {
         pausedRemaining: json['pausedRemaining'] == null
             ? null
             : Duration(seconds: json['pausedRemaining'] as int),
+        userPaused: json['userPaused'] as bool? ?? false,
       );
 
 
@@ -77,6 +79,9 @@ class PomodoroSnapshot {
   /// Paused (or waiting to start the next phase): time left on the clock.
   final Duration? pausedRemaining;
 
+  /// True when the farmer pressed pause (vs. a break running out).
+  final bool userPaused;
+
   bool get isRunning => endsAt != null;
 
   Duration remaining(DateTime now) => isRunning
@@ -90,6 +95,7 @@ class PomodoroSnapshot {
         'commitmentUuid': commitmentUuid,
         'endsAt': endsAt?.toIso8601String(),
         'pausedRemaining': pausedRemaining?.inSeconds,
+        'userPaused': userPaused,
       };
 
   PomodoroSnapshot copyWith({
@@ -99,6 +105,7 @@ class PomodoroSnapshot {
     Duration? pausedRemaining,
     bool clearEndsAt = false,
     bool clearPausedRemaining = false,
+    bool? userPaused,
   }) =>
       PomodoroSnapshot(
         sessionUuid: sessionUuid,
@@ -109,6 +116,7 @@ class PomodoroSnapshot {
         pausedRemaining: clearPausedRemaining
             ? null
             : pausedRemaining ?? this.pausedRemaining,
+        userPaused: userPaused ?? this.userPaused,
       );
 }
 

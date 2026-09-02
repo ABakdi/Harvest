@@ -23,6 +23,9 @@ class NotificationService {
   /// Invoked with the notification payload when the user taps one.
   void Function(String payload)? onTap;
 
+  /// Invoked with the action id when the user taps a notification action.
+  void Function(String actionId)? onAction;
+
   Future<void> initialize() async {
     if (_initialized) return;
     tz.initializeTimeZones();
@@ -33,6 +36,11 @@ class NotificationService {
     await _plugin.initialize(
       settings: settings,
       onDidReceiveNotificationResponse: (response) {
+        final actionId = response.actionId;
+        if (actionId != null && actionId.isNotEmpty) {
+          onAction?.call(actionId);
+          return;
+        }
         final payload = response.payload;
         if (payload != null && payload.isNotEmpty) onTap?.call(payload);
       },
@@ -105,6 +113,7 @@ class NotificationService {
     required String channelId,
     required String title,
     required DateTime until,
+    List<(String, String)> actions = const [],
   }) async {
     try {
       await initialize();
@@ -122,6 +131,15 @@ class NotificationService {
             usesChronometer: true,
             chronometerCountDown: true,
             when: until.millisecondsSinceEpoch,
+            actions: [
+              for (final (actionId, label) in actions)
+                AndroidNotificationAction(
+                  actionId,
+                  label,
+                  // Deliver the tap to the running app.
+                  showsUserInterface: true,
+                ),
+            ],
           ),
           iOS: const DarwinNotificationDetails(),
         ),

@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:ui' show Locale;
 
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart' show TimeOfDay;
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/l10n_loader.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -202,17 +202,7 @@ class NotificationPlanner {
     return actions >= goal;
   }
 
-  Future<AppLocalizations> _l10n() async {
-    final row = await (_db.select(_db.kvSettings)
-          ..where((s) => s.key.equals('locale')))
-        .getSingleOrNull();
-    var code = 'en';
-    if (row != null) {
-      final value = jsonDecode(row.valueJson);
-      if (value == 'ar') code = 'ar';
-    }
-    return lookupAppLocalizations(Locale(code));
-  }
+  Future<AppLocalizations> _l10n() => localizationsFromSettings(_db);
 
   DateTime _todayAt(TimeOfDay time, DateTime now) =>
       DateTime(now.year, now.month, now.day, time.hour, time.minute);

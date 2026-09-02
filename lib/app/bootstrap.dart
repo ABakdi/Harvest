@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/features/gamification/domain/quest_service.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
+import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'bootstrap.g.dart';
@@ -12,6 +15,15 @@ part 'bootstrap.g.dart';
 /// the 3 AM background job (business rule #1).
 @Riverpod(keepAlive: true)
 Future<void> appBootstrap(Ref ref) async {
+  ref.read(notificationServiceProvider).onAction = (actionId) {
+    final pomodoro = ref.read(pomodoroControllerProvider.notifier);
+    switch (actionId) {
+      case PomodoroActions.pause:
+        unawaited(pomodoro.pause());
+      case PomodoroActions.abandon:
+        unawaited(pomodoro.abandon());
+    }
+  };
   ref.read(notificationServiceProvider).onTap = (payload) {
     final router = ref.read(routerProvider);
     switch (payload) {

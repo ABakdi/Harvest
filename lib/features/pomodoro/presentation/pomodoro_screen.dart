@@ -53,8 +53,10 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
         ? total
         : _clampDuration(snapshot.remaining(DateTime.now()), total);
     final isBreak = phase != PomodoroPhase.focus;
-    final waitingNextFocus =
-        snapshot != null && !snapshot.isRunning && !isBreak;
+    final waitingNextFocus = snapshot != null &&
+        !snapshot.isRunning &&
+        !isBreak &&
+        !snapshot.userPaused;
 
     return Scaffold(
       appBar: AppBar(
