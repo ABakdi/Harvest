@@ -89,6 +89,37 @@ class $CommitmentsTable extends Commitments
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remindAtMeta = const VerificationMeta(
+    'remindAt',
+  );
+  @override
+  late final GeneratedColumn<String> remindAt = GeneratedColumn<String>(
+    'remind_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deadlineMeta = const VerificationMeta(
+    'deadline',
+  );
+  @override
+  late final GeneratedColumn<String> deadline = GeneratedColumn<String>(
+    'deadline',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _archivedAtMeta = const VerificationMeta(
     'archivedAt',
   );
@@ -145,6 +176,9 @@ class $CommitmentsTable extends Commitments
     dailyCommitment,
     dueDay,
     pausedAt,
+    note,
+    remindAt,
+    deadline,
     archivedAt,
     deletedAt,
     createdAt,
@@ -225,6 +259,24 @@ class $CommitmentsTable extends Commitments
         pausedAt.isAcceptableOrUnknown(data['paused_at']!, _pausedAtMeta),
       );
     }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('remind_at')) {
+      context.handle(
+        _remindAtMeta,
+        remindAt.isAcceptableOrUnknown(data['remind_at']!, _remindAtMeta),
+      );
+    }
+    if (data.containsKey('deadline')) {
+      context.handle(
+        _deadlineMeta,
+        deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta),
+      );
+    }
     if (data.containsKey('archived_at')) {
       context.handle(
         _archivedAtMeta,
@@ -290,6 +342,18 @@ class $CommitmentsTable extends Commitments
         DriftSqlType.dateTime,
         data['${effectivePrefix}paused_at'],
       ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      remindAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remind_at'],
+      ),
+      deadline: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}deadline'],
+      ),
       archivedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}archived_at'],
@@ -336,6 +400,15 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
   /// Habits only: vacation mode — paused habits are neither due nor
   /// judged, and their streak survives the break.
   final DateTime? pausedAt;
+
+  /// Free-form note shown with the seed.
+  final String? note;
+
+  /// Per-seed reminder time ("HH:mm"), fired on days the seed is due.
+  final String? remindAt;
+
+  /// Accomplish-before day (yyyy-MM-dd); overdue seeds turn urgent.
+  final String? deadline;
   final DateTime? archivedAt;
   final DateTime? deletedAt;
   final DateTime createdAt;
@@ -349,6 +422,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     this.dailyCommitment,
     this.dueDay,
     this.pausedAt,
+    this.note,
+    this.remindAt,
+    this.deadline,
     this.archivedAt,
     this.deletedAt,
     required this.createdAt,
@@ -374,6 +450,15 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     }
     if (!nullToAbsent || pausedAt != null) {
       map['paused_at'] = Variable<DateTime>(pausedAt);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || remindAt != null) {
+      map['remind_at'] = Variable<String>(remindAt);
+    }
+    if (!nullToAbsent || deadline != null) {
+      map['deadline'] = Variable<String>(deadline);
     }
     if (!nullToAbsent || archivedAt != null) {
       map['archived_at'] = Variable<DateTime>(archivedAt);
@@ -406,6 +491,13 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       pausedAt: pausedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(pausedAt),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      remindAt: remindAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindAt),
+      deadline: deadline == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadline),
       archivedAt: archivedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(archivedAt),
@@ -431,6 +523,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       dailyCommitment: serializer.fromJson<int?>(json['dailyCommitment']),
       dueDay: serializer.fromJson<String?>(json['dueDay']),
       pausedAt: serializer.fromJson<DateTime?>(json['pausedAt']),
+      note: serializer.fromJson<String?>(json['note']),
+      remindAt: serializer.fromJson<String?>(json['remindAt']),
+      deadline: serializer.fromJson<String?>(json['deadline']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -449,6 +544,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       'dailyCommitment': serializer.toJson<int?>(dailyCommitment),
       'dueDay': serializer.toJson<String?>(dueDay),
       'pausedAt': serializer.toJson<DateTime?>(pausedAt),
+      'note': serializer.toJson<String?>(note),
+      'remindAt': serializer.toJson<String?>(remindAt),
+      'deadline': serializer.toJson<String?>(deadline),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -465,6 +563,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     Value<int?> dailyCommitment = const Value.absent(),
     Value<String?> dueDay = const Value.absent(),
     Value<DateTime?> pausedAt = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    Value<String?> remindAt = const Value.absent(),
+    Value<String?> deadline = const Value.absent(),
     Value<DateTime?> archivedAt = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
@@ -480,6 +581,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
         : this.dailyCommitment,
     dueDay: dueDay.present ? dueDay.value : this.dueDay,
     pausedAt: pausedAt.present ? pausedAt.value : this.pausedAt,
+    note: note.present ? note.value : this.note,
+    remindAt: remindAt.present ? remindAt.value : this.remindAt,
+    deadline: deadline.present ? deadline.value : this.deadline,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
@@ -501,6 +605,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           : this.dailyCommitment,
       dueDay: data.dueDay.present ? data.dueDay.value : this.dueDay,
       pausedAt: data.pausedAt.present ? data.pausedAt.value : this.pausedAt,
+      note: data.note.present ? data.note.value : this.note,
+      remindAt: data.remindAt.present ? data.remindAt.value : this.remindAt,
+      deadline: data.deadline.present ? data.deadline.value : this.deadline,
       archivedAt: data.archivedAt.present
           ? data.archivedAt.value
           : this.archivedAt,
@@ -521,6 +628,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           ..write('dailyCommitment: $dailyCommitment, ')
           ..write('dueDay: $dueDay, ')
           ..write('pausedAt: $pausedAt, ')
+          ..write('note: $note, ')
+          ..write('remindAt: $remindAt, ')
+          ..write('deadline: $deadline, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -539,6 +649,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     dailyCommitment,
     dueDay,
     pausedAt,
+    note,
+    remindAt,
+    deadline,
     archivedAt,
     deletedAt,
     createdAt,
@@ -556,6 +669,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           other.dailyCommitment == this.dailyCommitment &&
           other.dueDay == this.dueDay &&
           other.pausedAt == this.pausedAt &&
+          other.note == this.note &&
+          other.remindAt == this.remindAt &&
+          other.deadline == this.deadline &&
           other.archivedAt == this.archivedAt &&
           other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
@@ -571,6 +687,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
   final Value<int?> dailyCommitment;
   final Value<String?> dueDay;
   final Value<DateTime?> pausedAt;
+  final Value<String?> note;
+  final Value<String?> remindAt;
+  final Value<String?> deadline;
   final Value<DateTime?> archivedAt;
   final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
@@ -585,6 +704,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.dailyCommitment = const Value.absent(),
     this.dueDay = const Value.absent(),
     this.pausedAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.remindAt = const Value.absent(),
+    this.deadline = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -600,6 +722,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.dailyCommitment = const Value.absent(),
     this.dueDay = const Value.absent(),
     this.pausedAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.remindAt = const Value.absent(),
+    this.deadline = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -617,6 +742,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Expression<int>? dailyCommitment,
     Expression<String>? dueDay,
     Expression<DateTime>? pausedAt,
+    Expression<String>? note,
+    Expression<String>? remindAt,
+    Expression<String>? deadline,
     Expression<DateTime>? archivedAt,
     Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
@@ -632,6 +760,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       if (dailyCommitment != null) 'daily_commitment': dailyCommitment,
       if (dueDay != null) 'due_day': dueDay,
       if (pausedAt != null) 'paused_at': pausedAt,
+      if (note != null) 'note': note,
+      if (remindAt != null) 'remind_at': remindAt,
+      if (deadline != null) 'deadline': deadline,
       if (archivedAt != null) 'archived_at': archivedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
@@ -649,6 +780,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Value<int?>? dailyCommitment,
     Value<String?>? dueDay,
     Value<DateTime?>? pausedAt,
+    Value<String?>? note,
+    Value<String?>? remindAt,
+    Value<String?>? deadline,
     Value<DateTime?>? archivedAt,
     Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
@@ -664,6 +798,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       dailyCommitment: dailyCommitment ?? this.dailyCommitment,
       dueDay: dueDay ?? this.dueDay,
       pausedAt: pausedAt ?? this.pausedAt,
+      note: note ?? this.note,
+      remindAt: remindAt ?? this.remindAt,
+      deadline: deadline ?? this.deadline,
       archivedAt: archivedAt ?? this.archivedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
@@ -699,6 +836,15 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     if (pausedAt.present) {
       map['paused_at'] = Variable<DateTime>(pausedAt.value);
     }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (remindAt.present) {
+      map['remind_at'] = Variable<String>(remindAt.value);
+    }
+    if (deadline.present) {
+      map['deadline'] = Variable<String>(deadline.value);
+    }
     if (archivedAt.present) {
       map['archived_at'] = Variable<DateTime>(archivedAt.value);
     }
@@ -728,6 +874,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
           ..write('dailyCommitment: $dailyCommitment, ')
           ..write('dueDay: $dueDay, ')
           ..write('pausedAt: $pausedAt, ')
+          ..write('note: $note, ')
+          ..write('remindAt: $remindAt, ')
+          ..write('deadline: $deadline, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -3462,6 +3611,371 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   }
 }
 
+class $ExpenseCategoriesTable extends ExpenseCategories
+    with TableInfo<$ExpenseCategoriesTable, ExpenseCategoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExpenseCategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    name,
+    icon,
+    deletedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'expense_categories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExpenseCategoryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_iconMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  ExpenseCategoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExpenseCategoryRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExpenseCategoriesTable createAlias(String alias) {
+    return $ExpenseCategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class ExpenseCategoryRow extends DataClass
+    implements Insertable<ExpenseCategoryRow> {
+  final String uuid;
+
+  /// Display name; doubles as the key stored on expenses.
+  final String name;
+
+  /// Icon key resolved through the app's icon map.
+  final String icon;
+  final DateTime? deletedAt;
+  final DateTime updatedAt;
+  const ExpenseCategoryRow({
+    required this.uuid,
+    required this.name,
+    required this.icon,
+    this.deletedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['name'] = Variable<String>(name);
+    map['icon'] = Variable<String>(icon);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ExpenseCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return ExpenseCategoriesCompanion(
+      uuid: Value(uuid),
+      name: Value(name),
+      icon: Value(icon),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ExpenseCategoryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExpenseCategoryRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      name: serializer.fromJson<String>(json['name']),
+      icon: serializer.fromJson<String>(json['icon']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'name': serializer.toJson<String>(name),
+      'icon': serializer.toJson<String>(icon),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ExpenseCategoryRow copyWith({
+    String? uuid,
+    String? name,
+    String? icon,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => ExpenseCategoryRow(
+    uuid: uuid ?? this.uuid,
+    name: name ?? this.name,
+    icon: icon ?? this.icon,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ExpenseCategoryRow copyWithCompanion(ExpenseCategoriesCompanion data) {
+    return ExpenseCategoryRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      name: data.name.present ? data.name.value : this.name,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpenseCategoryRow(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('icon: $icon, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uuid, name, icon, deletedAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExpenseCategoryRow &&
+          other.uuid == this.uuid &&
+          other.name == this.name &&
+          other.icon == this.icon &&
+          other.deletedAt == this.deletedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
+  final Value<String> uuid;
+  final Value<String> name;
+  final Value<String> icon;
+  final Value<DateTime?> deletedAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ExpenseCategoriesCompanion({
+    this.uuid = const Value.absent(),
+    this.name = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExpenseCategoriesCompanion.insert({
+    required String uuid,
+    required String name,
+    required String icon,
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       name = Value(name),
+       icon = Value(icon);
+  static Insertable<ExpenseCategoryRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? name,
+    Expression<String>? icon,
+    Expression<DateTime>? deletedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (name != null) 'name': name,
+      if (icon != null) 'icon': icon,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExpenseCategoriesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? name,
+    Value<String>? icon,
+    Value<DateTime?>? deletedAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ExpenseCategoriesCompanion(
+      uuid: uuid ?? this.uuid,
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+      deletedAt: deletedAt ?? this.deletedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpenseCategoriesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('icon: $icon, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OutboxTable extends Outbox with TableInfo<$OutboxTable, OutboxData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4090,6 +4604,8 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     this,
   );
   late final $ExpensesTable expenses = $ExpensesTable(this);
+  late final $ExpenseCategoriesTable expenseCategories =
+      $ExpenseCategoriesTable(this);
   late final $OutboxTable outbox = $OutboxTable(this);
   late final $KvSettingsTable kvSettings = $KvSettingsTable(this);
   @override
@@ -4104,6 +4620,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     quests,
     pomodoroSessions,
     expenses,
+    expenseCategories,
     outbox,
     kvSettings,
   ];
@@ -4119,6 +4636,9 @@ typedef $$CommitmentsTableCreateCompanionBuilder =
       Value<int?> dailyCommitment,
       Value<String?> dueDay,
       Value<DateTime?> pausedAt,
+      Value<String?> note,
+      Value<String?> remindAt,
+      Value<String?> deadline,
       Value<DateTime?> archivedAt,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
@@ -4135,6 +4655,9 @@ typedef $$CommitmentsTableUpdateCompanionBuilder =
       Value<int?> dailyCommitment,
       Value<String?> dueDay,
       Value<DateTime?> pausedAt,
+      Value<String?> note,
+      Value<String?> remindAt,
+      Value<String?> deadline,
       Value<DateTime?> archivedAt,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
@@ -4211,6 +4734,21 @@ class $$CommitmentsTableFilterComposer
 
   ColumnFilters<DateTime> get pausedAt => $composableBuilder(
     column: $table.pausedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remindAt => $composableBuilder(
+    column: $table.remindAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deadline => $composableBuilder(
+    column: $table.deadline,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4309,6 +4847,21 @@ class $$CommitmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remindAt => $composableBuilder(
+    column: $table.remindAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deadline => $composableBuilder(
+    column: $table.deadline,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
     column: $table.archivedAt,
     builder: (column) => ColumnOrderings(column),
@@ -4368,6 +4921,15 @@ class $$CommitmentsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get pausedAt =>
       $composableBuilder(column: $table.pausedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get remindAt =>
+      $composableBuilder(column: $table.remindAt, builder: (column) => column);
+
+  GeneratedColumn<String> get deadline =>
+      $composableBuilder(column: $table.deadline, builder: (column) => column);
 
   GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
     column: $table.archivedAt,
@@ -4445,6 +5007,9 @@ class $$CommitmentsTableTableManager
                 Value<int?> dailyCommitment = const Value.absent(),
                 Value<String?> dueDay = const Value.absent(),
                 Value<DateTime?> pausedAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> remindAt = const Value.absent(),
+                Value<String?> deadline = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4459,6 +5024,9 @@ class $$CommitmentsTableTableManager
                 dailyCommitment: dailyCommitment,
                 dueDay: dueDay,
                 pausedAt: pausedAt,
+                note: note,
+                remindAt: remindAt,
+                deadline: deadline,
                 archivedAt: archivedAt,
                 deletedAt: deletedAt,
                 createdAt: createdAt,
@@ -4475,6 +5043,9 @@ class $$CommitmentsTableTableManager
                 Value<int?> dailyCommitment = const Value.absent(),
                 Value<String?> dueDay = const Value.absent(),
                 Value<DateTime?> pausedAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> remindAt = const Value.absent(),
+                Value<String?> deadline = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4489,6 +5060,9 @@ class $$CommitmentsTableTableManager
                 dailyCommitment: dailyCommitment,
                 dueDay: dueDay,
                 pausedAt: pausedAt,
+                note: note,
+                remindAt: remindAt,
+                deadline: deadline,
                 archivedAt: archivedAt,
                 deletedAt: deletedAt,
                 createdAt: createdAt,
@@ -6069,6 +6643,219 @@ typedef $$ExpensesTableProcessedTableManager =
       ExpenseRow,
       PrefetchHooks Function()
     >;
+typedef $$ExpenseCategoriesTableCreateCompanionBuilder =
+    ExpenseCategoriesCompanion Function({
+      required String uuid,
+      required String name,
+      required String icon,
+      Value<DateTime?> deletedAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ExpenseCategoriesTableUpdateCompanionBuilder =
+    ExpenseCategoriesCompanion Function({
+      Value<String> uuid,
+      Value<String> name,
+      Value<String> icon,
+      Value<DateTime?> deletedAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ExpenseCategoriesTableFilterComposer
+    extends Composer<_$HarvestDatabase, $ExpenseCategoriesTable> {
+  $$ExpenseCategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExpenseCategoriesTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $ExpenseCategoriesTable> {
+  $$ExpenseCategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExpenseCategoriesTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $ExpenseCategoriesTable> {
+  $$ExpenseCategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ExpenseCategoriesTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $ExpenseCategoriesTable,
+          ExpenseCategoryRow,
+          $$ExpenseCategoriesTableFilterComposer,
+          $$ExpenseCategoriesTableOrderingComposer,
+          $$ExpenseCategoriesTableAnnotationComposer,
+          $$ExpenseCategoriesTableCreateCompanionBuilder,
+          $$ExpenseCategoriesTableUpdateCompanionBuilder,
+          (
+            ExpenseCategoryRow,
+            BaseReferences<
+              _$HarvestDatabase,
+              $ExpenseCategoriesTable,
+              ExpenseCategoryRow
+            >,
+          ),
+          ExpenseCategoryRow,
+          PrefetchHooks Function()
+        > {
+  $$ExpenseCategoriesTableTableManager(
+    _$HarvestDatabase db,
+    $ExpenseCategoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExpenseCategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExpenseCategoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExpenseCategoriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> icon = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExpenseCategoriesCompanion(
+                uuid: uuid,
+                name: name,
+                icon: icon,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String name,
+                required String icon,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExpenseCategoriesCompanion.insert(
+                uuid: uuid,
+                name: name,
+                icon: icon,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExpenseCategoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $ExpenseCategoriesTable,
+      ExpenseCategoryRow,
+      $$ExpenseCategoriesTableFilterComposer,
+      $$ExpenseCategoriesTableOrderingComposer,
+      $$ExpenseCategoriesTableAnnotationComposer,
+      $$ExpenseCategoriesTableCreateCompanionBuilder,
+      $$ExpenseCategoriesTableUpdateCompanionBuilder,
+      (
+        ExpenseCategoryRow,
+        BaseReferences<
+          _$HarvestDatabase,
+          $ExpenseCategoriesTable,
+          ExpenseCategoryRow
+        >,
+      ),
+      ExpenseCategoryRow,
+      PrefetchHooks Function()
+    >;
 typedef $$OutboxTableCreateCompanionBuilder = OutboxCompanion Function({
   Value<int> seq,
   required String targetTable,
@@ -6438,6 +7225,8 @@ class $HarvestDatabaseManager {
       $$PomodoroSessionsTableTableManager(_db, _db.pomodoroSessions);
   $$ExpensesTableTableManager get expenses =>
       $$ExpensesTableTableManager(_db, _db.expenses);
+  $$ExpenseCategoriesTableTableManager get expenseCategories =>
+      $$ExpenseCategoriesTableTableManager(_db, _db.expenseCategories);
   $$OutboxTableTableManager get outbox =>
       $$OutboxTableTableManager(_db, _db.outbox);
   $$KvSettingsTableTableManager get kvSettings =>

@@ -27,6 +27,15 @@ class Commitments extends Table {
   /// judged, and their streak survives the break.
   DateTimeColumn get pausedAt => dateTime().nullable()();
 
+  /// Free-form note shown with the seed.
+  TextColumn get note => text().nullable()();
+
+  /// Per-seed reminder time ("HH:mm"), fired on days the seed is due.
+  TextColumn get remindAt => text().nullable()();
+
+  /// Accomplish-before day (yyyy-MM-dd); overdue seeds turn urgent.
+  TextColumn get deadline => text().nullable()();
+
   DateTimeColumn get archivedAt => dateTime().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -133,6 +142,23 @@ class Expenses extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
+/// User-created expense categories layered on top of the presets.
+@DataClassName('ExpenseCategoryRow')
+class ExpenseCategories extends Table {
+  TextColumn get uuid => text()();
+
+  /// Display name; doubles as the key stored on expenses.
+  TextColumn get name => text()();
+
+  /// Icon key resolved through the app's icon map.
+  TextColumn get icon => text()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
 /// Change log for the future sync client — appended on every local write.
 class Outbox extends Table {
   IntColumn get seq => integer().autoIncrement()();
@@ -163,6 +189,7 @@ class KvSettings extends Table {
     Quests,
     PomodoroSessions,
     Expenses,
+    ExpenseCategories,
     Outbox,
     KvSettings,
   ],
@@ -173,7 +200,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -183,6 +210,12 @@ class HarvestDatabase extends _$HarvestDatabase {
           }
           if (from < 3) {
             await m.addColumn(commitments, commitments.pausedAt);
+          }
+          if (from < 4) {
+            await m.addColumn(commitments, commitments.note);
+            await m.addColumn(commitments, commitments.remindAt);
+            await m.addColumn(commitments, commitments.deadline);
+            await m.createTable(expenseCategories);
           }
         },
       );
