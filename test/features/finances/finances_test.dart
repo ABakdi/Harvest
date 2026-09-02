@@ -103,12 +103,12 @@ void main() {
     test('first log of the day earns XP once', () async {
       await repo.log(
         amountMinor: 500,
-        category: ExpenseCategory.food,
+        category: ExpenseCategory.food.name,
         day: day,
       );
       await repo.log(
         amountMinor: 1200,
-        category: ExpenseCategory.transport,
+        category: ExpenseCategory.transport.name,
         day: day,
       );
       expect(await xpTotal(), expenseLogXp);
@@ -116,7 +116,7 @@ void main() {
       // A new day earns again.
       await repo.log(
         amountMinor: 800,
-        category: ExpenseCategory.food,
+        category: ExpenseCategory.food.name,
         day: day.next,
       );
       expect(await xpTotal(), 2 * expenseLogXp);
@@ -125,7 +125,7 @@ void main() {
     test('writes land in the outbox', () async {
       await repo.log(
         amountMinor: 500,
-        category: ExpenseCategory.food,
+        category: ExpenseCategory.food.name,
         day: day,
       );
       final ops = await db.select(db.outbox).get();
@@ -137,7 +137,7 @@ void main() {
         final d = HarvestDay.parse('2026-09-0$i');
         await repo.log(
           amountMinor: 500,
-          category: ExpenseCategory.food,
+          category: ExpenseCategory.food.name,
           note: 'Coffee',
           day: d,
         );
@@ -146,7 +146,7 @@ void main() {
           await repo.repeatSuggestion(HarvestDay.parse('2026-09-04'));
       expect(suggestion, isNotNull);
       expect(suggestion!.amountMinor, 500);
-      expect(suggestion.category, ExpenseCategory.food);
+      expect(suggestion.category, ExpenseCategory.food.name);
       expect(suggestion.note, 'Coffee');
     });
 
@@ -155,7 +155,7 @@ void main() {
       for (final key in ['2026-09-01', '2026-09-03']) {
         await repo.log(
           amountMinor: 500,
-          category: ExpenseCategory.food,
+          category: ExpenseCategory.food.name,
           day: HarvestDay.parse(key),
         );
       }
@@ -168,7 +168,7 @@ void main() {
       for (final key in ['2026-09-02', '2026-09-04']) {
         await repo.log(
           amountMinor: 500,
-          category: ExpenseCategory.food,
+          category: ExpenseCategory.food.name,
           day: HarvestDay.parse(key),
         );
       }
@@ -181,7 +181,7 @@ void main() {
     test('removed expenses vanish from totals', () async {
       await repo.log(
         amountMinor: 500,
-        category: ExpenseCategory.food,
+        category: ExpenseCategory.food.name,
         day: day,
       );
       final logged = await repo.watchDay(day).first;

@@ -45,8 +45,90 @@ class FinancesRepository {
     });
   }
 
+  /// User-created categories, newest last.
+  Stream<List<CustomCategory>> watchCategories() => (_db
+          .select(_db.expenseCategories)
+        ..where((c) => c.deletedAt.isNull())
+        ..orderBy([(c) => OrderingTerm.asc(c.updatedAt)]))
+      .watch()
+      .map(
+        (rows) => rows
+            .map(
+              (row) => CustomCategory(
+                uuid: row.uuid,
+                name: row.name,
+                icon: row.icon,
+              ),
+            )
+            .toList(),
+      );
+
+  Future<void> createCategory({
+    required String name,
+    required String icon,
+  }) async {
+    final uuid = _uuid.v4();
+    await _db.transaction(() async {
+      await _db.into(_db.expenseCategories).insert(
+            ExpenseCategoriesCompanion.insert(
+              uuid: uuid,
+              name: name,
+              icon: icon,
+            ),
+          );
+      await _db.into(_db.outbox).insert(
+            OutboxCompanion.insert(
+              targetTable: 'expense_categories',
+              rowUuid: uuid,
+              op: 'insert',
+            ),
+          );
+    });
+  }
+
+  Future<void> deleteCategory(String uuid) => _db.transaction(() async {
+        await (_db.update(_db.expenseCategories)
+              ..where((c) => c.uuid.equals(uuid)))
+            .write(
+          ExpenseCategoriesCompanion(
+            deletedAt: Value(DateTime.now()),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        await _db.into(_db.outbox).insert(
+              OutboxCompanion.insert(
+                targetTable: 'expense_categories',
+                rowUuid: uuid,
+                op: 'delete',
+              ),
+            );
+      });
+
+  /// Total per day for [weekStart]'s week (7 days).
+  Stream<Map<String, int>> watchWeekTotals(HarvestDay weekStart) {
+    final days = <String>[];
+    var d = weekStart;
+    for (var i = 0; i < 7; i++) {
+      days.add(d.key);
+      d = d.next;
+    }
+    final query = _db.select(_db.expenses)
+      ..where((e) => e.harvestDay.isIn(days) & e.deletedAt.isNull());
+    return query.watch().map((rows) {
+      final totals = <String, int>{};
+      for (final row in rows) {
+        totals.update(
+          row.harvestDay,
+          (v) => v + row.amountMinor,
+          ifAbsent: () => row.amountMinor,
+        );
+      }
+      return totals;
+    });
+  }
+
   /// Total per category for [weekStart]'s week (7 days).
-  Stream<Map<ExpenseCategory, int>> watchWeekByCategory(
+  Stream<Map<String, int>> watchWeekByCategory(
     HarvestDay weekStart,
   ) {
     final days = <String>[];
@@ -57,38 +139,29 @@ class FinancesRepository {
     }
     final query = _db.select(_db.expenses)
       ..where((e) => e.harvestDay.isIn(days) & e.deletedAt.isNull());
-    return query.watch().map((rows) {
-      final totals = <ExpenseCategory, int>{};
-      for (final row in rows) {
-        totals.update(
-          ExpenseCategory.values.byName(row.category),
-          (v) => v + row.amountMinor,
-          ifAbsent: () => row.amountMinor,
-        );
-      }
-      return totals;
-    });
+    return query.watch().map(_sumByCategory);
   }
 
   /// Total per category for [day]'s calendar month.
-  Stream<Map<ExpenseCategory, int>> watchMonthByCategory(HarvestDay day) {
+  Stream<Map<String, int>> watchMonthByCategory(HarvestDay day) {
     final prefix = day.key.substring(0, 7);
     final query = _db.select(_db.expenses)
       ..where(
         (e) => e.harvestDay.like('$prefix%') & e.deletedAt.isNull(),
       );
-    return query.watch().map((rows) {
-      final totals = <ExpenseCategory, int>{};
-      for (final row in rows) {
-        final category = ExpenseCategory.values.byName(row.category);
-        totals.update(
-          category,
-          (v) => v + row.amountMinor,
-          ifAbsent: () => row.amountMinor,
-        );
-      }
-      return totals;
-    });
+    return query.watch().map(_sumByCategory);
+  }
+
+  Map<String, int> _sumByCategory(List<ExpenseRow> rows) {
+    final totals = <String, int>{};
+    for (final row in rows) {
+      totals.update(
+        row.category,
+        (v) => v + row.amountMinor,
+        ifAbsent: () => row.amountMinor,
+      );
+    }
+    return totals;
   }
 
   /// Smart repeats: an (amount, category) pair logged on each of the
@@ -119,7 +192,7 @@ class FinancesRepository {
       if (onAllThree && !today.contains(key)) {
         return RepeatSuggestion(
           amountMinor: key.$1,
-          category: ExpenseCategory.values.byName(key.$2),
+          category: key.$2,
           note: notes[key],
         );
       }
@@ -132,7 +205,7 @@ class FinancesRepository {
   /// Logs an expense; the first log of a Harvest Day earns XP.
   Future<void> log({
     required int amountMinor,
-    required ExpenseCategory category,
+    required String category,
     String? note,
     HarvestDay? day,
   }) async {
@@ -143,7 +216,7 @@ class FinancesRepository {
             ExpensesCompanion.insert(
               uuid: uuid,
               amountMinor: amountMinor,
-              category: category.name,
+              category: category,
               note: Value(note),
               harvestDay: harvestDay.key,
             ),
@@ -173,7 +246,7 @@ class FinancesRepository {
   Future<void> updateExpense({
     required String uuid,
     required int amountMinor,
-    required ExpenseCategory category,
+    required String category,
     String? note,
   }) =>
       _db.transaction(() async {
@@ -181,7 +254,7 @@ class FinancesRepository {
             .write(
           ExpensesCompanion(
             amountMinor: Value(amountMinor),
-            category: Value(category.name),
+            category: Value(category),
             note: Value(note),
             updatedAt: Value(DateTime.now()),
           ),
@@ -213,7 +286,7 @@ class FinancesRepository {
   Expense _toDomain(ExpenseRow row) => Expense(
         uuid: row.uuid,
         amountMinor: row.amountMinor,
-        category: ExpenseCategory.values.byName(row.category),
+        category: row.category,
         day: HarvestDay.parse(row.harvestDay),
         loggedAt: row.loggedAt,
         note: row.note,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/features/gamification/domain/quest_service.dart';
 import 'package:harvest/features/gamification/presentation/quest_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -104,10 +105,25 @@ class _QuestCard extends ConsumerWidget {
                       ),
                     ),
                     onPressed: () async {
+                      final box =
+                          context.findRenderObject() as RenderBox?;
                       final claimed = await ref
                           .read(questServiceProvider)
                           .claim(view.state.uuid);
-                      if (claimed) unawaited(HarvestHaptics.thud());
+                      if (claimed) {
+                        unawaited(HarvestHaptics.thud());
+                        if (context.mounted && box != null) {
+                          showCheckInBurst(
+                            context,
+                            box.localToGlobal(
+                              box.size.center(Offset.zero),
+                            ),
+                            icon: Icons.auto_awesome,
+                            color:
+                                Theme.of(context).colorScheme.tertiary,
+                          );
+                        }
+                      }
                     },
                     child: Text('${l10n.claim} · $reward'),
                   ),

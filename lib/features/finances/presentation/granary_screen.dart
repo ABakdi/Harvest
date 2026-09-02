@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/gauge_ring.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
+import 'package:harvest/features/finances/presentation/finance_charts.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -21,8 +21,41 @@ Color budgetColor(ColorScheme scheme, BudgetStatus status) =>
       BudgetStatus.over => scheme.error,
     };
 
+/// The Granary: Today (quick log + gauge) and Insights (charts).
 class GranaryScreen extends ConsumerWidget {
   const GranaryScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.granaryTitle),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: l10n.todayTab),
+              Tab(text: l10n.insightsTab),
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => unawaited(showExpenseSheet(context)),
+          icon: const Icon(Icons.add),
+          label: Text(l10n.logExpense),
+        ),
+        body: const TabBarView(
+          children: [_TodayTab(), InsightsTab()],
+        ),
+      ),
+    );
+  }
+}
+
+class _TodayTab extends ConsumerWidget {
+  const _TodayTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,84 +66,115 @@ class GranaryScreen extends ConsumerWidget {
     final symbol = settings?.symbol ?? r'$';
     final expenses = ref.watch(todayExpensesProvider).value ?? const [];
     final suggestion = ref.watch(repeatSuggestionProvider).value;
+    final customs = ref.watch(customCategoriesProvider).value ?? const [];
+    final health = ref.watch(savingsHealthProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.granaryTitle)),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => unawaited(showExpenseSheet(context)),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.logExpense),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        HarvestSpacing.md,
+        HarvestSpacing.sm,
+        HarvestSpacing.md,
+        120,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          HarvestSpacing.md,
-          HarvestSpacing.sm,
-          HarvestSpacing.md,
-          120,
-        ),
-        children: [
-          _BudgetCard(
-            snapshot: snapshot,
-            symbol: symbol,
-            l10n: l10n,
-          ),
-          if (suggestion != null) ...[
-            const SizedBox(height: HarvestSpacing.md),
-            _RepeatCard(suggestion: suggestion, symbol: symbol),
-          ],
-          const SizedBox(height: HarvestSpacing.lg),
-          Text(
-            l10n.todaySpending,
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
+      children: [
+        _BudgetCard(snapshot: snapshot, symbol: symbol, l10n: l10n),
+        if (settings?.savingsMinor != null) ...[
           const SizedBox(height: HarvestSpacing.sm),
-          if (expenses.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(HarvestSpacing.lg),
-              child: Text(
-                l10n.granaryEmpty,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge,
-              ),
-            )
-          else
-            for (final expense in expenses)
-              Card(
-                child: ListTile(
-                  onTap: () => unawaited(
-                    showExpenseSheet(context, existing: expense),
+          _SavingsCard(
+            savings: settings!.savingsMinor!,
+            symbol: symbol,
+            health: health,
+          ),
+        ],
+        if (suggestion != null) ...[
+          const SizedBox(height: HarvestSpacing.md),
+          _RepeatCard(suggestion: suggestion, symbol: symbol),
+        ],
+        const SizedBox(height: HarvestSpacing.lg),
+        Text(
+          l10n.todaySpending,
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        if (expenses.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(HarvestSpacing.lg),
+            child: Text(
+              l10n.granaryEmpty,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge,
+            ),
+          )
+        else
+          for (final expense in expenses)
+            Card(
+              child: ListTile(
+                onTap: () => unawaited(
+                  showExpenseSheet(context, existing: expense),
+                ),
+                leading: CircleAvatar(
+                  backgroundColor:
+                      theme.colorScheme.secondary.withValues(alpha: 0.18),
+                  child: Icon(
+                    categoryIcon(expense.category, customs: customs),
+                    color: theme.colorScheme.secondary,
                   ),
-                  leading: CircleAvatar(
-                    backgroundColor:
-                        theme.colorScheme.secondary.withValues(alpha: 0.18),
-                    child: Icon(
-                      categoryIcon(expense.category),
-                      color: theme.colorScheme.secondary,
-                    ),
-                  ),
-                  title: Text(
-                    '$symbol${formatMinor(expense.amountMinor)}',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Text(
-                    expense.note == null || expense.note!.isEmpty
-                        ? categoryLabel(l10n, expense.category)
-                        : '${categoryLabel(l10n, expense.category)} · '
-                            '${expense.note}',
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => unawaited(
-                      ref
-                          .read(financesRepositoryProvider)
-                          .remove(expense.uuid),
-                    ),
+                ),
+                title: Text(
+                  '$symbol${formatMinor(expense.amountMinor)}',
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                subtitle: Text(
+                  expense.note == null || expense.note!.isEmpty
+                      ? categoryLabel(l10n, expense.category)
+                      : '${categoryLabel(l10n, expense.category)} · '
+                          '${expense.note}',
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => unawaited(
+                    ref
+                        .read(financesRepositoryProvider)
+                        .remove(expense.uuid),
                   ),
                 ),
               ),
-        ],
+            ),
+      ],
+    );
+  }
+}
+
+class _SavingsCard extends StatelessWidget {
+  const _SavingsCard({
+    required this.savings,
+    required this.symbol,
+    required this.health,
+  });
+
+  final int savings;
+  final String symbol;
+  final SavingsHealth health;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final low = health == SavingsHealth.low;
+    final color = low ? theme.colorScheme.error : theme.colorScheme.secondary;
+
+    return Card(
+      color: low ? theme.colorScheme.error.withValues(alpha: 0.12) : null,
+      child: ListTile(
+        leading: Icon(Icons.savings_outlined, color: color),
+        title: Text(
+          '$symbol${formatMinor(savings)}',
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800, color: color),
+        ),
+        subtitle: Text(low ? l10n.savingsLow : l10n.savingsLabel),
       ),
     );
   }
@@ -141,8 +205,8 @@ class _BudgetCard extends ConsumerWidget {
                   Text(l10n.budgetTitle, style: theme.textTheme.titleMedium),
                   const SizedBox(height: HarvestSpacing.sm),
                   BigBouncyButton(
-                    icon: Icons.savings,
-                    onPressed: () => unawaited(_showBudgetSheet(context)),
+                    icon: Icons.payments,
+                    onPressed: () => unawaited(showBudgetSheet(context)),
                     child: Text(l10n.budgetSet),
                   ),
                 ],
@@ -155,7 +219,7 @@ class _BudgetCard extends ConsumerWidget {
                         : snap.spentToday / snap.floatingDailyLimit,
                     color: budgetColor(theme.colorScheme, snap.status),
                     child: Icon(
-                      Icons.savings,
+                      Icons.payments,
                       size: 32,
                       color: budgetColor(theme.colorScheme, snap.status),
                     ),
@@ -186,7 +250,7 @@ class _BudgetCard extends ConsumerWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => unawaited(_showBudgetSheet(context)),
+                    onPressed: () => unawaited(showBudgetSheet(context)),
                   ),
                 ],
               ),
@@ -195,7 +259,7 @@ class _BudgetCard extends ConsumerWidget {
   }
 }
 
-Future<void> _showBudgetSheet(BuildContext context) =>
+Future<void> showBudgetSheet(BuildContext context) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -217,6 +281,8 @@ class _BudgetSheet extends ConsumerStatefulWidget {
 class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
   final _amountController = TextEditingController();
   final _symbolController = TextEditingController();
+  final _savingsController = TextEditingController();
+  final _expectedController = TextEditingController();
 
   @override
   void initState() {
@@ -226,12 +292,21 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
       _amountController.text = formatMinor(settings!.budgetMinor!);
     }
     _symbolController.text = settings?.symbol ?? r'$';
+    if (settings?.savingsMinor != null) {
+      _savingsController.text = formatMinor(settings!.savingsMinor!);
+    }
+    if (settings?.expectedDailyMinor != null) {
+      _expectedController.text =
+          formatMinor(settings!.expectedDailyMinor!);
+    }
   }
 
   @override
   void dispose() {
     _amountController.dispose();
     _symbolController.dispose();
+    _savingsController.dispose();
+    _expectedController.dispose();
     super.dispose();
   }
 
@@ -239,11 +314,22 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
     final minor = parseToMinor(_amountController.text);
     if (minor == null) return;
     final symbol = _symbolController.text.trim();
+    final savings = parseToMinor(_savingsController.text);
+    final expected = parseToMinor(_expectedController.text);
     Navigator.of(context).pop();
     final notifier = ref.read(financeSettingsProvider.notifier);
     await notifier.setBudget(minor);
     if (symbol.isNotEmpty) await notifier.setSymbol(symbol);
+    if (savings != null) await notifier.setSavings(savings);
+    if (expected != null) await notifier.setExpectedDaily(expected);
   }
+
+  InputDecoration _decoration(String label) => InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(HarvestRadii.button),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -256,49 +342,67 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
         top: HarvestSpacing.lg,
         bottom: MediaQuery.viewInsetsOf(context).bottom + HarvestSpacing.lg,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.budgetTitle,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: HarvestSpacing.md),
-          TextField(
-            controller: _amountController,
-            autofocus: true,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              labelText: l10n.budgetAmountLabel,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(HarvestRadii.button),
-              ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.budgetTitle,
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w800),
             ),
-          ),
-          const SizedBox(height: HarvestSpacing.md),
-          TextField(
-            controller: _symbolController,
-            decoration: InputDecoration(
-              labelText: l10n.currencyLabel,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(HarvestRadii.button),
-              ),
+            const SizedBox(height: HarvestSpacing.md),
+            TextField(
+              controller: _amountController,
+              autofocus: true,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (_) => setState(() {}),
+              decoration: _decoration(l10n.budgetAmountLabel),
             ),
-          ),
-          const SizedBox(height: HarvestSpacing.lg),
-          BigBouncySheetButton(
-            onPressed: parseToMinor(_amountController.text) == null
-                ? null
-                : () => unawaited(_save()),
-            child: Text(l10n.save),
-          ),
-        ],
+            const SizedBox(height: HarvestSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _savingsController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: _decoration(l10n.savingsLabel),
+                  ),
+                ),
+                const SizedBox(width: HarvestSpacing.sm),
+                Expanded(
+                  child: TextField(
+                    controller: _expectedController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: _decoration(l10n.expectedDailyLabel),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: HarvestSpacing.md),
+            TextField(
+              controller: _symbolController,
+              decoration: _decoration(l10n.currencyLabel),
+            ),
+            const SizedBox(height: HarvestSpacing.md),
+            const _ManageCategories(),
+            const SizedBox(height: HarvestSpacing.md),
+            BigBouncySheetButton(
+              onPressed: parseToMinor(_amountController.text) == null
+                  ? null
+                  : () => unawaited(_save()),
+              child: Text(l10n.save),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -314,12 +418,13 @@ class _RepeatCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final customs = ref.watch(customCategoriesProvider).value ?? const [];
 
     return Card(
       color: theme.colorScheme.secondary.withValues(alpha: 0.15),
       child: ListTile(
         leading: Icon(
-          categoryIcon(suggestion.category),
+          categoryIcon(suggestion.category, customs: customs),
           color: theme.colorScheme.secondary,
         ),
         title: Text(
@@ -336,7 +441,6 @@ class _RepeatCard extends ConsumerWidget {
                   category: suggestion.category,
                   note: suggestion.note,
                 );
-            unawaited(HarvestHaptics.thud());
             await ref.read(notificationPlannerProvider).reevaluate();
           },
           child: Text(l10n.logIt),
@@ -344,4 +448,57 @@ class _RepeatCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Custom category list with delete — finance settings (gap G8).
+class _ManageCategories extends ConsumerWidget {
+  const _ManageCategories();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final customs = ref.watch(customCategoriesProvider).value ?? const [];
+    if (customs.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.manageCategories,
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall
+              ?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: HarvestSpacing.xs),
+        Wrap(
+          spacing: HarvestSpacing.xs,
+          runSpacing: HarvestSpacing.xs,
+          children: [
+            for (final category in customs)
+              InputChip(
+                avatar: Icon(
+                  categoryIconRegistry[category.icon] ?? Icons.category,
+                  size: 18,
+                ),
+                label: Text(category.name),
+                onDeleted: () => unawaited(
+                  ref
+                      .read(financesRepositoryProvider)
+                      .deleteCategory(category.uuid),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// The charts tab lives in finance_charts.dart.
+class InsightsTab extends StatelessWidget {
+  const InsightsTab({super.key});
+
+  @override
+  Widget build(BuildContext context) => const FinanceInsights();
 }

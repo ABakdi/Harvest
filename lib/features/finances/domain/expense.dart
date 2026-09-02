@@ -1,7 +1,9 @@
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:meta/meta.dart';
 
-/// The preset spending categories.
+/// The preset spending categories. Custom ones (checkpoint gap G8) are
+/// stored in the database and referenced by name, so `category` on an
+/// expense is always a plain string key.
 enum ExpenseCategory {
   food,
   transport,
@@ -10,6 +12,28 @@ enum ExpenseCategory {
   health,
   entertainment,
   other,
+}
+
+/// The preset keys, in display order.
+final List<String> presetCategoryKeys =
+    ExpenseCategory.values.map((c) => c.name).toList();
+
+/// A user-created category.
+@immutable
+class CustomCategory {
+  const CustomCategory({
+    required this.uuid,
+    required this.name,
+    required this.icon,
+  });
+
+  final String uuid;
+
+  /// Doubles as the key stored on expenses.
+  final String name;
+
+  /// Icon key resolved through the app's icon registry.
+  final String icon;
 }
 
 @immutable
@@ -27,7 +51,9 @@ class Expense {
 
   /// Minor units (cents); always positive.
   final int amountMinor;
-  final ExpenseCategory category;
+
+  /// Preset name or custom-category name.
+  final String category;
   final HarvestDay day;
   final DateTime loggedAt;
   final String? note;
@@ -44,7 +70,9 @@ class RepeatSuggestion {
   });
 
   final int amountMinor;
-  final ExpenseCategory category;
+
+  /// Preset name or custom-category name.
+  final String category;
   final String? note;
 }
 

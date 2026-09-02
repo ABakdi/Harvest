@@ -4,7 +4,6 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
-import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -322,7 +321,7 @@ class _Empty extends StatelessWidget {
 class _SpendingBreakdown extends StatelessWidget {
   const _SpendingBreakdown({required this.spending, required this.symbol});
 
-  final Map<ExpenseCategory, int> spending;
+  final Map<String, int> spending;
   final String symbol;
 
   @override
@@ -393,7 +392,7 @@ class _WeeklyReportCard extends StatelessWidget {
 
   final int weekXp;
   final Map<String, int> activity;
-  final Map<ExpenseCategory, int> weekSpending;
+  final Map<String, int> weekSpending;
 
   @override
   Widget build(BuildContext context) {
@@ -416,7 +415,7 @@ class _WeeklyReportCard extends StatelessWidget {
     final worst =
         counts.entries.reduce((a, b) => b.value < a.value ? b : a).key;
 
-    ExpenseCategory? topCategory;
+    String? topCategory;
     var topAmount = -1;
     weekSpending.forEach((category, amount) {
       if (amount > topAmount) {

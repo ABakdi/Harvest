@@ -20,7 +20,7 @@ void main() {
   test('edit-in-place changes amount, category and note', () async {
     await repo.log(
       amountMinor: 500,
-      category: ExpenseCategory.food,
+      category: ExpenseCategory.food.name,
       day: day,
     );
     final logged = (await repo.watchDay(day).first).single;
@@ -28,12 +28,12 @@ void main() {
     await repo.updateExpense(
       uuid: logged.uuid,
       amountMinor: 750,
-      category: ExpenseCategory.transport,
+      category: ExpenseCategory.transport.name,
       note: 'Bus pass',
     );
     final updated = (await repo.watchDay(day).first).single;
     expect(updated.amountMinor, 750);
-    expect(updated.category, ExpenseCategory.transport);
+    expect(updated.category, ExpenseCategory.transport.name);
     expect(updated.note, 'Bus pass');
 
     final ops = await db.select(db.outbox).get();
@@ -44,22 +44,22 @@ void main() {
     // Monday 2026-08-31 starts this week.
     await repo.log(
       amountMinor: 100,
-      category: ExpenseCategory.food,
+      category: ExpenseCategory.food.name,
       day: HarvestDay.parse('2026-08-31'),
     );
     await repo.log(
       amountMinor: 200,
-      category: ExpenseCategory.food,
+      category: ExpenseCategory.food.name,
       day: HarvestDay.parse('2026-09-02'),
     );
     // Outside the week.
     await repo.log(
       amountMinor: 999,
-      category: ExpenseCategory.food,
+      category: ExpenseCategory.food.name,
       day: HarvestDay.parse('2026-08-30'),
     );
     final totals =
         await repo.watchWeekByCategory(HarvestDay.parse('2026-08-31')).first;
-    expect(totals[ExpenseCategory.food], 300);
+    expect(totals[ExpenseCategory.food.name], 300);
   });
 }

@@ -93,13 +93,11 @@ final monthByCategoryProvider = MonthByCategoryProvider._();
 final class MonthByCategoryProvider
     extends
         $FunctionalProvider<
-          AsyncValue<Map<ExpenseCategory, int>>,
-          Map<ExpenseCategory, int>,
-          Stream<Map<ExpenseCategory, int>>
+          AsyncValue<Map<String, int>>,
+          Map<String, int>,
+          Stream<Map<String, int>>
         >
-    with
-        $FutureModifier<Map<ExpenseCategory, int>>,
-        $StreamProvider<Map<ExpenseCategory, int>> {
+    with $FutureModifier<Map<String, int>>, $StreamProvider<Map<String, int>> {
   MonthByCategoryProvider._()
     : super(
         from: null,
@@ -116,17 +114,17 @@ final class MonthByCategoryProvider
 
   @$internal
   @override
-  $StreamProviderElement<Map<ExpenseCategory, int>> $createElement(
+  $StreamProviderElement<Map<String, int>> $createElement(
     $ProviderPointer pointer,
   ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<Map<ExpenseCategory, int>> create(Ref ref) {
+  Stream<Map<String, int>> create(Ref ref) {
     return monthByCategory(ref);
   }
 }
 
-String _$monthByCategoryHash() => r'6513cdd166630237818ad3178b010ce702185298';
+String _$monthByCategoryHash() => r'aef297328ce875497760d0e76a535e6cabe6e45d';
 
 @ProviderFor(weekByCategory)
 final weekByCategoryProvider = WeekByCategoryProvider._();
@@ -134,13 +132,11 @@ final weekByCategoryProvider = WeekByCategoryProvider._();
 final class WeekByCategoryProvider
     extends
         $FunctionalProvider<
-          AsyncValue<Map<ExpenseCategory, int>>,
-          Map<ExpenseCategory, int>,
-          Stream<Map<ExpenseCategory, int>>
+          AsyncValue<Map<String, int>>,
+          Map<String, int>,
+          Stream<Map<String, int>>
         >
-    with
-        $FutureModifier<Map<ExpenseCategory, int>>,
-        $StreamProvider<Map<ExpenseCategory, int>> {
+    with $FutureModifier<Map<String, int>>, $StreamProvider<Map<String, int>> {
   WeekByCategoryProvider._()
     : super(
         from: null,
@@ -157,17 +153,58 @@ final class WeekByCategoryProvider
 
   @$internal
   @override
-  $StreamProviderElement<Map<ExpenseCategory, int>> $createElement(
+  $StreamProviderElement<Map<String, int>> $createElement(
     $ProviderPointer pointer,
   ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<Map<ExpenseCategory, int>> create(Ref ref) {
+  Stream<Map<String, int>> create(Ref ref) {
     return weekByCategory(ref);
   }
 }
 
-String _$weekByCategoryHash() => r'eb3723796d8ca7cc774f9c97f415fb24fca3ddfd';
+String _$weekByCategoryHash() => r'5dd2ab568a8389c5a2b084e56c1f41f7ab7e6301';
+
+@ProviderFor(customCategories)
+final customCategoriesProvider = CustomCategoriesProvider._();
+
+final class CustomCategoriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CustomCategory>>,
+          List<CustomCategory>,
+          Stream<List<CustomCategory>>
+        >
+    with
+        $FutureModifier<List<CustomCategory>>,
+        $StreamProvider<List<CustomCategory>> {
+  CustomCategoriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'customCategoriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$customCategoriesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<CustomCategory>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<CustomCategory>> create(Ref ref) {
+    return customCategories(ref);
+  }
+}
+
+String _$customCategoriesHash() => r'9a052100e740ed81810d72e1411b6e35d90c512e';
 
 /// Budget + currency settings.
 
@@ -179,7 +216,12 @@ final class FinanceSettingsProvider
     extends
         $StreamNotifierProvider<
           FinanceSettings,
-          ({int? budgetMinor, String symbol})
+          ({
+            int? budgetMinor,
+            int? expectedDailyMinor,
+            int? savingsMinor,
+            String symbol,
+          })
         > {
   /// Budget + currency settings.
   FinanceSettingsProvider._()
@@ -201,36 +243,168 @@ final class FinanceSettingsProvider
   FinanceSettings create() => FinanceSettings();
 }
 
-String _$financeSettingsHash() => r'2d8d2d31c5ceaf08e8c453426042e39334198352';
+String _$financeSettingsHash() => r'aee6776ebe5630d4425a649966e06304c9ed9235';
 
 /// Budget + currency settings.
 
 abstract class _$FinanceSettings
-    extends $StreamNotifier<({int? budgetMinor, String symbol})> {
-  Stream<({int? budgetMinor, String symbol})> build();
+    extends
+        $StreamNotifier<
+          ({
+            int? budgetMinor,
+            int? expectedDailyMinor,
+            int? savingsMinor,
+            String symbol,
+          })
+        > {
+  Stream<
+    ({
+      int? budgetMinor,
+      int? expectedDailyMinor,
+      int? savingsMinor,
+      String symbol,
+    })
+  >
+  build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<
-              AsyncValue<({int? budgetMinor, String symbol})>,
-              ({int? budgetMinor, String symbol})
+              AsyncValue<
+                ({
+                  int? budgetMinor,
+                  int? expectedDailyMinor,
+                  int? savingsMinor,
+                  String symbol,
+                })
+              >,
+              ({
+                int? budgetMinor,
+                int? expectedDailyMinor,
+                int? savingsMinor,
+                String symbol,
+              })
             >;
     final element =
         ref.element
             as $ClassProviderElement<
               AnyNotifier<
-                AsyncValue<({int? budgetMinor, String symbol})>,
-                ({int? budgetMinor, String symbol})
+                AsyncValue<
+                  ({
+                    int? budgetMinor,
+                    int? expectedDailyMinor,
+                    int? savingsMinor,
+                    String symbol,
+                  })
+                >,
+                ({
+                  int? budgetMinor,
+                  int? expectedDailyMinor,
+                  int? savingsMinor,
+                  String symbol,
+                })
               >,
-              AsyncValue<({int? budgetMinor, String symbol})>,
+              AsyncValue<
+                ({
+                  int? budgetMinor,
+                  int? expectedDailyMinor,
+                  int? savingsMinor,
+                  String symbol,
+                })
+              >,
               Object?,
               Object?
             >;
     return element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(savingsHealth)
+final savingsHealthProvider = SavingsHealthProvider._();
+
+final class SavingsHealthProvider
+    extends $FunctionalProvider<SavingsHealth, SavingsHealth, SavingsHealth>
+    with $Provider<SavingsHealth> {
+  SavingsHealthProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'savingsHealthProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$savingsHealthHash();
+
+  @$internal
+  @override
+  $ProviderElement<SavingsHealth> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SavingsHealth create(Ref ref) {
+    return savingsHealth(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SavingsHealth value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SavingsHealth>(value),
+    );
+  }
+}
+
+String _$savingsHealthHash() => r'9f21a65975f1d16361d04f6b7c2bbe79978488e7';
+
+/// Daily totals for the current week (Mon..today).
+
+@ProviderFor(weekTotals)
+final weekTotalsProvider = WeekTotalsProvider._();
+
+/// Daily totals for the current week (Mon..today).
+
+final class WeekTotalsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, int>>,
+          Map<String, int>,
+          Stream<Map<String, int>>
+        >
+    with $FutureModifier<Map<String, int>>, $StreamProvider<Map<String, int>> {
+  /// Daily totals for the current week (Mon..today).
+  WeekTotalsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'weekTotalsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$weekTotalsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<String, int>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<String, int>> create(Ref ref) {
+    return weekTotals(ref);
+  }
+}
+
+String _$weekTotalsHash() => r'f1d83a556d061402e6daeea4a0a82cefc0939e14';
 
 /// Today's budget picture; null while no budget is set.
 
