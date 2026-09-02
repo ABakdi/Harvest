@@ -528,4 +528,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleted => 'Removed';
+
+  @override
+  String get editSeed => 'Edit seed';
+
+  @override
+  String get focusTimer => 'Focus timer';
+
+  @override
+  String get pauseHabit => 'Pause (vacation)';
+
+  @override
+  String get resumeHabit => 'Resume';
+
+  @override
+  String get pausedLabel => 'Paused — resting';
+
+  @override
+  String get archiveAction => 'Archive';
+
+  @override
+  String get archiveConfirmTitle => 'Archive this seed?';
+
+  @override
+  String archiveConfirmBody(String title) {
+    return '\"$title\" moves to the barn. Its history stays.';
+  }
+
+  @override
+  String get projectDoneTitle => 'Harvest complete! 🎉';
+
+  @override
+  String projectDoneBody(String title, int total) {
+    return '\"$title\" is fully grown — $total logged. It moves to the barn with pride.';
+  }
+
+  @override
+  String get toTheBarn => 'To the barn';
+
+  @override
+  String get weeklyReport => 'This week';
+
+  @override
+  String weeklyXp(int count) {
+    return '$count XP';
+  }
+
+  @override
+  String weeklyBestDay(String day) {
+    return 'Best: $day';
+  }
+
+  @override
+  String weeklyWorstDay(String day) {
+    return 'Quietest: $day';
+  }
+
+  @override
+  String weeklyTopSpending(String category) {
+    return 'Top spending: $category';
+  }
 }

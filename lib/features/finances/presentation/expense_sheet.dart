@@ -33,7 +33,8 @@ String categoryLabel(AppLocalizations l10n, ExpenseCategory category) =>
     };
 
 /// The sub-5-second quick-log: amount, category chip, optional note.
-Future<void> showExpenseSheet(BuildContext context) =>
+/// Pass [existing] to edit a same-day entry in place.
+Future<void> showExpenseSheet(BuildContext context, {Expense? existing}) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -42,11 +43,13 @@ Future<void> showExpenseSheet(BuildContext context) =>
           top: Radius.circular(HarvestRadii.sheet),
         ),
       ),
-      builder: (_) => const _ExpenseSheet(),
+      builder: (_) => _ExpenseSheet(existing: existing),
     );
 
 class _ExpenseSheet extends ConsumerStatefulWidget {
-  const _ExpenseSheet();
+  const _ExpenseSheet({this.existing});
+
+  final Expense? existing;
 
   @override
   ConsumerState<_ExpenseSheet> createState() => _ExpenseSheetState();
@@ -56,6 +59,17 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   ExpenseCategory _category = ExpenseCategory.food;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing != null) {
+      _amountController.text = formatMinor(existing.amountMinor);
+      _noteController.text = existing.note ?? '';
+      _category = existing.category;
+    }
+  }
 
   @override
   void dispose() {
@@ -70,12 +84,23 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     final amount = _amountMinor;
     if (amount == null) return;
     final note = _noteController.text.trim();
+    final existing = widget.existing;
     Navigator.of(context).pop();
-    await ref.read(financesRepositoryProvider).log(
-          amountMinor: amount,
-          category: _category,
-          note: note.isEmpty ? null : note,
-        );
+    final repo = ref.read(financesRepositoryProvider);
+    if (existing != null) {
+      await repo.updateExpense(
+        uuid: existing.uuid,
+        amountMinor: amount,
+        category: _category,
+        note: note.isEmpty ? null : note,
+      );
+    } else {
+      await repo.log(
+        amountMinor: amount,
+        category: _category,
+        note: note.isEmpty ? null : note,
+      );
+    }
     await HarvestHaptics.thud();
     await ref.read(notificationPlannerProvider).reevaluate();
   }

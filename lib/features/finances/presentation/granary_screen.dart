@@ -78,6 +78,9 @@ class GranaryScreen extends ConsumerWidget {
             for (final expense in expenses)
               Card(
                 child: ListTile(
+                  onTap: () => unawaited(
+                    showExpenseSheet(context, existing: expense),
+                  ),
                   leading: CircleAvatar(
                     backgroundColor:
                         theme.colorScheme.secondary.withValues(alpha: 0.18),

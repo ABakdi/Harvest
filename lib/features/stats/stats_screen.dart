@@ -11,6 +11,7 @@ import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
@@ -29,6 +30,8 @@ class StatsScreen extends ConsumerWidget {
     final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
     final streaks = ref.watch(commitmentStreaksProvider).value ?? const {};
     final spending = ref.watch(monthByCategoryProvider).value ?? const {};
+    final weekXp = ref.watch(weeklyXpProvider).value ?? 0;
+    final weekSpending = ref.watch(weekByCategoryProvider).value ?? const {};
     final symbol =
         ref.watch(financeSettingsProvider).value?.symbol ?? r'$';
 
@@ -56,6 +59,13 @@ class StatsScreen extends ConsumerWidget {
                     const SizedBox(width: HarvestSpacing.sm),
                     _StatTile(label: l10n.statsCheckIns, value: '$checkIns'),
                   ],
+                ),
+                const SizedBox(height: HarvestSpacing.lg),
+                _SectionTitle(l10n.weeklyReport),
+                _WeeklyReportCard(
+                  weekXp: weekXp,
+                  activity: activity,
+                  weekSpending: weekSpending,
                 ),
                 const SizedBox(height: HarvestSpacing.lg),
                 _SectionTitle(l10n.statsActivity),
@@ -221,7 +231,7 @@ class _HeatMap extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final today = HarvestDay.today();
     final start = HarvestDay.of(
-      DateTime.now().subtract(const Duration(days: 69)),
+      DateTime.now().subtract(const Duration(days: 181)),
     ).weekStart;
 
     final weeks = <List<HarvestDay?>>[];
@@ -235,29 +245,33 @@ class _HeatMap extends StatelessWidget {
       weeks.add(week);
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        for (final week in weeks)
-          Column(
-            children: [
-              for (final cell in week)
-                Padding(
-                  padding: const EdgeInsets.all(1.5),
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: cell == null
-                          ? Colors.transparent
-                          : _color(scheme, activity[cell.key] ?? 0),
+    // Scrolls horizontally; latest weeks are visible first.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      reverse: true,
+      child: Row(
+        children: [
+          for (final week in weeks)
+            Column(
+              children: [
+                for (final cell in week)
+                  Padding(
+                    padding: const EdgeInsets.all(1.5),
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        color: cell == null
+                            ? Colors.transparent
+                            : _color(scheme, activity[cell.key] ?? 0),
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
-      ],
+              ],
+            ),
+        ],
+      ),
     );
   }
 
@@ -364,6 +378,83 @@ class _SpendingBreakdown extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+
+/// The Weekly Harvest Report: XP, best and quietest day, top spending.
+class _WeeklyReportCard extends StatelessWidget {
+  const _WeeklyReportCard({
+    required this.weekXp,
+    required this.activity,
+    required this.weekSpending,
+  });
+
+  final int weekXp;
+  final Map<String, int> activity;
+  final Map<ExpenseCategory, int> weekSpending;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).toString();
+    final today = HarvestDay.today();
+
+    // Actions per elapsed day of this week.
+    final counts = <HarvestDay, int>{};
+    var day = today.weekStart;
+    while (day.compareTo(today) <= 0) {
+      counts[day] = activity[day.key] ?? 0;
+      day = day.next;
+    }
+    String weekdayName(HarvestDay d) =>
+        DateFormat.EEEE(locale).format(DateTime(d.year, d.month, d.day));
+    final best =
+        counts.entries.reduce((a, b) => b.value > a.value ? b : a).key;
+    final worst =
+        counts.entries.reduce((a, b) => b.value < a.value ? b : a).key;
+
+    ExpenseCategory? topCategory;
+    var topAmount = -1;
+    weekSpending.forEach((category, amount) {
+      if (amount > topAmount) {
+        topAmount = amount;
+        topCategory = category;
+      }
+    });
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(HarvestSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.auto_awesome, color: theme.colorScheme.tertiary),
+                const SizedBox(width: HarvestSpacing.sm),
+                Text(
+                  l10n.weeklyXp(weekXp),
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+            const SizedBox(height: HarvestSpacing.sm),
+            Text(l10n.weeklyBestDay(weekdayName(best))),
+            if (counts.length > 1)
+              Text(l10n.weeklyWorstDay(weekdayName(worst))),
+            if (topCategory != null)
+              Text(
+                l10n.weeklyTopSpending(
+                  categoryLabel(l10n, topCategory!),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -85,6 +85,18 @@ class GamificationRepository {
     return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
+  /// XP earned since [from] (inclusive) — the weekly report's total.
+  Stream<int> watchXpSince(HarvestDay from) {
+    final sum = _db.ledger.delta.sum();
+    final query = _db.selectOnly(_db.ledger)
+      ..addColumns([sum])
+      ..where(
+        _db.ledger.kind.equals('xp') &
+            _db.ledger.harvestDay.isBiggerOrEqualValue(from.key),
+      );
+    return query.watchSingle().map((row) => row.read(sum) ?? 0);
+  }
+
   /// Every non-global streak row, keyed by commitment uuid.
   Stream<Map<String, ({int current, int best})>> watchCommitmentStreaks() {
     final query = _db.select(_db.streaks)
@@ -122,10 +134,16 @@ Stream<int> checkInCount(Ref ref) =>
 Stream<Map<String, int>> dailyActivity(Ref ref) =>
     ref.watch(gamificationRepositoryProvider).watchDailyActivity(
           HarvestDay.of(
-            DateTime.now().subtract(const Duration(days: 70)),
+            DateTime.now().subtract(const Duration(days: 182)),
           ).weekStart,
         );
 
 @riverpod
 Stream<Map<String, ({int current, int best})>> commitmentStreaks(Ref ref) =>
     ref.watch(gamificationRepositoryProvider).watchCommitmentStreaks();
+
+@riverpod
+Stream<int> weeklyXp(Ref ref) =>
+    ref.watch(gamificationRepositoryProvider).watchXpSince(
+          HarvestDay.today().weekStart,
+        );

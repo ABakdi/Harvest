@@ -25,6 +25,11 @@ Stream<Map<ExpenseCategory, int>> monthByCategory(Ref ref) => ref
     .watch(financesRepositoryProvider)
     .watchMonthByCategory(HarvestDay.today());
 
+@riverpod
+Stream<Map<ExpenseCategory, int>> weekByCategory(Ref ref) => ref
+    .watch(financesRepositoryProvider)
+    .watchWeekByCategory(HarvestDay.today().weekStart);
+
 /// Budget + currency settings.
 @Riverpod(keepAlive: true)
 class FinanceSettings extends _$FinanceSettings {

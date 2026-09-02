@@ -297,5 +297,66 @@
   "notifExpenseBody": "Log it in two taps and keep the granary honest.",
   "remindersExpense": "Expense check-in",
   "statsSpending": "Spending by category",
-  "deleted": "Removed"
+  "deleted": "Removed",
+  "editSeed": "Edit seed",
+  "focusTimer": "Focus timer",
+  "pauseHabit": "Pause (vacation)",
+  "resumeHabit": "Resume",
+  "pausedLabel": "Paused — resting",
+  "archiveAction": "Archive",
+  "archiveConfirmTitle": "Archive this seed?",
+  "archiveConfirmBody": "\"{title}\" moves to the barn. Its history stays.",
+  "@archiveConfirmBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "projectDoneTitle": "Harvest complete! 🎉",
+  "projectDoneBody": "\"{title}\" is fully grown — {total} logged. It moves to the barn with pride.",
+  "@projectDoneBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "toTheBarn": "To the barn",
+  "weeklyReport": "This week",
+  "weeklyXp": "{count} XP",
+  "@weeklyXp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyBestDay": "Best: {day}",
+  "@weeklyBestDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyWorstDay": "Quietest: {day}",
+  "@weeklyWorstDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyTopSpending": "Top spending: {category}",
+  "@weeklyTopSpending": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  }
 }

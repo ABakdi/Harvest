@@ -128,6 +128,47 @@ final class MonthByCategoryProvider
 
 String _$monthByCategoryHash() => r'6513cdd166630237818ad3178b010ce702185298';
 
+@ProviderFor(weekByCategory)
+final weekByCategoryProvider = WeekByCategoryProvider._();
+
+final class WeekByCategoryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<ExpenseCategory, int>>,
+          Map<ExpenseCategory, int>,
+          Stream<Map<ExpenseCategory, int>>
+        >
+    with
+        $FutureModifier<Map<ExpenseCategory, int>>,
+        $StreamProvider<Map<ExpenseCategory, int>> {
+  WeekByCategoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'weekByCategoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$weekByCategoryHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<ExpenseCategory, int>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<ExpenseCategory, int>> create(Ref ref) {
+    return weekByCategory(ref);
+  }
+}
+
+String _$weekByCategoryHash() => r'eb3723796d8ca7cc774f9c97f415fb24fca3ddfd';
+
 /// Budget + currency settings.
 
 @ProviderFor(FinanceSettings)

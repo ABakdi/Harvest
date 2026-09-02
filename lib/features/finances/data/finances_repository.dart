@@ -45,6 +45,31 @@ class FinancesRepository {
     });
   }
 
+  /// Total per category for [weekStart]'s week (7 days).
+  Stream<Map<ExpenseCategory, int>> watchWeekByCategory(
+    HarvestDay weekStart,
+  ) {
+    final days = <String>[];
+    var d = weekStart;
+    for (var i = 0; i < 7; i++) {
+      days.add(d.key);
+      d = d.next;
+    }
+    final query = _db.select(_db.expenses)
+      ..where((e) => e.harvestDay.isIn(days) & e.deletedAt.isNull());
+    return query.watch().map((rows) {
+      final totals = <ExpenseCategory, int>{};
+      for (final row in rows) {
+        totals.update(
+          ExpenseCategory.values.byName(row.category),
+          (v) => v + row.amountMinor,
+          ifAbsent: () => row.amountMinor,
+        );
+      }
+      return totals;
+    });
+  }
+
   /// Total per category for [day]'s calendar month.
   Stream<Map<ExpenseCategory, int>> watchMonthByCategory(HarvestDay day) {
     final prefix = day.key.substring(0, 7);
@@ -143,6 +168,26 @@ class FinancesRepository {
       }
     });
   }
+
+  /// Same-day correction: edits an entry in place.
+  Future<void> updateExpense({
+    required String uuid,
+    required int amountMinor,
+    required ExpenseCategory category,
+    String? note,
+  }) =>
+      _db.transaction(() async {
+        await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid)))
+            .write(
+          ExpensesCompanion(
+            amountMinor: Value(amountMinor),
+            category: Value(category.name),
+            note: Value(note),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        await _appendOutbox(uuid, 'update');
+      });
 
   /// Same-day correction: soft-deletes the entry (history stays truthful).
   Future<void> remove(String uuid) => _db.transaction(() async {

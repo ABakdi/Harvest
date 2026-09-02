@@ -234,7 +234,7 @@ final class DailyActivityProvider
   }
 }
 
-String _$dailyActivityHash() => r'ceeb4d5bffd57661d17b8443827c36ee6efe1828';
+String _$dailyActivityHash() => r'f9899d44f9f410c761d1505c81d39e7a63ef7898';
 
 @ProviderFor(commitmentStreaks)
 final commitmentStreaksProvider = CommitmentStreaksProvider._();
@@ -276,3 +276,36 @@ final class CommitmentStreaksProvider
 }
 
 String _$commitmentStreaksHash() => r'2db63fda312d78705961ec9c2e01139ebc402ed6';
+
+@ProviderFor(weeklyXp)
+final weeklyXpProvider = WeeklyXpProvider._();
+
+final class WeeklyXpProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
+    with $FutureModifier<int>, $StreamProvider<int> {
+  WeeklyXpProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'weeklyXpProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$weeklyXpHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<int> create(Ref ref) {
+    return weeklyXp(ref);
+  }
+}
+
+String _$weeklyXpHash() => r'0ebd6559701ed2411824194d09469dd36fd5819c';

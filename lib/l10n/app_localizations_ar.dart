@@ -525,4 +525,64 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleted => 'حُذف';
+
+  @override
+  String get editSeed => 'تعديل البذرة';
+
+  @override
+  String get focusTimer => 'مؤقت التركيز';
+
+  @override
+  String get pauseHabit => 'إيقاف مؤقت (إجازة)';
+
+  @override
+  String get resumeHabit => 'استئناف';
+
+  @override
+  String get pausedLabel => 'متوقفة — تستريح';
+
+  @override
+  String get archiveAction => 'أرشفة';
+
+  @override
+  String get archiveConfirmTitle => 'أرشفة هذه البذرة؟';
+
+  @override
+  String archiveConfirmBody(String title) {
+    return 'ستنتقل «$title» إلى المخزن، ويبقى سجلها محفوظًا.';
+  }
+
+  @override
+  String get projectDoneTitle => 'اكتمل الحصاد! 🎉';
+
+  @override
+  String projectDoneBody(String title, int total) {
+    return 'نضجت «$title» تمامًا — سُجل $total. تنتقل إلى المخزن بفخر.';
+  }
+
+  @override
+  String get toTheBarn => 'إلى المخزن';
+
+  @override
+  String get weeklyReport => 'هذا الأسبوع';
+
+  @override
+  String weeklyXp(int count) {
+    return '$count نقطة خبرة';
+  }
+
+  @override
+  String weeklyBestDay(String day) {
+    return 'الأفضل: $day';
+  }
+
+  @override
+  String weeklyWorstDay(String day) {
+    return 'الأهدأ: $day';
+  }
+
+  @override
+  String weeklyTopSpending(String category) {
+    return 'أكثر إنفاق: $category';
+  }
 }

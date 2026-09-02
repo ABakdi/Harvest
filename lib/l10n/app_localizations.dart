@@ -1045,6 +1045,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed'**
   String get deleted;
+
+  /// No description provided for @editSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit seed'**
+  String get editSeed;
+
+  /// No description provided for @focusTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus timer'**
+  String get focusTimer;
+
+  /// No description provided for @pauseHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause (vacation)'**
+  String get pauseHabit;
+
+  /// No description provided for @resumeHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resumeHabit;
+
+  /// No description provided for @pausedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused — resting'**
+  String get pausedLabel;
+
+  /// No description provided for @archiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archiveAction;
+
+  /// No description provided for @archiveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this seed?'**
+  String get archiveConfirmTitle;
+
+  /// No description provided for @archiveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" moves to the barn. Its history stays.'**
+  String archiveConfirmBody(String title);
+
+  /// No description provided for @projectDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest complete! 🎉'**
+  String get projectDoneTitle;
+
+  /// No description provided for @projectDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" is fully grown — {total} logged. It moves to the barn with pride.'**
+  String projectDoneBody(String title, int total);
+
+  /// No description provided for @toTheBarn.
+  ///
+  /// In en, this message translates to:
+  /// **'To the barn'**
+  String get toTheBarn;
+
+  /// No description provided for @weeklyReport.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get weeklyReport;
+
+  /// No description provided for @weeklyXp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} XP'**
+  String weeklyXp(int count);
+
+  /// No description provided for @weeklyBestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {day}'**
+  String weeklyBestDay(String day);
+
+  /// No description provided for @weeklyWorstDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Quietest: {day}'**
+  String weeklyWorstDay(String day);
+
+  /// No description provided for @weeklyTopSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Top spending: {category}'**
+  String weeklyTopSpending(String category);
 }
 
 class _AppLocalizationsDelegate

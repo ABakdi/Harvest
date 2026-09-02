@@ -157,5 +157,21 @@
   "notifExpenseBody": "سجّله بلمستين وأبقِ المخزن صادقًا.",
   "remindersExpense": "تذكير المصاريف",
   "statsSpending": "الإنفاق حسب الفئة",
-  "deleted": "حُذف"
+  "deleted": "حُذف",
+  "editSeed": "تعديل البذرة",
+  "focusTimer": "مؤقت التركيز",
+  "pauseHabit": "إيقاف مؤقت (إجازة)",
+  "resumeHabit": "استئناف",
+  "pausedLabel": "متوقفة — تستريح",
+  "archiveAction": "أرشفة",
+  "archiveConfirmTitle": "أرشفة هذه البذرة؟",
+  "archiveConfirmBody": "ستنتقل «{title}» إلى المخزن، ويبقى سجلها محفوظًا.",
+  "projectDoneTitle": "اكتمل الحصاد! 🎉",
+  "projectDoneBody": "نضجت «{title}» تمامًا — سُجل {total}. تنتقل إلى المخزن بفخر.",
+  "toTheBarn": "إلى المخزن",
+  "weeklyReport": "هذا الأسبوع",
+  "weeklyXp": "{count} نقطة خبرة",
+  "weeklyBestDay": "الأفضل: {day}",
+  "weeklyWorstDay": "الأهدأ: {day}",
+  "weeklyTopSpending": "أكثر إنفاق: {category}"
 }
