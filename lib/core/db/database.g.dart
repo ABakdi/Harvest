@@ -4,7 +4,7 @@ part of 'database.dart';
 
 // ignore_for_file: type=lint
 class $CommitmentsTable extends Commitments
-    with TableInfo<$CommitmentsTable, Commitment> {
+    with TableInfo<$CommitmentsTable, CommitmentRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -145,7 +145,7 @@ class $CommitmentsTable extends Commitments
   static const String $name = 'commitments';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Commitment> instance, {
+    Insertable<CommitmentRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -237,9 +237,9 @@ class $CommitmentsTable extends Commitments
   @override
   Set<GeneratedColumn> get $primaryKey => {uuid};
   @override
-  Commitment map(Map<String, dynamic> data, {String? tablePrefix}) {
+  CommitmentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Commitment(
+    return CommitmentRow(
       uuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
@@ -293,7 +293,7 @@ class $CommitmentsTable extends Commitments
   }
 }
 
-class Commitment extends DataClass implements Insertable<Commitment> {
+class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
   /// Client-generated UUID; will become the server `_id` when sync arrives.
   final String uuid;
 
@@ -314,7 +314,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
   final DateTime? deletedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const Commitment({
+  const CommitmentRow({
     required this.uuid,
     required this.type,
     required this.title,
@@ -384,12 +384,12 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     );
   }
 
-  factory Commitment.fromJson(
+  factory CommitmentRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Commitment(
+    return CommitmentRow(
       uuid: serializer.fromJson<String>(json['uuid']),
       type: serializer.fromJson<String>(json['type']),
       title: serializer.fromJson<String>(json['title']),
@@ -421,7 +421,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     };
   }
 
-  Commitment copyWith({
+  CommitmentRow copyWith({
     String? uuid,
     String? type,
     String? title,
@@ -433,7 +433,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) => Commitment(
+  }) => CommitmentRow(
     uuid: uuid ?? this.uuid,
     type: type ?? this.type,
     title: title ?? this.title,
@@ -448,8 +448,8 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  Commitment copyWithCompanion(CommitmentsCompanion data) {
-    return Commitment(
+  CommitmentRow copyWithCompanion(CommitmentsCompanion data) {
+    return CommitmentRow(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
       type: data.type.present ? data.type.value : this.type,
       title: data.title.present ? data.title.value : this.title,
@@ -474,7 +474,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
 
   @override
   String toString() {
-    return (StringBuffer('Commitment(')
+    return (StringBuffer('CommitmentRow(')
           ..write('uuid: $uuid, ')
           ..write('type: $type, ')
           ..write('title: $title, ')
@@ -507,7 +507,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Commitment &&
+      (other is CommitmentRow &&
           other.uuid == this.uuid &&
           other.type == this.type &&
           other.title == this.title &&
@@ -521,7 +521,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
           other.updatedAt == this.updatedAt);
 }
 
-class CommitmentsCompanion extends UpdateCompanion<Commitment> {
+class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
   final Value<String> uuid;
   final Value<String> type;
   final Value<String> title;
@@ -564,7 +564,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
   }) : uuid = Value(uuid),
        type = Value(type),
        title = Value(title);
-  static Insertable<Commitment> custom({
+  static Insertable<CommitmentRow> custom({
     Expression<String>? uuid,
     Expression<String>? type,
     Expression<String>? title,
@@ -686,7 +686,8 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
   }
 }
 
-class $CheckInsTable extends CheckIns with TableInfo<$CheckInsTable, CheckIn> {
+class $CheckInsTable extends CheckIns
+    with TableInfo<$CheckInsTable, CheckInRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -789,7 +790,7 @@ class $CheckInsTable extends CheckIns with TableInfo<$CheckInsTable, CheckIn> {
   static const String $name = 'check_ins';
   @override
   VerificationContext validateIntegrity(
-    Insertable<CheckIn> instance, {
+    Insertable<CheckInRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -851,9 +852,9 @@ class $CheckInsTable extends CheckIns with TableInfo<$CheckInsTable, CheckIn> {
   @override
   Set<GeneratedColumn> get $primaryKey => {uuid};
   @override
-  CheckIn map(Map<String, dynamic> data, {String? tablePrefix}) {
+  CheckInRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CheckIn(
+    return CheckInRow(
       uuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
@@ -891,7 +892,7 @@ class $CheckInsTable extends CheckIns with TableInfo<$CheckInsTable, CheckIn> {
   }
 }
 
-class CheckIn extends DataClass implements Insertable<CheckIn> {
+class CheckInRow extends DataClass implements Insertable<CheckInRow> {
   final String uuid;
   final String commitmentUuid;
 
@@ -903,7 +904,7 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
   final DateTime loggedAt;
   final DateTime? deletedAt;
   final DateTime updatedAt;
-  const CheckIn({
+  const CheckInRow({
     required this.uuid,
     required this.commitmentUuid,
     required this.harvestDay,
@@ -941,12 +942,12 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
     );
   }
 
-  factory CheckIn.fromJson(
+  factory CheckInRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CheckIn(
+    return CheckInRow(
       uuid: serializer.fromJson<String>(json['uuid']),
       commitmentUuid: serializer.fromJson<String>(json['commitmentUuid']),
       harvestDay: serializer.fromJson<String>(json['harvestDay']),
@@ -970,7 +971,7 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
     };
   }
 
-  CheckIn copyWith({
+  CheckInRow copyWith({
     String? uuid,
     String? commitmentUuid,
     String? harvestDay,
@@ -978,7 +979,7 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
     DateTime? loggedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? updatedAt,
-  }) => CheckIn(
+  }) => CheckInRow(
     uuid: uuid ?? this.uuid,
     commitmentUuid: commitmentUuid ?? this.commitmentUuid,
     harvestDay: harvestDay ?? this.harvestDay,
@@ -987,8 +988,8 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  CheckIn copyWithCompanion(CheckInsCompanion data) {
-    return CheckIn(
+  CheckInRow copyWithCompanion(CheckInsCompanion data) {
+    return CheckInRow(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
       commitmentUuid: data.commitmentUuid.present
           ? data.commitmentUuid.value
@@ -1005,7 +1006,7 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
 
   @override
   String toString() {
-    return (StringBuffer('CheckIn(')
+    return (StringBuffer('CheckInRow(')
           ..write('uuid: $uuid, ')
           ..write('commitmentUuid: $commitmentUuid, ')
           ..write('harvestDay: $harvestDay, ')
@@ -1030,7 +1031,7 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CheckIn &&
+      (other is CheckInRow &&
           other.uuid == this.uuid &&
           other.commitmentUuid == this.commitmentUuid &&
           other.harvestDay == this.harvestDay &&
@@ -1040,7 +1041,7 @@ class CheckIn extends DataClass implements Insertable<CheckIn> {
           other.updatedAt == this.updatedAt);
 }
 
-class CheckInsCompanion extends UpdateCompanion<CheckIn> {
+class CheckInsCompanion extends UpdateCompanion<CheckInRow> {
   final Value<String> uuid;
   final Value<String> commitmentUuid;
   final Value<String> harvestDay;
@@ -1071,7 +1072,7 @@ class CheckInsCompanion extends UpdateCompanion<CheckIn> {
   }) : uuid = Value(uuid),
        commitmentUuid = Value(commitmentUuid),
        harvestDay = Value(harvestDay);
-  static Insertable<CheckIn> custom({
+  static Insertable<CheckInRow> custom({
     Expression<String>? uuid,
     Expression<String>? commitmentUuid,
     Expression<String>? harvestDay,
@@ -3566,12 +3567,12 @@ typedef $$CommitmentsTableUpdateCompanionBuilder =
     });
 
 final class $$CommitmentsTableReferences
-    extends BaseReferences<_$HarvestDatabase, $CommitmentsTable, Commitment> {
+    extends
+        BaseReferences<_$HarvestDatabase, $CommitmentsTable, CommitmentRow> {
   $$CommitmentsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$CheckInsTable, List<CheckIn>> _checkInsRefsTable(
-    _$HarvestDatabase db,
-  ) => MultiTypedResultKey.fromTable(
+  static MultiTypedResultKey<$CheckInsTable, List<CheckInRow>>
+  _checkInsRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
     db.checkIns,
     aliasName: 'commitments__uuid__check_ins__commitment_uuid',
   );
@@ -3824,14 +3825,14 @@ class $$CommitmentsTableTableManager
         RootTableManager<
           _$HarvestDatabase,
           $CommitmentsTable,
-          Commitment,
+          CommitmentRow,
           $$CommitmentsTableFilterComposer,
           $$CommitmentsTableOrderingComposer,
           $$CommitmentsTableAnnotationComposer,
           $$CommitmentsTableCreateCompanionBuilder,
           $$CommitmentsTableUpdateCompanionBuilder,
-          (Commitment, $$CommitmentsTableReferences),
-          Commitment,
+          (CommitmentRow, $$CommitmentsTableReferences),
+          CommitmentRow,
           PrefetchHooks Function({bool checkInsRefs})
         > {
   $$CommitmentsTableTableManager(_$HarvestDatabase db, $CommitmentsTable table)
@@ -3918,9 +3919,9 @@ class $$CommitmentsTableTableManager
                 return [
                   if (checkInsRefs)
                     await $_getPrefetchedData<
-                      Commitment,
+                      CommitmentRow,
                       $CommitmentsTable,
-                      CheckIn
+                      CheckInRow
                     >(
                       currentTable: table,
                       referencedTable: $$CommitmentsTableReferences
@@ -3949,14 +3950,14 @@ typedef $$CommitmentsTableProcessedTableManager =
     ProcessedTableManager<
       _$HarvestDatabase,
       $CommitmentsTable,
-      Commitment,
+      CommitmentRow,
       $$CommitmentsTableFilterComposer,
       $$CommitmentsTableOrderingComposer,
       $$CommitmentsTableAnnotationComposer,
       $$CommitmentsTableCreateCompanionBuilder,
       $$CommitmentsTableUpdateCompanionBuilder,
-      (Commitment, $$CommitmentsTableReferences),
-      Commitment,
+      (CommitmentRow, $$CommitmentsTableReferences),
+      CommitmentRow,
       PrefetchHooks Function({bool checkInsRefs})
     >;
 typedef $$CheckInsTableCreateCompanionBuilder = CheckInsCompanion Function({
@@ -3981,7 +3982,7 @@ typedef $$CheckInsTableUpdateCompanionBuilder = CheckInsCompanion Function({
 });
 
 final class $$CheckInsTableReferences
-    extends BaseReferences<_$HarvestDatabase, $CheckInsTable, CheckIn> {
+    extends BaseReferences<_$HarvestDatabase, $CheckInsTable, CheckInRow> {
   $$CheckInsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $CommitmentsTable _commitmentUuidTable(_$HarvestDatabase db) => db
@@ -4187,14 +4188,14 @@ class $$CheckInsTableTableManager
         RootTableManager<
           _$HarvestDatabase,
           $CheckInsTable,
-          CheckIn,
+          CheckInRow,
           $$CheckInsTableFilterComposer,
           $$CheckInsTableOrderingComposer,
           $$CheckInsTableAnnotationComposer,
           $$CheckInsTableCreateCompanionBuilder,
           $$CheckInsTableUpdateCompanionBuilder,
-          (CheckIn, $$CheckInsTableReferences),
-          CheckIn,
+          (CheckInRow, $$CheckInsTableReferences),
+          CheckInRow,
           PrefetchHooks Function({bool commitmentUuid})
         > {
   $$CheckInsTableTableManager(_$HarvestDatabase db, $CheckInsTable table)
@@ -4303,14 +4304,14 @@ typedef $$CheckInsTableProcessedTableManager =
     ProcessedTableManager<
       _$HarvestDatabase,
       $CheckInsTable,
-      CheckIn,
+      CheckInRow,
       $$CheckInsTableFilterComposer,
       $$CheckInsTableOrderingComposer,
       $$CheckInsTableAnnotationComposer,
       $$CheckInsTableCreateCompanionBuilder,
       $$CheckInsTableUpdateCompanionBuilder,
-      (CheckIn, $$CheckInsTableReferences),
-      CheckIn,
+      (CheckInRow, $$CheckInsTableReferences),
+      CheckInRow,
       PrefetchHooks Function({bool commitmentUuid})
     >;
 typedef $$StreaksTableCreateCompanionBuilder = StreaksCompanion Function({

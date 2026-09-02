@@ -4,6 +4,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 part 'database.g.dart';
 
 /// Habits, projects and to-dos — the seeds.
+@DataClassName('CommitmentRow')
 class Commitments extends Table {
   /// Client-generated UUID; will become the server `_id` when sync arrives.
   TextColumn get uuid => text()();
@@ -32,6 +33,7 @@ class Commitments extends Table {
 }
 
 /// Append-only log of every completed action — the water.
+@DataClassName('CheckInRow')
 class CheckIns extends Table {
   TextColumn get uuid => text()();
   TextColumn get commitmentUuid => text().references(Commitments, #uuid)();
