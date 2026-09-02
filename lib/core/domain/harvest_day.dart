@@ -48,6 +48,13 @@ final class HarvestDay implements Comparable<HarvestDay> {
   DateTime get startsAt =>
       DateTime(year, month, day).add(const Duration(hours: boundaryHour));
 
+  /// Weekday of this Harvest Day, [DateTime.monday]..[DateTime.sunday].
+  int get weekday => _date.weekday;
+
+  /// The Monday that starts this Harvest Day's week.
+  HarvestDay get weekStart =>
+      HarvestDay._(_date.subtract(Duration(days: _date.weekday - 1)));
+
   HarvestDay get next => HarvestDay._(_date.add(const Duration(days: 1)));
   HarvestDay get previous =>
       HarvestDay._(_date.subtract(const Duration(days: 1)));
