@@ -187,4 +187,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rankMasterFarmer => 'Master Farmer';
+
+  @override
+  String get settingsHarvest => 'Harvest';
+
+  @override
+  String get settingsGoalTitle => 'Daily Harvest Goal';
+
+  @override
+  String get settingsGoalBody =>
+      'Productive actions needed each day to keep your streak alive.';
+
+  @override
+  String goalActions(int count) {
+    return '$count actions a day';
+  }
 }

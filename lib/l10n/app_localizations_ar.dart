@@ -186,4 +186,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rankMasterFarmer => 'مزارع خبير';
+
+  @override
+  String get settingsHarvest => 'الحصاد';
+
+  @override
+  String get settingsGoalTitle => 'هدف الحصاد اليومي';
+
+  @override
+  String get settingsGoalBody =>
+      'عدد الإنجازات المطلوبة كل يوم للحفاظ على سلسلتك.';
+
+  @override
+  String goalActions(int count) {
+    return '$count إنجازات في اليوم';
+  }
 }

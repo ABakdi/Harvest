@@ -16,12 +16,83 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode =
         ref.watch(themeModeSettingProvider).value ?? ThemeMode.system;
     final locale = ref.watch(localeSettingProvider).value;
+    final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navSettings)),
       body: ListView(
         padding: const EdgeInsets.all(HarvestSpacing.md),
         children: [
+          Text(
+            l10n.settingsHarvest,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(HarvestSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.settingsGoalTitle),
+                  const SizedBox(height: HarvestSpacing.xs),
+                  Text(
+                    l10n.settingsGoalBody,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: HarvestSpacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n.goalActions(goal),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      Row(
+                        children: [
+                          IconButton.filledTonal(
+                            onPressed: goal > 1
+                                ? () {
+                                    unawaited(HarvestHaptics.tick());
+                                    unawaited(
+                                      ref
+                                          .read(dailyGoalSettingProvider
+                                              .notifier)
+                                          .set(goal - 1),
+                                    );
+                                  }
+                                : null,
+                            icon: const Icon(Icons.remove),
+                          ),
+                          const SizedBox(width: HarvestSpacing.xs),
+                          IconButton.filledTonal(
+                            onPressed: goal < 10
+                                ? () {
+                                    unawaited(HarvestHaptics.tick());
+                                    unawaited(
+                                      ref
+                                          .read(dailyGoalSettingProvider
+                                              .notifier)
+                                          .set(goal + 1),
+                                    );
+                                  }
+                                : null,
+                            icon: const Icon(Icons.add),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: HarvestSpacing.lg),
           Text(
             l10n.settingsAppearance,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(

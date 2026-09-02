@@ -427,6 +427,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Master Farmer'**
   String get rankMasterFarmer;
+
+  /// No description provided for @settingsHarvest.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get settingsHarvest;
+
+  /// No description provided for @settingsGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Harvest Goal'**
+  String get settingsGoalTitle;
+
+  /// No description provided for @settingsGoalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Productive actions needed each day to keep your streak alive.'**
+  String get settingsGoalBody;
+
+  /// No description provided for @goalActions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} actions a day'**
+  String goalActions(int count);
 }
 
 class _AppLocalizationsDelegate

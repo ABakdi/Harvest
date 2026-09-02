@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,4 +36,18 @@ class LocaleSetting extends _$LocaleSetting {
   Future<void> set(String languageCodeOrSystem) => ref
       .read(settingsRepositoryProvider)
       .setString(SettingKeys.locale, languageCodeOrSystem);
+}
+
+/// The persisted Daily Harvest Goal (minimum productive actions per day).
+@Riverpod(keepAlive: true)
+class DailyGoalSetting extends _$DailyGoalSetting {
+  @override
+  Stream<int> build() => ref
+      .watch(settingsRepositoryProvider)
+      .watchString(StreakService.goalKey)
+      .map((value) => int.tryParse(value ?? '') ?? StreakService.defaultGoal);
+
+  Future<void> set(int goal) => ref
+      .read(settingsRepositoryProvider)
+      .setString(StreakService.goalKey, '$goal');
 }

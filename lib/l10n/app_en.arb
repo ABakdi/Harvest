@@ -105,5 +105,16 @@
   "rankSeedling": "Seedling",
   "rankGardener": "Gardener",
   "rankHarvester": "Harvester",
-  "rankMasterFarmer": "Master Farmer"
+  "rankMasterFarmer": "Master Farmer",
+  "settingsHarvest": "Harvest",
+  "settingsGoalTitle": "Daily Harvest Goal",
+  "settingsGoalBody": "Productive actions needed each day to keep your streak alive.",
+  "goalActions": "{count} actions a day",
+  "@goalActions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

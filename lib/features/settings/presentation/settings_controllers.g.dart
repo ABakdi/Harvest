@@ -107,3 +107,53 @@ abstract class _$LocaleSetting extends $StreamNotifier<Locale?> {
     return element.handleCreate(ref, build);
   }
 }
+
+/// The persisted Daily Harvest Goal (minimum productive actions per day).
+
+@ProviderFor(DailyGoalSetting)
+final dailyGoalSettingProvider = DailyGoalSettingProvider._();
+
+/// The persisted Daily Harvest Goal (minimum productive actions per day).
+final class DailyGoalSettingProvider
+    extends $StreamNotifierProvider<DailyGoalSetting, int> {
+  /// The persisted Daily Harvest Goal (minimum productive actions per day).
+  DailyGoalSettingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dailyGoalSettingProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$dailyGoalSettingHash();
+
+  @$internal
+  @override
+  DailyGoalSetting create() => DailyGoalSetting();
+}
+
+String _$dailyGoalSettingHash() => r'fc976e06fcb52b64c91a5b7db985b66c60def27a';
+
+/// The persisted Daily Harvest Goal (minimum productive actions per day).
+
+abstract class _$DailyGoalSetting extends $StreamNotifier<int> {
+  Stream<int> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<int>, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<int>, int>,
+              AsyncValue<int>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

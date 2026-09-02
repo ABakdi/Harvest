@@ -54,5 +54,9 @@
   "rankSeedling": "شتلة",
   "rankGardener": "بستاني",
   "rankHarvester": "حصّاد",
-  "rankMasterFarmer": "مزارع خبير"
+  "rankMasterFarmer": "مزارع خبير",
+  "settingsHarvest": "الحصاد",
+  "settingsGoalTitle": "هدف الحصاد اليومي",
+  "settingsGoalBody": "عدد الإنجازات المطلوبة كل يوم للحفاظ على سلسلتك.",
+  "goalActions": "{count} إنجازات في اليوم"
 }
