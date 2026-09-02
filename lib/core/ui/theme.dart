@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:harvest/core/ui/tokens.dart';
 
 /// Light and dark [ThemeData] for the app, built from the Harvest tokens.
@@ -28,9 +27,15 @@ abstract final class HarvestTheme {
       );
 
   static ThemeData _base(ColorScheme scheme) {
-    final textTheme = GoogleFonts.nunitoTextTheme(
-      ThemeData(brightness: scheme.brightness).textTheme,
-    ).apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
+    // Bundled fonts — no runtime fetching, the app is complete offline.
+    // Nunito carries Latin; the Arabic companion fills in for RTL text.
+    final textTheme =
+        ThemeData(brightness: scheme.brightness).textTheme.apply(
+              fontFamily: 'Nunito',
+              fontFamilyFallback: const ['IBMPlexSansArabic'],
+              bodyColor: scheme.onSurface,
+              displayColor: scheme.onSurface,
+            );
 
     return ThemeData(
       useMaterial3: true,
