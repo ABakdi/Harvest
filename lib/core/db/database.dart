@@ -94,7 +94,8 @@ class Ledger extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
-/// The four daily micro-quests generated at each 3 AM reset.
+/// Parked: daily quests were removed from the app pending a redesign;
+/// the table stays so old data and sync-readiness survive.
 class Quests extends Table {
   TextColumn get uuid => text()();
   TextColumn get harvestDay => text()();

@@ -41,16 +41,13 @@ Earned from check-ins, streak milestones (7/30/100 days), and rank-ups. Spent on
 
 Coins can never be bought with money in V1 — they're proof of work, not a wallet.
 
-## Dynamic Daily Quests
+## Dynamic Daily Quests — parked ⏸
 
-Each Harvest Day generates 4 micro-quests from a rules pool, biased toward pillars I've been neglecting. Examples:
-
-1. *"Complete 2 habits before 9 AM."* → 20 coins
-2. *"Log your expenses before 8 PM."* → 25 XP
-3. *"Keep total screen time under 3 hours."* → 30 coins
-4. *"Sleep within 15 minutes of your target bedtime."* → 50 XP
-
-Quests referencing a pillar I haven't enabled yet (pre-Phase-2/3/4) never appear.
+Daily quests shipped in an early build and were **removed pending a
+redesign**: generated micro-quests felt arbitrary rather than
+motivating. The `quests` table stays in the schema so any old data
+survives, and coins still flow from streak milestones. Quests return
+once there's a proper idea of what makes them worth doing.
 
 ## Anti-burnout guardrails
 

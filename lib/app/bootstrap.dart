@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:harvest/app/router.dart';
-import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/notifications.dart';
-import 'package:harvest/features/gamification/domain/quest_service.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
@@ -36,6 +34,5 @@ Future<void> appBootstrap(Ref ref) async {
     }
   };
   await ref.read(streakServiceProvider).reconcile();
-  await ref.read(questServiceProvider).ensureGenerated(HarvestDay.today());
   await ref.read(notificationPlannerProvider).planToday();
 }

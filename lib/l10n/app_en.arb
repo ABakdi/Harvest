@@ -117,21 +117,6 @@
       }
     }
   },
-  "questsTitle": "Today's quests",
-  "questHabits2": "Complete 2 habits",
-  "questHabitsEarly": "Complete 2 habits before 9 AM",
-  "questProjectUnits20": "Water your projects with 20 units",
-  "questTodos2": "Finish 2 to-dos",
-  "questActions4": "Make 4 productive actions",
-  "claim": "Claim",
-  "rewardCoins": "+{count} coins",
-  "@rewardCoins": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "streakSheetTitle": "Your streak",
   "streakCurrent": "{count} days",
   "@streakCurrent": {
@@ -292,7 +277,6 @@
   "granaryEmpty": "Nothing logged today. What did you spend?",
   "repeatSuggestionTitle": "Same as the last 3 days?",
   "logIt": "Log it",
-  "questLogExpenses": "Log your expenses",
   "notifExpenseTitle": "What did you spend today? 💰",
   "notifExpenseBody": "Log it in two taps and keep the granary honest.",
   "remindersExpense": "Expense check-in",

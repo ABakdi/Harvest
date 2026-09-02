@@ -23,7 +23,6 @@ import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
-import 'package:harvest/features/gamification/presentation/quests_section.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
 import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -116,8 +115,6 @@ class FieldScreen extends ConsumerWidget {
               ),
             ),
           ],
-          const SizedBox(height: HarvestSpacing.md),
-          const QuestsSection(),
           const SizedBox(height: HarvestSpacing.sm),
           Expanded(
             // Pulling the field down opens tomorrow's plan.

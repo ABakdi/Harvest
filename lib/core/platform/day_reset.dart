@@ -1,7 +1,5 @@
 import 'package:harvest/core/db/database.dart';
-import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/notifications.dart';
-import 'package:harvest/features/gamification/domain/quest_service.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:workmanager/workmanager.dart';
@@ -34,7 +32,6 @@ void _dispatcher() {
     try {
       final streaks = StreakService(db);
       await streaks.reconcile();
-      await QuestService(db).ensureGenerated(HarvestDay.today());
       await NotificationPlanner(db, NotificationService(), streaks)
           .planToday();
     } finally {

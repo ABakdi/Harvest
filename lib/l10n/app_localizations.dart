@@ -452,54 +452,6 @@ abstract class AppLocalizations {
   /// **'{count} actions a day'**
   String goalActions(int count);
 
-  /// No description provided for @questsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Today\'s quests'**
-  String get questsTitle;
-
-  /// No description provided for @questHabits2.
-  ///
-  /// In en, this message translates to:
-  /// **'Complete 2 habits'**
-  String get questHabits2;
-
-  /// No description provided for @questHabitsEarly.
-  ///
-  /// In en, this message translates to:
-  /// **'Complete 2 habits before 9 AM'**
-  String get questHabitsEarly;
-
-  /// No description provided for @questProjectUnits20.
-  ///
-  /// In en, this message translates to:
-  /// **'Water your projects with 20 units'**
-  String get questProjectUnits20;
-
-  /// No description provided for @questTodos2.
-  ///
-  /// In en, this message translates to:
-  /// **'Finish 2 to-dos'**
-  String get questTodos2;
-
-  /// No description provided for @questActions4.
-  ///
-  /// In en, this message translates to:
-  /// **'Make 4 productive actions'**
-  String get questActions4;
-
-  /// No description provided for @claim.
-  ///
-  /// In en, this message translates to:
-  /// **'Claim'**
-  String get claim;
-
-  /// No description provided for @rewardCoins.
-  ///
-  /// In en, this message translates to:
-  /// **'+{count} coins'**
-  String rewardCoins(int count);
-
   /// No description provided for @streakSheetTitle.
   ///
   /// In en, this message translates to:
@@ -1009,12 +961,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log it'**
   String get logIt;
-
-  /// No description provided for @questLogExpenses.
-  ///
-  /// In en, this message translates to:
-  /// **'Log your expenses'**
-  String get questLogExpenses;
 
   /// No description provided for @notifExpenseTitle.
   ///

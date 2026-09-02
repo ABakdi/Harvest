@@ -79,6 +79,13 @@ rate means no parenthetical and face-value aggregation, never a block
 (local-first: the rate fetch is optional network, everything else works
 offline).
 
+## Scope change
+
+Daily quests are **out of v1**: the card and its logic were removed
+pending a redesign (the generated micro-quests weren't earning their
+place). The schema keeps the table; streak milestones remain the coin
+source. Quests come back when there's a proper idea for them.
+
 ## v1 release criteria
 
 - [x] G1–G11 implemented and verified on the emulator (mini-timer chip,

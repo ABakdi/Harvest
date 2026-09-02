@@ -204,32 +204,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get questsTitle => 'Today\'s quests';
-
-  @override
-  String get questHabits2 => 'Complete 2 habits';
-
-  @override
-  String get questHabitsEarly => 'Complete 2 habits before 9 AM';
-
-  @override
-  String get questProjectUnits20 => 'Water your projects with 20 units';
-
-  @override
-  String get questTodos2 => 'Finish 2 to-dos';
-
-  @override
-  String get questActions4 => 'Make 4 productive actions';
-
-  @override
-  String get claim => 'Claim';
-
-  @override
-  String rewardCoins(int count) {
-    return '+$count coins';
-  }
-
-  @override
   String get streakSheetTitle => 'Your streak';
 
   @override
@@ -509,9 +483,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logIt => 'Log it';
-
-  @override
-  String get questLogExpenses => 'Log your expenses';
 
   @override
   String get notifExpenseTitle => 'What did you spend today? 💰';

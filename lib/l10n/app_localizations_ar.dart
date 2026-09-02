@@ -203,32 +203,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get questsTitle => 'مهام اليوم';
-
-  @override
-  String get questHabits2 => 'أكمل عادتين';
-
-  @override
-  String get questHabitsEarly => 'أكمل عادتين قبل 9 صباحًا';
-
-  @override
-  String get questProjectUnits20 => 'اسقِ مشاريعك بـ 20 وحدة';
-
-  @override
-  String get questTodos2 => 'أنجز مهمتين';
-
-  @override
-  String get questActions4 => 'حقق 4 إنجازات';
-
-  @override
-  String get claim => 'استلم';
-
-  @override
-  String rewardCoins(int count) {
-    return '+$count عملة';
-  }
-
-  @override
   String get streakSheetTitle => 'سلسلتك';
 
   @override
@@ -507,9 +481,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get logIt => 'سجّله';
-
-  @override
-  String get questLogExpenses => 'سجّل مصاريفك';
 
   @override
   String get notifExpenseTitle => 'ماذا أنفقت اليوم؟ 💰';
