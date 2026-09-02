@@ -432,5 +432,29 @@
       }
     }
   },
-  "calAddForDay": "Plant a to-do for this day…"
+  "calAddForDay": "Plant a to-do for this day…",
+  "defaultCurrencyLabel": "Default currency",
+  "expenseCurrencyLabel": "Currency",
+  "exchangeRates": "Exchange rates",
+  "ratesDzdUsd": "DZD per 1 USD",
+  "ratesDzdEur": "DZD per 1 EUR",
+  "ratesEurUsd": "EUR → USD (fetched)",
+  "fetchNow": "Fetch",
+  "ratesUpdated": "Updated {when}",
+  "@ratesUpdated": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "ratesFetchFailed": "Couldn't fetch — check the connection.",
+  "savingsIn": "Savings · {code}",
+  "@savingsIn": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  }
 }

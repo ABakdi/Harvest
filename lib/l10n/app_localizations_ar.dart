@@ -712,4 +712,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get calAddForDay => 'ازرع مهمة لهذا اليوم…';
+
+  @override
+  String get defaultCurrencyLabel => 'العملة الافتراضية';
+
+  @override
+  String get expenseCurrencyLabel => 'العملة';
+
+  @override
+  String get exchangeRates => 'أسعار الصرف';
+
+  @override
+  String get ratesDzdUsd => 'دينار لكل 1 دولار';
+
+  @override
+  String get ratesDzdEur => 'دينار لكل 1 يورو';
+
+  @override
+  String get ratesEurUsd => 'يورو ← دولار (يُجلب)';
+
+  @override
+  String get fetchNow => 'جلب';
+
+  @override
+  String ratesUpdated(String when) {
+    return 'حُدّث $when';
+  }
+
+  @override
+  String get ratesFetchFailed => 'تعذر الجلب — تحقق من الاتصال.';
+
+  @override
+  String savingsIn(String code) {
+    return 'المدخرات · $code';
+  }
 }

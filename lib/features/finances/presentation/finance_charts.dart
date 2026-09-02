@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -27,16 +28,17 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final symbol =
-        ref.watch(financeSettingsProvider).value?.symbol ?? r'$';
+    final symbol = (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
+            Currency.dzd)
+        .symbol;
     final customs = ref.watch(customCategoriesProvider).value ?? const [];
 
     final dayTotals = _range == _Range.week
-        ? ref.watch(weekTotalsProvider).value ?? const <String, int>{}
-        : ref.watch(monthTotalsProvider).value ?? const <String, int>{};
+        ? ref.watch(weekTotalsProvider)
+        : ref.watch(monthTotalsProvider);
     final byCategory = _range == _Range.week
-        ? ref.watch(weekByCategoryProvider).value ?? const <String, int>{}
-        : ref.watch(monthByCategoryProvider).value ?? const <String, int>{};
+        ? ref.watch(weekByCategoryProvider)
+        : ref.watch(monthByCategoryProvider);
 
     final total = dayTotals.values.fold(0, (a, b) => a + b);
     final elapsedDays = _elapsedDays();

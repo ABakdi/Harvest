@@ -9,6 +9,7 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
+import 'package:harvest/core/ui/widgets/deadline_countdown.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
@@ -17,6 +18,7 @@ import 'package:harvest/features/commitments/presentation/check_in_controller.da
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -37,8 +39,9 @@ class FieldScreen extends ConsumerWidget {
     final xp = ref.watch(xpTotalProvider).value ?? 0;
     final streak = ref.watch(globalStreakProvider).value;
     final budget = ref.watch(budgetSnapshotProvider);
-    final symbol =
-        ref.watch(financeSettingsProvider).value?.symbol ?? r'$';
+    final symbol = (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
+            Currency.dzd)
+        .symbol;
 
     return Scaffold(
       appBar: AppBar(
@@ -181,6 +184,9 @@ class _CropTile extends ConsumerWidget {
       title: commitment.title,
       subtitle: _subtitle(context, l10n),
       urgent: _overdue,
+      extra: commitment.deadline != null && !item.isDone && !_overdue
+          ? DeadlineCountdown(deadline: commitment.deadline!)
+          : null,
       icon: switch (commitment.type) {
         CommitmentType.habit => Icons.repeat,
         CommitmentType.project => Icons.flag,

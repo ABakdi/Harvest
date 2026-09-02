@@ -4,6 +4,7 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -28,11 +29,12 @@ class StatsScreen extends ConsumerWidget {
         ref.watch(activeCommitmentsProvider).value ?? const [];
     final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
     final streaks = ref.watch(commitmentStreaksProvider).value ?? const {};
-    final spending = ref.watch(monthByCategoryProvider).value ?? const {};
+    final spending = ref.watch(monthByCategoryProvider);
     final weekXp = ref.watch(weeklyXpProvider).value ?? 0;
-    final weekSpending = ref.watch(weekByCategoryProvider).value ?? const {};
-    final symbol =
-        ref.watch(financeSettingsProvider).value?.symbol ?? r'$';
+    final weekSpending = ref.watch(weekByCategoryProvider);
+    final symbol = (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
+            Currency.dzd)
+        .symbol;
 
     final projects = commitments
         .where((c) => c.type == CommitmentType.project)

@@ -7,6 +7,7 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -102,6 +103,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   String _category = ExpenseCategory.food.name;
+  Currency? _currency;
 
   @override
   void initState() {
@@ -111,6 +113,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       _amountController.text = formatMinor(existing.amountMinor);
       _noteController.text = existing.note ?? '';
       _category = existing.category;
+      _currency = existing.currency;
     }
   }
 
@@ -140,17 +143,22 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     }
     Navigator.of(context).pop();
     final repo = ref.read(financesRepositoryProvider);
+    final currency = _currency ??
+        ref.read(financeSettingsProvider).value?.defaultCurrency ??
+        Currency.dzd;
     if (existing != null) {
       await repo.updateExpense(
         uuid: existing.uuid,
         amountMinor: amount,
         category: _category,
+        currency: currency,
         note: note.isEmpty ? null : note,
       );
     } else {
       await repo.log(
         amountMinor: amount,
         category: _category,
+        currency: currency,
         note: note.isEmpty ? null : note,
       );
     }
@@ -201,6 +209,34 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
                 borderRadius: BorderRadius.circular(HarvestRadii.button),
               ),
             ),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          // Per-expense currency (checkpoint P4).
+          Row(
+            children: [
+              Text(l10n.expenseCurrencyLabel),
+              const SizedBox(width: HarvestSpacing.sm),
+              SegmentedButton<Currency>(
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                ),
+                segments: [
+                  for (final option in Currency.values)
+                    ButtonSegment(
+                      value: option,
+                      label: Text(option.symbol),
+                    ),
+                ],
+                selected: {
+                  _currency ??
+                      ref.watch(financeSettingsProvider).value
+                              ?.defaultCurrency ??
+                          Currency.dzd,
+                },
+                onSelectionChanged: (selection) =>
+                    setState(() => _currency = selection.first),
+              ),
+            ],
           ),
           const SizedBox(height: HarvestSpacing.md),
           Wrap(

@@ -212,5 +212,15 @@
   "calendarTitle": "التقويم",
   "calNothingDue": "لا شيء مزروع لهذا اليوم.",
   "calDeadline": "موعد نهائي: {title}",
-  "calAddForDay": "ازرع مهمة لهذا اليوم…"
+  "calAddForDay": "ازرع مهمة لهذا اليوم…",
+  "defaultCurrencyLabel": "العملة الافتراضية",
+  "expenseCurrencyLabel": "العملة",
+  "exchangeRates": "أسعار الصرف",
+  "ratesDzdUsd": "دينار لكل 1 دولار",
+  "ratesDzdEur": "دينار لكل 1 يورو",
+  "ratesEurUsd": "يورو ← دولار (يُجلب)",
+  "fetchNow": "جلب",
+  "ratesUpdated": "حُدّث {when}",
+  "ratesFetchFailed": "تعذر الجلب — تحقق من الاتصال.",
+  "savingsIn": "المدخرات · {code}"
 }

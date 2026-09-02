@@ -6,6 +6,7 @@ import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
+import 'package:harvest/features/settings/presentation/rates_card.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -105,6 +106,15 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: HarvestSpacing.lg),
+          Text(
+            l10n.exchangeRates,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          const RatesCard(),
           const SizedBox(height: HarvestSpacing.lg),
           Text(
             l10n.settingsPomodoro,

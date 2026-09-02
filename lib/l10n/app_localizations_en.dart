@@ -715,4 +715,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calAddForDay => 'Plant a to-do for this day…';
+
+  @override
+  String get defaultCurrencyLabel => 'Default currency';
+
+  @override
+  String get expenseCurrencyLabel => 'Currency';
+
+  @override
+  String get exchangeRates => 'Exchange rates';
+
+  @override
+  String get ratesDzdUsd => 'DZD per 1 USD';
+
+  @override
+  String get ratesDzdEur => 'DZD per 1 EUR';
+
+  @override
+  String get ratesEurUsd => 'EUR → USD (fetched)';
+
+  @override
+  String get fetchNow => 'Fetch';
+
+  @override
+  String ratesUpdated(String when) {
+    return 'Updated $when';
+  }
+
+  @override
+  String get ratesFetchFailed => 'Couldn\'t fetch — check the connection.';
+
+  @override
+  String savingsIn(String code) {
+    return 'Savings · $code';
+  }
 }

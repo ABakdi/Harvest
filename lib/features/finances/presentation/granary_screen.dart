@@ -6,6 +6,7 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/gauge_ring.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_charts.dart';
@@ -63,11 +64,14 @@ class _TodayTab extends ConsumerWidget {
     final theme = Theme.of(context);
     final snapshot = ref.watch(budgetSnapshotProvider);
     final settings = ref.watch(financeSettingsProvider).value;
-    final symbol = settings?.symbol ?? r'$';
+    final defaultCurrency = settings?.defaultCurrency ?? Currency.dzd;
+    final ratesValue = ref.watch(ratesProvider).value ??
+        Rates(defaultCurrency: defaultCurrency);
     final expenses = ref.watch(todayExpensesProvider).value ?? const [];
     final suggestion = ref.watch(repeatSuggestionProvider).value;
     final customs = ref.watch(customCategoriesProvider).value ?? const [];
     final health = ref.watch(savingsHealthProvider);
+    final savings = settings?.savings ?? const <Currency, int>{};
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -77,18 +81,26 @@ class _TodayTab extends ConsumerWidget {
         120,
       ),
       children: [
-        _BudgetCard(snapshot: snapshot, symbol: symbol, l10n: l10n),
-        if (settings?.savingsMinor != null) ...[
-          const SizedBox(height: HarvestSpacing.sm),
-          _SavingsCard(
-            savings: settings!.savingsMinor!,
-            symbol: symbol,
-            health: health,
-          ),
-        ],
+        _BudgetCard(
+          snapshot: snapshot,
+          symbol: defaultCurrency.symbol,
+          l10n: l10n,
+        ),
+        // One savings card per currency (checkpoint P4).
+        for (final entry in savings.entries)
+          if (entry.value > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: HarvestSpacing.sm),
+              child: _SavingsCard(
+                currency: entry.key,
+                minor: entry.value,
+                rates: ratesValue,
+                health: health,
+              ),
+            ),
         if (suggestion != null) ...[
           const SizedBox(height: HarvestSpacing.md),
-          _RepeatCard(suggestion: suggestion, symbol: symbol),
+          _RepeatCard(suggestion: suggestion, rates: ratesValue),
         ],
         const SizedBox(height: HarvestSpacing.lg),
         Text(
@@ -122,7 +134,11 @@ class _TodayTab extends ConsumerWidget {
                   ),
                 ),
                 title: Text(
-                  '$symbol${formatMinor(expense.amountMinor)}',
+                  amountWithConversion(
+                    minor: expense.amountMinor,
+                    currency: expense.currency,
+                    rates: ratesValue,
+                  ),
                   style: theme.textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.w800),
                 ),
@@ -149,13 +165,15 @@ class _TodayTab extends ConsumerWidget {
 
 class _SavingsCard extends StatelessWidget {
   const _SavingsCard({
-    required this.savings,
-    required this.symbol,
+    required this.currency,
+    required this.minor,
+    required this.rates,
     required this.health,
   });
 
-  final int savings;
-  final String symbol;
+  final Currency currency;
+  final int minor;
+  final Rates rates;
   final SavingsHealth health;
 
   @override
@@ -166,15 +184,22 @@ class _SavingsCard extends StatelessWidget {
     final color = low ? theme.colorScheme.error : theme.colorScheme.secondary;
 
     return Card(
+      margin: EdgeInsets.zero,
       color: low ? theme.colorScheme.error.withValues(alpha: 0.12) : null,
       child: ListTile(
         leading: Icon(Icons.savings_outlined, color: color),
         title: Text(
-          '$symbol${formatMinor(savings)}',
+          amountWithConversion(
+            minor: minor,
+            currency: currency,
+            rates: rates,
+          ),
           style: theme.textTheme.titleMedium
               ?.copyWith(fontWeight: FontWeight.w800, color: color),
         ),
-        subtitle: Text(low ? l10n.savingsLow : l10n.savingsLabel),
+        subtitle: Text(
+          low ? l10n.savingsLow : l10n.savingsIn(currency.code),
+        ),
       ),
     );
   }
@@ -280,48 +305,54 @@ class _BudgetSheet extends ConsumerStatefulWidget {
 
 class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
   final _amountController = TextEditingController();
-  final _symbolController = TextEditingController();
-  final _savingsController = TextEditingController();
   final _expectedController = TextEditingController();
+  final Map<Currency, TextEditingController> _savingsControllers = {
+    for (final currency in Currency.values) currency: TextEditingController(),
+  };
+  Currency _defaultCurrency = Currency.dzd;
 
   @override
   void initState() {
     super.initState();
     final settings = ref.read(financeSettingsProvider).value;
-    if (settings?.budgetMinor != null) {
-      _amountController.text = formatMinor(settings!.budgetMinor!);
+    if (settings == null) return;
+    _defaultCurrency = settings.defaultCurrency;
+    if (settings.budgetMinor != null) {
+      _amountController.text = formatMinor(settings.budgetMinor!);
     }
-    _symbolController.text = settings?.symbol ?? r'$';
-    if (settings?.savingsMinor != null) {
-      _savingsController.text = formatMinor(settings!.savingsMinor!);
+    if (settings.expectedDailyMinor != null) {
+      _expectedController.text = formatMinor(settings.expectedDailyMinor!);
     }
-    if (settings?.expectedDailyMinor != null) {
-      _expectedController.text =
-          formatMinor(settings!.expectedDailyMinor!);
-    }
+    settings.savings.forEach((currency, minor) {
+      _savingsControllers[currency]!.text = formatMinor(minor);
+    });
   }
 
   @override
   void dispose() {
     _amountController.dispose();
-    _symbolController.dispose();
-    _savingsController.dispose();
     _expectedController.dispose();
+    for (final controller in _savingsControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _save() async {
     final minor = parseToMinor(_amountController.text);
     if (minor == null) return;
-    final symbol = _symbolController.text.trim();
-    final savings = parseToMinor(_savingsController.text);
     final expected = parseToMinor(_expectedController.text);
     Navigator.of(context).pop();
     final notifier = ref.read(financeSettingsProvider.notifier);
     await notifier.setBudget(minor);
-    if (symbol.isNotEmpty) await notifier.setSymbol(symbol);
-    if (savings != null) await notifier.setSavings(savings);
+    await notifier.setDefaultCurrency(_defaultCurrency);
     if (expected != null) await notifier.setExpectedDaily(expected);
+    for (final entry in _savingsControllers.entries) {
+      final value = parseToMinor(entry.value.text);
+      if (value != null || entry.value.text.trim().isEmpty) {
+        await notifier.setSavings(entry.key, value ?? 0);
+      }
+    }
   }
 
   InputDecoration _decoration(String label) => InputDecoration(
@@ -364,35 +395,41 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
               decoration: _decoration(l10n.budgetAmountLabel),
             ),
             const SizedBox(height: HarvestSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _savingsController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: _decoration(l10n.savingsLabel),
+            Text(l10n.defaultCurrencyLabel),
+            const SizedBox(height: HarvestSpacing.xs),
+            SegmentedButton<Currency>(
+              segments: [
+                for (final currency in Currency.values)
+                  ButtonSegment(
+                    value: currency,
+                    label: Text(currency.symbol),
                   ),
-                ),
-                const SizedBox(width: HarvestSpacing.sm),
-                Expanded(
-                  child: TextField(
-                    controller: _expectedController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: _decoration(l10n.expectedDailyLabel),
-                  ),
-                ),
               ],
+              selected: {_defaultCurrency},
+              onSelectionChanged: (selection) =>
+                  setState(() => _defaultCurrency = selection.first),
             ),
             const SizedBox(height: HarvestSpacing.md),
             TextField(
-              controller: _symbolController,
-              decoration: _decoration(l10n.currencyLabel),
+              controller: _expectedController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: _decoration(l10n.expectedDailyLabel),
             ),
             const SizedBox(height: HarvestSpacing.md),
+            // One savings pot per currency (checkpoint P4).
+            for (final currency in Currency.values) ...[
+              TextField(
+                controller: _savingsControllers[currency],
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: _decoration(
+                  '${l10n.savingsLabel} (${currency.code})',
+                ),
+              ),
+              const SizedBox(height: HarvestSpacing.sm),
+            ],
+            const SizedBox(height: HarvestSpacing.xs),
             const _ManageCategories(),
             const SizedBox(height: HarvestSpacing.md),
             BigBouncySheetButton(
@@ -409,10 +446,10 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
 }
 
 class _RepeatCard extends ConsumerWidget {
-  const _RepeatCard({required this.suggestion, required this.symbol});
+  const _RepeatCard({required this.suggestion, required this.rates});
 
   final RepeatSuggestion suggestion;
-  final String symbol;
+  final Rates rates;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -428,7 +465,8 @@ class _RepeatCard extends ConsumerWidget {
           color: theme.colorScheme.secondary,
         ),
         title: Text(
-          '$symbol${formatMinor(suggestion.amountMinor)} · '
+          '${rates.defaultCurrency.symbol}'
+          '${formatMinor(suggestion.amountMinor)} · '
           '${categoryLabel(l10n, suggestion.category)}',
           style:
               theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -439,6 +477,7 @@ class _RepeatCard extends ConsumerWidget {
             await ref.read(financesRepositoryProvider).log(
                   amountMinor: suggestion.amountMinor,
                   category: suggestion.category,
+                  currency: rates.defaultCurrency,
                   note: suggestion.note,
                 );
             await ref.read(notificationPlannerProvider).reevaluate();

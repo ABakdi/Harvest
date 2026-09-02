@@ -1375,6 +1375,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plant a to-do for this day…'**
   String get calAddForDay;
+
+  /// No description provided for @defaultCurrencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default currency'**
+  String get defaultCurrencyLabel;
+
+  /// No description provided for @expenseCurrencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get expenseCurrencyLabel;
+
+  /// No description provided for @exchangeRates.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange rates'**
+  String get exchangeRates;
+
+  /// No description provided for @ratesDzdUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'DZD per 1 USD'**
+  String get ratesDzdUsd;
+
+  /// No description provided for @ratesDzdEur.
+  ///
+  /// In en, this message translates to:
+  /// **'DZD per 1 EUR'**
+  String get ratesDzdEur;
+
+  /// No description provided for @ratesEurUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'EUR → USD (fetched)'**
+  String get ratesEurUsd;
+
+  /// No description provided for @fetchNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch'**
+  String get fetchNow;
+
+  /// No description provided for @ratesUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {when}'**
+  String ratesUpdated(String when);
+
+  /// No description provided for @ratesFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t fetch — check the connection.'**
+  String get ratesFetchFailed;
+
+  /// No description provided for @savingsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings · {code}'**
+  String savingsIn(String code);
 }
 
 class _AppLocalizationsDelegate
