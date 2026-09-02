@@ -7,8 +7,10 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -131,6 +133,30 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     if (amount == null) return;
     final note = _noteController.text.trim();
     final existing = widget.existing;
+
+    // New expenses can come straight out of the wallet (round 3).
+    var fromWallet = false;
+    if (existing == null) {
+      final l10n = AppLocalizations.of(context);
+      fromWallet = await showDialog<bool>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: Text(l10n.takeFromWallet),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(l10n.no),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(l10n.yes),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+      if (!mounted) return;
+    }
     // Coin burst above the sheet before it closes (gap G11).
     final box = context.findRenderObject() as RenderBox?;
     if (box != null) {
@@ -161,6 +187,14 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
         currency: currency,
         note: note.isEmpty ? null : note,
       );
+      if (fromWallet) {
+        await ref.read(vaultRepositoryProvider).move(
+              account: MoneyAccount.wallet,
+              deltaMinor: -amount,
+              currency: currency,
+              note: note.isEmpty ? null : note,
+            );
+      }
     }
     await HarvestHaptics.thud();
     await ref.read(notificationPlannerProvider).reevaluate();

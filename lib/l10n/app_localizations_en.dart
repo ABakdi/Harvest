@@ -720,4 +720,98 @@ class AppLocalizationsEn extends AppLocalizations {
   String savingsIn(String code) {
     return 'Savings · $code';
   }
+
+  @override
+  String get vaultTab => 'Vault';
+
+  @override
+  String get walletTitle => 'Wallet';
+
+  @override
+  String get walletAdd => 'Add';
+
+  @override
+  String get walletTake => 'Take';
+
+  @override
+  String get savingsSectionTitle => 'Savings';
+
+  @override
+  String get savingsDeposit => 'Save';
+
+  @override
+  String get savingsWithdraw => 'Withdraw';
+
+  @override
+  String get amountPrompt => 'Amount';
+
+  @override
+  String get withdrawDestination => 'Where does it go?';
+
+  @override
+  String get toWallet => 'To the wallet';
+
+  @override
+  String get asExpense => 'Log as expense';
+
+  @override
+  String get takeFromWallet => 'Take it from the wallet?';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get debtsTitle => 'Debts';
+
+  @override
+  String get addDebt => 'Log a debt';
+
+  @override
+  String get debtPerson => 'Owed to';
+
+  @override
+  String get debtPayOffBy => 'Pay off by';
+
+  @override
+  String get debtRemindAt => 'Remind me at';
+
+  @override
+  String get debtPay => 'Pay';
+
+  @override
+  String get debtPayAmount => 'Payment amount';
+
+  @override
+  String get debtSettled => 'Settled 🎉';
+
+  @override
+  String debtRemaining(String amount, String person) {
+    return '$amount left · $person';
+  }
+
+  @override
+  String notifDebtTitle(String person) {
+    return 'Debt to $person';
+  }
+
+  @override
+  String notifDebtBody(String amount) {
+    return '$amount still owed. A settled debt sleeps better.';
+  }
+
+  @override
+  String get recentMoves => 'Recent moves';
+
+  @override
+  String get txnWallet => 'Wallet';
+
+  @override
+  String get txnSavings => 'Savings';
+
+  @override
+  String get nothingInVault =>
+      'The vault is empty — add to the wallet or save something.';
 }

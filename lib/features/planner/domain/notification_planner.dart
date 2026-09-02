@@ -140,6 +140,58 @@ class NotificationPlanner {
     }
 
     await _planTaskReminders(at, l10n);
+    await _planDebtReminders(at, l10n);
+  }
+
+  /// Unsettled debts nag daily at their remind-at time (default 19:00)
+  /// until paid off (checkpoint round 3).
+  Future<void> _planDebtReminders(DateTime at, AppLocalizations l10n) async {
+    final storedRow = await (_db.select(_db.kvSettings)
+          ..where((s) => s.key.equals('reminders.debtIds')))
+        .getSingleOrNull();
+    if (storedRow != null) {
+      final ids = (jsonDecode(storedRow.valueJson) as List<dynamic>?) ?? [];
+      for (final id in ids) {
+        await _notifications.cancel(id as int);
+      }
+    }
+
+    final rows = await (_db.select(_db.debts)
+          ..where(
+            (d) => d.settledAt.isNull() & d.deletedAt.isNull(),
+          ))
+        .get();
+
+    final scheduled = <int>[];
+    var nextId = 3100;
+    for (final row in rows) {
+      final parts = (row.remindAt ?? '19:00').split(':');
+      final hour = int.tryParse(parts.first) ?? 19;
+      final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+      final when = _todayAt(TimeOfDay(hour: hour, minute: minute), at);
+      if (!when.isAfter(at)) continue;
+
+      final id = nextId++;
+      await _notifications.schedule(
+        id: id,
+        channelId: NotificationChannels.reminders,
+        title: l10n.notifDebtTitle(row.person),
+        body: l10n.notifDebtBody(
+          '${row.currency} ${row.amountMinor ~/ 100}',
+        ),
+        when: when,
+        payload: 'finances',
+      );
+      scheduled.add(id);
+    }
+
+    await _db.into(_db.kvSettings).insertOnConflictUpdate(
+          KvSettingsCompanion.insert(
+            key: 'reminders.debtIds',
+            valueJson: jsonEncode(scheduled),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
   }
 
   /// Per-seed reminders (checkpoint gap G4): every commitment due today

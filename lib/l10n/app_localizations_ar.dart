@@ -717,4 +717,97 @@ class AppLocalizationsAr extends AppLocalizations {
   String savingsIn(String code) {
     return 'المدخرات · $code';
   }
+
+  @override
+  String get vaultTab => 'الخزنة';
+
+  @override
+  String get walletTitle => 'المحفظة';
+
+  @override
+  String get walletAdd => 'إضافة';
+
+  @override
+  String get walletTake => 'سحب';
+
+  @override
+  String get savingsSectionTitle => 'المدخرات';
+
+  @override
+  String get savingsDeposit => 'ادخر';
+
+  @override
+  String get savingsWithdraw => 'اسحب';
+
+  @override
+  String get amountPrompt => 'المبلغ';
+
+  @override
+  String get withdrawDestination => 'إلى أين يذهب؟';
+
+  @override
+  String get toWallet => 'إلى المحفظة';
+
+  @override
+  String get asExpense => 'سجّله كمصروف';
+
+  @override
+  String get takeFromWallet => 'أتأخذه من المحفظة؟';
+
+  @override
+  String get yes => 'نعم';
+
+  @override
+  String get no => 'لا';
+
+  @override
+  String get debtsTitle => 'الديون';
+
+  @override
+  String get addDebt => 'سجّل دينًا';
+
+  @override
+  String get debtPerson => 'مستحق لـ';
+
+  @override
+  String get debtPayOffBy => 'سدّد قبل';
+
+  @override
+  String get debtRemindAt => 'ذكّرني في';
+
+  @override
+  String get debtPay => 'سدّد';
+
+  @override
+  String get debtPayAmount => 'مبلغ الدفعة';
+
+  @override
+  String get debtSettled => 'سُدّد 🎉';
+
+  @override
+  String debtRemaining(String amount, String person) {
+    return 'بقي $amount · $person';
+  }
+
+  @override
+  String notifDebtTitle(String person) {
+    return 'دين لـ $person';
+  }
+
+  @override
+  String notifDebtBody(String amount) {
+    return 'لا يزال $amount مستحقًا. الدين المسدد ينام أهنأ.';
+  }
+
+  @override
+  String get recentMoves => 'آخر الحركات';
+
+  @override
+  String get txnWallet => 'المحفظة';
+
+  @override
+  String get txnSavings => 'المدخرات';
+
+  @override
+  String get nothingInVault => 'الخزنة فارغة — أضف للمحفظة أو ادخر شيئًا.';
 }

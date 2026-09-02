@@ -440,5 +440,58 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vaultTab": "Vault",
+  "walletTitle": "Wallet",
+  "walletAdd": "Add",
+  "walletTake": "Take",
+  "savingsSectionTitle": "Savings",
+  "savingsDeposit": "Save",
+  "savingsWithdraw": "Withdraw",
+  "amountPrompt": "Amount",
+  "withdrawDestination": "Where does it go?",
+  "toWallet": "To the wallet",
+  "asExpense": "Log as expense",
+  "takeFromWallet": "Take it from the wallet?",
+  "yes": "Yes",
+  "no": "No",
+  "debtsTitle": "Debts",
+  "addDebt": "Log a debt",
+  "debtPerson": "Owed to",
+  "debtPayOffBy": "Pay off by",
+  "debtRemindAt": "Remind me at",
+  "debtPay": "Pay",
+  "debtPayAmount": "Payment amount",
+  "debtSettled": "Settled 🎉",
+  "debtRemaining": "{amount} left · {person}",
+  "@debtRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDebtTitle": "Debt to {person}",
+  "@notifDebtTitle": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDebtBody": "{amount} still owed. A settled debt sleeps better.",
+  "@notifDebtBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "recentMoves": "Recent moves",
+  "txnWallet": "Wallet",
+  "txnSavings": "Savings",
+  "nothingInVault": "The vault is empty — add to the wallet or save something."
 }

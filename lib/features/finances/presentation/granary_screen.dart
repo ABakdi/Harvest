@@ -12,6 +12,7 @@ import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_charts.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/finances/presentation/vault_tab.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -31,13 +32,14 @@ class GranaryScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.granaryTitle),
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.todayTab),
+              Tab(text: l10n.vaultTab),
               Tab(text: l10n.insightsTab),
             ],
           ),
@@ -48,7 +50,7 @@ class GranaryScreen extends ConsumerWidget {
           label: Text(l10n.logExpense),
         ),
         body: const TabBarView(
-          children: [_TodayTab(), InsightsTab()],
+          children: [_TodayTab(), VaultTab(), InsightsTab()],
         ),
       ),
     );
@@ -70,8 +72,6 @@ class _TodayTab extends ConsumerWidget {
     final expenses = ref.watch(todayExpensesProvider).value ?? const [];
     final suggestion = ref.watch(repeatSuggestionProvider).value;
     final customs = ref.watch(customCategoriesProvider).value ?? const [];
-    final health = ref.watch(savingsHealthProvider);
-    final savings = settings?.savings ?? const <Currency, int>{};
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -86,18 +86,6 @@ class _TodayTab extends ConsumerWidget {
           symbol: defaultCurrency.symbol,
           l10n: l10n,
         ),
-        // One savings card per currency (checkpoint P4).
-        for (final entry in savings.entries)
-          if (entry.value > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: HarvestSpacing.sm),
-              child: _SavingsCard(
-                currency: entry.key,
-                minor: entry.value,
-                rates: ratesValue,
-                health: health,
-              ),
-            ),
         if (suggestion != null) ...[
           const SizedBox(height: HarvestSpacing.md),
           _RepeatCard(suggestion: suggestion, rates: ratesValue),
@@ -159,48 +147,6 @@ class _TodayTab extends ConsumerWidget {
               ),
             ),
       ],
-    );
-  }
-}
-
-class _SavingsCard extends StatelessWidget {
-  const _SavingsCard({
-    required this.currency,
-    required this.minor,
-    required this.rates,
-    required this.health,
-  });
-
-  final Currency currency;
-  final int minor;
-  final Rates rates;
-  final SavingsHealth health;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final low = health == SavingsHealth.low;
-    final color = low ? theme.colorScheme.error : theme.colorScheme.secondary;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      color: low ? theme.colorScheme.error.withValues(alpha: 0.12) : null,
-      child: ListTile(
-        leading: Icon(Icons.savings_outlined, color: color),
-        title: Text(
-          amountWithConversion(
-            minor: minor,
-            currency: currency,
-            rates: rates,
-          ),
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w800, color: color),
-        ),
-        subtitle: Text(
-          low ? l10n.savingsLow : l10n.savingsIn(currency.code),
-        ),
-      ),
     );
   }
 }
@@ -306,9 +252,6 @@ class _BudgetSheet extends ConsumerStatefulWidget {
 class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
   final _amountController = TextEditingController();
   final _expectedController = TextEditingController();
-  final Map<Currency, TextEditingController> _savingsControllers = {
-    for (final currency in Currency.values) currency: TextEditingController(),
-  };
   Currency _defaultCurrency = Currency.dzd;
 
   @override
@@ -323,18 +266,12 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
     if (settings.expectedDailyMinor != null) {
       _expectedController.text = formatMinor(settings.expectedDailyMinor!);
     }
-    settings.savings.forEach((currency, minor) {
-      _savingsControllers[currency]!.text = formatMinor(minor);
-    });
   }
 
   @override
   void dispose() {
     _amountController.dispose();
     _expectedController.dispose();
-    for (final controller in _savingsControllers.values) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
@@ -347,12 +284,6 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
     await notifier.setBudget(minor);
     await notifier.setDefaultCurrency(_defaultCurrency);
     if (expected != null) await notifier.setExpectedDaily(expected);
-    for (final entry in _savingsControllers.entries) {
-      final value = parseToMinor(entry.value.text);
-      if (value != null || entry.value.text.trim().isEmpty) {
-        await notifier.setSavings(entry.key, value ?? 0);
-      }
-    }
   }
 
   InputDecoration _decoration(String label) => InputDecoration(
@@ -417,19 +348,6 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
               decoration: _decoration(l10n.expectedDailyLabel),
             ),
             const SizedBox(height: HarvestSpacing.md),
-            // One savings pot per currency (checkpoint P4).
-            for (final currency in Currency.values) ...[
-              TextField(
-                controller: _savingsControllers[currency],
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: _decoration(
-                  '${l10n.savingsLabel} (${currency.code})',
-                ),
-              ),
-              const SizedBox(height: HarvestSpacing.sm),
-            ],
-            const SizedBox(height: HarvestSpacing.xs),
             const _ManageCategories(),
             const SizedBox(height: HarvestSpacing.md),
             BigBouncySheetButton(

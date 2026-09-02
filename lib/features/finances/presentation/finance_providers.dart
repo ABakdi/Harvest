@@ -1,7 +1,9 @@
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -33,7 +35,8 @@ Stream<List<Expense>> weekExpenses(Ref ref) => ref
 Stream<List<CustomCategory>> customCategories(Ref ref) =>
     ref.watch(financesRepositoryProvider).watchCategories();
 
-/// Budget, currency, savings-per-currency, and manual rate settings.
+/// Budget, currency, and expectation settings. Savings moved to the
+/// vault's transaction ledger (checkpoint round 3).
 @Riverpod(keepAlive: true)
 class FinanceSettings extends _$FinanceSettings {
   @override
@@ -42,14 +45,11 @@ class FinanceSettings extends _$FinanceSettings {
         int? budgetMinor,
         Currency defaultCurrency,
         int? expectedDailyMinor,
-        Map<Currency, int> savings,
       })> build() =>
-      ref.watch(settingsRepositoryProvider).watchAll([
+      ref.watch(settingsRepositoryProvider).watchAll(const [
         FinanceKeys.monthlyBudget,
         FinanceKeys.defaultCurrency,
         FinanceKeys.expectedDaily,
-        for (final currency in Currency.values)
-          FinanceKeys.savingsFor(currency),
       ]).map(
         (values) => (
           budgetMinor: int.tryParse(values[FinanceKeys.monthlyBudget] ?? ''),
@@ -57,15 +57,6 @@ class FinanceSettings extends _$FinanceSettings {
               Currency.fromCode(values[FinanceKeys.defaultCurrency]),
           expectedDailyMinor:
               int.tryParse(values[FinanceKeys.expectedDaily] ?? ''),
-          savings: {
-            for (final currency in Currency.values)
-              if (int.tryParse(
-                      values[FinanceKeys.savingsFor(currency)] ?? '') !=
-                  null)
-                currency: int.parse(
-                  values[FinanceKeys.savingsFor(currency)]!,
-                ),
-          },
         ),
       );
 
@@ -77,14 +68,24 @@ class FinanceSettings extends _$FinanceSettings {
       .read(settingsRepositoryProvider)
       .setString(FinanceKeys.defaultCurrency, currency.code);
 
-  Future<void> setSavings(Currency currency, int minor) => ref
-      .read(settingsRepositoryProvider)
-      .setString(FinanceKeys.savingsFor(currency), '$minor');
-
   Future<void> setExpectedDaily(int minor) => ref
       .read(settingsRepositoryProvider)
       .setString(FinanceKeys.expectedDaily, '$minor');
 }
+
+// ------------------------------------------------------------------ vault
+
+@riverpod
+Stream<Map<(MoneyAccount, Currency), int>> vaultBalances(Ref ref) =>
+    ref.watch(vaultRepositoryProvider).watchBalances();
+
+@riverpod
+Stream<List<MoneyTxn>> recentTxns(Ref ref) =>
+    ref.watch(vaultRepositoryProvider).watchRecentTxns();
+
+@riverpod
+Stream<List<Debt>> debts(Ref ref) =>
+    ref.watch(vaultRepositoryProvider).watchDebts();
 
 /// The live exchange-rate picture (checkpoint P5).
 @Riverpod(keepAlive: true)
@@ -194,9 +195,13 @@ enum SavingsHealth { unknown, healthy, low }
 
 @riverpod
 SavingsHealth savingsHealth(Ref ref) {
-  final settings = ref.watch(financeSettingsProvider).value;
-  final budget = settings?.budgetMinor;
-  final savings = settings?.savings ?? const <Currency, int>{};
+  final budget = ref.watch(financeSettingsProvider).value?.budgetMinor;
+  final balances = ref.watch(vaultBalancesProvider).value ?? const {};
+  final savings = <Currency, int>{
+    for (final entry in balances.entries)
+      if (entry.key.$1 == MoneyAccount.savings && entry.value != 0)
+        entry.key.$2: entry.value,
+  };
   if (savings.isEmpty || budget == null || budget <= 0) {
     return SavingsHealth.unknown;
   }

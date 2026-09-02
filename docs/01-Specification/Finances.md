@@ -4,16 +4,30 @@ Phase 2 module ([[Phase-2-Finances]]). Money is a pillar like any other: log it 
 
 ## Layout
 
-The Granary has two tabs: **Today** (gauge, savings pot, quick-log,
-today's entries) and **Insights** (daily bar chart + category donut,
-switchable between week and month, with totals and per-day average).
+The Granary has three tabs: **Today** (gauge, quick-log, today's
+entries), **Vault** (wallet, savings, debts, movement history), and
+**Insights** (daily bar chart + category donut, week/month, totals
+and per-day average).
 
-## Savings & expectations
+## The Vault
 
-- A **savings pot** — a manually-kept number, edited with the budget.
-  It turns red when it drops below 10% of the monthly budget.
-- An **expected daily spend** for comparing intent against the computed
-  floating limit.
+- **Wallet** — money meant to be spent. Add and take freely; taking
+  without logging an expense is allowed.
+- **Savings** — money meant to be saved, one pot per currency, each on
+  its own card. A withdrawal must land somewhere: **to the wallet** or
+  **logged as an expense** — the prompt always asks. Total savings
+  (converted) below 10% of the monthly budget turns the cards red.
+- **Every movement is a row** — balances are sums over the signed
+  transaction history, shown as "Recent moves".
+- Logging an expense asks **"Take it from the wallet?"** — yes creates
+  the matching wallet withdrawal.
+- **Debts** — an amount owed to someone (no interest), with an optional
+  pay-off-by day, a note, and a remind-me-at time. Unsettled debts nag
+  **daily** (19:00 default) until fully paid; partial payments
+  accumulate and full payment settles with a small celebration.
+
+An **expected daily spend** records intent next to the computed
+floating limit.
 
 ## Quick-log
 

@@ -167,12 +167,14 @@ final class CustomCategoriesProvider
 
 String _$customCategoriesHash() => r'9a052100e740ed81810d72e1411b6e35d90c512e';
 
-/// Budget, currency, savings-per-currency, and manual rate settings.
+/// Budget, currency, and expectation settings. Savings moved to the
+/// vault's transaction ledger (checkpoint round 3).
 
 @ProviderFor(FinanceSettings)
 final financeSettingsProvider = FinanceSettingsProvider._();
 
-/// Budget, currency, savings-per-currency, and manual rate settings.
+/// Budget, currency, and expectation settings. Savings moved to the
+/// vault's transaction ledger (checkpoint round 3).
 final class FinanceSettingsProvider
     extends
         $StreamNotifierProvider<
@@ -181,10 +183,10 @@ final class FinanceSettingsProvider
             int? budgetMinor,
             Currency defaultCurrency,
             int? expectedDailyMinor,
-            Map<Currency, int> savings,
           })
         > {
-  /// Budget, currency, savings-per-currency, and manual rate settings.
+  /// Budget, currency, and expectation settings. Savings moved to the
+  /// vault's transaction ledger (checkpoint round 3).
   FinanceSettingsProvider._()
     : super(
         from: null,
@@ -204,9 +206,10 @@ final class FinanceSettingsProvider
   FinanceSettings create() => FinanceSettings();
 }
 
-String _$financeSettingsHash() => r'a66c339c83173ab570851743a44cb2d2c4d8c09e';
+String _$financeSettingsHash() => r'70e6fd2c154a54d045357fe1249b4b7019317c05';
 
-/// Budget, currency, savings-per-currency, and manual rate settings.
+/// Budget, currency, and expectation settings. Savings moved to the
+/// vault's transaction ledger (checkpoint round 3).
 
 abstract class _$FinanceSettings
     extends
@@ -215,16 +218,10 @@ abstract class _$FinanceSettings
             int? budgetMinor,
             Currency defaultCurrency,
             int? expectedDailyMinor,
-            Map<Currency, int> savings,
           })
         > {
   Stream<
-    ({
-      int? budgetMinor,
-      Currency defaultCurrency,
-      int? expectedDailyMinor,
-      Map<Currency, int> savings,
-    })
+    ({int? budgetMinor, Currency defaultCurrency, int? expectedDailyMinor})
   >
   build();
   @$mustCallSuper
@@ -238,14 +235,12 @@ abstract class _$FinanceSettings
                   int? budgetMinor,
                   Currency defaultCurrency,
                   int? expectedDailyMinor,
-                  Map<Currency, int> savings,
                 })
               >,
               ({
                 int? budgetMinor,
                 Currency defaultCurrency,
                 int? expectedDailyMinor,
-                Map<Currency, int> savings,
               })
             >;
     final element =
@@ -257,14 +252,12 @@ abstract class _$FinanceSettings
                     int? budgetMinor,
                     Currency defaultCurrency,
                     int? expectedDailyMinor,
-                    Map<Currency, int> savings,
                   })
                 >,
                 ({
                   int? budgetMinor,
                   Currency defaultCurrency,
                   int? expectedDailyMinor,
-                  Map<Currency, int> savings,
                 })
               >,
               AsyncValue<
@@ -272,7 +265,6 @@ abstract class _$FinanceSettings
                   int? budgetMinor,
                   Currency defaultCurrency,
                   int? expectedDailyMinor,
-                  Map<Currency, int> savings,
                 })
               >,
               Object?,
@@ -281,6 +273,124 @@ abstract class _$FinanceSettings
     return element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(vaultBalances)
+final vaultBalancesProvider = VaultBalancesProvider._();
+
+final class VaultBalancesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<(MoneyAccount, Currency), int>>,
+          Map<(MoneyAccount, Currency), int>,
+          Stream<Map<(MoneyAccount, Currency), int>>
+        >
+    with
+        $FutureModifier<Map<(MoneyAccount, Currency), int>>,
+        $StreamProvider<Map<(MoneyAccount, Currency), int>> {
+  VaultBalancesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vaultBalancesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vaultBalancesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<(MoneyAccount, Currency), int>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<(MoneyAccount, Currency), int>> create(Ref ref) {
+    return vaultBalances(ref);
+  }
+}
+
+String _$vaultBalancesHash() => r'7a9de6e29db6d72381e2a52f5c0d90b93ca800a7';
+
+@ProviderFor(recentTxns)
+final recentTxnsProvider = RecentTxnsProvider._();
+
+final class RecentTxnsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<MoneyTxn>>,
+          List<MoneyTxn>,
+          Stream<List<MoneyTxn>>
+        >
+    with $FutureModifier<List<MoneyTxn>>, $StreamProvider<List<MoneyTxn>> {
+  RecentTxnsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recentTxnsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recentTxnsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<MoneyTxn>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<MoneyTxn>> create(Ref ref) {
+    return recentTxns(ref);
+  }
+}
+
+String _$recentTxnsHash() => r'237c3d573cecfc5d75752208a7ed78228717eaeb';
+
+@ProviderFor(debts)
+final debtsProvider = DebtsProvider._();
+
+final class DebtsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Debt>>,
+          List<Debt>,
+          Stream<List<Debt>>
+        >
+    with $FutureModifier<List<Debt>>, $StreamProvider<List<Debt>> {
+  DebtsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'debtsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$debtsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Debt>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Debt>> create(Ref ref) {
+    return debts(ref);
+  }
+}
+
+String _$debtsHash() => r'42e14e78804630be424c816bb8319a8106d062b2';
 
 /// The live exchange-rate picture (checkpoint P5).
 
@@ -590,7 +700,7 @@ final class SavingsHealthProvider
   }
 }
 
-String _$savingsHealthHash() => r'1e912748ff343c595cf02fd8d9548deb94c1bc25';
+String _$savingsHealthHash() => r'd3572e0849a0e993559b8be3e740959f1510d234';
 
 /// The smart-repeat suggestion, refreshed as today's log changes.
 

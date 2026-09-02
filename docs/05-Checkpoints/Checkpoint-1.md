@@ -79,6 +79,20 @@ rate means no parenthetical and face-value aggregation, never a block
 (local-first: the rate fetch is optional network, everything else works
 offline).
 
+## Round 3 — the vault
+
+- **App icon**: real launcher identity at last — white sprout on a
+  green gradient, adaptive on Android, generated for every density.
+- **Vault tab** in the Granary: wallet (spend money), savings pots per
+  currency (saved money), debts, and the full movement history.
+  Savings withdrawals must choose a destination (wallet or logged
+  expense); expenses offer to come out of the wallet; wallet
+  withdrawals need no expense. Debts carry pay-off-by, notes and a
+  daily reminder until settled. Schema v6: money_txns, debts,
+  debt_payments — all outbox-wired.
+- Daily quests removed (previous entry) — confirmed gone from the
+  field.
+
 ## Scope change
 
 Daily quests are **out of v1**: the card and its logic were removed

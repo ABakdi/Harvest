@@ -1381,6 +1381,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Savings · {code}'**
   String savingsIn(String code);
+
+  /// No description provided for @vaultTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault'**
+  String get vaultTab;
+
+  /// No description provided for @walletTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get walletTitle;
+
+  /// No description provided for @walletAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get walletAdd;
+
+  /// No description provided for @walletTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Take'**
+  String get walletTake;
+
+  /// No description provided for @savingsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get savingsSectionTitle;
+
+  /// No description provided for @savingsDeposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get savingsDeposit;
+
+  /// No description provided for @savingsWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get savingsWithdraw;
+
+  /// No description provided for @amountPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amountPrompt;
+
+  /// No description provided for @withdrawDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Where does it go?'**
+  String get withdrawDestination;
+
+  /// No description provided for @toWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'To the wallet'**
+  String get toWallet;
+
+  /// No description provided for @asExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Log as expense'**
+  String get asExpense;
+
+  /// No description provided for @takeFromWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it from the wallet?'**
+  String get takeFromWallet;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @debtsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts'**
+  String get debtsTitle;
+
+  /// No description provided for @addDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a debt'**
+  String get addDebt;
+
+  /// No description provided for @debtPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to'**
+  String get debtPerson;
+
+  /// No description provided for @debtPayOffBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay off by'**
+  String get debtPayOffBy;
+
+  /// No description provided for @debtRemindAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me at'**
+  String get debtRemindAt;
+
+  /// No description provided for @debtPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get debtPay;
+
+  /// No description provided for @debtPayAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment amount'**
+  String get debtPayAmount;
+
+  /// No description provided for @debtSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled 🎉'**
+  String get debtSettled;
+
+  /// No description provided for @debtRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left · {person}'**
+  String debtRemaining(String amount, String person);
+
+  /// No description provided for @notifDebtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt to {person}'**
+  String notifDebtTitle(String person);
+
+  /// No description provided for @notifDebtBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} still owed. A settled debt sleeps better.'**
+  String notifDebtBody(String amount);
+
+  /// No description provided for @recentMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent moves'**
+  String get recentMoves;
+
+  /// No description provided for @txnWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get txnWallet;
+
+  /// No description provided for @txnSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get txnSavings;
+
+  /// No description provided for @nothingInVault.
+  ///
+  /// In en, this message translates to:
+  /// **'The vault is empty — add to the wallet or save something.'**
+  String get nothingInVault;
 }
 
 class _AppLocalizationsDelegate
