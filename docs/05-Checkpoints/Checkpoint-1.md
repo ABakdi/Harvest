@@ -24,6 +24,8 @@ the v1 release.
 
 | # | Bug | Status |
 | :- | :--- | :--- |
+| B4 | Date pickers applied the 3 AM shift — picking Sep 2 stored Sep 1 for deadlines/planned days | Fixed: `HarvestDay.fromDate` for calendar dates, regression-tested |
+| B5 | Smart repeats ignored currency — three days of \$5 would suggest logging DA5 | Fixed: currency is part of the repeat pattern |
 | B1 | Overscroll stretches cards (Android stretch effect) — ugly deformation at list ends | **Fix planned** → gentle bounce physics app-wide |
 | B2 | Pomodoro countdown notification not re-posted after process restart | Fixed in v0.2.1 |
 | B3 | User-pause showed "Break over" copy | Fixed in v0.2.1 |

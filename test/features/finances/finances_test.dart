@@ -148,6 +148,7 @@ void main() {
           await repo.repeatSuggestion(HarvestDay.parse('2026-09-04'));
       expect(suggestion, isNotNull);
       expect(suggestion!.amountMinor, 500);
+      expect(suggestion.currency, Currency.dzd);
       expect(suggestion.category, ExpenseCategory.food.name);
       expect(suggestion.note, 'Coffee');
     });
@@ -174,6 +175,27 @@ void main() {
           day: HarvestDay.parse(key),
         );
       }
+      expect(
+        await repo.repeatSuggestion(HarvestDay.parse('2026-09-04')),
+        isNull,
+      );
+    });
+
+    test('a repeat in another currency is its own pattern', () async {
+      // Same amount+category, but day three switches to USD.
+      for (final key in ['2026-09-01', '2026-09-02']) {
+        await repo.log(
+          amountMinor: 500,
+          category: ExpenseCategory.food.name,
+          day: HarvestDay.parse(key),
+        );
+      }
+      await repo.log(
+        amountMinor: 500,
+        category: ExpenseCategory.food.name,
+        currency: Currency.usd,
+        day: HarvestDay.parse('2026-09-03'),
+      );
       expect(
         await repo.repeatSuggestion(HarvestDay.parse('2026-09-04')),
         isNull,

@@ -25,6 +25,17 @@ void main() {
     });
   });
 
+  group('calendar dates (no boundary shift)', () {
+    test('fromDate keeps the picked calendar day', () {
+      // A date picker returns midnight; the 3 AM rule must not apply.
+      expect(HarvestDay.fromDate(DateTime(2026, 9, 2)).key, '2026-09-02');
+      expect(
+        HarvestDay.fromDate(DateTime(2026, 9, 2)),
+        isNot(HarvestDay.of(DateTime(2026, 9, 2))),
+      );
+    });
+  });
+
   group('navigation and keys', () {
     test('parse round-trips key', () {
       final day = HarvestDay.of(DateTime(2026, 9, 2, 12));

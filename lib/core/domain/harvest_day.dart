@@ -23,6 +23,11 @@ final class HarvestDay implements Comparable<HarvestDay> {
   /// Today's Harvest Day.
   factory HarvestDay.today() => HarvestDay.of(DateTime.now());
 
+  /// A Harvest Day from a plain calendar date (no 3 AM shift) — use
+  /// this for values coming from date pickers and calendar grids.
+  factory HarvestDay.fromDate(DateTime date) =>
+      HarvestDay._(DateTime(date.year, date.month, date.day));
+
   /// Parses a [key] previously produced by [HarvestDay.key].
   factory HarvestDay.parse(String key) {
     final parts = key.split('-').map(int.parse).toList();

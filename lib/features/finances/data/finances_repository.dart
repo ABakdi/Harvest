@@ -121,22 +121,25 @@ class FinancesRepository {
           ))
         .get();
 
-    final byDay = <String, Set<(int, String)>>{};
-    final notes = <(int, String), String?>{};
+    final byDay = <String, Set<(int, String, String)>>{};
+    final notes = <(int, String, String), String?>{};
     for (final row in rows) {
-      final key = (row.amountMinor, row.category);
+      final key = (row.amountMinor, row.currency, row.category);
       byDay.putIfAbsent(row.harvestDay, () => {}).add(key);
       notes[key] = row.note;
     }
-    final today = byDay[day.key] ?? const <(int, String)>{};
-    for (final key in byDay[days[0].key] ?? const <(int, String)>{}) {
+    final today = byDay[day.key] ?? const <(int, String, String)>{};
+    for (final key
+        in byDay[days[0].key] ?? const <(int, String, String)>{}) {
       final onAllThree = days.every(
-        (d) => (byDay[d.key] ?? const <(int, String)>{}).contains(key),
+        (d) =>
+            (byDay[d.key] ?? const <(int, String, String)>{}).contains(key),
       );
       if (onAllThree && !today.contains(key)) {
         return RepeatSuggestion(
           amountMinor: key.$1,
-          category: key.$2,
+          currency: Currency.fromCode(key.$2),
+          category: key.$3,
           note: notes[key],
         );
       }

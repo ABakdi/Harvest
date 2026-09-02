@@ -465,8 +465,11 @@ class _RepeatCard extends ConsumerWidget {
           color: theme.colorScheme.secondary,
         ),
         title: Text(
-          '${rates.defaultCurrency.symbol}'
-          '${formatMinor(suggestion.amountMinor)} · '
+          '${amountWithConversion(
+            minor: suggestion.amountMinor,
+            currency: suggestion.currency,
+            rates: rates,
+          )} · '
           '${categoryLabel(l10n, suggestion.category)}',
           style:
               theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -477,7 +480,7 @@ class _RepeatCard extends ConsumerWidget {
             await ref.read(financesRepositoryProvider).log(
                   amountMinor: suggestion.amountMinor,
                   category: suggestion.category,
-                  currency: rates.defaultCurrency,
+                  currency: suggestion.currency,
                   note: suggestion.note,
                 );
             await ref.read(notificationPlannerProvider).reevaluate();

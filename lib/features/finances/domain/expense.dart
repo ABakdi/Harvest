@@ -68,9 +68,12 @@ class Expense {
 class RepeatSuggestion {
   const RepeatSuggestion({
     required this.amountMinor,
+    required this.currency,
     required this.category,
     this.note,
   });
+
+  final Currency currency;
 
   final int amountMinor;
 

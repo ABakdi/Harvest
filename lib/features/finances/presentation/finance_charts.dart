@@ -190,7 +190,7 @@ class _DailyBars extends StatelessWidget {
     } else {
       final daysInMonth = DateTime(today.year, today.month + 1, 0).day;
       for (var i = 1; i <= daysInMonth; i++) {
-        days.add(HarvestDay.of(DateTime(today.year, today.month, i, 12)));
+        days.add(HarvestDay.fromDate(DateTime(today.year, today.month, i)));
       }
     }
 

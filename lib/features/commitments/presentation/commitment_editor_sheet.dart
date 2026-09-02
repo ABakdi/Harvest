@@ -470,7 +470,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
                 lastDate: now.add(const Duration(days: 365 * 3)),
               );
               if (picked != null) {
-                setState(() => _deadline = HarvestDay.of(picked));
+                setState(() => _deadline = HarvestDay.fromDate(picked));
               }
             },
           ),
@@ -526,7 +526,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
                   lastDate: now.add(const Duration(days: 365 * 3)),
                 );
                 if (picked != null) {
-                  setState(() => _customDueDay = HarvestDay.of(picked));
+                  setState(() => _customDueDay = HarvestDay.fromDate(picked));
                 }
               },
             ),

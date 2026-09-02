@@ -85,9 +85,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final locale = Localizations.localeOf(context).toString();
     final commitments =
         ref.watch(activeCommitmentsProvider).value ?? const [];
-    final selectedDay = HarvestDay.of(
-      DateTime(_selected.year, _selected.month, _selected.day, 12),
-    );
+    final selectedDay = HarvestDay.fromDate(_selected);
     final entries = _entriesFor(commitments, selectedDay);
     final today = HarvestDay.today();
     final isFuture = selectedDay.compareTo(today) >= 0;
@@ -114,8 +112,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 CalendarFormat.month: 'month',
               },
               eventLoader: (day) {
-                final harvestDay =
-                    HarvestDay.of(DateTime(day.year, day.month, day.day, 12));
+                final harvestDay = HarvestDay.fromDate(day);
                 return List<void>.filled(
                   _entriesFor(commitments, harvestDay).length,
                   null,
