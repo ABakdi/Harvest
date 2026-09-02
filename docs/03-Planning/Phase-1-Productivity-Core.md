@@ -19,10 +19,10 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 - [ ] Pull-down: tomorrow's plan view
 
 ## M1.4 — Streak engine
-- [ ] Global Streak from Daily Harvest Goal; individual streaks per habit/project
-- [ ] 3 AM reset job real implementation: streak evaluation, freeze auto-consumption ([[Business-Rules]])
-- [ ] Lazy idempotent reconciliation on app open (multi-day gaps handled)
-- [ ] Streak milestones (7/30/100) with coin rewards
+- [x] Global Streak from Daily Harvest Goal; individual streaks per habit/project
+- [x] 3 AM reset job real implementation: streak evaluation, freeze auto-consumption ([[Business-Rules]])
+- [x] Lazy idempotent reconciliation on app open (multi-day gaps handled)
+- [x] Streak milestones (7/30/100) with coin rewards
 
 ## M1.5 — XP, coins, quests
 - [ ] Ledger-based XP + coins; Farmer Ranks every 1,000 XP ([[Gamification]])
