@@ -1,0 +1,20 @@
+{
+  "@@locale": "ar",
+  "appTitle": "حصاد",
+  "navField": "الحقل",
+  "navStats": "الإحصائيات",
+  "navSettings": "الإعدادات",
+  "fieldEmptyTitle": "حقلك جاهز",
+  "fieldEmptyBody": "ازرع بذرتك الأولى — عادة، مشروعًا، أو مهمة بسيطة.",
+  "statsEmptyTitle": "لا شيء لنحصيه بعد",
+  "statsEmptyBody": "ستنمو أرقام حصادك هنا كلما سجّلت أيامك.",
+  "settingsAppearance": "المظهر",
+  "settingsTheme": "السمة",
+  "themeSystem": "النظام",
+  "themeLight": "فاتح",
+  "themeDark": "داكن",
+  "settingsLanguage": "اللغة",
+  "langSystem": "النظام",
+  "langEnglish": "English",
+  "langArabic": "العربية"
+}

@@ -1,0 +1,20 @@
+{
+  "@@locale": "en",
+  "appTitle": "Harvest",
+  "navField": "Field",
+  "navStats": "Stats",
+  "navSettings": "Settings",
+  "fieldEmptyTitle": "Your field is ready",
+  "fieldEmptyBody": "Plant your first seed — a habit, a project, or a simple to-do.",
+  "statsEmptyTitle": "Nothing to count yet",
+  "statsEmptyBody": "Your harvest numbers will grow here as you log your days.",
+  "settingsAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "settingsLanguage": "Language",
+  "langSystem": "System",
+  "langEnglish": "English",
+  "langArabic": "العربية"
+}
