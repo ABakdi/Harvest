@@ -50,8 +50,12 @@ List<FieldItem> todayField(Ref ref) {
             doneDaysThisWeek: weekDone[commitment.uuid] ?? 0,
           ),
       CommitmentType.project => loggedNow > 0 || !item.projectCompleted,
-      CommitmentType.todo => total == 0 ||
-          loggedNow > 0, // pending (incl. overdue) or completed today
+      // Pending and due (today or overdue) — never future-planted
+      // (checkpoint P2) — or completed today.
+      CommitmentType.todo => loggedNow > 0 ||
+          (total == 0 &&
+              (commitment.dueDay == null ||
+                  commitment.dueDay!.compareTo(today) <= 0)),
     };
     if (visible) items.add(item);
   }

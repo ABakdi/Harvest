@@ -210,4 +210,4 @@ final class TodayFieldProvider
   }
 }
 
-String _$todayFieldHash() => r'615913e599f686bed4365a4a65534b980dcf2e19';
+String _$todayFieldHash() => r'87746fd1e26baedfa112fb921fe444fee7bacb4e';

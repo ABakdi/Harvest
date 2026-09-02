@@ -14,6 +14,7 @@ class CropCard extends StatelessWidget {
     this.onLongPress,
     this.progress,
     this.urgent = false,
+    this.extra,
     super.key,
   });
 
@@ -29,6 +30,9 @@ class CropCard extends StatelessWidget {
 
   /// Tints the subtitle in the error color (overdue deadline).
   final bool urgent;
+
+  /// Optional row under the subtitle (deadline countdown).
+  final Widget? extra;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +79,10 @@ class CropCard extends StatelessWidget {
                         fontWeight: urgent ? FontWeight.w800 : null,
                       ),
                     ),
+                    if (extra != null) ...[
+                      const SizedBox(height: 2),
+                      extra!,
+                    ],
                   ],
                 ),
               ),

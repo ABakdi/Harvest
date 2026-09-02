@@ -117,10 +117,38 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 final harvestDay =
                     HarvestDay.of(DateTime(day.year, day.month, day.day, 12));
                 return List<void>.filled(
-                  _entriesFor(commitments, harvestDay).length.clamp(0, 4),
+                  _entriesFor(commitments, harvestDay).length,
                   null,
                 );
               },
+              calendarBuilders: CalendarBuilders(
+                // A count badge reads better than a pile of dots (P1).
+                markerBuilder: (context, day, events) {
+                  if (events.isEmpty) return null;
+                  return PositionedDirectional(
+                    bottom: 2,
+                    end: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${events.length}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
               headerStyle: HeaderStyle(
                 formatButtonVisible: false,
                 titleCentered: true,
@@ -141,11 +169,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   gradient: theme.primaryGradient,
                   shape: BoxShape.circle,
                 ),
-                markerDecoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                markerSize: 5,
               ),
             ),
           ),
