@@ -7,6 +7,7 @@ import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/l10n_loader.dart';
 import 'package:harvest/core/platform/notifications.dart';
+import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -137,6 +138,83 @@ class NotificationPlanner {
         }
       }
     }
+
+    await _planTaskReminders(at, l10n);
+  }
+
+  /// Per-seed reminders (checkpoint gap G4): every commitment due today
+  /// with a remind-at time and no check-in yet gets its own nudge.
+  Future<void> _planTaskReminders(DateTime at, AppLocalizations l10n) async {
+    // Cancel whatever the previous plan scheduled.
+    final storedRow = await (_db.select(_db.kvSettings)
+          ..where((s) => s.key.equals('reminders.taskIds')))
+        .getSingleOrNull();
+    if (storedRow != null) {
+      final ids = (jsonDecode(storedRow.valueJson) as List<dynamic>?) ?? [];
+      for (final id in ids) {
+        await _notifications.cancel(id as int);
+      }
+    }
+
+    final today = HarvestDay.of(at);
+    final rows = await (_db.select(_db.commitments)
+          ..where(
+            (c) =>
+                c.remindAt.isNotNull() &
+                c.archivedAt.isNull() &
+                c.pausedAt.isNull() &
+                c.deletedAt.isNull(),
+          ))
+        .get();
+    final doneQuery = _db.selectOnly(_db.checkIns, distinct: true)
+      ..addColumns([_db.checkIns.commitmentUuid])
+      ..where(
+        _db.checkIns.harvestDay.equals(today.key) &
+            _db.checkIns.deletedAt.isNull(),
+      );
+    final doneToday = (await doneQuery.get())
+        .map((row) => row.read(_db.checkIns.commitmentUuid))
+        .toSet();
+
+    final scheduled = <int>[];
+    var nextId = 2100;
+    for (final row in rows) {
+      if (doneToday.contains(row.uuid)) continue;
+
+      final dueToday = switch (row.type) {
+        'habit' => Schedule.fromJson(
+            jsonDecode(row.scheduleJson!) as Map<String, dynamic>,
+          ).isDueOn(today),
+        'project' => true,
+        _ => row.dueDay == null || row.dueDay == today.key,
+      };
+      if (!dueToday) continue;
+
+      final parts = row.remindAt!.split(':');
+      final hour = int.tryParse(parts.first);
+      final minute = parts.length > 1 ? int.tryParse(parts[1]) : null;
+      if (hour == null || minute == null) continue;
+      final when = _todayAt(TimeOfDay(hour: hour, minute: minute), at);
+      if (!when.isAfter(at)) continue;
+
+      final id = nextId++;
+      await _notifications.schedule(
+        id: id,
+        channelId: NotificationChannels.reminders,
+        title: row.title,
+        body: l10n.taskReminderBody,
+        when: when,
+      );
+      scheduled.add(id);
+    }
+
+    await _db.into(_db.kvSettings).insertOnConflictUpdate(
+          KvSettingsCompanion.insert(
+            key: 'reminders.taskIds',
+            valueJson: jsonEncode(scheduled),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
   }
 
   /// Called after every check-in or expense log: whatever is already
@@ -149,6 +227,9 @@ class NotificationPlanner {
     }
     if (await _expensesLoggedToday(at)) {
       await _notifications.cancel(ReminderIds.expenses);
+    }
+    if (await _boolSetting(ReminderKeys.enabled, defaultValue: false)) {
+      await _planTaskReminders(at, await _l10n());
     }
   }
 

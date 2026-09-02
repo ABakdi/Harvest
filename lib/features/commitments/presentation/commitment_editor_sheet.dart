@@ -51,6 +51,12 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   var _dueToday = true;
   var _saving = false;
 
+  // Advanced options (checkpoint gap G4).
+  final _noteController = TextEditingController();
+  TimeOfDay? _remindAt;
+  HarvestDay? _deadline;
+  HarvestDay? _customDueDay;
+
   bool get _editing => widget.existing != null;
 
   @override
@@ -60,6 +66,16 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     if (existing == null) return;
     _type = existing.type;
     _titleController.text = existing.title;
+    _noteController.text = existing.note ?? '';
+    _deadline = existing.deadline;
+    if (existing.remindAt != null) {
+      final parts = existing.remindAt!.split(':');
+      final hour = int.tryParse(parts.first);
+      final minute = parts.length > 1 ? int.tryParse(parts[1]) : null;
+      if (hour != null && minute != null) {
+        _remindAt = TimeOfDay(hour: hour, minute: minute);
+      }
+    }
     _totalController.text = '${existing.totalTarget ?? ''}';
     _dailyController.text = '${existing.dailyCommitment ?? ''}';
     _dueToday = existing.dueDay == null ||
@@ -88,8 +104,21 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     _titleController.dispose();
     _totalController.dispose();
     _dailyController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
+
+  String? get _remindAtString => _remindAt == null
+      ? null
+      : '${_remindAt!.hour}:${_remindAt!.minute.toString().padLeft(2, '0')}';
+
+  String? get _noteOrNull {
+    final note = _noteController.text.trim();
+    return note.isEmpty ? null : note;
+  }
+
+  HarvestDay get _todoDueDay =>
+      _customDueDay ?? (_dueToday ? HarvestDay.today() : HarvestDay.today().next);
 
   bool get _valid {
     if (_titleController.text.trim().isEmpty) return false;
@@ -128,18 +157,28 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           _ScheduleKind.timesPerWeek =>
             TimesPerWeekSchedule(times: _timesPerWeek),
         };
-        await editor.createHabit(title: title, schedule: schedule);
+        await editor.createHabit(
+          title: title,
+          schedule: schedule,
+          note: _noteOrNull,
+          remindAt: _remindAtString,
+        );
       case CommitmentType.project:
         await editor.createProject(
           title: title,
           totalTarget: int.parse(_totalController.text),
           dailyCommitment: int.parse(_dailyController.text),
+          note: _noteOrNull,
+          remindAt: _remindAtString,
+          deadline: _deadline,
         );
       case CommitmentType.todo:
         await editor.createTodo(
           title: title,
-          dueDay:
-              _dueToday ? HarvestDay.today() : HarvestDay.today().next,
+          dueDay: _todoDueDay,
+          note: _noteOrNull,
+          remindAt: _remindAtString,
+          deadline: _deadline,
         );
     }
     if (mounted) Navigator.of(context).pop();
@@ -164,9 +203,14 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
         schedule: existing.type == CommitmentType.habit ? schedule : null,
         totalTarget: int.tryParse(_totalController.text),
         dailyCommitment: int.tryParse(_dailyController.text),
-        dueDay: existing.type == CommitmentType.todo
-            ? (_dueToday ? HarvestDay.today() : HarvestDay.today().next)
-            : null,
+        dueDay:
+            existing.type == CommitmentType.todo ? _todoDueDay : null,
+        note: _noteOrNull,
+        remindAt: _remindAtString,
+        deadline: _deadline,
+        clearNote: _noteOrNull == null,
+        clearRemindAt: _remindAtString == null,
+        clearDeadline: _deadline == null,
       ),
     );
   }
@@ -239,7 +283,9 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
               CommitmentType.project => _projectFields(l10n),
               CommitmentType.todo => _todoFields(l10n),
             },
-            const SizedBox(height: HarvestSpacing.lg),
+            const SizedBox(height: HarvestSpacing.sm),
+            _advancedSection(l10n),
+            const SizedBox(height: HarvestSpacing.md),
             BigBouncySheetButton(
               onPressed: _valid && !_saving ? _save : null,
               child: Text(l10n.save),
@@ -353,16 +399,138 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
         ),
       ];
 
+  Widget _advancedSection(AppLocalizations l10n) {
+    final locale = Localizations.localeOf(context).toString();
+    String dayLabel(HarvestDay? day) => day == null
+        ? l10n.notSet
+        : DateFormat.MMMd(locale).format(
+            DateTime(day.year, day.month, day.day),
+          );
+
+    return ExpansionTile(
+      tilePadding: EdgeInsets.zero,
+      shape: const Border(),
+      title: Text(
+        l10n.advancedOptions,
+        style: Theme.of(context)
+            .textTheme
+            .titleSmall
+            ?.copyWith(fontWeight: FontWeight.w800),
+      ),
+      children: [
+        TextField(
+          controller: _noteController,
+          maxLines: 2,
+          minLines: 1,
+          decoration: InputDecoration(
+            labelText: l10n.seedNoteLabel,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(HarvestRadii.button),
+            ),
+          ),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.alarm),
+          title: Text(l10n.remindMeAt),
+          subtitle:
+              Text(_remindAt == null ? l10n.notSet : _remindAt!.format(context)),
+          trailing: _remindAt == null
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => setState(() => _remindAt = null),
+                ),
+          onTap: () async {
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: _remindAt ?? const TimeOfDay(hour: 18, minute: 0),
+            );
+            if (picked != null) setState(() => _remindAt = picked);
+          },
+        ),
+        if (_type != CommitmentType.habit)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.flag_outlined),
+            title: Text(l10n.deadlineLabel),
+            subtitle: Text(dayLabel(_deadline)),
+            trailing: _deadline == null
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() => _deadline = null),
+                  ),
+            onTap: () async {
+              final now = DateTime.now();
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: now,
+                firstDate: now,
+                lastDate: now.add(const Duration(days: 365 * 3)),
+              );
+              if (picked != null) {
+                setState(() => _deadline = HarvestDay.of(picked));
+              }
+            },
+          ),
+        const SizedBox(height: HarvestSpacing.sm),
+      ],
+    );
+  }
+
   List<Widget> _todoFields(AppLocalizations l10n) => [
         Text(l10n.dueLabel),
         const SizedBox(height: HarvestSpacing.sm),
-        SegmentedButton<bool>(
-          segments: [
-            ButtonSegment(value: true, label: Text(l10n.dueToday)),
-            ButtonSegment(value: false, label: Text(l10n.dueTomorrow)),
+        Wrap(
+          spacing: HarvestSpacing.xs,
+          children: [
+            ChoiceChip(
+              label: Text(l10n.dueToday),
+              selected: _customDueDay == null && _dueToday,
+              onSelected: (_) => setState(() {
+                _dueToday = true;
+                _customDueDay = null;
+              }),
+            ),
+            ChoiceChip(
+              label: Text(l10n.dueTomorrow),
+              selected: _customDueDay == null && !_dueToday,
+              onSelected: (_) => setState(() {
+                _dueToday = false;
+                _customDueDay = null;
+              }),
+            ),
+            ChoiceChip(
+              avatar: const Icon(Icons.event, size: 18),
+              label: Text(
+                _customDueDay == null
+                    ? l10n.pickDate
+                    : DateFormat.MMMd(
+                        Localizations.localeOf(context).toString(),
+                      ).format(
+                        DateTime(
+                          _customDueDay!.year,
+                          _customDueDay!.month,
+                          _customDueDay!.day,
+                        ),
+                      ),
+              ),
+              selected: _customDueDay != null,
+              onSelected: (_) async {
+                final now = DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: now,
+                  firstDate: now,
+                  lastDate: now.add(const Duration(days: 365 * 3)),
+                );
+                if (picked != null) {
+                  setState(() => _customDueDay = HarvestDay.of(picked));
+                }
+              },
+            ),
           ],
-          selected: {_dueToday},
-          onSelectionChanged: (s) => setState(() => _dueToday = s.first),
         ),
       ];
 }

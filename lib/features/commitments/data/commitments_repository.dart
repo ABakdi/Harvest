@@ -86,6 +86,9 @@ class CommitmentsRepository {
     int? totalTarget,
     int? dailyCommitment,
     HarvestDay? dueDay,
+    String? note,
+    String? remindAt,
+    HarvestDay? deadline,
   }) async {
     final commitment = Commitment(
       uuid: _uuid.v4(),
@@ -96,6 +99,9 @@ class CommitmentsRepository {
       totalTarget: totalTarget,
       dailyCommitment: dailyCommitment,
       dueDay: dueDay,
+      note: note,
+      remindAt: remindAt,
+      deadline: deadline,
     );
     await _db.transaction(() async {
       await _db.into(_db.commitments).insert(_toRow(commitment));
@@ -161,6 +167,10 @@ class CommitmentsRepository {
         totalTarget: row.totalTarget,
         dailyCommitment: row.dailyCommitment,
         dueDay: row.dueDay == null ? null : HarvestDay.parse(row.dueDay!),
+        note: row.note,
+        remindAt: row.remindAt,
+        deadline:
+            row.deadline == null ? null : HarvestDay.parse(row.deadline!),
         pausedAt: row.pausedAt,
         archivedAt: row.archivedAt,
       );
@@ -175,6 +185,9 @@ class CommitmentsRepository {
         totalTarget: Value(c.totalTarget),
         dailyCommitment: Value(c.dailyCommitment),
         dueDay: Value(c.dueDay?.key),
+        note: Value(c.note),
+        remindAt: Value(c.remindAt),
+        deadline: Value(c.deadline?.key),
         pausedAt: Value(c.pausedAt),
         archivedAt: Value(c.archivedAt),
       );

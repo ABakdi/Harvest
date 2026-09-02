@@ -37,33 +37,49 @@ class CommitmentEditor extends _$CommitmentEditor {
   Future<void> createHabit({
     required String title,
     required Schedule schedule,
+    String? note,
+    String? remindAt,
   }) =>
       ref.read(commitmentsRepositoryProvider).create(
             type: CommitmentType.habit,
             title: title,
             schedule: schedule,
+            note: note,
+            remindAt: remindAt,
           ).then((_) {});
 
   Future<void> createProject({
     required String title,
     required int totalTarget,
     required int dailyCommitment,
+    String? note,
+    String? remindAt,
+    HarvestDay? deadline,
   }) =>
       ref.read(commitmentsRepositoryProvider).create(
             type: CommitmentType.project,
             title: title,
             totalTarget: totalTarget,
             dailyCommitment: dailyCommitment,
+            note: note,
+            remindAt: remindAt,
+            deadline: deadline,
           ).then((_) {});
 
   Future<void> createTodo({
     required String title,
     required HarvestDay dueDay,
+    String? note,
+    String? remindAt,
+    HarvestDay? deadline,
   }) =>
       ref.read(commitmentsRepositoryProvider).create(
             type: CommitmentType.todo,
             title: title,
             dueDay: dueDay,
+            note: note,
+            remindAt: remindAt,
+            deadline: deadline,
           ).then((_) {});
 
   Future<void> archive(String uuid) =>

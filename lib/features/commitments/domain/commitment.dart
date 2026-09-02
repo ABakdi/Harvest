@@ -16,6 +16,9 @@ class Commitment {
     this.totalTarget,
     this.dailyCommitment,
     this.dueDay,
+    this.note,
+    this.remindAt,
+    this.deadline,
     this.pausedAt,
     this.archivedAt,
   })  : assert(
@@ -43,6 +46,15 @@ class Commitment {
   /// To-dos only: the Harvest Day this is planned for.
   final HarvestDay? dueDay;
 
+  /// Free-form note shown with the seed.
+  final String? note;
+
+  /// "HH:mm" reminder time, fired on days this seed is due.
+  final String? remindAt;
+
+  /// Accomplish-before day; overdue seeds turn urgent.
+  final HarvestDay? deadline;
+
   /// Habits only: vacation mode. A paused habit is neither due nor
   /// judged, and its streak survives the break.
   final DateTime? pausedAt;
@@ -62,7 +74,13 @@ class Commitment {
     int? totalTarget,
     int? dailyCommitment,
     HarvestDay? dueDay,
+    String? note,
+    String? remindAt,
+    HarvestDay? deadline,
     DateTime? archivedAt,
+    bool clearNote = false,
+    bool clearRemindAt = false,
+    bool clearDeadline = false,
   }) =>
       Commitment(
         uuid: uuid,
@@ -73,6 +91,9 @@ class Commitment {
         totalTarget: totalTarget ?? this.totalTarget,
         dailyCommitment: dailyCommitment ?? this.dailyCommitment,
         dueDay: dueDay ?? this.dueDay,
+        note: clearNote ? null : note ?? this.note,
+        remindAt: clearRemindAt ? null : remindAt ?? this.remindAt,
+        deadline: clearDeadline ? null : deadline ?? this.deadline,
         pausedAt: pausedAt,
         archivedAt: archivedAt ?? this.archivedAt,
       );
