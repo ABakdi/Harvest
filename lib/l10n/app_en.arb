@@ -199,5 +199,23 @@
     }
   },
   "breakOverReady": "Break over — ready for the next block",
-  "pomodoroLogPrompt": "Nice work! Log your progress on the field."
+  "pomodoroLogPrompt": "Nice work! Log your progress on the field.",
+  "plannerTitle": "Tomorrow's plan",
+  "plannerHabitsDue": "Habits due tomorrow",
+  "plannerTodos": "To-dos for tomorrow",
+  "plannerAddHint": "Plant a to-do for tomorrow…",
+  "plannerEmpty": "Nothing planned yet. Add tomorrow's seeds tonight and wake up ready.",
+  "notifMorningTitle": "Good morning! ☀️",
+  "notifMorningBody": "Check today's harvest plan and log your first seed.",
+  "notifEveningTitle": "The sun is setting 🌙",
+  "notifEveningBody": "Wind down and plant tomorrow's plan.",
+  "notifPrimeTitle": "Your crops are waiting 🌾",
+  "notifPrimeBody": "This is usually your logging time — a quick check-in keeps the field green.",
+  "notifStreakTitle": "Your crops are thirsty! 🔥",
+  "notifStreakBody": "Log your remaining tasks before 3 AM to save your streak.",
+  "settingsReminders": "Reminders",
+  "remindersMaster": "Allow reminders",
+  "remindersMorning": "Morning review",
+  "remindersEvening": "Evening plan ritual",
+  "remindersStreak": "Streak-risk nudge"
 }

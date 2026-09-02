@@ -33,7 +33,7 @@ final class CheckInControllerProvider
   CheckInController create() => CheckInController();
 }
 
-String _$checkInControllerHash() => r'1caabe3279f984e73e3a1d71507d892ad02fa894';
+String _$checkInControllerHash() => r'b78eef38e0c8edd63ac9eef3bc036fefd811a317';
 
 abstract class _$CheckInController extends $AsyncNotifier<void> {
   FutureOr<void> build();

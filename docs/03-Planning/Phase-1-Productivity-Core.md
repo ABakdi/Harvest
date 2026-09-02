@@ -30,9 +30,9 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 - [x] Daily quest generator (4/day from template pool) + claim flow
 
 ## M1.6 — Daily plan ritual
-- [ ] Evening planner flow (from wind-down notification deep link)
-- [ ] Morning review/catch-up flow
-- [ ] Prime-time learning (median of last 14 first-check-ins) ([[Notifications]])
+- [x] Evening planner flow (from wind-down notification deep link)
+- [x] Morning review/catch-up flow (morning reminder deep-links to the field)
+- [x] Prime-time learning (median of last 14 first-check-ins) ([[Notifications]])
 
 ## M1.7 — Pomodoro
 - [x] Timer with configurable blocks, attached to commitments ([[Pomodoro]])
@@ -41,9 +41,9 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 - [x] Session → check-in handoff; +5 XP; session history
 
 ## M1.8 — Notifications v1
-- [ ] Full daily plan scheduling at reset; suppression on completion
-- [ ] Gentle→urgent escalation incl. late streak-risk nudge; 4/day cap
-- [ ] Per-category mute settings
+- [x] Full daily plan scheduling at reset; suppression on completion
+- [x] Gentle→urgent escalation incl. late streak-risk nudge; 4/day cap
+- [x] Per-category mute settings
 
 ## M1.9 — Onboarding & release
 - [ ] Onboarding flow with Phase-1 templates ([[Onboarding]])

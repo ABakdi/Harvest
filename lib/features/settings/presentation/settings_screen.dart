@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -17,6 +18,13 @@ class SettingsScreen extends ConsumerWidget {
         ref.watch(themeModeSettingProvider).value ?? ThemeMode.system;
     final locale = ref.watch(localeSettingProvider).value;
     final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
+    final reminders = ref.watch(reminderSettingsProvider).value ??
+        (
+          enabled: false,
+          morning: const TimeOfDay(hour: 7, minute: 0),
+          evening: const TimeOfDay(hour: 21, minute: 30),
+          streakNudge: true,
+        );
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navSettings)),
@@ -90,6 +98,66 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: HarvestSpacing.lg),
+          Text(
+            l10n.settingsReminders,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: Text(l10n.remindersMaster),
+                  value: reminders.enabled,
+                  onChanged: (value) => unawaited(
+                    ref
+                        .read(reminderSettingsProvider.notifier)
+                        .setEnabled(enabled: value),
+                  ),
+                ),
+                ListTile(
+                  enabled: reminders.enabled,
+                  title: Text(l10n.remindersMorning),
+                  trailing: Text(reminders.morning.format(context)),
+                  onTap: () => unawaited(
+                    _pickTime(
+                      context,
+                      ref,
+                      ReminderKeys.morningTime,
+                      reminders.morning,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  enabled: reminders.enabled,
+                  title: Text(l10n.remindersEvening),
+                  trailing: Text(reminders.evening.format(context)),
+                  onTap: () => unawaited(
+                    _pickTime(
+                      context,
+                      ref,
+                      ReminderKeys.eveningTime,
+                      reminders.evening,
+                    ),
+                  ),
+                ),
+                SwitchListTile(
+                  title: Text(l10n.remindersStreak),
+                  value: reminders.streakNudge,
+                  onChanged: reminders.enabled
+                      ? (value) => unawaited(
+                            ref
+                                .read(reminderSettingsProvider.notifier)
+                                .setStreakNudge(enabled: value),
+                          )
+                      : null,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: HarvestSpacing.lg),
@@ -168,5 +236,17 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _pickTime(
+    BuildContext context,
+    WidgetRef ref,
+    String key,
+    TimeOfDay current,
+  ) async {
+    final picked = await showTimePicker(context: context, initialTime: current);
+    if (picked != null) {
+      await ref.read(reminderSettingsProvider.notifier).setTime(key, picked);
+    }
   }
 }

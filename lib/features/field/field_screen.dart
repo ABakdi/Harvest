@@ -34,6 +34,10 @@ class FieldScreen extends ConsumerWidget {
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
+            icon: const Icon(Icons.edit_calendar_outlined),
+            onPressed: () => unawaited(context.push(AppRoutes.planner)),
+          ),
+          IconButton(
             icon: const Icon(Icons.timer_outlined),
             onPressed: () => unawaited(context.push(AppRoutes.pomodoro)),
           ),

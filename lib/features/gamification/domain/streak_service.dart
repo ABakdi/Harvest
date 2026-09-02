@@ -145,6 +145,9 @@ class StreakService {
     }
   }
 
+  /// The current global streak length.
+  Future<int> currentGlobal() async => (await _row(globalScope)).current;
+
   /// Buys one Streak Freeze with coins. Returns false when the balance
   /// is short or the shed is full (max [maxFreezesStored]).
   Future<bool> buyFreeze({HarvestDay? day}) async {

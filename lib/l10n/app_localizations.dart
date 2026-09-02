@@ -637,6 +637,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nice work! Log your progress on the field.'**
   String get pomodoroLogPrompt;
+
+  /// No description provided for @plannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s plan'**
+  String get plannerTitle;
+
+  /// No description provided for @plannerHabitsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits due tomorrow'**
+  String get plannerHabitsDue;
+
+  /// No description provided for @plannerTodos.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos for tomorrow'**
+  String get plannerTodos;
+
+  /// No description provided for @plannerAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant a to-do for tomorrow…'**
+  String get plannerAddHint;
+
+  /// No description provided for @plannerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned yet. Add tomorrow\'s seeds tonight and wake up ready.'**
+  String get plannerEmpty;
+
+  /// No description provided for @notifMorningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning! ☀️'**
+  String get notifMorningTitle;
+
+  /// No description provided for @notifMorningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check today\'s harvest plan and log your first seed.'**
+  String get notifMorningBody;
+
+  /// No description provided for @notifEveningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The sun is setting 🌙'**
+  String get notifEveningTitle;
+
+  /// No description provided for @notifEveningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind down and plant tomorrow\'s plan.'**
+  String get notifEveningBody;
+
+  /// No description provided for @notifPrimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your crops are waiting 🌾'**
+  String get notifPrimeTitle;
+
+  /// No description provided for @notifPrimeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is usually your logging time — a quick check-in keeps the field green.'**
+  String get notifPrimeBody;
+
+  /// No description provided for @notifStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your crops are thirsty! 🔥'**
+  String get notifStreakTitle;
+
+  /// No description provided for @notifStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log your remaining tasks before 3 AM to save your streak.'**
+  String get notifStreakBody;
+
+  /// No description provided for @settingsReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsReminders;
+
+  /// No description provided for @remindersMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow reminders'**
+  String get remindersMaster;
+
+  /// No description provided for @remindersMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning review'**
+  String get remindersMorning;
+
+  /// No description provided for @remindersEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening plan ritual'**
+  String get remindersEvening;
+
+  /// No description provided for @remindersStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak-risk nudge'**
+  String get remindersStreak;
 }
 
 class _AppLocalizationsDelegate

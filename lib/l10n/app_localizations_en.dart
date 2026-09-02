@@ -310,4 +310,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pomodoroLogPrompt => 'Nice work! Log your progress on the field.';
+
+  @override
+  String get plannerTitle => 'Tomorrow\'s plan';
+
+  @override
+  String get plannerHabitsDue => 'Habits due tomorrow';
+
+  @override
+  String get plannerTodos => 'To-dos for tomorrow';
+
+  @override
+  String get plannerAddHint => 'Plant a to-do for tomorrow…';
+
+  @override
+  String get plannerEmpty =>
+      'Nothing planned yet. Add tomorrow\'s seeds tonight and wake up ready.';
+
+  @override
+  String get notifMorningTitle => 'Good morning! ☀️';
+
+  @override
+  String get notifMorningBody =>
+      'Check today\'s harvest plan and log your first seed.';
+
+  @override
+  String get notifEveningTitle => 'The sun is setting 🌙';
+
+  @override
+  String get notifEveningBody => 'Wind down and plant tomorrow\'s plan.';
+
+  @override
+  String get notifPrimeTitle => 'Your crops are waiting 🌾';
+
+  @override
+  String get notifPrimeBody =>
+      'This is usually your logging time — a quick check-in keeps the field green.';
+
+  @override
+  String get notifStreakTitle => 'Your crops are thirsty! 🔥';
+
+  @override
+  String get notifStreakBody =>
+      'Log your remaining tasks before 3 AM to save your streak.';
+
+  @override
+  String get settingsReminders => 'Reminders';
+
+  @override
+  String get remindersMaster => 'Allow reminders';
+
+  @override
+  String get remindersMorning => 'Morning review';
+
+  @override
+  String get remindersEvening => 'Evening plan ritual';
+
+  @override
+  String get remindersStreak => 'Streak-risk nudge';
 }

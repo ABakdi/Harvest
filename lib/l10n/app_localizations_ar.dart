@@ -309,4 +309,61 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pomodoroLogPrompt => 'أحسنت! سجّل تقدمك في الحقل.';
+
+  @override
+  String get plannerTitle => 'خطة الغد';
+
+  @override
+  String get plannerHabitsDue => 'عادات الغد';
+
+  @override
+  String get plannerTodos => 'مهام الغد';
+
+  @override
+  String get plannerAddHint => 'ازرع مهمة للغد…';
+
+  @override
+  String get plannerEmpty =>
+      'لا شيء مخطط بعد. ازرع بذور الغد الليلة واستيقظ جاهزًا.';
+
+  @override
+  String get notifMorningTitle => 'صباح الخير! ☀️';
+
+  @override
+  String get notifMorningBody => 'راجع خطة حصاد اليوم وسجّل بذرتك الأولى.';
+
+  @override
+  String get notifEveningTitle => 'الشمس تغرب 🌙';
+
+  @override
+  String get notifEveningBody => 'اهدأ وازرع خطة الغد.';
+
+  @override
+  String get notifPrimeTitle => 'محاصيلك تنتظرك 🌾';
+
+  @override
+  String get notifPrimeBody =>
+      'هذا وقت تسجيلك المعتاد — تسجيل سريع يبقي الحقل أخضر.';
+
+  @override
+  String get notifStreakTitle => 'محاصيلك عطشى! 🔥';
+
+  @override
+  String get notifStreakBody =>
+      'سجّل مهامك المتبقية قبل 3 صباحًا لإنقاذ سلسلتك.';
+
+  @override
+  String get settingsReminders => 'التذكيرات';
+
+  @override
+  String get remindersMaster => 'السماح بالتذكيرات';
+
+  @override
+  String get remindersMorning => 'مراجعة الصباح';
+
+  @override
+  String get remindersEvening => 'طقس خطة المساء';
+
+  @override
+  String get remindersStreak => 'تنبيه خطر السلسلة';
 }

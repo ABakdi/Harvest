@@ -27,6 +27,17 @@ class SettingsRepository {
         .map((row) => row == null ? null : jsonDecode(row.valueJson) as String);
   }
 
+  /// Watches several settings at once; absent keys are simply missing.
+  Stream<Map<String, String>> watchAll(List<String> keys) {
+    final query = _db.select(_db.kvSettings)..where((s) => s.key.isIn(keys));
+    return query.watch().map(
+          (rows) => {
+            for (final row in rows)
+              row.key: jsonDecode(row.valueJson).toString(),
+          },
+        );
+  }
+
   Future<void> setString(String key, String value) =>
       _db.into(_db.kvSettings).insertOnConflictUpdate(
             KvSettingsCompanion.insert(

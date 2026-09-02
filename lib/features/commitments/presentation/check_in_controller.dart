@@ -4,6 +4,7 @@ import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
+import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'check_in_controller.g.dart';
@@ -19,6 +20,7 @@ class CheckInController extends _$CheckInController {
         .checkIn(commitment, quantity: quantity);
     if (result is CheckInSuccess) {
       await HarvestHaptics.thud();
+      await ref.read(notificationPlannerProvider).reevaluate();
     }
     return result;
   }

@@ -157,3 +157,113 @@ abstract class _$DailyGoalSetting extends $StreamNotifier<int> {
     return element.handleCreate(ref, build);
   }
 }
+
+/// Reminder configuration: master switch, times, and the streak nudge.
+
+@ProviderFor(ReminderSettings)
+final reminderSettingsProvider = ReminderSettingsProvider._();
+
+/// Reminder configuration: master switch, times, and the streak nudge.
+final class ReminderSettingsProvider
+    extends
+        $StreamNotifierProvider<
+          ReminderSettings,
+          ({
+            bool enabled,
+            TimeOfDay evening,
+            TimeOfDay morning,
+            bool streakNudge,
+          })
+        > {
+  /// Reminder configuration: master switch, times, and the streak nudge.
+  ReminderSettingsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'reminderSettingsProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$reminderSettingsHash();
+
+  @$internal
+  @override
+  ReminderSettings create() => ReminderSettings();
+}
+
+String _$reminderSettingsHash() => r'dd063e5b28b0ae561e0f2492e0f518ef39d00642';
+
+/// Reminder configuration: master switch, times, and the streak nudge.
+
+abstract class _$ReminderSettings
+    extends
+        $StreamNotifier<
+          ({
+            bool enabled,
+            TimeOfDay evening,
+            TimeOfDay morning,
+            bool streakNudge,
+          })
+        > {
+  Stream<
+    ({bool enabled, TimeOfDay evening, TimeOfDay morning, bool streakNudge})
+  >
+  build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<
+                ({
+                  bool enabled,
+                  TimeOfDay evening,
+                  TimeOfDay morning,
+                  bool streakNudge,
+                })
+              >,
+              ({
+                bool enabled,
+                TimeOfDay evening,
+                TimeOfDay morning,
+                bool streakNudge,
+              })
+            >;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<
+                  ({
+                    bool enabled,
+                    TimeOfDay evening,
+                    TimeOfDay morning,
+                    bool streakNudge,
+                  })
+                >,
+                ({
+                  bool enabled,
+                  TimeOfDay evening,
+                  TimeOfDay morning,
+                  bool streakNudge,
+                })
+              >,
+              AsyncValue<
+                ({
+                  bool enabled,
+                  TimeOfDay evening,
+                  TimeOfDay morning,
+                  bool streakNudge,
+                })
+              >,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
