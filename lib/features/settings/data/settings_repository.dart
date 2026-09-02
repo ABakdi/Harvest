@@ -27,6 +27,14 @@ class SettingsRepository {
         .map((row) => row == null ? null : jsonDecode(row.valueJson) as String);
   }
 
+  /// One-shot read; null when the key was never set.
+  Future<String?> getString(String key) async {
+    final row = await (_db.select(_db.kvSettings)
+          ..where((s) => s.key.equals(key)))
+        .getSingleOrNull();
+    return row == null ? null : jsonDecode(row.valueJson) as String?;
+  }
+
   /// Watches several settings at once; absent keys are simply missing.
   Stream<Map<String, String>> watchAll(List<String> keys) {
     final query = _db.select(_db.kvSettings)..where((s) => s.key.isIn(keys));

@@ -217,5 +217,37 @@
   "remindersMaster": "Allow reminders",
   "remindersMorning": "Morning review",
   "remindersEvening": "Evening plan ritual",
-  "remindersStreak": "Streak-risk nudge"
+  "remindersStreak": "Streak-risk nudge",
+  "obWelcomeTitle": "Welcome to Harvest",
+  "obWelcomeBody": "Your goals are seeds. Your effort is water. Distractions are weeds.\n\nShow up a little every day, keep your streak alive, and harvest the life you're growing.",
+  "obTemplatesTitle": "Plant your first seeds",
+  "obTemplatesBody": "Pick a few to start with — you can always plant more.",
+  "tmplRead": "Read a book (300 pages)",
+  "tmplFit": "Exercise",
+  "tmplLanguage": "Practice a language",
+  "tmplMeditate": "Meditate (3× a week)",
+  "tmplJournal": "Journal before bed",
+  "obGoalTitle": "Your daily commitment",
+  "obRemindersTitle": "Gentle reminders",
+  "obRemindersBody": "Harvest nudges, never nags: a morning review, an evening planning ritual, and a heads-up when your streak is at risk.",
+  "next": "Next",
+  "skip": "Skip",
+  "startGrowing": "Start growing 🌱",
+  "statsLifetimeXp": "Lifetime XP",
+  "statsBestStreak": "Best streak",
+  "statsCheckIns": "Check-ins",
+  "statsActivity": "Activity",
+  "statsProjects": "Projects",
+  "statsHabitStreaks": "Habit streaks",
+  "statsStreakOf": "{current} now · best {best}",
+  "@statsStreakOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      }
+    }
+  }
 }

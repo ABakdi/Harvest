@@ -46,10 +46,14 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 - [x] Per-category mute settings
 
 ## M1.9 — Onboarding & release
-- [ ] Onboarding flow with Phase-1 templates ([[Onboarding]])
-- [ ] Stats v1: per-commitment heat-map, project burn-up
-- [ ] Settings: language, theme, Daily Harvest Goal, all reminder times (fully configurable)
-- [ ] `v0.1.0` tagged, installed on my phone — **dogfooding begins**
+- [x] Onboarding flow with Phase-1 templates ([[Onboarding]])
+- [x] Stats v1: per-commitment heat-map, project burn-up
+- [x] Settings: language, theme, Daily Harvest Goal, all reminder times (fully configurable)
+- [x] `v0.1.0` tagged, installed on my phone — **dogfooding begins**
 
 ## Backlog (discovered during the phase)
-- (add here, don't expand scope)
+- Commitment edit UI + vacation mode (repo supports it; sheet only creates)
+- Sprite celebration assets (Lottie/Rive) for check-ins and project completion
+- Pull-down tomorrow-plan gesture on the field (planner screen covers the flow)
+- Notification actions (pause/abandon) on the pomodoro shade
+- Heat-map should scroll horizontally beyond 10 weeks of history

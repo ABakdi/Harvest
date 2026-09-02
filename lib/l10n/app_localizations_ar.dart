@@ -366,4 +366,75 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get remindersStreak => 'تنبيه خطر السلسلة';
+
+  @override
+  String get obWelcomeTitle => 'مرحبًا بك في حصاد';
+
+  @override
+  String get obWelcomeBody =>
+      'أهدافك بذور، وجهدك ماء، والمشتتات أعشاب ضارة.\n\nاحضر قليلًا كل يوم، وحافظ على سلسلتك، واحصد الحياة التي تزرعها.';
+
+  @override
+  String get obTemplatesTitle => 'ازرع بذورك الأولى';
+
+  @override
+  String get obTemplatesBody =>
+      'اختر بعضها للبداية — يمكنك دائمًا زراعة المزيد.';
+
+  @override
+  String get tmplRead => 'قراءة كتاب (300 صفحة)';
+
+  @override
+  String get tmplFit => 'تمرين';
+
+  @override
+  String get tmplLanguage => 'ممارسة لغة';
+
+  @override
+  String get tmplMeditate => 'تأمل (3 مرات أسبوعيًا)';
+
+  @override
+  String get tmplJournal => 'كتابة اليوميات قبل النوم';
+
+  @override
+  String get obGoalTitle => 'التزامك اليومي';
+
+  @override
+  String get obRemindersTitle => 'تذكيرات لطيفة';
+
+  @override
+  String get obRemindersBody =>
+      'حصاد يذكّر ولا يزعج: مراجعة صباحية، وطقس تخطيط مسائي، وتنبيه عندما تكون سلسلتك في خطر.';
+
+  @override
+  String get next => 'التالي';
+
+  @override
+  String get skip => 'تخطي';
+
+  @override
+  String get startGrowing => 'ابدأ الزراعة 🌱';
+
+  @override
+  String get statsLifetimeXp => 'الخبرة الكلية';
+
+  @override
+  String get statsBestStreak => 'أفضل سلسلة';
+
+  @override
+  String get statsCheckIns => 'الإنجازات';
+
+  @override
+  String get statsActivity => 'النشاط';
+
+  @override
+  String get statsProjects => 'المشاريع';
+
+  @override
+  String get statsHabitStreaks => 'سلاسل العادات';
+
+  @override
+  String statsStreakOf(int current, int best) {
+    return '$current الآن · الأفضل $best';
+  }
 }

@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:harvest/app/shell.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/field/field_screen.dart';
+import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_screen.dart';
 import 'package:harvest/features/settings/presentation/settings_screen.dart';
@@ -11,6 +12,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'router.g.dart';
 
 abstract final class AppRoutes {
+  static const onboarding = '/onboarding';
   static const field = '/field';
   static const pomodoro = '/field/pomodoro';
   static const planner = '/field/planner';
@@ -21,7 +23,18 @@ abstract final class AppRoutes {
 @Riverpod(keepAlive: true)
 GoRouter router(Ref ref) => GoRouter(
       initialLocation: AppRoutes.field,
+      redirect: (context, state) {
+        final done = ref.read(onboardingDoneProvider);
+        if (!done && state.matchedLocation != AppRoutes.onboarding) {
+          return AppRoutes.onboarding;
+        }
+        return null;
+      },
       routes: [
+        GoRoute(
+          path: AppRoutes.onboarding,
+          builder: (context, state) => const OnboardingScreen(),
+        ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>
               HarvestShell(navigationShell: navigationShell),

@@ -163,3 +163,116 @@ final class CoinTotalProvider
 }
 
 String _$coinTotalHash() => r'5de7c782932d0edeca79841574cd6a517f1ab578';
+
+@ProviderFor(checkInCount)
+final checkInCountProvider = CheckInCountProvider._();
+
+final class CheckInCountProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
+    with $FutureModifier<int>, $StreamProvider<int> {
+  CheckInCountProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'checkInCountProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$checkInCountHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<int> create(Ref ref) {
+    return checkInCount(ref);
+  }
+}
+
+String _$checkInCountHash() => r'c0a4138b480ea09d448aa0ed90c1c373c6436df2';
+
+@ProviderFor(dailyActivity)
+final dailyActivityProvider = DailyActivityProvider._();
+
+final class DailyActivityProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, int>>,
+          Map<String, int>,
+          Stream<Map<String, int>>
+        >
+    with $FutureModifier<Map<String, int>>, $StreamProvider<Map<String, int>> {
+  DailyActivityProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dailyActivityProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$dailyActivityHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<String, int>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<String, int>> create(Ref ref) {
+    return dailyActivity(ref);
+  }
+}
+
+String _$dailyActivityHash() => r'ceeb4d5bffd57661d17b8443827c36ee6efe1828';
+
+@ProviderFor(commitmentStreaks)
+final commitmentStreaksProvider = CommitmentStreaksProvider._();
+
+final class CommitmentStreaksProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, ({int best, int current})>>,
+          Map<String, ({int best, int current})>,
+          Stream<Map<String, ({int best, int current})>>
+        >
+    with
+        $FutureModifier<Map<String, ({int best, int current})>>,
+        $StreamProvider<Map<String, ({int best, int current})>> {
+  CommitmentStreaksProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'commitmentStreaksProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$commitmentStreaksHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<String, ({int best, int current})>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<String, ({int best, int current})>> create(Ref ref) {
+    return commitmentStreaks(ref);
+  }
+}
+
+String _$commitmentStreaksHash() => r'2db63fda312d78705961ec9c2e01139ebc402ed6';

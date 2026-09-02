@@ -368,4 +368,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remindersStreak => 'Streak-risk nudge';
+
+  @override
+  String get obWelcomeTitle => 'Welcome to Harvest';
+
+  @override
+  String get obWelcomeBody =>
+      'Your goals are seeds. Your effort is water. Distractions are weeds.\n\nShow up a little every day, keep your streak alive, and harvest the life you\'re growing.';
+
+  @override
+  String get obTemplatesTitle => 'Plant your first seeds';
+
+  @override
+  String get obTemplatesBody =>
+      'Pick a few to start with — you can always plant more.';
+
+  @override
+  String get tmplRead => 'Read a book (300 pages)';
+
+  @override
+  String get tmplFit => 'Exercise';
+
+  @override
+  String get tmplLanguage => 'Practice a language';
+
+  @override
+  String get tmplMeditate => 'Meditate (3× a week)';
+
+  @override
+  String get tmplJournal => 'Journal before bed';
+
+  @override
+  String get obGoalTitle => 'Your daily commitment';
+
+  @override
+  String get obRemindersTitle => 'Gentle reminders';
+
+  @override
+  String get obRemindersBody =>
+      'Harvest nudges, never nags: a morning review, an evening planning ritual, and a heads-up when your streak is at risk.';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get startGrowing => 'Start growing 🌱';
+
+  @override
+  String get statsLifetimeXp => 'Lifetime XP';
+
+  @override
+  String get statsBestStreak => 'Best streak';
+
+  @override
+  String get statsCheckIns => 'Check-ins';
+
+  @override
+  String get statsActivity => 'Activity';
+
+  @override
+  String get statsProjects => 'Projects';
+
+  @override
+  String get statsHabitStreaks => 'Habit streaks';
+
+  @override
+  String statsStreakOf(int current, int best) {
+    return '$current now · best $best';
+  }
 }

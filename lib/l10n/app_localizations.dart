@@ -745,6 +745,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Streak-risk nudge'**
   String get remindersStreak;
+
+  /// No description provided for @obWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Harvest'**
+  String get obWelcomeTitle;
+
+  /// No description provided for @obWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goals are seeds. Your effort is water. Distractions are weeds.\n\nShow up a little every day, keep your streak alive, and harvest the life you\'re growing.'**
+  String get obWelcomeBody;
+
+  /// No description provided for @obTemplatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant your first seeds'**
+  String get obTemplatesTitle;
+
+  /// No description provided for @obTemplatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a few to start with — you can always plant more.'**
+  String get obTemplatesBody;
+
+  /// No description provided for @tmplRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read a book (300 pages)'**
+  String get tmplRead;
+
+  /// No description provided for @tmplFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise'**
+  String get tmplFit;
+
+  /// No description provided for @tmplLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice a language'**
+  String get tmplLanguage;
+
+  /// No description provided for @tmplMeditate.
+  ///
+  /// In en, this message translates to:
+  /// **'Meditate (3× a week)'**
+  String get tmplMeditate;
+
+  /// No description provided for @tmplJournal.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal before bed'**
+  String get tmplJournal;
+
+  /// No description provided for @obGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily commitment'**
+  String get obGoalTitle;
+
+  /// No description provided for @obRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle reminders'**
+  String get obRemindersTitle;
+
+  /// No description provided for @obRemindersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest nudges, never nags: a morning review, an evening planning ritual, and a heads-up when your streak is at risk.'**
+  String get obRemindersBody;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @startGrowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Start growing 🌱'**
+  String get startGrowing;
+
+  /// No description provided for @statsLifetimeXp.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime XP'**
+  String get statsLifetimeXp;
+
+  /// No description provided for @statsBestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Best streak'**
+  String get statsBestStreak;
+
+  /// No description provided for @statsCheckIns.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get statsCheckIns;
+
+  /// No description provided for @statsActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get statsActivity;
+
+  /// No description provided for @statsProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get statsProjects;
+
+  /// No description provided for @statsHabitStreaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit streaks'**
+  String get statsHabitStreaks;
+
+  /// No description provided for @statsStreakOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} now · best {best}'**
+  String statsStreakOf(int current, int best);
 }
 
 class _AppLocalizationsDelegate
