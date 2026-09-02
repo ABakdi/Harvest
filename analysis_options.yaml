@@ -4,6 +4,7 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "lib/l10n/app_localizations*.dart"
+    - "test/generated_migrations/**"
     - build/**
     - android/**
     - ios/**

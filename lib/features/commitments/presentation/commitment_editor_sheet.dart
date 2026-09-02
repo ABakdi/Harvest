@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
@@ -166,7 +167,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
               CommitmentType.todo => _todoFields(l10n),
             },
             const SizedBox(height: HarvestSpacing.lg),
-            FilledButton(
+            BigBouncySheetButton(
               onPressed: _valid && !_saving ? _save : null,
               child: Text(l10n.save),
             ),
