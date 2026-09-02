@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/empty_state.dart';
+import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/core/ui/widgets/stat_tile.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
@@ -28,9 +31,10 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final symbol = (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-            Currency.dzd)
-        .symbol;
+    final symbol =
+        (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
+                Currency.dzd)
+            .symbol;
     final customs = ref.watch(customCategoriesProvider).value ?? const [];
 
     final dayTotals = _range == _Range.week
@@ -54,43 +58,60 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
       children: [
         SegmentedButton<_Range>(
           segments: [
-            ButtonSegment(value: _Range.week, label: Text(l10n.rangeWeek)),
-            ButtonSegment(value: _Range.month, label: Text(l10n.rangeMonth)),
+            ButtonSegment(
+              value: _Range.week,
+              icon: const Icon(Icons.view_week),
+              label: Text(l10n.rangeWeek),
+            ),
+            ButtonSegment(
+              value: _Range.month,
+              icon: const Icon(Icons.calendar_month),
+              label: Text(l10n.rangeMonth),
+            ),
           ],
           selected: {_range},
           onSelectionChanged: (selection) =>
               setState(() => _range = selection.first),
         ),
         const SizedBox(height: HarvestSpacing.md),
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                label: l10n.totalSpent,
-                value: '$symbol${formatMinor(total)}',
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: StatTile(
+                  icon: Icons.payments,
+                  color: theme.colorScheme.primary,
+                  label: l10n.totalSpent,
+                  value: '$symbol${formatGrouped(total)}',
+                ),
               ),
-            ),
-            const SizedBox(width: HarvestSpacing.sm),
-            Expanded(
-              child: _StatCard(
-                label: l10n.avgPerDay('$symbol${formatMinor(average)}'),
-                value: '',
-                swap: true,
+              const SizedBox(width: HarvestSpacing.sm),
+              Expanded(
+                child: StatTile(
+                  icon: Icons.today,
+                  color: theme.colorScheme.tertiary,
+                  label: l10n.avgPerDay(''),
+                  value: '$symbol${formatGrouped(average)}',
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const SizedBox(height: HarvestSpacing.md),
         if (total == 0)
           Padding(
-            padding: const EdgeInsets.all(HarvestSpacing.xl),
-            child: Text(
-              l10n.noSpendingYet,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge,
+            padding: const EdgeInsets.only(top: HarvestSpacing.md),
+            child: Card(
+              child: EmptyState(
+                icon: Icons.bar_chart,
+                title: l10n.noSpendingYet,
+                color: theme.colorScheme.tertiary,
+                compact: true,
+              ),
             ),
           )
         else ...[
+          SectionHeader(_rangeTitle(l10n)),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(HarvestSpacing.md),
@@ -103,7 +124,7 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
               ),
             ),
           ),
-          const SizedBox(height: HarvestSpacing.md),
+          SectionHeader(l10n.statsSpending),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(HarvestSpacing.md),
@@ -119,52 +140,14 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
     );
   }
 
+  String _rangeTitle(AppLocalizations l10n) =>
+      _range == _Range.week ? l10n.rangeWeek : l10n.rangeMonth;
+
   int _elapsedDays() {
     final today = HarvestDay.today();
     return _range == _Range.week
         ? today.weekStart.daysUntil(today) + 1
         : today.day;
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    this.swap = false,
-  });
-
-  final String label;
-  final String value;
-
-  /// When true the label carries the value (avg formatting quirk).
-  final bool swap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(HarvestSpacing.md),
-        child: Column(
-          children: [
-            Text(
-              swap ? label : value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.primary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (!swap) ...[
-              const SizedBox(height: 2),
-              Text(label, style: theme.textTheme.labelMedium),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -217,9 +200,8 @@ class _DailyBars extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
                 final day = days[index];
-                final show = range == _Range.week ||
-                    day.day == 1 ||
-                    day.day % 7 == 0;
+                final show =
+                    range == _Range.week || day.day == 1 || day.day % 7 == 0;
                 if (!show) return const SizedBox.shrink();
                 final label = range == _Range.week
                     ? DateFormat.E(locale).format(
@@ -337,8 +319,9 @@ class _CategoryDonut extends StatelessWidget {
                       ),
                       Text(
                         '${(entries[i].value * 100 / total).round()}%',
-                        style: theme.textTheme.labelLarge
-                            ?.copyWith(fontWeight: FontWeight.w800),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ],
                   ),

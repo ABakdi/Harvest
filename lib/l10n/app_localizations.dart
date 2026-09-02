@@ -1555,6 +1555,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The vault is empty — add to the wallet or save something.'**
   String get nothingInVault;
+
+  /// No description provided for @dayToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dayToday;
+
+  /// No description provided for @dayYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get dayYesterday;
+
+  /// No description provided for @vaultOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed'**
+  String get vaultOwed;
+
+  /// No description provided for @vaultOpenDebts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no open debts} =1{1 open debt} other{{count} open debts}}'**
+  String vaultOpenDebts(int count);
+
+  /// No description provided for @walletEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The wallet is empty'**
+  String get walletEmptyTitle;
+
+  /// No description provided for @walletEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what you carry to spend. Expenses can come straight out of it.'**
+  String get walletEmptyBody;
+
+  /// No description provided for @savingsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing saved yet'**
+  String get savingsEmptyTitle;
+
+  /// No description provided for @savingsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Put something aside — one pot per currency.'**
+  String get savingsEmptyBody;
+
+  /// No description provided for @debtsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No debts'**
+  String get debtsEmptyTitle;
+
+  /// No description provided for @debtsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing owed to anyone. Sleep well.'**
+  String get debtsEmptyBody;
+
+  /// No description provided for @movesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves'**
+  String get movesTitle;
+
+  /// No description provided for @noMovesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No moves yet'**
+  String get noMovesYet;
+
+  /// No description provided for @txnAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get txnAdded;
+
+  /// No description provided for @txnTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken out'**
+  String get txnTaken;
+
+  /// No description provided for @txnSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get txnSaved;
+
+  /// No description provided for @txnWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get txnWithdrawn;
+
+  /// No description provided for @txnFromSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'From savings'**
+  String get txnFromSavings;
+
+  /// No description provided for @txnToSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'To savings'**
+  String get txnToSavings;
+
+  /// No description provided for @txnFromWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'From the wallet'**
+  String get txnFromWallet;
+
+  /// No description provided for @txnToWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'To the wallet'**
+  String get txnToWallet;
+
+  /// No description provided for @txnExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get txnExpense;
+
+  /// No description provided for @txnDebtPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {person}'**
+  String txnDebtPayment(String person);
+
+  /// No description provided for @debtPaidOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} of {total} paid'**
+  String debtPaidOf(String paid, String total);
+
+  /// No description provided for @debtPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get debtPayments;
+
+  /// No description provided for @debtOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get debtOpen;
+
+  /// No description provided for @debtSettledSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get debtSettledSection;
+
+  /// No description provided for @payFromWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from the wallet?'**
+  String get payFromWallet;
+
+  /// No description provided for @depositSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Where does it come from?'**
+  String get depositSource;
+
+  /// No description provided for @fromWalletOption.
+  ///
+  /// In en, this message translates to:
+  /// **'From the wallet'**
+  String get fromWalletOption;
+
+  /// No description provided for @newMoneyOption.
+  ///
+  /// In en, this message translates to:
+  /// **'New money'**
+  String get newMoneyOption;
+
+  /// No description provided for @walletYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, from the wallet'**
+  String get walletYes;
+
+  /// No description provided for @walletNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No, just log it'**
+  String get walletNo;
+
+  /// No description provided for @budgetSpentToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent today'**
+  String get budgetSpentToday;
+
+  /// No description provided for @budgetDailyLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit'**
+  String get budgetDailyLimit;
+
+  /// No description provided for @budgetLeftToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left today'**
+  String budgetLeftToday(String amount);
+
+  /// No description provided for @budgetOverToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over today'**
+  String budgetOverToday(String amount);
+
+  /// No description provided for @budgetLeftMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left this month'**
+  String budgetLeftMonth(String amount);
+
+  /// No description provided for @budgetOverMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over budget this month'**
+  String budgetOverMonth(String amount);
+
+  /// No description provided for @nextRankIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{xp} XP to the next rank'**
+  String nextRankIn(int xp);
+
+  /// No description provided for @expensesToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing logged} =1{1 expense} other{{count} expenses}}'**
+  String expensesToday(int count);
+
+  /// No description provided for @swipeToRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to remove'**
+  String get swipeToRemove;
 }
 
 class _AppLocalizationsDelegate

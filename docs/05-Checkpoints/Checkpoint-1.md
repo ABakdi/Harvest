@@ -93,6 +93,37 @@ offline).
 - Daily quests removed (previous entry) — confirmed gone from the
   field.
 
+## Round 4 — the look, and a vault that explains itself
+
+Dogfooding v0.9.3 left two complaints: the app still looked like a
+default Material scaffold, and the vault was confusing — one wallet
+card, savings tiles, debts, then a single "Recent moves" list mixing
+everything. Round 4 fixes both.
+
+- **Design system pass** — one surface language set in the theme
+  (layered cards with a hairline edge, filled pill inputs/chips/segments,
+  rounded tab indicator, drag-handled sheets, floating snackbars) plus
+  seven shared components (SectionHeader, HeroCard, StatTile, IconBadge,
+  LedgerRow, HarvestFab, EmptyState) applied across Field, Granary,
+  Stats and Settings. The golden gallery covers them in light/dark × LTR/RTL.
+- **Vault restructured** — three tiles (Wallet / Savings / Owed) always
+  showing totals; the selected section gets a hero card with per-currency
+  balances and its actions, then its *own* ledger grouped by day. Debts
+  show remaining, paid progress, and expandable payments.
+- **Ledger rows explain themselves** — schema v7 adds `kind` +
+  `reference` to `money_txns`: transfers name the other pot, expenses
+  carry their category, debt payments name the person. Paying a debt can
+  now come out of the wallet; saving can come from the wallet (a real
+  transfer) or be new money.
+- **Money entry** — one amount sheet (big number, currency pills, note)
+  replaces the old dialogs; "which one?" prompts are option sheets with
+  icons and the relevant balance as a hint. Savings withdrawals are
+  capped at the pot.
+- **Today tab** — status-tinted budget hero (spent today, daily limit,
+  left/over today, month bar with left/over month), expense rows with
+  swipe-to-remove, the expense FAB only where it belongs.
+- Amounts are thousands-grouped everywhere.
+
 ## Scope change
 
 Daily quests are **out of v1**: the card and its logic were removed

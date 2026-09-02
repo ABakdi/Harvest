@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
@@ -22,9 +23,11 @@ class SettingsScreen extends ConsumerWidget {
     final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
     final preset =
         ref.watch(themePresetSettingProvider).value ?? ThemePreset.harvest;
-    final pomodoro = ref.watch(pomodoroConfigSettingProvider).value ??
+    final pomodoro =
+        ref.watch(pomodoroConfigSettingProvider).value ??
         const PomodoroConfig();
-    final reminders = ref.watch(reminderSettingsProvider).value ??
+    final reminders =
+        ref.watch(reminderSettingsProvider).value ??
         (
           enabled: false,
           morning: const TimeOfDay(hour: 7, minute: 0),
@@ -37,13 +40,10 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(HarvestSpacing.md),
         children: [
-          Text(
+          SectionHeader(
             l10n.settingsHarvest,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
           ),
-          const SizedBox(height: HarvestSpacing.sm),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(HarvestSpacing.md),
@@ -62,9 +62,7 @@ class SettingsScreen extends ConsumerWidget {
                     children: [
                       Text(
                         l10n.goalActions(goal),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       Row(
@@ -75,8 +73,9 @@ class SettingsScreen extends ConsumerWidget {
                                     unawaited(HarvestHaptics.tick());
                                     unawaited(
                                       ref
-                                          .read(dailyGoalSettingProvider
-                                              .notifier)
+                                          .read(
+                                            dailyGoalSettingProvider.notifier,
+                                          )
                                           .set(goal - 1),
                                     );
                                   }
@@ -90,8 +89,9 @@ class SettingsScreen extends ConsumerWidget {
                                     unawaited(HarvestHaptics.tick());
                                     unawaited(
                                       ref
-                                          .read(dailyGoalSettingProvider
-                                              .notifier)
+                                          .read(
+                                            dailyGoalSettingProvider.notifier,
+                                          )
                                           .set(goal + 1),
                                     );
                                   }
@@ -106,23 +106,9 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: HarvestSpacing.lg),
-          Text(
-            l10n.exchangeRates,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: HarvestSpacing.sm),
+          SectionHeader(l10n.exchangeRates),
           const RatesCard(),
-          const SizedBox(height: HarvestSpacing.lg),
-          Text(
-            l10n.settingsPomodoro,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: HarvestSpacing.sm),
+          SectionHeader(l10n.settingsPomodoro),
           Card(
             child: Column(
               children: [
@@ -165,14 +151,7 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: HarvestSpacing.lg),
-          Text(
-            l10n.settingsReminders,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: HarvestSpacing.sm),
+          SectionHeader(l10n.settingsReminders),
           Card(
             child: Column(
               children: [
@@ -216,23 +195,16 @@ class SettingsScreen extends ConsumerWidget {
                   value: reminders.streakNudge,
                   onChanged: reminders.enabled
                       ? (value) => unawaited(
-                            ref
-                                .read(reminderSettingsProvider.notifier)
-                                .setStreakNudge(enabled: value),
-                          )
+                          ref
+                              .read(reminderSettingsProvider.notifier)
+                              .setStreakNudge(enabled: value),
+                        )
                       : null,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: HarvestSpacing.lg),
-          Text(
-            l10n.settingsAppearance,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: HarvestSpacing.sm),
+          SectionHeader(l10n.settingsAppearance),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(HarvestSpacing.md),
@@ -343,7 +315,6 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-
 class _PomodoroRow extends ConsumerWidget {
   const _PomodoroRow({
     required this.label,
@@ -390,7 +361,6 @@ class _PomodoroRow extends ConsumerWidget {
     );
   }
 }
-
 
 class _PresetSwatch extends ConsumerWidget {
   const _PresetSwatch({

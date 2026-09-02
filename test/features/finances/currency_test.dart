@@ -45,7 +45,7 @@ void main() {
         rates: rates,
       );
       expect(text, contains(r'$8'));
-      expect(text, contains('DA1080'));
+      expect(text, contains('DA1,080'));
     });
 
     test('omits the parenthetical without a rate', () {
@@ -61,13 +61,13 @@ void main() {
 
   group('aggregation converts before summing', () {
     Expense expense(int minor, Currency currency) => Expense(
-          uuid: '$minor-${currency.code}',
-          amountMinor: minor,
-          currency: currency,
-          category: 'food',
-          day: HarvestDay.parse('2026-09-02'),
-          loggedAt: DateTime(2026, 9, 2),
-        );
+      uuid: '$minor-${currency.code}',
+      amountMinor: minor,
+      currency: currency,
+      category: 'food',
+      day: HarvestDay.parse('2026-09-02'),
+      loggedAt: DateTime(2026, 9, 2),
+    );
 
     test('mixed currencies land in the default currency', () {
       final totals = totalsByCategory(

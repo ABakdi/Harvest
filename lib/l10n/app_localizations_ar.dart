@@ -810,4 +810,162 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nothingInVault => 'الخزنة فارغة — أضف للمحفظة أو ادخر شيئًا.';
+
+  @override
+  String get dayToday => 'اليوم';
+
+  @override
+  String get dayYesterday => 'أمس';
+
+  @override
+  String get vaultOwed => 'مستحق';
+
+  @override
+  String vaultOpenDebts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ديون مفتوحة',
+      two: 'دينان مفتوحان',
+      one: 'دين واحد مفتوح',
+      zero: 'لا ديون مفتوحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walletEmptyTitle => 'المحفظة فارغة';
+
+  @override
+  String get walletEmptyBody =>
+      'أضف ما تحمله للإنفاق. يمكن خصم المصاريف منها مباشرة.';
+
+  @override
+  String get savingsEmptyTitle => 'لا مدخرات بعد';
+
+  @override
+  String get savingsEmptyBody => 'ضع شيئًا جانبًا — وعاء لكل عملة.';
+
+  @override
+  String get debtsEmptyTitle => 'لا ديون';
+
+  @override
+  String get debtsEmptyBody => 'لا شيء مستحق لأحد. نم هانئًا.';
+
+  @override
+  String get movesTitle => 'الحركات';
+
+  @override
+  String get noMovesYet => 'لا حركات بعد';
+
+  @override
+  String get txnAdded => 'إضافة';
+
+  @override
+  String get txnTaken => 'سحب';
+
+  @override
+  String get txnSaved => 'ادخار';
+
+  @override
+  String get txnWithdrawn => 'سحب من المدخرات';
+
+  @override
+  String get txnFromSavings => 'من المدخرات';
+
+  @override
+  String get txnToSavings => 'إلى المدخرات';
+
+  @override
+  String get txnFromWallet => 'من المحفظة';
+
+  @override
+  String get txnToWallet => 'إلى المحفظة';
+
+  @override
+  String get txnExpense => 'مصروف';
+
+  @override
+  String txnDebtPayment(String person) {
+    return 'دفعة لـ $person';
+  }
+
+  @override
+  String debtPaidOf(String paid, String total) {
+    return 'دُفع $paid من $total';
+  }
+
+  @override
+  String get debtPayments => 'الدفعات';
+
+  @override
+  String get debtOpen => 'مفتوحة';
+
+  @override
+  String get debtSettledSection => 'مسددة';
+
+  @override
+  String get payFromWallet => 'الدفع من المحفظة؟';
+
+  @override
+  String get depositSource => 'من أين يأتي المال؟';
+
+  @override
+  String get fromWalletOption => 'من المحفظة';
+
+  @override
+  String get newMoneyOption => 'مال جديد';
+
+  @override
+  String get walletYes => 'نعم، من المحفظة';
+
+  @override
+  String get walletNo => 'لا، سجّله فقط';
+
+  @override
+  String get budgetSpentToday => 'أُنفق اليوم';
+
+  @override
+  String get budgetDailyLimit => 'الحد اليومي';
+
+  @override
+  String budgetLeftToday(String amount) {
+    return 'بقي $amount اليوم';
+  }
+
+  @override
+  String budgetOverToday(String amount) {
+    return 'تجاوز بـ $amount اليوم';
+  }
+
+  @override
+  String budgetLeftMonth(String amount) {
+    return 'بقي $amount هذا الشهر';
+  }
+
+  @override
+  String budgetOverMonth(String amount) {
+    return 'تجاوز الميزانية بـ $amount هذا الشهر';
+  }
+
+  @override
+  String nextRankIn(int xp) {
+    return '$xp نقطة حتى الرتبة التالية';
+  }
+
+  @override
+  String expensesToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مصاريف',
+      two: 'مصروفان',
+      one: 'مصروف واحد',
+      zero: 'لا شيء مسجّل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get swipeToRemove => 'اسحب للحذف';
 }

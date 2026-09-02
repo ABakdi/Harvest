@@ -159,6 +159,14 @@ class MoneyTxns extends Table {
   IntColumn get deltaMinor => integer()();
   TextColumn get currency => text().withDefault(const Constant('DZD'))();
   TextColumn get note => text().nullable()();
+
+  /// What caused the movement: 'manual' | 'transfer' | 'expense' | 'debt'
+  /// (round 4 — the ledger explains every row).
+  TextColumn get kind => text().withDefault(const Constant('manual'))();
+
+  /// Context for [kind]: the counterpart account for a transfer, the
+  /// category key for an expense, the person for a debt payment.
+  TextColumn get reference => text().nullable()();
   TextColumn get harvestDay => text()();
   DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
@@ -265,37 +273,41 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onUpgrade: (m, from, to) async {
-          // A table created in this run already carries the newest
-          // columns; later addColumn steps must skip it.
-          final expensesJustCreated = from < 2;
-          if (from < 2) {
-            await m.createTable(expenses);
-          }
-          if (from < 3) {
-            await m.addColumn(commitments, commitments.pausedAt);
-          }
-          if (from < 4) {
-            await m.addColumn(commitments, commitments.note);
-            await m.addColumn(commitments, commitments.remindAt);
-            await m.addColumn(commitments, commitments.deadline);
-            await m.createTable(expenseCategories);
-          }
-          if (from < 5 && !expensesJustCreated) {
-            await m.addColumn(expenses, expenses.currency);
-          }
-          if (from < 6) {
-            await m.createTable(moneyTxns);
-            await m.createTable(debts);
-            await m.createTable(debtPayments);
-          }
-        },
-      );
+    onUpgrade: (m, from, to) async {
+      // A table created in this run already carries the newest
+      // columns; later addColumn steps must skip it.
+      final expensesJustCreated = from < 2;
+      final moneyTxnsJustCreated = from < 6;
+      if (from < 2) {
+        await m.createTable(expenses);
+      }
+      if (from < 3) {
+        await m.addColumn(commitments, commitments.pausedAt);
+      }
+      if (from < 4) {
+        await m.addColumn(commitments, commitments.note);
+        await m.addColumn(commitments, commitments.remindAt);
+        await m.addColumn(commitments, commitments.deadline);
+        await m.createTable(expenseCategories);
+      }
+      if (from < 5 && !expensesJustCreated) {
+        await m.addColumn(expenses, expenses.currency);
+      }
+      if (from < 6) {
+        await m.createTable(moneyTxns);
+        await m.createTable(debts);
+        await m.createTable(debtPayments);
+      }
+      if (from < 7 && !moneyTxnsJustCreated) {
+        await m.addColumn(moneyTxns, moneyTxns.kind);
+        await m.addColumn(moneyTxns, moneyTxns.reference);
+      }
+    },
+  );
 
-  static QueryExecutor _openConnection() =>
-      driftDatabase(name: 'harvest');
+  static QueryExecutor _openConnection() => driftDatabase(name: 'harvest');
 }

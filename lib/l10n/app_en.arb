@@ -493,5 +493,112 @@
   "recentMoves": "Recent moves",
   "txnWallet": "Wallet",
   "txnSavings": "Savings",
-  "nothingInVault": "The vault is empty — add to the wallet or save something."
+  "nothingInVault": "The vault is empty — add to the wallet or save something.",
+  "dayToday": "Today",
+  "dayYesterday": "Yesterday",
+  "vaultOwed": "Owed",
+  "vaultOpenDebts": "{count, plural, =0{no open debts} =1{1 open debt} other{{count} open debts}}",
+  "@vaultOpenDebts": {
+      "placeholders": {
+          "count": {
+              "type": "int"
+          }
+      }
+  },
+  "walletEmptyTitle": "The wallet is empty",
+  "walletEmptyBody": "Add what you carry to spend. Expenses can come straight out of it.",
+  "savingsEmptyTitle": "Nothing saved yet",
+  "savingsEmptyBody": "Put something aside — one pot per currency.",
+  "debtsEmptyTitle": "No debts",
+  "debtsEmptyBody": "Nothing owed to anyone. Sleep well.",
+  "movesTitle": "Moves",
+  "noMovesYet": "No moves yet",
+  "txnAdded": "Added",
+  "txnTaken": "Taken out",
+  "txnSaved": "Saved",
+  "txnWithdrawn": "Withdrawn",
+  "txnFromSavings": "From savings",
+  "txnToSavings": "To savings",
+  "txnFromWallet": "From the wallet",
+  "txnToWallet": "To the wallet",
+  "txnExpense": "Expense",
+  "txnDebtPayment": "Paid {person}",
+  "@txnDebtPayment": {
+      "placeholders": {
+          "person": {
+              "type": "String"
+          }
+      }
+  },
+  "debtPaidOf": "{paid} of {total} paid",
+  "@debtPaidOf": {
+      "placeholders": {
+          "paid": {
+              "type": "String"
+          },
+          "total": {
+              "type": "String"
+          }
+      }
+  },
+  "debtPayments": "Payments",
+  "debtOpen": "Open",
+  "debtSettledSection": "Settled",
+  "payFromWallet": "Pay from the wallet?",
+  "depositSource": "Where does it come from?",
+  "fromWalletOption": "From the wallet",
+  "newMoneyOption": "New money",
+  "walletYes": "Yes, from the wallet",
+  "walletNo": "No, just log it",
+  "budgetSpentToday": "Spent today",
+  "budgetDailyLimit": "Daily limit",
+  "budgetLeftToday": "{amount} left today",
+  "@budgetLeftToday": {
+      "placeholders": {
+          "amount": {
+              "type": "String"
+          }
+      }
+  },
+  "budgetOverToday": "{amount} over today",
+  "@budgetOverToday": {
+      "placeholders": {
+          "amount": {
+              "type": "String"
+          }
+      }
+  },
+  "budgetLeftMonth": "{amount} left this month",
+  "@budgetLeftMonth": {
+      "placeholders": {
+          "amount": {
+              "type": "String"
+          }
+      }
+  },
+  "budgetOverMonth": "{amount} over budget this month",
+  "@budgetOverMonth": {
+      "placeholders": {
+          "amount": {
+              "type": "String"
+          }
+      }
+  },
+  "nextRankIn": "{xp} XP to the next rank",
+  "@nextRankIn": {
+      "placeholders": {
+          "xp": {
+              "type": "int"
+          }
+      }
+  },
+  "expensesToday": "{count, plural, =0{Nothing logged} =1{1 expense} other{{count} expenses}}",
+  "@expensesToday": {
+      "placeholders": {
+          "count": {
+              "type": "int"
+          }
+      }
+  },
+  "swipeToRemove": "Swipe to remove"
 }

@@ -19,8 +19,7 @@ void main() {
   tearDown(() => db.close());
 
   group('wallet and savings balances', () {
-    test('balances sum signed movements per account and currency',
-        () async {
+    test('balances sum signed movements per account and currency', () async {
       await vault.move(
         account: MoneyAccount.wallet,
         deltaMinor: 5000,
@@ -45,8 +44,7 @@ void main() {
       expect(balances[(MoneyAccount.savings, Currency.usd)], 10000);
     });
 
-    test('savings→wallet transfer moves both pots and keeps history',
-        () async {
+    test('savings→wallet transfer moves both pots and keeps history', () async {
       await vault.move(
         account: MoneyAccount.savings,
         deltaMinor: 8000,
@@ -70,6 +68,46 @@ void main() {
         txns.where((t) => t.note == 'groceries money').length,
         2,
       );
+      // ...and explain themselves: each leg names the other pot.
+      final legs = txns.where((t) => t.kind == TxnKind.transfer).toList();
+      expect(legs.length, 2);
+      expect(
+        legs.map((t) => (t.account, t.reference)).toSet(),
+        {(MoneyAccount.savings, 'wallet'), (MoneyAccount.wallet, 'savings')},
+      );
+    });
+
+    test('each pot has its own ledger', () async {
+      await vault.move(
+        account: MoneyAccount.wallet,
+        deltaMinor: 500,
+        currency: Currency.dzd,
+        day: day,
+      );
+      await vault.move(
+        account: MoneyAccount.savings,
+        deltaMinor: 900,
+        currency: Currency.dzd,
+        day: day,
+      );
+      await vault.move(
+        account: MoneyAccount.wallet,
+        deltaMinor: -200,
+        currency: Currency.dzd,
+        kind: TxnKind.expense,
+        reference: 'food',
+        day: day,
+      );
+
+      final wallet = await vault.watchTxns(account: MoneyAccount.wallet).first;
+      final savings = await vault
+          .watchTxns(account: MoneyAccount.savings)
+          .first;
+      expect(wallet.map((t) => t.deltaMinor), [-200, 500]);
+      expect(wallet.first.kind, TxnKind.expense);
+      expect(wallet.first.reference, 'food');
+      expect(savings.map((t) => t.deltaMinor), [900]);
+      expect(savings.single.kind, TxnKind.manual);
     });
   });
 
@@ -95,6 +133,33 @@ void main() {
       debts = await vault.watchDebts().first;
       expect(debts.single.remainingMinor, 0);
       expect(debts.single.isSettled, isTrue);
+    });
+
+    test('paying from the wallet records a debt-kind withdrawal', () async {
+      await vault.move(
+        account: MoneyAccount.wallet,
+        deltaMinor: 9000,
+        currency: Currency.dzd,
+        day: day,
+      );
+      await vault.createDebt(
+        person: 'Lina',
+        amountMinor: 3000,
+        currency: Currency.dzd,
+      );
+      final debt = (await vault.watchDebts().first).single;
+      await vault.payDebt(debt.uuid, 3000, fromWallet: true);
+
+      final balances = await vault.watchBalances().first;
+      expect(balances[(MoneyAccount.wallet, Currency.dzd)], 6000);
+      final wallet = await vault.watchTxns(account: MoneyAccount.wallet).first;
+      expect(wallet.first.kind, TxnKind.debt);
+      expect(wallet.first.reference, 'Lina');
+      expect((await vault.watchDebts().first).single.isSettled, isTrue);
+
+      final payments = await vault.watchDebtPayments().first;
+      expect(payments.single.debtUuid, debt.uuid);
+      expect(payments.single.amountMinor, 3000);
     });
 
     test('every write lands in the outbox', () async {

@@ -10,6 +10,8 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
 import 'package:harvest/core/ui/widgets/deadline_countdown.dart';
+import 'package:harvest/core/ui/widgets/harvest_fab.dart';
+import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
@@ -19,6 +21,7 @@ import 'package:harvest/features/commitments/presentation/commitment_editor_shee
 import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -38,9 +41,9 @@ class FieldScreen extends ConsumerWidget {
     final xp = ref.watch(xpTotalProvider).value ?? 0;
     final streak = ref.watch(globalStreakProvider).value;
     final budget = ref.watch(budgetSnapshotProvider);
-    final symbol = (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-            Currency.dzd)
-        .symbol;
+    final currency =
+        ref.watch(financeSettingsProvider).value?.defaultCurrency ??
+        Currency.dzd;
 
     return Scaffold(
       appBar: AppBar(
@@ -64,10 +67,9 @@ class FieldScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: HarvestFab(
         onPressed: () => unawaited(showCommitmentEditor(context)),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addCommitment),
+        label: l10n.addCommitment,
       ),
       body: Column(
         children: [
@@ -75,46 +77,13 @@ class FieldScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(
               horizontal: HarvestSpacing.md,
             ),
-            child: XpBar(
+            child: _FieldHeader(
               xp: xp,
-              xpPerRank: FarmerRank.xpPerRank,
               rankLabel: _rankLabel(l10n, FarmerRank.forXp(xp)),
+              budget: budget,
+              currency: currency,
             ),
           ),
-          if (budget != null) ...[
-            const SizedBox(height: HarvestSpacing.sm),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: HarvestSpacing.md,
-              ),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: ActionChip(
-                  side: BorderSide(
-                    color: budgetColor(
-                      Theme.of(context).colorScheme,
-                      budget.status,
-                    ).withValues(alpha: 0.6),
-                  ),
-                  avatar: Icon(
-                    Icons.payments,
-                    size: 18,
-                    color: budgetColor(
-                      Theme.of(context).colorScheme,
-                      budget.status,
-                    ),
-                  ),
-                  label: Text(
-                    l10n.budgetFloating(
-                      '$symbol${formatMinor(budget.spentToday)}',
-                      '$symbol${formatMinor(budget.floatingDailyLimit)}',
-                    ),
-                  ),
-                  onPressed: () => context.go(AppRoutes.finances),
-                ),
-              ),
-            ),
-          ],
           const SizedBox(height: HarvestSpacing.sm),
           Expanded(
             // Pulling the field down opens tomorrow's plan.
@@ -157,14 +126,94 @@ class FieldScreen extends ConsumerWidget {
     );
   }
 
-  String _rankLabel(AppLocalizations l10n, FarmerRank rank) =>
-      switch (rank) {
-        FarmerRank.sprout => l10n.rankSprout,
-        FarmerRank.seedling => l10n.rankSeedling,
-        FarmerRank.gardener => l10n.rankGardener,
-        FarmerRank.harvester => l10n.rankHarvester,
-        FarmerRank.masterFarmer => l10n.rankMasterFarmer,
-      };
+  String _rankLabel(AppLocalizations l10n, FarmerRank rank) => switch (rank) {
+    FarmerRank.sprout => l10n.rankSprout,
+    FarmerRank.seedling => l10n.rankSeedling,
+    FarmerRank.gardener => l10n.rankGardener,
+    FarmerRank.harvester => l10n.rankHarvester,
+    FarmerRank.masterFarmer => l10n.rankMasterFarmer,
+  };
+}
+
+/// Rank, XP and the budget pulse in one card at the top of the field.
+class _FieldHeader extends StatelessWidget {
+  const _FieldHeader({
+    required this.xp,
+    required this.rankLabel,
+    required this.budget,
+    required this.currency,
+  });
+
+  final int xp;
+  final String rankLabel;
+  final BudgetSnapshot? budget;
+  final Currency currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final snap = budget;
+    final toNext = FarmerRank.xpPerRank - xp % FarmerRank.xpPerRank;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(HarvestSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            XpBar(
+              xp: xp,
+              xpPerRank: FarmerRank.xpPerRank,
+              rankLabel: rankLabel,
+            ),
+            const SizedBox(height: HarvestSpacing.xs),
+            Text(
+              l10n.nextRankIn(toNext),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.55),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (snap != null) ...[
+              const Divider(height: HarvestSpacing.lg),
+              InkWell(
+                borderRadius: BorderRadius.circular(HarvestRadii.chip),
+                onTap: () => context.go(AppRoutes.finances),
+                child: Row(
+                  children: [
+                    IconBadge(
+                      Icons.payments,
+                      color: budgetColor(scheme, snap.status),
+                      size: 32,
+                      iconSize: 18,
+                    ),
+                    const SizedBox(width: HarvestSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        l10n.budgetFloating(
+                          formatAmount(snap.spentToday, currency),
+                          formatAmount(snap.floatingDailyLimit, currency),
+                        ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: scheme.onSurface.withValues(alpha: 0.4),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _CropTile extends ConsumerWidget {
@@ -208,22 +257,22 @@ class _CropTile extends ConsumerWidget {
   String _subtitle(BuildContext context, AppLocalizations l10n) {
     final commitment = item.commitment;
     final locale = Localizations.localeOf(context).toString();
-    String dayText(HarvestDay day) => DateFormat.MMMd(locale)
-        .format(DateTime(day.year, day.month, day.day));
+    String dayText(HarvestDay day) =>
+        DateFormat.MMMd(locale).format(DateTime(day.year, day.month, day.day));
     final deadline = commitment.deadline;
     final deadlineText = deadline == null
         ? null
         : _overdue
-            ? l10n.overdueBy(dayText(deadline))
-            : l10n.dueOn(dayText(deadline));
+        ? l10n.overdueBy(dayText(deadline))
+        : l10n.dueOn(dayText(deadline));
 
     final base = switch (commitment.type) {
       CommitmentType.project => l10n.projectSubtitle(
-          item.totalLogged,
-          commitment.totalTarget ?? 0,
-          item.loggedToday,
-          commitment.dailyCommitment ?? 0,
-        ),
+        item.totalLogged,
+        commitment.totalTarget ?? 0,
+        item.loggedToday,
+        commitment.dailyCommitment ?? 0,
+      ),
       CommitmentType.habit =>
         commitment.isPaused ? l10n.pausedLabel : l10n.typeHabit,
       CommitmentType.todo => commitment.note ?? l10n.typeTodo,
@@ -316,7 +365,8 @@ class _CropTile extends ConsumerWidget {
             left: HarvestSpacing.lg,
             right: HarvestSpacing.lg,
             top: HarvestSpacing.lg,
-            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom +
+            bottom:
+                MediaQuery.viewInsetsOf(sheetContext).bottom +
                 HarvestSpacing.lg,
           ),
           child: Column(
@@ -337,25 +387,26 @@ class _CropTile extends ConsumerWidget {
                   labelText: l10n.logQuantityLabel,
                   helperText: l10n.logRemainingToday(remaining),
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(HarvestRadii.button),
+                    borderRadius: BorderRadius.circular(HarvestRadii.button),
                   ),
                 ),
               ),
               const SizedBox(height: HarvestSpacing.lg),
               FilledButton(
                 onPressed: () async {
-                  final quantity =
-                      int.tryParse(quantityController.text) ?? 0;
+                  final quantity = int.tryParse(quantityController.text) ?? 0;
                   if (quantity <= 0) return;
                   Navigator.of(sheetContext).pop();
-                  final result =
-                      await controller.checkIn(commitment, quantity: quantity);
+                  final result = await controller.checkIn(
+                    commitment,
+                    quantity: quantity,
+                  );
                   final logged = switch (result) {
                     CheckInSuccess(:final quantityLogged) => quantityLogged,
                     CheckInCapped(:final quantityLogged) => quantityLogged,
                   };
-                  final completed = logged > 0 &&
+                  final completed =
+                      logged > 0 &&
                       item.totalLogged + logged >=
                           (commitment.totalTarget ?? 0);
                   if (completed) {
@@ -367,8 +418,7 @@ class _CropTile extends ConsumerWidget {
                     return;
                   }
                   final message = switch (result) {
-                    CheckInSuccess(:final xpEarned) =>
-                      l10n.xpEarned(xpEarned),
+                    CheckInSuccess(:final xpEarned) => l10n.xpEarned(xpEarned),
                     CheckInCapped(quantityLogged: 0) => l10n.cappedMessage,
                     CheckInCapped(:final xpEarned) =>
                       '${l10n.xpEarned(xpEarned)} · ${l10n.cappedMessage}',
@@ -419,7 +469,6 @@ class _CropTile extends ConsumerWidget {
         .archive(item.commitment.uuid);
   }
 }
-
 
 class _EmptyField extends StatelessWidget {
   const _EmptyField();

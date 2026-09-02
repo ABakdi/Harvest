@@ -814,4 +814,160 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get nothingInVault =>
       'The vault is empty — add to the wallet or save something.';
+
+  @override
+  String get dayToday => 'Today';
+
+  @override
+  String get dayYesterday => 'Yesterday';
+
+  @override
+  String get vaultOwed => 'Owed';
+
+  @override
+  String vaultOpenDebts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open debts',
+      one: '1 open debt',
+      zero: 'no open debts',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walletEmptyTitle => 'The wallet is empty';
+
+  @override
+  String get walletEmptyBody =>
+      'Add what you carry to spend. Expenses can come straight out of it.';
+
+  @override
+  String get savingsEmptyTitle => 'Nothing saved yet';
+
+  @override
+  String get savingsEmptyBody => 'Put something aside — one pot per currency.';
+
+  @override
+  String get debtsEmptyTitle => 'No debts';
+
+  @override
+  String get debtsEmptyBody => 'Nothing owed to anyone. Sleep well.';
+
+  @override
+  String get movesTitle => 'Moves';
+
+  @override
+  String get noMovesYet => 'No moves yet';
+
+  @override
+  String get txnAdded => 'Added';
+
+  @override
+  String get txnTaken => 'Taken out';
+
+  @override
+  String get txnSaved => 'Saved';
+
+  @override
+  String get txnWithdrawn => 'Withdrawn';
+
+  @override
+  String get txnFromSavings => 'From savings';
+
+  @override
+  String get txnToSavings => 'To savings';
+
+  @override
+  String get txnFromWallet => 'From the wallet';
+
+  @override
+  String get txnToWallet => 'To the wallet';
+
+  @override
+  String get txnExpense => 'Expense';
+
+  @override
+  String txnDebtPayment(String person) {
+    return 'Paid $person';
+  }
+
+  @override
+  String debtPaidOf(String paid, String total) {
+    return '$paid of $total paid';
+  }
+
+  @override
+  String get debtPayments => 'Payments';
+
+  @override
+  String get debtOpen => 'Open';
+
+  @override
+  String get debtSettledSection => 'Settled';
+
+  @override
+  String get payFromWallet => 'Pay from the wallet?';
+
+  @override
+  String get depositSource => 'Where does it come from?';
+
+  @override
+  String get fromWalletOption => 'From the wallet';
+
+  @override
+  String get newMoneyOption => 'New money';
+
+  @override
+  String get walletYes => 'Yes, from the wallet';
+
+  @override
+  String get walletNo => 'No, just log it';
+
+  @override
+  String get budgetSpentToday => 'Spent today';
+
+  @override
+  String get budgetDailyLimit => 'Daily limit';
+
+  @override
+  String budgetLeftToday(String amount) {
+    return '$amount left today';
+  }
+
+  @override
+  String budgetOverToday(String amount) {
+    return '$amount over today';
+  }
+
+  @override
+  String budgetLeftMonth(String amount) {
+    return '$amount left this month';
+  }
+
+  @override
+  String budgetOverMonth(String amount) {
+    return '$amount over budget this month';
+  }
+
+  @override
+  String nextRankIn(int xp) {
+    return '$xp XP to the next rank';
+  }
+
+  @override
+  String expensesToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count expenses',
+      one: '1 expense',
+      zero: 'Nothing logged',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get swipeToRemove => 'Swipe to remove';
 }

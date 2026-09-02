@@ -21,8 +21,7 @@ class VaultRepository {
 
   /// All balances per account+currency.
   Stream<Map<(MoneyAccount, Currency), int>> watchBalances() {
-    final query = _db.select(_db.moneyTxns)
-      ..where((t) => t.deletedAt.isNull());
+    final query = _db.select(_db.moneyTxns)..where((t) => t.deletedAt.isNull());
     return query.watch().map((rows) {
       final balances = <(MoneyAccount, Currency), int>{};
       for (final row in rows) {
@@ -40,28 +39,37 @@ class VaultRepository {
     });
   }
 
-  /// Recent movements, newest first.
+  /// Movements newest first — one pot's ledger when [account] is given,
+  /// every pot otherwise.
+  Stream<List<MoneyTxn>> watchTxns({MoneyAccount? account, int limit = 60}) {
+    final query = _db.select(_db.moneyTxns)
+      ..where((t) => t.deletedAt.isNull())
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.loggedAt),
+        (t) => OrderingTerm.desc(t.rowId),
+      ])
+      ..limit(limit);
+    if (account != null) {
+      query.where((t) => t.account.equals(account.name));
+    }
+    return query.watch().map((rows) => rows.map(_toTxn).toList());
+  }
+
+  /// Recent movements across both pots, newest first.
   Stream<List<MoneyTxn>> watchRecentTxns({int limit = 30}) =>
-      (_db.select(_db.moneyTxns)
-            ..where((t) => t.deletedAt.isNull())
-            ..orderBy([(t) => OrderingTerm.desc(t.loggedAt)])
-            ..limit(limit))
-          .watch()
-          .map(
-            (rows) => rows
-                .map(
-                  (row) => MoneyTxn(
-                    uuid: row.uuid,
-                    account: MoneyAccount.values.byName(row.account),
-                    deltaMinor: row.deltaMinor,
-                    currency: Currency.fromCode(row.currency),
-                    day: HarvestDay.parse(row.harvestDay),
-                    loggedAt: row.loggedAt,
-                    note: row.note,
-                  ),
-                )
-                .toList(),
-          );
+      watchTxns(limit: limit);
+
+  MoneyTxn _toTxn(MoneyTxnRow row) => MoneyTxn(
+    uuid: row.uuid,
+    account: MoneyAccount.values.byName(row.account),
+    deltaMinor: row.deltaMinor,
+    currency: Currency.fromCode(row.currency),
+    day: HarvestDay.parse(row.harvestDay),
+    loggedAt: row.loggedAt,
+    kind: TxnKind.fromName(row.kind),
+    reference: row.reference,
+    note: row.note,
+  );
 
   /// Records one movement. Positive [deltaMinor] deposits, negative
   /// withdraws.
@@ -69,18 +77,24 @@ class VaultRepository {
     required MoneyAccount account,
     required int deltaMinor,
     required Currency currency,
+    TxnKind kind = TxnKind.manual,
+    String? reference,
     String? note,
     HarvestDay? day,
   }) async {
     final uuid = _uuid.v4();
     await _db.transaction(() async {
-      await _db.into(_db.moneyTxns).insert(
+      await _db
+          .into(_db.moneyTxns)
+          .insert(
             MoneyTxnsCompanion.insert(
               uuid: uuid,
               account: account.name,
               deltaMinor: deltaMinor,
               currency: Value(currency.code),
               note: Value(note),
+              kind: Value(kind.name),
+              reference: Value(reference),
               harvestDay: (day ?? HarvestDay.today()).key,
             ),
           );
@@ -93,19 +107,52 @@ class VaultRepository {
     required int amountMinor,
     required Currency currency,
     String? note,
+  }) => _transfer(
+    from: MoneyAccount.savings,
+    to: MoneyAccount.wallet,
+    amountMinor: amountMinor,
+    currency: currency,
+    note: note,
+  );
+
+  /// Wallet → savings in one gesture (two linked movements).
+  Future<void> transferWalletToSavings({
+    required int amountMinor,
+    required Currency currency,
+    String? note,
+  }) => _transfer(
+    from: MoneyAccount.wallet,
+    to: MoneyAccount.savings,
+    amountMinor: amountMinor,
+    currency: currency,
+    note: note,
+  );
+
+  Future<void> _transfer({
+    required MoneyAccount from,
+    required MoneyAccount to,
+    required int amountMinor,
+    required Currency currency,
+    String? note,
   }) async {
-    await move(
-      account: MoneyAccount.savings,
-      deltaMinor: -amountMinor,
-      currency: currency,
-      note: note,
-    );
-    await move(
-      account: MoneyAccount.wallet,
-      deltaMinor: amountMinor,
-      currency: currency,
-      note: note,
-    );
+    await _db.transaction(() async {
+      await move(
+        account: from,
+        deltaMinor: -amountMinor,
+        currency: currency,
+        kind: TxnKind.transfer,
+        reference: to.name,
+        note: note,
+      );
+      await move(
+        account: to,
+        deltaMinor: amountMinor,
+        currency: currency,
+        kind: TxnKind.transfer,
+        reference: from.name,
+        note: note,
+      );
+    });
   }
 
   // ---------------------------------------------------------------- debts
@@ -127,8 +174,9 @@ class VaultRepository {
               amountMinor: row.amountMinor,
               currency: Currency.fromCode(row.currency),
               paidMinor: paid[row.uuid] ?? 0,
-              payOffBy:
-                  row.payOffBy == null ? null : HarvestDay.parse(row.payOffBy!),
+              payOffBy: row.payOffBy == null
+                  ? null
+                  : HarvestDay.parse(row.payOffBy!),
               remindAt: row.remindAt,
               note: row.note,
               settledAt: row.settledAt,
@@ -137,6 +185,29 @@ class VaultRepository {
           .toList();
     });
   }
+
+  /// Every payment on record, newest first.
+  Stream<List<DebtPayment>> watchDebtPayments() =>
+      (_db.select(_db.debtPayments)
+            ..where((p) => p.deletedAt.isNull())
+            ..orderBy([
+              (p) => OrderingTerm.desc(p.loggedAt),
+              (p) => OrderingTerm.desc(p.rowId),
+            ]))
+          .watch()
+          .map(
+            (rows) => rows
+                .map(
+                  (row) => DebtPayment(
+                    uuid: row.uuid,
+                    debtUuid: row.debtUuid,
+                    amountMinor: row.amountMinor,
+                    day: HarvestDay.parse(row.harvestDay),
+                    loggedAt: row.loggedAt,
+                  ),
+                )
+                .toList(),
+          );
 
   Future<Map<String, int>> _paidByDebt() async {
     final sum = _db.debtPayments.amountMinor.sum();
@@ -160,7 +231,9 @@ class VaultRepository {
   }) async {
     final uuid = _uuid.v4();
     await _db.transaction(() async {
-      await _db.into(_db.debts).insert(
+      await _db
+          .into(_db.debts)
+          .insert(
             DebtsCompanion.insert(
               uuid: uuid,
               person: person,
@@ -175,11 +248,22 @@ class VaultRepository {
     });
   }
 
-  /// Pays part (or all) of a debt; settles it when fully paid.
-  Future<void> payDebt(String debtUuid, int amountMinor) async {
+  /// Pays part (or all) of a debt; settles it when fully paid. With
+  /// [fromWallet] the money also leaves the wallet as a debt-kind row.
+  Future<void> payDebt(
+    String debtUuid,
+    int amountMinor, {
+    bool fromWallet = false,
+    String? note,
+  }) async {
     final paymentUuid = _uuid.v4();
     await _db.transaction(() async {
-      await _db.into(_db.debtPayments).insert(
+      final debt = await (_db.select(
+        _db.debts,
+      )..where((d) => d.uuid.equals(debtUuid))).getSingle();
+      await _db
+          .into(_db.debtPayments)
+          .insert(
             DebtPaymentsCompanion.insert(
               uuid: paymentUuid,
               debtUuid: debtUuid,
@@ -189,13 +273,22 @@ class VaultRepository {
           );
       await _outbox('debt_payments', paymentUuid, 'insert');
 
-      final debt = await (_db.select(_db.debts)
-            ..where((d) => d.uuid.equals(debtUuid)))
-          .getSingle();
+      if (fromWallet) {
+        await move(
+          account: MoneyAccount.wallet,
+          deltaMinor: -amountMinor,
+          currency: Currency.fromCode(debt.currency),
+          kind: TxnKind.debt,
+          reference: debt.person,
+          note: note,
+        );
+      }
+
       final paid = (await _paidByDebt())[debtUuid] ?? 0;
       if (paid >= debt.amountMinor && debt.settledAt == null) {
-        await (_db.update(_db.debts)..where((d) => d.uuid.equals(debtUuid)))
-            .write(
+        await (_db.update(
+          _db.debts,
+        )..where((d) => d.uuid.equals(debtUuid))).write(
           DebtsCompanion(
             settledAt: Value(DateTime.now()),
             updatedAt: Value(DateTime.now()),
@@ -206,14 +299,15 @@ class VaultRepository {
     });
   }
 
-  Future<void> _outbox(String table, String uuid, String op) =>
-      _db.into(_db.outbox).insert(
-            OutboxCompanion.insert(
-              targetTable: table,
-              rowUuid: uuid,
-              op: op,
-            ),
-          );
+  Future<void> _outbox(String table, String uuid, String op) => _db
+      .into(_db.outbox)
+      .insert(
+        OutboxCompanion.insert(
+          targetTable: table,
+          rowUuid: uuid,
+          op: op,
+        ),
+      );
 }
 
 @Riverpod(keepAlive: true)

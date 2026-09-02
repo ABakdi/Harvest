@@ -11,20 +11,37 @@ and per-day average).
 
 ## The Vault
 
+Three clearly separated sections — **Wallet**, **Savings**, **Debts** —
+chosen from three tiles at the top that always show each section's
+total (converted into the default currency). The selected section
+shows a hero card with its per-currency balances and its actions, then
+**Moves**: that section's own atomic transactions, grouped by day.
+
 - **Wallet** — money meant to be spent. Add and take freely; taking
   without logging an expense is allowed.
-- **Savings** — money meant to be saved, one pot per currency, each on
-  its own card. A withdrawal must land somewhere: **to the wallet** or
-  **logged as an expense** — the prompt always asks. Total savings
-  (converted) below 10% of the monthly budget turns the cards red.
+- **Savings** — money meant to be saved, one pot per currency. Saving
+  asks where the money comes from (**from the wallet** = a transfer,
+  or **new money**). A withdrawal must land somewhere: **to the
+  wallet** or **logged as an expense** — the prompt always asks, and
+  it can't exceed the pot. Total savings (converted) below 10% of the
+  monthly budget turns the section red.
 - **Every movement is a row** — balances are sums over the signed
-  transaction history, shown as "Recent moves".
+  transaction history. Each row carries a **kind** so the ledger
+  explains itself: added / taken out / saved / withdrawn (manual),
+  from savings / to savings / from the wallet / to the wallet
+  (transfer), expense · category, paid *person* (debt).
 - Logging an expense asks **"Take it from the wallet?"** — yes creates
-  the matching wallet withdrawal.
+  the matching wallet withdrawal, tagged with the category.
 - **Debts** — an amount owed to someone (no interest), with an optional
-  pay-off-by day, a note, and a remind-me-at time. Unsettled debts nag
-  **daily** (19:00 default) until fully paid; partial payments
-  accumulate and full payment settles with a small celebration.
+  pay-off-by day, a note, and a remind-me-at time. Each open debt shows
+  its remaining amount, a paid progress bar, and its **payments** on
+  demand; paying asks whether the money leaves the wallet. Unsettled
+  debts nag **daily** (19:00 default) until fully paid; partial
+  payments accumulate and full payment settles with a small celebration.
+  Settled debts fold into a quiet list underneath.
+
+Amounts are displayed with thousands grouping (`DA36,900,530`) and
+always in Latin digits so columns line up in both languages.
 
 An **expected daily spend** records intent next to the computed
 floating limit.

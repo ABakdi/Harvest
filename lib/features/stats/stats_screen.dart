@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/empty_state.dart';
+import 'package:harvest/core/ui/widgets/icon_badge.dart';
+import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/core/ui/widgets/stat_tile.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
@@ -25,22 +29,23 @@ class StatsScreen extends ConsumerWidget {
     final checkIns = ref.watch(checkInCountProvider).value ?? 0;
     final activity = ref.watch(dailyActivityProvider).value ?? const {};
     final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
-    final commitments =
-        ref.watch(activeCommitmentsProvider).value ?? const [];
+    final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
     final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
     final streaks = ref.watch(commitmentStreaksProvider).value ?? const {};
     final spending = ref.watch(monthByCategoryProvider);
     final weekXp = ref.watch(weeklyXpProvider).value ?? 0;
     final weekSpending = ref.watch(weekByCategoryProvider);
-    final symbol = (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-            Currency.dzd)
-        .symbol;
+    final symbol =
+        (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
+                Currency.dzd)
+            .symbol;
 
     final projects = commitments
         .where((c) => c.type == CommitmentType.project)
         .toList();
-    final habits =
-        commitments.where((c) => c.type == CommitmentType.habit).toList();
+    final habits = commitments
+        .where((c) => c.type == CommitmentType.habit)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navStats)),
@@ -49,27 +54,46 @@ class StatsScreen extends ConsumerWidget {
           : ListView(
               padding: const EdgeInsets.all(HarvestSpacing.md),
               children: [
-                Row(
-                  children: [
-                    _StatTile(label: l10n.statsLifetimeXp, value: '$xp'),
-                    const SizedBox(width: HarvestSpacing.sm),
-                    _StatTile(
-                      label: l10n.statsBestStreak,
-                      value: '${streak?.best ?? 0}',
-                    ),
-                    const SizedBox(width: HarvestSpacing.sm),
-                    _StatTile(label: l10n.statsCheckIns, value: '$checkIns'),
-                  ],
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: StatTile(
+                          icon: Icons.auto_awesome,
+                          color: theme.colorScheme.tertiary,
+                          label: l10n.statsLifetimeXp,
+                          value: '$xp',
+                        ),
+                      ),
+                      const SizedBox(width: HarvestSpacing.sm),
+                      Expanded(
+                        child: StatTile(
+                          icon: Icons.local_fire_department,
+                          color: theme.colorScheme.primary,
+                          label: l10n.statsBestStreak,
+                          value: '${streak?.best ?? 0}',
+                        ),
+                      ),
+                      const SizedBox(width: HarvestSpacing.sm),
+                      Expanded(
+                        child: StatTile(
+                          icon: Icons.check_circle,
+                          color: theme.colorScheme.secondary,
+                          label: l10n.statsCheckIns,
+                          value: '$checkIns',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: HarvestSpacing.lg),
-                _SectionTitle(l10n.weeklyReport),
+                SectionHeader(l10n.weeklyReport),
                 _WeeklyReportCard(
                   weekXp: weekXp,
                   activity: activity,
                   weekSpending: weekSpending,
                 ),
-                const SizedBox(height: HarvestSpacing.lg),
-                _SectionTitle(l10n.statsActivity),
+                SectionHeader(l10n.statsActivity),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(HarvestSpacing.md),
@@ -77,10 +101,10 @@ class StatsScreen extends ConsumerWidget {
                   ),
                 ),
                 if (projects.isNotEmpty) ...[
-                  const SizedBox(height: HarvestSpacing.lg),
-                  _SectionTitle(l10n.statsProjects),
+                  SectionHeader(l10n.statsProjects),
                   for (final project in projects)
                     Card(
+                      margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
                       child: Padding(
                         padding: const EdgeInsets.all(HarvestSpacing.md),
                         child: Column(
@@ -94,13 +118,15 @@ class StatsScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: HarvestSpacing.sm),
                             ClipRRect(
-                              borderRadius:
-                                  BorderRadius.circular(HarvestRadii.chip),
+                              borderRadius: BorderRadius.circular(
+                                HarvestRadii.chip,
+                              ),
                               child: LinearProgressIndicator(
-                                value: ((totals[project.uuid] ?? 0) /
-                                        (project.totalTarget ?? 1))
-                                    .clamp(0, 1)
-                                    .toDouble(),
+                                value:
+                                    ((totals[project.uuid] ?? 0) /
+                                            (project.totalTarget ?? 1))
+                                        .clamp(0, 1)
+                                        .toDouble(),
                                 minHeight: 10,
                                 backgroundColor: theme.colorScheme.onSurface
                                     .withValues(alpha: 0.08),
@@ -108,12 +134,16 @@ class StatsScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: HarvestSpacing.xs),
                             Text(
-                              l10n.projectSubtitle(
-                                totals[project.uuid] ?? 0,
-                                project.totalTarget ?? 0,
-                                0,
-                                project.dailyCommitment ?? 0,
-                              ).split('·').first.trim(),
+                              l10n
+                                  .projectSubtitle(
+                                    totals[project.uuid] ?? 0,
+                                    project.totalTarget ?? 0,
+                                    0,
+                                    project.dailyCommitment ?? 0,
+                                  )
+                                  .split('·')
+                                  .first
+                                  .trim(),
                               style: theme.textTheme.bodySmall,
                             ),
                           ],
@@ -122,8 +152,7 @@ class StatsScreen extends ConsumerWidget {
                     ),
                 ],
                 if (spending.isNotEmpty) ...[
-                  const SizedBox(height: HarvestSpacing.lg),
-                  _SectionTitle(l10n.statsSpending),
+                  SectionHeader(l10n.statsSpending),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(HarvestSpacing.md),
@@ -135,17 +164,18 @@ class StatsScreen extends ConsumerWidget {
                   ),
                 ],
                 if (habits.isNotEmpty) ...[
-                  const SizedBox(height: HarvestSpacing.lg),
-                  _SectionTitle(l10n.statsHabitStreaks),
+                  SectionHeader(l10n.statsHabitStreaks),
                   for (final habit in habits)
                     Card(
+                      margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
                       child: ListTile(
-                        leading: Icon(
+                        leading: IconBadge(
                           Icons.local_fire_department,
                           color: (streaks[habit.uuid]?.current ?? 0) > 0
                               ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.3),
+                              : theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.3,
+                                ),
                         ),
                         title: Text(habit.title),
                         subtitle: Text(
@@ -160,61 +190,6 @@ class StatsScreen extends ConsumerWidget {
                 const SizedBox(height: 96),
               ],
             ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-        child: Text(
-          text,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-      );
-}
-
-class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Expanded(
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(HarvestSpacing.md),
-          child: Column(
-            children: [
-              Text(
-                value,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -292,32 +267,15 @@ class _Empty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(HarvestSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.insights, size: 96, color: theme.colorScheme.tertiary),
-            const SizedBox(height: HarvestSpacing.lg),
-            Text(
-              l10n.statsEmptyTitle,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w800),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: HarvestSpacing.sm),
-            Text(
-              l10n.statsEmptyBody,
-              style: theme.textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      child: EmptyState(
+        icon: Icons.insights,
+        title: l10n.statsEmptyTitle,
+        body: l10n.statsEmptyBody,
+        color: theme.colorScheme.tertiary,
       ),
     );
   }
 }
-
 
 /// Month-to-date spending per category, biggest first.
 class _SpendingBreakdown extends StatelessWidget {
@@ -361,8 +319,9 @@ class _SpendingBreakdown extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: entry.value / max,
                       minHeight: 8,
-                      backgroundColor:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                      backgroundColor: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.06,
+                      ),
                       valueColor: AlwaysStoppedAnimation(
                         theme.colorScheme.primary,
                       ),
@@ -371,9 +330,10 @@ class _SpendingBreakdown extends StatelessWidget {
                 ),
                 const SizedBox(width: HarvestSpacing.sm),
                 Text(
-                  '$symbol${formatMinor(entry.value)}',
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
+                  '$symbol${formatGrouped(entry.value)}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -382,7 +342,6 @@ class _SpendingBreakdown extends StatelessWidget {
     );
   }
 }
-
 
 /// The Weekly Harvest Report: XP, best and quietest day, top spending.
 class _WeeklyReportCard extends StatelessWidget {
@@ -412,10 +371,10 @@ class _WeeklyReportCard extends StatelessWidget {
     }
     String weekdayName(HarvestDay d) =>
         DateFormat.EEEE(locale).format(DateTime(d.year, d.month, d.day));
-    final best =
-        counts.entries.reduce((a, b) => b.value > a.value ? b : a).key;
-    final worst =
-        counts.entries.reduce((a, b) => b.value < a.value ? b : a).key;
+    final best = counts.entries.reduce((a, b) => b.value > a.value ? b : a).key;
+    final worst = counts.entries
+        .reduce((a, b) => b.value < a.value ? b : a)
+        .key;
 
     String? topCategory;
     var topAmount = -1;
@@ -438,8 +397,9 @@ class _WeeklyReportCard extends StatelessWidget {
                 const SizedBox(width: HarvestSpacing.sm),
                 Text(
                   l10n.weeklyXp(weekXp),
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),

@@ -30,7 +30,20 @@ Dark theme re-derives the same tokens on soil-dark surfaces — both themes ship
 ## Shape & components
 
 - Chunky rounded corners (16–24 dp), soft elevation, generous tap targets (≥48 dp).
-- A small set of signature components built on Material 3: **CropCard**, **StreakFlame**, **XPBar**, **GaugeRing**, **QuestChip**, **BigBouncyButton**. Everything else is stock M3 themed by tokens.
+- A small set of signature components built on Material 3: **CropCard**, **StreakFlame**, **XPBar**, **GaugeRing**, **BigBouncyButton**. Everything else is stock M3 themed by tokens.
+- Round 4 added the shared layout vocabulary every screen now speaks:
+  **SectionHeader** (title, quiet subtitle, trailing action),
+  **HeroCard** (gradient or status-tinted headline surface with one big
+  number; children inherit its foreground), **StatTile** (a number with
+  its label, optionally selectable), **IconBadge** (tinted rounded
+  square holding one icon — the leading mark of every row),
+  **LedgerRow** + day headers (one atomic entry with a signed amount),
+  **HarvestFab** (the bouncy gradient button, floating), **EmptyState**.
+- Surface language: cards sit one step above the page with a hairline
+  edge; inputs, chips and segmented buttons are filled pills, never
+  outlined boxes; tabs use a short rounded indicator; sheets carry a
+  drag handle; snackbars float. All of it lives in `core/ui/theme.dart`
+  so a screen only ever asks for `Card`, `TextField`, `ChoiceChip`.
 
 ## Motion & feel
 

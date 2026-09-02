@@ -354,6 +354,90 @@ final class RecentTxnsProvider
 
 String _$recentTxnsHash() => r'237c3d573cecfc5d75752208a7ed78228717eaeb';
 
+/// One pot's own ledger (round 4: each section lists its atomic moves).
+
+@ProviderFor(accountTxns)
+final accountTxnsProvider = AccountTxnsFamily._();
+
+/// One pot's own ledger (round 4: each section lists its atomic moves).
+
+final class AccountTxnsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<MoneyTxn>>,
+          List<MoneyTxn>,
+          Stream<List<MoneyTxn>>
+        >
+    with $FutureModifier<List<MoneyTxn>>, $StreamProvider<List<MoneyTxn>> {
+  /// One pot's own ledger (round 4: each section lists its atomic moves).
+  AccountTxnsProvider._({
+    required AccountTxnsFamily super.from,
+    required MoneyAccount super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountTxnsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountTxnsHash();
+
+  @override
+  String toString() {
+    return r'accountTxnsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<MoneyTxn>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<MoneyTxn>> create(Ref ref) {
+    final argument = this.argument as MoneyAccount;
+    return accountTxns(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountTxnsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$accountTxnsHash() => r'99bcde359e9d3af0eb91184599ac1edf2b8e626b';
+
+/// One pot's own ledger (round 4: each section lists its atomic moves).
+
+final class AccountTxnsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<MoneyTxn>>, MoneyAccount> {
+  AccountTxnsFamily._()
+    : super(
+        retry: null,
+        name: r'accountTxnsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// One pot's own ledger (round 4: each section lists its atomic moves).
+
+  AccountTxnsProvider call(MoneyAccount account) =>
+      AccountTxnsProvider._(argument: account, from: this);
+
+  @override
+  String toString() => r'accountTxnsProvider';
+}
+
 @ProviderFor(debts)
 final debtsProvider = DebtsProvider._();
 
@@ -391,6 +475,195 @@ final class DebtsProvider
 }
 
 String _$debtsHash() => r'42e14e78804630be424c816bb8319a8106d062b2';
+
+@ProviderFor(debtPayments)
+final debtPaymentsProvider = DebtPaymentsProvider._();
+
+final class DebtPaymentsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DebtPayment>>,
+          List<DebtPayment>,
+          Stream<List<DebtPayment>>
+        >
+    with
+        $FutureModifier<List<DebtPayment>>,
+        $StreamProvider<List<DebtPayment>> {
+  DebtPaymentsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'debtPaymentsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$debtPaymentsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<DebtPayment>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<DebtPayment>> create(Ref ref) {
+    return debtPayments(ref);
+  }
+}
+
+String _$debtPaymentsHash() => r'b0bdd94bb538e8b8abfec1ca4cd48286350ec1aa';
+
+/// Per-currency balances of one pot, zero balances dropped.
+
+@ProviderFor(accountBalances)
+final accountBalancesProvider = AccountBalancesFamily._();
+
+/// Per-currency balances of one pot, zero balances dropped.
+
+final class AccountBalancesProvider
+    extends
+        $FunctionalProvider<
+          Map<Currency, int>,
+          Map<Currency, int>,
+          Map<Currency, int>
+        >
+    with $Provider<Map<Currency, int>> {
+  /// Per-currency balances of one pot, zero balances dropped.
+  AccountBalancesProvider._({
+    required AccountBalancesFamily super.from,
+    required MoneyAccount super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountBalancesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountBalancesHash();
+
+  @override
+  String toString() {
+    return r'accountBalancesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<Map<Currency, int>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Map<Currency, int> create(Ref ref) {
+    final argument = this.argument as MoneyAccount;
+    return accountBalances(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<Currency, int> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<Currency, int>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountBalancesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$accountBalancesHash() => r'1175ee58fc350a2d44895e60b5b5e115b8a2f2fe';
+
+/// Per-currency balances of one pot, zero balances dropped.
+
+final class AccountBalancesFamily extends $Family
+    with $FunctionalFamilyOverride<Map<Currency, int>, MoneyAccount> {
+  AccountBalancesFamily._()
+    : super(
+        retry: null,
+        name: r'accountBalancesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Per-currency balances of one pot, zero balances dropped.
+
+  AccountBalancesProvider call(MoneyAccount account) =>
+      AccountBalancesProvider._(argument: account, from: this);
+
+  @override
+  String toString() => r'accountBalancesProvider';
+}
+
+/// The vault at a glance, everything converted into the default
+/// currency (face value when a rate is missing — never blocks).
+
+@ProviderFor(vaultTotals)
+final vaultTotalsProvider = VaultTotalsProvider._();
+
+/// The vault at a glance, everything converted into the default
+/// currency (face value when a rate is missing — never blocks).
+
+final class VaultTotalsProvider
+    extends
+        $FunctionalProvider<
+          ({int owed, int savings, int wallet}),
+          ({int owed, int savings, int wallet}),
+          ({int owed, int savings, int wallet})
+        >
+    with $Provider<({int owed, int savings, int wallet})> {
+  /// The vault at a glance, everything converted into the default
+  /// currency (face value when a rate is missing — never blocks).
+  VaultTotalsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vaultTotalsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vaultTotalsHash();
+
+  @$internal
+  @override
+  $ProviderElement<({int owed, int savings, int wallet})> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ({int owed, int savings, int wallet}) create(Ref ref) {
+    return vaultTotals(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(({int owed, int savings, int wallet}) value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<({int owed, int savings, int wallet})>(value),
+    );
+  }
+}
+
+String _$vaultTotalsHash() => r'2d1c15e3440813c773fa2b46ddf7d63b12df9853';
 
 /// The live exchange-rate picture (checkpoint P5).
 

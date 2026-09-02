@@ -11,6 +11,7 @@ import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
+import 'package:harvest/features/finances/presentation/choice_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -56,8 +57,7 @@ IconData categoryIcon(String key, {List<CustomCategory> customs = const []}) {
       ExpenseCategory.other => Icons.category,
     };
   }
-  final custom =
-      customs.where((category) => category.name == key).firstOrNull;
+  final custom = customs.where((category) => category.name == key).firstOrNull;
   return categoryIconRegistry[custom?.icon] ?? Icons.category;
 }
 
@@ -84,11 +84,6 @@ Future<void> showExpenseSheet(BuildContext context, {Expense? existing}) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(HarvestRadii.sheet),
-        ),
-      ),
       builder: (_) => _ExpenseSheet(existing: existing),
     );
 
@@ -138,24 +133,34 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     var fromWallet = false;
     if (existing == null) {
       final l10n = AppLocalizations.of(context);
-      fromWallet = await showDialog<bool>(
-            context: context,
-            builder: (dialogContext) => AlertDialog(
-              title: Text(l10n.takeFromWallet),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: Text(l10n.no),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: Text(l10n.yes),
-                ),
-              ],
-            ),
-          ) ??
-          false;
-      if (!mounted) return;
+      final scheme = Theme.of(context).colorScheme;
+      final currency =
+          _currency ??
+          ref.read(financeSettingsProvider).value?.defaultCurrency ??
+          Currency.dzd;
+      final walletBalance =
+          ref.read(accountBalancesProvider(MoneyAccount.wallet))[currency] ?? 0;
+      final choice = await showChoiceSheet<bool>(
+        context,
+        title: l10n.takeFromWallet,
+        options: [
+          ChoiceOption(
+            value: true,
+            icon: Icons.account_balance_wallet,
+            label: l10n.walletYes,
+            hint: formatAmount(walletBalance, currency),
+            color: scheme.primary,
+          ),
+          ChoiceOption(
+            value: false,
+            icon: Icons.receipt_long,
+            label: l10n.walletNo,
+            color: scheme.tertiary,
+          ),
+        ],
+      );
+      if (choice == null || !mounted) return;
+      fromWallet = choice;
     }
     // Coin burst above the sheet before it closes (gap G11).
     final box = context.findRenderObject() as RenderBox?;
@@ -169,7 +174,8 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     }
     Navigator.of(context).pop();
     final repo = ref.read(financesRepositoryProvider);
-    final currency = _currency ??
+    final currency =
+        _currency ??
         ref.read(financeSettingsProvider).value?.defaultCurrency ??
         Currency.dzd;
     if (existing != null) {
@@ -188,10 +194,14 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
         note: note.isEmpty ? null : note,
       );
       if (fromWallet) {
-        await ref.read(vaultRepositoryProvider).move(
+        await ref
+            .read(vaultRepositoryProvider)
+            .move(
               account: MoneyAccount.wallet,
               deltaMinor: -amount,
               currency: currency,
+              kind: TxnKind.expense,
+              reference: _category,
               note: note.isEmpty ? null : note,
             );
       }
@@ -215,7 +225,6 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       padding: EdgeInsets.only(
         left: HarvestSpacing.lg,
         right: HarvestSpacing.lg,
-        top: HarvestSpacing.lg,
         bottom: MediaQuery.viewInsetsOf(context).bottom + HarvestSpacing.lg,
       ),
       child: Column(
@@ -224,8 +233,9 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
         children: [
           Text(
             l10n.logExpense,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: HarvestSpacing.md),
           TextField(
@@ -235,42 +245,34 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
               decimal: true,
             ),
             onChanged: (_) => setState(() {}),
-            style: theme.textTheme.headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
             decoration: InputDecoration(
               labelText: l10n.amountLabel,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(HarvestRadii.button),
-              ),
+              prefixText:
+                  '${(_currency ?? ref.watch(financeSettingsProvider).value?.defaultCurrency ?? Currency.dzd).symbol} ',
             ),
           ),
           const SizedBox(height: HarvestSpacing.sm),
           // Per-expense currency (checkpoint P4).
-          Row(
-            children: [
-              Text(l10n.expenseCurrencyLabel),
-              const SizedBox(width: HarvestSpacing.sm),
-              SegmentedButton<Currency>(
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
+          SegmentedButton<Currency>(
+            segments: [
+              for (final option in Currency.values)
+                ButtonSegment(
+                  value: option,
+                  label: Text(option.symbol),
                 ),
-                segments: [
-                  for (final option in Currency.values)
-                    ButtonSegment(
-                      value: option,
-                      label: Text(option.symbol),
-                    ),
-                ],
-                selected: {
-                  _currency ??
-                      ref.watch(financeSettingsProvider).value
-                              ?.defaultCurrency ??
-                          Currency.dzd,
-                },
-                onSelectionChanged: (selection) =>
-                    setState(() => _currency = selection.first),
-              ),
             ],
+            selected: {
+              _currency ??
+                  ref.watch(financeSettingsProvider).value?.defaultCurrency ??
+                  Currency.dzd,
+            },
+            onSelectionChanged: (selection) {
+              unawaited(HarvestHaptics.tick());
+              setState(() => _currency = selection.first);
+            },
           ),
           const SizedBox(height: HarvestSpacing.md),
           Wrap(
@@ -304,12 +306,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           TextField(
             controller: _noteController,
             textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: l10n.noteLabel,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(HarvestRadii.button),
-              ),
-            ),
+            decoration: InputDecoration(labelText: l10n.noteLabel),
           ),
           const SizedBox(height: HarvestSpacing.lg),
           BigBouncySheetButton(
@@ -321,7 +318,6 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     );
   }
 }
-
 
 /// Name + icon picker for a new category; returns the created key.
 Future<String?> showCategoryCreator(BuildContext context, WidgetRef ref) {
@@ -351,19 +347,17 @@ Future<String?> showCategoryCreator(BuildContext context, WidgetRef ref) {
                 children: [
                   for (final entry in categoryIconRegistry.entries)
                     InkWell(
-                      borderRadius:
-                          BorderRadius.circular(HarvestRadii.chip),
+                      borderRadius: BorderRadius.circular(HarvestRadii.chip),
                       onTap: () => setState(() => icon = entry.key),
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          borderRadius:
-                              BorderRadius.circular(HarvestRadii.chip),
+                          borderRadius: BorderRadius.circular(
+                            HarvestRadii.chip,
+                          ),
                           color: icon == entry.key
-                              ? Theme.of(dialogContext)
-                                  .colorScheme
-                                  .secondary
-                                  .withValues(alpha: 0.3)
+                              ? Theme.of(dialogContext).colorScheme.secondary
+                                    .withValues(alpha: 0.3)
                               : null,
                         ),
                         child: Icon(entry.value, size: 22),

@@ -4082,6 +4082,27 @@ class $MoneyTxnsTable extends MoneyTxns
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('manual'),
+  );
+  static const VerificationMeta _referenceMeta = const VerificationMeta(
+    'reference',
+  );
+  @override
+  late final GeneratedColumn<String> reference = GeneratedColumn<String>(
+    'reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _harvestDayMeta = const VerificationMeta(
     'harvestDay',
   );
@@ -4135,6 +4156,8 @@ class $MoneyTxnsTable extends MoneyTxns
     deltaMinor,
     currency,
     note,
+    kind,
+    reference,
     harvestDay,
     loggedAt,
     deletedAt,
@@ -4186,6 +4209,18 @@ class $MoneyTxnsTable extends MoneyTxns
       context.handle(
         _noteMeta,
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('reference')) {
+      context.handle(
+        _referenceMeta,
+        reference.isAcceptableOrUnknown(data['reference']!, _referenceMeta),
       );
     }
     if (data.containsKey('harvest_day')) {
@@ -4243,6 +4278,14 @@ class $MoneyTxnsTable extends MoneyTxns
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      reference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference'],
+      ),
       harvestDay: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}harvest_day'],
@@ -4278,6 +4321,14 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
   final int deltaMinor;
   final String currency;
   final String? note;
+
+  /// What caused the movement: 'manual' | 'transfer' | 'expense' | 'debt'
+  /// (round 4 — the ledger explains every row).
+  final String kind;
+
+  /// Context for [kind]: the counterpart account for a transfer, the
+  /// category key for an expense, the person for a debt payment.
+  final String? reference;
   final String harvestDay;
   final DateTime loggedAt;
   final DateTime? deletedAt;
@@ -4288,6 +4339,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     required this.deltaMinor,
     required this.currency,
     this.note,
+    required this.kind,
+    this.reference,
     required this.harvestDay,
     required this.loggedAt,
     this.deletedAt,
@@ -4302,6 +4355,10 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     map['currency'] = Variable<String>(currency);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
+    }
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || reference != null) {
+      map['reference'] = Variable<String>(reference);
     }
     map['harvest_day'] = Variable<String>(harvestDay);
     map['logged_at'] = Variable<DateTime>(loggedAt);
@@ -4319,6 +4376,10 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
       deltaMinor: Value(deltaMinor),
       currency: Value(currency),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      kind: Value(kind),
+      reference: reference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reference),
       harvestDay: Value(harvestDay),
       loggedAt: Value(loggedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -4339,6 +4400,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
       deltaMinor: serializer.fromJson<int>(json['deltaMinor']),
       currency: serializer.fromJson<String>(json['currency']),
       note: serializer.fromJson<String?>(json['note']),
+      kind: serializer.fromJson<String>(json['kind']),
+      reference: serializer.fromJson<String?>(json['reference']),
       harvestDay: serializer.fromJson<String>(json['harvestDay']),
       loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -4354,6 +4417,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
       'deltaMinor': serializer.toJson<int>(deltaMinor),
       'currency': serializer.toJson<String>(currency),
       'note': serializer.toJson<String?>(note),
+      'kind': serializer.toJson<String>(kind),
+      'reference': serializer.toJson<String?>(reference),
       'harvestDay': serializer.toJson<String>(harvestDay),
       'loggedAt': serializer.toJson<DateTime>(loggedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -4367,6 +4432,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     int? deltaMinor,
     String? currency,
     Value<String?> note = const Value.absent(),
+    String? kind,
+    Value<String?> reference = const Value.absent(),
     String? harvestDay,
     DateTime? loggedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -4377,6 +4444,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     deltaMinor: deltaMinor ?? this.deltaMinor,
     currency: currency ?? this.currency,
     note: note.present ? note.value : this.note,
+    kind: kind ?? this.kind,
+    reference: reference.present ? reference.value : this.reference,
     harvestDay: harvestDay ?? this.harvestDay,
     loggedAt: loggedAt ?? this.loggedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -4391,6 +4460,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
           : this.deltaMinor,
       currency: data.currency.present ? data.currency.value : this.currency,
       note: data.note.present ? data.note.value : this.note,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      reference: data.reference.present ? data.reference.value : this.reference,
       harvestDay: data.harvestDay.present
           ? data.harvestDay.value
           : this.harvestDay,
@@ -4408,6 +4479,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
           ..write('deltaMinor: $deltaMinor, ')
           ..write('currency: $currency, ')
           ..write('note: $note, ')
+          ..write('kind: $kind, ')
+          ..write('reference: $reference, ')
           ..write('harvestDay: $harvestDay, ')
           ..write('loggedAt: $loggedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -4423,6 +4496,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     deltaMinor,
     currency,
     note,
+    kind,
+    reference,
     harvestDay,
     loggedAt,
     deletedAt,
@@ -4437,6 +4512,8 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
           other.deltaMinor == this.deltaMinor &&
           other.currency == this.currency &&
           other.note == this.note &&
+          other.kind == this.kind &&
+          other.reference == this.reference &&
           other.harvestDay == this.harvestDay &&
           other.loggedAt == this.loggedAt &&
           other.deletedAt == this.deletedAt &&
@@ -4449,6 +4526,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
   final Value<int> deltaMinor;
   final Value<String> currency;
   final Value<String?> note;
+  final Value<String> kind;
+  final Value<String?> reference;
   final Value<String> harvestDay;
   final Value<DateTime> loggedAt;
   final Value<DateTime?> deletedAt;
@@ -4460,6 +4539,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     this.deltaMinor = const Value.absent(),
     this.currency = const Value.absent(),
     this.note = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.reference = const Value.absent(),
     this.harvestDay = const Value.absent(),
     this.loggedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -4472,6 +4553,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     required int deltaMinor,
     this.currency = const Value.absent(),
     this.note = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.reference = const Value.absent(),
     required String harvestDay,
     this.loggedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -4487,6 +4570,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     Expression<int>? deltaMinor,
     Expression<String>? currency,
     Expression<String>? note,
+    Expression<String>? kind,
+    Expression<String>? reference,
     Expression<String>? harvestDay,
     Expression<DateTime>? loggedAt,
     Expression<DateTime>? deletedAt,
@@ -4499,6 +4584,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
       if (deltaMinor != null) 'delta_minor': deltaMinor,
       if (currency != null) 'currency': currency,
       if (note != null) 'note': note,
+      if (kind != null) 'kind': kind,
+      if (reference != null) 'reference': reference,
       if (harvestDay != null) 'harvest_day': harvestDay,
       if (loggedAt != null) 'logged_at': loggedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -4513,6 +4600,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     Value<int>? deltaMinor,
     Value<String>? currency,
     Value<String?>? note,
+    Value<String>? kind,
+    Value<String?>? reference,
     Value<String>? harvestDay,
     Value<DateTime>? loggedAt,
     Value<DateTime?>? deletedAt,
@@ -4525,6 +4614,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
       deltaMinor: deltaMinor ?? this.deltaMinor,
       currency: currency ?? this.currency,
       note: note ?? this.note,
+      kind: kind ?? this.kind,
+      reference: reference ?? this.reference,
       harvestDay: harvestDay ?? this.harvestDay,
       loggedAt: loggedAt ?? this.loggedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -4550,6 +4641,12 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (reference.present) {
+      map['reference'] = Variable<String>(reference.value);
     }
     if (harvestDay.present) {
       map['harvest_day'] = Variable<String>(harvestDay.value);
@@ -4577,6 +4674,8 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
           ..write('deltaMinor: $deltaMinor, ')
           ..write('currency: $currency, ')
           ..write('note: $note, ')
+          ..write('kind: $kind, ')
+          ..write('reference: $reference, ')
           ..write('harvestDay: $harvestDay, ')
           ..write('loggedAt: $loggedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -8578,6 +8677,8 @@ typedef $$MoneyTxnsTableCreateCompanionBuilder = MoneyTxnsCompanion Function({
   required int deltaMinor,
   Value<String> currency,
   Value<String?> note,
+  Value<String> kind,
+  Value<String?> reference,
   required String harvestDay,
   Value<DateTime> loggedAt,
   Value<DateTime?> deletedAt,
@@ -8590,6 +8691,8 @@ typedef $$MoneyTxnsTableUpdateCompanionBuilder = MoneyTxnsCompanion Function({
   Value<int> deltaMinor,
   Value<String> currency,
   Value<String?> note,
+  Value<String> kind,
+  Value<String?> reference,
   Value<String> harvestDay,
   Value<DateTime> loggedAt,
   Value<DateTime?> deletedAt,
@@ -8628,6 +8731,16 @@ class $$MoneyTxnsTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reference => $composableBuilder(
+    column: $table.reference,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8686,6 +8799,16 @@ class $$MoneyTxnsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reference => $composableBuilder(
+    column: $table.reference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get harvestDay => $composableBuilder(
     column: $table.harvestDay,
     builder: (column) => ColumnOrderings(column),
@@ -8732,6 +8855,12 @@ class $$MoneyTxnsTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get reference =>
+      $composableBuilder(column: $table.reference, builder: (column) => column);
 
   GeneratedColumn<String> get harvestDay => $composableBuilder(
     column: $table.harvestDay,
@@ -8784,6 +8913,8 @@ class $$MoneyTxnsTableTableManager
                 Value<int> deltaMinor = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> reference = const Value.absent(),
                 Value<String> harvestDay = const Value.absent(),
                 Value<DateTime> loggedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -8795,6 +8926,8 @@ class $$MoneyTxnsTableTableManager
                 deltaMinor: deltaMinor,
                 currency: currency,
                 note: note,
+                kind: kind,
+                reference: reference,
                 harvestDay: harvestDay,
                 loggedAt: loggedAt,
                 deletedAt: deletedAt,
@@ -8808,6 +8941,8 @@ class $$MoneyTxnsTableTableManager
                 required int deltaMinor,
                 Value<String> currency = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> reference = const Value.absent(),
                 required String harvestDay,
                 Value<DateTime> loggedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -8819,6 +8954,8 @@ class $$MoneyTxnsTableTableManager
                 deltaMinor: deltaMinor,
                 currency: currency,
                 note: note,
+                kind: kind,
+                reference: reference,
                 harvestDay: harvestDay,
                 loggedAt: loggedAt,
                 deletedAt: deletedAt,
