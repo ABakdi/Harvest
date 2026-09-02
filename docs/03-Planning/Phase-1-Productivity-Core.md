@@ -3,20 +3,20 @@
 The product. When this phase ends I should *prefer opening Harvest to keeping my Duolingo streak*. Specs: [[Productivity-Engine]] · [[Gamification]] · [[Pomodoro]] · [[Notifications]].
 
 ## M1.1 — Commitments
-- [ ] Create/edit/archive Habits (all four schedule types), Projects (target + daily commitment), To-Dos (optional due day)
+- [x] Create/edit/archive Habits (all four schedule types), Projects (target + daily commitment), To-Dos (optional due day)
 - [x] Schedule engine: "what is due on Harvest Day X?" — pure Dart, heavily unit-tested
-- [ ] Vacation-mode pause for habits
+- [x] Vacation-mode pause for habits
 
 ## M1.2 — Check-ins
 - [x] One-tap check-in for habits/to-dos with undo (same day)
 - [x] Quantity sheet for projects; 2× over-log cap enforced ([[Business-Rules]])
-- [ ] Haptic + sprite celebration; project 100% completion moment
+- [x] Haptic + sprite celebration; project 100% completion moment
 - [x] Append-only history, archive-safe
 
 ## M1.3 — The Field (dashboard v1)
 - [x] Today view: due commitments as CropCards, urgency-ordered ([[Dashboard-and-Widgets]])
 - [x] Streak flame + XP bar header
-- [ ] Pull-down: tomorrow's plan view
+- [x] Pull-down: tomorrow's plan view
 
 ## M1.4 — Streak engine
 - [x] Global Streak from Daily Harvest Goal; individual streaks per habit/project
@@ -37,7 +37,7 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 ## M1.7 — Pomodoro
 - [x] Timer with configurable blocks, attached to commitments ([[Pomodoro]])
 - [x] Persistent notification with countdown; wall-clock timekeeping
-- [ ] Notification actions (pause/abandon from the shade)
+- [x] Notification actions (pause/abandon from the shade)
 - [x] Session → check-in handoff; +5 XP; session history
 
 ## M1.8 — Notifications v1
@@ -52,8 +52,5 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 - [x] `v0.1.0` tagged, installed on my phone — **dogfooding begins**
 
 ## Backlog (discovered during the phase)
-- Commitment edit UI + vacation mode (repo supports it; sheet only creates)
-- Sprite celebration assets (Lottie/Rive) for check-ins and project completion
-- Pull-down tomorrow-plan gesture on the field (planner screen covers the flow)
-- Notification actions (pause/abandon) on the pomodoro shade
-- Heat-map should scroll horizontally beyond 10 weeks of history
+- (cleared — everything shipped; the check-in celebration is a code-drawn
+  leaf burst rather than Lottie/Rive assets, which can still upgrade later)
