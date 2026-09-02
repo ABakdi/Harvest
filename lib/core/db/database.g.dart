@@ -78,6 +78,17 @@ class $CommitmentsTable extends Commitments
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _pausedAtMeta = const VerificationMeta(
+    'pausedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> pausedAt = GeneratedColumn<DateTime>(
+    'paused_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _archivedAtMeta = const VerificationMeta(
     'archivedAt',
   );
@@ -133,6 +144,7 @@ class $CommitmentsTable extends Commitments
     totalTarget,
     dailyCommitment,
     dueDay,
+    pausedAt,
     archivedAt,
     deletedAt,
     createdAt,
@@ -207,6 +219,12 @@ class $CommitmentsTable extends Commitments
         dueDay.isAcceptableOrUnknown(data['due_day']!, _dueDayMeta),
       );
     }
+    if (data.containsKey('paused_at')) {
+      context.handle(
+        _pausedAtMeta,
+        pausedAt.isAcceptableOrUnknown(data['paused_at']!, _pausedAtMeta),
+      );
+    }
     if (data.containsKey('archived_at')) {
       context.handle(
         _archivedAtMeta,
@@ -268,6 +286,10 @@ class $CommitmentsTable extends Commitments
         DriftSqlType.string,
         data['${effectivePrefix}due_day'],
       ),
+      pausedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paused_at'],
+      ),
       archivedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}archived_at'],
@@ -310,6 +332,10 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
 
   /// To-dos only: the Harvest Day this is planned for (yyyy-MM-dd).
   final String? dueDay;
+
+  /// Habits only: vacation mode — paused habits are neither due nor
+  /// judged, and their streak survives the break.
+  final DateTime? pausedAt;
   final DateTime? archivedAt;
   final DateTime? deletedAt;
   final DateTime createdAt;
@@ -322,6 +348,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     this.totalTarget,
     this.dailyCommitment,
     this.dueDay,
+    this.pausedAt,
     this.archivedAt,
     this.deletedAt,
     required this.createdAt,
@@ -344,6 +371,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     }
     if (!nullToAbsent || dueDay != null) {
       map['due_day'] = Variable<String>(dueDay);
+    }
+    if (!nullToAbsent || pausedAt != null) {
+      map['paused_at'] = Variable<DateTime>(pausedAt);
     }
     if (!nullToAbsent || archivedAt != null) {
       map['archived_at'] = Variable<DateTime>(archivedAt);
@@ -373,6 +403,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       dueDay: dueDay == null && nullToAbsent
           ? const Value.absent()
           : Value(dueDay),
+      pausedAt: pausedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pausedAt),
       archivedAt: archivedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(archivedAt),
@@ -397,6 +430,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       totalTarget: serializer.fromJson<int?>(json['totalTarget']),
       dailyCommitment: serializer.fromJson<int?>(json['dailyCommitment']),
       dueDay: serializer.fromJson<String?>(json['dueDay']),
+      pausedAt: serializer.fromJson<DateTime?>(json['pausedAt']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -414,6 +448,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       'totalTarget': serializer.toJson<int?>(totalTarget),
       'dailyCommitment': serializer.toJson<int?>(dailyCommitment),
       'dueDay': serializer.toJson<String?>(dueDay),
+      'pausedAt': serializer.toJson<DateTime?>(pausedAt),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -429,6 +464,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     Value<int?> totalTarget = const Value.absent(),
     Value<int?> dailyCommitment = const Value.absent(),
     Value<String?> dueDay = const Value.absent(),
+    Value<DateTime?> pausedAt = const Value.absent(),
     Value<DateTime?> archivedAt = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
@@ -443,6 +479,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
         ? dailyCommitment.value
         : this.dailyCommitment,
     dueDay: dueDay.present ? dueDay.value : this.dueDay,
+    pausedAt: pausedAt.present ? pausedAt.value : this.pausedAt,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
@@ -463,6 +500,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           ? data.dailyCommitment.value
           : this.dailyCommitment,
       dueDay: data.dueDay.present ? data.dueDay.value : this.dueDay,
+      pausedAt: data.pausedAt.present ? data.pausedAt.value : this.pausedAt,
       archivedAt: data.archivedAt.present
           ? data.archivedAt.value
           : this.archivedAt,
@@ -482,6 +520,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           ..write('totalTarget: $totalTarget, ')
           ..write('dailyCommitment: $dailyCommitment, ')
           ..write('dueDay: $dueDay, ')
+          ..write('pausedAt: $pausedAt, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -499,6 +538,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     totalTarget,
     dailyCommitment,
     dueDay,
+    pausedAt,
     archivedAt,
     deletedAt,
     createdAt,
@@ -515,6 +555,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           other.totalTarget == this.totalTarget &&
           other.dailyCommitment == this.dailyCommitment &&
           other.dueDay == this.dueDay &&
+          other.pausedAt == this.pausedAt &&
           other.archivedAt == this.archivedAt &&
           other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
@@ -529,6 +570,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
   final Value<int?> totalTarget;
   final Value<int?> dailyCommitment;
   final Value<String?> dueDay;
+  final Value<DateTime?> pausedAt;
   final Value<DateTime?> archivedAt;
   final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
@@ -542,6 +584,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.totalTarget = const Value.absent(),
     this.dailyCommitment = const Value.absent(),
     this.dueDay = const Value.absent(),
+    this.pausedAt = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -556,6 +599,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.totalTarget = const Value.absent(),
     this.dailyCommitment = const Value.absent(),
     this.dueDay = const Value.absent(),
+    this.pausedAt = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -572,6 +616,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Expression<int>? totalTarget,
     Expression<int>? dailyCommitment,
     Expression<String>? dueDay,
+    Expression<DateTime>? pausedAt,
     Expression<DateTime>? archivedAt,
     Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
@@ -586,6 +631,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       if (totalTarget != null) 'total_target': totalTarget,
       if (dailyCommitment != null) 'daily_commitment': dailyCommitment,
       if (dueDay != null) 'due_day': dueDay,
+      if (pausedAt != null) 'paused_at': pausedAt,
       if (archivedAt != null) 'archived_at': archivedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
@@ -602,6 +648,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Value<int?>? totalTarget,
     Value<int?>? dailyCommitment,
     Value<String?>? dueDay,
+    Value<DateTime?>? pausedAt,
     Value<DateTime?>? archivedAt,
     Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
@@ -616,6 +663,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       totalTarget: totalTarget ?? this.totalTarget,
       dailyCommitment: dailyCommitment ?? this.dailyCommitment,
       dueDay: dueDay ?? this.dueDay,
+      pausedAt: pausedAt ?? this.pausedAt,
       archivedAt: archivedAt ?? this.archivedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
@@ -648,6 +696,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     if (dueDay.present) {
       map['due_day'] = Variable<String>(dueDay.value);
     }
+    if (pausedAt.present) {
+      map['paused_at'] = Variable<DateTime>(pausedAt.value);
+    }
     if (archivedAt.present) {
       map['archived_at'] = Variable<DateTime>(archivedAt.value);
     }
@@ -676,6 +727,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
           ..write('totalTarget: $totalTarget, ')
           ..write('dailyCommitment: $dailyCommitment, ')
           ..write('dueDay: $dueDay, ')
+          ..write('pausedAt: $pausedAt, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -4066,6 +4118,7 @@ typedef $$CommitmentsTableCreateCompanionBuilder =
       Value<int?> totalTarget,
       Value<int?> dailyCommitment,
       Value<String?> dueDay,
+      Value<DateTime?> pausedAt,
       Value<DateTime?> archivedAt,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
@@ -4081,6 +4134,7 @@ typedef $$CommitmentsTableUpdateCompanionBuilder =
       Value<int?> totalTarget,
       Value<int?> dailyCommitment,
       Value<String?> dueDay,
+      Value<DateTime?> pausedAt,
       Value<DateTime?> archivedAt,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
@@ -4152,6 +4206,11 @@ class $$CommitmentsTableFilterComposer
 
   ColumnFilters<String> get dueDay => $composableBuilder(
     column: $table.dueDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get pausedAt => $composableBuilder(
+    column: $table.pausedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4245,6 +4304,11 @@ class $$CommitmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get pausedAt => $composableBuilder(
+    column: $table.pausedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
     column: $table.archivedAt,
     builder: (column) => ColumnOrderings(column),
@@ -4301,6 +4365,9 @@ class $$CommitmentsTableAnnotationComposer
 
   GeneratedColumn<String> get dueDay =>
       $composableBuilder(column: $table.dueDay, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get pausedAt =>
+      $composableBuilder(column: $table.pausedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
     column: $table.archivedAt,
@@ -4377,6 +4444,7 @@ class $$CommitmentsTableTableManager
                 Value<int?> totalTarget = const Value.absent(),
                 Value<int?> dailyCommitment = const Value.absent(),
                 Value<String?> dueDay = const Value.absent(),
+                Value<DateTime?> pausedAt = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4390,6 +4458,7 @@ class $$CommitmentsTableTableManager
                 totalTarget: totalTarget,
                 dailyCommitment: dailyCommitment,
                 dueDay: dueDay,
+                pausedAt: pausedAt,
                 archivedAt: archivedAt,
                 deletedAt: deletedAt,
                 createdAt: createdAt,
@@ -4405,6 +4474,7 @@ class $$CommitmentsTableTableManager
                 Value<int?> totalTarget = const Value.absent(),
                 Value<int?> dailyCommitment = const Value.absent(),
                 Value<String?> dueDay = const Value.absent(),
+                Value<DateTime?> pausedAt = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4418,6 +4488,7 @@ class $$CommitmentsTableTableManager
                 totalTarget: totalTarget,
                 dailyCommitment: dailyCommitment,
                 dueDay: dueDay,
+                pausedAt: pausedAt,
                 archivedAt: archivedAt,
                 deletedAt: deletedAt,
                 createdAt: createdAt,

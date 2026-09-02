@@ -23,6 +23,10 @@ class Commitments extends Table {
   /// To-dos only: the Harvest Day this is planned for (yyyy-MM-dd).
   TextColumn get dueDay => text().nullable()();
 
+  /// Habits only: vacation mode — paused habits are neither due nor
+  /// judged, and their streak survives the break.
+  DateTimeColumn get pausedAt => dateTime().nullable()();
+
   DateTimeColumn get archivedAt => dateTime().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -169,13 +173,16 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             await m.createTable(expenses);
+          }
+          if (from < 3) {
+            await m.addColumn(commitments, commitments.pausedAt);
           }
         },
       );

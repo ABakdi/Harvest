@@ -21,16 +21,23 @@ void main() {
   });
 
   test('fresh database creates the latest schema correctly', () async {
-    final connection = await verifier.startAt(2);
+    final connection = await verifier.startAt(3);
     final db = HarvestDatabase.forTesting(connection);
-    await verifier.migrateAndValidate(db, 2);
+    await verifier.migrateAndValidate(db, 3);
     await db.close();
   });
 
-  test('v1 upgrades to v2 (adds expenses)', () async {
+  test('v1 upgrades to v3 (expenses, pausedAt)', () async {
     final connection = await verifier.startAt(1);
     final db = HarvestDatabase.forTesting(connection);
-    await verifier.migrateAndValidate(db, 2);
+    await verifier.migrateAndValidate(db, 3);
+    await db.close();
+  });
+
+  test('v2 upgrades to v3 (pausedAt)', () async {
+    final connection = await verifier.startAt(2);
+    final db = HarvestDatabase.forTesting(connection);
+    await verifier.migrateAndValidate(db, 3);
     await db.close();
   });
 }
