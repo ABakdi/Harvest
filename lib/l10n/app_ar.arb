@@ -58,5 +58,22 @@
   "settingsHarvest": "الحصاد",
   "settingsGoalTitle": "هدف الحصاد اليومي",
   "settingsGoalBody": "عدد الإنجازات المطلوبة كل يوم للحفاظ على سلسلتك.",
-  "goalActions": "{count} إنجازات في اليوم"
+  "goalActions": "{count} إنجازات في اليوم",
+  "questsTitle": "مهام اليوم",
+  "questHabits2": "أكمل عادتين",
+  "questHabitsEarly": "أكمل عادتين قبل 9 صباحًا",
+  "questProjectUnits20": "اسقِ مشاريعك بـ 20 وحدة",
+  "questTodos2": "أنجز مهمتين",
+  "questActions4": "حقق 4 إنجازات",
+  "claim": "استلم",
+  "rewardCoins": "+{count} عملة",
+  "streakSheetTitle": "سلسلتك",
+  "streakCurrent": "{count} يومًا",
+  "streakBest": "الأفضل: {count}",
+  "freezesStored": "تجميدات السلسلة: {count} من {max}",
+  "freezeExplainer": "التجميد يحمي سلسلتك ليوم واحد فائت، ويُستخدم تلقائيًا.",
+  "buyFreeze": "اشترِ تجميدًا · {cost} عملة",
+  "freezeBought": "تم تخزين التجميد. نم مرتاحًا. ❄️",
+  "freezeUnavailable": "لا تكفي العملات، أو المخزن ممتلئ.",
+  "coinBalance": "{count}"
 }

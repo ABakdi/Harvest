@@ -1,4 +1,6 @@
 import 'package:harvest/core/db/database.dart';
+import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/gamification/domain/quest_service.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -29,6 +31,7 @@ void _dispatcher() {
     final db = HarvestDatabase();
     try {
       await StreakService(db).reconcile();
+      await QuestService(db).ensureGenerated(HarvestDay.today());
     } finally {
       await db.close();
     }

@@ -116,5 +116,67 @@
         "type": "int"
       }
     }
+  },
+  "questsTitle": "Today's quests",
+  "questHabits2": "Complete 2 habits",
+  "questHabitsEarly": "Complete 2 habits before 9 AM",
+  "questProjectUnits20": "Water your projects with 20 units",
+  "questTodos2": "Finish 2 to-dos",
+  "questActions4": "Make 4 productive actions",
+  "claim": "Claim",
+  "rewardCoins": "+{count} coins",
+  "@rewardCoins": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakSheetTitle": "Your streak",
+  "streakCurrent": "{count} days",
+  "@streakCurrent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakBest": "Best: {count}",
+  "@streakBest": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "freezesStored": "Streak freezes: {count} of {max}",
+  "@freezesStored": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "freezeExplainer": "A freeze protects your streak for one missed day. It's used automatically.",
+  "buyFreeze": "Buy a freeze · {cost} coins",
+  "@buyFreeze": {
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "freezeBought": "Freeze stored. Rest easy. ❄️",
+  "freezeUnavailable": "Not enough coins, or the shed is full.",
+  "coinBalance": "{count}",
+  "@coinBalance": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

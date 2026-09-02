@@ -201,4 +201,68 @@ class AppLocalizationsAr extends AppLocalizations {
   String goalActions(int count) {
     return '$count إنجازات في اليوم';
   }
+
+  @override
+  String get questsTitle => 'مهام اليوم';
+
+  @override
+  String get questHabits2 => 'أكمل عادتين';
+
+  @override
+  String get questHabitsEarly => 'أكمل عادتين قبل 9 صباحًا';
+
+  @override
+  String get questProjectUnits20 => 'اسقِ مشاريعك بـ 20 وحدة';
+
+  @override
+  String get questTodos2 => 'أنجز مهمتين';
+
+  @override
+  String get questActions4 => 'حقق 4 إنجازات';
+
+  @override
+  String get claim => 'استلم';
+
+  @override
+  String rewardCoins(int count) {
+    return '+$count عملة';
+  }
+
+  @override
+  String get streakSheetTitle => 'سلسلتك';
+
+  @override
+  String streakCurrent(int count) {
+    return '$count يومًا';
+  }
+
+  @override
+  String streakBest(int count) {
+    return 'الأفضل: $count';
+  }
+
+  @override
+  String freezesStored(int count, int max) {
+    return 'تجميدات السلسلة: $count من $max';
+  }
+
+  @override
+  String get freezeExplainer =>
+      'التجميد يحمي سلسلتك ليوم واحد فائت، ويُستخدم تلقائيًا.';
+
+  @override
+  String buyFreeze(int cost) {
+    return 'اشترِ تجميدًا · $cost عملة';
+  }
+
+  @override
+  String get freezeBought => 'تم تخزين التجميد. نم مرتاحًا. ❄️';
+
+  @override
+  String get freezeUnavailable => 'لا تكفي العملات، أو المخزن ممتلئ.';
+
+  @override
+  String coinBalance(int count) {
+    return '$count';
+  }
 }

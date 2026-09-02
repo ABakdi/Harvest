@@ -451,6 +451,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} actions a day'**
   String goalActions(int count);
+
+  /// No description provided for @questsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s quests'**
+  String get questsTitle;
+
+  /// No description provided for @questHabits2.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete 2 habits'**
+  String get questHabits2;
+
+  /// No description provided for @questHabitsEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete 2 habits before 9 AM'**
+  String get questHabitsEarly;
+
+  /// No description provided for @questProjectUnits20.
+  ///
+  /// In en, this message translates to:
+  /// **'Water your projects with 20 units'**
+  String get questProjectUnits20;
+
+  /// No description provided for @questTodos2.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish 2 to-dos'**
+  String get questTodos2;
+
+  /// No description provided for @questActions4.
+  ///
+  /// In en, this message translates to:
+  /// **'Make 4 productive actions'**
+  String get questActions4;
+
+  /// No description provided for @claim.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get claim;
+
+  /// No description provided for @rewardCoins.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} coins'**
+  String rewardCoins(int count);
+
+  /// No description provided for @streakSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak'**
+  String get streakSheetTitle;
+
+  /// No description provided for @streakCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String streakCurrent(int count);
+
+  /// No description provided for @streakBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {count}'**
+  String streakBest(int count);
+
+  /// No description provided for @freezesStored.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak freezes: {count} of {max}'**
+  String freezesStored(int count, int max);
+
+  /// No description provided for @freezeExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'A freeze protects your streak for one missed day. It\'s used automatically.'**
+  String get freezeExplainer;
+
+  /// No description provided for @buyFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy a freeze · {cost} coins'**
+  String buyFreeze(int cost);
+
+  /// No description provided for @freezeBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze stored. Rest easy. ❄️'**
+  String get freezeBought;
+
+  /// No description provided for @freezeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough coins, or the shed is full.'**
+  String get freezeUnavailable;
+
+  /// No description provided for @coinBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String coinBalance(int count);
 }
 
 class _AppLocalizationsDelegate

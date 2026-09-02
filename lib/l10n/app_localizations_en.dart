@@ -202,4 +202,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String goalActions(int count) {
     return '$count actions a day';
   }
+
+  @override
+  String get questsTitle => 'Today\'s quests';
+
+  @override
+  String get questHabits2 => 'Complete 2 habits';
+
+  @override
+  String get questHabitsEarly => 'Complete 2 habits before 9 AM';
+
+  @override
+  String get questProjectUnits20 => 'Water your projects with 20 units';
+
+  @override
+  String get questTodos2 => 'Finish 2 to-dos';
+
+  @override
+  String get questActions4 => 'Make 4 productive actions';
+
+  @override
+  String get claim => 'Claim';
+
+  @override
+  String rewardCoins(int count) {
+    return '+$count coins';
+  }
+
+  @override
+  String get streakSheetTitle => 'Your streak';
+
+  @override
+  String streakCurrent(int count) {
+    return '$count days';
+  }
+
+  @override
+  String streakBest(int count) {
+    return 'Best: $count';
+  }
+
+  @override
+  String freezesStored(int count, int max) {
+    return 'Streak freezes: $count of $max';
+  }
+
+  @override
+  String get freezeExplainer =>
+      'A freeze protects your streak for one missed day. It\'s used automatically.';
+
+  @override
+  String buyFreeze(int cost) {
+    return 'Buy a freeze · $cost coins';
+  }
+
+  @override
+  String get freezeBought => 'Freeze stored. Rest easy. ❄️';
+
+  @override
+  String get freezeUnavailable => 'Not enough coins, or the shed is full.';
+
+  @override
+  String coinBalance(int count) {
+    return '$count';
+  }
 }
