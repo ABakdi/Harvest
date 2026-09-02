@@ -2890,6 +2890,526 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSession> {
   }
 }
 
+class $ExpensesTable extends Expenses
+    with TableInfo<$ExpensesTable, ExpenseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExpensesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loggedAtMeta = const VerificationMeta(
+    'loggedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+    'logged_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    amountMinor,
+    category,
+    note,
+    harvestDay,
+    loggedAt,
+    deletedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'expenses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExpenseRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('logged_at')) {
+      context.handle(
+        _loggedAtMeta,
+        loggedAt.isAcceptableOrUnknown(data['logged_at']!, _loggedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  ExpenseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExpenseRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      loggedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExpensesTable createAlias(String alias) {
+    return $ExpensesTable(attachedDatabase, alias);
+  }
+}
+
+class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
+  final String uuid;
+
+  /// Amount in minor units (cents); always positive.
+  final int amountMinor;
+
+  /// One of the preset category names.
+  final String category;
+  final String? note;
+  final String harvestDay;
+  final DateTime loggedAt;
+  final DateTime? deletedAt;
+  final DateTime updatedAt;
+  const ExpenseRow({
+    required this.uuid,
+    required this.amountMinor,
+    required this.category,
+    this.note,
+    required this.harvestDay,
+    required this.loggedAt,
+    this.deletedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['category'] = Variable<String>(category);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['logged_at'] = Variable<DateTime>(loggedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ExpensesCompanion toCompanion(bool nullToAbsent) {
+    return ExpensesCompanion(
+      uuid: Value(uuid),
+      amountMinor: Value(amountMinor),
+      category: Value(category),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      harvestDay: Value(harvestDay),
+      loggedAt: Value(loggedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ExpenseRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExpenseRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      category: serializer.fromJson<String>(json['category']),
+      note: serializer.fromJson<String?>(json['note']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'category': serializer.toJson<String>(category),
+      'note': serializer.toJson<String?>(note),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'loggedAt': serializer.toJson<DateTime>(loggedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ExpenseRow copyWith({
+    String? uuid,
+    int? amountMinor,
+    String? category,
+    Value<String?> note = const Value.absent(),
+    String? harvestDay,
+    DateTime? loggedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => ExpenseRow(
+    uuid: uuid ?? this.uuid,
+    amountMinor: amountMinor ?? this.amountMinor,
+    category: category ?? this.category,
+    note: note.present ? note.value : this.note,
+    harvestDay: harvestDay ?? this.harvestDay,
+    loggedAt: loggedAt ?? this.loggedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ExpenseRow copyWithCompanion(ExpensesCompanion data) {
+    return ExpenseRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      category: data.category.present ? data.category.value : this.category,
+      note: data.note.present ? data.note.value : this.note,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpenseRow(')
+          ..write('uuid: $uuid, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('category: $category, ')
+          ..write('note: $note, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    amountMinor,
+    category,
+    note,
+    harvestDay,
+    loggedAt,
+    deletedAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExpenseRow &&
+          other.uuid == this.uuid &&
+          other.amountMinor == this.amountMinor &&
+          other.category == this.category &&
+          other.note == this.note &&
+          other.harvestDay == this.harvestDay &&
+          other.loggedAt == this.loggedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
+  final Value<String> uuid;
+  final Value<int> amountMinor;
+  final Value<String> category;
+  final Value<String?> note;
+  final Value<String> harvestDay;
+  final Value<DateTime> loggedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ExpensesCompanion({
+    this.uuid = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.category = const Value.absent(),
+    this.note = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExpensesCompanion.insert({
+    required String uuid,
+    required int amountMinor,
+    required String category,
+    this.note = const Value.absent(),
+    required String harvestDay,
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       amountMinor = Value(amountMinor),
+       category = Value(category),
+       harvestDay = Value(harvestDay);
+  static Insertable<ExpenseRow> custom({
+    Expression<String>? uuid,
+    Expression<int>? amountMinor,
+    Expression<String>? category,
+    Expression<String>? note,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? loggedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (category != null) 'category': category,
+      if (note != null) 'note': note,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (loggedAt != null) 'logged_at': loggedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExpensesCompanion copyWith({
+    Value<String>? uuid,
+    Value<int>? amountMinor,
+    Value<String>? category,
+    Value<String?>? note,
+    Value<String>? harvestDay,
+    Value<DateTime>? loggedAt,
+    Value<DateTime?>? deletedAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ExpensesCompanion(
+      uuid: uuid ?? this.uuid,
+      amountMinor: amountMinor ?? this.amountMinor,
+      category: category ?? this.category,
+      note: note ?? this.note,
+      harvestDay: harvestDay ?? this.harvestDay,
+      loggedAt: loggedAt ?? this.loggedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (loggedAt.present) {
+      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpensesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('category: $category, ')
+          ..write('note: $note, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OutboxTable extends Outbox with TableInfo<$OutboxTable, OutboxData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -3517,6 +4037,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   late final $PomodoroSessionsTable pomodoroSessions = $PomodoroSessionsTable(
     this,
   );
+  late final $ExpensesTable expenses = $ExpensesTable(this);
   late final $OutboxTable outbox = $OutboxTable(this);
   late final $KvSettingsTable kvSettings = $KvSettingsTable(this);
   @override
@@ -3530,6 +4051,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     ledger,
     quests,
     pomodoroSessions,
+    expenses,
     outbox,
     kvSettings,
   ];
@@ -5217,6 +5739,265 @@ typedef $$PomodoroSessionsTableProcessedTableManager =
       PomodoroSession,
       PrefetchHooks Function()
     >;
+typedef $$ExpensesTableCreateCompanionBuilder = ExpensesCompanion Function({
+  required String uuid,
+  required int amountMinor,
+  required String category,
+  Value<String?> note,
+  required String harvestDay,
+  Value<DateTime> loggedAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$ExpensesTableUpdateCompanionBuilder = ExpensesCompanion Function({
+  Value<String> uuid,
+  Value<int> amountMinor,
+  Value<String> category,
+  Value<String?> note,
+  Value<String> harvestDay,
+  Value<DateTime> loggedAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$ExpensesTableFilterComposer
+    extends Composer<_$HarvestDatabase, $ExpensesTable> {
+  $$ExpensesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExpensesTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $ExpensesTable> {
+  $$ExpensesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExpensesTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $ExpensesTable> {
+  $$ExpensesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get loggedAt =>
+      $composableBuilder(column: $table.loggedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ExpensesTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $ExpensesTable,
+          ExpenseRow,
+          $$ExpensesTableFilterComposer,
+          $$ExpensesTableOrderingComposer,
+          $$ExpensesTableAnnotationComposer,
+          $$ExpensesTableCreateCompanionBuilder,
+          $$ExpensesTableUpdateCompanionBuilder,
+          (
+            ExpenseRow,
+            BaseReferences<_$HarvestDatabase, $ExpensesTable, ExpenseRow>,
+          ),
+          ExpenseRow,
+          PrefetchHooks Function()
+        > {
+  $$ExpensesTableTableManager(_$HarvestDatabase db, $ExpensesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExpensesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExpensesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExpensesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExpensesCompanion(
+                uuid: uuid,
+                amountMinor: amountMinor,
+                category: category,
+                note: note,
+                harvestDay: harvestDay,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required int amountMinor,
+                required String category,
+                Value<String?> note = const Value.absent(),
+                required String harvestDay,
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExpensesCompanion.insert(
+                uuid: uuid,
+                amountMinor: amountMinor,
+                category: category,
+                note: note,
+                harvestDay: harvestDay,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExpensesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $ExpensesTable,
+      ExpenseRow,
+      $$ExpensesTableFilterComposer,
+      $$ExpensesTableOrderingComposer,
+      $$ExpensesTableAnnotationComposer,
+      $$ExpensesTableCreateCompanionBuilder,
+      $$ExpensesTableUpdateCompanionBuilder,
+      (
+        ExpenseRow,
+        BaseReferences<_$HarvestDatabase, $ExpensesTable, ExpenseRow>,
+      ),
+      ExpenseRow,
+      PrefetchHooks Function()
+    >;
 typedef $$OutboxTableCreateCompanionBuilder = OutboxCompanion Function({
   Value<int> seq,
   required String targetTable,
@@ -5584,6 +6365,8 @@ class $HarvestDatabaseManager {
       $$QuestsTableTableManager(_db, _db.quests);
   $$PomodoroSessionsTableTableManager get pomodoroSessions =>
       $$PomodoroSessionsTableTableManager(_db, _db.pomodoroSessions);
+  $$ExpensesTableTableManager get expenses =>
+      $$ExpensesTableTableManager(_db, _db.expenses);
   $$OutboxTableTableManager get outbox =>
       $$OutboxTableTableManager(_db, _db.outbox);
   $$KvSettingsTableTableManager get kvSettings =>

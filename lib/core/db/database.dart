@@ -108,6 +108,27 @@ class PomodoroSessions extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
+/// Money out, in minor units — never floats (business rule: finances
+/// stay on-device; see the sync strategy's privacy tiers).
+@DataClassName('ExpenseRow')
+class Expenses extends Table {
+  TextColumn get uuid => text()();
+
+  /// Amount in minor units (cents); always positive.
+  IntColumn get amountMinor => integer()();
+
+  /// One of the preset category names.
+  TextColumn get category => text()();
+  TextColumn get note => text().nullable()();
+  TextColumn get harvestDay => text()();
+  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
 /// Change log for the future sync client — appended on every local write.
 class Outbox extends Table {
   IntColumn get seq => integer().autoIncrement()();
@@ -137,6 +158,7 @@ class KvSettings extends Table {
     Ledger,
     Quests,
     PomodoroSessions,
+    Expenses,
     Outbox,
     KvSettings,
   ],
@@ -147,7 +169,16 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(expenses);
+          }
+        },
+      );
 
   static QueryExecutor _openConnection() =>
       driftDatabase(name: 'harvest');

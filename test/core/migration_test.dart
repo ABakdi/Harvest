@@ -20,10 +20,17 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  test('fresh database creates schema v1 correctly', () async {
+  test('fresh database creates the latest schema correctly', () async {
+    final connection = await verifier.startAt(2);
+    final db = HarvestDatabase.forTesting(connection);
+    await verifier.migrateAndValidate(db, 2);
+    await db.close();
+  });
+
+  test('v1 upgrades to v2 (adds expenses)', () async {
     final connection = await verifier.startAt(1);
     final db = HarvestDatabase.forTesting(connection);
-    await verifier.migrateAndValidate(db, 1);
+    await verifier.migrateAndValidate(db, 2);
     await db.close();
   });
 }
