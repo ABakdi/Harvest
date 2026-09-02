@@ -42,6 +42,9 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-4-Screen-Time]]
 - [[Phase-5-Sync-and-Social]]
 
+### 🏁 Checkpoints
+- [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list
+
 ### ⚖️ Decisions (ADRs)
 - [[ADR-001-State-Management]] — Riverpod over Bloc
 - [[ADR-002-Local-Database]] — Drift over Isar/Realm/Hive

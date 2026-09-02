@@ -4,7 +4,9 @@ A built-in focus tool for effortful commitments — reading, studying, deep work
 
 ## Behavior
 
-- Classic cycle, fully configurable: default **25 min focus / 5 min short break**, long break (15 min) every 4 cycles.
+- Classic cycle, fully configurable in Settings: default **25 min focus / 5 min short break**, long break (15 min) every 4 cycles — all four values adjustable.
+- While a session is active, the field's app bar shows a **live mini-timer chip** ticking down; tapping it returns to the timer.
+- The ongoing notification carries **Pause / Abandon** actions.
 - A session is **attached to a commitment**: I pick the Project/Habit/To-Do it waters. Free-floating sessions are allowed too.
 - Finishing a focus block on a Project opens the quantity sheet pre-focused ("How many pages did you get through?"). On a Habit/To-Do it offers the one-tap check-in.
 - **+5 XP** per completed focus block ([[Gamification]]).

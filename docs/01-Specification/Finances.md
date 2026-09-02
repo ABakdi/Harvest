@@ -2,11 +2,24 @@
 
 Phase 2 module ([[Phase-2-Finances]]). Money is a pillar like any other: log it daily, keep the gauge green, earn the XP.
 
+## Layout
+
+The Granary has two tabs: **Today** (gauge, savings pot, quick-log,
+today's entries) and **Insights** (daily bar chart + category donut,
+switchable between week and month, with totals and per-day average).
+
+## Savings & expectations
+
+- A **savings pot** — a manually-kept number, edited with the budget.
+  It turns red when it drops below 10% of the monthly budget.
+- An **expected daily spend** for comparing intent against the computed
+  floating limit.
+
 ## Quick-log
 
 The whole point is a **sub-5-second log**:
 - **Amount** (numeric pad first)
-- **Category** — preset chips: Food, Transport, Bills, Shopping, Health, Entertainment, Other
+- **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 
 Stored as integer minor units (cents) — never floats. Multi-currency is out of scope for V1; a single currency is chosen in settings.

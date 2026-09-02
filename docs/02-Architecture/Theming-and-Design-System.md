@@ -2,7 +2,16 @@
 
 Duolingo's warmth, a farmer's palette, a minimalist's restraint. Decision record: [[ADR-003-UI-Toolkit]].
 
-## Palette
+## Presets
+
+Five vibrant looks, each with light and dark variants and a signature
+gradient, user-pickable in settings: **Harvest** (terracotta/sage),
+**Sunrise** (coral/gold), **Ocean** (azure/teal), **Orchard**
+(green/lime), **Dusk** (violet/pink). Gradients appear deliberately —
+primary actions, the XP fill, selected calendar day — never as
+wallpaper.
+
+## Palette (Harvest preset)
 
 | Token | Light | Role |
 | :--- | :--- | :--- |

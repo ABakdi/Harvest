@@ -45,6 +45,19 @@ If I planned nothing the night before, the morning reminder carries the setup fl
 - A check-in triggers the signature micro-interaction: haptic "thud" + sprite animation ([[Theming-and-Design-System]]).
 - Long or focused tasks (reading, studying) can be started as a [[Pomodoro]] session instead; completing the session logs the check-in.
 
+## Advanced options
+
+Every seed can carry, from creation or later editing:
+- a **note** (shown on the card and in the calendar),
+- a **remind-me-at** time — a personal nudge fired on days the seed is due, silenced once checked in,
+- an **accomplish-before deadline** (projects and to-dos) — overdue seeds turn urgent-red on the field.
+
+To-dos can be planted on any date, not just today/tomorrow.
+
+## Calendar
+
+A month calendar (field app bar) populated from every schedule: habits due per their rules, projects' daily commitments, to-dos on their planned days, and deadline flags. Future days accept quick-planted to-dos.
+
 ## Editing & lifecycle
 
 - Commitments can be edited, paused (vacation mode for a habit), archived, or deleted.

@@ -1,0 +1,75 @@
+# Checkpoint 1 — Road to v1
+
+*Taken 2026-09-02, after closing phases 0–2 (v0.2.1).*
+
+Stopping to look at the field before the final push. What grew well,
+what's missing, what broke, and exactly what stands between here and
+the v1 release.
+
+## Where we are
+
+- **Phase 0 (Foundation)** ✅ — toolchain, design system, l10n (en/ar + RTL),
+  Drift with sync-ready schema, golden tests, migration harness, CI.
+- **Phase 1 (Productivity core)** ✅ — commitments with 4 schedule types,
+  check-ins with the 2× cap, streaks + freezes, XP/coins/ranks, 4 daily
+  quests, pomodoro with shade controls, plan ritual + reminders,
+  onboarding, stats. Fully verified on the emulator.
+- **Phase 2 (Finances)** ✅ — expense quick-log (+edit in place), monthly
+  budget with the floating daily limit gauge, smart repeats, weekly
+  report, spending stats.
+
+66→68 tests green, analyzer clean, everything pushed and tagged.
+
+## Bugs found at this checkpoint
+
+| # | Bug | Status |
+| :- | :--- | :--- |
+| B1 | Overscroll stretches cards (Android stretch effect) — ugly deformation at list ends | **Fix planned** → gentle bounce physics app-wide |
+| B2 | Pomodoro countdown notification not re-posted after process restart | Fixed in v0.2.1 |
+| B3 | User-pause showed "Break over" copy | Fixed in v0.2.1 |
+
+## Gaps to close before v1
+
+| # | Gap | Plan |
+| :- | :--- | :--- |
+| G1 | No sign on the field that a focus session is running | Live ticking mini-timer chip in the field app bar, tap → timer |
+| G2 | Pomodoro lengths are hardcoded | Settings card: focus / short break / long break / blocks per long break |
+| G3 | No calendar | Month calendar populated from schedules: habits due, to-dos, project commitments, deadlines; day view + plant-on-that-day |
+| G4 | Creating a seed has no advanced options | Note, remind-me-at time, and deadline on any seed; per-task reminders scheduled with the daily plan |
+| G5 | Finances = today only; no savings picture | Granary tabs: **Today** / **Insights**; savings pot + expected daily spend; week/month breakdowns |
+| G6 | Piggy-bank icon reads wrong | Money icons (wallet/payments) across nav, gauge, buttons |
+| G7 | Palette feels dull; one look only | 5 vibrant theme presets (each with dark variant) with gradients: Harvest, Sunrise, Ocean, Orchard, Dusk — user-pickable |
+| G8 | Expense categories are fixed | Custom categories with icon picker; manage in finance settings |
+| G9 | No visual breakdown of spending | Charts: category donut + daily bars (week/month) |
+| G10 | (=B1) overscroll stretch | Bounce physics |
+| G11 | Feedback could be richer | Action animations (log/claim/check), status colors everywhere: over-budget red, low-savings warning, overdue deadlines |
+
+## Decision log for this checkpoint
+
+- **Charts:** fl_chart (most maintained Flutter chart lib).
+- **Calendar:** table_calendar (battle-tested), themed to match.
+- **Custom categories:** stored as a table (`expense_categories`), expenses
+  keep a string key — presets stay built-in, customs layer on top.
+- **Schema v4:** commitments gain `note`, `remindAt`, `deadline`;
+  new `expense_categories` table.
+- **Savings rule:** the savings pot is a manually-kept number (no auto
+  transfer magic in v1); it warns when it drops below 10% of the
+  monthly budget.
+- **Theme presets:** tokens move from constants to per-preset palettes;
+  gradients used deliberately (primary action, XP bar, gauges), never
+  as wallpaper.
+
+## v1 release criteria
+
+- [x] G1–G11 implemented and verified on the emulator (mini-timer chip,
+      pomodoro settings, calendar, advanced options, granary tabs +
+      savings warning + charts, money icons, 5 gradient themes, custom
+      categories incl. delete-fallback, bounce physics, bursts and
+      status colors — plus the over-budget red gauge caught live)
+- [x] All tests green, analyzer clean, migrations v1→v4 verified
+- [x] Dark pass done across new surfaces (all verification ran in dark); RTL re-verified at v0.2.1 and new screens use directional APIs only
+- [x] Docs updated (specs reflect what shipped), phases ticked
+- [x] Tagged v0.9.0 and release APK built
+
+Everything after this list is **v1.x / Phase 3+** territory (gym &
+health, screen time, sync).
