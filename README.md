@@ -2,34 +2,223 @@
 
 *Cultivate your day. Harvest your potential.*
 
-Harvest is a gamified life-management app built with Flutter. It brings the
-streak psychology that keeps people coming back to Duolingo to every pillar
-of daily life — productivity, finances, health, and focus — while staying
-minimalist, local-first, and entirely under the user's control.
+Harvest is a gamified life-management app I'm building with Flutter. It
+takes the streak psychology that keeps people coming back to Duolingo and
+points it at the four pillars of an ordinary day — productivity, money,
+health, and focus — while staying minimalist, local-first, and entirely
+under my control. No accounts, no cloud, nothing leaves the phone.
+
+**Status:** v1 candidate. Productivity core and finances are complete and
+in daily use; gym & health is next. Grab the latest build from the
+[releases page](https://github.com/ABakdi/Harvest/releases).
+
+## Table of contents
+
+- [What it does](#what-it-does)
+- [Screens](#screens)
+- [Install](#install)
+- [Documentation](#documentation)
+  - [Overview](#overview)
+  - [Specification](#specification)
+  - [Architecture](#architecture)
+  - [Planning](#planning)
+  - [Checkpoints](#checkpoints)
+  - [Decisions](#decisions)
+- [Stack](#stack)
+- [Development](#development)
+- [Project layout](#project-layout)
+- [Roadmap](#roadmap)
+- [Privacy](#privacy)
+
+## What it does
+
+- **The Field** — every habit, project, and to-do due today as a crop on
+  one screen. One tap checks in; a streak flame, XP bar, and farmer ranks
+  keep score. Projects log quantities toward a target with a 2× daily cap.
+- **Streaks that forgive** — a global streak fed by a Daily Harvest Goal,
+  per-commitment streaks, streak freezes bought with coins, and a 3 AM day
+  boundary so a 1 AM check-in still counts for the evening it belongs to.
+- **The plan ritual** — an evening planner and a morning review, each
+  reachable straight from its reminder; reminders escalate from gentle to
+  urgent and learn the best time to nudge.
+- **Focus timer** — a pomodoro attached to any commitment, adjustable
+  block lengths, a live mini-timer in the app bar, and pause/abandon from
+  the notification shade.
+- **The Granary** — expense quick-log in under five seconds, a monthly
+  budget with a floating daily limit and a green/amber/red gauge, smart
+  repeat suggestions, custom categories, multi-currency (DZD, USD, EUR)
+  with exchange rates, weekly and monthly charts.
+- **The Vault** — wallet, savings pots per currency, and debts, each with
+  its total and its own transaction ledger that says what every move was.
+- **Calendar and stats** — a month view of everything due, an activity
+  heat-map, project burn-up, habit streaks, and a weekly harvest report.
+- **Five looks, two languages** — Harvest, Sunrise, Ocean, Orchard, and
+  Dusk presets, each light and dark, in English and Arabic with full RTL.
+
+## Screens
+
+| Field | Granary — Today | Granary — Vault |
+| :---: | :---: | :---: |
+| Today's crops, streak, XP, budget pulse | Budget gauge and the day's expenses | Wallet / Savings / Debts, each with its ledger |
+
+## Install
+
+Android only for now (API 26+).
+
+1. Download the APK from the latest
+   [release](https://github.com/ABakdi/Harvest/releases).
+2. Allow installs from unknown sources when the phone asks.
+3. Open Harvest and plant your first seed.
+
+Beta builds are signed with a debug key, so uninstall a beta before
+installing a later signed build.
 
 ## Documentation
 
-The full specification, architecture, and phased plan live in the
-[`docs/`](docs/Home.md) Obsidian vault:
+Everything about Harvest — what it is, how it works, how it's built, and
+in what order — lives in the [`docs/`](docs/Home.md) Obsidian vault.
+Start at the [vault home](docs/Home.md) or jump straight in below.
 
-- **Overview** — vision, PRD, glossary
-- **Specification** — one note per module (entities, gamification, notifications, …)
-- **Architecture** — layers, state management, database, sync strategy
-- **Planning** — roadmap, phases, milestone checklists
-- **Decisions** — ADRs recording every major technical choice
+### Overview
+
+| Note | What's in it |
+| :--- | :--- |
+| [Vision](docs/00-Overview/Vision.md) | Why the app exists and what it must feel like |
+| [Product Requirements](docs/00-Overview/Product-Requirements.md) | The consolidated PRD |
+| [Glossary](docs/00-Overview/Glossary.md) | The farming vocabulary and entity names |
+
+### Specification
+
+| Note | What's in it |
+| :--- | :--- |
+| [Core Entities](docs/01-Specification/Core-Entities.md) | The data model: projects, habits, to-dos, and friends |
+| [Productivity Engine](docs/01-Specification/Productivity-Engine.md) | Commitments, check-ins, the daily plan ritual |
+| [Gamification](docs/01-Specification/Gamification.md) | Streaks, XP, coins, ranks |
+| [Pomodoro](docs/01-Specification/Pomodoro.md) | The focus timer |
+| [Notifications](docs/01-Specification/Notifications.md) | The gentle-to-urgent reminder system |
+| [Finances](docs/01-Specification/Finances.md) | Expense logging, budgets, the vault |
+| [Health and Gym](docs/01-Specification/Health-and-Gym.md) | Sleep tracking, alarm, workouts |
+| [Screen Time](docs/01-Specification/Screen-Time.md) | Usage caps and interventions |
+| [Onboarding](docs/01-Specification/Onboarding.md) | First-run experience |
+| [Dashboard and Widgets](docs/01-Specification/Dashboard-and-Widgets.md) | Home screen, reports, widgets |
+| [Business Rules](docs/01-Specification/Business-Rules.md) | The immutable rules: day reset, over-log cap, … |
+
+### Architecture
+
+| Note | What's in it |
+| :--- | :--- |
+| [Architecture Overview](docs/02-Architecture/Architecture-Overview.md) | Layers, data flow, package layout |
+| [State Management](docs/02-Architecture/State-Management.md) | Riverpod conventions |
+| [Local Database](docs/02-Architecture/Local-Database.md) | Drift schema, repositories, migrations |
+| [Sync Strategy](docs/02-Architecture/Sync-Strategy.md) | Local-first now, MongoDB sync later |
+| [Theming and Design System](docs/02-Architecture/Theming-and-Design-System.md) | Presets, type, components, motion |
+| [Localization](docs/02-Architecture/Localization.md) | English + Arabic, RTL |
+| [Notifications and Background](docs/02-Architecture/Notifications-and-Background.md) | Scheduling, the 3 AM reset, alarms |
+
+### Planning
+
+| Note | What's in it |
+| :--- | :--- |
+| [Roadmap](docs/03-Planning/Roadmap.md) | All phases at a glance |
+| [Phase 0 — Foundation](docs/03-Planning/Phase-0-Foundation.md) | Scaffold, design system, l10n, DB ✅ |
+| [Phase 1 — Productivity Core](docs/03-Planning/Phase-1-Productivity-Core.md) | The MVP ✅ |
+| [Phase 2 — Finances](docs/03-Planning/Phase-2-Finances.md) | Expenses, budgets, gauge ✅ |
+| [Phase 3 — Health and Gym](docs/03-Planning/Phase-3-Health-and-Gym.md) | Sleep alarm and debt, workouts |
+| [Phase 4 — Screen Time](docs/03-Planning/Phase-4-Screen-Time.md) | Usage caps, interventions |
+| [Phase 5 — Sync and Social](docs/03-Planning/Phase-5-Sync-and-Social.md) | Accounts, sync, rankings, widgets |
+
+### Checkpoints
+
+| Note | What's in it |
+| :--- | :--- |
+| [Checkpoint 1](docs/05-Checkpoints/Checkpoint-1.md) | Road to v1: progress review, bugs, gap list, and the dogfooding rounds |
+
+### Decisions
+
+| ADR | Decision |
+| :--- | :--- |
+| [ADR-001](docs/04-Decisions/ADR-001-State-Management.md) | Riverpod over Bloc |
+| [ADR-002](docs/04-Decisions/ADR-002-Local-Database.md) | Drift over Isar / Realm / Hive |
+| [ADR-003](docs/04-Decisions/ADR-003-UI-Toolkit.md) | Material 3 + a custom design system |
+| [ADR-004](docs/04-Decisions/ADR-004-Localization.md) | gen-l10n with ARB files |
+| [ADR-005](docs/04-Decisions/ADR-005-Local-First-Sync.md) | Outbox pattern toward MongoDB |
 
 ## Stack
 
-- **Flutter** (Android first, iOS next) · Material 3 + custom design system
+- **Flutter** (Android first, iOS next) · Material 3 + a custom design system
 - **Riverpod** (codegen) for state · **Drift**/SQLite for local-first storage
-- **English + Arabic** with full RTL support
+- **fl_chart** for charts · **table_calendar** for the calendar
+- **flutter_local_notifications** + **workmanager** for reminders and the 3 AM reset
+- **English + Arabic** with full RTL support via gen-l10n
 - Local-first forever; server sync (MongoDB) arrives in Phase 5
 
 ## Development
 
 ```sh
 flutter pub get
+flutter gen-l10n
 dart run build_runner build --delete-conflicting-outputs
+flutter analyze
 flutter test
 flutter run
 ```
+
+Schema changes follow the migration workflow in
+[Local Database](docs/02-Architecture/Local-Database.md): bump the
+version, write the step, dump and generate the schema, add the upgrade
+test. Signature components have golden coverage in `test/goldens`
+(regenerate with `flutter test --update-goldens test/goldens`).
+
+Release build:
+
+```sh
+flutter build apk --release
+```
+
+## Project layout
+
+```
+lib/
+  app/            router, shell, bootstrap
+  core/
+    db/           Drift database and migrations
+    domain/       HarvestDay and other shared rules
+    platform/     haptics, day reset, notifications glue
+    ui/           theme, tokens, shared widgets
+  features/
+    commitments/  habits, projects, to-dos, check-ins
+    field/        the dashboard
+    gamification/ streaks, XP, coins, ranks
+    planner/      plan ritual and notification planning
+    pomodoro/     the focus timer
+    finances/     expenses, budget, vault
+    calendar/     month view
+    stats/        heat-map, reports
+    settings/     preferences, rates
+    onboarding/
+  l10n/           ARB files (en, ar)
+docs/             the Obsidian vault
+drift_schemas/    exported schema snapshots (v1 … v7)
+test/             unit, migration, and golden tests
+```
+
+## Roadmap
+
+| Phase | Delivers | Status |
+| :--- | :--- | :---: |
+| 0 — Foundation | Scaffold, design system, l10n, DB, routing | ✅ |
+| 1 — Productivity Core | Commitments, plan ritual, streaks, XP, pomodoro, notifications | ✅ |
+| 2 — Finances | Expense quick-log, budgets, gauge, vault | ✅ |
+| 3 — Gym & Health | Sleep alarm + debt, workout plans & sessions | next |
+| 4 — Screen Time | Usage caps, weed-pull interventions | |
+| 5 — Sync & Social | Accounts, MongoDB sync, rankings, widgets, iOS polish | |
+
+Working rule: each phase ends with a tagged release I install and live
+with before starting the next — dogfooding is the QA department.
+
+## Privacy
+
+Everything is stored on the device in a local SQLite database. Financial
+data never leaves the phone in plaintext. When sync arrives it will be
+opt-in and end-to-end encrypted, or you keep everything local. Nothing is
+sold, nothing is shared.
