@@ -25,9 +25,9 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 - [x] Streak milestones (7/30/100) with coin rewards
 
 ## M1.5 — XP, coins, quests
-- [ ] Ledger-based XP + coins; Farmer Ranks every 1,000 XP ([[Gamification]])
-- [ ] Streak Freeze store item (max 2 held)
-- [ ] Daily quest generator (4/day from template pool) + claim flow
+- [x] Ledger-based XP + coins; Farmer Ranks every 1,000 XP ([[Gamification]])
+- [x] Streak Freeze store item (max 2 held)
+- [x] Daily quest generator (4/day from template pool) + claim flow
 
 ## M1.6 — Daily plan ritual
 - [ ] Evening planner flow (from wind-down notification deep link)
