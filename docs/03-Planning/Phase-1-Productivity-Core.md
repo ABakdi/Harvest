@@ -1,0 +1,54 @@
+# Phase 1 — Productivity Core (MVP) 🎯
+
+The product. When this phase ends I should *prefer opening Harvest to keeping my Duolingo streak*. Specs: [[Productivity-Engine]] · [[Gamification]] · [[Pomodoro]] · [[Notifications]].
+
+## M1.1 — Commitments
+- [ ] Create/edit/archive Habits (all four schedule types), Projects (target + daily commitment), To-Dos (optional due day)
+- [ ] Schedule engine: "what is due on Harvest Day X?" — pure Dart, heavily unit-tested
+- [ ] Vacation-mode pause for habits
+
+## M1.2 — Check-ins
+- [ ] One-tap check-in for habits/to-dos with undo (same day)
+- [ ] Quantity sheet for projects; 2× over-log cap enforced ([[Business-Rules]])
+- [ ] Haptic + sprite celebration; project 100% completion moment
+- [ ] Append-only history, archive-safe
+
+## M1.3 — The Field (dashboard v1)
+- [ ] Today view: due commitments as CropCards, urgency-ordered ([[Dashboard-and-Widgets]])
+- [ ] Streak flame + XP bar header
+- [ ] Pull-down: tomorrow's plan view
+
+## M1.4 — Streak engine
+- [ ] Global Streak from Daily Harvest Goal; individual streaks per habit/project
+- [ ] 3 AM reset job real implementation: streak evaluation, freeze auto-consumption ([[Business-Rules]])
+- [ ] Lazy idempotent reconciliation on app open (multi-day gaps handled)
+- [ ] Streak milestones (7/30/100) with coin rewards
+
+## M1.5 — XP, coins, quests
+- [ ] Ledger-based XP + coins; Farmer Ranks every 1,000 XP ([[Gamification]])
+- [ ] Streak Freeze store item (max 2 held)
+- [ ] Daily quest generator (4/day from template pool) + claim flow
+
+## M1.6 — Daily plan ritual
+- [ ] Evening planner flow (from wind-down notification deep link)
+- [ ] Morning review/catch-up flow
+- [ ] Prime-time learning (median of last 14 first-check-ins) ([[Notifications]])
+
+## M1.7 — Pomodoro
+- [ ] Timer with configurable blocks, attached to commitments ([[Pomodoro]])
+- [ ] Persistent notification with countdown + actions; wall-clock timekeeping
+- [ ] Session → check-in handoff; +5 XP; session history
+
+## M1.8 — Notifications v1
+- [ ] Full daily plan scheduling at reset; suppression on completion
+- [ ] Gentle→urgent escalation incl. late streak-risk nudge; 4/day cap
+- [ ] Per-category mute settings
+
+## M1.9 — Onboarding & release
+- [ ] Onboarding flow with Phase-1 templates ([[Onboarding]])
+- [ ] Stats v1: per-commitment heat-map, project burn-up
+- [ ] Settings: language, theme, Daily Harvest Goal, all reminder times (fully configurable)
+- [ ] `v0.1.0` tagged, installed on my phone — **dogfooding begins**
+
+## Backlog (discovered during the phase)
+- (add here, don't expand scope)
