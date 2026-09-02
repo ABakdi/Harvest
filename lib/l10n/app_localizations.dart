@@ -553,6 +553,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count}'**
   String coinBalance(int count);
+
+  /// No description provided for @pomodoroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get pomodoroTitle;
+
+  /// No description provided for @phaseFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get phaseFocus;
+
+  /// No description provided for @phaseShortBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Short break'**
+  String get phaseShortBreak;
+
+  /// No description provided for @phaseLongBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Long break'**
+  String get phaseLongBreak;
+
+  /// No description provided for @startFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Start focus'**
+  String get startFocus;
+
+  /// No description provided for @pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pause;
+
+  /// No description provided for @resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resume;
+
+  /// No description provided for @finishSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish session'**
+  String get finishSession;
+
+  /// No description provided for @abandonSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Abandon'**
+  String get abandonSession;
+
+  /// No description provided for @abandonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The field will wait.'**
+  String get abandonBody;
+
+  /// No description provided for @freeSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Free focus'**
+  String get freeSession;
+
+  /// No description provided for @blocksDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} blocks done'**
+  String blocksDone(int count);
+
+  /// No description provided for @breakOverReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Break over — ready for the next block'**
+  String get breakOverReady;
+
+  /// No description provided for @pomodoroLogPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice work! Log your progress on the field.'**
+  String get pomodoroLogPrompt;
 }
 
 class _AppLocalizationsDelegate

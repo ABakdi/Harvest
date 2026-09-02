@@ -266,4 +266,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String coinBalance(int count) {
     return '$count';
   }
+
+  @override
+  String get pomodoroTitle => 'Focus';
+
+  @override
+  String get phaseFocus => 'Focus';
+
+  @override
+  String get phaseShortBreak => 'Short break';
+
+  @override
+  String get phaseLongBreak => 'Long break';
+
+  @override
+  String get startFocus => 'Start focus';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
+  String get resume => 'Resume';
+
+  @override
+  String get finishSession => 'Finish session';
+
+  @override
+  String get abandonSession => 'Abandon';
+
+  @override
+  String get abandonBody => 'The field will wait.';
+
+  @override
+  String get freeSession => 'Free focus';
+
+  @override
+  String blocksDone(int count) {
+    return '$count blocks done';
+  }
+
+  @override
+  String get breakOverReady => 'Break over — ready for the next block';
+
+  @override
+  String get pomodoroLogPrompt => 'Nice work! Log your progress on the field.';
 }

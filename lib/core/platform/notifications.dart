@@ -72,6 +72,35 @@ class NotificationService {
     );
   }
 
+  /// Ongoing countdown notification driven by the system chronometer —
+  /// no periodic updates needed, and it survives the app being killed.
+  Future<void> showCountdown({
+    required int id,
+    required String channelId,
+    required String title,
+    required DateTime until,
+  }) async {
+    await initialize();
+    await _plugin.show(
+      id: id,
+      title: title,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          channelId,
+          channelId,
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          autoCancel: false,
+          usesChronometer: true,
+          chronometerCountDown: true,
+          when: until.millisecondsSinceEpoch,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+    );
+  }
+
   Future<void> cancel(int id) => _plugin.cancel(id: id);
   Future<void> cancelAll() => _plugin.cancelAll();
 }

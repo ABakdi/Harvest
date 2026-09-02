@@ -75,5 +75,19 @@
   "buyFreeze": "اشترِ تجميدًا · {cost} عملة",
   "freezeBought": "تم تخزين التجميد. نم مرتاحًا. ❄️",
   "freezeUnavailable": "لا تكفي العملات، أو المخزن ممتلئ.",
-  "coinBalance": "{count}"
+  "coinBalance": "{count}",
+  "pomodoroTitle": "تركيز",
+  "phaseFocus": "تركيز",
+  "phaseShortBreak": "استراحة قصيرة",
+  "phaseLongBreak": "استراحة طويلة",
+  "startFocus": "ابدأ التركيز",
+  "pause": "إيقاف مؤقت",
+  "resume": "استئناف",
+  "finishSession": "إنهاء الجلسة",
+  "abandonSession": "مغادرة",
+  "abandonBody": "الحقل سينتظرك.",
+  "freeSession": "تركيز حر",
+  "blocksDone": "أُنجزت {count} فترات",
+  "breakOverReady": "انتهت الاستراحة — جاهز للفترة التالية",
+  "pomodoroLogPrompt": "أحسنت! سجّل تقدمك في الحقل."
 }

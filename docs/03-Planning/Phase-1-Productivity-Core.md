@@ -35,9 +35,10 @@ The product. When this phase ends I should *prefer opening Harvest to keeping my
 - [ ] Prime-time learning (median of last 14 first-check-ins) ([[Notifications]])
 
 ## M1.7 — Pomodoro
-- [ ] Timer with configurable blocks, attached to commitments ([[Pomodoro]])
-- [ ] Persistent notification with countdown + actions; wall-clock timekeeping
-- [ ] Session → check-in handoff; +5 XP; session history
+- [x] Timer with configurable blocks, attached to commitments ([[Pomodoro]])
+- [x] Persistent notification with countdown; wall-clock timekeeping
+- [ ] Notification actions (pause/abandon from the shade)
+- [x] Session → check-in handoff; +5 XP; session history
 
 ## M1.8 — Notifications v1
 - [ ] Full daily plan scheduling at reset; suppression on completion

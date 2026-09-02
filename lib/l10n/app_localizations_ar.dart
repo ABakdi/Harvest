@@ -265,4 +265,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String coinBalance(int count) {
     return '$count';
   }
+
+  @override
+  String get pomodoroTitle => 'تركيز';
+
+  @override
+  String get phaseFocus => 'تركيز';
+
+  @override
+  String get phaseShortBreak => 'استراحة قصيرة';
+
+  @override
+  String get phaseLongBreak => 'استراحة طويلة';
+
+  @override
+  String get startFocus => 'ابدأ التركيز';
+
+  @override
+  String get pause => 'إيقاف مؤقت';
+
+  @override
+  String get resume => 'استئناف';
+
+  @override
+  String get finishSession => 'إنهاء الجلسة';
+
+  @override
+  String get abandonSession => 'مغادرة';
+
+  @override
+  String get abandonBody => 'الحقل سينتظرك.';
+
+  @override
+  String get freeSession => 'تركيز حر';
+
+  @override
+  String blocksDone(int count) {
+    return 'أُنجزت $count فترات';
+  }
+
+  @override
+  String get breakOverReady => 'انتهت الاستراحة — جاهز للفترة التالية';
+
+  @override
+  String get pomodoroLogPrompt => 'أحسنت! سجّل تقدمك في الحقل.';
 }

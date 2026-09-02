@@ -178,5 +178,26 @@
         "type": "int"
       }
     }
-  }
+  },
+  "pomodoroTitle": "Focus",
+  "phaseFocus": "Focus",
+  "phaseShortBreak": "Short break",
+  "phaseLongBreak": "Long break",
+  "startFocus": "Start focus",
+  "pause": "Pause",
+  "resume": "Resume",
+  "finishSession": "Finish session",
+  "abandonSession": "Abandon",
+  "abandonBody": "The field will wait.",
+  "freeSession": "Free focus",
+  "blocksDone": "{count} blocks done",
+  "@blocksDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "breakOverReady": "Break over — ready for the next block",
+  "pomodoroLogPrompt": "Nice work! Log your progress on the field."
 }

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:harvest/app/router.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
@@ -31,6 +33,10 @@ class FieldScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.timer_outlined),
+            onPressed: () => unawaited(context.push(AppRoutes.pomodoro)),
+          ),
           Padding(
             padding: const EdgeInsetsDirectional.only(end: HarvestSpacing.md),
             child: InkWell(
@@ -117,6 +123,8 @@ class _CropTile extends ConsumerWidget {
           ? item.projectProgress
           : null,
       onTap: () => unawaited(_onTap(context, ref)),
+      onLongPress: () =>
+          unawaited(context.push(AppRoutes.pomodoro, extra: commitment)),
     );
   }
 

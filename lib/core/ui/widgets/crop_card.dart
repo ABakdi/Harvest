@@ -11,6 +11,7 @@ class CropCard extends StatelessWidget {
     required this.icon,
     required this.done,
     required this.onTap,
+    this.onLongPress,
     this.progress,
     super.key,
   });
@@ -20,6 +21,7 @@ class CropCard extends StatelessWidget {
   final IconData icon;
   final bool done;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   /// 0..1 for projects; null shows a plain check circle.
   final double? progress;
@@ -33,6 +35,7 @@ class CropCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: HarvestSpacing.sm + 4),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(HarvestRadii.card),
         child: Padding(
           padding: const EdgeInsets.all(HarvestSpacing.md),
