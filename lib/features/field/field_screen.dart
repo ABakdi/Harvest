@@ -27,6 +27,7 @@ import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
+import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -86,39 +87,25 @@ class FieldScreen extends ConsumerWidget {
           ),
           const SizedBox(height: HarvestSpacing.sm),
           Expanded(
-            // Pulling the field down opens tomorrow's plan.
-            child: RefreshIndicator(
-              displacement: 32,
-              onRefresh: () async {
-                unawaited(context.push(AppRoutes.planner));
-              },
-              child: items.isEmpty
-                  ? LayoutBuilder(
-                      builder: (context, constraints) => ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          SizedBox(
-                            height: constraints.maxHeight,
-                            child: const _EmptyField(),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(
-                        HarvestSpacing.md,
-                        HarvestSpacing.sm,
-                        HarvestSpacing.md,
-                        96,
-                      ),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) =>
-                          _CropTile(item: items[index])
-                              .animate()
-                              .fadeIn(duration: 220.ms)
-                              .slideY(begin: 0.05, curve: Curves.easeOut),
-                    ),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                HarvestSpacing.md,
+                HarvestSpacing.sm,
+                HarvestSpacing.md,
+                96,
+              ),
+              children: [
+                if (items.isEmpty)
+                  const _EmptyField()
+                else
+                  for (final item in items)
+                    _CropTile(item: item)
+                        .animate()
+                        .fadeIn(duration: 220.ms)
+                        .slideY(begin: 0.05, curve: Curves.easeOut),
+                const SizedBox(height: HarvestSpacing.sm),
+                const _TomorrowCard(),
+              ],
             ),
           ),
         ],
@@ -470,6 +457,73 @@ class _CropTile extends ConsumerWidget {
   }
 }
 
+/// Tomorrow at a glance, and the way into the evening plan — a card at
+/// the foot of the field rather than a hidden pull gesture.
+class _TomorrowCard extends ConsumerWidget {
+  const _TomorrowCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final plan = ref.watch(tomorrowPlanProvider);
+    final locale = Localizations.localeOf(context).toString();
+    final tomorrow = HarvestDay.today().next;
+    final summary = plan.habits.isEmpty && plan.todos.isEmpty
+        ? l10n.tomorrowNothing
+        : '${l10n.tomorrowHabits(plan.habits.length)} · '
+              '${l10n.tomorrowTodos(plan.todos.length)}';
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => unawaited(context.push(AppRoutes.planner)),
+        child: Padding(
+          padding: const EdgeInsets.all(HarvestSpacing.md),
+          child: Row(
+            children: [
+              IconBadge(Icons.bedtime_outlined, color: scheme.tertiary),
+              const SizedBox(width: HarvestSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${l10n.tomorrowTitle} · ${DateFormat.MMMEd(locale).format(
+                        DateTime(tomorrow.year, tomorrow.month, tomorrow.day),
+                      )}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      summary,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: HarvestSpacing.sm),
+              Text(
+                l10n.planTomorrow,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              Icon(Icons.chevron_right, color: scheme.primary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _EmptyField extends StatelessWidget {
   const _EmptyField();
 
@@ -480,7 +534,12 @@ class _EmptyField extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(HarvestSpacing.xl),
+        padding: const EdgeInsets.fromLTRB(
+          HarvestSpacing.xl,
+          HarvestSpacing.xl * 2,
+          HarvestSpacing.xl,
+          HarvestSpacing.xl,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

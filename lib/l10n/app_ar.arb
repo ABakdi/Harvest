@@ -283,5 +283,13 @@
   "budgetOverMonth": "تجاوز الميزانية بـ {amount} هذا الشهر",
   "nextRankIn": "{xp} نقطة حتى الرتبة التالية",
   "expensesToday": "{count, plural, =0{لا شيء مسجّل} =1{مصروف واحد} =2{مصروفان} other{{count} مصاريف}}",
-  "swipeToRemove": "اسحب للحذف"
+  "swipeToRemove": "اسحب للحذف",
+  "snooze10": "بعد 10 دقائق",
+  "snooze60": "بعد ساعة",
+  "snooze180": "بعد 3 ساعات",
+  "tomorrowTitle": "غدًا",
+  "tomorrowNothing": "لا شيء مخطط بعد — ازرع بذور الليلة.",
+  "tomorrowHabits": "{count, plural, =0{لا عادات مستحقة} =1{عادة واحدة مستحقة} =2{عادتان مستحقتان} other{{count} عادات مستحقة}}",
+  "tomorrowTodos": "{count, plural, =0{لا مهام} =1{مهمة واحدة مخططة} =2{مهمتان مخططتان} other{{count} مهام مخططة}}",
+  "planTomorrow": "خطّط"
 }

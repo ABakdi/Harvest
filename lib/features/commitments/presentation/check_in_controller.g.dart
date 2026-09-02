@@ -77,7 +77,7 @@ final class CommitmentEditorProvider
   CommitmentEditor create() => CommitmentEditor();
 }
 
-String _$commitmentEditorHash() => r'8195df2229e660c2308e74ac9c4882d0db18dc8f';
+String _$commitmentEditorHash() => r'32331d6eb23358ebb11a712bba48178b591c7353';
 
 abstract class _$CommitmentEditor extends $AsyncNotifier<void> {
   FutureOr<void> build();

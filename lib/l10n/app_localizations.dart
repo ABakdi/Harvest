@@ -1801,6 +1801,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Swipe to remove'**
   String get swipeToRemove;
+
+  /// No description provided for @snooze10.
+  ///
+  /// In en, this message translates to:
+  /// **'In 10 min'**
+  String get snooze10;
+
+  /// No description provided for @snooze60.
+  ///
+  /// In en, this message translates to:
+  /// **'In 1 hour'**
+  String get snooze60;
+
+  /// No description provided for @snooze180.
+  ///
+  /// In en, this message translates to:
+  /// **'In 3 hours'**
+  String get snooze180;
+
+  /// No description provided for @tomorrowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get tomorrowTitle;
+
+  /// No description provided for @tomorrowNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned yet — plant tonight\'s seeds.'**
+  String get tomorrowNothing;
+
+  /// No description provided for @tomorrowHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no habits due} =1{1 habit due} other{{count} habits due}}'**
+  String tomorrowHabits(int count);
+
+  /// No description provided for @tomorrowTodos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no to-dos} =1{1 to-do planned} other{{count} to-dos planned}}'**
+  String tomorrowTodos(int count);
+
+  /// No description provided for @planTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get planTomorrow;
 }
 
 class _AppLocalizationsDelegate

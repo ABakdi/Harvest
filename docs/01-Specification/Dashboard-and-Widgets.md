@@ -7,7 +7,7 @@ The main screen is **today's field**: every commitment due today as a crop card,
 - Tap a card → check-in ([[Productivity-Engine]]).
 - Long-press → pomodoro, edit, or skip-with-reason.
 - Pillar gauges appear as their phases ship: budget 🟢🟡🔴, sleep debt, screen time.
-- Pull down → tomorrow's plan (the ritual view).
+- A **Tomorrow** card at the foot of the field shows what's due tomorrow (habits, planned to-dos) and opens the plan ritual — an explicit door, not a hidden pull gesture.
 
 ## Stats
 

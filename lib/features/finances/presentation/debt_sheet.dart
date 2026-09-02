@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
@@ -10,6 +11,7 @@ import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
@@ -73,6 +75,8 @@ class _DebtSheetState extends ConsumerState<_DebtSheet> {
                     '${_remindAt!.minute.toString().padLeft(2, '0')}',
           note: note.isEmpty ? null : note,
         );
+    await ref.read(notificationServiceProvider).requestPermission();
+    await ref.read(notificationPlannerProvider).planToday();
   }
 
   @override

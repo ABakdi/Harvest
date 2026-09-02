@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:harvest/core/platform/reminder_actions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -7,24 +11,109 @@ import 'package:timezone/timezone.dart' as tz;
 part 'notifications.g.dart';
 
 /// Notification channel ids — one per reminder category so each can be
-/// muted individually from system settings.
+/// muted individually from system settings. Android freezes a channel's
+/// importance and sound on first use, so the alarm-grade reminders got a
+/// fresh id when they became alarms.
 abstract final class NotificationChannels {
-  static const reminders = 'reminders';
+  static const reminders = 'reminders_alarm';
   static const streak = 'streak';
   static const pomodoro = 'pomodoro';
 }
 
+/// Snooze actions carried by every reminder: `snooze:<minutes>`.
+abstract final class SnoozeActions {
+  static const prefix = 'snooze:';
+
+  static bool isSnooze(String? actionId) =>
+      actionId != null && actionId.startsWith(prefix);
+
+  static int? minutes(String? actionId) =>
+      actionId == null ? null : int.tryParse(actionId.substring(prefix.length));
+
+  static String id(int minutes) => '$prefix$minutes';
+}
+
+/// Everything a reminder needs to come back later: the route to open on
+/// tap and the content to repeat on snooze. Travels as the notification
+/// payload so a snooze can be honored with the app closed.
+@immutable
+class ReminderPayload {
+  const ReminderPayload({
+    required this.title,
+    required this.body,
+    required this.channelId,
+    this.route,
+    this.snoozeLabels = const [],
+  });
+
+  final String title;
+  final String body;
+  final String channelId;
+  final String? route;
+
+  /// (actionId, label) pairs, already localized.
+  final List<(String, String)> snoozeLabels;
+
+  String encode() => jsonEncode({
+    'title': title,
+    'body': body,
+    'channel': channelId,
+    if (route != null) 'route': route,
+    'snooze': [
+      for (final (id, label) in snoozeLabels) [id, label],
+    ],
+  });
+
+  /// Accepts the JSON form and, for older notifications, a bare route.
+  static ReminderPayload? decode(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final map = jsonDecode(raw);
+      if (map is Map<String, dynamic>) {
+        return ReminderPayload(
+          title: map['title'] as String? ?? '',
+          body: map['body'] as String? ?? '',
+          channelId:
+              map['channel'] as String? ?? NotificationChannels.reminders,
+          route: map['route'] as String?,
+          snoozeLabels: [
+            for (final pair in (map['snooze'] as List<dynamic>? ?? []))
+              if (pair is List && pair.length == 2)
+                (pair[0] as String, pair[1] as String),
+          ],
+        );
+      }
+    } on FormatException {
+      // Not JSON: a legacy route-only payload.
+    }
+    return ReminderPayload(
+      title: '',
+      body: '',
+      channelId: NotificationChannels.reminders,
+      route: raw,
+    );
+  }
+}
+
 /// Thin wrapper around the local-notifications plugin: initialization,
-/// permission request, and timezone-aware scheduling.
+/// permission requests, and timezone-aware alarm-grade scheduling.
 class NotificationService {
   final _plugin = FlutterLocalNotificationsPlugin();
   var _initialized = false;
 
-  /// Invoked with the notification payload when the user taps one.
-  void Function(String payload)? onTap;
+  /// Invoked with the reminder's route when the user taps one.
+  void Function(String route)? onTap;
 
-  /// Invoked with the action id when the user taps a notification action.
+  /// Invoked with the action id when the user taps a non-snooze action.
   void Function(String actionId)? onAction;
+
+  /// Handles a snooze tapped while the app is running (the closed-app
+  /// case goes through [reminderBackgroundHandler]).
+  Future<void> Function(NotificationResponse response)? onSnooze;
+
+  /// Localized snooze actions attached to every reminder; the planner
+  /// sets these once per plan.
+  List<(String, String)> snoozeLabels = const [];
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -35,53 +124,119 @@ class NotificationService {
     );
     await _plugin.initialize(
       settings: settings,
-      onDidReceiveNotificationResponse: (response) {
-        final actionId = response.actionId;
-        if (actionId != null && actionId.isNotEmpty) {
-          onAction?.call(actionId);
-          return;
-        }
-        final payload = response.payload;
-        if (payload != null && payload.isNotEmpty) onTap?.call(payload);
-      },
+      onDidReceiveNotificationResponse: _onResponse,
+      onDidReceiveBackgroundNotificationResponse: reminderBackgroundHandler,
     );
     _initialized = true;
   }
 
-  Future<bool> requestPermission() async {
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    if (android != null) {
-      return await android.requestNotificationsPermission() ?? false;
+  void _onResponse(NotificationResponse response) {
+    final actionId = response.actionId;
+    if (SnoozeActions.isSnooze(actionId)) {
+      final handler = onSnooze;
+      if (handler != null) unawaited(handler(response));
+      return;
     }
-    final ios = _plugin
-        .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >();
-    if (ios != null) {
-      return await ios.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          ) ??
-          false;
+    if (actionId != null && actionId.isNotEmpty) {
+      onAction?.call(actionId);
+      return;
+    }
+    final route = ReminderPayload.decode(response.payload)?.route;
+    if (route != null && route.isNotEmpty) onTap?.call(route);
+  }
+
+  /// The route of the notification that launched the app, if any.
+  Future<String?> launchRoute() async {
+    try {
+      await initialize();
+      final details = await _plugin.getNotificationAppLaunchDetails();
+      if (details?.didNotificationLaunchApp != true) return null;
+      final response = details!.notificationResponse;
+      if (response == null || SnoozeActions.isSnooze(response.actionId)) {
+        return null;
+      }
+      return ReminderPayload.decode(response.payload)?.route;
+    } on Object catch (error) {
+      debugPrint('launch details failed: $error');
+      return null;
+    }
+  }
+
+  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
+
+  /// Asks for everything an alarm needs: to post notifications, to
+  /// fire at the exact minute, and to show over the lock screen.
+  Future<bool> requestPermission() async {
+    try {
+      await initialize();
+      final android = _android;
+      if (android != null) {
+        final granted = await android.requestNotificationsPermission() ?? false;
+        if (await android.canScheduleExactNotifications() != true) {
+          await android.requestExactAlarmsPermission();
+        }
+        try {
+          await android.requestFullScreenIntentPermission();
+        } on Object catch (_) {
+          // Older Android: full-screen intents need no runtime grant.
+        }
+        return granted;
+      }
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      if (ios != null) {
+        return await ios.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            ) ??
+            false;
+      }
+    } on Object catch (error) {
+      debugPrint('notification permission failed: $error');
     }
     return false;
   }
 
-  /// Schedules a one-shot notification at [when] (local time).
+  /// Whether the OS lets us fire at the exact minute.
+  Future<bool> canScheduleExact() async {
+    try {
+      await initialize();
+      return await _android?.canScheduleExactNotifications() ?? true;
+    } on Object catch (_) {
+      return false;
+    }
+  }
+
+  /// Schedules a reminder at [when] (local time): exact when allowed,
+  /// with sound and vibration, shown over the lock screen when [alarm],
+  /// and carrying the snooze actions.
   Future<void> schedule({
     required int id,
     required String channelId,
     required String title,
     required String body,
     required DateTime when,
-    String? payload,
+    String? route,
+    bool alarm = true,
+    List<(String, String)>? snoozeLabels,
   }) async {
     try {
       await initialize();
+      final labels = snoozeLabels ?? this.snoozeLabels;
+      final payload = ReminderPayload(
+        title: title,
+        body: body,
+        channelId: channelId,
+        route: route,
+        snoozeLabels: labels,
+      ).encode();
+      final exact = await canScheduleExact();
       await _plugin.zonedSchedule(
         id: id,
         title: title,
@@ -92,12 +247,26 @@ class NotificationService {
           android: AndroidNotificationDetails(
             channelId,
             channelId,
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
+            category: AndroidNotificationCategory.reminder,
+            visibility: NotificationVisibility.public,
+            fullScreenIntent: alarm,
+            audioAttributesUsage: alarm
+                ? AudioAttributesUsage.alarm
+                : AudioAttributesUsage.notification,
+            actions: [
+              for (final (actionId, label) in labels)
+                AndroidNotificationAction(actionId, label),
+            ],
           ),
-          iOS: const DarwinNotificationDetails(),
+          iOS: const DarwinNotificationDetails(
+            interruptionLevel: InterruptionLevel.timeSensitive,
+          ),
         ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: exact
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle,
       );
     } on Object catch (error) {
       // Reminders are best-effort: never let a platform hiccup break

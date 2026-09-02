@@ -970,4 +970,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get swipeToRemove => 'Swipe to remove';
+
+  @override
+  String get snooze10 => 'In 10 min';
+
+  @override
+  String get snooze60 => 'In 1 hour';
+
+  @override
+  String get snooze180 => 'In 3 hours';
+
+  @override
+  String get tomorrowTitle => 'Tomorrow';
+
+  @override
+  String get tomorrowNothing => 'Nothing planned yet — plant tonight\'s seeds.';
+
+  @override
+  String tomorrowHabits(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count habits due',
+      one: '1 habit due',
+      zero: 'no habits due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tomorrowTodos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count to-dos planned',
+      one: '1 to-do planned',
+      zero: 'no to-dos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planTomorrow => 'Plan';
 }

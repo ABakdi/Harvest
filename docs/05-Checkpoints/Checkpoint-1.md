@@ -124,6 +124,16 @@ everything. Round 4 fixes both.
   swipe-to-remove, the expense FAB only where it belongs.
 - Amounts are thousands-grouped everywhere.
 
+## Round 5 — dogfooding v0.9.4 beta
+
+Three findings from living with the beta:
+
+| # | Finding | Plan |
+| :- | :--- | :--- |
+| P6 | The reference-style pass (flat, bordered, pressable) didn't look good in practice | **Reverted** to the round-4 look; the style reference stays in [[Design]] and the attempt is parked on the `design/reference-style` branch for another try later |
+| P7 | Pull-to-refresh opening tomorrow's plan is confusing | A **Tomorrow card** at the foot of the field: what's due tomorrow, tap to plan. The gesture is gone |
+| P8 | **Bug:** reminders don't fire; a set time should ring like an alarm and offer "remind me in…" | Five causes fixed — the fatal one first: the notifications plugin's broadcast receivers were never declared in the app manifest, so every scheduled reminder was enqueued and dropped without a trace; then seed/debt times were gated behind the master switch; creating or editing a seed never replanned; scheduling was *inexact*; the channel had no alarm settings. Now exact alarms with sound, lock-screen display, snooze actions (10 min / 1 h / 3 h) that work with the app closed and survive replans and reboots |
+
 ## Scope change
 
 Daily quests are **out of v1**: the card and its logic were removed

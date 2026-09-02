@@ -32,8 +32,7 @@ void _dispatcher() {
     try {
       final streaks = StreakService(db);
       await streaks.reconcile();
-      await NotificationPlanner(db, NotificationService(), streaks)
-          .planToday();
+      await NotificationPlanner(db, NotificationService(), streaks).planToday();
     } finally {
       await db.close();
     }

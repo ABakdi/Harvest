@@ -39,3 +39,20 @@ flowchart TD
 - Copy always uses the farming voice ([[Glossary]]) — warm, short, no shame.
 
 Implementation details: [[Notifications-and-Background]].
+
+## Alarms, not toasts (checkpoint round 5)
+
+- A time I set — a seed's *remind me at*, a debt's reminder — **always
+  fires**, regardless of the master "Allow reminders" switch; the switch
+  only governs the daily rituals (morning, evening, expense, prime time,
+  streak risk).
+- Every reminder is scheduled **exact to the minute** (Android exact
+  alarms; the app asks for the permission the first time a time is set),
+  rings on the **alarm stream** with vibration, and shows **over the lock
+  screen** for seed and debt reminders.
+- Every reminder carries **snooze actions** — *in 10 min · in 1 hour ·
+  in 3 hours*. They work with the app closed; the snoozed copy survives
+  the daily replan and a reboot.
+- Setting or editing a reminder reschedules immediately — no need to
+  reopen the app.
+

@@ -968,4 +968,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get swipeToRemove => 'اسحب للحذف';
+
+  @override
+  String get snooze10 => 'بعد 10 دقائق';
+
+  @override
+  String get snooze60 => 'بعد ساعة';
+
+  @override
+  String get snooze180 => 'بعد 3 ساعات';
+
+  @override
+  String get tomorrowTitle => 'غدًا';
+
+  @override
+  String get tomorrowNothing => 'لا شيء مخطط بعد — ازرع بذور الليلة.';
+
+  @override
+  String tomorrowHabits(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عادات مستحقة',
+      two: 'عادتان مستحقتان',
+      one: 'عادة واحدة مستحقة',
+      zero: 'لا عادات مستحقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tomorrowTodos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مهام مخططة',
+      two: 'مهمتان مخططتان',
+      one: 'مهمة واحدة مخططة',
+      zero: 'لا مهام',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planTomorrow => 'خطّط';
 }

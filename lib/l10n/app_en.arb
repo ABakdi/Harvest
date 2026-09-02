@@ -600,5 +600,27 @@
           }
       }
   },
-  "swipeToRemove": "Swipe to remove"
+  "swipeToRemove": "Swipe to remove",
+  "snooze10": "In 10 min",
+  "snooze60": "In 1 hour",
+  "snooze180": "In 3 hours",
+  "tomorrowTitle": "Tomorrow",
+  "tomorrowNothing": "Nothing planned yet — plant tonight's seeds.",
+  "tomorrowHabits": "{count, plural, =0{no habits due} =1{1 habit due} other{{count} habits due}}",
+  "@tomorrowHabits": {
+      "placeholders": {
+          "count": {
+              "type": "int"
+          }
+      }
+  },
+  "tomorrowTodos": "{count, plural, =0{no to-dos} =1{1 to-do planned} other{{count} to-dos planned}}",
+  "@tomorrowTodos": {
+      "placeholders": {
+          "count": {
+              "type": "int"
+          }
+      }
+  },
+  "planTomorrow": "Plan"
 }

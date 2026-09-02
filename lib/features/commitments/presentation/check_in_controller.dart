@@ -1,5 +1,6 @@
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
@@ -14,7 +15,10 @@ class CheckInController extends _$CheckInController {
   @override
   Future<void> build() async {}
 
-  Future<CheckInResult> checkIn(Commitment commitment, {int quantity = 1}) async {
+  Future<CheckInResult> checkIn(
+    Commitment commitment, {
+    int quantity = 1,
+  }) async {
     final result = await ref
         .read(checkInServiceProvider)
         .checkIn(commitment, quantity: quantity);
@@ -34,19 +38,30 @@ class CommitmentEditor extends _$CommitmentEditor {
   @override
   Future<void> build() async {}
 
+  /// Every write may change what needs reminding today; a reminder
+  /// time also needs the OS to let us ring.
+  Future<void> _afterWrite({String? remindAt}) async {
+    if (remindAt != null) {
+      await ref.read(notificationServiceProvider).requestPermission();
+    }
+    await ref.read(notificationPlannerProvider).reevaluate();
+  }
+
   Future<void> createHabit({
     required String title,
     required Schedule schedule,
     String? note,
     String? remindAt,
-  }) =>
-      ref.read(commitmentsRepositoryProvider).create(
-            type: CommitmentType.habit,
-            title: title,
-            schedule: schedule,
-            note: note,
-            remindAt: remindAt,
-          ).then((_) {});
+  }) => ref
+      .read(commitmentsRepositoryProvider)
+      .create(
+        type: CommitmentType.habit,
+        title: title,
+        schedule: schedule,
+        note: note,
+        remindAt: remindAt,
+      )
+      .then((_) => _afterWrite(remindAt: remindAt));
 
   Future<void> createProject({
     required String title,
@@ -55,16 +70,18 @@ class CommitmentEditor extends _$CommitmentEditor {
     String? note,
     String? remindAt,
     HarvestDay? deadline,
-  }) =>
-      ref.read(commitmentsRepositoryProvider).create(
-            type: CommitmentType.project,
-            title: title,
-            totalTarget: totalTarget,
-            dailyCommitment: dailyCommitment,
-            note: note,
-            remindAt: remindAt,
-            deadline: deadline,
-          ).then((_) {});
+  }) => ref
+      .read(commitmentsRepositoryProvider)
+      .create(
+        type: CommitmentType.project,
+        title: title,
+        totalTarget: totalTarget,
+        dailyCommitment: dailyCommitment,
+        note: note,
+        remindAt: remindAt,
+        deadline: deadline,
+      )
+      .then((_) => _afterWrite(remindAt: remindAt));
 
   Future<void> createTodo({
     required String title,
@@ -72,22 +89,30 @@ class CommitmentEditor extends _$CommitmentEditor {
     String? note,
     String? remindAt,
     HarvestDay? deadline,
-  }) =>
-      ref.read(commitmentsRepositoryProvider).create(
-            type: CommitmentType.todo,
-            title: title,
-            dueDay: dueDay,
-            note: note,
-            remindAt: remindAt,
-            deadline: deadline,
-          ).then((_) {});
+  }) => ref
+      .read(commitmentsRepositoryProvider)
+      .create(
+        type: CommitmentType.todo,
+        title: title,
+        dueDay: dueDay,
+        note: note,
+        remindAt: remindAt,
+        deadline: deadline,
+      )
+      .then((_) => _afterWrite(remindAt: remindAt));
 
-  Future<void> archive(String uuid) =>
-      ref.read(commitmentsRepositoryProvider).archive(uuid);
+  Future<void> archive(String uuid) => ref
+      .read(commitmentsRepositoryProvider)
+      .archive(uuid)
+      .then((_) => _afterWrite());
 
-  Future<void> updateCommitment(Commitment commitment) =>
-      ref.read(commitmentsRepositoryProvider).update(commitment);
+  Future<void> updateCommitment(Commitment commitment) => ref
+      .read(commitmentsRepositoryProvider)
+      .update(commitment)
+      .then((_) => _afterWrite(remindAt: commitment.remindAt));
 
-  Future<void> setPaused(String uuid, {required bool paused}) =>
-      ref.read(commitmentsRepositoryProvider).setPaused(uuid, paused: paused);
+  Future<void> setPaused(String uuid, {required bool paused}) => ref
+      .read(commitmentsRepositoryProvider)
+      .setPaused(uuid, paused: paused)
+      .then((_) => _afterWrite());
 }
