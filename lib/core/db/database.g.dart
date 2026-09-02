@@ -4024,6 +4024,1649 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
   }
 }
 
+class $MoneyTxnsTable extends MoneyTxns
+    with TableInfo<$MoneyTxnsTable, MoneyTxnRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MoneyTxnsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accountMeta = const VerificationMeta(
+    'account',
+  );
+  @override
+  late final GeneratedColumn<String> account = GeneratedColumn<String>(
+    'account',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deltaMinorMeta = const VerificationMeta(
+    'deltaMinor',
+  );
+  @override
+  late final GeneratedColumn<int> deltaMinor = GeneratedColumn<int>(
+    'delta_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('DZD'),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loggedAtMeta = const VerificationMeta(
+    'loggedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+    'logged_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    account,
+    deltaMinor,
+    currency,
+    note,
+    harvestDay,
+    loggedAt,
+    deletedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'money_txns';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MoneyTxnRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('account')) {
+      context.handle(
+        _accountMeta,
+        account.isAcceptableOrUnknown(data['account']!, _accountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountMeta);
+    }
+    if (data.containsKey('delta_minor')) {
+      context.handle(
+        _deltaMinorMeta,
+        deltaMinor.isAcceptableOrUnknown(data['delta_minor']!, _deltaMinorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deltaMinorMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('logged_at')) {
+      context.handle(
+        _loggedAtMeta,
+        loggedAt.isAcceptableOrUnknown(data['logged_at']!, _loggedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  MoneyTxnRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MoneyTxnRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      account: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account'],
+      )!,
+      deltaMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}delta_minor'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      loggedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MoneyTxnsTable createAlias(String alias) {
+    return $MoneyTxnsTable(attachedDatabase, alias);
+  }
+}
+
+class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
+  final String uuid;
+
+  /// 'wallet' | 'savings'.
+  final String account;
+
+  /// Minor units, signed: positive deposits, negative withdrawals.
+  final int deltaMinor;
+  final String currency;
+  final String? note;
+  final String harvestDay;
+  final DateTime loggedAt;
+  final DateTime? deletedAt;
+  final DateTime updatedAt;
+  const MoneyTxnRow({
+    required this.uuid,
+    required this.account,
+    required this.deltaMinor,
+    required this.currency,
+    this.note,
+    required this.harvestDay,
+    required this.loggedAt,
+    this.deletedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['account'] = Variable<String>(account);
+    map['delta_minor'] = Variable<int>(deltaMinor);
+    map['currency'] = Variable<String>(currency);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['logged_at'] = Variable<DateTime>(loggedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MoneyTxnsCompanion toCompanion(bool nullToAbsent) {
+    return MoneyTxnsCompanion(
+      uuid: Value(uuid),
+      account: Value(account),
+      deltaMinor: Value(deltaMinor),
+      currency: Value(currency),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      harvestDay: Value(harvestDay),
+      loggedAt: Value(loggedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MoneyTxnRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MoneyTxnRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      account: serializer.fromJson<String>(json['account']),
+      deltaMinor: serializer.fromJson<int>(json['deltaMinor']),
+      currency: serializer.fromJson<String>(json['currency']),
+      note: serializer.fromJson<String?>(json['note']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'account': serializer.toJson<String>(account),
+      'deltaMinor': serializer.toJson<int>(deltaMinor),
+      'currency': serializer.toJson<String>(currency),
+      'note': serializer.toJson<String?>(note),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'loggedAt': serializer.toJson<DateTime>(loggedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MoneyTxnRow copyWith({
+    String? uuid,
+    String? account,
+    int? deltaMinor,
+    String? currency,
+    Value<String?> note = const Value.absent(),
+    String? harvestDay,
+    DateTime? loggedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => MoneyTxnRow(
+    uuid: uuid ?? this.uuid,
+    account: account ?? this.account,
+    deltaMinor: deltaMinor ?? this.deltaMinor,
+    currency: currency ?? this.currency,
+    note: note.present ? note.value : this.note,
+    harvestDay: harvestDay ?? this.harvestDay,
+    loggedAt: loggedAt ?? this.loggedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MoneyTxnRow copyWithCompanion(MoneyTxnsCompanion data) {
+    return MoneyTxnRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      account: data.account.present ? data.account.value : this.account,
+      deltaMinor: data.deltaMinor.present
+          ? data.deltaMinor.value
+          : this.deltaMinor,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      note: data.note.present ? data.note.value : this.note,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MoneyTxnRow(')
+          ..write('uuid: $uuid, ')
+          ..write('account: $account, ')
+          ..write('deltaMinor: $deltaMinor, ')
+          ..write('currency: $currency, ')
+          ..write('note: $note, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    account,
+    deltaMinor,
+    currency,
+    note,
+    harvestDay,
+    loggedAt,
+    deletedAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MoneyTxnRow &&
+          other.uuid == this.uuid &&
+          other.account == this.account &&
+          other.deltaMinor == this.deltaMinor &&
+          other.currency == this.currency &&
+          other.note == this.note &&
+          other.harvestDay == this.harvestDay &&
+          other.loggedAt == this.loggedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
+  final Value<String> uuid;
+  final Value<String> account;
+  final Value<int> deltaMinor;
+  final Value<String> currency;
+  final Value<String?> note;
+  final Value<String> harvestDay;
+  final Value<DateTime> loggedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MoneyTxnsCompanion({
+    this.uuid = const Value.absent(),
+    this.account = const Value.absent(),
+    this.deltaMinor = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.note = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MoneyTxnsCompanion.insert({
+    required String uuid,
+    required String account,
+    required int deltaMinor,
+    this.currency = const Value.absent(),
+    this.note = const Value.absent(),
+    required String harvestDay,
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       account = Value(account),
+       deltaMinor = Value(deltaMinor),
+       harvestDay = Value(harvestDay);
+  static Insertable<MoneyTxnRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? account,
+    Expression<int>? deltaMinor,
+    Expression<String>? currency,
+    Expression<String>? note,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? loggedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (account != null) 'account': account,
+      if (deltaMinor != null) 'delta_minor': deltaMinor,
+      if (currency != null) 'currency': currency,
+      if (note != null) 'note': note,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (loggedAt != null) 'logged_at': loggedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MoneyTxnsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? account,
+    Value<int>? deltaMinor,
+    Value<String>? currency,
+    Value<String?>? note,
+    Value<String>? harvestDay,
+    Value<DateTime>? loggedAt,
+    Value<DateTime?>? deletedAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return MoneyTxnsCompanion(
+      uuid: uuid ?? this.uuid,
+      account: account ?? this.account,
+      deltaMinor: deltaMinor ?? this.deltaMinor,
+      currency: currency ?? this.currency,
+      note: note ?? this.note,
+      harvestDay: harvestDay ?? this.harvestDay,
+      loggedAt: loggedAt ?? this.loggedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (account.present) {
+      map['account'] = Variable<String>(account.value);
+    }
+    if (deltaMinor.present) {
+      map['delta_minor'] = Variable<int>(deltaMinor.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (loggedAt.present) {
+      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MoneyTxnsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('account: $account, ')
+          ..write('deltaMinor: $deltaMinor, ')
+          ..write('currency: $currency, ')
+          ..write('note: $note, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DebtsTable extends Debts with TableInfo<$DebtsTable, DebtRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DebtsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _personMeta = const VerificationMeta('person');
+  @override
+  late final GeneratedColumn<String> person = GeneratedColumn<String>(
+    'person',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('DZD'),
+  );
+  static const VerificationMeta _payOffByMeta = const VerificationMeta(
+    'payOffBy',
+  );
+  @override
+  late final GeneratedColumn<String> payOffBy = GeneratedColumn<String>(
+    'pay_off_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remindAtMeta = const VerificationMeta(
+    'remindAt',
+  );
+  @override
+  late final GeneratedColumn<String> remindAt = GeneratedColumn<String>(
+    'remind_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _settledAtMeta = const VerificationMeta(
+    'settledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> settledAt = GeneratedColumn<DateTime>(
+    'settled_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    person,
+    amountMinor,
+    currency,
+    payOffBy,
+    remindAt,
+    note,
+    settledAt,
+    createdAt,
+    deletedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'debts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DebtRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('person')) {
+      context.handle(
+        _personMeta,
+        person.isAcceptableOrUnknown(data['person']!, _personMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_personMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('pay_off_by')) {
+      context.handle(
+        _payOffByMeta,
+        payOffBy.isAcceptableOrUnknown(data['pay_off_by']!, _payOffByMeta),
+      );
+    }
+    if (data.containsKey('remind_at')) {
+      context.handle(
+        _remindAtMeta,
+        remindAt.isAcceptableOrUnknown(data['remind_at']!, _remindAtMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('settled_at')) {
+      context.handle(
+        _settledAtMeta,
+        settledAt.isAcceptableOrUnknown(data['settled_at']!, _settledAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  DebtRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DebtRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      person: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}person'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      payOffBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pay_off_by'],
+      ),
+      remindAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remind_at'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      settledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}settled_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DebtsTable createAlias(String alias) {
+    return $DebtsTable(attachedDatabase, alias);
+  }
+}
+
+class DebtRow extends DataClass implements Insertable<DebtRow> {
+  final String uuid;
+  final String person;
+  final int amountMinor;
+  final String currency;
+  final String? payOffBy;
+
+  /// "HH:mm" daily reminder time; a default applies when unset.
+  final String? remindAt;
+  final String? note;
+  final DateTime? settledAt;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  final DateTime updatedAt;
+  const DebtRow({
+    required this.uuid,
+    required this.person,
+    required this.amountMinor,
+    required this.currency,
+    this.payOffBy,
+    this.remindAt,
+    this.note,
+    this.settledAt,
+    required this.createdAt,
+    this.deletedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['person'] = Variable<String>(person);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['currency'] = Variable<String>(currency);
+    if (!nullToAbsent || payOffBy != null) {
+      map['pay_off_by'] = Variable<String>(payOffBy);
+    }
+    if (!nullToAbsent || remindAt != null) {
+      map['remind_at'] = Variable<String>(remindAt);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || settledAt != null) {
+      map['settled_at'] = Variable<DateTime>(settledAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DebtsCompanion toCompanion(bool nullToAbsent) {
+    return DebtsCompanion(
+      uuid: Value(uuid),
+      person: Value(person),
+      amountMinor: Value(amountMinor),
+      currency: Value(currency),
+      payOffBy: payOffBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(payOffBy),
+      remindAt: remindAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindAt),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      settledAt: settledAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(settledAt),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory DebtRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DebtRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      person: serializer.fromJson<String>(json['person']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      currency: serializer.fromJson<String>(json['currency']),
+      payOffBy: serializer.fromJson<String?>(json['payOffBy']),
+      remindAt: serializer.fromJson<String?>(json['remindAt']),
+      note: serializer.fromJson<String?>(json['note']),
+      settledAt: serializer.fromJson<DateTime?>(json['settledAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'person': serializer.toJson<String>(person),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'currency': serializer.toJson<String>(currency),
+      'payOffBy': serializer.toJson<String?>(payOffBy),
+      'remindAt': serializer.toJson<String?>(remindAt),
+      'note': serializer.toJson<String?>(note),
+      'settledAt': serializer.toJson<DateTime?>(settledAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  DebtRow copyWith({
+    String? uuid,
+    String? person,
+    int? amountMinor,
+    String? currency,
+    Value<String?> payOffBy = const Value.absent(),
+    Value<String?> remindAt = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    Value<DateTime?> settledAt = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => DebtRow(
+    uuid: uuid ?? this.uuid,
+    person: person ?? this.person,
+    amountMinor: amountMinor ?? this.amountMinor,
+    currency: currency ?? this.currency,
+    payOffBy: payOffBy.present ? payOffBy.value : this.payOffBy,
+    remindAt: remindAt.present ? remindAt.value : this.remindAt,
+    note: note.present ? note.value : this.note,
+    settledAt: settledAt.present ? settledAt.value : this.settledAt,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  DebtRow copyWithCompanion(DebtsCompanion data) {
+    return DebtRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      person: data.person.present ? data.person.value : this.person,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      payOffBy: data.payOffBy.present ? data.payOffBy.value : this.payOffBy,
+      remindAt: data.remindAt.present ? data.remindAt.value : this.remindAt,
+      note: data.note.present ? data.note.value : this.note,
+      settledAt: data.settledAt.present ? data.settledAt.value : this.settledAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DebtRow(')
+          ..write('uuid: $uuid, ')
+          ..write('person: $person, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
+          ..write('payOffBy: $payOffBy, ')
+          ..write('remindAt: $remindAt, ')
+          ..write('note: $note, ')
+          ..write('settledAt: $settledAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    person,
+    amountMinor,
+    currency,
+    payOffBy,
+    remindAt,
+    note,
+    settledAt,
+    createdAt,
+    deletedAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DebtRow &&
+          other.uuid == this.uuid &&
+          other.person == this.person &&
+          other.amountMinor == this.amountMinor &&
+          other.currency == this.currency &&
+          other.payOffBy == this.payOffBy &&
+          other.remindAt == this.remindAt &&
+          other.note == this.note &&
+          other.settledAt == this.settledAt &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DebtsCompanion extends UpdateCompanion<DebtRow> {
+  final Value<String> uuid;
+  final Value<String> person;
+  final Value<int> amountMinor;
+  final Value<String> currency;
+  final Value<String?> payOffBy;
+  final Value<String?> remindAt;
+  final Value<String?> note;
+  final Value<DateTime?> settledAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const DebtsCompanion({
+    this.uuid = const Value.absent(),
+    this.person = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.payOffBy = const Value.absent(),
+    this.remindAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.settledAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DebtsCompanion.insert({
+    required String uuid,
+    required String person,
+    required int amountMinor,
+    this.currency = const Value.absent(),
+    this.payOffBy = const Value.absent(),
+    this.remindAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.settledAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       person = Value(person),
+       amountMinor = Value(amountMinor);
+  static Insertable<DebtRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? person,
+    Expression<int>? amountMinor,
+    Expression<String>? currency,
+    Expression<String>? payOffBy,
+    Expression<String>? remindAt,
+    Expression<String>? note,
+    Expression<DateTime>? settledAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (person != null) 'person': person,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (currency != null) 'currency': currency,
+      if (payOffBy != null) 'pay_off_by': payOffBy,
+      if (remindAt != null) 'remind_at': remindAt,
+      if (note != null) 'note': note,
+      if (settledAt != null) 'settled_at': settledAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DebtsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? person,
+    Value<int>? amountMinor,
+    Value<String>? currency,
+    Value<String?>? payOffBy,
+    Value<String?>? remindAt,
+    Value<String?>? note,
+    Value<DateTime?>? settledAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return DebtsCompanion(
+      uuid: uuid ?? this.uuid,
+      person: person ?? this.person,
+      amountMinor: amountMinor ?? this.amountMinor,
+      currency: currency ?? this.currency,
+      payOffBy: payOffBy ?? this.payOffBy,
+      remindAt: remindAt ?? this.remindAt,
+      note: note ?? this.note,
+      settledAt: settledAt ?? this.settledAt,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (person.present) {
+      map['person'] = Variable<String>(person.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (payOffBy.present) {
+      map['pay_off_by'] = Variable<String>(payOffBy.value);
+    }
+    if (remindAt.present) {
+      map['remind_at'] = Variable<String>(remindAt.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (settledAt.present) {
+      map['settled_at'] = Variable<DateTime>(settledAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DebtsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('person: $person, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
+          ..write('payOffBy: $payOffBy, ')
+          ..write('remindAt: $remindAt, ')
+          ..write('note: $note, ')
+          ..write('settledAt: $settledAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DebtPaymentsTable extends DebtPayments
+    with TableInfo<$DebtPaymentsTable, DebtPaymentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DebtPaymentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _debtUuidMeta = const VerificationMeta(
+    'debtUuid',
+  );
+  @override
+  late final GeneratedColumn<String> debtUuid = GeneratedColumn<String>(
+    'debt_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES debts (uuid)',
+    ),
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loggedAtMeta = const VerificationMeta(
+    'loggedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+    'logged_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    debtUuid,
+    amountMinor,
+    harvestDay,
+    loggedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'debt_payments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DebtPaymentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('debt_uuid')) {
+      context.handle(
+        _debtUuidMeta,
+        debtUuid.isAcceptableOrUnknown(data['debt_uuid']!, _debtUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_debtUuidMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('logged_at')) {
+      context.handle(
+        _loggedAtMeta,
+        loggedAt.isAcceptableOrUnknown(data['logged_at']!, _loggedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  DebtPaymentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DebtPaymentRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      debtUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}debt_uuid'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      loggedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $DebtPaymentsTable createAlias(String alias) {
+    return $DebtPaymentsTable(attachedDatabase, alias);
+  }
+}
+
+class DebtPaymentRow extends DataClass implements Insertable<DebtPaymentRow> {
+  final String uuid;
+  final String debtUuid;
+  final int amountMinor;
+  final String harvestDay;
+  final DateTime loggedAt;
+  final DateTime? deletedAt;
+  const DebtPaymentRow({
+    required this.uuid,
+    required this.debtUuid,
+    required this.amountMinor,
+    required this.harvestDay,
+    required this.loggedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['debt_uuid'] = Variable<String>(debtUuid);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['logged_at'] = Variable<DateTime>(loggedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  DebtPaymentsCompanion toCompanion(bool nullToAbsent) {
+    return DebtPaymentsCompanion(
+      uuid: Value(uuid),
+      debtUuid: Value(debtUuid),
+      amountMinor: Value(amountMinor),
+      harvestDay: Value(harvestDay),
+      loggedAt: Value(loggedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory DebtPaymentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DebtPaymentRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      debtUuid: serializer.fromJson<String>(json['debtUuid']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'debtUuid': serializer.toJson<String>(debtUuid),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'loggedAt': serializer.toJson<DateTime>(loggedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  DebtPaymentRow copyWith({
+    String? uuid,
+    String? debtUuid,
+    int? amountMinor,
+    String? harvestDay,
+    DateTime? loggedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => DebtPaymentRow(
+    uuid: uuid ?? this.uuid,
+    debtUuid: debtUuid ?? this.debtUuid,
+    amountMinor: amountMinor ?? this.amountMinor,
+    harvestDay: harvestDay ?? this.harvestDay,
+    loggedAt: loggedAt ?? this.loggedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  DebtPaymentRow copyWithCompanion(DebtPaymentsCompanion data) {
+    return DebtPaymentRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      debtUuid: data.debtUuid.present ? data.debtUuid.value : this.debtUuid,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DebtPaymentRow(')
+          ..write('uuid: $uuid, ')
+          ..write('debtUuid: $debtUuid, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uuid, debtUuid, amountMinor, harvestDay, loggedAt, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DebtPaymentRow &&
+          other.uuid == this.uuid &&
+          other.debtUuid == this.debtUuid &&
+          other.amountMinor == this.amountMinor &&
+          other.harvestDay == this.harvestDay &&
+          other.loggedAt == this.loggedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class DebtPaymentsCompanion extends UpdateCompanion<DebtPaymentRow> {
+  final Value<String> uuid;
+  final Value<String> debtUuid;
+  final Value<int> amountMinor;
+  final Value<String> harvestDay;
+  final Value<DateTime> loggedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const DebtPaymentsCompanion({
+    this.uuid = const Value.absent(),
+    this.debtUuid = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DebtPaymentsCompanion.insert({
+    required String uuid,
+    required String debtUuid,
+    required int amountMinor,
+    required String harvestDay,
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       debtUuid = Value(debtUuid),
+       amountMinor = Value(amountMinor),
+       harvestDay = Value(harvestDay);
+  static Insertable<DebtPaymentRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? debtUuid,
+    Expression<int>? amountMinor,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? loggedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (debtUuid != null) 'debt_uuid': debtUuid,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (loggedAt != null) 'logged_at': loggedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DebtPaymentsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? debtUuid,
+    Value<int>? amountMinor,
+    Value<String>? harvestDay,
+    Value<DateTime>? loggedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return DebtPaymentsCompanion(
+      uuid: uuid ?? this.uuid,
+      debtUuid: debtUuid ?? this.debtUuid,
+      amountMinor: amountMinor ?? this.amountMinor,
+      harvestDay: harvestDay ?? this.harvestDay,
+      loggedAt: loggedAt ?? this.loggedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (debtUuid.present) {
+      map['debt_uuid'] = Variable<String>(debtUuid.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (loggedAt.present) {
+      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DebtPaymentsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('debtUuid: $debtUuid, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OutboxTable extends Outbox with TableInfo<$OutboxTable, OutboxData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4654,6 +6297,9 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   late final $ExpensesTable expenses = $ExpensesTable(this);
   late final $ExpenseCategoriesTable expenseCategories =
       $ExpenseCategoriesTable(this);
+  late final $MoneyTxnsTable moneyTxns = $MoneyTxnsTable(this);
+  late final $DebtsTable debts = $DebtsTable(this);
+  late final $DebtPaymentsTable debtPayments = $DebtPaymentsTable(this);
   late final $OutboxTable outbox = $OutboxTable(this);
   late final $KvSettingsTable kvSettings = $KvSettingsTable(this);
   @override
@@ -4669,6 +6315,9 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     pomodoroSessions,
     expenses,
     expenseCategories,
+    moneyTxns,
+    debts,
+    debtPayments,
     outbox,
     kvSettings,
   ];
@@ -6923,6 +8572,1037 @@ typedef $$ExpenseCategoriesTableProcessedTableManager =
       ExpenseCategoryRow,
       PrefetchHooks Function()
     >;
+typedef $$MoneyTxnsTableCreateCompanionBuilder = MoneyTxnsCompanion Function({
+  required String uuid,
+  required String account,
+  required int deltaMinor,
+  Value<String> currency,
+  Value<String?> note,
+  required String harvestDay,
+  Value<DateTime> loggedAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$MoneyTxnsTableUpdateCompanionBuilder = MoneyTxnsCompanion Function({
+  Value<String> uuid,
+  Value<String> account,
+  Value<int> deltaMinor,
+  Value<String> currency,
+  Value<String?> note,
+  Value<String> harvestDay,
+  Value<DateTime> loggedAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$MoneyTxnsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $MoneyTxnsTable> {
+  $$MoneyTxnsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get account => $composableBuilder(
+    column: $table.account,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deltaMinor => $composableBuilder(
+    column: $table.deltaMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MoneyTxnsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $MoneyTxnsTable> {
+  $$MoneyTxnsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get account => $composableBuilder(
+    column: $table.account,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deltaMinor => $composableBuilder(
+    column: $table.deltaMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MoneyTxnsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $MoneyTxnsTable> {
+  $$MoneyTxnsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get account =>
+      $composableBuilder(column: $table.account, builder: (column) => column);
+
+  GeneratedColumn<int> get deltaMinor => $composableBuilder(
+    column: $table.deltaMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get loggedAt =>
+      $composableBuilder(column: $table.loggedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$MoneyTxnsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $MoneyTxnsTable,
+          MoneyTxnRow,
+          $$MoneyTxnsTableFilterComposer,
+          $$MoneyTxnsTableOrderingComposer,
+          $$MoneyTxnsTableAnnotationComposer,
+          $$MoneyTxnsTableCreateCompanionBuilder,
+          $$MoneyTxnsTableUpdateCompanionBuilder,
+          (
+            MoneyTxnRow,
+            BaseReferences<_$HarvestDatabase, $MoneyTxnsTable, MoneyTxnRow>,
+          ),
+          MoneyTxnRow,
+          PrefetchHooks Function()
+        > {
+  $$MoneyTxnsTableTableManager(_$HarvestDatabase db, $MoneyTxnsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MoneyTxnsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MoneyTxnsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MoneyTxnsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> account = const Value.absent(),
+                Value<int> deltaMinor = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MoneyTxnsCompanion(
+                uuid: uuid,
+                account: account,
+                deltaMinor: deltaMinor,
+                currency: currency,
+                note: note,
+                harvestDay: harvestDay,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String account,
+                required int deltaMinor,
+                Value<String> currency = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                required String harvestDay,
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MoneyTxnsCompanion.insert(
+                uuid: uuid,
+                account: account,
+                deltaMinor: deltaMinor,
+                currency: currency,
+                note: note,
+                harvestDay: harvestDay,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MoneyTxnsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $MoneyTxnsTable,
+      MoneyTxnRow,
+      $$MoneyTxnsTableFilterComposer,
+      $$MoneyTxnsTableOrderingComposer,
+      $$MoneyTxnsTableAnnotationComposer,
+      $$MoneyTxnsTableCreateCompanionBuilder,
+      $$MoneyTxnsTableUpdateCompanionBuilder,
+      (
+        MoneyTxnRow,
+        BaseReferences<_$HarvestDatabase, $MoneyTxnsTable, MoneyTxnRow>,
+      ),
+      MoneyTxnRow,
+      PrefetchHooks Function()
+    >;
+typedef $$DebtsTableCreateCompanionBuilder = DebtsCompanion Function({
+  required String uuid,
+  required String person,
+  required int amountMinor,
+  Value<String> currency,
+  Value<String?> payOffBy,
+  Value<String?> remindAt,
+  Value<String?> note,
+  Value<DateTime?> settledAt,
+  Value<DateTime> createdAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$DebtsTableUpdateCompanionBuilder = DebtsCompanion Function({
+  Value<String> uuid,
+  Value<String> person,
+  Value<int> amountMinor,
+  Value<String> currency,
+  Value<String?> payOffBy,
+  Value<String?> remindAt,
+  Value<String?> note,
+  Value<DateTime?> settledAt,
+  Value<DateTime> createdAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+final class $$DebtsTableReferences
+    extends BaseReferences<_$HarvestDatabase, $DebtsTable, DebtRow> {
+  $$DebtsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$DebtPaymentsTable, List<DebtPaymentRow>>
+  _debtPaymentsRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
+    db.debtPayments,
+    aliasName: 'debts__uuid__debt_payments__debt_uuid',
+  );
+
+  $$DebtPaymentsTableProcessedTableManager get debtPaymentsRefs {
+    final manager = $$DebtPaymentsTableTableManager(
+      $_db,
+      $_db.debtPayments,
+    ).filter((f) => f.debtUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
+
+    final cache = $_typedResult.readTableOrNull(_debtPaymentsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$DebtsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $DebtsTable> {
+  $$DebtsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get person => $composableBuilder(
+    column: $table.person,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payOffBy => $composableBuilder(
+    column: $table.payOffBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remindAt => $composableBuilder(
+    column: $table.remindAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get settledAt => $composableBuilder(
+    column: $table.settledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> debtPaymentsRefs(
+    Expression<bool> Function($$DebtPaymentsTableFilterComposer f) f,
+  ) {
+    final $$DebtPaymentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.debtPayments,
+      getReferencedColumn: (t) => t.debtUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DebtPaymentsTableFilterComposer(
+            $db: $db,
+            $table: $db.debtPayments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$DebtsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $DebtsTable> {
+  $$DebtsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get person => $composableBuilder(
+    column: $table.person,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payOffBy => $composableBuilder(
+    column: $table.payOffBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remindAt => $composableBuilder(
+    column: $table.remindAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get settledAt => $composableBuilder(
+    column: $table.settledAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DebtsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $DebtsTable> {
+  $$DebtsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get person =>
+      $composableBuilder(column: $table.person, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get payOffBy =>
+      $composableBuilder(column: $table.payOffBy, builder: (column) => column);
+
+  GeneratedColumn<String> get remindAt =>
+      $composableBuilder(column: $table.remindAt, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get settledAt =>
+      $composableBuilder(column: $table.settledAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> debtPaymentsRefs<T extends Object>(
+    Expression<T> Function($$DebtPaymentsTableAnnotationComposer a) f,
+  ) {
+    final $$DebtPaymentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.debtPayments,
+      getReferencedColumn: (t) => t.debtUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DebtPaymentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.debtPayments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$DebtsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $DebtsTable,
+          DebtRow,
+          $$DebtsTableFilterComposer,
+          $$DebtsTableOrderingComposer,
+          $$DebtsTableAnnotationComposer,
+          $$DebtsTableCreateCompanionBuilder,
+          $$DebtsTableUpdateCompanionBuilder,
+          (DebtRow, $$DebtsTableReferences),
+          DebtRow,
+          PrefetchHooks Function({bool debtPaymentsRefs})
+        > {
+  $$DebtsTableTableManager(_$HarvestDatabase db, $DebtsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DebtsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DebtsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DebtsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> person = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String?> payOffBy = const Value.absent(),
+                Value<String?> remindAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime?> settledAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DebtsCompanion(
+                uuid: uuid,
+                person: person,
+                amountMinor: amountMinor,
+                currency: currency,
+                payOffBy: payOffBy,
+                remindAt: remindAt,
+                note: note,
+                settledAt: settledAt,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String person,
+                required int amountMinor,
+                Value<String> currency = const Value.absent(),
+                Value<String?> payOffBy = const Value.absent(),
+                Value<String?> remindAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime?> settledAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DebtsCompanion.insert(
+                uuid: uuid,
+                person: person,
+                amountMinor: amountMinor,
+                currency: currency,
+                payOffBy: payOffBy,
+                remindAt: remindAt,
+                note: note,
+                settledAt: settledAt,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$DebtsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({debtPaymentsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (debtPaymentsRefs) db.debtPayments],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (debtPaymentsRefs)
+                    await $_getPrefetchedData<
+                      DebtRow,
+                      $DebtsTable,
+                      DebtPaymentRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$DebtsTableReferences
+                          ._debtPaymentsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$DebtsTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).debtPaymentsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.debtUuid == item.uuid),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$DebtsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $DebtsTable,
+      DebtRow,
+      $$DebtsTableFilterComposer,
+      $$DebtsTableOrderingComposer,
+      $$DebtsTableAnnotationComposer,
+      $$DebtsTableCreateCompanionBuilder,
+      $$DebtsTableUpdateCompanionBuilder,
+      (DebtRow, $$DebtsTableReferences),
+      DebtRow,
+      PrefetchHooks Function({bool debtPaymentsRefs})
+    >;
+typedef $$DebtPaymentsTableCreateCompanionBuilder =
+    DebtPaymentsCompanion Function({
+      required String uuid,
+      required String debtUuid,
+      required int amountMinor,
+      required String harvestDay,
+      Value<DateTime> loggedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$DebtPaymentsTableUpdateCompanionBuilder =
+    DebtPaymentsCompanion Function({
+      Value<String> uuid,
+      Value<String> debtUuid,
+      Value<int> amountMinor,
+      Value<String> harvestDay,
+      Value<DateTime> loggedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$DebtPaymentsTableReferences
+    extends
+        BaseReferences<_$HarvestDatabase, $DebtPaymentsTable, DebtPaymentRow> {
+  $$DebtPaymentsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DebtsTable _debtUuidTable(_$HarvestDatabase db) =>
+      db.debts.createAlias('debt_payments__debt_uuid__debts__uuid');
+
+  $$DebtsTableProcessedTableManager get debtUuid {
+    final $_column = $_itemColumn<String>('debt_uuid')!;
+
+    final manager = $$DebtsTableTableManager(
+      $_db,
+      $_db.debts,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_debtUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$DebtPaymentsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $DebtPaymentsTable> {
+  $$DebtPaymentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DebtsTableFilterComposer get debtUuid {
+    final $$DebtsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.debtUuid,
+      referencedTable: $db.debts,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DebtsTableFilterComposer(
+            $db: $db,
+            $table: $db.debts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DebtPaymentsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $DebtPaymentsTable> {
+  $$DebtPaymentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DebtsTableOrderingComposer get debtUuid {
+    final $$DebtsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.debtUuid,
+      referencedTable: $db.debts,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DebtsTableOrderingComposer(
+            $db: $db,
+            $table: $db.debts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DebtPaymentsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $DebtPaymentsTable> {
+  $$DebtPaymentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get loggedAt =>
+      $composableBuilder(column: $table.loggedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$DebtsTableAnnotationComposer get debtUuid {
+    final $$DebtsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.debtUuid,
+      referencedTable: $db.debts,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DebtsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.debts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DebtPaymentsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $DebtPaymentsTable,
+          DebtPaymentRow,
+          $$DebtPaymentsTableFilterComposer,
+          $$DebtPaymentsTableOrderingComposer,
+          $$DebtPaymentsTableAnnotationComposer,
+          $$DebtPaymentsTableCreateCompanionBuilder,
+          $$DebtPaymentsTableUpdateCompanionBuilder,
+          (DebtPaymentRow, $$DebtPaymentsTableReferences),
+          DebtPaymentRow,
+          PrefetchHooks Function({bool debtUuid})
+        > {
+  $$DebtPaymentsTableTableManager(
+    _$HarvestDatabase db,
+    $DebtPaymentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DebtPaymentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DebtPaymentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DebtPaymentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> debtUuid = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DebtPaymentsCompanion(
+                uuid: uuid,
+                debtUuid: debtUuid,
+                amountMinor: amountMinor,
+                harvestDay: harvestDay,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String debtUuid,
+                required int amountMinor,
+                required String harvestDay,
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DebtPaymentsCompanion.insert(
+                uuid: uuid,
+                debtUuid: debtUuid,
+                amountMinor: amountMinor,
+                harvestDay: harvestDay,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DebtPaymentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({debtUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (debtUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.debtUuid,
+                        referencedTable: $$DebtPaymentsTableReferences
+                            ._debtUuidTable(db),
+                        referencedColumn: $$DebtPaymentsTableReferences
+                            ._debtUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$DebtPaymentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $DebtPaymentsTable,
+      DebtPaymentRow,
+      $$DebtPaymentsTableFilterComposer,
+      $$DebtPaymentsTableOrderingComposer,
+      $$DebtPaymentsTableAnnotationComposer,
+      $$DebtPaymentsTableCreateCompanionBuilder,
+      $$DebtPaymentsTableUpdateCompanionBuilder,
+      (DebtPaymentRow, $$DebtPaymentsTableReferences),
+      DebtPaymentRow,
+      PrefetchHooks Function({bool debtUuid})
+    >;
 typedef $$OutboxTableCreateCompanionBuilder = OutboxCompanion Function({
   Value<int> seq,
   required String targetTable,
@@ -7294,6 +9974,12 @@ class $HarvestDatabaseManager {
       $$ExpensesTableTableManager(_db, _db.expenses);
   $$ExpenseCategoriesTableTableManager get expenseCategories =>
       $$ExpenseCategoriesTableTableManager(_db, _db.expenseCategories);
+  $$MoneyTxnsTableTableManager get moneyTxns =>
+      $$MoneyTxnsTableTableManager(_db, _db.moneyTxns);
+  $$DebtsTableTableManager get debts =>
+      $$DebtsTableTableManager(_db, _db.debts);
+  $$DebtPaymentsTableTableManager get debtPayments =>
+      $$DebtPaymentsTableTableManager(_db, _db.debtPayments);
   $$OutboxTableTableManager get outbox =>
       $$OutboxTableTableManager(_db, _db.outbox);
   $$KvSettingsTableTableManager get kvSettings =>

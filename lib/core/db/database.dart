@@ -146,6 +146,64 @@ class Expenses extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
+/// Wallet and savings movements (checkpoint round 3): a signed delta
+/// per account, so balances are sums and history is the record.
+@DataClassName('MoneyTxnRow')
+class MoneyTxns extends Table {
+  TextColumn get uuid => text()();
+
+  /// 'wallet' | 'savings'.
+  TextColumn get account => text()();
+
+  /// Minor units, signed: positive deposits, negative withdrawals.
+  IntColumn get deltaMinor => integer()();
+  TextColumn get currency => text().withDefault(const Constant('DZD'))();
+  TextColumn get note => text().nullable()();
+  TextColumn get harvestDay => text()();
+  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// Money owed to someone — amount, no interest, optional pay-off day
+/// and a daily reminder until settled.
+@DataClassName('DebtRow')
+class Debts extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get person => text()();
+  IntColumn get amountMinor => integer()();
+  TextColumn get currency => text().withDefault(const Constant('DZD'))();
+  TextColumn get payOffBy => text().nullable()();
+
+  /// "HH:mm" daily reminder time; a default applies when unset.
+  TextColumn get remindAt => text().nullable()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get settledAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// Partial pay-offs against a debt.
+@DataClassName('DebtPaymentRow')
+class DebtPayments extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get debtUuid => text().references(Debts, #uuid)();
+  IntColumn get amountMinor => integer()();
+  TextColumn get harvestDay => text()();
+  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
 /// User-created expense categories layered on top of the presets.
 @DataClassName('ExpenseCategoryRow')
 class ExpenseCategories extends Table {
@@ -194,6 +252,9 @@ class KvSettings extends Table {
     PomodoroSessions,
     Expenses,
     ExpenseCategories,
+    MoneyTxns,
+    Debts,
+    DebtPayments,
     Outbox,
     KvSettings,
   ],
@@ -204,7 +265,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -226,6 +287,11 @@ class HarvestDatabase extends _$HarvestDatabase {
           }
           if (from < 5 && !expensesJustCreated) {
             await m.addColumn(expenses, expenses.currency);
+          }
+          if (from < 6) {
+            await m.createTable(moneyTxns);
+            await m.createTable(debts);
+            await m.createTable(debtPayments);
           }
         },
       );
