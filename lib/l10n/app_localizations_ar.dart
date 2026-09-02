@@ -585,4 +585,131 @@ class AppLocalizationsAr extends AppLocalizations {
   String weeklyTopSpending(String category) {
     return 'أكثر إنفاق: $category';
   }
+
+  @override
+  String get settingsPomodoro => 'مؤقت التركيز';
+
+  @override
+  String get pomodoroFocusLen => 'مدة التركيز';
+
+  @override
+  String get pomodoroShortLen => 'الاستراحة القصيرة';
+
+  @override
+  String get pomodoroLongLen => 'الاستراحة الطويلة';
+
+  @override
+  String get pomodoroBlocks => 'الفترات قبل الاستراحة الطويلة';
+
+  @override
+  String minutesValue(int count) {
+    return '$count دقيقة';
+  }
+
+  @override
+  String get settingsStyle => 'الطابع';
+
+  @override
+  String get presetHarvest => 'حصاد';
+
+  @override
+  String get presetSunrise => 'شروق';
+
+  @override
+  String get presetOcean => 'محيط';
+
+  @override
+  String get presetOrchard => 'بستان';
+
+  @override
+  String get presetDusk => 'غسق';
+
+  @override
+  String get advancedOptions => 'خيارات متقدمة';
+
+  @override
+  String get seedNoteLabel => 'ملاحظة';
+
+  @override
+  String get remindMeAt => 'ذكّرني في';
+
+  @override
+  String get deadlineLabel => 'أنجز قبل';
+
+  @override
+  String get notSet => 'غير محدد';
+
+  @override
+  String get clear => 'مسح';
+
+  @override
+  String get pickDate => 'اختر تاريخًا';
+
+  @override
+  String dueOn(String date) {
+    return 'الموعد $date';
+  }
+
+  @override
+  String overdueBy(String date) {
+    return 'متأخر — كان الموعد $date';
+  }
+
+  @override
+  String get taskReminderBody => 'هناك بذرة تنتظر السقاية.';
+
+  @override
+  String get newCategory => 'فئة جديدة';
+
+  @override
+  String get categoryName => 'اسم الفئة';
+
+  @override
+  String get manageCategories => 'الفئات المخصصة';
+
+  @override
+  String get todayTab => 'اليوم';
+
+  @override
+  String get insightsTab => 'تحليلات';
+
+  @override
+  String get savingsLabel => 'المدخرات';
+
+  @override
+  String get expectedDailyLabel => 'الإنفاق اليومي المتوقع';
+
+  @override
+  String get savingsLow => 'المدخرات تنخفض';
+
+  @override
+  String get rangeWeek => 'أسبوع';
+
+  @override
+  String get rangeMonth => 'شهر';
+
+  @override
+  String get totalSpent => 'الإجمالي';
+
+  @override
+  String avgPerDay(String amount) {
+    return '$amount / يوم';
+  }
+
+  @override
+  String get noSpendingYet => 'لا إنفاق في هذه الفترة بعد.';
+
+  @override
+  String get calendarTitle => 'التقويم';
+
+  @override
+  String get calNothingDue => 'لا شيء مزروع لهذا اليوم.';
+
+  @override
+  String calDeadline(String title) {
+    return 'موعد نهائي: $title';
+  }
+
+  @override
+  String get calAddForDay => 'ازرع مهمة لهذا اليوم…';
 }

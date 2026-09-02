@@ -267,3 +267,54 @@ abstract class _$ReminderSettings
     return element.handleCreate(ref, build);
   }
 }
+
+/// Which of the five looks the app wears.
+
+@ProviderFor(ThemePresetSetting)
+final themePresetSettingProvider = ThemePresetSettingProvider._();
+
+/// Which of the five looks the app wears.
+final class ThemePresetSettingProvider
+    extends $StreamNotifierProvider<ThemePresetSetting, ThemePreset> {
+  /// Which of the five looks the app wears.
+  ThemePresetSettingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themePresetSettingProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$themePresetSettingHash();
+
+  @$internal
+  @override
+  ThemePresetSetting create() => ThemePresetSetting();
+}
+
+String _$themePresetSettingHash() =>
+    r'60f42aab93eeba7bd425b6b8802a008b1262aec3';
+
+/// Which of the five looks the app wears.
+
+abstract class _$ThemePresetSetting extends $StreamNotifier<ThemePreset> {
+  Stream<ThemePreset> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<ThemePreset>, ThemePreset>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<ThemePreset>, ThemePreset>,
+              AsyncValue<ThemePreset>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

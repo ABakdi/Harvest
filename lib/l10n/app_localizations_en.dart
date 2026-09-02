@@ -588,4 +588,131 @@ class AppLocalizationsEn extends AppLocalizations {
   String weeklyTopSpending(String category) {
     return 'Top spending: $category';
   }
+
+  @override
+  String get settingsPomodoro => 'Focus timer';
+
+  @override
+  String get pomodoroFocusLen => 'Focus length';
+
+  @override
+  String get pomodoroShortLen => 'Short break';
+
+  @override
+  String get pomodoroLongLen => 'Long break';
+
+  @override
+  String get pomodoroBlocks => 'Blocks before a long break';
+
+  @override
+  String minutesValue(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get settingsStyle => 'Style';
+
+  @override
+  String get presetHarvest => 'Harvest';
+
+  @override
+  String get presetSunrise => 'Sunrise';
+
+  @override
+  String get presetOcean => 'Ocean';
+
+  @override
+  String get presetOrchard => 'Orchard';
+
+  @override
+  String get presetDusk => 'Dusk';
+
+  @override
+  String get advancedOptions => 'Advanced';
+
+  @override
+  String get seedNoteLabel => 'Note';
+
+  @override
+  String get remindMeAt => 'Remind me at';
+
+  @override
+  String get deadlineLabel => 'Accomplish before';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get pickDate => 'Pick a date';
+
+  @override
+  String dueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String overdueBy(String date) {
+    return 'Overdue — was due $date';
+  }
+
+  @override
+  String get taskReminderBody => 'A seed is waiting to be watered.';
+
+  @override
+  String get newCategory => 'New category';
+
+  @override
+  String get categoryName => 'Category name';
+
+  @override
+  String get manageCategories => 'Custom categories';
+
+  @override
+  String get todayTab => 'Today';
+
+  @override
+  String get insightsTab => 'Insights';
+
+  @override
+  String get savingsLabel => 'Savings';
+
+  @override
+  String get expectedDailyLabel => 'Expected daily spend';
+
+  @override
+  String get savingsLow => 'Savings running low';
+
+  @override
+  String get rangeWeek => 'Week';
+
+  @override
+  String get rangeMonth => 'Month';
+
+  @override
+  String get totalSpent => 'Total';
+
+  @override
+  String avgPerDay(String amount) {
+    return '$amount / day';
+  }
+
+  @override
+  String get noSpendingYet => 'No spending in this range yet.';
+
+  @override
+  String get calendarTitle => 'Calendar';
+
+  @override
+  String get calNothingDue => 'Nothing planted for this day.';
+
+  @override
+  String calDeadline(String title) {
+    return 'Deadline: $title';
+  }
+
+  @override
+  String get calAddForDay => 'Plant a to-do for this day…';
 }

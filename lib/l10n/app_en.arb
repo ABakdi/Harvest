@@ -358,5 +358,79 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsPomodoro": "Focus timer",
+  "pomodoroFocusLen": "Focus length",
+  "pomodoroShortLen": "Short break",
+  "pomodoroLongLen": "Long break",
+  "pomodoroBlocks": "Blocks before a long break",
+  "minutesValue": "{count} min",
+  "@minutesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsStyle": "Style",
+  "presetHarvest": "Harvest",
+  "presetSunrise": "Sunrise",
+  "presetOcean": "Ocean",
+  "presetOrchard": "Orchard",
+  "presetDusk": "Dusk",
+  "advancedOptions": "Advanced",
+  "seedNoteLabel": "Note",
+  "remindMeAt": "Remind me at",
+  "deadlineLabel": "Accomplish before",
+  "notSet": "Not set",
+  "clear": "Clear",
+  "pickDate": "Pick a date",
+  "dueOn": "Due {date}",
+  "@dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "overdueBy": "Overdue — was due {date}",
+  "@overdueBy": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "taskReminderBody": "A seed is waiting to be watered.",
+  "newCategory": "New category",
+  "categoryName": "Category name",
+  "manageCategories": "Custom categories",
+  "todayTab": "Today",
+  "insightsTab": "Insights",
+  "savingsLabel": "Savings",
+  "expectedDailyLabel": "Expected daily spend",
+  "savingsLow": "Savings running low",
+  "rangeWeek": "Week",
+  "rangeMonth": "Month",
+  "totalSpent": "Total",
+  "avgPerDay": "{amount} / day",
+  "@avgPerDay": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noSpendingYet": "No spending in this range yet.",
+  "calendarTitle": "Calendar",
+  "calNothingDue": "Nothing planted for this day.",
+  "calDeadline": "Deadline: {title}",
+  "@calDeadline": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "calAddForDay": "Plant a to-do for this day…"
 }

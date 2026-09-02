@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:harvest/core/platform/notifications.dart';
+import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -119,4 +120,22 @@ class ReminderSettings extends _$ReminderSettings {
         .setString(ReminderKeys.streakNudge, '$enabled');
     await ref.read(notificationPlannerProvider).planToday();
   }
+}
+
+/// Which of the five looks the app wears.
+@Riverpod(keepAlive: true)
+class ThemePresetSetting extends _$ThemePresetSetting {
+  static const key = 'themePreset';
+
+  @override
+  Stream<ThemePreset> build() =>
+      ref.watch(settingsRepositoryProvider).watchString(key).map(
+            (value) => ThemePreset.values.firstWhere(
+              (p) => p.name == value,
+              orElse: () => ThemePreset.harvest,
+            ),
+          );
+
+  Future<void> set(ThemePreset preset) =>
+      ref.read(settingsRepositoryProvider).setString(key, preset.name);
 }

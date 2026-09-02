@@ -1141,6 +1141,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Top spending: {category}'**
   String weeklyTopSpending(String category);
+
+  /// No description provided for @settingsPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus timer'**
+  String get settingsPomodoro;
+
+  /// No description provided for @pomodoroFocusLen.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus length'**
+  String get pomodoroFocusLen;
+
+  /// No description provided for @pomodoroShortLen.
+  ///
+  /// In en, this message translates to:
+  /// **'Short break'**
+  String get pomodoroShortLen;
+
+  /// No description provided for @pomodoroLongLen.
+  ///
+  /// In en, this message translates to:
+  /// **'Long break'**
+  String get pomodoroLongLen;
+
+  /// No description provided for @pomodoroBlocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks before a long break'**
+  String get pomodoroBlocks;
+
+  /// No description provided for @minutesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String minutesValue(int count);
+
+  /// No description provided for @settingsStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get settingsStyle;
+
+  /// No description provided for @presetHarvest.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get presetHarvest;
+
+  /// No description provided for @presetSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunrise'**
+  String get presetSunrise;
+
+  /// No description provided for @presetOcean.
+  ///
+  /// In en, this message translates to:
+  /// **'Ocean'**
+  String get presetOcean;
+
+  /// No description provided for @presetOrchard.
+  ///
+  /// In en, this message translates to:
+  /// **'Orchard'**
+  String get presetOrchard;
+
+  /// No description provided for @presetDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get presetDusk;
+
+  /// No description provided for @advancedOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get advancedOptions;
+
+  /// No description provided for @seedNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get seedNoteLabel;
+
+  /// No description provided for @remindMeAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me at'**
+  String get remindMeAt;
+
+  /// No description provided for @deadlineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accomplish before'**
+  String get deadlineLabel;
+
+  /// No description provided for @notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @pickDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get pickDate;
+
+  /// No description provided for @dueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String dueOn(String date);
+
+  /// No description provided for @overdueBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue — was due {date}'**
+  String overdueBy(String date);
+
+  /// No description provided for @taskReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A seed is waiting to be watered.'**
+  String get taskReminderBody;
+
+  /// No description provided for @newCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get newCategory;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get categoryName;
+
+  /// No description provided for @manageCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom categories'**
+  String get manageCategories;
+
+  /// No description provided for @todayTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayTab;
+
+  /// No description provided for @insightsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insightsTab;
+
+  /// No description provided for @savingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get savingsLabel;
+
+  /// No description provided for @expectedDailyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected daily spend'**
+  String get expectedDailyLabel;
+
+  /// No description provided for @savingsLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings running low'**
+  String get savingsLow;
+
+  /// No description provided for @rangeWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get rangeWeek;
+
+  /// No description provided for @rangeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get rangeMonth;
+
+  /// No description provided for @totalSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalSpent;
+
+  /// No description provided for @avgPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} / day'**
+  String avgPerDay(String amount);
+
+  /// No description provided for @noSpendingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No spending in this range yet.'**
+  String get noSpendingYet;
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calNothingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planted for this day.'**
+  String get calNothingDue;
+
+  /// No description provided for @calDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline: {title}'**
+  String calDeadline(String title);
+
+  /// No description provided for @calAddForDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant a to-do for this day…'**
+  String get calAddForDay;
 }
 
 class _AppLocalizationsDelegate

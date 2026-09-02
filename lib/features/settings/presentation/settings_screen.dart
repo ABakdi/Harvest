@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
+import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -18,6 +19,10 @@ class SettingsScreen extends ConsumerWidget {
         ref.watch(themeModeSettingProvider).value ?? ThemeMode.system;
     final locale = ref.watch(localeSettingProvider).value;
     final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
+    final preset =
+        ref.watch(themePresetSettingProvider).value ?? ThemePreset.harvest;
+    final pomodoro = ref.watch(pomodoroConfigSettingProvider).value ??
+        const PomodoroConfig();
     final reminders = ref.watch(reminderSettingsProvider).value ??
         (
           enabled: false,
@@ -98,6 +103,56 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: HarvestSpacing.lg),
+          Text(
+            l10n.settingsPomodoro,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          Card(
+            child: Column(
+              children: [
+                _PomodoroRow(
+                  label: l10n.pomodoroFocusLen,
+                  value: l10n.minutesValue(pomodoro.focusMinutes),
+                  settingKey: PomodoroKeys.focus,
+                  current: pomodoro.focusMinutes,
+                  min: 10,
+                  max: 90,
+                  step: 5,
+                ),
+                _PomodoroRow(
+                  label: l10n.pomodoroShortLen,
+                  value: l10n.minutesValue(pomodoro.shortBreakMinutes),
+                  settingKey: PomodoroKeys.shortBreak,
+                  current: pomodoro.shortBreakMinutes,
+                  min: 1,
+                  max: 20,
+                  step: 1,
+                ),
+                _PomodoroRow(
+                  label: l10n.pomodoroLongLen,
+                  value: l10n.minutesValue(pomodoro.longBreakMinutes),
+                  settingKey: PomodoroKeys.longBreak,
+                  current: pomodoro.longBreakMinutes,
+                  min: 5,
+                  max: 45,
+                  step: 5,
+                ),
+                _PomodoroRow(
+                  label: l10n.pomodoroBlocks,
+                  value: '${pomodoro.blocksPerLongBreak}',
+                  settingKey: PomodoroKeys.blocksPerLong,
+                  current: pomodoro.blocksPerLongBreak,
+                  min: 2,
+                  max: 8,
+                  step: 1,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: HarvestSpacing.lg),
@@ -202,6 +257,33 @@ class SettingsScreen extends ConsumerWidget {
                     },
                   ),
                   const SizedBox(height: HarvestSpacing.lg),
+                  Text(l10n.settingsStyle),
+                  const SizedBox(height: HarvestSpacing.sm),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final option in ThemePreset.values)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              end: HarvestSpacing.sm,
+                            ),
+                            child: _PresetSwatch(
+                              preset: option,
+                              selected: option == preset,
+                              label: switch (option) {
+                                ThemePreset.harvest => l10n.presetHarvest,
+                                ThemePreset.sunrise => l10n.presetSunrise,
+                                ThemePreset.ocean => l10n.presetOcean,
+                                ThemePreset.orchard => l10n.presetOrchard,
+                                ThemePreset.dusk => l10n.presetDusk,
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: HarvestSpacing.lg),
                   Text(l10n.settingsLanguage),
                   const SizedBox(height: HarvestSpacing.sm),
                   SegmentedButton<String>(
@@ -248,5 +330,105 @@ class SettingsScreen extends ConsumerWidget {
     if (picked != null) {
       await ref.read(reminderSettingsProvider.notifier).setTime(key, picked);
     }
+  }
+}
+
+
+class _PomodoroRow extends ConsumerWidget {
+  const _PomodoroRow({
+    required this.label,
+    required this.value,
+    required this.settingKey,
+    required this.current,
+    required this.min,
+    required this.max,
+    required this.step,
+  });
+
+  final String label;
+  final String value;
+  final String settingKey;
+  final int current;
+  final int min;
+  final int max;
+  final int step;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(pomodoroConfigSettingProvider.notifier);
+    return ListTile(
+      title: Text(label),
+      subtitle: Text(value),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton.filledTonal(
+            onPressed: current > min
+                ? () => unawaited(notifier.set(settingKey, current - step))
+                : null,
+            icon: const Icon(Icons.remove),
+          ),
+          const SizedBox(width: HarvestSpacing.xs),
+          IconButton.filledTonal(
+            onPressed: current < max
+                ? () => unawaited(notifier.set(settingKey, current + step))
+                : null,
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+class _PresetSwatch extends ConsumerWidget {
+  const _PresetSwatch({
+    required this.preset,
+    required this.selected,
+    required this.label,
+  });
+
+  final ThemePreset preset;
+  final bool selected;
+  final String label;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final palette = harvestPalettes[preset]!;
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(HarvestRadii.button),
+      onTap: () {
+        unawaited(HarvestHaptics.tick());
+        unawaited(
+          ref.read(themePresetSettingProvider.notifier).set(preset),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(HarvestSpacing.xs),
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: palette.gradient),
+                border: Border.all(
+                  color: selected ? scheme.onSurface : Colors.transparent,
+                  width: 3,
+                ),
+              ),
+              child: selected
+                  ? const Icon(Icons.check, color: Colors.white)
+                  : null,
+            ),
+            const SizedBox(height: HarvestSpacing.xs),
+            Text(label, style: Theme.of(context).textTheme.labelMedium),
+          ],
+        ),
+      ),
+    );
   }
 }
