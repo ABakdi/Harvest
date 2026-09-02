@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 
-/// The signature primary action: a chunky filled button that springs
+/// The signature primary action: a chunky gradient button that springs
 /// under the finger and ticks on press — the game feel in one widget.
 class BigBouncyButton extends StatefulWidget {
   const BigBouncyButton({
@@ -38,8 +38,23 @@ class _BigBouncyButtonState extends State<BigBouncyButton>
 
   bool get _enabled => widget.onPressed != null;
 
+  void _press() {
+    unawaited(HarvestHaptics.tick());
+    widget.onPressed?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final label = DefaultTextStyle.merge(
+      style: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w800,
+        color: _enabled ? Colors.white : scheme.onSurface.withValues(alpha: 0.4),
+      ),
+      child: widget.child,
+    );
+
     return GestureDetector(
       onTapDown: _enabled ? (_) => _controller.forward() : null,
       onTapCancel: _enabled ? _controller.reverse : null,
@@ -50,23 +65,47 @@ class _BigBouncyButtonState extends State<BigBouncyButton>
           scale: 1 - _controller.value,
           child: child,
         ),
-        child: widget.icon == null
-            ? FilledButton(
-                onPressed: _enabled ? _press : null,
-                child: widget.child,
-              )
-            : FilledButton.icon(
-                onPressed: _enabled ? _press : null,
-                icon: Icon(widget.icon),
-                label: widget.child,
+        child: Material(
+          borderRadius: BorderRadius.circular(HarvestRadii.button),
+          clipBehavior: Clip.antiAlias,
+          color: Colors.transparent,
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: _enabled ? theme.primaryGradient : null,
+              color: _enabled
+                  ? null
+                  : scheme.onSurface.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(HarvestRadii.button),
+            ),
+            child: InkWell(
+              onTap: _enabled ? _press : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: HarvestSpacing.lg,
+                  vertical: 14,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.icon != null) ...[
+                      Icon(
+                        widget.icon,
+                        color: _enabled
+                            ? Colors.white
+                            : scheme.onSurface.withValues(alpha: 0.4),
+                      ),
+                      const SizedBox(width: HarvestSpacing.sm),
+                    ],
+                    Flexible(child: label),
+                  ],
+                ),
               ),
+            ),
+          ),
+        ),
       ),
     );
-  }
-
-  void _press() {
-    unawaited(HarvestHaptics.tick());
-    widget.onPressed?.call();
   }
 }
 

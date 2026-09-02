@@ -63,10 +63,10 @@ void main() {
       );
 
   final variants = {
-    'light_ltr': (HarvestTheme.light, TextDirection.ltr),
-    'light_rtl': (HarvestTheme.light, TextDirection.rtl),
-    'dark_ltr': (HarvestTheme.dark, TextDirection.ltr),
-    'dark_rtl': (HarvestTheme.dark, TextDirection.rtl),
+    'light_ltr': (HarvestTheme.light(ThemePreset.harvest), TextDirection.ltr),
+    'light_rtl': (HarvestTheme.light(ThemePreset.harvest), TextDirection.rtl),
+    'dark_ltr': (HarvestTheme.dark(ThemePreset.harvest), TextDirection.ltr),
+    'dark_rtl': (HarvestTheme.dark(ThemePreset.harvest), TextDirection.rtl),
   };
 
   for (final entry in variants.entries) {

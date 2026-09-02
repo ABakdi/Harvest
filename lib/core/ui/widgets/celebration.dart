@@ -5,14 +5,21 @@ import 'package:flutter/material.dart';
 
 /// A brief, tasteful burst of leaves rising over the tapped position —
 /// the sprite moment of a check-in, no assets required.
-void showCheckInBurst(BuildContext context, Offset globalPosition) {
-  final overlay = Overlay.maybeOf(context);
+void showCheckInBurst(
+  BuildContext context,
+  Offset globalPosition, {
+  IconData icon = Icons.eco,
+  Color? color,
+}) {
+  final overlay = Overlay.maybeOf(context, rootOverlay: true);
   if (overlay == null) return;
 
   late final OverlayEntry entry;
   entry = OverlayEntry(
     builder: (context) => _Burst(
       origin: globalPosition,
+      icon: icon,
+      color: color,
       onDone: () => entry.remove(),
     ),
   );
@@ -20,10 +27,17 @@ void showCheckInBurst(BuildContext context, Offset globalPosition) {
 }
 
 class _Burst extends StatefulWidget {
-  const _Burst({required this.origin, required this.onDone});
+  const _Burst({
+    required this.origin,
+    required this.onDone,
+    required this.icon,
+    this.color,
+  });
 
   final Offset origin;
   final VoidCallback onDone;
+  final IconData icon;
+  final Color? color;
 
   @override
   State<_Burst> createState() => _BurstState();
@@ -64,7 +78,7 @@ class _BurstState extends State<_Burst> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.secondary;
+    final color = widget.color ?? Theme.of(context).colorScheme.secondary;
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: _controller,
@@ -81,7 +95,7 @@ class _BurstState extends State<_Burst> with SingleTickerProviderStateMixin {
                     opacity: fade,
                     child: Transform.rotate(
                       angle: p.spin * t,
-                      child: Icon(Icons.eco, size: p.size, color: color),
+                      child: Icon(widget.icon, size: p.size, color: color),
                     ),
                   ),
                 ),

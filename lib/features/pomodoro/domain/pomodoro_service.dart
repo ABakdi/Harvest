@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,8 +15,15 @@ const pomodoroBlockXp = 5;
 
 enum PomodoroPhase { focus, shortBreak, longBreak }
 
-/// Timer lengths. Fixed defaults for now; a settings screen can feed
-/// custom values later without touching the engine.
+/// Settings keys for the timer lengths (checkpoint gap G2).
+abstract final class PomodoroKeys {
+  static const focus = 'pomodoro.focusMinutes';
+  static const shortBreak = 'pomodoro.shortBreakMinutes';
+  static const longBreak = 'pomodoro.longBreakMinutes';
+  static const blocksPerLong = 'pomodoro.blocksPerLongBreak';
+}
+
+/// Timer lengths, user-adjustable in settings.
 class PomodoroConfig {
   const PomodoroConfig({
     this.focusMinutes = 25,
@@ -210,3 +218,28 @@ class PomodoroService {
 @Riverpod(keepAlive: true)
 PomodoroService pomodoroService(Ref ref) =>
     PomodoroService(ref.watch(databaseProvider));
+
+/// The live timer configuration, persisted in settings.
+@Riverpod(keepAlive: true)
+class PomodoroConfigSetting extends _$PomodoroConfigSetting {
+  @override
+  Stream<PomodoroConfig> build() {
+    int parse(String? raw, int fallback) => int.tryParse(raw ?? '') ?? fallback;
+    return ref.watch(settingsRepositoryProvider).watchAll(const [
+      PomodoroKeys.focus,
+      PomodoroKeys.shortBreak,
+      PomodoroKeys.longBreak,
+      PomodoroKeys.blocksPerLong,
+    ]).map(
+      (values) => PomodoroConfig(
+        focusMinutes: parse(values[PomodoroKeys.focus], 25),
+        shortBreakMinutes: parse(values[PomodoroKeys.shortBreak], 5),
+        longBreakMinutes: parse(values[PomodoroKeys.longBreak], 15),
+        blocksPerLongBreak: parse(values[PomodoroKeys.blocksPerLong], 4),
+      ),
+    );
+  }
+
+  Future<void> set(String key, int value) =>
+      ref.read(settingsRepositoryProvider).setString(key, '$value');
+}

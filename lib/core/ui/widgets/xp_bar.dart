@@ -43,13 +43,24 @@ class XpBar extends StatelessWidget {
         const SizedBox(height: HarvestSpacing.xs),
         ClipRRect(
           borderRadius: BorderRadius.circular(HarvestRadii.chip),
-          child: LinearProgressIndicator(
-            value: intoRank / xpPerRank,
-            minHeight: 8,
-            backgroundColor:
-                theme.colorScheme.onSurface.withValues(alpha: 0.08),
-            valueColor:
-                AlwaysStoppedAnimation(theme.colorScheme.tertiary),
+          child: Stack(
+            children: [
+              Container(
+                height: 8,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+              ),
+              AnimatedFractionallySizedBox(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOutCubic,
+                widthFactor: (intoRank / xpPerRank).clamp(0.0, 1.0),
+                child: Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    gradient: theme.primaryGradient,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

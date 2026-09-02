@@ -1,32 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:harvest/core/ui/tokens.dart';
 
-/// Light and dark [ThemeData] for the app, built from the Harvest tokens.
+/// Light and dark [ThemeData] for any [ThemePreset].
 abstract final class HarvestTheme {
-  static ThemeData get light => _base(
-        ColorScheme.fromSeed(
-          seedColor: HarvestColors.terracotta,
-          primary: HarvestColors.terracotta,
-          secondary: HarvestColors.sage,
-          tertiary: HarvestColors.sun,
-          surface: HarvestColors.cream,
-          onSurface: HarvestColors.soil,
-        ),
-      );
+  static ThemeData light(ThemePreset preset) {
+    final palette = harvestPalettes[preset]!;
+    return _base(
+      palette,
+      ColorScheme.fromSeed(
+        seedColor: palette.primary,
+        primary: palette.primary,
+        secondary: palette.secondary,
+        tertiary: palette.tertiary,
+        surface: palette.surfaceLight,
+        onSurface: palette.onSurfaceLight,
+      ),
+    );
+  }
 
-  static ThemeData get dark => _base(
-        ColorScheme.fromSeed(
-          seedColor: HarvestColors.terracotta,
-          brightness: Brightness.dark,
-          primary: HarvestColors.terracotta,
-          secondary: HarvestColors.sage,
-          tertiary: HarvestColors.sun,
-          surface: HarvestColors.soilDeep,
-          onSurface: HarvestColors.creamMuted,
-        ),
-      );
+  static ThemeData dark(ThemePreset preset) {
+    final palette = harvestPalettes[preset]!;
+    return _base(
+      palette,
+      ColorScheme.fromSeed(
+        seedColor: palette.primary,
+        brightness: Brightness.dark,
+        primary: palette.primary,
+        secondary: palette.secondary,
+        tertiary: palette.tertiary,
+        surface: palette.surfaceDark,
+        onSurface: palette.onSurfaceDark,
+      ),
+    );
+  }
 
-  static ThemeData _base(ColorScheme scheme) {
+  static ThemeData _base(HarvestPalette palette, ColorScheme scheme) {
     // Bundled fonts — no runtime fetching, the app is complete offline.
     // Nunito carries Latin; the Arabic companion fills in for RTL text.
     final textTheme =
@@ -42,6 +50,15 @@ abstract final class HarvestTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       textTheme: textTheme,
+      extensions: [
+        HarvestGradients(
+          primary: LinearGradient(
+            begin: AlignmentDirectional.centerStart,
+            end: AlignmentDirectional.centerEnd,
+            colors: palette.gradient,
+          ),
+        ),
+      ],
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,

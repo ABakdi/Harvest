@@ -13,6 +13,7 @@ class CropCard extends StatelessWidget {
     required this.onTap,
     this.onLongPress,
     this.progress,
+    this.urgent = false,
     super.key,
   });
 
@@ -25,6 +26,9 @@ class CropCard extends StatelessWidget {
 
   /// 0..1 for projects; null shows a plain check circle.
   final double? progress;
+
+  /// Tints the subtitle in the error color (overdue deadline).
+  final bool urgent;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +69,10 @@ class CropCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
+                        color: urgent
+                            ? scheme.error
+                            : scheme.onSurface.withValues(alpha: 0.6),
+                        fontWeight: urgent ? FontWeight.w800 : null,
                       ),
                     ),
                   ],

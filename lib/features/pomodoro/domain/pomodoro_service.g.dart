@@ -50,3 +50,54 @@ final class PomodoroServiceProvider
 }
 
 String _$pomodoroServiceHash() => r'd0774f63a12f17090969b2cf30fc262ba2418ab7';
+
+/// The live timer configuration, persisted in settings.
+
+@ProviderFor(PomodoroConfigSetting)
+final pomodoroConfigSettingProvider = PomodoroConfigSettingProvider._();
+
+/// The live timer configuration, persisted in settings.
+final class PomodoroConfigSettingProvider
+    extends $StreamNotifierProvider<PomodoroConfigSetting, PomodoroConfig> {
+  /// The live timer configuration, persisted in settings.
+  PomodoroConfigSettingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pomodoroConfigSettingProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$pomodoroConfigSettingHash();
+
+  @$internal
+  @override
+  PomodoroConfigSetting create() => PomodoroConfigSetting();
+}
+
+String _$pomodoroConfigSettingHash() =>
+    r'bd90fe583466996105dfaab5c767794d839e6deb';
+
+/// The live timer configuration, persisted in settings.
+
+abstract class _$PomodoroConfigSetting extends $StreamNotifier<PomodoroConfig> {
+  Stream<PomodoroConfig> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<PomodoroConfig>, PomodoroConfig>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<PomodoroConfig>, PomodoroConfig>,
+              AsyncValue<PomodoroConfig>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

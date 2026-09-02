@@ -23,7 +23,8 @@ abstract final class PomodoroActions {
 /// machine across any boundaries that passed while the app was away.
 @Riverpod(keepAlive: true)
 class PomodoroController extends _$PomodoroController {
-  static const config = PomodoroConfig();
+  PomodoroConfig get config =>
+      ref.read(pomodoroConfigSettingProvider).value ?? const PomodoroConfig();
 
   @override
   Future<PomodoroSnapshot?> build() async {

@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
+import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
@@ -22,7 +23,9 @@ import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/presentation/quests_section.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
+import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
 import 'package:harvest/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 class FieldScreen extends ConsumerWidget {
   const FieldScreen({super.key});
@@ -42,13 +45,10 @@ class FieldScreen extends ConsumerWidget {
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_calendar_outlined),
-            onPressed: () => unawaited(context.push(AppRoutes.planner)),
+            icon: const Icon(Icons.calendar_month_outlined),
+            onPressed: () => unawaited(context.push(AppRoutes.calendar)),
           ),
-          IconButton(
-            icon: const Icon(Icons.timer_outlined),
-            onPressed: () => unawaited(context.push(AppRoutes.pomodoro)),
-          ),
+          const MiniTimerChip(),
           Padding(
             padding: const EdgeInsetsDirectional.only(end: HarvestSpacing.md),
             child: InkWell(
@@ -88,8 +88,14 @@ class FieldScreen extends ConsumerWidget {
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: ActionChip(
+                  side: BorderSide(
+                    color: budgetColor(
+                      Theme.of(context).colorScheme,
+                      budget.status,
+                    ).withValues(alpha: 0.6),
+                  ),
                   avatar: Icon(
-                    Icons.savings,
+                    Icons.payments,
                     size: 18,
                     color: budgetColor(
                       Theme.of(context).colorScheme,
@@ -139,7 +145,10 @@ class FieldScreen extends ConsumerWidget {
                       ),
                       itemCount: items.length,
                       itemBuilder: (context, index) =>
-                          _CropTile(item: items[index]),
+                          _CropTile(item: items[index])
+                              .animate()
+                              .fadeIn(duration: 220.ms)
+                              .slideY(begin: 0.05, curve: Curves.easeOut),
                     ),
             ),
           ),
@@ -170,7 +179,8 @@ class _CropTile extends ConsumerWidget {
 
     return CropCard(
       title: commitment.title,
-      subtitle: _subtitle(l10n),
+      subtitle: _subtitle(context, l10n),
+      urgent: _overdue,
       icon: switch (commitment.type) {
         CommitmentType.habit => Icons.repeat,
         CommitmentType.project => Icons.flag,
@@ -185,21 +195,37 @@ class _CropTile extends ConsumerWidget {
     );
   }
 
-  String _subtitle(AppLocalizations l10n) {
+  bool get _overdue {
+    final deadline = item.commitment.deadline;
+    return deadline != null &&
+        !item.isDone &&
+        deadline.compareTo(HarvestDay.today()) < 0;
+  }
+
+  String _subtitle(BuildContext context, AppLocalizations l10n) {
     final commitment = item.commitment;
-    switch (commitment.type) {
-      case CommitmentType.project:
-        return l10n.projectSubtitle(
+    final locale = Localizations.localeOf(context).toString();
+    String dayText(HarvestDay day) => DateFormat.MMMd(locale)
+        .format(DateTime(day.year, day.month, day.day));
+    final deadline = commitment.deadline;
+    final deadlineText = deadline == null
+        ? null
+        : _overdue
+            ? l10n.overdueBy(dayText(deadline))
+            : l10n.dueOn(dayText(deadline));
+
+    final base = switch (commitment.type) {
+      CommitmentType.project => l10n.projectSubtitle(
           item.totalLogged,
           commitment.totalTarget ?? 0,
           item.loggedToday,
           commitment.dailyCommitment ?? 0,
-        );
-      case CommitmentType.habit:
-        return commitment.isPaused ? l10n.pausedLabel : l10n.typeHabit;
-      case CommitmentType.todo:
-        return l10n.typeTodo;
-    }
+        ),
+      CommitmentType.habit =>
+        commitment.isPaused ? l10n.pausedLabel : l10n.typeHabit,
+      CommitmentType.todo => commitment.note ?? l10n.typeTodo,
+    };
+    return deadlineText == null ? base : '$base · $deadlineText';
   }
 
   Future<void> _onTap(BuildContext context, WidgetRef ref) async {

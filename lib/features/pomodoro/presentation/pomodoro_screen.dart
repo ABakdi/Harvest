@@ -45,7 +45,8 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
     final theme = Theme.of(context);
     final snapshot = ref.watch(pomodoroControllerProvider).value;
     final controller = ref.read(pomodoroControllerProvider.notifier);
-    const config = PomodoroController.config;
+    final config = ref.watch(pomodoroConfigSettingProvider).value ??
+        const PomodoroConfig();
 
     final phase = snapshot?.phase ?? PomodoroPhase.focus;
     final total = config.of(phase);
