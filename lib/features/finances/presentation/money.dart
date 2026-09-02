@@ -1,3 +1,5 @@
+import 'package:harvest/features/finances/domain/currency.dart';
+
 /// Formats minor units for display: 1250 → "12.50", 500 → "5".
 String formatMinor(int minor) {
   final major = minor ~/ 100;
@@ -25,4 +27,18 @@ int? parseToMinor(String input) {
   }
   final total = major * 100 + cents;
   return total > 0 ? total : null;
+}
+
+/// The amount in its own currency, with the default-currency
+/// conversion in parentheses when known (P5).
+String amountWithConversion({
+  required int minor,
+  required Currency currency,
+  required Rates rates,
+}) {
+  final base = '${currency.symbol}${formatMinor(minor)}';
+  if (currency == rates.defaultCurrency) return base;
+  final converted = rates.toDefault(minor, currency);
+  if (converted == null) return base;
+  return '$base  (≈${rates.defaultCurrency.symbol}${formatMinor(converted)})';
 }

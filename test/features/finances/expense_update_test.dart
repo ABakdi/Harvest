@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
 
 void main() {
   late HarvestDatabase db;
@@ -58,8 +60,12 @@ void main() {
       category: ExpenseCategory.food.name,
       day: HarvestDay.parse('2026-08-30'),
     );
-    final totals =
-        await repo.watchWeekByCategory(HarvestDay.parse('2026-08-31')).first;
+    final week =
+        await repo.watchWeek(HarvestDay.parse('2026-08-31')).first;
+    final totals = totalsByCategory(
+      week,
+      const Rates(defaultCurrency: Currency.dzd),
+    );
     expect(totals[ExpenseCategory.food.name], 300);
   });
 }

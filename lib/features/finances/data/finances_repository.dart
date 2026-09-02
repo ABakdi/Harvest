@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -25,24 +26,27 @@ class FinancesRepository {
       .watch()
       .map((rows) => rows.map(_toDomain).toList());
 
-  /// Total per day for [day]'s calendar month (keys are day strings).
-  Stream<Map<String, int>> watchMonthTotals(HarvestDay day) {
+  /// Every expense in [day]'s calendar month.
+  Stream<List<Expense>> watchMonth(HarvestDay day) {
     final prefix = day.key.substring(0, 7);
     final query = _db.select(_db.expenses)
       ..where(
         (e) => e.harvestDay.like('$prefix%') & e.deletedAt.isNull(),
       );
-    return query.watch().map((rows) {
-      final totals = <String, int>{};
-      for (final row in rows) {
-        totals.update(
-          row.harvestDay,
-          (v) => v + row.amountMinor,
-          ifAbsent: () => row.amountMinor,
-        );
-      }
-      return totals;
-    });
+    return query.watch().map((rows) => rows.map(_toDomain).toList());
+  }
+
+  /// Every expense in [weekStart]'s week.
+  Stream<List<Expense>> watchWeek(HarvestDay weekStart) {
+    final days = <String>[];
+    var d = weekStart;
+    for (var i = 0; i < 7; i++) {
+      days.add(d.key);
+      d = d.next;
+    }
+    final query = _db.select(_db.expenses)
+      ..where((e) => e.harvestDay.isIn(days) & e.deletedAt.isNull());
+    return query.watch().map((rows) => rows.map(_toDomain).toList());
   }
 
   /// User-created categories, newest last.
@@ -104,66 +108,6 @@ class FinancesRepository {
             );
       });
 
-  /// Total per day for [weekStart]'s week (7 days).
-  Stream<Map<String, int>> watchWeekTotals(HarvestDay weekStart) {
-    final days = <String>[];
-    var d = weekStart;
-    for (var i = 0; i < 7; i++) {
-      days.add(d.key);
-      d = d.next;
-    }
-    final query = _db.select(_db.expenses)
-      ..where((e) => e.harvestDay.isIn(days) & e.deletedAt.isNull());
-    return query.watch().map((rows) {
-      final totals = <String, int>{};
-      for (final row in rows) {
-        totals.update(
-          row.harvestDay,
-          (v) => v + row.amountMinor,
-          ifAbsent: () => row.amountMinor,
-        );
-      }
-      return totals;
-    });
-  }
-
-  /// Total per category for [weekStart]'s week (7 days).
-  Stream<Map<String, int>> watchWeekByCategory(
-    HarvestDay weekStart,
-  ) {
-    final days = <String>[];
-    var d = weekStart;
-    for (var i = 0; i < 7; i++) {
-      days.add(d.key);
-      d = d.next;
-    }
-    final query = _db.select(_db.expenses)
-      ..where((e) => e.harvestDay.isIn(days) & e.deletedAt.isNull());
-    return query.watch().map(_sumByCategory);
-  }
-
-  /// Total per category for [day]'s calendar month.
-  Stream<Map<String, int>> watchMonthByCategory(HarvestDay day) {
-    final prefix = day.key.substring(0, 7);
-    final query = _db.select(_db.expenses)
-      ..where(
-        (e) => e.harvestDay.like('$prefix%') & e.deletedAt.isNull(),
-      );
-    return query.watch().map(_sumByCategory);
-  }
-
-  Map<String, int> _sumByCategory(List<ExpenseRow> rows) {
-    final totals = <String, int>{};
-    for (final row in rows) {
-      totals.update(
-        row.category,
-        (v) => v + row.amountMinor,
-        ifAbsent: () => row.amountMinor,
-      );
-    }
-    return totals;
-  }
-
   /// Smart repeats: an (amount, category) pair logged on each of the
   /// three days before [day] — and not yet today — becomes a suggestion.
   Future<RepeatSuggestion?> repeatSuggestion(HarvestDay day) async {
@@ -206,6 +150,7 @@ class FinancesRepository {
   Future<void> log({
     required int amountMinor,
     required String category,
+    Currency currency = Currency.dzd,
     String? note,
     HarvestDay? day,
   }) async {
@@ -216,6 +161,7 @@ class FinancesRepository {
             ExpensesCompanion.insert(
               uuid: uuid,
               amountMinor: amountMinor,
+              currency: Value(currency.code),
               category: category,
               note: Value(note),
               harvestDay: harvestDay.key,
@@ -247,6 +193,7 @@ class FinancesRepository {
     required String uuid,
     required int amountMinor,
     required String category,
+    Currency currency = Currency.dzd,
     String? note,
   }) =>
       _db.transaction(() async {
@@ -254,6 +201,7 @@ class FinancesRepository {
             .write(
           ExpensesCompanion(
             amountMinor: Value(amountMinor),
+            currency: Value(currency.code),
             category: Value(category),
             note: Value(note),
             updatedAt: Value(DateTime.now()),
@@ -286,6 +234,7 @@ class FinancesRepository {
   Expense _toDomain(ExpenseRow row) => Expense(
         uuid: row.uuid,
         amountMinor: row.amountMinor,
+        currency: Currency.fromCode(row.currency),
         category: row.category,
         day: HarvestDay.parse(row.harvestDay),
         loggedAt: row.loggedAt,

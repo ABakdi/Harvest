@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 
 void main() {
@@ -187,7 +189,11 @@ void main() {
       final logged = await repo.watchDay(day).first;
       await repo.remove(logged.single.uuid);
       expect(await repo.watchDay(day).first, isEmpty);
-      final totals = await repo.watchMonthTotals(day).first;
+      final month = await repo.watchMonth(day).first;
+      final totals = totalsByDay(
+        month,
+        const Rates(defaultCurrency: Currency.dzd),
+      );
       expect(totals[day.key], isNull);
     });
   });

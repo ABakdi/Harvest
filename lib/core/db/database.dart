@@ -130,6 +130,9 @@ class Expenses extends Table {
   /// Amount in minor units (cents); always positive.
   IntColumn get amountMinor => integer()();
 
+  /// ISO-ish currency code (DZD / USD / EUR).
+  TextColumn get currency => text().withDefault(const Constant('DZD'))();
+
   /// One of the preset category names.
   TextColumn get category => text()();
   TextColumn get note => text().nullable()();
@@ -200,11 +203,14 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
+          // A table created in this run already carries the newest
+          // columns; later addColumn steps must skip it.
+          final expensesJustCreated = from < 2;
           if (from < 2) {
             await m.createTable(expenses);
           }
@@ -216,6 +222,9 @@ class HarvestDatabase extends _$HarvestDatabase {
             await m.addColumn(commitments, commitments.remindAt);
             await m.addColumn(commitments, commitments.deadline);
             await m.createTable(expenseCategories);
+          }
+          if (from < 5 && !expensesJustCreated) {
+            await m.addColumn(expenses, expenses.currency);
           }
         },
       );

@@ -3117,6 +3117,18 @@ class $ExpensesTable extends Expenses
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('DZD'),
+  );
   static const VerificationMeta _categoryMeta = const VerificationMeta(
     'category',
   );
@@ -3187,6 +3199,7 @@ class $ExpensesTable extends Expenses
   List<GeneratedColumn> get $columns => [
     uuid,
     amountMinor,
+    currency,
     category,
     note,
     harvestDay,
@@ -3224,6 +3237,12 @@ class $ExpensesTable extends Expenses
       );
     } else if (isInserting) {
       context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
     }
     if (data.containsKey('category')) {
       context.handle(
@@ -3282,6 +3301,10 @@ class $ExpensesTable extends Expenses
         DriftSqlType.int,
         data['${effectivePrefix}amount_minor'],
       )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
       category: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}category'],
@@ -3321,6 +3344,9 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
   /// Amount in minor units (cents); always positive.
   final int amountMinor;
 
+  /// ISO-ish currency code (DZD / USD / EUR).
+  final String currency;
+
   /// One of the preset category names.
   final String category;
   final String? note;
@@ -3331,6 +3357,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
   const ExpenseRow({
     required this.uuid,
     required this.amountMinor,
+    required this.currency,
     required this.category,
     this.note,
     required this.harvestDay,
@@ -3343,6 +3370,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
     map['amount_minor'] = Variable<int>(amountMinor);
+    map['currency'] = Variable<String>(currency);
     map['category'] = Variable<String>(category);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -3360,6 +3388,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
     return ExpensesCompanion(
       uuid: Value(uuid),
       amountMinor: Value(amountMinor),
+      currency: Value(currency),
       category: Value(category),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       harvestDay: Value(harvestDay),
@@ -3379,6 +3408,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
     return ExpenseRow(
       uuid: serializer.fromJson<String>(json['uuid']),
       amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      currency: serializer.fromJson<String>(json['currency']),
       category: serializer.fromJson<String>(json['category']),
       note: serializer.fromJson<String?>(json['note']),
       harvestDay: serializer.fromJson<String>(json['harvestDay']),
@@ -3393,6 +3423,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
       'amountMinor': serializer.toJson<int>(amountMinor),
+      'currency': serializer.toJson<String>(currency),
       'category': serializer.toJson<String>(category),
       'note': serializer.toJson<String?>(note),
       'harvestDay': serializer.toJson<String>(harvestDay),
@@ -3405,6 +3436,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
   ExpenseRow copyWith({
     String? uuid,
     int? amountMinor,
+    String? currency,
     String? category,
     Value<String?> note = const Value.absent(),
     String? harvestDay,
@@ -3414,6 +3446,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
   }) => ExpenseRow(
     uuid: uuid ?? this.uuid,
     amountMinor: amountMinor ?? this.amountMinor,
+    currency: currency ?? this.currency,
     category: category ?? this.category,
     note: note.present ? note.value : this.note,
     harvestDay: harvestDay ?? this.harvestDay,
@@ -3427,6 +3460,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
       amountMinor: data.amountMinor.present
           ? data.amountMinor.value
           : this.amountMinor,
+      currency: data.currency.present ? data.currency.value : this.currency,
       category: data.category.present ? data.category.value : this.category,
       note: data.note.present ? data.note.value : this.note,
       harvestDay: data.harvestDay.present
@@ -3443,6 +3477,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
     return (StringBuffer('ExpenseRow(')
           ..write('uuid: $uuid, ')
           ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
           ..write('category: $category, ')
           ..write('note: $note, ')
           ..write('harvestDay: $harvestDay, ')
@@ -3457,6 +3492,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
   int get hashCode => Object.hash(
     uuid,
     amountMinor,
+    currency,
     category,
     note,
     harvestDay,
@@ -3470,6 +3506,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
       (other is ExpenseRow &&
           other.uuid == this.uuid &&
           other.amountMinor == this.amountMinor &&
+          other.currency == this.currency &&
           other.category == this.category &&
           other.note == this.note &&
           other.harvestDay == this.harvestDay &&
@@ -3481,6 +3518,7 @@ class ExpenseRow extends DataClass implements Insertable<ExpenseRow> {
 class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   final Value<String> uuid;
   final Value<int> amountMinor;
+  final Value<String> currency;
   final Value<String> category;
   final Value<String?> note;
   final Value<String> harvestDay;
@@ -3491,6 +3529,7 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   const ExpensesCompanion({
     this.uuid = const Value.absent(),
     this.amountMinor = const Value.absent(),
+    this.currency = const Value.absent(),
     this.category = const Value.absent(),
     this.note = const Value.absent(),
     this.harvestDay = const Value.absent(),
@@ -3502,6 +3541,7 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   ExpensesCompanion.insert({
     required String uuid,
     required int amountMinor,
+    this.currency = const Value.absent(),
     required String category,
     this.note = const Value.absent(),
     required String harvestDay,
@@ -3516,6 +3556,7 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   static Insertable<ExpenseRow> custom({
     Expression<String>? uuid,
     Expression<int>? amountMinor,
+    Expression<String>? currency,
     Expression<String>? category,
     Expression<String>? note,
     Expression<String>? harvestDay,
@@ -3527,6 +3568,7 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
       if (amountMinor != null) 'amount_minor': amountMinor,
+      if (currency != null) 'currency': currency,
       if (category != null) 'category': category,
       if (note != null) 'note': note,
       if (harvestDay != null) 'harvest_day': harvestDay,
@@ -3540,6 +3582,7 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
   ExpensesCompanion copyWith({
     Value<String>? uuid,
     Value<int>? amountMinor,
+    Value<String>? currency,
     Value<String>? category,
     Value<String?>? note,
     Value<String>? harvestDay,
@@ -3551,6 +3594,7 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
     return ExpensesCompanion(
       uuid: uuid ?? this.uuid,
       amountMinor: amountMinor ?? this.amountMinor,
+      currency: currency ?? this.currency,
       category: category ?? this.category,
       note: note ?? this.note,
       harvestDay: harvestDay ?? this.harvestDay,
@@ -3569,6 +3613,9 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
     }
     if (amountMinor.present) {
       map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
     }
     if (category.present) {
       map['category'] = Variable<String>(category.value);
@@ -3599,6 +3646,7 @@ class ExpensesCompanion extends UpdateCompanion<ExpenseRow> {
     return (StringBuffer('ExpensesCompanion(')
           ..write('uuid: $uuid, ')
           ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
           ..write('category: $category, ')
           ..write('note: $note, ')
           ..write('harvestDay: $harvestDay, ')
@@ -6387,6 +6435,7 @@ typedef $$PomodoroSessionsTableProcessedTableManager =
 typedef $$ExpensesTableCreateCompanionBuilder = ExpensesCompanion Function({
   required String uuid,
   required int amountMinor,
+  Value<String> currency,
   required String category,
   Value<String?> note,
   required String harvestDay,
@@ -6398,6 +6447,7 @@ typedef $$ExpensesTableCreateCompanionBuilder = ExpensesCompanion Function({
 typedef $$ExpensesTableUpdateCompanionBuilder = ExpensesCompanion Function({
   Value<String> uuid,
   Value<int> amountMinor,
+  Value<String> currency,
   Value<String> category,
   Value<String?> note,
   Value<String> harvestDay,
@@ -6423,6 +6473,11 @@ class $$ExpensesTableFilterComposer
 
   ColumnFilters<int> get amountMinor => $composableBuilder(
     column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6476,6 +6531,11 @@ class $$ExpensesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get category => $composableBuilder(
     column: $table.category,
     builder: (column) => ColumnOrderings(column),
@@ -6523,6 +6583,9 @@ class $$ExpensesTableAnnotationComposer
     column: $table.amountMinor,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
@@ -6578,6 +6641,7 @@ class $$ExpensesTableTableManager
               ({
                 Value<String> uuid = const Value.absent(),
                 Value<int> amountMinor = const Value.absent(),
+                Value<String> currency = const Value.absent(),
                 Value<String> category = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String> harvestDay = const Value.absent(),
@@ -6588,6 +6652,7 @@ class $$ExpensesTableTableManager
               }) => ExpensesCompanion(
                 uuid: uuid,
                 amountMinor: amountMinor,
+                currency: currency,
                 category: category,
                 note: note,
                 harvestDay: harvestDay,
@@ -6600,6 +6665,7 @@ class $$ExpensesTableTableManager
               ({
                 required String uuid,
                 required int amountMinor,
+                Value<String> currency = const Value.absent(),
                 required String category,
                 Value<String?> note = const Value.absent(),
                 required String harvestDay,
@@ -6610,6 +6676,7 @@ class $$ExpensesTableTableManager
               }) => ExpensesCompanion.insert(
                 uuid: uuid,
                 amountMinor: amountMinor,
+                currency: currency,
                 category: category,
                 note: note,
                 harvestDay: harvestDay,

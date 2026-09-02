@@ -1,4 +1,5 @@
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:meta/meta.dart';
 
 /// The preset spending categories. Custom ones (checkpoint gap G8) are
@@ -41,6 +42,7 @@ class Expense {
   const Expense({
     required this.uuid,
     required this.amountMinor,
+    required this.currency,
     required this.category,
     required this.day,
     required this.loggedAt,
@@ -51,6 +53,7 @@ class Expense {
 
   /// Minor units (cents); always positive.
   final int amountMinor;
+  final Currency currency;
 
   /// Preset name or custom-category name.
   final String category;
