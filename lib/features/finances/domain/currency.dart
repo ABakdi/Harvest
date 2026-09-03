@@ -48,6 +48,21 @@ class Rates {
   double? get dzdPerEur => _sane(_dzdPerEur);
   double? get usdPerEur => _sane(_usdPerEur);
 
+  /// [toDefault], but falling back to the face value when the rate is
+  /// unknown — the app never blocks on a missing rate, it just stops
+  /// pretending the number was converted.
+  int toDefaultOrFace(int minor, Currency from) =>
+      toDefault(minor, from) ?? minor;
+
+  /// Sums per-currency amounts into the default currency.
+  int sumInDefault(Map<Currency, int> amounts) {
+    var total = 0;
+    amounts.forEach((currency, minor) {
+      total += toDefaultOrFace(minor, currency);
+    });
+    return total;
+  }
+
   /// Converts [minor] units of [from] into the default currency;
   /// null when the needed rate is unknown.
   int? toDefault(int minor, Currency from) {

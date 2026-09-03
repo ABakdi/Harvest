@@ -167,6 +167,11 @@ class MoneyTxns extends Table {
   /// Context for [kind]: the counterpart account for a transfer, the
   /// category key for an expense, the person for a debt payment.
   TextColumn get reference => text().nullable()();
+
+  /// The row this movement belongs to — the expense uuid for a
+  /// wallet-funded expense, the debt payment uuid for a debt. Editing
+  /// or deleting that row carries the movement with it (schema v8).
+  TextColumn get linkUuid => text().nullable()();
   TextColumn get harvestDay => text()();
   DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
@@ -273,7 +278,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -305,6 +310,9 @@ class HarvestDatabase extends _$HarvestDatabase {
       if (from < 7 && !moneyTxnsJustCreated) {
         await m.addColumn(moneyTxns, moneyTxns.kind);
         await m.addColumn(moneyTxns, moneyTxns.reference);
+      }
+      if (from < 8 && !moneyTxnsJustCreated) {
+        await m.addColumn(moneyTxns, moneyTxns.linkUuid);
       }
     },
   );

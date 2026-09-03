@@ -16,8 +16,9 @@ enum ExpenseCategory {
 }
 
 /// The preset keys, in display order.
-final List<String> presetCategoryKeys =
-    ExpenseCategory.values.map((c) => c.name).toList();
+final List<String> presetCategoryKeys = ExpenseCategory.values
+    .map((c) => c.name)
+    .toList();
 
 /// A user-created category.
 @immutable
@@ -128,7 +129,15 @@ class BudgetSnapshot {
   /// recomputed daily (spec: Financial Granary budget logic).
   final int floatingDailyLimit;
 
+  /// Green under the day's share, amber within 15% of it, red past it.
+  /// With no share left to spend (the month is already used up), the
+  /// verdict comes from the month, not from a division by zero.
   BudgetStatus get status {
+    if (floatingDailyLimit <= 0) {
+      return spentThisMonth > monthlyBudget
+          ? BudgetStatus.over
+          : BudgetStatus.under;
+    }
     if (spentToday > floatingDailyLimit) return BudgetStatus.over;
     if (spentToday >= 0.85 * floatingDailyLimit) return BudgetStatus.close;
     return BudgetStatus.under;

@@ -4103,6 +4103,17 @@ class $MoneyTxnsTable extends MoneyTxns
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _linkUuidMeta = const VerificationMeta(
+    'linkUuid',
+  );
+  @override
+  late final GeneratedColumn<String> linkUuid = GeneratedColumn<String>(
+    'link_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _harvestDayMeta = const VerificationMeta(
     'harvestDay',
   );
@@ -4158,6 +4169,7 @@ class $MoneyTxnsTable extends MoneyTxns
     note,
     kind,
     reference,
+    linkUuid,
     harvestDay,
     loggedAt,
     deletedAt,
@@ -4223,6 +4235,12 @@ class $MoneyTxnsTable extends MoneyTxns
         reference.isAcceptableOrUnknown(data['reference']!, _referenceMeta),
       );
     }
+    if (data.containsKey('link_uuid')) {
+      context.handle(
+        _linkUuidMeta,
+        linkUuid.isAcceptableOrUnknown(data['link_uuid']!, _linkUuidMeta),
+      );
+    }
     if (data.containsKey('harvest_day')) {
       context.handle(
         _harvestDayMeta,
@@ -4286,6 +4304,10 @@ class $MoneyTxnsTable extends MoneyTxns
         DriftSqlType.string,
         data['${effectivePrefix}reference'],
       ),
+      linkUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}link_uuid'],
+      ),
       harvestDay: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}harvest_day'],
@@ -4329,6 +4351,11 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
   /// Context for [kind]: the counterpart account for a transfer, the
   /// category key for an expense, the person for a debt payment.
   final String? reference;
+
+  /// The row this movement belongs to — the expense uuid for a
+  /// wallet-funded expense, the debt payment uuid for a debt. Editing
+  /// or deleting that row carries the movement with it (schema v8).
+  final String? linkUuid;
   final String harvestDay;
   final DateTime loggedAt;
   final DateTime? deletedAt;
@@ -4341,6 +4368,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     this.note,
     required this.kind,
     this.reference,
+    this.linkUuid,
     required this.harvestDay,
     required this.loggedAt,
     this.deletedAt,
@@ -4359,6 +4387,9 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     map['kind'] = Variable<String>(kind);
     if (!nullToAbsent || reference != null) {
       map['reference'] = Variable<String>(reference);
+    }
+    if (!nullToAbsent || linkUuid != null) {
+      map['link_uuid'] = Variable<String>(linkUuid);
     }
     map['harvest_day'] = Variable<String>(harvestDay);
     map['logged_at'] = Variable<DateTime>(loggedAt);
@@ -4380,6 +4411,9 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
       reference: reference == null && nullToAbsent
           ? const Value.absent()
           : Value(reference),
+      linkUuid: linkUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkUuid),
       harvestDay: Value(harvestDay),
       loggedAt: Value(loggedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -4402,6 +4436,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
       note: serializer.fromJson<String?>(json['note']),
       kind: serializer.fromJson<String>(json['kind']),
       reference: serializer.fromJson<String?>(json['reference']),
+      linkUuid: serializer.fromJson<String?>(json['linkUuid']),
       harvestDay: serializer.fromJson<String>(json['harvestDay']),
       loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -4419,6 +4454,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
       'note': serializer.toJson<String?>(note),
       'kind': serializer.toJson<String>(kind),
       'reference': serializer.toJson<String?>(reference),
+      'linkUuid': serializer.toJson<String?>(linkUuid),
       'harvestDay': serializer.toJson<String>(harvestDay),
       'loggedAt': serializer.toJson<DateTime>(loggedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -4434,6 +4470,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     Value<String?> note = const Value.absent(),
     String? kind,
     Value<String?> reference = const Value.absent(),
+    Value<String?> linkUuid = const Value.absent(),
     String? harvestDay,
     DateTime? loggedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -4446,6 +4483,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     note: note.present ? note.value : this.note,
     kind: kind ?? this.kind,
     reference: reference.present ? reference.value : this.reference,
+    linkUuid: linkUuid.present ? linkUuid.value : this.linkUuid,
     harvestDay: harvestDay ?? this.harvestDay,
     loggedAt: loggedAt ?? this.loggedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -4462,6 +4500,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
       note: data.note.present ? data.note.value : this.note,
       kind: data.kind.present ? data.kind.value : this.kind,
       reference: data.reference.present ? data.reference.value : this.reference,
+      linkUuid: data.linkUuid.present ? data.linkUuid.value : this.linkUuid,
       harvestDay: data.harvestDay.present
           ? data.harvestDay.value
           : this.harvestDay,
@@ -4481,6 +4520,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
           ..write('note: $note, ')
           ..write('kind: $kind, ')
           ..write('reference: $reference, ')
+          ..write('linkUuid: $linkUuid, ')
           ..write('harvestDay: $harvestDay, ')
           ..write('loggedAt: $loggedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -4498,6 +4538,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
     note,
     kind,
     reference,
+    linkUuid,
     harvestDay,
     loggedAt,
     deletedAt,
@@ -4514,6 +4555,7 @@ class MoneyTxnRow extends DataClass implements Insertable<MoneyTxnRow> {
           other.note == this.note &&
           other.kind == this.kind &&
           other.reference == this.reference &&
+          other.linkUuid == this.linkUuid &&
           other.harvestDay == this.harvestDay &&
           other.loggedAt == this.loggedAt &&
           other.deletedAt == this.deletedAt &&
@@ -4528,6 +4570,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
   final Value<String?> note;
   final Value<String> kind;
   final Value<String?> reference;
+  final Value<String?> linkUuid;
   final Value<String> harvestDay;
   final Value<DateTime> loggedAt;
   final Value<DateTime?> deletedAt;
@@ -4541,6 +4584,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     this.note = const Value.absent(),
     this.kind = const Value.absent(),
     this.reference = const Value.absent(),
+    this.linkUuid = const Value.absent(),
     this.harvestDay = const Value.absent(),
     this.loggedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -4555,6 +4599,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     this.note = const Value.absent(),
     this.kind = const Value.absent(),
     this.reference = const Value.absent(),
+    this.linkUuid = const Value.absent(),
     required String harvestDay,
     this.loggedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -4572,6 +4617,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     Expression<String>? note,
     Expression<String>? kind,
     Expression<String>? reference,
+    Expression<String>? linkUuid,
     Expression<String>? harvestDay,
     Expression<DateTime>? loggedAt,
     Expression<DateTime>? deletedAt,
@@ -4586,6 +4632,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
       if (note != null) 'note': note,
       if (kind != null) 'kind': kind,
       if (reference != null) 'reference': reference,
+      if (linkUuid != null) 'link_uuid': linkUuid,
       if (harvestDay != null) 'harvest_day': harvestDay,
       if (loggedAt != null) 'logged_at': loggedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -4602,6 +4649,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     Value<String?>? note,
     Value<String>? kind,
     Value<String?>? reference,
+    Value<String?>? linkUuid,
     Value<String>? harvestDay,
     Value<DateTime>? loggedAt,
     Value<DateTime?>? deletedAt,
@@ -4616,6 +4664,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
       note: note ?? this.note,
       kind: kind ?? this.kind,
       reference: reference ?? this.reference,
+      linkUuid: linkUuid ?? this.linkUuid,
       harvestDay: harvestDay ?? this.harvestDay,
       loggedAt: loggedAt ?? this.loggedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -4648,6 +4697,9 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
     if (reference.present) {
       map['reference'] = Variable<String>(reference.value);
     }
+    if (linkUuid.present) {
+      map['link_uuid'] = Variable<String>(linkUuid.value);
+    }
     if (harvestDay.present) {
       map['harvest_day'] = Variable<String>(harvestDay.value);
     }
@@ -4676,6 +4728,7 @@ class MoneyTxnsCompanion extends UpdateCompanion<MoneyTxnRow> {
           ..write('note: $note, ')
           ..write('kind: $kind, ')
           ..write('reference: $reference, ')
+          ..write('linkUuid: $linkUuid, ')
           ..write('harvestDay: $harvestDay, ')
           ..write('loggedAt: $loggedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -8679,6 +8732,7 @@ typedef $$MoneyTxnsTableCreateCompanionBuilder = MoneyTxnsCompanion Function({
   Value<String?> note,
   Value<String> kind,
   Value<String?> reference,
+  Value<String?> linkUuid,
   required String harvestDay,
   Value<DateTime> loggedAt,
   Value<DateTime?> deletedAt,
@@ -8693,6 +8747,7 @@ typedef $$MoneyTxnsTableUpdateCompanionBuilder = MoneyTxnsCompanion Function({
   Value<String?> note,
   Value<String> kind,
   Value<String?> reference,
+  Value<String?> linkUuid,
   Value<String> harvestDay,
   Value<DateTime> loggedAt,
   Value<DateTime?> deletedAt,
@@ -8741,6 +8796,11 @@ class $$MoneyTxnsTableFilterComposer
 
   ColumnFilters<String> get reference => $composableBuilder(
     column: $table.reference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get linkUuid => $composableBuilder(
+    column: $table.linkUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8809,6 +8869,11 @@ class $$MoneyTxnsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get linkUuid => $composableBuilder(
+    column: $table.linkUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get harvestDay => $composableBuilder(
     column: $table.harvestDay,
     builder: (column) => ColumnOrderings(column),
@@ -8861,6 +8926,9 @@ class $$MoneyTxnsTableAnnotationComposer
 
   GeneratedColumn<String> get reference =>
       $composableBuilder(column: $table.reference, builder: (column) => column);
+
+  GeneratedColumn<String> get linkUuid =>
+      $composableBuilder(column: $table.linkUuid, builder: (column) => column);
 
   GeneratedColumn<String> get harvestDay => $composableBuilder(
     column: $table.harvestDay,
@@ -8915,6 +8983,7 @@ class $$MoneyTxnsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String> kind = const Value.absent(),
                 Value<String?> reference = const Value.absent(),
+                Value<String?> linkUuid = const Value.absent(),
                 Value<String> harvestDay = const Value.absent(),
                 Value<DateTime> loggedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -8928,6 +8997,7 @@ class $$MoneyTxnsTableTableManager
                 note: note,
                 kind: kind,
                 reference: reference,
+                linkUuid: linkUuid,
                 harvestDay: harvestDay,
                 loggedAt: loggedAt,
                 deletedAt: deletedAt,
@@ -8943,6 +9013,7 @@ class $$MoneyTxnsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String> kind = const Value.absent(),
                 Value<String?> reference = const Value.absent(),
+                Value<String?> linkUuid = const Value.absent(),
                 required String harvestDay,
                 Value<DateTime> loggedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -8956,6 +9027,7 @@ class $$MoneyTxnsTableTableManager
                 note: note,
                 kind: kind,
                 reference: reference,
+                linkUuid: linkUuid,
                 harvestDay: harvestDay,
                 loggedAt: loggedAt,
                 deletedAt: deletedAt,

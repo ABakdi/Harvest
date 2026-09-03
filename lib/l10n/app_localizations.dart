@@ -914,12 +914,6 @@ abstract class AppLocalizations {
   /// **'Budget for the month'**
   String get budgetAmountLabel;
 
-  /// No description provided for @currencyLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Currency symbol'**
-  String get currencyLabel;
-
   /// No description provided for @granaryEmpty.
   ///
   /// In en, this message translates to:
@@ -1226,18 +1220,6 @@ abstract class AppLocalizations {
   /// **'Insights'**
   String get insightsTab;
 
-  /// No description provided for @savingsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Savings'**
-  String get savingsLabel;
-
-  /// No description provided for @expectedDailyLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Expected daily spend'**
-  String get expectedDailyLabel;
-
   /// No description provided for @savingsLow.
   ///
   /// In en, this message translates to:
@@ -1304,12 +1286,6 @@ abstract class AppLocalizations {
   /// **'Default currency'**
   String get defaultCurrencyLabel;
 
-  /// No description provided for @expenseCurrencyLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Currency'**
-  String get expenseCurrencyLabel;
-
   /// No description provided for @exchangeRates.
   ///
   /// In en, this message translates to:
@@ -1352,16 +1328,10 @@ abstract class AppLocalizations {
   /// **'Couldn\'t fetch — check the connection.'**
   String get ratesFetchFailed;
 
-  /// No description provided for @savingsIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Savings · {code}'**
-  String savingsIn(String code);
-
   /// No description provided for @vaultTab.
   ///
   /// In en, this message translates to:
-  /// **'Vault'**
+  /// **'Balances'**
   String get vaultTab;
 
   /// No description provided for @walletTitle.
@@ -1400,48 +1370,6 @@ abstract class AppLocalizations {
   /// **'Withdraw'**
   String get savingsWithdraw;
 
-  /// No description provided for @amountPrompt.
-  ///
-  /// In en, this message translates to:
-  /// **'Amount'**
-  String get amountPrompt;
-
-  /// No description provided for @withdrawDestination.
-  ///
-  /// In en, this message translates to:
-  /// **'Where does it go?'**
-  String get withdrawDestination;
-
-  /// No description provided for @toWallet.
-  ///
-  /// In en, this message translates to:
-  /// **'To the wallet'**
-  String get toWallet;
-
-  /// No description provided for @asExpense.
-  ///
-  /// In en, this message translates to:
-  /// **'Log as expense'**
-  String get asExpense;
-
-  /// No description provided for @takeFromWallet.
-  ///
-  /// In en, this message translates to:
-  /// **'Take it from the wallet?'**
-  String get takeFromWallet;
-
-  /// No description provided for @yes.
-  ///
-  /// In en, this message translates to:
-  /// **'Yes'**
-  String get yes;
-
-  /// No description provided for @no.
-  ///
-  /// In en, this message translates to:
-  /// **'No'**
-  String get no;
-
   /// No description provided for @debtsTitle.
   ///
   /// In en, this message translates to:
@@ -1469,7 +1397,7 @@ abstract class AppLocalizations {
   /// No description provided for @debtRemindAt.
   ///
   /// In en, this message translates to:
-  /// **'Remind me at'**
+  /// **'Daily reminder at'**
   String get debtRemindAt;
 
   /// No description provided for @debtPay.
@@ -1478,23 +1406,11 @@ abstract class AppLocalizations {
   /// **'Pay'**
   String get debtPay;
 
-  /// No description provided for @debtPayAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment amount'**
-  String get debtPayAmount;
-
   /// No description provided for @debtSettled.
   ///
   /// In en, this message translates to:
   /// **'Settled 🎉'**
   String get debtSettled;
-
-  /// No description provided for @debtRemaining.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} left · {person}'**
-  String debtRemaining(String amount, String person);
 
   /// No description provided for @notifDebtTitle.
   ///
@@ -1507,30 +1423,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount} still owed. A settled debt sleeps better.'**
   String notifDebtBody(String amount);
-
-  /// No description provided for @recentMoves.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent moves'**
-  String get recentMoves;
-
-  /// No description provided for @txnWallet.
-  ///
-  /// In en, this message translates to:
-  /// **'Wallet'**
-  String get txnWallet;
-
-  /// No description provided for @txnSavings.
-  ///
-  /// In en, this message translates to:
-  /// **'Savings'**
-  String get txnSavings;
-
-  /// No description provided for @nothingInVault.
-  ///
-  /// In en, this message translates to:
-  /// **'The vault is empty — add to the wallet or save something.'**
-  String get nothingInVault;
 
   /// No description provided for @dayToday.
   ///
@@ -1547,7 +1439,7 @@ abstract class AppLocalizations {
   /// No description provided for @vaultOwed.
   ///
   /// In en, this message translates to:
-  /// **'Owed'**
+  /// **'Debts'**
   String get vaultOwed;
 
   /// No description provided for @vaultOpenDebts.
@@ -1555,30 +1447,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{no open debts} =1{1 open debt} other{{count} open debts}}'**
   String vaultOpenDebts(int count);
-
-  /// No description provided for @walletEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'The wallet is empty'**
-  String get walletEmptyTitle;
-
-  /// No description provided for @walletEmptyBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Add what you carry to spend. Expenses can come straight out of it.'**
-  String get walletEmptyBody;
-
-  /// No description provided for @savingsEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing saved yet'**
-  String get savingsEmptyTitle;
-
-  /// No description provided for @savingsEmptyBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Put something aside — one pot per currency.'**
-  String get savingsEmptyBody;
 
   /// No description provided for @debtsEmptyTitle.
   ///
@@ -1694,36 +1562,6 @@ abstract class AppLocalizations {
   /// **'Pay from the wallet?'**
   String get payFromWallet;
 
-  /// No description provided for @depositSource.
-  ///
-  /// In en, this message translates to:
-  /// **'Where does it come from?'**
-  String get depositSource;
-
-  /// No description provided for @fromWalletOption.
-  ///
-  /// In en, this message translates to:
-  /// **'From the wallet'**
-  String get fromWalletOption;
-
-  /// No description provided for @newMoneyOption.
-  ///
-  /// In en, this message translates to:
-  /// **'New money'**
-  String get newMoneyOption;
-
-  /// No description provided for @walletYes.
-  ///
-  /// In en, this message translates to:
-  /// **'Yes, from the wallet'**
-  String get walletYes;
-
-  /// No description provided for @walletNo.
-  ///
-  /// In en, this message translates to:
-  /// **'No, just log it'**
-  String get walletNo;
-
   /// No description provided for @budgetSpentToday.
   ///
   /// In en, this message translates to:
@@ -1765,12 +1603,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Nothing logged} =1{1 expense} other{{count} expenses}}'**
   String expensesToday(int count);
-
-  /// No description provided for @swipeToRemove.
-  ///
-  /// In en, this message translates to:
-  /// **'Swipe to remove'**
-  String get swipeToRemove;
 
   /// No description provided for @snooze10.
   ///
@@ -2005,6 +1837,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not yet'**
   String get cropPending;
+
+  /// No description provided for @fromWalletToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'From the wallet'**
+  String get fromWalletToggle;
+
+  /// No description provided for @walletHas.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} in the wallet'**
+  String walletHas(String amount);
+
+  /// No description provided for @walletShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough in the wallet'**
+  String get walletShort;
+
+  /// No description provided for @budgetMonthLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {budget} · {left} left'**
+  String budgetMonthLine(String spent, String budget, String left);
+
+  /// No description provided for @budgetMonthOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {budget} · {over} over'**
+  String budgetMonthOver(String spent, String budget, String over);
+
+  /// No description provided for @editBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit budget'**
+  String get editBudget;
+
+  /// No description provided for @perDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Per day'**
+  String get perDay;
+
+  /// No description provided for @todayEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Log an expense to add the first one.'**
+  String get todayEmptyBody;
+
+  /// No description provided for @debtRemindDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day at 7:00 PM until it is paid'**
+  String get debtRemindDefault;
+
+  /// No description provided for @undoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undoAction;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not save. Try again.'**
+  String get saveFailed;
+
+  /// No description provided for @categoryExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A category with that name already exists'**
+  String get categoryExists;
+
+  /// No description provided for @withdrawToWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'To the wallet'**
+  String get withdrawToWallet;
+
+  /// No description provided for @budgetExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily limit is what\'s left of the month divided by the days left in it.'**
+  String get budgetExplainer;
 }
 
 class _AppLocalizationsDelegate

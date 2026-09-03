@@ -269,7 +269,6 @@
   },
   "budgetSet": "Set a monthly budget",
   "budgetAmountLabel": "Budget for the month",
-  "currencyLabel": "Currency symbol",
   "granaryEmpty": "Nothing logged today. What did you spend?",
   "repeatSuggestionTitle": "Same as the last 3 days?",
   "logIt": "Log it",
@@ -387,8 +386,6 @@
   "manageCategories": "Custom categories",
   "todayTab": "Today",
   "insightsTab": "Insights",
-  "savingsLabel": "Savings",
-  "expectedDailyLabel": "Expected daily spend",
   "savingsLow": "Savings running low",
   "rangeWeek": "Week",
   "rangeMonth": "Month",
@@ -414,7 +411,6 @@
   },
   "calAddForDay": "Plant a to-do for this day…",
   "defaultCurrencyLabel": "Default currency",
-  "expenseCurrencyLabel": "Currency",
   "exchangeRates": "Exchange rates",
   "ratesDzdUsd": "DZD per 1 USD",
   "ratesDzdEur": "DZD per 1 EUR",
@@ -429,47 +425,20 @@
     }
   },
   "ratesFetchFailed": "Couldn't fetch — check the connection.",
-  "savingsIn": "Savings · {code}",
-  "@savingsIn": {
-    "placeholders": {
-      "code": {
-        "type": "String"
-      }
-    }
-  },
-  "vaultTab": "Vault",
+  "vaultTab": "Balances",
   "walletTitle": "Wallet",
   "walletAdd": "Add",
   "walletTake": "Take",
   "savingsSectionTitle": "Savings",
   "savingsDeposit": "Save",
   "savingsWithdraw": "Withdraw",
-  "amountPrompt": "Amount",
-  "withdrawDestination": "Where does it go?",
-  "toWallet": "To the wallet",
-  "asExpense": "Log as expense",
-  "takeFromWallet": "Take it from the wallet?",
-  "yes": "Yes",
-  "no": "No",
   "debtsTitle": "Debts",
   "addDebt": "Log a debt",
   "debtPerson": "Owed to",
   "debtPayOffBy": "Pay off by",
-  "debtRemindAt": "Remind me at",
+  "debtRemindAt": "Daily reminder at",
   "debtPay": "Pay",
-  "debtPayAmount": "Payment amount",
   "debtSettled": "Settled 🎉",
-  "debtRemaining": "{amount} left · {person}",
-  "@debtRemaining": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      },
-      "person": {
-        "type": "String"
-      }
-    }
-  },
   "notifDebtTitle": "Debt to {person}",
   "@notifDebtTitle": {
     "placeholders": {
@@ -486,13 +455,9 @@
       }
     }
   },
-  "recentMoves": "Recent moves",
-  "txnWallet": "Wallet",
-  "txnSavings": "Savings",
-  "nothingInVault": "The vault is empty — add to the wallet or save something.",
   "dayToday": "Today",
   "dayYesterday": "Yesterday",
-  "vaultOwed": "Owed",
+  "vaultOwed": "Debts",
   "vaultOpenDebts": "{count, plural, =0{no open debts} =1{1 open debt} other{{count} open debts}}",
   "@vaultOpenDebts": {
     "placeholders": {
@@ -501,10 +466,6 @@
       }
     }
   },
-  "walletEmptyTitle": "The wallet is empty",
-  "walletEmptyBody": "Add what you carry to spend. Expenses can come straight out of it.",
-  "savingsEmptyTitle": "Nothing saved yet",
-  "savingsEmptyBody": "Put something aside — one pot per currency.",
   "debtsEmptyTitle": "No debts",
   "debtsEmptyBody": "Nothing owed to anyone. Sleep well.",
   "movesTitle": "Moves",
@@ -541,11 +502,6 @@
   "debtOpen": "Open",
   "debtSettledSection": "Settled",
   "payFromWallet": "Pay from the wallet?",
-  "depositSource": "Where does it come from?",
-  "fromWalletOption": "From the wallet",
-  "newMoneyOption": "New money",
-  "walletYes": "Yes, from the wallet",
-  "walletNo": "No, just log it",
   "budgetSpentToday": "Spent today",
   "budgetDailyLimit": "Daily limit",
   "budgetLeftToday": "{amount} left today",
@@ -588,7 +544,6 @@
       }
     }
   },
-  "swipeToRemove": "Swipe to remove",
   "snooze10": "In 10 min",
   "snooze60": "In 1 hour",
   "snooze180": "In 3 hours",
@@ -723,5 +678,52 @@
     }
   },
   "cropDone": "Done",
-  "cropPending": "Not yet"
+  "cropPending": "Not yet",
+  "fromWalletToggle": "From the wallet",
+  "walletHas": "{amount} in the wallet",
+  "@walletHas": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "walletShort": "Not enough in the wallet",
+  "budgetMonthLine": "{spent} of {budget} · {left} left",
+  "@budgetMonthLine": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetMonthOver": "{spent} of {budget} · {over} over",
+  "@budgetMonthOver": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      },
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "editBudget": "Edit budget",
+  "perDay": "Per day",
+  "todayEmptyBody": "Tap Log an expense to add the first one.",
+  "debtRemindDefault": "Every day at 7:00 PM until it is paid",
+  "undoAction": "Undo",
+  "saveFailed": "That did not save. Try again.",
+  "categoryExists": "A category with that name already exists",
+  "withdrawToWallet": "To the wallet",
+  "budgetExplainer": "Your daily limit is what's left of the month divided by the days left in it."
 }

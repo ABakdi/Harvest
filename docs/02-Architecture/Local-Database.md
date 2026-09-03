@@ -77,4 +77,17 @@ Later phases add tables without touching these: `expenses`, `budgets` (Phase 2);
 
 ## Migrations
 
-Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to.
+Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one.
+
+**Deleting means deleting, eventually.** Every "delete" in the app is a
+soft delete: the row keeps its history and its `updated_at` for a future
+sync. On each launch, rows soft-deleted more than 30 days ago are purged
+for good (`purgeDeleted` on the commitments, finances and vault
+repositories). Nothing about money lingers forever by accident.
+
+**The outbox and privacy.** `money_txns`, `debts`, `debt_payments` and
+`expense_categories` append to the same outbox as expenses, and they
+carry the most sensitive data in the app — amounts, and other people's
+names. They belong in the same tier as expenses in [[Sync-Strategy]]:
+end-to-end encrypted, or local-only by choice. The outbox row itself
+holds no content, only a table, a uuid and an operation.

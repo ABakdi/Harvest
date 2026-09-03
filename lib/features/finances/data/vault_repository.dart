@@ -79,6 +79,7 @@ class VaultRepository {
     required Currency currency,
     TxnKind kind = TxnKind.manual,
     String? reference,
+    String? linkUuid,
     String? note,
     HarvestDay? day,
   }) async {
@@ -95,12 +96,69 @@ class VaultRepository {
               note: Value(note),
               kind: Value(kind.name),
               reference: Value(reference),
+              linkUuid: Value(linkUuid),
               harvestDay: (day ?? HarvestDay.today()).key,
             ),
           );
       await _outbox('money_txns', uuid, 'insert');
     });
   }
+
+  /// The movement that belongs to [linkUuid] (an expense, a payment),
+  /// or null when that row was never paid from a pot.
+  Future<MoneyTxn?> linkedTxn(
+    String linkUuid, {
+    bool includeDeleted = false,
+  }) async {
+    final query = _db.select(_db.moneyTxns)
+      ..where((t) => t.linkUuid.equals(linkUuid))
+      ..limit(1);
+    if (!includeDeleted) query.where((t) => t.deletedAt.isNull());
+    final row = await query.getSingleOrNull();
+    return row == null ? null : _toTxn(row);
+  }
+
+  /// Re-points a linked movement at an edited amount or category.
+  Future<void> updateLinked(
+    String uuid, {
+    required int deltaMinor,
+    required Currency currency,
+    String? reference,
+    String? note,
+  }) => _db.transaction(() async {
+    await (_db.update(_db.moneyTxns)..where((t) => t.uuid.equals(uuid))).write(
+      MoneyTxnsCompanion(
+        deltaMinor: Value(deltaMinor),
+        currency: Value(currency.code),
+        reference: Value(reference),
+        note: Value(note),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('money_txns', uuid, 'update');
+  });
+
+  /// Soft-deletes one movement (the expense behind it went away).
+  Future<void> removeTxn(String uuid) => _db.transaction(() async {
+    await (_db.update(_db.moneyTxns)..where((t) => t.uuid.equals(uuid))).write(
+      MoneyTxnsCompanion(
+        deletedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('money_txns', uuid, 'delete');
+  });
+
+  /// Puts a soft-deleted movement back (undo).
+  Future<void> restoreTxn(String uuid) => _db.transaction(() async {
+    await (_db.update(_db.moneyTxns)..where((t) => t.uuid.equals(uuid))).write(
+      MoneyTxnsCompanion(
+        deletedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('money_txns', uuid, 'update');
+  });
 
   /// Savings → wallet in one gesture (two linked movements).
   Future<void> transferSavingsToWallet({
@@ -157,33 +215,42 @@ class VaultRepository {
 
   // ---------------------------------------------------------------- debts
 
+  /// Every debt with what has been paid on it. The join reads from
+  /// `debt_payments` too, so a partial payment re-emits and a card's
+  /// remaining amount is never stale.
   Stream<List<Debt>> watchDebts() {
-    final query = _db.select(_db.debts)
-      ..where((d) => d.deletedAt.isNull())
-      ..orderBy([
-        (d) => OrderingTerm.asc(d.settledAt, nulls: NullsOrder.first),
-        (d) => OrderingTerm.asc(d.createdAt),
-      ]);
-    return query.watch().asyncMap((rows) async {
-      final paid = await _paidByDebt();
-      return rows
-          .map(
-            (row) => Debt(
-              uuid: row.uuid,
-              person: row.person,
-              amountMinor: row.amountMinor,
-              currency: Currency.fromCode(row.currency),
-              paidMinor: paid[row.uuid] ?? 0,
-              payOffBy: row.payOffBy == null
-                  ? null
-                  : HarvestDay.parse(row.payOffBy!),
-              remindAt: row.remindAt,
-              note: row.note,
-              settledAt: row.settledAt,
+    final paid = _db.debtPayments.amountMinor.sum();
+    final query =
+        _db.select(_db.debts).join([
+            leftOuterJoin(
+              _db.debtPayments,
+              _db.debtPayments.debtUuid.equalsExp(_db.debts.uuid) &
+                  _db.debtPayments.deletedAt.isNull(),
             ),
-          )
-          .toList();
-    });
+          ])
+          ..addColumns([paid])
+          ..where(_db.debts.deletedAt.isNull())
+          ..groupBy([_db.debts.uuid])
+          ..orderBy([
+            OrderingTerm.asc(_db.debts.settledAt, nulls: NullsOrder.first),
+            OrderingTerm.asc(_db.debts.createdAt),
+          ]);
+    return query.watch().map(
+      (rows) => rows.map((row) {
+        final debt = row.readTable(_db.debts);
+        return Debt(
+          uuid: debt.uuid,
+          person: debt.person,
+          amountMinor: debt.amountMinor,
+          currency: Currency.fromCode(debt.currency),
+          paidMinor: row.read(paid) ?? 0,
+          payOffBy: HarvestDay.tryParse(debt.payOffBy),
+          remindAt: debt.remindAt,
+          note: debt.note,
+          settledAt: debt.settledAt,
+        );
+      }).toList(),
+    );
   }
 
   /// Every payment on record, newest first.
@@ -250,17 +317,41 @@ class VaultRepository {
 
   /// Pays part (or all) of a debt; settles it when fully paid. With
   /// [fromWallet] the money also leaves the wallet as a debt-kind row.
+  ///
+  /// Throws [ArgumentError] for a non-positive amount, a payment beyond
+  /// what is still owed, or a debt already settled or deleted — a
+  /// ledger that accepts nonsense is worse than one that refuses.
   Future<void> payDebt(
     String debtUuid,
     int amountMinor, {
     bool fromWallet = false,
     String? note,
+    HarvestDay? day,
   }) async {
+    if (amountMinor <= 0) {
+      throw ArgumentError.value(amountMinor, 'amountMinor', 'must be positive');
+    }
     final paymentUuid = _uuid.v4();
     await _db.transaction(() async {
-      final debt = await (_db.select(
-        _db.debts,
-      )..where((d) => d.uuid.equals(debtUuid))).getSingle();
+      final debt =
+          await (_db.select(
+                _db.debts,
+              )..where((d) => d.uuid.equals(debtUuid) & d.deletedAt.isNull()))
+              .getSingleOrNull();
+      if (debt == null) {
+        throw ArgumentError.value(debtUuid, 'debtUuid', 'no such debt');
+      }
+      if (debt.settledAt != null) {
+        throw ArgumentError.value(debtUuid, 'debtUuid', 'already settled');
+      }
+      final alreadyPaid = (await _paidByDebt())[debtUuid] ?? 0;
+      if (alreadyPaid + amountMinor > debt.amountMinor) {
+        throw ArgumentError.value(
+          amountMinor,
+          'amountMinor',
+          'more than the ${debt.amountMinor - alreadyPaid} still owed',
+        );
+      }
       await _db
           .into(_db.debtPayments)
           .insert(
@@ -268,7 +359,7 @@ class VaultRepository {
               uuid: paymentUuid,
               debtUuid: debtUuid,
               amountMinor: amountMinor,
-              harvestDay: HarvestDay.today().key,
+              harvestDay: (day ?? HarvestDay.today()).key,
             ),
           );
       await _outbox('debt_payments', paymentUuid, 'insert');
@@ -280,7 +371,9 @@ class VaultRepository {
           currency: Currency.fromCode(debt.currency),
           kind: TxnKind.debt,
           reference: debt.person,
+          linkUuid: paymentUuid,
           note: note,
+          day: day,
         );
       }
 
@@ -304,15 +397,15 @@ class VaultRepository {
   Future<void> purgeDeleted({required Duration olderThan}) async {
     final cutoff = DateTime.now().subtract(olderThan);
     await _db.transaction(() async {
-      await (_db.delete(_db.moneyTxns)
-            ..where((t) => t.deletedAt.isSmallerThanValue(cutoff)))
-          .go();
-      await (_db.delete(_db.debtPayments)
-            ..where((p) => p.deletedAt.isSmallerThanValue(cutoff)))
-          .go();
-      await (_db.delete(_db.debts)
-            ..where((d) => d.deletedAt.isSmallerThanValue(cutoff)))
-          .go();
+      await (_db.delete(
+        _db.moneyTxns,
+      )..where((t) => t.deletedAt.isSmallerThanValue(cutoff))).go();
+      await (_db.delete(
+        _db.debtPayments,
+      )..where((p) => p.deletedAt.isSmallerThanValue(cutoff))).go();
+      await (_db.delete(
+        _db.debts,
+      )..where((d) => d.deletedAt.isSmallerThanValue(cutoff))).go();
     });
   }
 

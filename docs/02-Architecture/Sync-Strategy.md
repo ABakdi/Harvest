@@ -41,3 +41,13 @@ sequenceDiagram
 | Sleep & screen details | Aggregates only (durations), never app-by-app lists |
 
 Rankings/leaderboards consume only the gamification aggregates — total XP, streak length — pseudonymous by design.
+
+## Privacy tiers (audit S-10)
+
+The finance tables — `expenses`, `money_txns`, `debts`, `debt_payments`,
+`expense_categories` — sync **end-to-end encrypted or not at all**, my
+choice, and `debts` holds third-party names, so it never leaves the
+device in plaintext under any setting. Everything else (commitments,
+check-ins, streaks, the ledger) syncs under the ordinary account
+encryption.
+

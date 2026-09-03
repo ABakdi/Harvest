@@ -10,8 +10,8 @@ import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/domain/finance_actions.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
-import 'package:harvest/features/finances/presentation/choice_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -102,6 +102,10 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   String _category = ExpenseCategory.food.name;
   Currency? _currency;
 
+  /// null until the user decides: the toggle follows the wallet balance
+  /// on a new expense, and the existing movement when editing one.
+  bool? _walletChoice;
+
   @override
   void initState() {
     super.initState();
@@ -111,8 +115,36 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       _noteController.text = existing.note ?? '';
       _category = existing.category;
       _currency = existing.currency;
+      // Whether this expense already came out of the wallet.
+      unawaited(
+        ref.read(vaultRepositoryProvider).linkedTxn(existing.uuid).then((txn) {
+          if (mounted) setState(() => _walletChoice = txn != null);
+        }),
+      );
     }
   }
+
+  /// This expense's currency: the one it was logged in, or [fallback]
+  /// (the app default). Taking the fallback as a parameter keeps the
+  /// provider's type in view, which bare inference loses.
+  Currency _currencyOr(Currency fallback) => _currency ?? fallback;
+
+  Currency get _effectiveCurrency =>
+      _currencyOr(ref.read(defaultCurrencyProvider));
+
+  int get _walletBalance =>
+      ref.watch(
+        accountBalancesProvider(MoneyAccount.wallet),
+      )[_effectiveCurrency] ??
+      0;
+
+  bool get _walletCanCover =>
+      _amountMinor != null && _walletBalance >= _amountMinor!;
+
+  /// Paying from the wallet is the default whenever the wallet can.
+  bool get _fromWallet =>
+      (_walletChoice ?? _walletCanCover) &&
+      (_walletCanCover || _walletChoice == true);
 
   @override
   void dispose() {
@@ -123,91 +155,55 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
 
   int? get _amountMinor => parseToMinor(_amountController.text);
 
+  /// Logs (or edits) the expense in one transaction, wallet movement
+  /// included, and reports a failure instead of pretending it saved.
   Future<void> _log() async {
     final amount = _amountMinor;
     if (amount == null) return;
     final note = _noteController.text.trim();
     final existing = widget.existing;
+    final currency = _effectiveCurrency;
+    final actions = ref.read(financeActionsProvider);
+    final planner = ref.read(notificationPlannerProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
 
-    // New expenses can come straight out of the wallet (round 3).
-    var fromWallet = false;
-    if (existing == null) {
-      final l10n = AppLocalizations.of(context);
-      final scheme = Theme.of(context).colorScheme;
-      final currency =
-          _currency ??
-          ref.read(financeSettingsProvider).value?.defaultCurrency ??
-          Currency.dzd;
-      final walletBalance =
-          ref.read(accountBalancesProvider(MoneyAccount.wallet))[currency] ?? 0;
-      final choice = await showChoiceSheet<bool>(
-        context,
-        title: l10n.takeFromWallet,
-        options: [
-          ChoiceOption(
-            value: true,
-            icon: Icons.account_balance_wallet,
-            label: l10n.walletYes,
-            hint: formatAmount(walletBalance, currency),
-            color: scheme.primary,
-          ),
-          ChoiceOption(
-            value: false,
-            icon: Icons.receipt_long,
-            label: l10n.walletNo,
-            color: scheme.tertiary,
-          ),
-        ],
-      );
-      if (choice == null || !mounted) return;
-      fromWallet = choice;
-    }
-    // Coin burst above the sheet before it closes (gap G11).
+    // The reward burst rides above the sheet before it closes.
     final box = context.findRenderObject() as RenderBox?;
     if (box != null) {
       showCheckInBurst(
         context,
         box.localToGlobal(box.size.topCenter(Offset.zero)),
-        icon: Icons.paid,
-        color: Theme.of(context).colorScheme.tertiary,
+        color: Theme.of(context).colorScheme.secondary,
       );
     }
-    Navigator.of(context).pop();
-    final repo = ref.read(financesRepositoryProvider);
-    final currency =
-        _currency ??
-        ref.read(financeSettingsProvider).value?.defaultCurrency ??
-        Currency.dzd;
-    if (existing != null) {
-      await repo.updateExpense(
-        uuid: existing.uuid,
-        amountMinor: amount,
-        category: _category,
-        currency: currency,
-        note: note.isEmpty ? null : note,
-      );
-    } else {
-      await repo.log(
-        amountMinor: amount,
-        category: _category,
-        currency: currency,
-        note: note.isEmpty ? null : note,
-      );
-      if (fromWallet) {
-        await ref
-            .read(vaultRepositoryProvider)
-            .move(
-              account: MoneyAccount.wallet,
-              deltaMinor: -amount,
-              currency: currency,
-              kind: TxnKind.expense,
-              reference: _category,
-              note: note.isEmpty ? null : note,
-            );
+    navigator.pop();
+
+    try {
+      if (existing != null) {
+        await actions.updateExpense(
+          uuid: existing.uuid,
+          amountMinor: amount,
+          category: _category,
+          currency: currency,
+          fromWallet: _fromWallet,
+          note: note.isEmpty ? null : note,
+        );
+      } else {
+        await actions.logExpense(
+          amountMinor: amount,
+          category: _category,
+          currency: currency,
+          fromWallet: _fromWallet,
+          note: note.isEmpty ? null : note,
+        );
       }
+      await HarvestHaptics.thud();
+      await planner.reevaluate();
+    } on Exception catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
     }
-    await HarvestHaptics.thud();
-    await ref.read(notificationPlannerProvider).reevaluate();
   }
 
   Future<void> _createCategory(BuildContext context) async {
@@ -220,6 +216,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final customs = ref.watch(customCategoriesProvider).value ?? const [];
+    final currency = _currencyOr(ref.watch(defaultCurrencyProvider));
 
     return Padding(
       padding: EdgeInsets.only(
@@ -250,8 +247,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
             ),
             decoration: InputDecoration(
               labelText: l10n.amountLabel,
-              prefixText:
-                  '${(_currency ?? ref.watch(financeSettingsProvider).value?.defaultCurrency ?? Currency.dzd).symbol} ',
+              prefixText: '${currency.symbol} ',
             ),
           ),
           const SizedBox(height: HarvestSpacing.sm),
@@ -264,11 +260,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
                   label: Text(option.symbol),
                 ),
             ],
-            selected: {
-              _currency ??
-                  ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-                  Currency.dzd,
-            },
+            selected: {currency},
             onSelectionChanged: (selection) {
               unawaited(HarvestHaptics.tick());
               setState(() => _currency = selection.first);
@@ -302,10 +294,29 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
               ),
             ],
           ),
-          const SizedBox(height: HarvestSpacing.md),
+          const SizedBox(height: HarvestSpacing.sm),
+          // Where the money comes from, answered here instead of in a
+          // second sheet after the fact.
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.fromWalletToggle),
+            subtitle: Text(
+              _amountMinor != null && !_walletCanCover
+                  ? l10n.walletShort
+                  : l10n.walletHas(
+                      formatAmount(_walletBalance, _effectiveCurrency),
+                    ),
+            ),
+            value: _fromWallet,
+            onChanged: _walletCanCover
+                ? (value) => setState(() => _walletChoice = value)
+                : null,
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
           TextField(
             controller: _noteController,
             textInputAction: TextInputAction.done,
+            maxLength: 200,
             decoration: InputDecoration(labelText: l10n.noteLabel),
           ),
           const SizedBox(height: HarvestSpacing.lg),

@@ -472,9 +472,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetAmountLabel => 'Budget for the month';
 
   @override
-  String get currencyLabel => 'Currency symbol';
-
-  @override
   String get granaryEmpty => 'Nothing logged today. What did you spend?';
 
   @override
@@ -647,12 +644,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightsTab => 'Insights';
 
   @override
-  String get savingsLabel => 'Savings';
-
-  @override
-  String get expectedDailyLabel => 'Expected daily spend';
-
-  @override
   String get savingsLow => 'Savings running low';
 
   @override
@@ -690,9 +681,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get defaultCurrencyLabel => 'Default currency';
 
   @override
-  String get expenseCurrencyLabel => 'Currency';
-
-  @override
   String get exchangeRates => 'Exchange rates';
 
   @override
@@ -716,12 +704,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ratesFetchFailed => 'Couldn\'t fetch — check the connection.';
 
   @override
-  String savingsIn(String code) {
-    return 'Savings · $code';
-  }
-
-  @override
-  String get vaultTab => 'Vault';
+  String get vaultTab => 'Balances';
 
   @override
   String get walletTitle => 'Wallet';
@@ -742,27 +725,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savingsWithdraw => 'Withdraw';
 
   @override
-  String get amountPrompt => 'Amount';
-
-  @override
-  String get withdrawDestination => 'Where does it go?';
-
-  @override
-  String get toWallet => 'To the wallet';
-
-  @override
-  String get asExpense => 'Log as expense';
-
-  @override
-  String get takeFromWallet => 'Take it from the wallet?';
-
-  @override
-  String get yes => 'Yes';
-
-  @override
-  String get no => 'No';
-
-  @override
   String get debtsTitle => 'Debts';
 
   @override
@@ -775,21 +737,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debtPayOffBy => 'Pay off by';
 
   @override
-  String get debtRemindAt => 'Remind me at';
+  String get debtRemindAt => 'Daily reminder at';
 
   @override
   String get debtPay => 'Pay';
 
   @override
-  String get debtPayAmount => 'Payment amount';
-
-  @override
   String get debtSettled => 'Settled 🎉';
-
-  @override
-  String debtRemaining(String amount, String person) {
-    return '$amount left · $person';
-  }
 
   @override
   String notifDebtTitle(String person) {
@@ -802,26 +756,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recentMoves => 'Recent moves';
-
-  @override
-  String get txnWallet => 'Wallet';
-
-  @override
-  String get txnSavings => 'Savings';
-
-  @override
-  String get nothingInVault =>
-      'The vault is empty — add to the wallet or save something.';
-
-  @override
   String get dayToday => 'Today';
 
   @override
   String get dayYesterday => 'Yesterday';
 
   @override
-  String get vaultOwed => 'Owed';
+  String get vaultOwed => 'Debts';
 
   @override
   String vaultOpenDebts(int count) {
@@ -834,19 +775,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get walletEmptyTitle => 'The wallet is empty';
-
-  @override
-  String get walletEmptyBody =>
-      'Add what you carry to spend. Expenses can come straight out of it.';
-
-  @override
-  String get savingsEmptyTitle => 'Nothing saved yet';
-
-  @override
-  String get savingsEmptyBody => 'Put something aside — one pot per currency.';
 
   @override
   String get debtsEmptyTitle => 'No debts';
@@ -910,21 +838,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payFromWallet => 'Pay from the wallet?';
 
   @override
-  String get depositSource => 'Where does it come from?';
-
-  @override
-  String get fromWalletOption => 'From the wallet';
-
-  @override
-  String get newMoneyOption => 'New money';
-
-  @override
-  String get walletYes => 'Yes, from the wallet';
-
-  @override
-  String get walletNo => 'No, just log it';
-
-  @override
   String get budgetSpentToday => 'Spent today';
 
   @override
@@ -961,9 +874,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get swipeToRemove => 'Swipe to remove';
 
   @override
   String get snooze10 => 'In 10 min';
@@ -1140,4 +1050,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cropPending => 'Not yet';
+
+  @override
+  String get fromWalletToggle => 'From the wallet';
+
+  @override
+  String walletHas(String amount) {
+    return '$amount in the wallet';
+  }
+
+  @override
+  String get walletShort => 'Not enough in the wallet';
+
+  @override
+  String budgetMonthLine(String spent, String budget, String left) {
+    return '$spent of $budget · $left left';
+  }
+
+  @override
+  String budgetMonthOver(String spent, String budget, String over) {
+    return '$spent of $budget · $over over';
+  }
+
+  @override
+  String get editBudget => 'Edit budget';
+
+  @override
+  String get perDay => 'Per day';
+
+  @override
+  String get todayEmptyBody => 'Tap Log an expense to add the first one.';
+
+  @override
+  String get debtRemindDefault => 'Every day at 7:00 PM until it is paid';
+
+  @override
+  String get undoAction => 'Undo';
+
+  @override
+  String get saveFailed => 'That did not save. Try again.';
+
+  @override
+  String get categoryExists => 'A category with that name already exists';
+
+  @override
+  String get withdrawToWallet => 'To the wallet';
+
+  @override
+  String get budgetExplainer =>
+      'Your daily limit is what\'s left of the month divided by the days left in it.';
 }

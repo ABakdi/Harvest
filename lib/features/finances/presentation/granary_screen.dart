@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/gauge_ring.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/hero_card.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/ledger_row.dart';
@@ -14,6 +16,7 @@ import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/domain/finance_actions.dart';
 import 'package:harvest/features/finances/presentation/budget_colors.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_charts.dart';
@@ -22,7 +25,6 @@ import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/finances/presentation/vault_tab.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/l10n/app_localizations.dart';
-import 'package:intl/intl.dart';
 
 /// The Granary: Today (gauge + quick log), Vault (wallet, savings,
 /// debts) and Insights (charts). The expense action floats on Today
@@ -178,7 +180,6 @@ class _ExpenseRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final locale = Localizations.localeOf(context).toString();
 
     return Dismissible(
       key: ValueKey(expense.uuid),
@@ -192,12 +193,18 @@ class _ExpenseRow extends ConsumerWidget {
         ),
         child: Icon(Icons.delete_outline, color: scheme.error),
       ),
+      // Removing takes the wallet movement with it; Undo brings both
+      // back, so a mis-swipe costs nothing.
       onDismissed: (_) {
-        unawaited(ref.read(financesRepositoryProvider).remove(expense.uuid));
+        final actions = ref.read(financeActionsProvider);
+        unawaited(actions.removeExpense(expense.uuid));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.deleted),
-            duration: const Duration(seconds: 1),
+            action: SnackBarAction(
+              label: l10n.undoAction,
+              onPressed: () => unawaited(actions.restoreExpense(expense.uuid)),
+            ),
           ),
         );
       },
@@ -206,7 +213,7 @@ class _ExpenseRow extends ConsumerWidget {
         color: scheme.secondary,
         title: categoryLabel(l10n, expense.category),
         subtitle: expense.note == null || expense.note!.isEmpty
-            ? DateFormat.jm(locale).format(expense.loggedAt)
+            ? formatTime(context, expense.loggedAt)
             : expense.note,
         amount: formatSigned(-expense.amountMinor, expense.currency),
         caption: conversionCaption(
@@ -259,7 +266,6 @@ class _BudgetCard extends ConsumerWidget {
     return HeroCard(
       tint: color,
       padding: const EdgeInsets.all(HarvestSpacing.md),
-      onTap: () => unawaited(showBudgetSheet(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -267,11 +273,14 @@ class _BudgetCard extends ConsumerWidget {
             children: [
               GaugeRing(
                 progress: snap.floatingDailyLimit == 0
-                    ? 1
+                    ? 0
                     : snap.spentToday / snap.floatingDailyLimit,
                 color: color,
                 size: 92,
                 strokeWidth: 9,
+                semanticsLabel: leftToday >= 0
+                    ? l10n.budgetLeftToday(formatAmount(leftToday, currency))
+                    : l10n.budgetOverToday(formatAmount(-leftToday, currency)),
                 child: Icon(Icons.payments, size: 28, color: color),
               ),
               const SizedBox(width: HarvestSpacing.md),
@@ -292,14 +301,7 @@ class _BudgetCard extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    Text(
-                      '${l10n.budgetDailyLimit} · '
-                      '${formatAmount(snap.floatingDailyLimit, currency)}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: scheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
+                    // The one number that decides the rest of the day.
                     Text(
                       leftToday >= 0
                           ? l10n.budgetLeftToday(
@@ -308,7 +310,7 @@ class _BudgetCard extends ConsumerWidget {
                           : l10n.budgetOverToday(
                               formatAmount(-leftToday, currency),
                             ),
-                      style: theme.textTheme.labelMedium?.copyWith(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: color,
                       ),
@@ -316,9 +318,10 @@ class _BudgetCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.tune,
-                color: scheme.onSurface.withValues(alpha: 0.4),
+              IconButton(
+                tooltip: l10n.editBudget,
+                icon: Icon(Icons.tune, color: scheme.onSurfaceVariant),
+                onPressed: () => unawaited(showBudgetSheet(context)),
               ),
             ],
           ),
@@ -333,30 +336,23 @@ class _BudgetCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: HarvestSpacing.xs + 2),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.budgetSpentOf(
+          // The month in one line: spent, budget, and what remains.
+          Text(
+            leftMonth >= 0
+                ? l10n.budgetMonthLine(
                     formatAmount(snap.spentThisMonth, currency),
                     formatAmount(snap.monthlyBudget, currency),
+                    formatAmount(leftMonth, currency),
+                  )
+                : l10n.budgetMonthOver(
+                    formatAmount(snap.spentThisMonth, currency),
+                    formatAmount(snap.monthlyBudget, currency),
+                    formatAmount(-leftMonth, currency),
                   ),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.65),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Text(
-                leftMonth >= 0
-                    ? l10n.budgetLeftMonth(formatAmount(leftMonth, currency))
-                    : l10n.budgetOverMonth(formatAmount(-leftMonth, currency)),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: leftMonth >= 0 ? scheme.onSurface : scheme.error,
-                ),
-              ),
-            ],
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: leftMonth >= 0 ? scheme.onSurfaceVariant : scheme.error,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -380,119 +376,62 @@ class _BudgetSheet extends ConsumerStatefulWidget {
 
 class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
   final _amountController = TextEditingController();
-  final _expectedController = TextEditingController();
-  Currency _defaultCurrency = Currency.dzd;
 
   @override
   void initState() {
     super.initState();
-    final settings = ref.read(financeSettingsProvider).value;
-    if (settings == null) return;
-    _defaultCurrency = settings.defaultCurrency;
-    if (settings.budgetMinor != null) {
-      _amountController.text = formatMinor(settings.budgetMinor!);
-    }
-    if (settings.expectedDailyMinor != null) {
-      _expectedController.text = formatMinor(settings.expectedDailyMinor!);
-    }
+    final budget = ref.read(financeSettingsProvider).value?.budgetMinor;
+    if (budget != null) _amountController.text = formatMinor(budget);
   }
 
   @override
   void dispose() {
     _amountController.dispose();
-    _expectedController.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     final minor = parseToMinor(_amountController.text);
     if (minor == null) return;
-    final expected = parseToMinor(_expectedController.text);
-    Navigator.of(context).pop();
     final notifier = ref.read(financeSettingsProvider.notifier);
+    Navigator.of(context).pop();
     await notifier.setBudget(minor);
-    await notifier.setDefaultCurrency(_defaultCurrency);
-    if (expected != null) await notifier.setExpectedDaily(expected);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final currency = ref.watch(defaultCurrencyProvider);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: HarvestSpacing.lg,
-        right: HarvestSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + HarvestSpacing.lg,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.budgetTitle,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            TextField(
-              controller: _amountController,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-              decoration: InputDecoration(
-                labelText: l10n.budgetAmountLabel,
-                prefixText: '${_defaultCurrency.symbol} ',
-              ),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            Text(
-              l10n.defaultCurrencyLabel,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: HarvestSpacing.xs),
-            SegmentedButton<Currency>(
-              segments: [
-                for (final currency in Currency.values)
-                  ButtonSegment(
-                    value: currency,
-                    label: Text(currency.symbol),
-                  ),
-              ],
-              selected: {_defaultCurrency},
-              onSelectionChanged: (selection) =>
-                  setState(() => _defaultCurrency = selection.first),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            TextField(
-              controller: _expectedController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(labelText: l10n.expectedDailyLabel),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            const _ManageCategories(),
-            const SizedBox(height: HarvestSpacing.md),
-            BigBouncySheetButton(
-              onPressed: parseToMinor(_amountController.text) == null
-                  ? null
-                  : () => unawaited(_save()),
-              child: Text(l10n.save),
-            ),
-          ],
+    return HarvestSheet(
+      title: l10n.budgetTitle,
+      actionLabel: l10n.save,
+      onAction: parseToMinor(_amountController.text) == null
+          ? null
+          : () => unawaited(_save()),
+      children: [
+        TextField(
+          controller: _amountController,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: (_) => setState(() {}),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+          decoration: InputDecoration(
+            labelText: l10n.budgetAmountLabel,
+            prefixText: '${currency.symbol} ',
+          ),
         ),
-      ),
+        const SizedBox(height: HarvestSpacing.sm),
+        Text(
+          l10n.budgetExplainer,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -564,49 +503,6 @@ class _RepeatCard extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Custom category list with delete — finance settings (gap G8).
-class _ManageCategories extends ConsumerWidget {
-  const _ManageCategories();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final customs = ref.watch(customCategoriesProvider).value ?? const [];
-    if (customs.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.manageCategories,
-          style: Theme.of(context).textTheme.labelLarge
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: HarvestSpacing.xs),
-        Wrap(
-          spacing: HarvestSpacing.xs,
-          runSpacing: HarvestSpacing.xs,
-          children: [
-            for (final category in customs)
-              InputChip(
-                avatar: Icon(
-                  categoryIconRegistry[category.icon] ?? Icons.category,
-                  size: 18,
-                ),
-                label: Text(category.name),
-                onDeleted: () => unawaited(
-                  ref
-                      .read(financesRepositoryProvider)
-                      .deleteCategory(category.uuid),
-                ),
-              ),
-          ],
-        ),
-      ],
     );
   }
 }

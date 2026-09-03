@@ -20,22 +20,29 @@ shows a hero card with its per-currency balances and its actions, then
 - **Wallet** — money meant to be spent. Add and take freely; taking
   without logging an expense is allowed.
 - **Savings** — money meant to be saved, one pot per currency. Saving
-  asks where the money comes from (**from the wallet** = a transfer,
-  or **new money**). A withdrawal must land somewhere: **to the
-  wallet** or **logged as an expense** — the prompt always asks, and
-  it can't exceed the pot. Total savings (converted) below 10% of the
-  monthly budget turns the section red.
+  asks one thing, how much; a **from the wallet** switch inside the
+  same sheet decides whether it is a transfer or new money, and it is
+  on by default when the wallet can cover it. A withdrawal always
+  lands **in the wallet** (spending it is then an ordinary expense),
+  and it can't exceed the pot. Total savings (converted) below 10% of
+  the monthly budget turns the section red.
 - **Every movement is a row** — balances are sums over the signed
   transaction history. Each row carries a **kind** so the ledger
   explains itself: added / taken out / saved / withdrawn (manual),
   from savings / to savings / from the wallet / to the wallet
   (transfer), expense · category, paid *person* (debt).
-- Logging an expense asks **"Take it from the wallet?"** — yes creates
-  the matching wallet withdrawal, tagged with the category.
+- Logging an expense carries the same **from the wallet** switch, on by
+  default when the wallet can cover it. The wallet withdrawal it creates
+  is written in the same transaction and **linked to the expense**:
+  editing the amount moves it, deleting the expense refunds it, and Undo
+  puts both back. A wallet-funded expense can never leave a ghost
+  withdrawal behind.
 - **Debts** — an amount owed to someone (no interest), with an optional
   pay-off-by day, a note, and a remind-me-at time. Each open debt shows
   its remaining amount, a paid progress bar, and its **payments** on
-  demand; paying asks whether the money leaves the wallet. Unsettled
+  demand; the payment sheet carries the same wallet switch. A payment
+  must be positive and no larger than what is still owed, and a settled
+  debt refuses further payments. Unsettled
   debts nag **daily** (19:00 default) until fully paid; partial
   payments accumulate and full payment settles with a small celebration.
   Settled debts fold into a quiet list underneath.
@@ -43,8 +50,10 @@ shows a hero card with its per-currency balances and its actions, then
 Amounts are displayed with thousands grouping (`DA36,900,530`) and
 always in Latin digits so columns line up in both languages.
 
-An **expected daily spend** records intent next to the computed
-floating limit.
+The budget sheet sets one thing: the **monthly budget**. The daily
+limit is derived (what's left of the month ÷ the days left in it) and
+explained there. The **default currency**, the **exchange rates** and
+the **custom categories** live together under Settings › Money.
 
 ## Quick-log
 

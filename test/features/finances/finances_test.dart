@@ -38,6 +38,28 @@ void main() {
       expect(at(2001).status, BudgetStatus.over);
     });
 
+    test('with no daily share left the month decides the colour', () {
+      // The month is used up: nothing spent today is still "over".
+      final overspent = BudgetSnapshot.compute(
+        monthlyBudget: 60000,
+        spentBeforeToday: 70000,
+        spentToday: 0,
+        day: day10,
+      );
+      expect(overspent.floatingDailyLimit, 0);
+      expect(overspent.status, BudgetStatus.over);
+
+      // Exactly on budget with nothing left to spread: not a warning.
+      final exact = BudgetSnapshot.compute(
+        monthlyBudget: 60000,
+        spentBeforeToday: 60000,
+        spentToday: 0,
+        day: day10,
+      );
+      expect(exact.floatingDailyLimit, 0);
+      expect(exact.status, BudgetStatus.under);
+    });
+
     test('an overspent month floors the limit at zero', () {
       final snap = BudgetSnapshot.compute(
         monthlyBudget: 10000,

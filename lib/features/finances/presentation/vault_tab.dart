@@ -10,15 +10,15 @@ import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/ledger_row.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/stat_tile.dart';
-import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
+import 'package:harvest/features/finances/domain/finance_actions.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
-import 'package:harvest/features/finances/presentation/choice_sheet.dart';
 import 'package:harvest/features/finances/presentation/debt_sheet.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/finances/presentation/guarded.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/finances/presentation/money_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -54,9 +54,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     final scheme = Theme.of(context).colorScheme;
     final totals = ref.watch(vaultTotalsProvider);
     final health = ref.watch(savingsHealthProvider);
-    final defaultCurrency =
-        ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-        Currency.dzd;
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
     final savingsColor = health == SavingsHealth.low
         ? scheme.error
         : scheme.secondary;
@@ -153,12 +151,8 @@ class _WalletSection extends ConsumerWidget {
     final balances = ref.watch(accountBalancesProvider(MoneyAccount.wallet));
     final txns =
         ref.watch(accountTxnsProvider(MoneyAccount.wallet)).value ?? const [];
-    final rates =
-        ref.watch(ratesProvider).value ??
-        const Rates(defaultCurrency: Currency.dzd);
-    final defaultCurrency =
-        ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-        Currency.dzd;
+    final rates = ref.watch(ratesOrDefaultProvider);
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -198,6 +192,7 @@ class _WalletSection extends ConsumerWidget {
                           ref,
                           deposit: true,
                           currency: defaultCurrency,
+                          balances: balances,
                         ),
                       ),
                     ),
@@ -213,6 +208,7 @@ class _WalletSection extends ConsumerWidget {
                           ref,
                           deposit: false,
                           currency: defaultCurrency,
+                          balances: balances,
                         ),
                       ),
                     ),
@@ -239,6 +235,7 @@ class _WalletSection extends ConsumerWidget {
     WidgetRef ref, {
     required bool deposit,
     required Currency currency,
+    required Map<Currency, int> balances,
   }) async {
     final l10n = AppLocalizations.of(context);
     final entry = await showMoneySheet(
@@ -246,17 +243,21 @@ class _WalletSection extends ConsumerWidget {
       title: deposit ? l10n.walletAdd : l10n.walletTake,
       subtitle: l10n.walletTitle,
       initialCurrency: currency,
+      // Taking out more than the wallet holds is a typo, not a wish.
+      maxMinor: deposit ? null : balances,
     );
-    if (entry == null) return;
-    await ref
-        .read(vaultRepositoryProvider)
-        .move(
-          account: MoneyAccount.wallet,
-          deltaMinor: deposit ? entry.minor : -entry.minor,
-          currency: entry.currency,
-          note: entry.note,
-        );
-    unawaited(HarvestHaptics.thud());
+    if (entry == null || !context.mounted) return;
+    await runGuarded(
+      context,
+      ref
+          .read(vaultRepositoryProvider)
+          .move(
+            account: MoneyAccount.wallet,
+            deltaMinor: deposit ? entry.minor : -entry.minor,
+            currency: entry.currency,
+            note: entry.note,
+          ),
+    );
   }
 }
 
@@ -272,12 +273,8 @@ class _SavingsSection extends ConsumerWidget {
     final balances = ref.watch(accountBalancesProvider(MoneyAccount.savings));
     final txns =
         ref.watch(accountTxnsProvider(MoneyAccount.savings)).value ?? const [];
-    final rates =
-        ref.watch(ratesProvider).value ??
-        const Rates(defaultCurrency: Currency.dzd);
-    final defaultCurrency =
-        ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-        Currency.dzd;
+    final rates = ref.watch(ratesOrDefaultProvider);
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
     final low = ref.watch(savingsHealthProvider) == SavingsHealth.low;
 
     return Column(
@@ -362,6 +359,9 @@ class _SavingsSection extends ConsumerWidget {
   }
 
   /// A deposit comes from the wallet (transfer) or from new money.
+  /// Saving asks one question: how much. Where it comes from is a
+  /// switch inside the same sheet, defaulted to the wallet when the
+  /// wallet can cover it.
   Future<void> _deposit(
     BuildContext context,
     WidgetRef ref, {
@@ -375,54 +375,24 @@ class _SavingsSection extends ConsumerWidget {
       subtitle: l10n.savingsSectionTitle,
       initialCurrency: currency,
       accent: scheme.secondary,
+      walletBalances: ref.read(accountBalancesProvider(MoneyAccount.wallet)),
     );
     if (entry == null || !context.mounted) return;
-
-    final walletBalance =
-        ref.read(
-          accountBalancesProvider(MoneyAccount.wallet),
-        )[entry.currency] ??
-        0;
-    final source = await showChoiceSheet<String>(
+    await runGuarded(
       context,
-      title: l10n.depositSource,
-      options: [
-        ChoiceOption(
-          value: 'wallet',
-          icon: Icons.account_balance_wallet,
-          label: l10n.fromWalletOption,
-          hint: formatAmount(walletBalance, entry.currency),
-          color: scheme.primary,
-        ),
-        ChoiceOption(
-          value: 'new',
-          icon: Icons.add_circle,
-          label: l10n.newMoneyOption,
-          color: scheme.secondary,
-        ),
-      ],
+      ref
+          .read(financeActionsProvider)
+          .depositSavings(
+            amountMinor: entry.minor,
+            currency: entry.currency,
+            fromWallet: entry.fromWallet,
+            note: entry.note,
+          ),
     );
-    if (source == null) return;
-
-    final vault = ref.read(vaultRepositoryProvider);
-    if (source == 'wallet') {
-      await vault.transferWalletToSavings(
-        amountMinor: entry.minor,
-        currency: entry.currency,
-        note: entry.note,
-      );
-    } else {
-      await vault.move(
-        account: MoneyAccount.savings,
-        deltaMinor: entry.minor,
-        currency: entry.currency,
-        note: entry.note,
-      );
-    }
-    unawaited(HarvestHaptics.thud());
   }
 
-  /// A withdrawal always lands somewhere: the wallet or an expense.
+  /// A withdrawal always lands in the wallet. Spending it is a separate,
+  /// ordinary expense — one path for money leaving, not two.
   Future<void> _withdraw(
     BuildContext context,
     WidgetRef ref, {
@@ -433,60 +403,23 @@ class _SavingsSection extends ConsumerWidget {
     final entry = await showMoneySheet(
       context,
       title: l10n.savingsWithdraw,
-      subtitle: l10n.savingsSectionTitle,
+      subtitle: l10n.withdrawToWallet,
       initialCurrency: balances.keys.first,
       lockCurrency: balances.length == 1,
       maxMinor: balances,
       accent: scheme.secondary,
     );
     if (entry == null || !context.mounted) return;
-
-    final destination = await showChoiceSheet<String>(
+    await runGuarded(
       context,
-      title: l10n.withdrawDestination,
-      options: [
-        ChoiceOption(
-          value: 'wallet',
-          icon: Icons.account_balance_wallet,
-          label: l10n.toWallet,
-          color: scheme.primary,
-        ),
-        ChoiceOption(
-          value: 'expense',
-          icon: Icons.receipt_long,
-          label: l10n.asExpense,
-          color: scheme.tertiary,
-        ),
-      ],
-    );
-    if (destination == null) return;
-
-    final vault = ref.read(vaultRepositoryProvider);
-    if (destination == 'wallet') {
-      await vault.transferSavingsToWallet(
-        amountMinor: entry.minor,
-        currency: entry.currency,
-        note: entry.note,
-      );
-    } else {
-      await vault.move(
-        account: MoneyAccount.savings,
-        deltaMinor: -entry.minor,
-        currency: entry.currency,
-        kind: TxnKind.expense,
-        reference: ExpenseCategory.other.name,
-        note: entry.note,
-      );
-      await ref
-          .read(financesRepositoryProvider)
-          .log(
+      ref
+          .read(financeActionsProvider)
+          .withdrawSavings(
             amountMinor: entry.minor,
-            category: ExpenseCategory.other.name,
             currency: entry.currency,
             note: entry.note,
-          );
-    }
-    unawaited(HarvestHaptics.thud());
+          ),
+    );
   }
 }
 
@@ -510,12 +443,8 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
     final debts = ref.watch(debtsProvider).value ?? const <Debt>[];
     final payments =
         ref.watch(debtPaymentsProvider).value ?? const <DebtPayment>[];
-    final rates =
-        ref.watch(ratesProvider).value ??
-        const Rates(defaultCurrency: Currency.dzd);
-    final defaultCurrency =
-        ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-        Currency.dzd;
+    final rates = ref.watch(ratesOrDefaultProvider);
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
 
     final open = debts.where((d) => !d.isSettled).toList();
     final settled = debts.where((d) => d.isSettled).toList();
@@ -643,41 +572,20 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
       initialAmountMinor: debt.remainingMinor,
       maxMinor: {debt.currency: debt.remainingMinor},
       accent: scheme.tertiary,
+      walletBalances: ref.read(accountBalancesProvider(MoneyAccount.wallet)),
     );
     if (entry == null || !context.mounted) return;
-
-    final walletBalance =
-        ref.read(accountBalancesProvider(MoneyAccount.wallet))[debt.currency] ??
-        0;
-    final fromWallet = await showChoiceSheet<bool>(
+    await runGuarded(
       context,
-      title: l10n.payFromWallet,
-      options: [
-        ChoiceOption(
-          value: true,
-          icon: Icons.account_balance_wallet,
-          label: l10n.walletYes,
-          hint: formatAmount(walletBalance, debt.currency),
-          color: scheme.primary,
-        ),
-        ChoiceOption(
-          value: false,
-          icon: Icons.receipt_long,
-          label: l10n.walletNo,
-          color: scheme.tertiary,
-        ),
-      ],
+      ref
+          .read(financeActionsProvider)
+          .payDebt(
+            debtUuid: debt.uuid,
+            amountMinor: entry.minor,
+            fromWallet: entry.fromWallet,
+            note: entry.note,
+          ),
     );
-    if (fromWallet == null) return;
-    await ref
-        .read(vaultRepositoryProvider)
-        .payDebt(
-          debt.uuid,
-          entry.minor,
-          fromWallet: fromWallet,
-          note: entry.note,
-        );
-    unawaited(HarvestHaptics.thud());
   }
 }
 

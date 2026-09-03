@@ -181,4 +181,63 @@ void main() {
       );
     });
   });
+
+  group('debt payments are validated', () {
+    Future<Debt> seedDebt({int amount = 10000}) async {
+      await vault.createDebt(
+        person: 'Sami',
+        amountMinor: amount,
+        currency: Currency.dzd,
+      );
+      return (await vault.watchDebts().first).single;
+    }
+
+    test('refuses a non-positive amount', () async {
+      final debt = await seedDebt();
+      await expectLater(
+        vault.payDebt(debt.uuid, 0),
+        throwsArgumentError,
+      );
+      await expectLater(
+        vault.payDebt(debt.uuid, -100),
+        throwsArgumentError,
+      );
+    });
+
+    test('refuses more than is still owed', () async {
+      final debt = await seedDebt();
+      await vault.payDebt(debt.uuid, 6000);
+      await expectLater(
+        vault.payDebt(debt.uuid, 5000),
+        throwsArgumentError,
+      );
+      expect((await vault.watchDebts().first).single.paidMinor, 6000);
+    });
+
+    test('refuses to pay a settled debt', () async {
+      final debt = await seedDebt();
+      await vault.payDebt(debt.uuid, 10000);
+      await expectLater(
+        vault.payDebt(debt.uuid, 100),
+        throwsArgumentError,
+      );
+    });
+
+    test('a partial payment reaches an open subscription', () async {
+      final debt = await seedDebt();
+      final seen = <int>[];
+      final sub = vault.watchDebts().listen(
+        (debts) => seen.add(debts.single.paidMinor),
+      );
+      addTearDown(sub.cancel);
+
+      await pumpEventQueue();
+      await vault.payDebt(debt.uuid, 2500);
+      await pumpEventQueue();
+      await vault.payDebt(debt.uuid, 2500);
+      await pumpEventQueue();
+
+      expect(seen.last, 5000, reason: 'the card is never stale');
+    });
+  });
 }

@@ -33,6 +33,7 @@ class MoneyTxn {
     required this.loggedAt,
     this.kind = TxnKind.manual,
     this.reference,
+    this.linkUuid,
     this.note,
   });
 
@@ -47,6 +48,10 @@ class MoneyTxn {
   /// Context for [kind]: the counterpart account name for a transfer,
   /// the category key for an expense, the person for a debt payment.
   final String? reference;
+
+  /// The row that owns this movement: the expense it paid for, or the
+  /// debt payment it settled. Editing that row carries this one along.
+  final String? linkUuid;
   final String? note;
 
   bool get isDeposit => deltaMinor >= 0;

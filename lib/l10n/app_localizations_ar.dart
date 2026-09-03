@@ -474,9 +474,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get budgetAmountLabel => 'ميزانية الشهر';
 
   @override
-  String get currencyLabel => 'رمز العملة';
-
-  @override
   String get granaryEmpty => 'لا شيء مسجل اليوم. ماذا أنفقت؟';
 
   @override
@@ -648,12 +645,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insightsTab => 'تحليلات';
 
   @override
-  String get savingsLabel => 'المدخرات';
-
-  @override
-  String get expectedDailyLabel => 'الإنفاق اليومي المتوقع';
-
-  @override
   String get savingsLow => 'المدخرات تنخفض';
 
   @override
@@ -691,9 +682,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get defaultCurrencyLabel => 'العملة الافتراضية';
 
   @override
-  String get expenseCurrencyLabel => 'العملة';
-
-  @override
   String get exchangeRates => 'أسعار الصرف';
 
   @override
@@ -717,12 +705,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ratesFetchFailed => 'تعذر الجلب — تحقق من الاتصال.';
 
   @override
-  String savingsIn(String code) {
-    return 'المدخرات · $code';
-  }
-
-  @override
-  String get vaultTab => 'الخزنة';
+  String get vaultTab => 'الأرصدة';
 
   @override
   String get walletTitle => 'المحفظة';
@@ -743,27 +726,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get savingsWithdraw => 'اسحب';
 
   @override
-  String get amountPrompt => 'المبلغ';
-
-  @override
-  String get withdrawDestination => 'إلى أين يذهب؟';
-
-  @override
-  String get toWallet => 'إلى المحفظة';
-
-  @override
-  String get asExpense => 'سجّله كمصروف';
-
-  @override
-  String get takeFromWallet => 'أتأخذه من المحفظة؟';
-
-  @override
-  String get yes => 'نعم';
-
-  @override
-  String get no => 'لا';
-
-  @override
   String get debtsTitle => 'الديون';
 
   @override
@@ -776,21 +738,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get debtPayOffBy => 'سدّد قبل';
 
   @override
-  String get debtRemindAt => 'ذكّرني في';
+  String get debtRemindAt => 'تذكير يومي عند';
 
   @override
   String get debtPay => 'سدّد';
 
   @override
-  String get debtPayAmount => 'مبلغ الدفعة';
-
-  @override
   String get debtSettled => 'سُدّد 🎉';
-
-  @override
-  String debtRemaining(String amount, String person) {
-    return 'بقي $amount · $person';
-  }
 
   @override
   String notifDebtTitle(String person) {
@@ -803,25 +757,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get recentMoves => 'آخر الحركات';
-
-  @override
-  String get txnWallet => 'المحفظة';
-
-  @override
-  String get txnSavings => 'المدخرات';
-
-  @override
-  String get nothingInVault => 'الخزنة فارغة — أضف للمحفظة أو ادخر شيئًا.';
-
-  @override
   String get dayToday => 'اليوم';
 
   @override
   String get dayYesterday => 'أمس';
 
   @override
-  String get vaultOwed => 'مستحق';
+  String get vaultOwed => 'الديون';
 
   @override
   String vaultOpenDebts(int count) {
@@ -835,19 +777,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get walletEmptyTitle => 'المحفظة فارغة';
-
-  @override
-  String get walletEmptyBody =>
-      'أضف ما تحمله للإنفاق. يمكن خصم المصاريف منها مباشرة.';
-
-  @override
-  String get savingsEmptyTitle => 'لا مدخرات بعد';
-
-  @override
-  String get savingsEmptyBody => 'ضع شيئًا جانبًا — وعاء لكل عملة.';
 
   @override
   String get debtsEmptyTitle => 'لا ديون';
@@ -911,21 +840,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get payFromWallet => 'الدفع من المحفظة؟';
 
   @override
-  String get depositSource => 'من أين يأتي المال؟';
-
-  @override
-  String get fromWalletOption => 'من المحفظة';
-
-  @override
-  String get newMoneyOption => 'مال جديد';
-
-  @override
-  String get walletYes => 'نعم، من المحفظة';
-
-  @override
-  String get walletNo => 'لا، سجّله فقط';
-
-  @override
   String get budgetSpentToday => 'أُنفق اليوم';
 
   @override
@@ -963,9 +877,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get swipeToRemove => 'اسحب للحذف';
 
   @override
   String get snooze10 => 'بعد 10 دقائق';
@@ -1145,4 +1056,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cropPending => 'لم يُنجز بعد';
+
+  @override
+  String get fromWalletToggle => 'من المحفظة';
+
+  @override
+  String walletHas(String amount) {
+    return 'في المحفظة $amount';
+  }
+
+  @override
+  String get walletShort => 'الرصيد في المحفظة لا يكفي';
+
+  @override
+  String budgetMonthLine(String spent, String budget, String left) {
+    return '$spent من $budget · بقي $left';
+  }
+
+  @override
+  String budgetMonthOver(String spent, String budget, String over) {
+    return '$spent من $budget · تجاوز $over';
+  }
+
+  @override
+  String get editBudget => 'تعديل الميزانية';
+
+  @override
+  String get perDay => 'لكل يوم';
+
+  @override
+  String get todayEmptyBody => 'اضغط \"سجّل مصروفًا\" لإضافة أول واحد.';
+
+  @override
+  String get debtRemindDefault => 'كل يوم عند 7:00 مساءً حتى السداد';
+
+  @override
+  String get undoAction => 'تراجع';
+
+  @override
+  String get saveFailed => 'لم يُحفظ ذلك. حاول مجددًا.';
+
+  @override
+  String get categoryExists => 'توجد فئة بهذا الاسم';
+
+  @override
+  String get withdrawToWallet => 'إلى المحفظة';
+
+  @override
+  String get budgetExplainer =>
+      'حدّك اليومي هو ما تبقّى من الشهر مقسومًا على أيامه المتبقية.';
 }

@@ -12,7 +12,6 @@ part 'finance_providers.g.dart';
 abstract final class FinanceKeys {
   static const monthlyBudget = 'finance.monthlyBudgetMinor';
   static const defaultCurrency = 'finance.defaultCurrency';
-  static const expectedDaily = 'finance.expectedDailyMinor';
 
   static String savingsFor(Currency currency) =>
       'finance.savings.${currency.code}';
@@ -44,7 +43,6 @@ class FinanceSettings extends _$FinanceSettings {
     ({
       int? budgetMinor,
       Currency defaultCurrency,
-      int? expectedDailyMinor,
     })
   >
   build() => ref
@@ -52,16 +50,12 @@ class FinanceSettings extends _$FinanceSettings {
       .watchAll(const [
         FinanceKeys.monthlyBudget,
         FinanceKeys.defaultCurrency,
-        FinanceKeys.expectedDaily,
       ])
       .map(
         (values) => (
           budgetMinor: int.tryParse(values[FinanceKeys.monthlyBudget] ?? ''),
           defaultCurrency: Currency.fromCode(
             values[FinanceKeys.defaultCurrency],
-          ),
-          expectedDailyMinor: int.tryParse(
-            values[FinanceKeys.expectedDaily] ?? '',
           ),
         ),
       );
@@ -73,10 +67,6 @@ class FinanceSettings extends _$FinanceSettings {
   Future<void> setDefaultCurrency(Currency currency) => ref
       .read(settingsRepositoryProvider)
       .setString(FinanceKeys.defaultCurrency, currency.code);
-
-  Future<void> setExpectedDaily(int minor) => ref
-      .read(settingsRepositoryProvider)
-      .setString(FinanceKeys.expectedDaily, '$minor');
 }
 
 /// The default currency, DZD until the setting says otherwise.

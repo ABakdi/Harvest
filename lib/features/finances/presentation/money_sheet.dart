@@ -8,8 +8,14 @@ import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
-/// What a money sheet hands back: minor units, currency, optional note.
-typedef MoneyEntry = ({int minor, Currency currency, String? note});
+/// What a money sheet hands back: minor units, currency, an optional
+/// note, and whether the money comes from (or goes to) the wallet.
+typedef MoneyEntry = ({
+  int minor,
+  Currency currency,
+  String? note,
+  bool fromWallet,
+});
 
 /// The one way an amount is asked for in the vault: a big number, the
 /// currency pills, an optional note, and the bouncy confirm.
@@ -24,6 +30,11 @@ Future<MoneyEntry?> showMoneySheet(
   /// Caps the amount per currency (savings can't go negative).
   Map<Currency, int>? maxMinor,
   Color? accent,
+
+  /// Shows a "from the wallet" switch with the balance per currency;
+  /// the switch starts on when the wallet can cover the amount.
+  Map<Currency, int>? walletBalances,
+  String? walletLabel,
 }) => showModalBottomSheet<MoneyEntry>(
   context: context,
   isScrollControlled: true,
@@ -35,6 +46,8 @@ Future<MoneyEntry?> showMoneySheet(
     initialAmountMinor: initialAmountMinor,
     maxMinor: maxMinor,
     accent: accent,
+    walletBalances: walletBalances,
+    walletLabel: walletLabel,
   ),
 );
 
@@ -47,6 +60,8 @@ class _MoneySheet extends StatefulWidget {
     this.initialAmountMinor,
     this.maxMinor,
     this.accent,
+    this.walletBalances,
+    this.walletLabel,
   });
 
   final String title;
@@ -56,6 +71,8 @@ class _MoneySheet extends StatefulWidget {
   final int? initialAmountMinor;
   final Map<Currency, int>? maxMinor;
   final Color? accent;
+  final Map<Currency, int>? walletBalances;
+  final String? walletLabel;
 
   @override
   State<_MoneySheet> createState() => _MoneySheetState();
@@ -77,17 +94,36 @@ class _MoneySheetState extends State<_MoneySheet> {
     super.dispose();
   }
 
+  /// null until the user overrides it: the toggle follows the balance
+  /// while it is untouched, so the common case needs no thought.
+  bool? _fromWallet;
+
   int? get _minor => parseToMinor(_amountController.text);
   int? get _cap => widget.maxMinor?[_currency];
   bool get _overCap => _minor != null && _cap != null && _minor! > _cap!;
   bool get _valid => _minor != null && !_overCap;
+
+  bool get _hasWalletOption => widget.walletBalances != null;
+  int get _walletBalance => widget.walletBalances?[_currency] ?? 0;
+
+  /// The wallet can pay when it holds at least the amount asked for.
+  bool get _walletCanCover =>
+      _minor != null && _walletBalance >= _minor! && _minor! > 0;
+
+  bool get _useWallet =>
+      _hasWalletOption && (_fromWallet ?? _walletCanCover) && _walletCanCover;
 
   void _submit() {
     if (!_valid) return;
     unawaited(HarvestHaptics.tick());
     final note = _noteController.text.trim();
     Navigator.of(context).pop(
-      (minor: _minor!, currency: _currency, note: note.isEmpty ? null : note),
+      (
+        minor: _minor!,
+        currency: _currency,
+        note: note.isEmpty ? null : note,
+        fromWallet: _useWallet,
+      ),
     );
   }
 
@@ -119,7 +155,7 @@ class _MoneySheetState extends State<_MoneySheet> {
               child: Text(
                 widget.subtitle!,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -143,7 +179,7 @@ class _MoneySheetState extends State<_MoneySheet> {
               prefixText: '${_currency.symbol} ',
               prefixStyle: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                color: theme.colorScheme.onSurfaceVariant,
               ),
               errorText: _overCap
                   ? '${l10n.amountLabel} ≤ ${_currency.symbol}${formatMinor(_cap!)}'
@@ -174,12 +210,29 @@ class _MoneySheetState extends State<_MoneySheet> {
                 ),
               ),
             ),
+          if (_hasWalletOption) ...[
+            const SizedBox(height: HarvestSpacing.sm),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(widget.walletLabel ?? l10n.fromWalletToggle),
+              subtitle: Text(
+                _minor != null && !_walletCanCover
+                    ? l10n.walletShort
+                    : l10n.walletHas(formatAmount(_walletBalance, _currency)),
+              ),
+              value: _useWallet,
+              onChanged: _walletCanCover
+                  ? (value) => setState(() => _fromWallet = value)
+                  : null,
+            ),
+          ],
           const SizedBox(height: HarvestSpacing.md),
           TextField(
             controller: _noteController,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _submit(),
             decoration: InputDecoration(labelText: l10n.noteLabel),
+            maxLength: 200,
           ),
           const SizedBox(height: HarvestSpacing.lg),
           BigBouncySheetButton(

@@ -20,11 +20,12 @@ class FinancesRepository {
 
   // ---------------------------------------------------------------- reads
 
-  Stream<List<Expense>> watchDay(HarvestDay day) => (_db.select(_db.expenses)
-        ..where((e) => e.harvestDay.equals(day.key) & e.deletedAt.isNull())
-        ..orderBy([(e) => OrderingTerm.desc(e.loggedAt)]))
-      .watch()
-      .map((rows) => rows.map(_toDomain).toList());
+  Stream<List<Expense>> watchDay(HarvestDay day) =>
+      (_db.select(_db.expenses)
+            ..where((e) => e.harvestDay.equals(day.key) & e.deletedAt.isNull())
+            ..orderBy([(e) => OrderingTerm.desc(e.loggedAt)]))
+          .watch()
+          .map((rows) => rows.map(_toDomain).toList());
 
   /// Every expense in [day]'s calendar month.
   Stream<List<Expense>> watchMonth(HarvestDay day) {
@@ -50,22 +51,22 @@ class FinancesRepository {
   }
 
   /// User-created categories, newest last.
-  Stream<List<CustomCategory>> watchCategories() => (_db
-          .select(_db.expenseCategories)
-        ..where((c) => c.deletedAt.isNull())
-        ..orderBy([(c) => OrderingTerm.asc(c.updatedAt)]))
-      .watch()
-      .map(
-        (rows) => rows
-            .map(
-              (row) => CustomCategory(
-                uuid: row.uuid,
-                name: row.name,
-                icon: row.icon,
-              ),
-            )
-            .toList(),
-      );
+  Stream<List<CustomCategory>> watchCategories() =>
+      (_db.select(_db.expenseCategories)
+            ..where((c) => c.deletedAt.isNull())
+            ..orderBy([(c) => OrderingTerm.asc(c.updatedAt)]))
+          .watch()
+          .map(
+            (rows) => rows
+                .map(
+                  (row) => CustomCategory(
+                    uuid: row.uuid,
+                    name: row.name,
+                    icon: row.icon,
+                  ),
+                )
+                .toList(),
+          );
 
   Future<void> createCategory({
     required String name,
@@ -73,14 +74,18 @@ class FinancesRepository {
   }) async {
     final uuid = _uuid.v4();
     await _db.transaction(() async {
-      await _db.into(_db.expenseCategories).insert(
+      await _db
+          .into(_db.expenseCategories)
+          .insert(
             ExpenseCategoriesCompanion.insert(
               uuid: uuid,
               name: name,
               icon: icon,
             ),
           );
-      await _db.into(_db.outbox).insert(
+      await _db
+          .into(_db.outbox)
+          .insert(
             OutboxCompanion.insert(
               targetTable: 'expense_categories',
               rowUuid: uuid,
@@ -91,35 +96,40 @@ class FinancesRepository {
   }
 
   Future<void> deleteCategory(String uuid) => _db.transaction(() async {
-        await (_db.update(_db.expenseCategories)
-              ..where((c) => c.uuid.equals(uuid)))
-            .write(
-          ExpenseCategoriesCompanion(
-            deletedAt: Value(DateTime.now()),
-            updatedAt: Value(DateTime.now()),
+    await (_db.update(
+      _db.expenseCategories,
+    )..where((c) => c.uuid.equals(uuid))).write(
+      ExpenseCategoriesCompanion(
+        deletedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _db
+        .into(_db.outbox)
+        .insert(
+          OutboxCompanion.insert(
+            targetTable: 'expense_categories',
+            rowUuid: uuid,
+            op: 'delete',
           ),
         );
-        await _db.into(_db.outbox).insert(
-              OutboxCompanion.insert(
-                targetTable: 'expense_categories',
-                rowUuid: uuid,
-                op: 'delete',
-              ),
-            );
-      });
+  });
 
   /// Smart repeats: an (amount, category) pair logged on each of the
   /// three days before [day] — and not yet today — becomes a suggestion.
   Future<RepeatSuggestion?> repeatSuggestion(HarvestDay day) async {
-    final days = [day.previous, day.previous.previous,
-        day.previous.previous.previous];
-    final rows = await (_db.select(_db.expenses)
-          ..where(
-            (e) =>
-                e.harvestDay.isIn([day.key, ...days.map((d) => d.key)]) &
-                e.deletedAt.isNull(),
-          ))
-        .get();
+    final days = [
+      day.previous,
+      day.previous.previous,
+      day.previous.previous.previous,
+    ];
+    final rows =
+        await (_db.select(_db.expenses)..where(
+              (e) =>
+                  e.harvestDay.isIn([day.key, ...days.map((d) => d.key)]) &
+                  e.deletedAt.isNull(),
+            ))
+            .get();
 
     final byDay = <String, Set<(int, String, String)>>{};
     final notes = <(int, String, String), String?>{};
@@ -129,11 +139,9 @@ class FinancesRepository {
       notes[key] = row.note;
     }
     final today = byDay[day.key] ?? const <(int, String, String)>{};
-    for (final key
-        in byDay[days[0].key] ?? const <(int, String, String)>{}) {
+    for (final key in byDay[days[0].key] ?? const <(int, String, String)>{}) {
       final onAllThree = days.every(
-        (d) =>
-            (byDay[d.key] ?? const <(int, String, String)>{}).contains(key),
+        (d) => (byDay[d.key] ?? const <(int, String, String)>{}).contains(key),
       );
       if (onAllThree && !today.contains(key)) {
         return RepeatSuggestion(
@@ -149,8 +157,9 @@ class FinancesRepository {
 
   // --------------------------------------------------------------- writes
 
-  /// Logs an expense; the first log of a Harvest Day earns XP.
-  Future<void> log({
+  /// Logs an expense and returns its uuid; the first log of a Harvest
+  /// Day earns XP.
+  Future<String> log({
     required int amountMinor,
     required String category,
     Currency currency = Currency.dzd,
@@ -160,7 +169,9 @@ class FinancesRepository {
     final harvestDay = day ?? HarvestDay.today();
     final uuid = _uuid.v4();
     await _db.transaction(() async {
-      await _db.into(_db.expenses).insert(
+      await _db
+          .into(_db.expenses)
+          .insert(
             ExpensesCompanion.insert(
               uuid: uuid,
               amountMinor: amountMinor,
@@ -173,12 +184,15 @@ class FinancesRepository {
       await _appendOutbox(uuid, 'insert');
 
       final reason = 'expenses:${harvestDay.key}';
-      final existing = await (_db.select(_db.ledger)
-            ..where((l) => l.reason.equals(reason))
-            ..limit(1))
-          .getSingleOrNull();
+      final existing =
+          await (_db.select(_db.ledger)
+                ..where((l) => l.reason.equals(reason))
+                ..limit(1))
+              .getSingleOrNull();
       if (existing == null) {
-        await _db.into(_db.ledger).insert(
+        await _db
+            .into(_db.ledger)
+            .insert(
               LedgerCompanion.insert(
                 uuid: _uuid.v4(),
                 kind: 'xp',
@@ -189,6 +203,7 @@ class FinancesRepository {
             );
       }
     });
+    return uuid;
   }
 
   /// Same-day correction: edits an entry in place.
@@ -198,65 +213,84 @@ class FinancesRepository {
     required String category,
     Currency currency = Currency.dzd,
     String? note,
-  }) =>
-      _db.transaction(() async {
-        await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid)))
-            .write(
-          ExpensesCompanion(
-            amountMinor: Value(amountMinor),
-            currency: Value(currency.code),
-            category: Value(category),
-            note: Value(note),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
-        await _appendOutbox(uuid, 'update');
-      });
+  }) => _db.transaction(() async {
+    await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid))).write(
+      ExpensesCompanion(
+        amountMinor: Value(amountMinor),
+        currency: Value(currency.code),
+        category: Value(category),
+        note: Value(note),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _appendOutbox(uuid, 'update');
+  });
 
-  /// Same-day correction: soft-deletes the entry (history stays truthful).
   /// Hard-deletes expenses and categories soft-deleted longer than
   /// [olderThan] ago — "delete" must eventually mean gone.
   Future<void> purgeDeleted({required Duration olderThan}) async {
     final cutoff = DateTime.now().subtract(olderThan);
     await _db.transaction(() async {
-      await (_db.delete(_db.expenses)
-            ..where((e) => e.deletedAt.isSmallerThanValue(cutoff)))
-          .go();
-      await (_db.delete(_db.expenseCategories)
-            ..where((c) => c.deletedAt.isSmallerThanValue(cutoff)))
-          .go();
+      await (_db.delete(
+        _db.expenses,
+      )..where((e) => e.deletedAt.isSmallerThanValue(cutoff))).go();
+      await (_db.delete(
+        _db.expenseCategories,
+      )..where((c) => c.deletedAt.isSmallerThanValue(cutoff))).go();
     });
   }
 
+  /// Same-day correction: soft-deletes the entry (history stays truthful).
   Future<void> remove(String uuid) => _db.transaction(() async {
-        await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid)))
-            .write(
-          ExpensesCompanion(
-            deletedAt: Value(DateTime.now()),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
-        await _appendOutbox(uuid, 'delete');
-      });
+    await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid))).write(
+      ExpensesCompanion(
+        deletedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _appendOutbox(uuid, 'delete');
+  });
 
-  Future<void> _appendOutbox(String uuid, String op) =>
-      _db.into(_db.outbox).insert(
-            OutboxCompanion.insert(
-              targetTable: 'expenses',
-              rowUuid: uuid,
-              op: op,
-            ),
-          );
+  /// Puts back an entry removed by mistake (the Undo in the snackbar).
+  Future<void> restore(String uuid) => _db.transaction(() async {
+    await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid))).write(
+      ExpensesCompanion(
+        deletedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _appendOutbox(uuid, 'update');
+  });
+
+  /// One expense by uuid, deleted or not — the undo path needs it.
+  Future<Expense?> byUuid(String uuid) async {
+    final row =
+        await (_db.select(_db.expenses)
+              ..where((e) => e.uuid.equals(uuid))
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null ? null : _toDomain(row);
+  }
+
+  Future<void> _appendOutbox(String uuid, String op) => _db
+      .into(_db.outbox)
+      .insert(
+        OutboxCompanion.insert(
+          targetTable: 'expenses',
+          rowUuid: uuid,
+          op: op,
+        ),
+      );
 
   Expense _toDomain(ExpenseRow row) => Expense(
-        uuid: row.uuid,
-        amountMinor: row.amountMinor,
-        currency: Currency.fromCode(row.currency),
-        category: row.category,
-        day: HarvestDay.parse(row.harvestDay),
-        loggedAt: row.loggedAt,
-        note: row.note,
-      );
+    uuid: row.uuid,
+    amountMinor: row.amountMinor,
+    currency: Currency.fromCode(row.currency),
+    category: row.category,
+    day: HarvestDay.parse(row.harvestDay),
+    loggedAt: row.loggedAt,
+    note: row.note,
+  );
 }
 
 @Riverpod(keepAlive: true)

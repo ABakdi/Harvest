@@ -179,11 +179,7 @@ final class FinanceSettingsProvider
     extends
         $StreamNotifierProvider<
           FinanceSettings,
-          ({
-            int? budgetMinor,
-            Currency defaultCurrency,
-            int? expectedDailyMinor,
-          })
+          ({int? budgetMinor, Currency defaultCurrency})
         > {
   /// Budget, currency, and expectation settings. Savings moved to the
   /// vault's transaction ledger (checkpoint round 3).
@@ -206,67 +202,31 @@ final class FinanceSettingsProvider
   FinanceSettings create() => FinanceSettings();
 }
 
-String _$financeSettingsHash() => r'70e6fd2c154a54d045357fe1249b4b7019317c05';
+String _$financeSettingsHash() => r'd7664180955b6499387a9aeb705e9a35d77908cc';
 
 /// Budget, currency, and expectation settings. Savings moved to the
 /// vault's transaction ledger (checkpoint round 3).
 
 abstract class _$FinanceSettings
-    extends
-        $StreamNotifier<
-          ({
-            int? budgetMinor,
-            Currency defaultCurrency,
-            int? expectedDailyMinor,
-          })
-        > {
-  Stream<
-    ({int? budgetMinor, Currency defaultCurrency, int? expectedDailyMinor})
-  >
-  build();
+    extends $StreamNotifier<({int? budgetMinor, Currency defaultCurrency})> {
+  Stream<({int? budgetMinor, Currency defaultCurrency})> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<
-              AsyncValue<
-                ({
-                  int? budgetMinor,
-                  Currency defaultCurrency,
-                  int? expectedDailyMinor,
-                })
-              >,
-              ({
-                int? budgetMinor,
-                Currency defaultCurrency,
-                int? expectedDailyMinor,
-              })
+              AsyncValue<({int? budgetMinor, Currency defaultCurrency})>,
+              ({int? budgetMinor, Currency defaultCurrency})
             >;
     final element =
         ref.element
             as $ClassProviderElement<
               AnyNotifier<
-                AsyncValue<
-                  ({
-                    int? budgetMinor,
-                    Currency defaultCurrency,
-                    int? expectedDailyMinor,
-                  })
-                >,
-                ({
-                  int? budgetMinor,
-                  Currency defaultCurrency,
-                  int? expectedDailyMinor,
-                })
+                AsyncValue<({int? budgetMinor, Currency defaultCurrency})>,
+                ({int? budgetMinor, Currency defaultCurrency})
               >,
-              AsyncValue<
-                ({
-                  int? budgetMinor,
-                  Currency defaultCurrency,
-                  int? expectedDailyMinor,
-                })
-              >,
+              AsyncValue<({int? budgetMinor, Currency defaultCurrency})>,
               Object?,
               Object?
             >;
