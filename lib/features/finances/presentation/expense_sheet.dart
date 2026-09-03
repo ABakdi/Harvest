@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
-import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
@@ -218,114 +218,99 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     final customs = ref.watch(customCategoriesProvider).value ?? const [];
     final currency = _currencyOr(ref.watch(defaultCurrencyProvider));
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: HarvestSpacing.lg,
-        right: HarvestSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + HarvestSpacing.lg,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.logExpense,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+    return HarvestSheet(
+      title: l10n.logExpense,
+      actionLabel: l10n.log,
+      onAction: _amountMinor == null ? null : () => unawaited(_log()),
+      children: [
+        TextField(
+          controller: _amountController,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
           ),
-          const SizedBox(height: HarvestSpacing.md),
-          TextField(
-            controller: _amountController,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(
-              decimal: true,
-            ),
-            onChanged: (_) => setState(() {}),
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-            decoration: InputDecoration(
-              labelText: l10n.amountLabel,
-              prefixText: '${currency.symbol} ',
-            ),
+          onChanged: (_) => setState(() {}),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
           ),
-          const SizedBox(height: HarvestSpacing.sm),
-          // Per-expense currency (checkpoint P4).
-          SegmentedButton<Currency>(
-            segments: [
-              for (final option in Currency.values)
-                ButtonSegment(
-                  value: option,
-                  label: Text(option.symbol),
-                ),
-            ],
-            selected: {currency},
-            onSelectionChanged: (selection) {
-              unawaited(HarvestHaptics.tick());
-              setState(() => _currency = selection.first);
-            },
+          decoration: InputDecoration(
+            labelText: l10n.amountLabel,
+            prefixText: '${currency.symbol} ',
           ),
-          const SizedBox(height: HarvestSpacing.md),
-          Wrap(
-            spacing: HarvestSpacing.xs,
-            runSpacing: HarvestSpacing.xs,
-            children: [
-              for (final key in [
-                ...presetCategoryKeys,
-                ...customs.map((c) => c.name),
-              ])
-                ChoiceChip(
-                  avatar: Icon(
-                    categoryIcon(key, customs: customs),
-                    size: 18,
-                  ),
-                  label: Text(categoryLabel(l10n, key)),
-                  selected: _category == key,
-                  onSelected: (_) {
-                    unawaited(HarvestHaptics.tick());
-                    setState(() => _category = key);
-                  },
-                ),
-              ActionChip(
-                avatar: const Icon(Icons.add, size: 18),
-                label: Text(l10n.newCategory),
-                onPressed: () => unawaited(_createCategory(context)),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        // Per-expense currency (checkpoint P4).
+        SegmentedButton<Currency>(
+          segments: [
+            for (final option in Currency.values)
+              ButtonSegment(
+                value: option,
+                label: Text(option.symbol),
               ),
-            ],
-          ),
-          const SizedBox(height: HarvestSpacing.sm),
-          // Where the money comes from, answered here instead of in a
-          // second sheet after the fact.
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.fromWalletToggle),
-            subtitle: Text(
-              _amountMinor != null && !_walletCanCover
-                  ? l10n.walletShort
-                  : l10n.walletHas(
-                      formatAmount(_walletBalance, _effectiveCurrency),
-                    ),
+          ],
+          selected: {currency},
+          onSelectionChanged: (selection) {
+            unawaited(HarvestHaptics.tick());
+            setState(() => _currency = selection.first);
+          },
+        ),
+        const SizedBox(height: HarvestSpacing.md),
+        Wrap(
+          spacing: HarvestSpacing.xs,
+          runSpacing: HarvestSpacing.xs,
+          children: [
+            for (final key in [
+              ...presetCategoryKeys,
+              ...customs.map((c) => c.name),
+            ])
+              ChoiceChip(
+                avatar: Icon(
+                  categoryIcon(key, customs: customs),
+                  size: 18,
+                ),
+                label: Text(categoryLabel(l10n, key)),
+                selected: _category == key,
+                onSelected: (_) {
+                  unawaited(HarvestHaptics.tick());
+                  setState(() => _category = key);
+                },
+              ),
+            ActionChip(
+              avatar: const Icon(Icons.add, size: 18),
+              label: Text(l10n.newCategory),
+              onPressed: () => unawaited(_createCategory(context)),
             ),
-            value: _fromWallet,
-            onChanged: _walletCanCover
-                ? (value) => setState(() => _walletChoice = value)
-                : null,
+          ],
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        // Where the money comes from, answered here instead of in a
+        // second sheet after the fact.
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.fromWalletToggle),
+          subtitle: Text(
+            _amountMinor != null && !_walletCanCover
+                ? l10n.walletShort
+                : l10n.walletHas(
+                    formatAmount(_walletBalance, _effectiveCurrency),
+                  ),
           ),
-          const SizedBox(height: HarvestSpacing.sm),
-          TextField(
-            controller: _noteController,
-            textInputAction: TextInputAction.done,
-            maxLength: 200,
-            decoration: InputDecoration(labelText: l10n.noteLabel),
+          value: _fromWallet,
+          onChanged: _walletCanCover
+              ? (value) => setState(() => _walletChoice = value)
+              : null,
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        TextField(
+          controller: _noteController,
+          textInputAction: TextInputAction.done,
+          maxLength: noteMaxLength,
+          decoration: InputDecoration(
+            labelText: l10n.noteLabel,
+            counterText: '',
           ),
-          const SizedBox(height: HarvestSpacing.lg),
-          BigBouncySheetButton(
-            onPressed: _amountMinor == null ? null : () => unawaited(_log()),
-            child: Text(l10n.log),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

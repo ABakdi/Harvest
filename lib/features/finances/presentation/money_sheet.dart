@@ -231,8 +231,11 @@ class _MoneySheetState extends State<_MoneySheet> {
             controller: _noteController,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _submit(),
-            decoration: InputDecoration(labelText: l10n.noteLabel),
-            maxLength: 200,
+            maxLength: noteMaxLength,
+            decoration: InputDecoration(
+              labelText: l10n.noteLabel,
+              counterText: '',
+            ),
           ),
           const SizedBox(height: HarvestSpacing.lg),
           BigBouncySheetButton(

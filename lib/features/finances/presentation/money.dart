@@ -1,6 +1,10 @@
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:intl/intl.dart';
 
+/// How long a note may be — long enough for "coffee with Sami", short
+/// enough to stay one line in a ledger row.
+const noteMaxLength = 200;
+
 /// The largest amount the app will accept, in major units. Beyond this
 /// an entry is a typo, and past 2^63/100 it would silently wrap.
 const maxMajorUnits = 1000000000000;

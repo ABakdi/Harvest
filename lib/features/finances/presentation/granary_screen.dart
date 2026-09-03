@@ -136,7 +136,7 @@ class _TodayTab extends ConsumerWidget {
             child: EmptyState(
               icon: Icons.receipt_long_outlined,
               title: l10n.granaryEmpty,
-              body: l10n.notifExpenseBody,
+              body: l10n.todayEmptyBody,
               compact: true,
             ),
           )
