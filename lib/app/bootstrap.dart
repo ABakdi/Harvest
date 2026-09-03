@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/platform/reminder_actions.dart';
+import 'package:harvest/features/commitments/data/commitments_repository.dart';
+import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
@@ -11,8 +15,27 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'bootstrap.g.dart';
 
+/// Soft-deleted rows are kept this long for undo and future sync, then
+/// removed for good.
+const purgeAfter = Duration(days: 30);
+
+/// The last startup step that failed, as a short description — shown
+/// quietly in Settings so a broken row never fails silently.
+@Riverpod(keepAlive: true)
+class BootstrapStatus extends _$BootstrapStatus {
+  @override
+  String? build() => null;
+
+  void report(String step, Object error) {
+    debugPrint('[bootstrap] $step failed: ${error.runtimeType}');
+    state = '$step: ${error.runtimeType}';
+  }
+}
+
 /// Startup work: the lazy, idempotent day reconciliation that backs up
-/// the 3 AM background job (business rule #1).
+/// the 3 AM background job (business rule #1), today's reminders, and
+/// housekeeping. Each step is isolated — one bad row must not take the
+/// others down.
 @Riverpod(keepAlive: true)
 Future<void> appBootstrap(Ref ref) async {
   ref.read(notificationServiceProvider).onAction = (actionId) {
@@ -28,22 +51,43 @@ Future<void> appBootstrap(Ref ref) async {
   // Assigned separately (no cascade): the snooze handler refers back to
   // the service itself.
   // ignore: cascade_invocations
-  notifications.onTap = (route) =>
-      ref.read(routerProvider).go(_routeFor(route));
+  notifications.onTap = (route) => ref.read(routerProvider).go(routeFor(route));
   // A snooze tapped while the app is open; the closed-app case runs in
   // its own isolate (reminderBackgroundHandler).
   notifications.onSnooze = (response) =>
       SnoozeStore(ref.read(databaseProvider)).snooze(response, notifications);
-  await ref.read(streakServiceProvider).reconcile();
-  await ref.read(notificationPlannerProvider).planToday();
+
+  final status = ref.read(bootstrapStatusProvider.notifier);
+  Future<void> step(String name, Future<void> Function() run) async {
+    try {
+      await run();
+    } on Object catch (error) {
+      status.report(name, error);
+    }
+  }
+
+  await step('reconcile', ref.read(streakServiceProvider).reconcile);
+  await step('reminders', ref.read(notificationPlannerProvider).planToday);
+  await step('purge', () async {
+    await ref
+        .read(commitmentsRepositoryProvider)
+        .purgeDeleted(olderThan: purgeAfter);
+    await ref
+        .read(financesRepositoryProvider)
+        .purgeDeleted(olderThan: purgeAfter);
+    await ref.read(vaultRepositoryProvider).purgeDeleted(olderThan: purgeAfter);
+  });
 
   // Launched by tapping a reminder while closed: land where it points.
-  final launchRoute = await notifications.launchRoute();
-  if (launchRoute != null) ref.read(routerProvider).go(_routeFor(launchRoute));
+  await step('launch route', () async {
+    final launchRoute = await notifications.launchRoute();
+    if (launchRoute != null) ref.read(routerProvider).go(routeFor(launchRoute));
+  });
 }
 
-String _routeFor(String route) => switch (route) {
-  'planner' => AppRoutes.planner,
-  'finances' => AppRoutes.finances,
+/// The app route behind a reminder route; anything unknown goes home.
+String routeFor(String route) => switch (route) {
+  ReminderRoutes.planner => AppRoutes.planner,
+  ReminderRoutes.finances => AppRoutes.finances,
   _ => AppRoutes.field,
 };

@@ -315,13 +315,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifEveningBody => 'Wind down and plant tomorrow\'s plan.';
 
   @override
-  String get notifPrimeTitle => 'Your crops are waiting 🌾';
-
-  @override
-  String get notifPrimeBody =>
-      'This is usually your logging time — a quick check-in keeps the field green.';
-
-  @override
   String get notifStreakTitle => 'Your crops are thirsty! 🔥';
 
   @override
@@ -335,13 +328,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remindersMaster => 'Allow reminders';
 
   @override
-  String get remindersMorning => 'Morning review';
+  String get remindersMorning => 'Morning: today\'s plan';
 
   @override
-  String get remindersEvening => 'Evening plan ritual';
+  String get remindersEvening => 'Evening: plan tomorrow';
 
   @override
-  String get remindersStreak => 'Streak-risk nudge';
+  String get remindersStreak => 'Late streak warning';
 
   @override
   String get obWelcomeTitle => 'Welcome to Harvest';
@@ -373,7 +366,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tmplJournal => 'Journal before bed';
 
   @override
-  String get obGoalTitle => 'Your daily commitment';
+  String get obGoalTitle => 'Daily Harvest Goal';
 
   @override
   String get obRemindersTitle => 'Gentle reminders';
@@ -1012,4 +1005,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planTomorrow => 'Plan';
+
+  @override
+  String get rateSaved => 'Rate saved';
+
+  @override
+  String get rateCleared => 'Rate cleared';
+
+  @override
+  String get rateInvalid => 'That is not a usable rate';
+
+  @override
+  String get ratesExplainer =>
+      'Used to show \$ and € amounts in your default currency.';
+
+  @override
+  String get settingsMoney => 'Money';
+
+  @override
+  String startupProblem(String error) {
+    return 'A startup step failed: $error. Restart the app; if it keeps happening, back up and reinstall.';
+  }
+
+  @override
+  String get channelReminders => 'Reminders';
+
+  @override
+  String get channelStreak => 'Streak';
+
+  @override
+  String get channelPomodoro => 'Focus timer';
+
+  @override
+  String remindersStreakHint(String time) {
+    return 'At $time, only when the day is not yet earned';
+  }
+
+  @override
+  String get decrease => 'Less';
+
+  @override
+  String get increase => 'More';
+
+  @override
+  String get remindersDenied =>
+      'Reminders are blocked for Harvest in system settings.';
 }

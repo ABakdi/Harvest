@@ -313,13 +313,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifEveningBody => 'اهدأ وازرع خطة الغد.';
 
   @override
-  String get notifPrimeTitle => 'محاصيلك تنتظرك 🌾';
-
-  @override
-  String get notifPrimeBody =>
-      'هذا وقت تسجيلك المعتاد — تسجيل سريع يبقي الحقل أخضر.';
-
-  @override
   String get notifStreakTitle => 'محاصيلك عطشى! 🔥';
 
   @override
@@ -333,13 +326,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get remindersMaster => 'السماح بالتذكيرات';
 
   @override
-  String get remindersMorning => 'مراجعة الصباح';
+  String get remindersMorning => 'الصباح: خطة اليوم';
 
   @override
-  String get remindersEvening => 'طقس خطة المساء';
+  String get remindersEvening => 'المساء: خطّط للغد';
 
   @override
-  String get remindersStreak => 'تنبيه خطر السلسلة';
+  String get remindersStreak => 'تنبيه متأخر لخطر السلسلة';
 
   @override
   String get obWelcomeTitle => 'مرحبًا بك في حصاد';
@@ -371,7 +364,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tmplJournal => 'كتابة اليوميات قبل النوم';
 
   @override
-  String get obGoalTitle => 'التزامك اليومي';
+  String get obGoalTitle => 'هدف الحصاد اليومي';
 
   @override
   String get obRemindersTitle => 'تذكيرات لطيفة';
@@ -1012,4 +1005,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get planTomorrow => 'خطّط';
+
+  @override
+  String get rateSaved => 'حُفظ سعر الصرف';
+
+  @override
+  String get rateCleared => 'أُزيل سعر الصرف';
+
+  @override
+  String get rateInvalid => 'هذا ليس سعرًا صالحًا';
+
+  @override
+  String get ratesExplainer =>
+      'تُستخدم لعرض مبالغ الدولار واليورو بعملتك الافتراضية.';
+
+  @override
+  String get settingsMoney => 'المال';
+
+  @override
+  String startupProblem(String error) {
+    return 'فشلت خطوة عند بدء التشغيل: $error. أعد تشغيل التطبيق؛ إن تكرر ذلك فاحفظ نسخة وأعد التثبيت.';
+  }
+
+  @override
+  String get channelReminders => 'التذكيرات';
+
+  @override
+  String get channelStreak => 'السلسلة';
+
+  @override
+  String get channelPomodoro => 'مؤقت التركيز';
+
+  @override
+  String remindersStreakHint(String time) {
+    return 'عند $time، فقط إن لم يُكسب اليوم بعد';
+  }
+
+  @override
+  String get decrease => 'أقل';
+
+  @override
+  String get increase => 'أكثر';
+
+  @override
+  String get remindersDenied =>
+      'التذكيرات محظورة لتطبيق حصاد في إعدادات النظام.';
 }

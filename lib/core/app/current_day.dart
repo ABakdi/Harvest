@@ -31,7 +31,9 @@ class CurrentHarvestDay extends _$CurrentHarvestDay {
     _rollover?.cancel();
     final wait = today.next.startsAt.difference(DateTime.now());
     _rollover = Timer(
-      wait.isNegative ? const Duration(seconds: 1) : wait + const Duration(seconds: 1),
+      wait.isNegative
+          ? const Duration(seconds: 1)
+          : wait + const Duration(seconds: 1),
       refresh,
     );
   }

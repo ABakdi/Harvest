@@ -26,8 +26,12 @@ class SnoozeStore {
       _db.kvSettings,
     )..where((s) => s.key.equals(key))).getSingleOrNull();
     if (row == null) return {};
-    final decoded = jsonDecode(row.valueJson);
-    return decoded is Map<String, dynamic> ? decoded : {};
+    try {
+      final decoded = jsonDecode(row.valueJson);
+      return decoded is Map<String, dynamic> ? decoded : {};
+    } on FormatException {
+      return {};
+    }
   }
 
   Future<void> _save(Map<String, dynamic> snoozes) => _db
@@ -58,18 +62,13 @@ class SnoozeStore {
     final when = (now ?? DateTime.now()).add(Duration(minutes: minutes));
 
     final snoozes = await _load();
+    // One shape on disk: the fire time plus the reminder's own payload.
     snoozes['$id'] = {
       'when': when.toIso8601String(),
-      'title': payload.title,
-      'body': payload.body,
-      'channel': payload.channelId,
-      if (payload.route != null) 'route': payload.route,
-      'snooze': [
-        for (final (actionId, label) in payload.snoozeLabels) [actionId, label],
-      ],
+      'payload': payload.encode(),
     };
     await _save(snoozes);
-    await _schedule(id, snoozes['$id'] as Map<String, dynamic>, notifications);
+    await _schedule(id, when, payload, notifications);
     return when;
   }
 
@@ -83,48 +82,62 @@ class SnoozeStore {
     final snoozes = await _load();
     final pending = <String, dynamic>{};
     for (final entry in snoozes.entries) {
-      final item = entry.value;
-      if (item is! Map<String, dynamic>) continue;
-      final when = DateTime.tryParse(item['when'] as String? ?? '');
-      if (when == null || !when.isAfter(at)) continue;
-      pending[entry.key] = item;
-      await _schedule(int.parse(entry.key), item, notifications);
+      final parsed = _parse(entry.key, entry.value);
+      if (parsed == null || !parsed.when.isAfter(at)) continue;
+      pending[entry.key] = entry.value;
+      await _schedule(parsed.id, parsed.when, parsed.payload, notifications);
     }
     if (pending.length != snoozes.length) await _save(pending);
   }
 
-  /// Pending snoozes, newest first (for tests and diagnostics).
+  /// Pending snoozes, latest first (for tests and diagnostics).
   Future<List<(int, DateTime)>> pending({DateTime? now}) async {
     final at = now ?? DateTime.now();
-    final snoozes = await _load();
     final result = <(int, DateTime)>[];
-    snoozes.forEach((id, item) {
-      if (item is! Map<String, dynamic>) return;
-      final when = DateTime.tryParse(item['when'] as String? ?? '');
-      if (when != null && when.isAfter(at)) {
-        result.add((int.parse(id), when));
+    for (final entry in (await _load()).entries) {
+      final parsed = _parse(entry.key, entry.value);
+      if (parsed != null && parsed.when.isAfter(at)) {
+        result.add((parsed.id, parsed.when));
       }
-    });
+    }
     result.sort((a, b) => b.$2.compareTo(a.$2));
     return result;
   }
 
+  /// Reads one stored entry; null for anything malformed. Accepts the
+  /// older flattened shape (title/body/channel/route/snooze at the top
+  /// level) as well as the current `{when, payload}` one.
+  ({int id, DateTime when, ReminderPayload payload})? _parse(
+    String key,
+    Object? value,
+  ) {
+    final id = int.tryParse(key);
+    if (id == null || value is! Map<String, dynamic>) return null;
+    final when = DateTime.tryParse(value['when'] as String? ?? '');
+    if (when == null) return null;
+    final ReminderPayload? payload;
+    if (value['payload'] is String) {
+      payload = ReminderPayload.decode(value['payload'] as String);
+    } else {
+      payload = ReminderPayload.decode(jsonEncode(value));
+    }
+    if (payload == null || payload.title.isEmpty) return null;
+    return (id: id, when: when, payload: payload);
+  }
+
   Future<void> _schedule(
     int id,
-    Map<String, dynamic> item,
+    DateTime when,
+    ReminderPayload payload,
     NotificationGateway notifications,
   ) => notifications.schedule(
     id: id,
-    channelId: item['channel'] as String? ?? NotificationChannels.reminders,
-    title: item['title'] as String? ?? '',
-    body: item['body'] as String? ?? '',
-    when: DateTime.parse(item['when'] as String),
-    route: item['route'] as String?,
-    snoozeLabels: [
-      for (final pair in (item['snooze'] as List<dynamic>? ?? []))
-        if (pair is List && pair.length == 2)
-          (pair[0] as String, pair[1] as String),
-    ],
+    channelId: payload.channelId,
+    title: payload.title,
+    body: payload.body,
+    when: when,
+    route: payload.route,
+    snoozeLabels: payload.snoozeLabels,
   );
 }
 
@@ -138,7 +151,7 @@ Future<void> reminderBackgroundHandler(NotificationResponse response) async {
   try {
     await SnoozeStore(db).snooze(response, NotificationService());
   } on Object catch (error) {
-    debugPrint('snooze failed: $error');
+    debugPrint('[notifications] snooze failed: ${error.runtimeType}');
   } finally {
     await db.close();
   }

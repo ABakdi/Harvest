@@ -194,15 +194,13 @@
   "notifMorningBody": "Check today's harvest plan and log your first seed.",
   "notifEveningTitle": "The sun is setting 🌙",
   "notifEveningBody": "Wind down and plant tomorrow's plan.",
-  "notifPrimeTitle": "Your crops are waiting 🌾",
-  "notifPrimeBody": "This is usually your logging time — a quick check-in keeps the field green.",
   "notifStreakTitle": "Your crops are thirsty! 🔥",
   "notifStreakBody": "Log your remaining tasks before 3 AM to save your streak.",
   "settingsReminders": "Reminders",
   "remindersMaster": "Allow reminders",
-  "remindersMorning": "Morning review",
-  "remindersEvening": "Evening plan ritual",
-  "remindersStreak": "Streak-risk nudge",
+  "remindersMorning": "Morning: today's plan",
+  "remindersEvening": "Evening: plan tomorrow",
+  "remindersStreak": "Late streak warning",
   "obWelcomeTitle": "Welcome to Harvest",
   "obWelcomeBody": "Your goals are seeds. Your effort is water. Distractions are weeds.\n\nShow up a little every day, keep your streak alive, and harvest the life you're growing.",
   "obTemplatesTitle": "Plant your first seeds",
@@ -212,7 +210,7 @@
   "tmplLanguage": "Practice a language",
   "tmplMeditate": "Meditate (3× a week)",
   "tmplJournal": "Journal before bed",
-  "obGoalTitle": "Your daily commitment",
+  "obGoalTitle": "Daily Harvest Goal",
   "obRemindersTitle": "Gentle reminders",
   "obRemindersBody": "Harvest nudges, never nags: a morning review, an evening planning ritual, and a heads-up when your streak is at risk.",
   "next": "Next",
@@ -622,5 +620,32 @@
       }
     }
   },
-  "planTomorrow": "Plan"
+  "planTomorrow": "Plan",
+  "rateSaved": "Rate saved",
+  "rateCleared": "Rate cleared",
+  "rateInvalid": "That is not a usable rate",
+  "ratesExplainer": "Used to show $ and € amounts in your default currency.",
+  "settingsMoney": "Money",
+  "startupProblem": "A startup step failed: {error}. Restart the app; if it keeps happening, back up and reinstall.",
+  "@startupProblem": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "channelReminders": "Reminders",
+  "channelStreak": "Streak",
+  "channelPomodoro": "Focus timer",
+  "remindersStreakHint": "At {time}, only when the day is not yet earned",
+  "@remindersStreakHint": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decrease": "Less",
+  "increase": "More",
+  "remindersDenied": "Reminders are blocked for Harvest in system settings."
 }

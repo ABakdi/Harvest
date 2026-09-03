@@ -24,12 +24,6 @@ import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-Color budgetColor(ColorScheme scheme, BudgetStatus status) => switch (status) {
-  BudgetStatus.under => scheme.secondary,
-  BudgetStatus.close => scheme.tertiary,
-  BudgetStatus.over => scheme.error,
-};
-
 /// The Granary: Today (gauge + quick log), Vault (wallet, savings,
 /// debts) and Insights (charts). The expense action floats on Today
 /// only — the vault carries its own actions.

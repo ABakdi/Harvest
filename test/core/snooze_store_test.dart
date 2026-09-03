@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,14 +6,14 @@ import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/platform/reminder_actions.dart';
 
+import '../support/fake_notifications.dart';
+
 /// The snooze store keeps "remind me in…" alive across replans: it is
 /// what the planner re-applies after cancelling its own ids.
 void main() {
   late HarvestDatabase db;
   late SnoozeStore store;
-  // Scheduling is best-effort and swallowed off-device, so the real
-  // service is safe to use here; only the stored state is asserted.
-  final notifications = NotificationService();
+  final notifications = FakeNotificationGateway();
   final now = DateTime(2026, 9, 3, 9);
 
   setUp(() {
@@ -49,6 +50,42 @@ void main() {
     final pending = await store.pending(now: now);
     expect(pending.single.$1, SnoozeStore.idBase + 2101);
     expect(pending.single.$2, when);
+    final fired = notifications.scheduled[SnoozeStore.idBase + 2101]!;
+    expect(fired.title, 'Water the basil');
+    expect(fired.route, 'field');
+    expect(fired.when, when);
+  });
+
+  test('reapply re-schedules what is still pending after a replan', () async {
+    await store.snooze(
+      tap(101, SnoozeActions.id(60), payload),
+      notifications,
+      now: now,
+    );
+    notifications.scheduled.clear();
+    await store.reapply(notifications, now: now);
+    expect(notifications.ids, [SnoozeStore.idBase + 101]);
+  });
+
+  test('a malformed stored entry is dropped, not fatal', () async {
+    await store.snooze(
+      tap(101, SnoozeActions.id(60), payload),
+      notifications,
+      now: now,
+    );
+    await db
+        .into(db.kvSettings)
+        .insertOnConflictUpdate(
+          KvSettingsCompanion.insert(
+            key: SnoozeStore.key,
+            valueJson:
+                '{"garbage":{"when":"not a date"},"5101":{"when":"${now.add(const Duration(hours: 1)).toIso8601String()}","payload":"${payload.encode().replaceAll('"', r'\"')}"}}',
+            updatedAt: Value(now),
+          ),
+        );
+    await store.reapply(notifications, now: now);
+    final pending = await store.pending(now: now);
+    expect(pending.map((p) => p.$1), [5101]);
   });
 
   test('snoozing a snooze keeps the same id', () async {

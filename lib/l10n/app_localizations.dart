@@ -644,18 +644,6 @@ abstract class AppLocalizations {
   /// **'Wind down and plant tomorrow\'s plan.'**
   String get notifEveningBody;
 
-  /// No description provided for @notifPrimeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your crops are waiting 🌾'**
-  String get notifPrimeTitle;
-
-  /// No description provided for @notifPrimeBody.
-  ///
-  /// In en, this message translates to:
-  /// **'This is usually your logging time — a quick check-in keeps the field green.'**
-  String get notifPrimeBody;
-
   /// No description provided for @notifStreakTitle.
   ///
   /// In en, this message translates to:
@@ -683,19 +671,19 @@ abstract class AppLocalizations {
   /// No description provided for @remindersMorning.
   ///
   /// In en, this message translates to:
-  /// **'Morning review'**
+  /// **'Morning: today\'s plan'**
   String get remindersMorning;
 
   /// No description provided for @remindersEvening.
   ///
   /// In en, this message translates to:
-  /// **'Evening plan ritual'**
+  /// **'Evening: plan tomorrow'**
   String get remindersEvening;
 
   /// No description provided for @remindersStreak.
   ///
   /// In en, this message translates to:
-  /// **'Streak-risk nudge'**
+  /// **'Late streak warning'**
   String get remindersStreak;
 
   /// No description provided for @obWelcomeTitle.
@@ -755,7 +743,7 @@ abstract class AppLocalizations {
   /// No description provided for @obGoalTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your daily commitment'**
+  /// **'Daily Harvest Goal'**
   String get obGoalTitle;
 
   /// No description provided for @obRemindersTitle.
@@ -1849,6 +1837,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plan'**
   String get planTomorrow;
+
+  /// No description provided for @rateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate saved'**
+  String get rateSaved;
+
+  /// No description provided for @rateCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate cleared'**
+  String get rateCleared;
+
+  /// No description provided for @rateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a usable rate'**
+  String get rateInvalid;
+
+  /// No description provided for @ratesExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to show \$ and € amounts in your default currency.'**
+  String get ratesExplainer;
+
+  /// No description provided for @settingsMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get settingsMoney;
+
+  /// No description provided for @startupProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'A startup step failed: {error}. Restart the app; if it keeps happening, back up and reinstall.'**
+  String startupProblem(String error);
+
+  /// No description provided for @channelReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get channelReminders;
+
+  /// No description provided for @channelStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get channelStreak;
+
+  /// No description provided for @channelPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus timer'**
+  String get channelPomodoro;
+
+  /// No description provided for @remindersStreakHint.
+  ///
+  /// In en, this message translates to:
+  /// **'At {time}, only when the day is not yet earned'**
+  String remindersStreakHint(String time);
+
+  /// No description provided for @decrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get decrease;
+
+  /// No description provided for @increase.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get increase;
+
+  /// No description provided for @remindersDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are blocked for Harvest in system settings.'**
+  String get remindersDenied;
 }
 
 class _AppLocalizationsDelegate

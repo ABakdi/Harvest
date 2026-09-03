@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:harvest/app/router.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
@@ -88,20 +86,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
+  /// Leaves without planting anything or turning reminders on — the
+  /// field starts empty and the choices stay in Settings.
+  Future<void> _skip() async {
+    if (_finishing) return;
+    setState(() => _finishing = true);
+    await _markDone();
+  }
+
+  Future<void> _markDone() async {
+    await ref
+        .read(settingsRepositoryProvider)
+        .setString(OnboardingDone.key, 'true');
+    ref.read(onboardingDoneProvider.notifier).set(done: true);
+  }
+
   Future<void> _finish() async {
     if (_finishing) return;
     setState(() => _finishing = true);
     final l10n = AppLocalizations.of(context);
-    final router = GoRouter.of(context);
     final repo = ref.read(commitmentsRepositoryProvider);
 
     String title(String id) => switch (id) {
-          'read' => l10n.tmplRead,
-          'fit' => l10n.tmplFit,
-          'language' => l10n.tmplLanguage,
-          'meditate' => l10n.tmplMeditate,
-          _ => l10n.tmplJournal,
-        };
+      'read' => l10n.tmplRead,
+      'fit' => l10n.tmplFit,
+      'language' => l10n.tmplLanguage,
+      'meditate' => l10n.tmplMeditate,
+      _ => l10n.tmplJournal,
+    };
 
     for (final template in _templates) {
       if (!_picked.contains(template.id)) continue;
@@ -119,11 +131,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           .read(reminderSettingsProvider.notifier)
           .setEnabled(enabled: true);
     }
-    await ref
-        .read(settingsRepositoryProvider)
-        .setString(OnboardingDone.key, 'true');
-    ref.read(onboardingDoneProvider.notifier).set(done: true);
-    router.go(AppRoutes.field);
+    await _markDone();
   }
 
   @override
@@ -139,7 +147,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Align(
               alignment: AlignmentDirectional.centerEnd,
               child: TextButton(
-                onPressed: _finishing ? null : _finish,
+                onPressed: _finishing ? null : _skip,
                 child: Text(l10n.skip),
               ),
             ),
@@ -184,8 +192,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             size: 8,
                             color: i == _page
                                 ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.2),
+                                : theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.2,
+                                  ),
                           ),
                         ),
                     ],
@@ -222,8 +231,9 @@ class _WelcomePage extends StatelessWidget {
           const SizedBox(height: HarvestSpacing.lg),
           Text(
             l10n.obWelcomeTitle,
-            style: theme.textTheme.headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: HarvestSpacing.md),
@@ -267,8 +277,9 @@ class _TemplatesPage extends StatelessWidget {
         children: [
           Text(
             l10n.obTemplatesTitle,
-            style: theme.textTheme.headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: HarvestSpacing.sm),
@@ -318,8 +329,9 @@ class _GoalPage extends StatelessWidget {
         children: [
           Text(
             l10n.obGoalTitle,
-            style: theme.textTheme.headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: HarvestSpacing.sm),
@@ -342,8 +354,9 @@ class _GoalPage extends StatelessWidget {
                 ),
                 child: Text(
                   '$goal',
-                  style: theme.textTheme.displayLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
+                  style: theme.textTheme.displayLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               IconButton.filledTonal(
@@ -386,8 +399,9 @@ class _RemindersPage extends StatelessWidget {
           const SizedBox(height: HarvestSpacing.lg),
           Text(
             l10n.obRemindersTitle,
-            style: theme.textTheme.headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: HarvestSpacing.sm),

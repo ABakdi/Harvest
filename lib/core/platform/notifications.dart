@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart'
+    show MissingPluginException, PlatformException;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:harvest/core/platform/reminder_actions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,6 +22,14 @@ abstract final class NotificationChannels {
   static const pomodoro = 'pomodoro';
 }
 
+/// Where a tapped reminder lands. Kept as plain strings because they
+/// travel inside notification payloads.
+abstract final class ReminderRoutes {
+  static const field = 'field';
+  static const planner = 'planner';
+  static const finances = 'finances';
+}
+
 /// Snooze actions carried by every reminder: `snooze:<minutes>`.
 abstract final class SnoozeActions {
   static const prefix = 'snooze:';
@@ -32,6 +42,10 @@ abstract final class SnoozeActions {
 
   static String id(int minutes) => '$prefix$minutes';
 }
+
+/// The answer to "may we ring?" — denied and unavailable are different
+/// problems and the settings screen says so.
+enum ReminderPermission { granted, denied, unavailable }
 
 /// Everything a reminder needs to come back later: the route to open on
 /// tap and the content to repeat on snooze. Travels as the notification
@@ -65,25 +79,37 @@ class ReminderPayload {
   });
 
   /// Accepts the JSON form and, for older notifications, a bare route.
+  /// Anything malformed inside the JSON is ignored field by field —
+  /// a bad stored payload must never wedge the reminder pipeline.
   static ReminderPayload? decode(String? raw) {
     if (raw == null || raw.isEmpty) return null;
     try {
       final map = jsonDecode(raw);
       if (map is Map<String, dynamic>) {
+        final title = map['title'];
+        final body = map['body'];
+        final channel = map['channel'];
+        final route = map['route'];
+        final snooze = map['snooze'];
         return ReminderPayload(
-          title: map['title'] as String? ?? '',
-          body: map['body'] as String? ?? '',
-          channelId:
-              map['channel'] as String? ?? NotificationChannels.reminders,
-          route: map['route'] as String?,
+          title: title is String ? title : '',
+          body: body is String ? body : '',
+          channelId: channel is String
+              ? channel
+              : NotificationChannels.reminders,
+          route: route is String ? route : null,
           snoozeLabels: [
-            for (final pair in (map['snooze'] as List<dynamic>? ?? []))
-              if (pair is List && pair.length == 2)
-                (pair[0] as String, pair[1] as String),
+            if (snooze is List)
+              for (final pair in snooze)
+                if (pair is List &&
+                    pair.length == 2 &&
+                    pair[0] is String &&
+                    pair[1] is String)
+                  (pair[0] as String, pair[1] as String),
           ],
         );
       }
-    } on FormatException {
+    } on Object {
       // Not JSON: a legacy route-only payload.
     }
     return ReminderPayload(
@@ -101,6 +127,10 @@ abstract interface class NotificationGateway {
   /// Localized snooze actions attached to every reminder.
   List<(String, String)> get snoozeLabels;
   set snoozeLabels(List<(String, String)> labels);
+
+  /// Localized channel names shown in system settings, by channel id.
+  Map<String, String> get channelNames;
+  set channelNames(Map<String, String> names);
 
   Future<void> schedule({
     required int id,
@@ -132,10 +162,11 @@ class NotificationService implements NotificationGateway {
   /// case goes through [reminderBackgroundHandler]).
   Future<void> Function(NotificationResponse response)? onSnooze;
 
-  /// Localized snooze actions attached to every reminder; the planner
-  /// sets these once per plan.
   @override
   List<(String, String)> snoozeLabels = const [];
+
+  @override
+  Map<String, String> channelNames = const {};
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -178,8 +209,11 @@ class NotificationService implements NotificationGateway {
         return null;
       }
       return ReminderPayload.decode(response.payload)?.route;
-    } on Object catch (error) {
-      debugPrint('launch details failed: $error');
+    } on PlatformException catch (error) {
+      _log('launch details', error);
+      return null;
+    } on MissingPluginException catch (error) {
+      _log('launch details', error);
       return null;
     }
   }
@@ -189,55 +223,70 @@ class NotificationService implements NotificationGateway {
         AndroidFlutterLocalNotificationsPlugin
       >();
 
-  /// Asks for everything an alarm needs: to post notifications, to
-  /// fire at the exact minute, and to show over the lock screen.
-  Future<bool> requestPermission() async {
+  /// Asks for everything an alarm needs: to post notifications, to fire
+  /// at the exact minute, and to show over the lock screen.
+  Future<ReminderPermission> requestPermissionStatus() async {
     try {
       await initialize();
       final android = _android;
       if (android != null) {
-        final granted = await android.requestNotificationsPermission() ?? false;
+        final granted = await android.requestNotificationsPermission();
         if (await android.canScheduleExactNotifications() != true) {
           await android.requestExactAlarmsPermission();
         }
         try {
           await android.requestFullScreenIntentPermission();
-        } on Object catch (_) {
+        } on PlatformException {
           // Older Android: full-screen intents need no runtime grant.
         }
-        return granted;
+        return switch (granted) {
+          true => ReminderPermission.granted,
+          false => ReminderPermission.denied,
+          null => ReminderPermission.unavailable,
+        };
       }
       final ios = _plugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >();
       if (ios != null) {
-        return await ios.requestPermissions(
-              alert: true,
-              badge: true,
-              sound: true,
-            ) ??
-            false;
+        final granted = await ios.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        return granted ?? false
+            ? ReminderPermission.granted
+            : ReminderPermission.denied;
       }
-    } on Object catch (error) {
-      debugPrint('notification permission failed: $error');
+    } on PlatformException catch (error) {
+      _log('permission', error);
+    } on MissingPluginException catch (error) {
+      _log('permission', error);
     }
-    return false;
+    return ReminderPermission.unavailable;
   }
+
+  /// Convenience for callers that only care whether we may ring.
+  Future<bool> requestPermission() async =>
+      await requestPermissionStatus() == ReminderPermission.granted;
 
   /// Whether the OS lets us fire at the exact minute.
   Future<bool> canScheduleExact() async {
     try {
       await initialize();
       return await _android?.canScheduleExactNotifications() ?? true;
-    } on Object catch (_) {
+    } on PlatformException catch (error) {
+      _log('exact check', error);
+      return false;
+    } on MissingPluginException {
       return false;
     }
   }
 
   /// Schedules a reminder at [when] (local time): exact when allowed,
-  /// with sound and vibration, shown over the lock screen when [alarm],
-  /// and carrying the snooze actions.
+  /// with sound and vibration, private on the lock screen, shown over
+  /// the lock screen when [alarm], and carrying the snooze actions.
   @override
   Future<void> schedule({
     required int id,
@@ -269,11 +318,12 @@ class NotificationService implements NotificationGateway {
         notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             channelId,
-            channelId,
+            channelNames[channelId] ?? channelId,
             importance: Importance.max,
             priority: Priority.max,
             category: AndroidNotificationCategory.reminder,
-            visibility: NotificationVisibility.public,
+            // Content stays hidden on the lock screen until unlocked.
+            visibility: NotificationVisibility.private,
             fullScreenIntent: alarm,
             audioAttributesUsage: alarm
                 ? AudioAttributesUsage.alarm
@@ -291,10 +341,12 @@ class NotificationService implements NotificationGateway {
             ? AndroidScheduleMode.exactAllowWhileIdle
             : AndroidScheduleMode.inexactAllowWhileIdle,
       );
-    } on Object catch (error) {
-      // Reminders are best-effort: never let a platform hiccup break
-      // the caller (tests and background isolates included).
-      debugPrint('notification schedule failed: $error');
+    } on PlatformException catch (error) {
+      _log('schedule #$id', error);
+    } on MissingPluginException catch (error) {
+      // Tests and background isolates without the plugin: reminders are
+      // best-effort and must never break the caller.
+      _log('schedule #$id', error);
     }
   }
 
@@ -315,7 +367,7 @@ class NotificationService implements NotificationGateway {
         notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             channelId,
-            channelId,
+            channelNames[channelId] ?? channelId,
             importance: Importance.low,
             priority: Priority.low,
             ongoing: true,
@@ -336,8 +388,10 @@ class NotificationService implements NotificationGateway {
           iOS: const DarwinNotificationDetails(),
         ),
       );
-    } on Object catch (error) {
-      debugPrint('notification show failed: $error');
+    } on PlatformException catch (error) {
+      _log('show #$id', error);
+    } on MissingPluginException catch (error) {
+      _log('show #$id', error);
     }
   }
 
@@ -345,18 +399,26 @@ class NotificationService implements NotificationGateway {
   Future<void> cancel(int id) async {
     try {
       await _plugin.cancel(id: id);
-    } on Object catch (error) {
-      debugPrint('notification cancel failed: $error');
+    } on PlatformException catch (error) {
+      _log('cancel #$id', error);
+    } on MissingPluginException catch (error) {
+      _log('cancel #$id', error);
     }
   }
 
   Future<void> cancelAll() async {
     try {
       await _plugin.cancelAll();
-    } on Object catch (error) {
-      debugPrint('notification cancelAll failed: $error');
+    } on PlatformException catch (error) {
+      _log('cancelAll', error);
+    } on MissingPluginException catch (error) {
+      _log('cancelAll', error);
     }
   }
+
+  // Never logs payloads or user text — only what failed.
+  void _log(String what, Object error) =>
+      debugPrint('[notifications] $what failed: ${error.runtimeType}');
 }
 
 @Riverpod(keepAlive: true)

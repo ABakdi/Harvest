@@ -22,8 +22,8 @@ import 'package:harvest/features/commitments/presentation/crop_options_sheet.dar
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
-import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/budget_colors.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';

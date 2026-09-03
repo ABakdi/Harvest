@@ -8,16 +8,18 @@ import 'package:meta/meta.dart';
 @immutable
 final class HarvestDay implements Comparable<HarvestDay> {
   HarvestDay._(this._date)
-      : assert(
-          _date.hour == 0 && _date.minute == 0,
-          'internal date must be normalized to midnight',
-        );
+    : assert(
+        _date.hour == 0 && _date.minute == 0,
+        'internal date must be normalized to midnight',
+      );
 
-  /// The Harvest Day that [moment] (local time) belongs to.
+  /// The Harvest Day that [moment] (local time) belongs to. Pure
+  /// calendar math: before the boundary hour the moment belongs to the
+  /// previous calendar date, whatever a DST change did to the night.
   factory HarvestDay.of(DateTime moment) {
     final local = moment.isUtc ? moment.toLocal() : moment;
-    final shifted = local.subtract(const Duration(hours: boundaryHour));
-    return HarvestDay._(DateTime(shifted.year, shifted.month, shifted.day));
+    final shift = local.hour < boundaryHour ? 1 : 0;
+    return HarvestDay._(DateTime(local.year, local.month, local.day - shift));
   }
 
   /// Today's Harvest Day.
@@ -30,8 +32,24 @@ final class HarvestDay implements Comparable<HarvestDay> {
 
   /// Parses a [key] previously produced by [HarvestDay.key].
   factory HarvestDay.parse(String key) {
-    final parts = key.split('-').map(int.parse).toList();
-    return HarvestDay._(DateTime(parts[0], parts[1], parts[2]));
+    final parsed = HarvestDay.tryParse(key);
+    if (parsed == null) throw FormatException('not a Harvest Day key', key);
+    return parsed;
+  }
+
+  /// [HarvestDay.parse] for stored values: null instead of throwing.
+  static HarvestDay? tryParse(String? key) {
+    if (key == null) return null;
+    final parts = key.split('-');
+    if (parts.length != 3) return null;
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (year == null || month == null || day == null) return null;
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    final date = DateTime(year, month, day);
+    if (date.month != month || date.day != day) return null;
+    return HarvestDay._(date);
   }
 
   /// The local-time hour at which a new day begins.
@@ -54,30 +72,40 @@ final class HarvestDay implements Comparable<HarvestDay> {
   DateTime toDateTime() => DateTime(year, month, day);
 
   /// The moment this Harvest Day started (3 AM local).
-  DateTime get startsAt =>
-      DateTime(year, month, day).add(const Duration(hours: boundaryHour));
+  DateTime get startsAt => DateTime(year, month, day, boundaryHour);
 
   /// Weekday of this Harvest Day, [DateTime.monday]..[DateTime.sunday].
   int get weekday => _date.weekday;
 
   /// The Monday that starts this Harvest Day's week.
-  HarvestDay get weekStart =>
-      HarvestDay._(_date.subtract(Duration(days: _date.weekday - 1)));
+  HarvestDay get weekStart => addDays(1 - _date.weekday);
 
-  HarvestDay get next => HarvestDay._(_date.add(const Duration(days: 1)));
-  HarvestDay get previous =>
-      HarvestDay._(_date.subtract(const Duration(days: 1)));
+  /// Monday through Sunday of this Harvest Day's week.
+  List<HarvestDay> get weekDays {
+    final start = weekStart;
+    return List.generate(7, start.addDays);
+  }
 
-  /// Whole days between this and [other] (positive when [other] is later).
-  int daysUntil(HarvestDay other) =>
-      other._date.difference(_date).inDays;
+  /// [n] calendar days later (or earlier for a negative [n]); DST-safe
+  /// because it never adds a Duration.
+  HarvestDay addDays(int n) => HarvestDay._(DateTime(year, month, day + n));
+
+  HarvestDay get next => addDays(1);
+  HarvestDay get previous => addDays(-1);
+
+  /// Whole days between this and [other] (positive when [other] is later),
+  /// counted on the calendar rather than in elapsed hours.
+  int daysUntil(HarvestDay other) => DateTime.utc(
+    other.year,
+    other.month,
+    other.day,
+  ).difference(DateTime.utc(year, month, day)).inDays;
 
   @override
   int compareTo(HarvestDay other) => _date.compareTo(other._date);
 
   @override
-  bool operator ==(Object other) =>
-      other is HarvestDay && other._date == _date;
+  bool operator ==(Object other) => other is HarvestDay && other._date == _date;
 
   @override
   int get hashCode => _date.hashCode;

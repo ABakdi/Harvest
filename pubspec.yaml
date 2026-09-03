@@ -5,6 +5,7 @@ version: 0.9.4+4
 
 environment:
   sdk: ^3.13.2
+  flutter: '>=3.47.2'
 
 dependencies:
   drift: ^2.34.3

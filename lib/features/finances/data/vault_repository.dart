@@ -299,6 +299,23 @@ class VaultRepository {
     });
   }
 
+  /// Hard-deletes movements, debts and payments soft-deleted longer
+  /// than [olderThan] ago.
+  Future<void> purgeDeleted({required Duration olderThan}) async {
+    final cutoff = DateTime.now().subtract(olderThan);
+    await _db.transaction(() async {
+      await (_db.delete(_db.moneyTxns)
+            ..where((t) => t.deletedAt.isSmallerThanValue(cutoff)))
+          .go();
+      await (_db.delete(_db.debtPayments)
+            ..where((p) => p.deletedAt.isSmallerThanValue(cutoff)))
+          .go();
+      await (_db.delete(_db.debts)
+            ..where((d) => d.deletedAt.isSmallerThanValue(cutoff)))
+          .go();
+    });
+  }
+
   Future<void> _outbox(String table, String uuid, String op) => _db
       .into(_db.outbox)
       .insert(

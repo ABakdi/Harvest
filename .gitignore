@@ -35,6 +35,15 @@ migrate_working_dir/
 
 # Symbolication related
 app.*.symbols
+/build/symbols/
+
+# Signing material never enters the repo
+/android/key.properties
+*.jks
+*.keystore
+
+# Golden failure artifacts
+test/**/failures/
 
 # Obfuscation related
 app.*.map.json

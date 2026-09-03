@@ -179,11 +179,33 @@ version, write the step, dump and generate the schema, add the upgrade
 test. Signature components have golden coverage in `test/goldens`
 (regenerate with `flutter test --update-goldens test/goldens`).
 
-Release build:
+### Release builds
+
+Signing material lives outside the repo. Create the keystore once and
+point `android/key.properties` (git-ignored) at it:
 
 ```sh
-flutter build apk --release
+keytool -genkey -v -keystore ~/keys/harvest-upload.jks -keyalg RSA \
+  -keysize 2048 -validity 10000 -alias harvest
 ```
+
+```properties
+storeFile=/home/you/keys/harvest-upload.jks
+storePassword=…
+keyAlias=harvest
+keyPassword=…
+```
+
+Without the file, release builds fall back to the debug key with a
+warning (fine for a dev machine, never for distribution). Release builds
+shrink and obfuscate; keep the symbol map with the tag you ship:
+
+```sh
+flutter build apk --release --obfuscate --split-debug-info=build/symbols
+```
+
+Toolchain pinned for reproducible builds: Flutter 3.47.2 (Dart 3.13),
+JDK 21, Android minSdk 26.
 
 ## Project layout
 

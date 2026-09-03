@@ -136,7 +136,7 @@ final class DailyGoalSettingProvider
   DailyGoalSetting create() => DailyGoalSetting();
 }
 
-String _$dailyGoalSettingHash() => r'fc976e06fcb52b64c91a5b7db985b66c60def27a';
+String _$dailyGoalSettingHash() => r'2ec656c4d00642b19b4f912f3c1fb9dd93442875';
 
 /// The persisted Daily Harvest Goal (minimum productive actions per day).
 
@@ -158,24 +158,18 @@ abstract class _$DailyGoalSetting extends $StreamNotifier<int> {
   }
 }
 
-/// Reminder configuration: master switch, times, and the streak nudge.
+/// Reminder configuration: master switch, the ritual times, and the
+/// streak nudge. Every change replans today's reminders.
 
 @ProviderFor(ReminderSettings)
 final reminderSettingsProvider = ReminderSettingsProvider._();
 
-/// Reminder configuration: master switch, times, and the streak nudge.
+/// Reminder configuration: master switch, the ritual times, and the
+/// streak nudge. Every change replans today's reminders.
 final class ReminderSettingsProvider
-    extends
-        $StreamNotifierProvider<
-          ReminderSettings,
-          ({
-            bool enabled,
-            TimeOfDay evening,
-            TimeOfDay morning,
-            bool streakNudge,
-          })
-        > {
-  /// Reminder configuration: master switch, times, and the streak nudge.
+    extends $StreamNotifierProvider<ReminderSettings, ReminderConfig> {
+  /// Reminder configuration: master switch, the ritual times, and the
+  /// streak nudge. Every change replans today's reminders.
   ReminderSettingsProvider._()
     : super(
         from: null,
@@ -195,72 +189,22 @@ final class ReminderSettingsProvider
   ReminderSettings create() => ReminderSettings();
 }
 
-String _$reminderSettingsHash() => r'dd063e5b28b0ae561e0f2492e0f518ef39d00642';
+String _$reminderSettingsHash() => r'fc4e643d86fc1f817d6614c6d15b6b4879eca7e8';
 
-/// Reminder configuration: master switch, times, and the streak nudge.
+/// Reminder configuration: master switch, the ritual times, and the
+/// streak nudge. Every change replans today's reminders.
 
-abstract class _$ReminderSettings
-    extends
-        $StreamNotifier<
-          ({
-            bool enabled,
-            TimeOfDay evening,
-            TimeOfDay morning,
-            bool streakNudge,
-          })
-        > {
-  Stream<
-    ({bool enabled, TimeOfDay evening, TimeOfDay morning, bool streakNudge})
-  >
-  build();
+abstract class _$ReminderSettings extends $StreamNotifier<ReminderConfig> {
+  Stream<ReminderConfig> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref =
-        this.ref
-            as $Ref<
-              AsyncValue<
-                ({
-                  bool enabled,
-                  TimeOfDay evening,
-                  TimeOfDay morning,
-                  bool streakNudge,
-                })
-              >,
-              ({
-                bool enabled,
-                TimeOfDay evening,
-                TimeOfDay morning,
-                bool streakNudge,
-              })
-            >;
+    final ref = this.ref as $Ref<AsyncValue<ReminderConfig>, ReminderConfig>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<
-                AsyncValue<
-                  ({
-                    bool enabled,
-                    TimeOfDay evening,
-                    TimeOfDay morning,
-                    bool streakNudge,
-                  })
-                >,
-                ({
-                  bool enabled,
-                  TimeOfDay evening,
-                  TimeOfDay morning,
-                  bool streakNudge,
-                })
-              >,
-              AsyncValue<
-                ({
-                  bool enabled,
-                  TimeOfDay evening,
-                  TimeOfDay morning,
-                  bool streakNudge,
-                })
-              >,
+              AnyNotifier<AsyncValue<ReminderConfig>, ReminderConfig>,
+              AsyncValue<ReminderConfig>,
               Object?,
               Object?
             >;

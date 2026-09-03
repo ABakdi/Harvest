@@ -37,8 +37,9 @@ class HarvestSheet extends StatelessWidget {
       children: [
         Text(
           title,
-          style: theme.textTheme.headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w800),
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
         ),
         if (subtitle != null)
           Padding(
@@ -77,9 +78,8 @@ class HarvestSheet extends StatelessWidget {
 Future<T?> showHarvestSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
-}) =>
-    showModalBottomSheet<T>(
-      context: context,
-      isScrollControlled: true,
-      builder: builder,
-    );
+}) => showModalBottomSheet<T>(
+  context: context,
+  isScrollControlled: true,
+  builder: builder,
+);

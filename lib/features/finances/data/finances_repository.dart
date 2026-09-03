@@ -214,6 +214,20 @@ class FinancesRepository {
       });
 
   /// Same-day correction: soft-deletes the entry (history stays truthful).
+  /// Hard-deletes expenses and categories soft-deleted longer than
+  /// [olderThan] ago — "delete" must eventually mean gone.
+  Future<void> purgeDeleted({required Duration olderThan}) async {
+    final cutoff = DateTime.now().subtract(olderThan);
+    await _db.transaction(() async {
+      await (_db.delete(_db.expenses)
+            ..where((e) => e.deletedAt.isSmallerThanValue(cutoff)))
+          .go();
+      await (_db.delete(_db.expenseCategories)
+            ..where((c) => c.deletedAt.isSmallerThanValue(cutoff)))
+          .go();
+    });
+  }
+
   Future<void> remove(String uuid) => _db.transaction(() async {
         await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid)))
             .write(
