@@ -2,6 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 
+/// A row of equal-height, equal-width [StatTile]s.
+class StatTileRow extends StatelessWidget {
+  const StatTileRow({required this.children, super.key});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const SizedBox(width: HarvestSpacing.sm),
+              Expanded(child: children[i]),
+            ],
+          ],
+        ),
+      );
+}
+
 /// One number with its label — the building block of overview rows.
 class StatTile extends StatelessWidget {
   const StatTile({

@@ -45,6 +45,10 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 ### 🏁 Checkpoints
 - [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list
 
+### 🔍 Audit
+- [[Audit-Home]] — the code, security and UX audit and its status board
+- [[Security-Audit]] · [[Code-Quality-Audit]] · [[UX-Audit]]
+
 ### ⚖️ Decisions (ADRs)
 - [[ADR-001-State-Management]] — Riverpod over Bloc
 - [[ADR-002-Local-Database]] — Drift over Isar/Realm/Hive

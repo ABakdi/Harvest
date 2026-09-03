@@ -45,7 +45,7 @@ class SnoozeStore {
   /// snooze on a reminder we can repeat.
   Future<DateTime?> snooze(
     NotificationResponse response,
-    NotificationService notifications, {
+    NotificationGateway notifications, {
     DateTime? now,
   }) async {
     final minutes = SnoozeActions.minutes(response.actionId);
@@ -76,7 +76,7 @@ class SnoozeStore {
   /// Drops elapsed snoozes and re-schedules the pending ones — run after
   /// every replan so a snoozed reminder outlives the planner's cancels.
   Future<void> reapply(
-    NotificationService notifications, {
+    NotificationGateway notifications, {
     DateTime? now,
   }) async {
     final at = now ?? DateTime.now();
@@ -112,7 +112,7 @@ class SnoozeStore {
   Future<void> _schedule(
     int id,
     Map<String, dynamic> item,
-    NotificationService notifications,
+    NotificationGateway notifications,
   ) => notifications.schedule(
     id: id,
     channelId: item['channel'] as String? ?? NotificationChannels.reminders,

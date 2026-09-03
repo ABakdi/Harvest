@@ -23,6 +23,7 @@ in daily use; gym & health is next. Grab the latest build from the
   - [Architecture](#architecture)
   - [Planning](#planning)
   - [Checkpoints](#checkpoints)
+  - [Audit](#audit)
   - [Decisions](#decisions)
 - [Stack](#stack)
 - [Development](#development)
@@ -132,6 +133,15 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | Note | What's in it |
 | :--- | :--- |
 | [Checkpoint 1](docs/05-Checkpoints/Checkpoint-1.md) | Road to v1: progress review, bugs, gap list, and the dogfooding rounds |
+
+### Audit
+
+| Note | What's in it |
+| :--- | :--- |
+| [Audit Home](docs/06-Audit/Audit-Home.md) | The code, security and UX audit: method, counts, remediation status |
+| [Security Audit](docs/06-Audit/Security-Audit.md) | Android surface, data at rest, backups, notifications, inputs, signing |
+| [Code Quality Audit](docs/06-Audit/Code-Quality-Audit.md) | Correctness, error handling, state management, duplication, tests |
+| [UX Audit](docs/06-Audit/UX-Audit.md) | Every screen, component by component: keep, simplify, merge, remove |
 
 ### Decisions
 

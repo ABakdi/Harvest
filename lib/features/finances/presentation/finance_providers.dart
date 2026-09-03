@@ -79,6 +79,18 @@ class FinanceSettings extends _$FinanceSettings {
       .setString(FinanceKeys.expectedDaily, '$minor');
 }
 
+/// The default currency, DZD until the setting says otherwise.
+@riverpod
+Currency defaultCurrency(Ref ref) =>
+    ref.watch(financeSettingsProvider).value?.defaultCurrency ?? Currency.dzd;
+
+/// [ratesProvider] with a safe fallback while the stream warms up, keyed
+/// on the real default currency so nothing converts into DZD by mistake.
+@riverpod
+Rates ratesOrDefault(Ref ref) =>
+    ref.watch(ratesProvider).value ??
+    Rates(defaultCurrency: ref.watch(defaultCurrencyProvider));
+
 // ------------------------------------------------------------------ vault
 
 @riverpod

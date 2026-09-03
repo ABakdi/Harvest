@@ -52,7 +52,7 @@ class NotificationPlanner {
   NotificationPlanner(this._db, this._notifications, this._streaks);
 
   final HarvestDatabase _db;
-  final NotificationService _notifications;
+  final NotificationGateway _notifications;
   final StreakService _streaks;
 
   /// (Re)schedules today's reminders. Idempotent: cancels the reserved

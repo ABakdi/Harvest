@@ -274,6 +274,101 @@ abstract class _$FinanceSettings
   }
 }
 
+/// The default currency, DZD until the setting says otherwise.
+
+@ProviderFor(defaultCurrency)
+final defaultCurrencyProvider = DefaultCurrencyProvider._();
+
+/// The default currency, DZD until the setting says otherwise.
+
+final class DefaultCurrencyProvider
+    extends $FunctionalProvider<Currency, Currency, Currency>
+    with $Provider<Currency> {
+  /// The default currency, DZD until the setting says otherwise.
+  DefaultCurrencyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'defaultCurrencyProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$defaultCurrencyHash();
+
+  @$internal
+  @override
+  $ProviderElement<Currency> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Currency create(Ref ref) {
+    return defaultCurrency(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Currency value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Currency>(value),
+    );
+  }
+}
+
+String _$defaultCurrencyHash() => r'4a7aa5cb61049cea2796187f144b0ebb2bd9e1a6';
+
+/// [ratesProvider] with a safe fallback while the stream warms up, keyed
+/// on the real default currency so nothing converts into DZD by mistake.
+
+@ProviderFor(ratesOrDefault)
+final ratesOrDefaultProvider = RatesOrDefaultProvider._();
+
+/// [ratesProvider] with a safe fallback while the stream warms up, keyed
+/// on the real default currency so nothing converts into DZD by mistake.
+
+final class RatesOrDefaultProvider
+    extends $FunctionalProvider<Rates, Rates, Rates>
+    with $Provider<Rates> {
+  /// [ratesProvider] with a safe fallback while the stream warms up, keyed
+  /// on the real default currency so nothing converts into DZD by mistake.
+  RatesOrDefaultProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'ratesOrDefaultProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$ratesOrDefaultHash();
+
+  @$internal
+  @override
+  $ProviderElement<Rates> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Rates create(Ref ref) {
+    return ratesOrDefault(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Rates value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Rates>(value),
+    );
+  }
+}
+
+String _$ratesOrDefaultHash() => r'cc08eb6f481dea021d811ec2d321bae51216a653';
+
 @ProviderFor(vaultBalances)
 final vaultBalancesProvider = VaultBalancesProvider._();
 

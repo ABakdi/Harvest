@@ -95,9 +95,30 @@ class ReminderPayload {
   }
 }
 
+/// What the planner needs from the notification layer — implemented by
+/// [NotificationService] on device and by a recording fake in tests.
+abstract interface class NotificationGateway {
+  /// Localized snooze actions attached to every reminder.
+  List<(String, String)> get snoozeLabels;
+  set snoozeLabels(List<(String, String)> labels);
+
+  Future<void> schedule({
+    required int id,
+    required String channelId,
+    required String title,
+    required String body,
+    required DateTime when,
+    String? route,
+    bool alarm = true,
+    List<(String, String)>? snoozeLabels,
+  });
+
+  Future<void> cancel(int id);
+}
+
 /// Thin wrapper around the local-notifications plugin: initialization,
 /// permission requests, and timezone-aware alarm-grade scheduling.
-class NotificationService {
+class NotificationService implements NotificationGateway {
   final _plugin = FlutterLocalNotificationsPlugin();
   var _initialized = false;
 
@@ -113,6 +134,7 @@ class NotificationService {
 
   /// Localized snooze actions attached to every reminder; the planner
   /// sets these once per plan.
+  @override
   List<(String, String)> snoozeLabels = const [];
 
   Future<void> initialize() async {
@@ -216,6 +238,7 @@ class NotificationService {
   /// Schedules a reminder at [when] (local time): exact when allowed,
   /// with sound and vibration, shown over the lock screen when [alarm],
   /// and carrying the snooze actions.
+  @override
   Future<void> schedule({
     required int id,
     required String channelId,
@@ -318,6 +341,7 @@ class NotificationService {
     }
   }
 
+  @override
   Future<void> cancel(int id) async {
     try {
       await _plugin.cancel(id: id);

@@ -499,11 +499,11 @@
   "vaultOwed": "Owed",
   "vaultOpenDebts": "{count, plural, =0{no open debts} =1{1 open debt} other{{count} open debts}}",
   "@vaultOpenDebts": {
-      "placeholders": {
-          "count": {
-              "type": "int"
-          }
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
+    }
   },
   "walletEmptyTitle": "The wallet is empty",
   "walletEmptyBody": "Add what you carry to spend. Expenses can come straight out of it.",
@@ -524,22 +524,22 @@
   "txnExpense": "Expense",
   "txnDebtPayment": "Paid {person}",
   "@txnDebtPayment": {
-      "placeholders": {
-          "person": {
-              "type": "String"
-          }
+    "placeholders": {
+      "person": {
+        "type": "String"
       }
+    }
   },
   "debtPaidOf": "{paid} of {total} paid",
   "@debtPaidOf": {
-      "placeholders": {
-          "paid": {
-              "type": "String"
-          },
-          "total": {
-              "type": "String"
-          }
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
       }
+    }
   },
   "debtPayments": "Payments",
   "debtOpen": "Open",
@@ -554,51 +554,51 @@
   "budgetDailyLimit": "Daily limit",
   "budgetLeftToday": "{amount} left today",
   "@budgetLeftToday": {
-      "placeholders": {
-          "amount": {
-              "type": "String"
-          }
+    "placeholders": {
+      "amount": {
+        "type": "String"
       }
+    }
   },
   "budgetOverToday": "{amount} over today",
   "@budgetOverToday": {
-      "placeholders": {
-          "amount": {
-              "type": "String"
-          }
+    "placeholders": {
+      "amount": {
+        "type": "String"
       }
+    }
   },
   "budgetLeftMonth": "{amount} left this month",
   "@budgetLeftMonth": {
-      "placeholders": {
-          "amount": {
-              "type": "String"
-          }
+    "placeholders": {
+      "amount": {
+        "type": "String"
       }
+    }
   },
   "budgetOverMonth": "{amount} over budget this month",
   "@budgetOverMonth": {
-      "placeholders": {
-          "amount": {
-              "type": "String"
-          }
+    "placeholders": {
+      "amount": {
+        "type": "String"
       }
+    }
   },
   "nextRankIn": "{xp} XP to the next rank",
   "@nextRankIn": {
-      "placeholders": {
-          "xp": {
-              "type": "int"
-          }
+    "placeholders": {
+      "xp": {
+        "type": "int"
       }
+    }
   },
   "expensesToday": "{count, plural, =0{Nothing logged} =1{1 expense} other{{count} expenses}}",
   "@expensesToday": {
-      "placeholders": {
-          "count": {
-              "type": "int"
-          }
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
+    }
   },
   "swipeToRemove": "Swipe to remove",
   "snooze10": "In 10 min",
@@ -608,19 +608,19 @@
   "tomorrowNothing": "Nothing planned yet — plant tonight's seeds.",
   "tomorrowHabits": "{count, plural, =0{no habits due} =1{1 habit due} other{{count} habits due}}",
   "@tomorrowHabits": {
-      "placeholders": {
-          "count": {
-              "type": "int"
-          }
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
+    }
   },
   "tomorrowTodos": "{count, plural, =0{no to-dos} =1{1 to-do planned} other{{count} to-dos planned}}",
   "@tomorrowTodos": {
-      "placeholders": {
-          "count": {
-              "type": "int"
-          }
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
+    }
   },
   "planTomorrow": "Plan"
 }

@@ -49,6 +49,10 @@ final class HarvestDay implements Comparable<HarvestDay> {
       '${month.toString().padLeft(2, '0')}-'
       '${day.toString().padLeft(2, '0')}';
 
+  /// Midnight of the calendar date this day is labelled with — for
+  /// date pickers, calendars and formatting, never for the boundary.
+  DateTime toDateTime() => DateTime(year, month, day);
+
   /// The moment this Harvest Day started (3 AM local).
   DateTime get startsAt =>
       DateTime(year, month, day).add(const Duration(hours: boundaryHour));
