@@ -58,31 +58,52 @@ Future<void> appBootstrap(Ref ref) async {
       SnoozeStore(ref.read(databaseProvider)).snooze(response, notifications);
 
   final status = ref.read(bootstrapStatusProvider.notifier);
+
+  /// Runs one startup step. A failure is recorded, not thrown — and if
+  /// the app went away while the step was in flight (hot restart, or
+  /// shutdown), the result is dropped rather than written to a
+  /// container that no longer exists.
   Future<void> step(String name, Future<void> Function() run) async {
     try {
       await run();
     } on Object catch (error) {
+      if (!ref.mounted) return;
       status.report(name, error);
     }
   }
 
+  // Only the day's verdict is awaited: it is local, fast, and a
+  // check-in tapped before it lands would count against the wrong day.
   await step('reconcile', ref.read(streakServiceProvider).reconcile);
-  await step('reminders', ref.read(notificationPlannerProvider).planToday);
-  await step('purge', () async {
-    await ref
-        .read(commitmentsRepositoryProvider)
-        .purgeDeleted(olderThan: purgeAfter);
-    await ref
-        .read(financesRepositoryProvider)
-        .purgeDeleted(olderThan: purgeAfter);
-    await ref.read(vaultRepositoryProvider).purgeDeleted(olderThan: purgeAfter);
-  });
 
-  // Launched by tapping a reminder while closed: land where it points.
-  await step('launch route', () async {
-    final launchRoute = await notifications.launchRoute();
-    if (launchRoute != null) ref.read(routerProvider).go(routeFor(launchRoute));
-  });
+  // Everything else touches the platform or does housekeeping. It must
+  // never hold the first frame hostage — a wedged platform channel
+  // would otherwise leave a blank screen forever.
+  unawaited(
+    step('reminders', ref.read(notificationPlannerProvider).planToday),
+  );
+  unawaited(
+    step('purge', () async {
+      await ref
+          .read(commitmentsRepositoryProvider)
+          .purgeDeleted(olderThan: purgeAfter);
+      await ref
+          .read(financesRepositoryProvider)
+          .purgeDeleted(olderThan: purgeAfter);
+      await ref
+          .read(vaultRepositoryProvider)
+          .purgeDeleted(olderThan: purgeAfter);
+    }),
+  );
+  unawaited(
+    step('launch route', () async {
+      // Launched by tapping a reminder while closed: land where it points.
+      final launchRoute = await notifications.launchRoute();
+      if (launchRoute != null) {
+        ref.read(routerProvider).go(routeFor(launchRoute));
+      }
+    }),
+  );
 }
 
 /// The app route behind a reminder route; anything unknown goes home.
