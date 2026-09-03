@@ -8,11 +8,9 @@ import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/stat_tile.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
-import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
-import 'package:harvest/features/finances/presentation/money.dart';
-import 'package:harvest/features/gamification/data/gamification_repository.dart';
+import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +22,6 @@ class StatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final xp = ref.watch(xpTotalProvider).value ?? 0;
     final streak = ref.watch(globalStreakProvider).value;
     final checkIns = ref.watch(checkInCountProvider).value ?? 0;
     final activity = ref.watch(dailyActivityProvider).value ?? const {};
@@ -32,13 +29,8 @@ class StatsScreen extends ConsumerWidget {
     final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
     final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
     final streaks = ref.watch(commitmentStreaksProvider).value ?? const {};
-    final spending = ref.watch(monthByCategoryProvider);
     final weekXp = ref.watch(weeklyXpProvider).value ?? 0;
     final weekSpending = ref.watch(weekByCategoryProvider);
-    final symbol =
-        (ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-                Currency.dzd)
-            .symbol;
 
     final projects = commitments
         .where((c) => c.type == CommitmentType.project)
@@ -54,38 +46,21 @@ class StatsScreen extends ConsumerWidget {
           : ListView(
               padding: const EdgeInsets.all(HarvestSpacing.md),
               children: [
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: StatTile(
-                          icon: Icons.auto_awesome,
-                          color: theme.colorScheme.tertiary,
-                          label: l10n.statsLifetimeXp,
-                          value: '$xp',
-                        ),
-                      ),
-                      const SizedBox(width: HarvestSpacing.sm),
-                      Expanded(
-                        child: StatTile(
-                          icon: Icons.local_fire_department,
-                          color: theme.colorScheme.primary,
-                          label: l10n.statsBestStreak,
-                          value: '${streak?.best ?? 0}',
-                        ),
-                      ),
-                      const SizedBox(width: HarvestSpacing.sm),
-                      Expanded(
-                        child: StatTile(
-                          icon: Icons.check_circle,
-                          color: theme.colorScheme.secondary,
-                          label: l10n.statsCheckIns,
-                          value: '$checkIns',
-                        ),
-                      ),
-                    ],
-                  ),
+                StatTileRow(
+                  children: [
+                    StatTile(
+                      icon: Icons.local_fire_department,
+                      color: theme.colorScheme.primary,
+                      label: l10n.statsBestStreak,
+                      value: '${streak?.best ?? 0}',
+                    ),
+                    StatTile(
+                      icon: Icons.check_circle,
+                      color: theme.colorScheme.secondary,
+                      label: l10n.statsCheckIns,
+                      value: '$checkIns',
+                    ),
+                  ],
                 ),
                 SectionHeader(l10n.weeklyReport),
                 _WeeklyReportCard(
@@ -134,34 +109,16 @@ class StatsScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: HarvestSpacing.xs),
                             Text(
-                              l10n
-                                  .projectSubtitle(
-                                    totals[project.uuid] ?? 0,
-                                    project.totalTarget ?? 0,
-                                    0,
-                                    project.dailyCommitment ?? 0,
-                                  )
-                                  .split('·')
-                                  .first
-                                  .trim(),
+                              l10n.projectProgressOf(
+                                totals[project.uuid] ?? 0,
+                                project.totalTarget ?? 0,
+                              ),
                               style: theme.textTheme.bodySmall,
                             ),
                           ],
                         ),
                       ),
                     ),
-                ],
-                if (spending.isNotEmpty) ...[
-                  SectionHeader(l10n.statsSpending),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(HarvestSpacing.md),
-                      child: _SpendingBreakdown(
-                        spending: spending,
-                        symbol: symbol,
-                      ),
-                    ),
-                  ),
                 ],
                 if (habits.isNotEmpty) ...[
                   SectionHeader(l10n.statsHabitStreaks),
@@ -194,8 +151,9 @@ class StatsScreen extends ConsumerWidget {
   }
 }
 
-/// Ten weeks of daily activity, GitHub-garden style: the greener the
-/// cell, the closer the day came to the Daily Harvest Goal.
+/// Six months of daily activity, garden style: the greener the cell,
+/// the closer the day came to the Daily Harvest Goal. Month names run
+/// along the top; screen readers get the count of active days.
 class _HeatMap extends StatelessWidget {
   const _HeatMap({required this.activity, required this.goal});
 
@@ -206,9 +164,7 @@ class _HeatMap extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final today = HarvestDay.today();
-    final start = HarvestDay.of(
-      DateTime.now().subtract(const Duration(days: 181)),
-    ).weekStart;
+    final start = today.addDays(-activityWindow.inDays).weekStart;
 
     final weeks = <List<HarvestDay?>>[];
     var day = start;
@@ -221,33 +177,67 @@ class _HeatMap extends StatelessWidget {
       weeks.add(week);
     }
 
+    final locale = Localizations.localeOf(context).toString();
+    final activeDays = activity.values.where((n) => n > 0).length;
+    final theme = Theme.of(context);
+
     // Scrolls horizontally; latest weeks are visible first.
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      reverse: true,
-      child: Row(
-        children: [
-          for (final week in weeks)
-            Column(
-              children: [
-                for (final cell in week)
-                  Padding(
-                    padding: const EdgeInsets.all(1.5),
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color: cell == null
-                            ? Colors.transparent
-                            : _color(scheme, activity[cell.key] ?? 0),
+    return Semantics(
+      label: AppLocalizations.of(context)
+          .activitySemantics(activeDays, weeks.length),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        reverse: true,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            for (var w = 0; w < weeks.length; w++)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 16,
+                    width: 17,
+                    child: _monthLabel(weeks, w, locale, theme),
+                  ),
+                  for (final cell in weeks[w])
+                    Padding(
+                      padding: const EdgeInsets.all(1.5),
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: cell == null
+                              ? Colors.transparent
+                              : _color(scheme, activity[cell.key] ?? 0),
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-        ],
+                ],
+              ),
+          ],
+        ),
       ),
+    );
+  }
+
+  /// The month's short name over the first week that starts in it.
+  Widget? _monthLabel(
+    List<List<HarvestDay?>> weeks,
+    int index,
+    String locale,
+    ThemeData theme,
+  ) {
+    final first = weeks[index].first;
+    if (first == null) return null;
+    final previous = index == 0 ? null : weeks[index - 1].first;
+    if (previous != null && previous.month == first.month) return null;
+    return Text(
+      DateFormat.MMM(locale).format(first.toDateTime()),
+      style: theme.textTheme.labelSmall,
+      overflow: TextOverflow.visible,
+      softWrap: false,
     );
   }
 
@@ -273,72 +263,6 @@ class _Empty extends StatelessWidget {
         body: l10n.statsEmptyBody,
         color: theme.colorScheme.tertiary,
       ),
-    );
-  }
-}
-
-/// Month-to-date spending per category, biggest first.
-class _SpendingBreakdown extends StatelessWidget {
-  const _SpendingBreakdown({required this.spending, required this.symbol});
-
-  final Map<String, int> spending;
-  final String symbol;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final entries = spending.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final max = entries.first.value;
-
-    return Column(
-      children: [
-        for (final entry in entries)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: HarvestSpacing.xs),
-            child: Row(
-              children: [
-                Icon(
-                  categoryIcon(entry.key),
-                  size: 20,
-                  color: theme.colorScheme.secondary,
-                ),
-                const SizedBox(width: HarvestSpacing.sm),
-                SizedBox(
-                  width: 88,
-                  child: Text(
-                    categoryLabel(l10n, entry.key),
-                    style: theme.textTheme.bodyMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(HarvestRadii.chip),
-                    child: LinearProgressIndicator(
-                      value: entry.value / max,
-                      minHeight: 8,
-                      backgroundColor: theme.colorScheme.onSurface.withValues(
-                        alpha: 0.06,
-                      ),
-                      valueColor: AlwaysStoppedAnimation(
-                        theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: HarvestSpacing.sm),
-                Text(
-                  '$symbol${formatGrouped(entry.value)}',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
     );
   }
 }

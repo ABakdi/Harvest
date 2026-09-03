@@ -43,9 +43,7 @@ class _OptionsSheet extends ConsumerWidget {
             padding: const EdgeInsets.all(HarvestSpacing.md),
             child: Text(
               commitment.title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
+              style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w800),
             ),
           ),

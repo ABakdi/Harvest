@@ -48,8 +48,14 @@ final class ActiveCommitmentsProvider
 
 String _$activeCommitmentsHash() => r'ba05ad92a44219950e775584a51d11ee7039be0d';
 
+/// Units logged today per commitment — follows the live Harvest Day, so
+/// the field turns over at 3 AM without a restart.
+
 @ProviderFor(loggedToday)
 final loggedTodayProvider = LoggedTodayProvider._();
+
+/// Units logged today per commitment — follows the live Harvest Day, so
+/// the field turns over at 3 AM without a restart.
 
 final class LoggedTodayProvider
     extends
@@ -59,6 +65,8 @@ final class LoggedTodayProvider
           Stream<Map<String, int>>
         >
     with $FutureModifier<Map<String, int>>, $StreamProvider<Map<String, int>> {
+  /// Units logged today per commitment — follows the live Harvest Day, so
+  /// the field turns over at 3 AM without a restart.
   LoggedTodayProvider._()
     : super(
         from: null,
@@ -85,7 +93,7 @@ final class LoggedTodayProvider
   }
 }
 
-String _$loggedTodayHash() => r'c5fab3271ab74dfd1c88edbc9f5e3a6709d5868e';
+String _$loggedTodayHash() => r'0ffc171389057535a9dc405d6a64d22630c2b5b4';
 
 @ProviderFor(lifetimeTotals)
 final lifetimeTotalsProvider = LifetimeTotalsProvider._();
@@ -163,7 +171,7 @@ final class DoneDaysThisWeekProvider
   }
 }
 
-String _$doneDaysThisWeekHash() => r'5d9de1925411d7929335ef40a9989020651ee68a';
+String _$doneDaysThisWeekHash() => r'4cdc310c5fcce2b5510038173155339f6e8c20cd';
 
 /// Today's field: every commitment due today, undone first.
 
@@ -210,4 +218,4 @@ final class TodayFieldProvider
   }
 }
 
-String _$todayFieldHash() => r'87746fd1e26baedfa112fb921fe444fee7bacb4e';
+String _$todayFieldHash() => r'0db74cc121ee088e4e84c86cf5f9e055feb656e5';

@@ -38,10 +38,10 @@ class PomodoroConfig {
   final int blocksPerLongBreak;
 
   Duration of(PomodoroPhase phase) => switch (phase) {
-        PomodoroPhase.focus => Duration(minutes: focusMinutes),
-        PomodoroPhase.shortBreak => Duration(minutes: shortBreakMinutes),
-        PomodoroPhase.longBreak => Duration(minutes: longBreakMinutes),
-      };
+    PomodoroPhase.focus => Duration(minutes: focusMinutes),
+    PomodoroPhase.shortBreak => Duration(minutes: shortBreakMinutes),
+    PomodoroPhase.longBreak => Duration(minutes: longBreakMinutes),
+  };
 }
 
 /// The persisted timer snapshot. Time is kept as wall-clock instants,
@@ -56,9 +56,9 @@ class PomodoroSnapshot {
     this.pausedRemaining,
     this.userPaused = false,
   }) : assert(
-          (endsAt == null) != (pausedRemaining == null),
-          'exactly one of endsAt / pausedRemaining must be set',
-        );
+         (endsAt == null) != (pausedRemaining == null),
+         'exactly one of endsAt / pausedRemaining must be set',
+       );
 
   factory PomodoroSnapshot.fromJson(Map<String, dynamic> json) =>
       PomodoroSnapshot(
@@ -74,7 +74,6 @@ class PomodoroSnapshot {
             : Duration(seconds: json['pausedRemaining'] as int),
         userPaused: json['userPaused'] as bool? ?? false,
       );
-
 
   final String sessionUuid;
   final PomodoroPhase phase;
@@ -92,19 +91,18 @@ class PomodoroSnapshot {
 
   bool get isRunning => endsAt != null;
 
-  Duration remaining(DateTime now) => isRunning
-      ? endsAt!.difference(now)
-      : pausedRemaining!;
+  Duration remaining(DateTime now) =>
+      isRunning ? endsAt!.difference(now) : pausedRemaining!;
 
   Map<String, dynamic> toJson() => {
-        'sessionUuid': sessionUuid,
-        'phase': phase.name,
-        'blocksDone': blocksDone,
-        'commitmentUuid': commitmentUuid,
-        'endsAt': endsAt?.toIso8601String(),
-        'pausedRemaining': pausedRemaining?.inSeconds,
-        'userPaused': userPaused,
-      };
+    'sessionUuid': sessionUuid,
+    'phase': phase.name,
+    'blocksDone': blocksDone,
+    'commitmentUuid': commitmentUuid,
+    'endsAt': endsAt?.toIso8601String(),
+    'pausedRemaining': pausedRemaining?.inSeconds,
+    'userPaused': userPaused,
+  };
 
   PomodoroSnapshot copyWith({
     PomodoroPhase? phase,
@@ -114,18 +112,17 @@ class PomodoroSnapshot {
     bool clearEndsAt = false,
     bool clearPausedRemaining = false,
     bool? userPaused,
-  }) =>
-      PomodoroSnapshot(
-        sessionUuid: sessionUuid,
-        phase: phase ?? this.phase,
-        blocksDone: blocksDone ?? this.blocksDone,
-        commitmentUuid: commitmentUuid,
-        endsAt: clearEndsAt ? null : endsAt ?? this.endsAt,
-        pausedRemaining: clearPausedRemaining
-            ? null
-            : pausedRemaining ?? this.pausedRemaining,
-        userPaused: userPaused ?? this.userPaused,
-      );
+  }) => PomodoroSnapshot(
+    sessionUuid: sessionUuid,
+    phase: phase ?? this.phase,
+    blocksDone: blocksDone ?? this.blocksDone,
+    commitmentUuid: commitmentUuid,
+    endsAt: clearEndsAt ? null : endsAt ?? this.endsAt,
+    pausedRemaining: clearPausedRemaining
+        ? null
+        : pausedRemaining ?? this.pausedRemaining,
+    userPaused: userPaused ?? this.userPaused,
+  );
 }
 
 /// Persistence and payout for pomodoro sessions.
@@ -137,23 +134,24 @@ class PomodoroService {
   static const _activeKey = 'pomodoro.active';
 
   Future<PomodoroSnapshot?> loadActive() async {
-    final row = await (_db.select(_db.kvSettings)
-          ..where((s) => s.key.equals(_activeKey)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.kvSettings,
+    )..where((s) => s.key.equals(_activeKey))).getSingleOrNull();
     if (row == null) return null;
     final json = jsonDecode(row.valueJson);
     if (json == null) return null;
     return PomodoroSnapshot.fromJson(json as Map<String, dynamic>);
   }
 
-  Future<void> saveActive(PomodoroSnapshot? snapshot) =>
-      _db.into(_db.kvSettings).insertOnConflictUpdate(
-            KvSettingsCompanion.insert(
-              key: _activeKey,
-              valueJson: jsonEncode(snapshot?.toJson()),
-              updatedAt: Value(DateTime.now()),
-            ),
-          );
+  Future<void> saveActive(PomodoroSnapshot? snapshot) => _db
+      .into(_db.kvSettings)
+      .insertOnConflictUpdate(
+        KvSettingsCompanion.insert(
+          key: _activeKey,
+          valueJson: jsonEncode(snapshot?.toJson()),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
   /// Starts a session: creates the history row and returns the snapshot.
   Future<PomodoroSnapshot> startSession({
@@ -169,7 +167,9 @@ class PomodoroService {
       commitmentUuid: commitmentUuid,
       endsAt: at.add(config.of(PomodoroPhase.focus)),
     );
-    await _db.into(_db.pomodoroSessions).insert(
+    await _db
+        .into(_db.pomodoroSessions)
+        .insert(
           PomodoroSessionsCompanion.insert(
             uuid: snapshot.sessionUuid,
             commitmentUuid: Value(commitmentUuid),
@@ -185,14 +185,16 @@ class PomodoroService {
   Future<void> completeBlock(PomodoroSnapshot snapshot, {DateTime? now}) async {
     final at = now ?? DateTime.now();
     await _db.transaction(() async {
-      await (_db.update(_db.pomodoroSessions)
-            ..where((p) => p.uuid.equals(snapshot.sessionUuid)))
-          .write(
+      await (_db.update(
+        _db.pomodoroSessions,
+      )..where((p) => p.uuid.equals(snapshot.sessionUuid))).write(
         PomodoroSessionsCompanion(
           focusBlocks: Value(snapshot.blocksDone + 1),
         ),
       );
-      await _db.into(_db.ledger).insert(
+      await _db
+          .into(_db.ledger)
+          .insert(
             LedgerCompanion.insert(
               uuid: _uuid.v4(),
               kind: 'xp',
@@ -206,9 +208,9 @@ class PomodoroService {
 
   /// Ends the session (finished or abandoned) and clears the active slot.
   Future<void> endSession(PomodoroSnapshot snapshot, {DateTime? now}) async {
-    await (_db.update(_db.pomodoroSessions)
-          ..where((p) => p.uuid.equals(snapshot.sessionUuid)))
-        .write(
+    await (_db.update(
+      _db.pomodoroSessions,
+    )..where((p) => p.uuid.equals(snapshot.sessionUuid))).write(
       PomodoroSessionsCompanion(endedAt: Value(now ?? DateTime.now())),
     );
     await saveActive(null);
@@ -225,19 +227,22 @@ class PomodoroConfigSetting extends _$PomodoroConfigSetting {
   @override
   Stream<PomodoroConfig> build() {
     int parse(String? raw, int fallback) => int.tryParse(raw ?? '') ?? fallback;
-    return ref.watch(settingsRepositoryProvider).watchAll(const [
-      PomodoroKeys.focus,
-      PomodoroKeys.shortBreak,
-      PomodoroKeys.longBreak,
-      PomodoroKeys.blocksPerLong,
-    ]).map(
-      (values) => PomodoroConfig(
-        focusMinutes: parse(values[PomodoroKeys.focus], 25),
-        shortBreakMinutes: parse(values[PomodoroKeys.shortBreak], 5),
-        longBreakMinutes: parse(values[PomodoroKeys.longBreak], 15),
-        blocksPerLongBreak: parse(values[PomodoroKeys.blocksPerLong], 4),
-      ),
-    );
+    return ref
+        .watch(settingsRepositoryProvider)
+        .watchAll(const [
+          PomodoroKeys.focus,
+          PomodoroKeys.shortBreak,
+          PomodoroKeys.longBreak,
+          PomodoroKeys.blocksPerLong,
+        ])
+        .map(
+          (values) => PomodoroConfig(
+            focusMinutes: parse(values[PomodoroKeys.focus], 25),
+            shortBreakMinutes: parse(values[PomodoroKeys.shortBreak], 5),
+            longBreakMinutes: parse(values[PomodoroKeys.longBreak], 15),
+            blocksPerLongBreak: parse(values[PomodoroKeys.blocksPerLong], 4),
+          ),
+        );
   }
 
   Future<void> set(String key, int value) =>

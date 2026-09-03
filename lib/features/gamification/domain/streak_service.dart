@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
@@ -34,14 +35,16 @@ class StreakService {
   static const globalScope = 'global';
   static const goalKey = 'dailyHarvestGoal';
   static const defaultGoal = 3;
-  static const _lastJudgedKey = 'streak.lastJudgedDay';
+
+  /// Where reconcile left off; public so tests can pin the clock.
+  static const lastJudgedKey = 'streak.lastJudgedDay';
 
   // ------------------------------------------------------------- queries
 
   Future<int> dailyGoal() async {
-    final row = await (_db.select(_db.kvSettings)
-          ..where((s) => s.key.equals(goalKey)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.kvSettings,
+    )..where((s) => s.key.equals(goalKey))).getSingleOrNull();
     if (row == null) return defaultGoal;
     final value = jsonDecode(row.valueJson);
     if (value is num) return value.toInt();
@@ -49,7 +52,8 @@ class StreakService {
   }
 
   /// Productive actions on [day]: each habit/to-do checked in counts one;
-  /// a project counts one once it reached its daily commitment.
+  /// a project counts one once it reached its daily commitment. Effort
+  /// on a seed that was archived later still counts — it was real.
   Future<int> productiveActions(HarvestDay day) async {
     final quantity = _db.checkIns.quantity.sum();
     final query = _db.selectOnly(_db.checkIns)
@@ -65,9 +69,9 @@ class StreakService {
     };
     if (sums.isEmpty) return 0;
 
-    final commitments = await (_db.select(_db.commitments)
-          ..where((c) => c.uuid.isIn(sums.keys.toList())))
-        .get();
+    final commitments = await (_db.select(
+      _db.commitments,
+    )..where((c) => c.uuid.isIn(sums.keys.toList()))).get();
 
     var actions = 0;
     for (final row in commitments) {
@@ -106,9 +110,9 @@ class StreakService {
       if (streak.lastEarnedDay == day.key) {
         await _write(
           scope: commitment.uuid,
-          current: (streak.current - 1).clamp(0, 1 << 31),
+          current: math.max(0, streak.current - 1),
           best: streak.best,
-          lastEarnedDay: day.previous.key,
+          lastEarnedDay: _earnedBefore(day, streak.current - 1),
           freezesStored: streak.freezesStored,
         );
       }
@@ -137,13 +141,19 @@ class StreakService {
       // Same-day undo dropped the day below the goal.
       await _write(
         scope: globalScope,
-        current: (streak.current - 1).clamp(0, 1 << 31),
+        current: math.max(0, streak.current - 1),
         best: streak.best,
-        lastEarnedDay: day.previous.key,
+        lastEarnedDay: _earnedBefore(day, streak.current - 1),
         freezesStored: streak.freezesStored,
       );
     }
   }
+
+  /// After an undo on [day]: a streak that still stands is consecutive,
+  /// so its last earned day is the day before; a streak that fell to
+  /// zero has no earned day to point at.
+  String? _earnedBefore(HarvestDay day, int remaining) =>
+      remaining > 0 ? day.previous.key : null;
 
   /// The current global streak length.
   Future<int> currentGlobal() async => (await _row(globalScope)).current;
@@ -152,18 +162,22 @@ class StreakService {
   /// is short or the shed is full (max [maxFreezesStored]).
   Future<bool> buyFreeze({HarvestDay? day}) async {
     final today = day ?? HarvestDay.today();
-    final streak = await _row(globalScope);
-    if (streak.freezesStored >= maxFreezesStored) return false;
+    // Balance and shed are read inside the transaction so two taps
+    // cannot both pass the check.
+    return _db.transaction(() async {
+      final streak = await _row(globalScope);
+      if (streak.freezesStored >= maxFreezesStored) return false;
 
-    final sum = _db.ledger.delta.sum();
-    final query = _db.selectOnly(_db.ledger)
-      ..addColumns([sum])
-      ..where(_db.ledger.kind.equals('coin'));
-    final balance = (await query.getSingle()).read(sum) ?? 0;
-    if (balance < freezeCost) return false;
+      final sum = _db.ledger.delta.sum();
+      final query = _db.selectOnly(_db.ledger)
+        ..addColumns([sum])
+        ..where(_db.ledger.kind.equals('coin'));
+      final balance = (await query.getSingle()).read(sum) ?? 0;
+      if (balance < freezeCost) return false;
 
-    await _db.transaction(() async {
-      await _db.into(_db.ledger).insert(
+      await _db
+          .into(_db.ledger)
+          .insert(
             LedgerCompanion.insert(
               uuid: _uuid.v4(),
               kind: 'coin',
@@ -179,8 +193,8 @@ class StreakService {
         lastEarnedDay: streak.lastEarnedDay,
         freezesStored: streak.freezesStored + 1,
       );
+      return true;
     });
-    return true;
   }
 
   // -------------------------------------------------------- reconcile
@@ -192,9 +206,9 @@ class StreakService {
     final today = HarvestDay.of(now ?? DateTime.now());
     final yesterday = today.previous;
 
-    final lastJudgedRow = await (_db.select(_db.kvSettings)
-          ..where((s) => s.key.equals(_lastJudgedKey)))
-        .getSingleOrNull();
+    final lastJudgedRow = await (_db.select(
+      _db.kvSettings,
+    )..where((s) => s.key.equals(lastJudgedKey))).getSingleOrNull();
 
     if (lastJudgedRow == null) {
       // First run: nothing before install day to judge.
@@ -202,20 +216,78 @@ class StreakService {
       return;
     }
 
-    var day =
-        HarvestDay.parse(jsonDecode(lastJudgedRow.valueJson) as String).next;
+    final lastJudged = HarvestDay.tryParse(
+      jsonDecode(lastJudgedRow.valueJson) as String?,
+    );
+    var day = (lastJudged ?? yesterday.previous).next;
     if (day.compareTo(today) >= 0) return;
 
-    final habits = await _activeHabits();
+    // A long absence with no effort at all is one verdict, not one per
+    // day: every live streak breaks (freezes first), and we jump ahead.
+    if (!await _anyCheckInBetween(day, yesterday)) {
+      await _breakEverythingIdle(day, yesterday);
+      await _setLastJudged(yesterday);
+      return;
+    }
 
+    final habits = await _habits();
     while (day.compareTo(today) < 0) {
       await _judgeGlobal(day);
       for (final habit in habits) {
+        if (!_wasActiveOn(habit, day)) continue;
         await _judgeHabit(habit, day);
       }
       day = day.next;
     }
     await _setLastJudged(yesterday);
+  }
+
+  /// Vacation mode and archiving only excuse the days after they were
+  /// switched on — pausing after a miss does not rewrite the miss.
+  bool _wasActiveOn(CommitmentRow habit, HarvestDay day) {
+    final dayEnd = day.next.startsAt;
+    final pausedBefore =
+        habit.pausedAt != null && habit.pausedAt!.isBefore(dayEnd);
+    final archivedBefore =
+        habit.archivedAt != null && habit.archivedAt!.isBefore(dayEnd);
+    return !pausedBefore && !archivedBefore;
+  }
+
+  Future<bool> _anyCheckInBetween(HarvestDay from, HarvestDay to) async {
+    final row =
+        await (_db.select(_db.checkIns)
+              ..where(
+                (c) =>
+                    c.harvestDay.isBiggerOrEqualValue(from.key) &
+                    c.harvestDay.isSmallerOrEqualValue(to.key) &
+                    c.deletedAt.isNull(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
+  /// Idle days from [from] to [to]: the global streak spends its freezes
+  /// one per day, then breaks; every habit due at least once breaks.
+  Future<void> _breakEverythingIdle(HarvestDay from, HarvestDay to) async {
+    var day = from;
+    while (day.compareTo(to) <= 0) {
+      await _judgeGlobal(day);
+      day = day.next;
+    }
+    for (final habit in await _habits()) {
+      final schedule = _scheduleOf(habit);
+      if (schedule == null) continue;
+      var d = from;
+      while (d.compareTo(to) <= 0) {
+        if (_wasActiveOn(habit, d) && schedule.isDueOn(d)) {
+          final streak = await _row(habit.uuid);
+          if (streak.current > 0) await _breakStreak(habit.uuid, streak);
+          break;
+        }
+        d = d.next;
+      }
+    }
   }
 
   Future<void> _judgeGlobal(HarvestDay day) async {
@@ -255,12 +327,23 @@ class StreakService {
     }
   }
 
+  Schedule? _scheduleOf(CommitmentRow habit) {
+    if (habit.scheduleJson == null) return const DailySchedule();
+    try {
+      return Schedule.fromJson(
+        jsonDecode(habit.scheduleJson!) as Map<String, dynamic>,
+      );
+    } on Object {
+      return null; // an unreadable schedule is never judged
+    }
+  }
+
   Future<void> _judgeHabit(CommitmentRow habit, HarvestDay day) async {
-    final schedule = Schedule.fromJson(
-      jsonDecode(habit.scheduleJson!) as Map<String, dynamic>,
-    );
+    final schedule = _scheduleOf(habit);
+    if (schedule == null) return;
     final streak = await _row(habit.uuid);
-    final earned = streak.lastEarnedDay != null &&
+    final earned =
+        streak.lastEarnedDay != null &&
         HarvestDay.parse(streak.lastEarnedDay!).compareTo(day) >= 0;
 
     if (schedule is TimesPerWeekSchedule) {
@@ -283,36 +366,31 @@ class StreakService {
 
   // --------------------------------------------------------- internals
 
-  Future<List<CommitmentRow>> _activeHabits() => (_db.select(_db.commitments)
-        ..where(
-          (c) =>
-              c.type.equals(CommitmentType.habit.name) &
-              c.archivedAt.isNull() &
-              c.pausedAt.isNull() & // vacation mode: not judged
-              c.deletedAt.isNull(),
-        ))
-      .get();
+  /// Every habit on record; whether a given day counts is decided per
+  /// day by [_wasActiveOn].
+  Future<List<CommitmentRow>> _habits() =>
+      (_db.select(_db.commitments)..where(
+            (c) =>
+                c.type.equals(CommitmentType.habit.name) & c.deletedAt.isNull(),
+          ))
+          .get();
 
   Future<bool> _checkedOn(String uuid, HarvestDay day) async {
-    final row = await (_db.select(_db.checkIns)
-          ..where(
-            (c) =>
-                c.commitmentUuid.equals(uuid) &
-                c.harvestDay.equals(day.key) &
-                c.deletedAt.isNull(),
-          )
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.checkIns)
+              ..where(
+                (c) =>
+                    c.commitmentUuid.equals(uuid) &
+                    c.harvestDay.equals(day.key) &
+                    c.deletedAt.isNull(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
     return row != null;
   }
 
   Future<int> _doneDaysInWeek(String uuid, HarvestDay weekStart) async {
-    final days = <String>[];
-    var d = weekStart;
-    for (var i = 0; i < 7; i++) {
-      days.add(d.key);
-      d = d.next;
-    }
+    final days = weekStart.weekDays.map((d) => d.key).toList();
     final query = _db.selectOnly(_db.checkIns, distinct: true)
       ..addColumns([_db.checkIns.harvestDay])
       ..where(
@@ -324,17 +402,17 @@ class StreakService {
   }
 
   Future<void> _breakStreak(String scope, StreakRow streak) => _write(
-        scope: scope,
-        current: 0,
-        best: streak.best,
-        lastEarnedDay: streak.lastEarnedDay,
-        freezesStored: streak.freezesStored,
-      );
+    scope: scope,
+    current: 0,
+    best: streak.best,
+    lastEarnedDay: streak.lastEarnedDay,
+    freezesStored: streak.freezesStored,
+  );
 
   Future<StreakRow> _row(String scope) async {
-    final row = await (_db.select(_db.streaks)
-          ..where((s) => s.scope.equals(scope)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.streaks,
+    )..where((s) => s.scope.equals(scope))).getSingleOrNull();
     return row ??
         StreakRow(
           scope: scope,
@@ -351,37 +429,40 @@ class StreakService {
     required int best,
     required String? lastEarnedDay,
     required int freezesStored,
-  }) =>
-      _db.into(_db.streaks).insertOnConflictUpdate(
-            StreaksCompanion.insert(
-              scope: scope,
-              current: Value(current),
-              best: Value(best),
-              lastEarnedDay: Value(lastEarnedDay),
-              freezesStored: Value(freezesStored),
-              updatedAt: Value(DateTime.now()),
-            ),
-          );
+  }) => _db
+      .into(_db.streaks)
+      .insertOnConflictUpdate(
+        StreaksCompanion.insert(
+          scope: scope,
+          current: Value(current),
+          best: Value(best),
+          lastEarnedDay: Value(lastEarnedDay),
+          freezesStored: Value(freezesStored),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
-  Future<void> _grantCoins(int amount, String reason, HarvestDay day) =>
-      _db.into(_db.ledger).insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'coin',
-              delta: amount,
-              reason: reason,
-              harvestDay: day.key,
-            ),
-          );
+  Future<void> _grantCoins(int amount, String reason, HarvestDay day) => _db
+      .into(_db.ledger)
+      .insert(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'coin',
+          delta: amount,
+          reason: reason,
+          harvestDay: day.key,
+        ),
+      );
 
-  Future<void> _setLastJudged(HarvestDay day) =>
-      _db.into(_db.kvSettings).insertOnConflictUpdate(
-            KvSettingsCompanion.insert(
-              key: _lastJudgedKey,
-              valueJson: jsonEncode(day.key),
-              updatedAt: Value(DateTime.now()),
-            ),
-          );
+  Future<void> _setLastJudged(HarvestDay day) => _db
+      .into(_db.kvSettings)
+      .insertOnConflictUpdate(
+        KvSettingsCompanion.insert(
+          key: lastJudgedKey,
+          valueJson: jsonEncode(day.key),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
   int _max(int a, int b) => a > b ? a : b;
 }

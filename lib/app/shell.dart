@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
-/// App shell: bottom navigation hosting the three main tabs.
+/// App shell: bottom navigation hosting the four main tabs.
 class HarvestShell extends StatelessWidget {
   const HarvestShell({required this.navigationShell, super.key});
 

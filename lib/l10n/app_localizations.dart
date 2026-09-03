@@ -263,7 +263,7 @@ abstract class AppLocalizations {
   /// No description provided for @scheduleWeekly.
   ///
   /// In en, this message translates to:
-  /// **'Weekdays'**
+  /// **'Specific days'**
   String get scheduleWeekly;
 
   /// No description provided for @scheduleInterval.
@@ -353,7 +353,7 @@ abstract class AppLocalizations {
   /// No description provided for @logProgressTitle.
   ///
   /// In en, this message translates to:
-  /// **'Water this crop'**
+  /// **'Log progress'**
   String get logProgressTitle;
 
   /// No description provided for @logQuantityLabel.
@@ -461,7 +461,7 @@ abstract class AppLocalizations {
   /// No description provided for @streakCurrent.
   ///
   /// In en, this message translates to:
-  /// **'{count} days'**
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
   String streakCurrent(int count);
 
   /// No description provided for @streakBest.
@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @coinBalance.
   ///
   /// In en, this message translates to:
-  /// **'{count}'**
+  /// **'{count, plural, =1{1 coin} other{{count} coins}}'**
   String coinBalance(int count);
 
   /// No description provided for @pomodoroTitle.
@@ -583,12 +583,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Break over — ready for the next block'**
   String get breakOverReady;
-
-  /// No description provided for @pomodoroLogPrompt.
-  ///
-  /// In en, this message translates to:
-  /// **'Nice work! Log your progress on the field.'**
-  String get pomodoroLogPrompt;
 
   /// No description provided for @plannerTitle.
   ///
@@ -775,12 +769,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start growing 🌱'**
   String get startGrowing;
-
-  /// No description provided for @statsLifetimeXp.
-  ///
-  /// In en, this message translates to:
-  /// **'Lifetime XP'**
-  String get statsLifetimeXp;
 
   /// No description provided for @statsBestStreak.
   ///
@@ -983,7 +971,7 @@ abstract class AppLocalizations {
   /// No description provided for @editSeed.
   ///
   /// In en, this message translates to:
-  /// **'Edit seed'**
+  /// **'Edit'**
   String get editSeed;
 
   /// No description provided for @focusTimer.
@@ -1025,7 +1013,7 @@ abstract class AppLocalizations {
   /// No description provided for @archiveConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'\"{title}\" moves to the barn. Its history stays.'**
+  /// **'\"{title}\" is archived. Its history stays.'**
   String archiveConfirmBody(String title);
 
   /// No description provided for @projectDoneTitle.
@@ -1037,13 +1025,13 @@ abstract class AppLocalizations {
   /// No description provided for @projectDoneBody.
   ///
   /// In en, this message translates to:
-  /// **'\"{title}\" is fully grown — {total} logged. It moves to the barn with pride.'**
+  /// **'\"{title}\" is fully grown — {total} logged. It is archived with pride.'**
   String projectDoneBody(String title, int total);
 
   /// No description provided for @toTheBarn.
   ///
   /// In en, this message translates to:
-  /// **'To the barn'**
+  /// **'Archive'**
   String get toTheBarn;
 
   /// No description provided for @weeklyReport.
@@ -1772,12 +1760,6 @@ abstract class AppLocalizations {
   /// **'{amount} over budget this month'**
   String budgetOverMonth(String amount);
 
-  /// No description provided for @nextRankIn.
-  ///
-  /// In en, this message translates to:
-  /// **'{xp} XP to the next rank'**
-  String nextRankIn(int xp);
-
   /// No description provided for @expensesToday.
   ///
   /// In en, this message translates to:
@@ -1915,6 +1897,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders are blocked for Harvest in system settings.'**
   String get remindersDenied;
+
+  /// No description provided for @freezeEarnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn {coins} coins at a {days}-day streak.'**
+  String freezeEarnHint(int coins, int days);
+
+  /// No description provided for @streakSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Streak: 1 day} other{Streak: {count} days}}'**
+  String streakSemantics(int count);
+
+  /// No description provided for @xpAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{xp} XP'**
+  String xpAmount(int xp);
+
+  /// No description provided for @unitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'d'**
+  String get unitDays;
+
+  /// No description provided for @unitHours.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get unitHours;
+
+  /// No description provided for @unitMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'m'**
+  String get unitMinutes;
+
+  /// No description provided for @projectProgressOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String projectProgressOf(int done, int total);
+
+  /// No description provided for @cropOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get cropOptions;
+
+  /// No description provided for @clearValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearValue;
+
+  /// No description provided for @scheduleDailyShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get scheduleDailyShort;
+
+  /// No description provided for @scheduleEveryDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every day} other{Every {count} days}}'**
+  String scheduleEveryDays(int count);
+
+  /// No description provided for @scheduleTimesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Once a week} =2{Twice a week} other{{count}× a week}} · {done} done'**
+  String scheduleTimesShort(int count, int done);
+
+  /// No description provided for @plannedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned {date}'**
+  String plannedFor(String date);
+
+  /// No description provided for @removeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeAction;
+
+  /// No description provided for @checkInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not save. Try again.'**
+  String get checkInFailed;
+
+  /// No description provided for @activitySemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} active days in the last {weeks} weeks'**
+  String activitySemantics(int days, int weeks);
+
+  /// No description provided for @cropDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get cropDone;
+
+  /// No description provided for @cropPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet'**
+  String get cropPending;
 }
 
 class _AppLocalizationsDelegate

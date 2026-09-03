@@ -27,7 +27,7 @@
   "titleHintTodo": "e.g. Call the dentist",
   "scheduleLabel": "Schedule",
   "scheduleDaily": "Daily",
-  "scheduleWeekly": "Weekdays",
+  "scheduleWeekly": "Specific days",
   "scheduleInterval": "Every X days",
   "scheduleTimesPerWeek": "X per week",
   "everyDaysLabel": "Every {count} days",
@@ -63,7 +63,7 @@
     }
   },
   "undo": "Undo",
-  "logProgressTitle": "Water this crop",
+  "logProgressTitle": "Log progress",
   "logQuantityLabel": "How much did you get done?",
   "logRemainingToday": "You can log {count} more today",
   "@logRemainingToday": {
@@ -118,7 +118,7 @@
     }
   },
   "streakSheetTitle": "Your streak",
-  "streakCurrent": "{count} days",
+  "streakCurrent": "{count, plural, =1{1 day} other{{count} days}}",
   "@streakCurrent": {
     "placeholders": {
       "count": {
@@ -156,7 +156,7 @@
   },
   "freezeBought": "Freeze stored. Rest easy. ❄️",
   "freezeUnavailable": "Not enough coins, or the shed is full.",
-  "coinBalance": "{count}",
+  "coinBalance": "{count, plural, =1{1 coin} other{{count} coins}}",
   "@coinBalance": {
     "placeholders": {
       "count": {
@@ -184,7 +184,6 @@
     }
   },
   "breakOverReady": "Break over — ready for the next block",
-  "pomodoroLogPrompt": "Nice work! Log your progress on the field.",
   "plannerTitle": "Tomorrow's plan",
   "plannerHabitsDue": "Habits due tomorrow",
   "plannerTodos": "To-dos for tomorrow",
@@ -216,7 +215,6 @@
   "next": "Next",
   "skip": "Skip",
   "startGrowing": "Start growing 🌱",
-  "statsLifetimeXp": "Lifetime XP",
   "statsBestStreak": "Best streak",
   "statsCheckIns": "Check-ins",
   "statsActivity": "Activity",
@@ -280,14 +278,14 @@
   "remindersExpense": "Expense check-in",
   "statsSpending": "Spending by category",
   "deleted": "Removed",
-  "editSeed": "Edit seed",
+  "editSeed": "Edit",
   "focusTimer": "Focus timer",
   "pauseHabit": "Pause (vacation)",
   "resumeHabit": "Resume",
   "pausedLabel": "Paused — resting",
   "archiveAction": "Archive",
   "archiveConfirmTitle": "Archive this seed?",
-  "archiveConfirmBody": "\"{title}\" moves to the barn. Its history stays.",
+  "archiveConfirmBody": "\"{title}\" is archived. Its history stays.",
   "@archiveConfirmBody": {
     "placeholders": {
       "title": {
@@ -296,7 +294,7 @@
     }
   },
   "projectDoneTitle": "Harvest complete! 🎉",
-  "projectDoneBody": "\"{title}\" is fully grown — {total} logged. It moves to the barn with pride.",
+  "projectDoneBody": "\"{title}\" is fully grown — {total} logged. It is archived with pride.",
   "@projectDoneBody": {
     "placeholders": {
       "title": {
@@ -307,7 +305,7 @@
       }
     }
   },
-  "toTheBarn": "To the barn",
+  "toTheBarn": "Archive",
   "weeklyReport": "This week",
   "weeklyXp": "{count} XP",
   "@weeklyXp": {
@@ -582,14 +580,6 @@
       }
     }
   },
-  "nextRankIn": "{xp} XP to the next rank",
-  "@nextRankIn": {
-    "placeholders": {
-      "xp": {
-        "type": "int"
-      }
-    }
-  },
   "expensesToday": "{count, plural, =0{Nothing logged} =1{1 expense} other{{count} expenses}}",
   "@expensesToday": {
     "placeholders": {
@@ -647,5 +637,91 @@
   },
   "decrease": "Less",
   "increase": "More",
-  "remindersDenied": "Reminders are blocked for Harvest in system settings."
+  "remindersDenied": "Reminders are blocked for Harvest in system settings.",
+  "freezeEarnHint": "Earn {coins} coins at a {days}-day streak.",
+  "@freezeEarnHint": {
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "streakSemantics": "{count, plural, =1{Streak: 1 day} other{Streak: {count} days}}",
+  "@streakSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpAmount": "{xp} XP",
+  "@xpAmount": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "unitDays": "d",
+  "unitHours": "h",
+  "unitMinutes": "m",
+  "projectProgressOf": "{done} of {total}",
+  "@projectProgressOf": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "cropOptions": "More",
+  "clearValue": "Clear",
+  "scheduleDailyShort": "Every day",
+  "scheduleEveryDays": "{count, plural, =1{Every day} other{Every {count} days}}",
+  "@scheduleEveryDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleTimesShort": "{count, plural, =1{Once a week} =2{Twice a week} other{{count}× a week}} · {done} done",
+  "@scheduleTimesShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "plannedFor": "Planned {date}",
+  "@plannedFor": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "removeAction": "Remove",
+  "checkInFailed": "That did not save. Try again.",
+  "activitySemantics": "{days} active days in the last {weeks} weeks",
+  "@activitySemantics": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "cropDone": "Done",
+  "cropPending": "Not yet"
 }

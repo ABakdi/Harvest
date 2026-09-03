@@ -5,7 +5,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
+import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
@@ -16,21 +18,28 @@ import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
+import 'package:harvest/features/commitments/domain/due.dart';
+import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/commitments/presentation/quantity_sheet.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/budget_colors.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
+import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+
+/// Clearance under the list so the floating action never covers a crop.
+const _fabClearance = 96.0;
 
 class FieldScreen extends ConsumerWidget {
   const FieldScreen({super.key});
@@ -42,27 +51,35 @@ class FieldScreen extends ConsumerWidget {
     final xp = ref.watch(xpTotalProvider).value ?? 0;
     final streak = ref.watch(globalStreakProvider).value;
     final budget = ref.watch(budgetSnapshotProvider);
-    final currency =
-        ref.watch(financeSettingsProvider).value?.defaultCurrency ??
-        Currency.dzd;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
+            tooltip: l10n.calendarTitle,
             icon: const Icon(Icons.calendar_month_outlined),
             onPressed: () => unawaited(context.push(AppRoutes.calendar)),
           ),
           const MiniTimerChip(),
           Padding(
-            padding: const EdgeInsetsDirectional.only(end: HarvestSpacing.md),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(HarvestRadii.button),
-              onTap: () => unawaited(showStreakSheet(context)),
-              child: Padding(
-                padding: const EdgeInsets.all(HarvestSpacing.xs),
-                child: StreakFlame(days: streak?.current ?? 0),
+            padding: const EdgeInsetsDirectional.only(end: HarvestSpacing.sm),
+            child: Tooltip(
+              message: l10n.streakSheetTitle,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(HarvestRadii.button),
+                onTap: () => unawaited(showStreakSheet(context)),
+                child: SizedBox(
+                  height: 48,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: HarvestSpacing.sm,
+                    ),
+                    child: Center(
+                      child: StreakFlame(days: streak?.current ?? 0),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -75,14 +92,11 @@ class FieldScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: HarvestSpacing.md,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: HarvestSpacing.md),
             child: _FieldHeader(
               xp: xp,
               rankLabel: _rankLabel(l10n, FarmerRank.forXp(xp)),
               budget: budget,
-              currency: currency,
             ),
           ),
           const SizedBox(height: HarvestSpacing.sm),
@@ -92,14 +106,14 @@ class FieldScreen extends ConsumerWidget {
                 HarvestSpacing.md,
                 HarvestSpacing.sm,
                 HarvestSpacing.md,
-                96,
+                _fabClearance,
               ),
               children: [
                 if (items.isEmpty)
                   const _EmptyField()
                 else
                   for (final item in items)
-                    _CropTile(item: item)
+                    _CropTile(key: ValueKey(item.commitment.uuid), item: item)
                         .animate()
                         .fadeIn(duration: 220.ms)
                         .slideY(begin: 0.05, curve: Curves.easeOut),
@@ -123,26 +137,24 @@ class FieldScreen extends ConsumerWidget {
 }
 
 /// Rank, XP and the budget pulse in one card at the top of the field.
-class _FieldHeader extends StatelessWidget {
+class _FieldHeader extends ConsumerWidget {
   const _FieldHeader({
     required this.xp,
     required this.rankLabel,
     required this.budget,
-    required this.currency,
   });
 
   final int xp;
   final String rankLabel;
   final BudgetSnapshot? budget;
-  final Currency currency;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final snap = budget;
-    final toNext = FarmerRank.xpPerRank - xp % FarmerRank.xpPerRank;
+    final currency = ref.watch(defaultCurrencyProvider);
 
     return Card(
       child: Padding(
@@ -154,14 +166,6 @@ class _FieldHeader extends StatelessWidget {
               xp: xp,
               xpPerRank: FarmerRank.xpPerRank,
               rankLabel: rankLabel,
-            ),
-            const SizedBox(height: HarvestSpacing.xs),
-            Text(
-              l10n.nextRankIn(toNext),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.55),
-                fontWeight: FontWeight.w700,
-              ),
             ),
             if (snap != null) ...[
               const Divider(height: HarvestSpacing.lg),
@@ -179,19 +183,13 @@ class _FieldHeader extends StatelessWidget {
                     const SizedBox(width: HarvestSpacing.sm),
                     Expanded(
                       child: Text(
-                        l10n.budgetFloating(
-                          formatAmount(snap.spentToday, currency),
-                          formatAmount(snap.floatingDailyLimit, currency),
-                        ),
+                        _budgetLine(l10n, snap, currency),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: scheme.onSurface.withValues(alpha: 0.4),
-                    ),
+                    Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
                   ],
                 ),
               ),
@@ -201,10 +199,22 @@ class _FieldHeader extends StatelessWidget {
       ),
     );
   }
+
+  /// The same headline the Granary shows: what is left (or over) today.
+  String _budgetLine(
+    AppLocalizations l10n,
+    BudgetSnapshot snap,
+    Currency currency,
+  ) {
+    final left = snap.floatingDailyLimit - snap.spentToday;
+    return left >= 0
+        ? l10n.budgetLeftToday(formatAmount(left, currency))
+        : l10n.budgetOverToday(formatAmount(-left, currency));
+  }
 }
 
 class _CropTile extends ConsumerWidget {
-  const _CropTile({required this.item});
+  const _CropTile({required this.item, super.key});
 
   final FieldItem item;
 
@@ -212,12 +222,15 @@ class _CropTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final commitment = item.commitment;
+    final today = ref.watch(currentHarvestDayProvider);
+    final busy = ref.watch(checkInControllerProvider).isLoading;
+    final overdue = _overdue(today);
 
     return CropCard(
       title: commitment.title,
-      subtitle: _subtitle(context, l10n),
-      urgent: _overdue,
-      extra: commitment.deadline != null && !item.isDone && !_overdue
+      subtitle: _subtitle(context, l10n, today, overdue),
+      urgent: overdue,
+      extra: commitment.deadline != null && !item.isDone && !overdue
           ? DeadlineCountdown(deadline: commitment.deadline!)
           : null,
       icon: switch (commitment.type) {
@@ -226,45 +239,77 @@ class _CropTile extends ConsumerWidget {
         CommitmentType.todo => Icons.check_circle_outline,
       },
       done: item.isDone,
+      busy: busy,
       progress: commitment.type == CommitmentType.project
           ? item.projectProgress
           : null,
       onTap: () => unawaited(_onTap(context, ref)),
-      onLongPress: () => unawaited(showCropOptions(context, commitment)),
+      onOptions: () => unawaited(showCropOptions(context, commitment)),
     );
   }
 
-  bool get _overdue {
-    final deadline = item.commitment.deadline;
-    return deadline != null &&
-        !item.isDone &&
-        deadline.compareTo(HarvestDay.today()) < 0;
+  /// A project past its deadline, or a to-do past its planned day.
+  bool _overdue(HarvestDay today) {
+    final commitment = item.commitment;
+    if (item.isDone) return false;
+    final deadline = commitment.deadline;
+    if (deadline != null && deadline.compareTo(today) < 0) return true;
+    return isOverdueOn(commitment, today, totalLogged: item.totalLogged);
   }
 
-  String _subtitle(BuildContext context, AppLocalizations l10n) {
+  /// What the seed asks of me: its schedule, its planned day, or its
+  /// project progress — never just the word "habit".
+  String _subtitle(
+    BuildContext context,
+    AppLocalizations l10n,
+    HarvestDay today,
+    bool overdue,
+  ) {
     final commitment = item.commitment;
-    final locale = Localizations.localeOf(context).toString();
-    String dayText(HarvestDay day) =>
-        DateFormat.MMMd(locale).format(DateTime(day.year, day.month, day.day));
-    final deadline = commitment.deadline;
-    final deadlineText = deadline == null
-        ? null
-        : _overdue
-        ? l10n.overdueBy(dayText(deadline))
-        : l10n.dueOn(dayText(deadline));
+    switch (commitment.type) {
+      case CommitmentType.project:
+        final base = l10n.projectSubtitle(
+          item.totalLogged,
+          commitment.totalTarget ?? 0,
+          item.loggedToday,
+          commitment.dailyCommitment ?? 0,
+        );
+        final deadline = commitment.deadline;
+        if (deadline == null) return base;
+        final when = formatDay(context, deadline);
+        return '$base · ${overdue ? l10n.overdueBy(when) : l10n.dueOn(when)}';
+      case CommitmentType.habit:
+        if (commitment.isPaused) return l10n.pausedLabel;
+        return _scheduleLabel(context, l10n, commitment.schedule);
+      case CommitmentType.todo:
+        final due = commitment.dueDay;
+        if (overdue && due != null) {
+          return l10n.overdueBy(formatDay(context, due));
+        }
+        return commitment.note ??
+            (due == null || due == today
+                ? l10n.dueToday
+                : l10n.plannedFor(formatDay(context, due)));
+    }
+  }
 
-    final base = switch (commitment.type) {
-      CommitmentType.project => l10n.projectSubtitle(
-        item.totalLogged,
-        commitment.totalTarget ?? 0,
-        item.loggedToday,
-        commitment.dailyCommitment ?? 0,
-      ),
-      CommitmentType.habit =>
-        commitment.isPaused ? l10n.pausedLabel : l10n.typeHabit,
-      CommitmentType.todo => commitment.note ?? l10n.typeTodo,
-    };
-    return deadlineText == null ? base : '$base · $deadlineText';
+  String _scheduleLabel(
+    BuildContext context,
+    AppLocalizations l10n,
+    Schedule? schedule,
+  ) => switch (schedule) {
+    WeeklySchedule(:final weekdays) => _weekdayNames(context, weekdays),
+    IntervalSchedule(:final everyDays) => l10n.scheduleEveryDays(everyDays),
+    TimesPerWeekSchedule(:final times) =>
+      l10n.scheduleTimesShort(times, 0).split(' · ').first,
+    DailySchedule() || null => l10n.scheduleDailyShort,
+  };
+
+  String _weekdayNames(BuildContext context, Set<int> weekdays) {
+    final names = DateFormat.E(localeTag(context)).dateSymbols.SHORTWEEKDAYS;
+    final sorted = weekdays.toList()..sort();
+    // intl lists Sunday first; weekdays are ISO (Monday = 1).
+    return sorted.map((d) => names[d % 7]).join(' · ');
   }
 
   Future<void> _onTap(BuildContext context, WidgetRef ref) async {
@@ -298,16 +343,18 @@ class _CropTile extends ConsumerWidget {
         ),
       );
       if (confirmed ?? false) await controller.undoToday(commitment);
+      _reportError(ref, messenger, l10n);
       return;
     }
 
     if (commitment.type == CommitmentType.project) {
       if (!context.mounted) return;
-      await _showQuantitySheet(context, ref);
+      await _logProject(context, ref);
       return;
     }
 
     final result = await controller.checkIn(commitment);
+    _reportError(ref, messenger, l10n);
     if (result is CheckInSuccess) {
       if (context.mounted) {
         final box = context.findRenderObject() as RenderBox?;
@@ -327,107 +374,48 @@ class _CropTile extends ConsumerWidget {
     }
   }
 
-  Future<void> _showQuantitySheet(BuildContext context, WidgetRef ref) {
+  void _reportError(
+    WidgetRef ref,
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+  ) {
+    if (ref.read(checkInControllerProvider).hasError) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.checkInFailed)));
+    }
+  }
+
+  Future<void> _logProject(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
-    final controller = ref.read(checkInControllerProvider.notifier);
     final commitment = item.commitment;
-    final remaining = commitment.maxUnitsPerDay - item.loggedToday;
 
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(HarvestRadii.sheet),
-        ),
-      ),
-      builder: (sheetContext) {
-        final quantityController = TextEditingController(
-          text: '${commitment.dailyCommitment ?? 1}',
-        );
-        return Padding(
-          padding: EdgeInsets.only(
-            left: HarvestSpacing.lg,
-            right: HarvestSpacing.lg,
-            top: HarvestSpacing.lg,
-            bottom:
-                MediaQuery.viewInsetsOf(sheetContext).bottom +
-                HarvestSpacing.lg,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.logProgressTitle,
-                style: Theme.of(sheetContext).textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: HarvestSpacing.md),
-              TextField(
-                controller: quantityController,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: l10n.logQuantityLabel,
-                  helperText: l10n.logRemainingToday(remaining),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(HarvestRadii.button),
-                  ),
-                ),
-              ),
-              const SizedBox(height: HarvestSpacing.lg),
-              FilledButton(
-                onPressed: () async {
-                  final quantity = int.tryParse(quantityController.text) ?? 0;
-                  if (quantity <= 0) return;
-                  Navigator.of(sheetContext).pop();
-                  final result = await controller.checkIn(
-                    commitment,
-                    quantity: quantity,
-                  );
-                  final logged = switch (result) {
-                    CheckInSuccess(:final quantityLogged) => quantityLogged,
-                    CheckInCapped(:final quantityLogged) => quantityLogged,
-                  };
-                  final completed =
-                      logged > 0 &&
-                      item.totalLogged + logged >=
-                          (commitment.totalTarget ?? 0);
-                  if (completed) {
-                    await _celebrateCompletion(
-                      ref,
-                      navigator,
-                      item.totalLogged + logged,
-                    );
-                    return;
-                  }
-                  final message = switch (result) {
-                    CheckInSuccess(:final xpEarned) => l10n.xpEarned(xpEarned),
-                    CheckInCapped(quantityLogged: 0) => l10n.cappedMessage,
-                    CheckInCapped(:final xpEarned) =>
-                      '${l10n.xpEarned(xpEarned)} · ${l10n.cappedMessage}',
-                  };
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-                child: Text(l10n.log),
-              ),
-            ],
-          ),
-        );
-      },
+    final result = await showQuantitySheet(context, ref, item: item);
+    if (result == null) return;
+    final logged = switch (result) {
+      CheckInSuccess(:final quantityLogged) => quantityLogged,
+      CheckInCapped(:final quantityLogged) => quantityLogged,
+    };
+    final completed =
+        logged > 0 &&
+        item.totalLogged + logged >= (commitment.totalTarget ?? 0);
+    if (completed) {
+      await _celebrateCompletion(ref, navigator, item.totalLogged + logged);
+      return;
+    }
+    final message = switch (result) {
+      CheckInSuccess(:final xpEarned) => l10n.xpEarned(xpEarned),
+      CheckInCapped(quantityLogged: 0) => l10n.cappedMessage,
+      CheckInCapped(:final xpEarned) =>
+        '${l10n.xpEarned(xpEarned)} · ${l10n.cappedMessage}',
+    };
+    messenger.showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
 
-  /// The 100% moment: a celebration dialog, then the crop retires to
-  /// the barn (auto-archive) with its history intact.
+  /// The 100% moment: a celebration dialog, then the crop is archived
+  /// with its history intact.
   Future<void> _celebrateCompletion(
     WidgetRef ref,
     NavigatorState navigator,
@@ -440,9 +428,7 @@ class _CropTile extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.projectDoneTitle),
-        content: Text(
-          l10n.projectDoneBody(item.commitment.title, total),
-        ),
+        content: Text(l10n.projectDoneBody(item.commitment.title, total)),
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -468,8 +454,7 @@ class _TomorrowCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final plan = ref.watch(tomorrowPlanProvider);
-    final locale = Localizations.localeOf(context).toString();
-    final tomorrow = HarvestDay.today().next;
+    final tomorrow = ref.watch(currentHarvestDayProvider).next;
     final summary = plan.habits.isEmpty && plan.todos.isEmpty
         ? l10n.tomorrowNothing
         : '${l10n.tomorrowHabits(plan.habits.length)} · '
@@ -490,9 +475,8 @@ class _TomorrowCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${l10n.tomorrowTitle} · ${DateFormat.MMMEd(locale).format(
-                        DateTime(tomorrow.year, tomorrow.month, tomorrow.day),
-                      )}',
+                      '${l10n.tomorrowTitle} · '
+                      '${formatDay(context, tomorrow, weekday: true)}',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -501,7 +485,7 @@ class _TomorrowCard extends ConsumerWidget {
                     Text(
                       summary,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                   ],

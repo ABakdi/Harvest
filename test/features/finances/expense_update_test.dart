@@ -60,8 +60,7 @@ void main() {
       category: ExpenseCategory.food.name,
       day: HarvestDay.parse('2026-08-30'),
     );
-    final week =
-        await repo.watchWeek(HarvestDay.parse('2026-08-31')).first;
+    final week = await repo.watchWeek(HarvestDay.parse('2026-08-31')).first;
     final totals = totalsByCategory(
       week,
       const Rates(defaultCurrency: Currency.dzd),

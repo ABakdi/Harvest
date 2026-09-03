@@ -21,15 +21,15 @@ class Commitment {
     this.deadline,
     this.pausedAt,
     this.archivedAt,
-  })  : assert(
-          type != CommitmentType.habit || schedule != null,
-          'habits need a schedule',
-        ),
-        assert(
-          type != CommitmentType.project ||
-              (totalTarget != null && dailyCommitment != null),
-          'projects need totalTarget and dailyCommitment',
-        );
+  }) : assert(
+         type != CommitmentType.habit || schedule != null,
+         'habits need a schedule',
+       ),
+       assert(
+         type != CommitmentType.project ||
+             (totalTarget != null && dailyCommitment != null),
+         'projects need totalTarget and dailyCommitment',
+       );
 
   final String uuid;
   final CommitmentType type;
@@ -81,22 +81,22 @@ class Commitment {
     bool clearNote = false,
     bool clearRemindAt = false,
     bool clearDeadline = false,
-  }) =>
-      Commitment(
-        uuid: uuid,
-        type: type,
-        title: title ?? this.title,
-        createdAt: createdAt,
-        schedule: schedule ?? this.schedule,
-        totalTarget: totalTarget ?? this.totalTarget,
-        dailyCommitment: dailyCommitment ?? this.dailyCommitment,
-        dueDay: dueDay ?? this.dueDay,
-        note: clearNote ? null : note ?? this.note,
-        remindAt: clearRemindAt ? null : remindAt ?? this.remindAt,
-        deadline: clearDeadline ? null : deadline ?? this.deadline,
-        pausedAt: pausedAt,
-        archivedAt: archivedAt ?? this.archivedAt,
-      );
+    bool clearDueDay = false,
+  }) => Commitment(
+    uuid: uuid,
+    type: type,
+    title: title ?? this.title,
+    createdAt: createdAt,
+    schedule: schedule ?? this.schedule,
+    totalTarget: totalTarget ?? this.totalTarget,
+    dailyCommitment: dailyCommitment ?? this.dailyCommitment,
+    dueDay: clearDueDay ? null : dueDay ?? this.dueDay,
+    note: clearNote ? null : note ?? this.note,
+    remindAt: clearRemindAt ? null : remindAt ?? this.remindAt,
+    deadline: clearDeadline ? null : deadline ?? this.deadline,
+    pausedAt: pausedAt,
+    archivedAt: archivedAt ?? this.archivedAt,
+  );
 }
 
 /// A commitment as it appears on today's field.
@@ -117,18 +117,18 @@ class FieldItem {
   final int totalLogged;
 
   bool get isDone => switch (commitment.type) {
-        CommitmentType.habit => loggedToday > 0,
-        CommitmentType.todo => totalLogged > 0,
-        CommitmentType.project =>
-          loggedToday >= (commitment.dailyCommitment ?? 0) ||
-              projectCompleted,
-      };
+    CommitmentType.habit => loggedToday > 0,
+    CommitmentType.todo => totalLogged > 0,
+    CommitmentType.project =>
+      loggedToday >= (commitment.dailyCommitment ?? 0) || projectCompleted,
+  };
 
   bool get projectCompleted =>
       commitment.type == CommitmentType.project &&
       totalLogged >= (commitment.totalTarget ?? 0);
 
-  double get projectProgress => commitment.type == CommitmentType.project &&
+  double get projectProgress =>
+      commitment.type == CommitmentType.project &&
           (commitment.totalTarget ?? 0) > 0
       ? (totalLogged / commitment.totalTarget!).clamp(0, 1).toDouble()
       : 0;

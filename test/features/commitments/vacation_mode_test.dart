@@ -23,16 +23,16 @@ void main() {
 
   tearDown(() => db.close());
 
-  Future<void> setLastJudged(String dayKey) =>
-      db.into(db.kvSettings).insertOnConflictUpdate(
-            KvSettingsCompanion.insert(
-              key: 'streak.lastJudgedDay',
-              valueJson: '"$dayKey"',
-            ),
-          );
+  Future<void> setLastJudged(String dayKey) => db
+      .into(db.kvSettings)
+      .insertOnConflictUpdate(
+        KvSettingsCompanion.insert(
+          key: StreakService.lastJudgedKey,
+          valueJson: '"$dayKey"',
+        ),
+      );
 
-  test('pausing survives a missed due day; resuming judges again',
-      () async {
+  test('pausing survives a missed due day; resuming judges again', () async {
     final habit = await repo.create(
       type: CommitmentType.habit,
       title: 'Exercise',
@@ -42,22 +42,53 @@ void main() {
     await checkIns.checkIn(habit, day: HarvestDay.parse('2026-09-01'));
     await setLastJudged('2026-09-01');
 
-    // Vacation: the 2nd passes unlogged while paused.
-    await repo.setPaused(habit.uuid, paused: true);
+    // Vacation starts on the 1st: the 2nd passes unlogged while paused.
+    await repo.setPaused(
+      habit.uuid,
+      paused: true,
+      at: HarvestDay.parse('2026-09-01').startsAt,
+    );
     await streaks.reconcile(now: HarvestDay.parse('2026-09-03').startsAt);
 
-    final row = await (db.select(db.streaks)
-          ..where((s) => s.scope.equals(habit.uuid)))
-        .getSingle();
+    final row = await (db.select(
+      db.streaks,
+    )..where((s) => s.scope.equals(habit.uuid))).getSingle();
     expect(row.current, 1, reason: 'paused habit must not break');
 
     // Back from vacation: the 3rd passes unlogged while active.
-    await repo.setPaused(habit.uuid, paused: false);
+    await repo.setPaused(
+      habit.uuid,
+      paused: false,
+      at: HarvestDay.parse('2026-09-03').startsAt,
+    );
     await streaks.reconcile(now: HarvestDay.parse('2026-09-04').startsAt);
-    final after = await (db.select(db.streaks)
-          ..where((s) => s.scope.equals(habit.uuid)))
-        .getSingle();
+    final after = await (db.select(
+      db.streaks,
+    )..where((s) => s.scope.equals(habit.uuid))).getSingle();
     expect(after.current, 0, reason: 'active habit is judged again');
+  });
+
+  test('pausing after the miss does not rescue the streak', () async {
+    final habit = await repo.create(
+      type: CommitmentType.habit,
+      title: 'Exercise',
+      schedule: const DailySchedule(),
+    );
+    await checkIns.checkIn(habit, day: HarvestDay.parse('2026-09-01'));
+    await setLastJudged('2026-09-01');
+
+    // The 2nd is missed, and only then does vacation begin.
+    await repo.setPaused(
+      habit.uuid,
+      paused: true,
+      at: HarvestDay.parse('2026-09-03').startsAt,
+    );
+    await streaks.reconcile(now: HarvestDay.parse('2026-09-03').startsAt);
+
+    final row = await (db.select(
+      db.streaks,
+    )..where((s) => s.scope.equals(habit.uuid))).getSingle();
+    expect(row.current, 0, reason: 'the miss already happened');
   });
 
   test('editing a commitment updates fields and the outbox', () async {

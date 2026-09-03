@@ -11,15 +11,15 @@ sealed class Schedule {
       switch (json['type'] as String) {
         DailySchedule.kind => const DailySchedule(),
         WeeklySchedule.kind => WeeklySchedule(
-            weekdays: (json['weekdays'] as List<dynamic>).cast<int>().toSet(),
-          ),
+          weekdays: (json['weekdays'] as List<dynamic>).cast<int>().toSet(),
+        ),
         IntervalSchedule.kind => IntervalSchedule(
-            everyDays: json['everyDays'] as int,
-            anchorDay: HarvestDay.parse(json['anchorDay'] as String),
-          ),
+          everyDays: json['everyDays'] as int,
+          anchorDay: HarvestDay.parse(json['anchorDay'] as String),
+        ),
         TimesPerWeekSchedule.kind => TimesPerWeekSchedule(
-            times: json['times'] as int,
-          ),
+          times: json['times'] as int,
+        ),
         final other => throw ArgumentError('unknown schedule type: $other'),
       };
 
@@ -61,8 +61,10 @@ final class WeeklySchedule extends Schedule {
   final Set<int> weekdays;
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'type': kind, 'weekdays': weekdays.toList()..sort()};
+  Map<String, dynamic> toJson() => {
+    'type': kind,
+    'weekdays': weekdays.toList()..sort(),
+  };
 
   @override
   bool isDueOn(HarvestDay day, {int doneDaysThisWeek = 0}) =>
@@ -88,8 +90,11 @@ final class IntervalSchedule extends Schedule {
   final HarvestDay anchorDay;
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'type': kind, 'everyDays': everyDays, 'anchorDay': anchorDay.key};
+  Map<String, dynamic> toJson() => {
+    'type': kind,
+    'everyDays': everyDays,
+    'anchorDay': anchorDay.key,
+  };
 
   @override
   bool isDueOn(HarvestDay day, {int doneDaysThisWeek = 0}) {

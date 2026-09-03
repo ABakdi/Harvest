@@ -165,15 +165,18 @@ class CommitmentsRepository {
     await _appendOutbox('commitments', commitment.uuid, 'update');
   });
 
-  /// Vacation mode on/off for a habit.
-  Future<void> setPaused(String uuid, {required bool paused}) =>
+  /// Vacation mode on/off for a habit. [at] is when the pause takes
+  /// effect: days that ended before it are still judged, so pausing
+  /// after a miss cannot rewrite the miss.
+  Future<void> setPaused(String uuid, {required bool paused, DateTime? at}) =>
       _db.transaction(() async {
+        final now = at ?? DateTime.now();
         await (_db.update(
           _db.commitments,
         )..where((c) => c.uuid.equals(uuid))).write(
           CommitmentsCompanion(
-            pausedAt: Value(paused ? DateTime.now() : null),
-            updatedAt: Value(DateTime.now()),
+            pausedAt: Value(paused ? now : null),
+            updatedAt: Value(now),
           ),
         );
         await _appendOutbox('commitments', uuid, 'update');

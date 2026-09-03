@@ -8,12 +8,18 @@ part of 'check_in_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Check-ins from the UI. The state is the in-flight write: the field
+/// disables taps while it is loading and shows the error when it fails.
 
 @ProviderFor(CheckInController)
 final checkInControllerProvider = CheckInControllerProvider._();
 
+/// Check-ins from the UI. The state is the in-flight write: the field
+/// disables taps while it is loading and shows the error when it fails.
 final class CheckInControllerProvider
-    extends $AsyncNotifierProvider<CheckInController, void> {
+    extends $NotifierProvider<CheckInController, AsyncValue<void>> {
+  /// Check-ins from the UI. The state is the in-flight write: the field
+  /// disables taps while it is loading and shows the error when it fails.
   CheckInControllerProvider._()
     : super(
         from: null,
@@ -31,20 +37,31 @@ final class CheckInControllerProvider
   @$internal
   @override
   CheckInController create() => CheckInController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<void> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<void>>(value),
+    );
+  }
 }
 
-String _$checkInControllerHash() => r'b78eef38e0c8edd63ac9eef3bc036fefd811a317';
+String _$checkInControllerHash() => r'3a3ad8f31e9fdc146aa8e76daffd26011ec31f11';
 
-abstract class _$CheckInController extends $AsyncNotifier<void> {
-  FutureOr<void> build();
+/// Check-ins from the UI. The state is the in-flight write: the field
+/// disables taps while it is loading and shows the error when it fails.
+
+abstract class _$CheckInController extends $Notifier<AsyncValue<void>> {
+  AsyncValue<void> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
+              AnyNotifier<AsyncValue<void>, AsyncValue<void>>,
               AsyncValue<void>,
               Object?,
               Object?
@@ -53,11 +70,18 @@ abstract class _$CheckInController extends $AsyncNotifier<void> {
   }
 }
 
+/// Creates, edits, pauses and archives seeds. Every write replans the
+/// reminders; a newly set reminder time asks the OS once for permission.
+
 @ProviderFor(CommitmentEditor)
 final commitmentEditorProvider = CommitmentEditorProvider._();
 
+/// Creates, edits, pauses and archives seeds. Every write replans the
+/// reminders; a newly set reminder time asks the OS once for permission.
 final class CommitmentEditorProvider
-    extends $AsyncNotifierProvider<CommitmentEditor, void> {
+    extends $NotifierProvider<CommitmentEditor, AsyncValue<void>> {
+  /// Creates, edits, pauses and archives seeds. Every write replans the
+  /// reminders; a newly set reminder time asks the OS once for permission.
   CommitmentEditorProvider._()
     : super(
         from: null,
@@ -75,20 +99,31 @@ final class CommitmentEditorProvider
   @$internal
   @override
   CommitmentEditor create() => CommitmentEditor();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<void> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<void>>(value),
+    );
+  }
 }
 
-String _$commitmentEditorHash() => r'32331d6eb23358ebb11a712bba48178b591c7353';
+String _$commitmentEditorHash() => r'4240c90115b447d819dda6bbdd59b8056aace664';
 
-abstract class _$CommitmentEditor extends $AsyncNotifier<void> {
-  FutureOr<void> build();
+/// Creates, edits, pauses and archives seeds. Every write replans the
+/// reminders; a newly set reminder time asks the OS once for permission.
+
+abstract class _$CommitmentEditor extends $Notifier<AsyncValue<void>> {
+  AsyncValue<void> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
+              AnyNotifier<AsyncValue<void>, AsyncValue<void>>,
               AsyncValue<void>,
               Object?,
               Object?

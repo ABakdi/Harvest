@@ -50,7 +50,9 @@ class _BigBouncyButtonState extends State<BigBouncyButton>
     final label = DefaultTextStyle.merge(
       style: theme.textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w800,
-        color: _enabled ? Colors.white : scheme.onSurface.withValues(alpha: 0.4),
+        color: _enabled
+            ? Colors.white
+            : scheme.onSurface.withValues(alpha: 0.4),
       ),
       child: widget.child,
     );
@@ -72,9 +74,7 @@ class _BigBouncyButtonState extends State<BigBouncyButton>
           child: Ink(
             decoration: BoxDecoration(
               gradient: _enabled ? theme.primaryGradient : null,
-              color: _enabled
-                  ? null
-                  : scheme.onSurface.withValues(alpha: 0.08),
+              color: _enabled ? null : scheme.onSurface.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(HarvestRadii.button),
             ),
             child: InkWell(

@@ -15,7 +15,9 @@ void main() {
   final day = HarvestDay.parse('2026-09-02');
 
   Future<Commitment> habit(String id) async {
-    await db.into(db.commitments).insertOnConflictUpdate(
+    await db
+        .into(db.commitments)
+        .insertOnConflictUpdate(
           CommitmentsCompanion.insert(
             uuid: id,
             type: 'habit',
@@ -37,7 +39,9 @@ void main() {
     streaks = StreakService(db);
     checkIns = CheckInService(db, streaks);
     // Goal of 2 keeps tests compact.
-    await db.into(db.kvSettings).insertOnConflictUpdate(
+    await db
+        .into(db.kvSettings)
+        .insertOnConflictUpdate(
           KvSettingsCompanion.insert(
             key: StreakService.goalKey,
             valueJson: '2',
@@ -47,32 +51,34 @@ void main() {
 
   tearDown(() => db.close());
 
-  Future<StreakRow?> row(String scope) => (db.select(db.streaks)
-        ..where((s) => s.scope.equals(scope)))
-      .getSingleOrNull();
+  Future<StreakRow?> row(String scope) => (db.select(
+    db.streaks,
+  )..where((s) => s.scope.equals(scope))).getSingleOrNull();
 
   Future<void> seedGlobal({
     required int current,
     required String lastEarnedDay,
     int freezes = 0,
-  }) =>
-      db.into(db.streaks).insertOnConflictUpdate(
-            StreaksCompanion.insert(
-              scope: StreakService.globalScope,
-              current: Value(current),
-              best: Value(current),
-              lastEarnedDay: Value(lastEarnedDay),
-              freezesStored: Value(freezes),
-            ),
-          );
+  }) => db
+      .into(db.streaks)
+      .insertOnConflictUpdate(
+        StreaksCompanion.insert(
+          scope: StreakService.globalScope,
+          current: Value(current),
+          best: Value(current),
+          lastEarnedDay: Value(lastEarnedDay),
+          freezesStored: Value(freezes),
+        ),
+      );
 
-  Future<void> setLastJudged(String dayKey) =>
-      db.into(db.kvSettings).insertOnConflictUpdate(
-            KvSettingsCompanion.insert(
-              key: 'streak.lastJudgedDay',
-              valueJson: '"$dayKey"',
-            ),
-          );
+  Future<void> setLastJudged(String dayKey) => db
+      .into(db.kvSettings)
+      .insertOnConflictUpdate(
+        KvSettingsCompanion.insert(
+          key: 'streak.lastJudgedDay',
+          valueJson: '"$dayKey"',
+        ),
+      );
 
   group('live global streak', () {
     test('extends once the daily goal is met, not before', () async {
@@ -120,8 +126,7 @@ void main() {
       expect(await row('global'), isNull);
     });
 
-    test('a missed day breaks the streak when no freeze is stored',
-        () async {
+    test('a missed day breaks the streak when no freeze is stored', () async {
       await seedGlobal(current: 5, lastEarnedDay: '2026-09-01');
       await setLastJudged('2026-09-01');
       // 2026-09-02 passes with no actions; reconcile on the 3rd.
@@ -182,9 +187,9 @@ void main() {
       await checkIns.checkIn(await habit('b'), day: day);
       expect((await row('global'))!.current, 7);
 
-      final coins = await (db.select(db.ledger)
-            ..where((l) => l.kind.equals('coin')))
-          .get();
+      final coins = await (db.select(
+        db.ledger,
+      )..where((l) => l.kind.equals('coin'))).get();
       expect(coins.single.delta, streakMilestoneCoins[7]);
       expect(coins.single.reason, 'streak:7');
     });

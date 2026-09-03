@@ -10,16 +10,16 @@ class StatTileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < children.length; i++) ...[
-              if (i > 0) const SizedBox(width: HarvestSpacing.sm),
-              Expanded(child: children[i]),
-            ],
-          ],
-        ),
-      );
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(width: HarvestSpacing.sm),
+          Expanded(child: children[i]),
+        ],
+      ],
+    ),
+  );
 }
 
 /// One number with its label — the building block of overview rows.

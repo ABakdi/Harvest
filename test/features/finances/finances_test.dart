@@ -28,11 +28,11 @@ void main() {
 
     test('gauge turns yellow near the limit and red over it', () {
       BudgetSnapshot at(int spentToday) => BudgetSnapshot.compute(
-            monthlyBudget: 60000,
-            spentBeforeToday: 18000,
-            spentToday: spentToday,
-            day: day10,
-          );
+        monthlyBudget: 60000,
+        spentBeforeToday: 18000,
+        spentToday: spentToday,
+        day: day10,
+      );
       expect(at(1699).status, BudgetStatus.under);
       expect(at(1700).status, BudgetStatus.close); // 85% of 2000
       expect(at(2001).status, BudgetStatus.over);
@@ -144,8 +144,9 @@ void main() {
           day: d,
         );
       }
-      final suggestion =
-          await repo.repeatSuggestion(HarvestDay.parse('2026-09-04'));
+      final suggestion = await repo.repeatSuggestion(
+        HarvestDay.parse('2026-09-04'),
+      );
       expect(suggestion, isNotNull);
       expect(suggestion!.amountMinor, 500);
       expect(suggestion.currency, Currency.dzd);
@@ -153,8 +154,7 @@ void main() {
       expect(suggestion.note, 'Coffee');
     });
 
-    test('no repeat when a day is missing or already logged today',
-        () async {
+    test('no repeat when a day is missing or already logged today', () async {
       for (final key in ['2026-09-01', '2026-09-03']) {
         await repo.log(
           amountMinor: 500,

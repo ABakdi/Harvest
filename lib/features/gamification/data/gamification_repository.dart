@@ -50,12 +50,12 @@ class GamificationRepository {
     final query = _db.select(_db.streaks)
       ..where((s) => s.scope.equals('global'));
     return query.watchSingleOrNull().map(
-          (row) => (
-            current: row?.current ?? 0,
-            best: row?.best ?? 0,
-            freezes: row?.freezesStored ?? 0,
-          ),
-        );
+      (row) => (
+        current: row?.current ?? 0,
+        best: row?.best ?? 0,
+        freezes: row?.freezesStored ?? 0,
+      ),
+    );
   }
 
   /// Distinct commitments checked per Harvest Day since [from] —
@@ -64,8 +64,7 @@ class GamificationRepository {
     final query = _db.select(_db.checkIns)
       ..where(
         (c) =>
-            c.harvestDay.isBiggerOrEqualValue(from.key) &
-            c.deletedAt.isNull(),
+            c.harvestDay.isBiggerOrEqualValue(from.key) & c.deletedAt.isNull(),
       );
     return query.watch().map((rows) {
       final byDay = <String, Set<String>>{};
@@ -102,48 +101,14 @@ class GamificationRepository {
     final query = _db.select(_db.streaks)
       ..where((s) => s.scope.equals('global').not());
     return query.watch().map(
-          (rows) => {
-            for (final row in rows)
-              row.scope: (current: row.current, best: row.best),
-          },
-        );
+      (rows) => {
+        for (final row in rows)
+          row.scope: (current: row.current, best: row.best),
+      },
+    );
   }
 }
 
 @Riverpod(keepAlive: true)
 GamificationRepository gamificationRepository(Ref ref) =>
     GamificationRepository(ref.watch(databaseProvider));
-
-@riverpod
-Stream<int> xpTotal(Ref ref) =>
-    ref.watch(gamificationRepositoryProvider).watchXpTotal();
-
-@riverpod
-Stream<({int current, int best, int freezes})> globalStreak(Ref ref) =>
-    ref.watch(gamificationRepositoryProvider).watchGlobalStreak();
-
-@riverpod
-Stream<int> coinTotal(Ref ref) =>
-    ref.watch(gamificationRepositoryProvider).watchCoinTotal();
-
-@riverpod
-Stream<int> checkInCount(Ref ref) =>
-    ref.watch(gamificationRepositoryProvider).watchCheckInCount();
-
-@riverpod
-Stream<Map<String, int>> dailyActivity(Ref ref) =>
-    ref.watch(gamificationRepositoryProvider).watchDailyActivity(
-          HarvestDay.of(
-            DateTime.now().subtract(const Duration(days: 182)),
-          ).weekStart,
-        );
-
-@riverpod
-Stream<Map<String, ({int current, int best})>> commitmentStreaks(Ref ref) =>
-    ref.watch(gamificationRepositoryProvider).watchCommitmentStreaks();
-
-@riverpod
-Stream<int> weeklyXp(Ref ref) =>
-    ref.watch(gamificationRepositoryProvider).watchXpSince(
-          HarvestDay.today().weekStart,
-        );

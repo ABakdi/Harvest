@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -76,12 +76,14 @@ void main() {
       );
     });
 
-    test('a single oversized log is clamped to 2x the daily commitment',
-        () async {
-      final result = await service.checkIn(project, quantity: 50, day: day);
-      expect(result, isA<CheckInCapped>());
-      expect((result as CheckInCapped).quantityLogged, 20);
-    });
+    test(
+      'a single oversized log is clamped to 2x the daily commitment',
+      () async {
+        final result = await service.checkIn(project, quantity: 50, day: day);
+        expect(result, isA<CheckInCapped>());
+        expect((result as CheckInCapped).quantityLogged, 20);
+      },
+    );
 
     test('cumulative logs cannot exceed the cap either', () async {
       await service.checkIn(project, quantity: 15, day: day);
@@ -96,22 +98,45 @@ void main() {
   });
 
   group('undo', () {
-    test("removes the day's check-ins and their XP", () async {
+    test("takes back the day's XP and hides the check-in", () async {
       await service.checkIn(habit, day: day);
       expect(await xpTotal(), Xp.habitOrTodo);
 
       await service.undoToday(habit, day: day);
-      expect(await xpTotal(), 0);
+      expect(await xpTotal(), 0, reason: 'the XP is reversed, not erased');
 
-      final rows = await db.select(db.checkIns).get();
-      expect(rows, isEmpty);
+      // Soft-deleted: gone from every read path, still on record.
+      final live = await (db.select(
+        db.checkIns,
+      )..where((c) => c.deletedAt.isNull())).get();
+      expect(live, isEmpty);
+      final all = await db.select(db.checkIns).get();
+      expect(all.single.deletedAt, isNotNull);
     });
 
-    test('appends delete operations to the outbox', () async {
+    test('reverses the XP with its own ledger entry', () async {
+      await service.checkIn(habit, day: day);
+      await service.undoToday(habit, day: day);
+
+      final entries = await db.select(db.ledger).get();
+      expect(entries.length, 2, reason: 'earned, then given back');
+      final undone = entries.firstWhere((e) => e.delta < 0);
+      expect(undone.delta, -Xp.habitOrTodo);
+      expect(undone.reason, startsWith('undo:'));
+    });
+
+    test('undoing twice does not pay the XP back twice', () async {
+      await service.checkIn(habit, day: day);
+      await service.undoToday(habit, day: day);
+      await service.undoToday(habit, day: day);
+      expect(await xpTotal(), 0);
+    });
+
+    test('appends an update to the outbox', () async {
       await service.checkIn(habit, day: day);
       await service.undoToday(habit, day: day);
       final ops = await db.select(db.outbox).get();
-      expect(ops.map((o) => o.op), containsAll(['insert', 'delete']));
+      expect(ops.map((o) => o.op), containsAll(['insert', 'update']));
     });
   });
 }

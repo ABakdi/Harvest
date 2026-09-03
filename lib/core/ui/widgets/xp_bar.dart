@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/l10n/app_localizations.dart';
 
 /// Lifetime XP with progress toward the next rank step.
 class XpBar extends StatelessWidget {
@@ -32,7 +33,7 @@ class XpBar extends StatelessWidget {
               ),
             ),
             Text(
-              '$xp XP',
+              AppLocalizations.of(context).xpAmount(xp),
               style: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.tertiary,
                 fontWeight: FontWeight.w800,

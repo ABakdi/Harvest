@@ -143,7 +143,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get undo => 'تراجع';
 
   @override
-  String get logProgressTitle => 'اسقِ هذا المحصول';
+  String get logProgressTitle => 'تسجيل التقدم';
 
   @override
   String get logQuantityLabel => 'كم أنجزت؟';
@@ -207,7 +207,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String streakCurrent(int count) {
-    return '$count يومًا';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+      zero: 'لا أيام',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -237,7 +245,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String coinBalance(int count) {
-    return '$count';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عملات',
+      two: 'عملتان',
+      one: 'عملة واحدة',
+      zero: 'لا عملات',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -280,9 +296,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get breakOverReady => 'انتهت الاستراحة — جاهز للفترة التالية';
-
-  @override
-  String get pomodoroLogPrompt => 'أحسنت! سجّل تقدمك في الحقل.';
 
   @override
   String get plannerTitle => 'خطة الغد';
@@ -381,9 +394,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startGrowing => 'ابدأ الزراعة 🌱';
-
-  @override
-  String get statsLifetimeXp => 'الخبرة الكلية';
 
   @override
   String get statsBestStreak => 'أفضل سلسلة';
@@ -491,7 +501,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleted => 'حُذف';
 
   @override
-  String get editSeed => 'تعديل البذرة';
+  String get editSeed => 'تعديل';
 
   @override
   String get focusTimer => 'مؤقت التركيز';
@@ -513,7 +523,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String archiveConfirmBody(String title) {
-    return 'ستنتقل «$title» إلى المخزن، ويبقى سجلها محفوظًا.';
+    return 'ستُؤرشف \"$title\". يبقى سجلها محفوظًا.';
   }
 
   @override
@@ -521,11 +531,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String projectDoneBody(String title, int total) {
-    return 'نضجت «$title» تمامًا — سُجل $total. تنتقل إلى المخزن بفخر.';
+    return '\"$title\" اكتمل — سُجّل $total. يُؤرشف بفخر.';
   }
 
   @override
-  String get toTheBarn => 'إلى المخزن';
+  String get toTheBarn => 'أرشفة';
 
   @override
   String get weeklyReport => 'هذا الأسبوع';
@@ -942,11 +952,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String nextRankIn(int xp) {
-    return '$xp نقطة حتى الرتبة التالية';
-  }
-
-  @override
   String expensesToday(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1050,4 +1055,94 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get remindersDenied =>
       'التذكيرات محظورة لتطبيق حصاد في إعدادات النظام.';
+
+  @override
+  String freezeEarnHint(int coins, int days) {
+    return 'اكسب $coins عملة عند سلسلة من $days أيام.';
+  }
+
+  @override
+  String streakSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'السلسلة: $count أيام',
+      one: 'السلسلة: يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String xpAmount(int xp) {
+    return '$xp نقطة';
+  }
+
+  @override
+  String get unitDays => 'ي';
+
+  @override
+  String get unitHours => 'س';
+
+  @override
+  String get unitMinutes => 'د';
+
+  @override
+  String projectProgressOf(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get cropOptions => 'المزيد';
+
+  @override
+  String get clearValue => 'مسح';
+
+  @override
+  String get scheduleDailyShort => 'كل يوم';
+
+  @override
+  String scheduleEveryDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'كل $count أيام',
+      two: 'كل يومين',
+      one: 'كل يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleTimesShort(int count, int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مرات في الأسبوع',
+      two: 'مرتان في الأسبوع',
+      one: 'مرة في الأسبوع',
+    );
+    return '$_temp0 · أُنجز $done';
+  }
+
+  @override
+  String plannedFor(String date) {
+    return 'مخطط $date';
+  }
+
+  @override
+  String get removeAction => 'إزالة';
+
+  @override
+  String get checkInFailed => 'لم يُحفظ ذلك. حاول مجددًا.';
+
+  @override
+  String activitySemantics(int days, int weeks) {
+    return '$days أيام نشطة في آخر $weeks أسبوعًا';
+  }
+
+  @override
+  String get cropDone => 'أُنجز';
+
+  @override
+  String get cropPending => 'لم يُنجز بعد';
 }

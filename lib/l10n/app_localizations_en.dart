@@ -93,7 +93,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleDaily => 'Daily';
 
   @override
-  String get scheduleWeekly => 'Weekdays';
+  String get scheduleWeekly => 'Specific days';
 
   @override
   String get scheduleInterval => 'Every X days';
@@ -144,7 +144,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get undo => 'Undo';
 
   @override
-  String get logProgressTitle => 'Water this crop';
+  String get logProgressTitle => 'Log progress';
 
   @override
   String get logQuantityLabel => 'How much did you get done?';
@@ -208,7 +208,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String streakCurrent(int count) {
-    return '$count days';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -238,7 +244,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String coinBalance(int count) {
-    return '$count';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count coins',
+      one: '1 coin',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -281,9 +293,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get breakOverReady => 'Break over — ready for the next block';
-
-  @override
-  String get pomodoroLogPrompt => 'Nice work! Log your progress on the field.';
 
   @override
   String get plannerTitle => 'Tomorrow\'s plan';
@@ -383,9 +392,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startGrowing => 'Start growing 🌱';
-
-  @override
-  String get statsLifetimeXp => 'Lifetime XP';
 
   @override
   String get statsBestStreak => 'Best streak';
@@ -494,7 +500,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleted => 'Removed';
 
   @override
-  String get editSeed => 'Edit seed';
+  String get editSeed => 'Edit';
 
   @override
   String get focusTimer => 'Focus timer';
@@ -516,7 +522,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String archiveConfirmBody(String title) {
-    return '\"$title\" moves to the barn. Its history stays.';
+    return '\"$title\" is archived. Its history stays.';
   }
 
   @override
@@ -524,11 +530,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String projectDoneBody(String title, int total) {
-    return '\"$title\" is fully grown — $total logged. It moves to the barn with pride.';
+    return '\"$title\" is fully grown — $total logged. It is archived with pride.';
   }
 
   @override
-  String get toTheBarn => 'To the barn';
+  String get toTheBarn => 'Archive';
 
   @override
   String get weeklyReport => 'This week';
@@ -945,11 +951,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String nextRankIn(int xp) {
-    return '$xp XP to the next rank';
-  }
-
-  @override
   String expensesToday(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1050,4 +1051,93 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get remindersDenied =>
       'Reminders are blocked for Harvest in system settings.';
+
+  @override
+  String freezeEarnHint(int coins, int days) {
+    return 'Earn $coins coins at a $days-day streak.';
+  }
+
+  @override
+  String streakSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Streak: $count days',
+      one: 'Streak: 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String xpAmount(int xp) {
+    return '$xp XP';
+  }
+
+  @override
+  String get unitDays => 'd';
+
+  @override
+  String get unitHours => 'h';
+
+  @override
+  String get unitMinutes => 'm';
+
+  @override
+  String projectProgressOf(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get cropOptions => 'More';
+
+  @override
+  String get clearValue => 'Clear';
+
+  @override
+  String get scheduleDailyShort => 'Every day';
+
+  @override
+  String scheduleEveryDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count days',
+      one: 'Every day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleTimesShort(int count, int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count× a week',
+      two: 'Twice a week',
+      one: 'Once a week',
+    );
+    return '$_temp0 · $done done';
+  }
+
+  @override
+  String plannedFor(String date) {
+    return 'Planned $date';
+  }
+
+  @override
+  String get removeAction => 'Remove';
+
+  @override
+  String get checkInFailed => 'That did not save. Try again.';
+
+  @override
+  String activitySemantics(int days, int weeks) {
+    return '$days active days in the last $weeks weeks';
+  }
+
+  @override
+  String get cropDone => 'Done';
+
+  @override
+  String get cropPending => 'Not yet';
 }

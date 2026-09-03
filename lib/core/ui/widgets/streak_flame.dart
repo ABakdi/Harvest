@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/l10n/app_localizations.dart';
 
 /// The streak indicator: a flame and the current run of days.
 class StreakFlame extends StatelessWidget {
@@ -13,10 +14,10 @@ class StreakFlame extends StatelessWidget {
     final active = days > 0;
     final color = active
         ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface.withValues(alpha: 0.35);
+        : theme.colorScheme.onSurfaceVariant;
 
     return Semantics(
-      label: 'Streak: $days days',
+      label: AppLocalizations.of(context).streakSemantics(days),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

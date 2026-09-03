@@ -1,6 +1,7 @@
-import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
+import 'package:harvest/features/commitments/domain/due.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'field_providers.g.dart';
@@ -9,10 +10,12 @@ part 'field_providers.g.dart';
 Stream<List<Commitment>> activeCommitments(Ref ref) =>
     ref.watch(commitmentsRepositoryProvider).watchActive();
 
+/// Units logged today per commitment — follows the live Harvest Day, so
+/// the field turns over at 3 AM without a restart.
 @riverpod
 Stream<Map<String, int>> loggedToday(Ref ref) => ref
     .watch(commitmentsRepositoryProvider)
-    .watchLoggedOn(HarvestDay.today());
+    .watchLoggedOn(ref.watch(currentHarvestDayProvider));
 
 @riverpod
 Stream<Map<String, int>> lifetimeTotals(Ref ref) =>
@@ -21,7 +24,7 @@ Stream<Map<String, int>> lifetimeTotals(Ref ref) =>
 @riverpod
 Stream<Map<String, int>> doneDaysThisWeek(Ref ref) => ref
     .watch(commitmentsRepositoryProvider)
-    .watchDoneDaysThisWeek(HarvestDay.today());
+    .watchDoneDaysThisWeek(ref.watch(currentHarvestDayProvider));
 
 /// Today's field: every commitment due today, undone first.
 @riverpod
@@ -30,7 +33,7 @@ List<FieldItem> todayField(Ref ref) {
   final logged = ref.watch(loggedTodayProvider).value ?? const {};
   final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
   final weekDone = ref.watch(doneDaysThisWeekProvider).value ?? const {};
-  final today = HarvestDay.today();
+  final today = ref.watch(currentHarvestDayProvider);
 
   final items = <FieldItem>[];
   for (final commitment in commitments) {
@@ -42,21 +45,17 @@ List<FieldItem> todayField(Ref ref) {
       totalLogged: total,
     );
 
-    final visible = switch (commitment.type) {
-      CommitmentType.habit => commitment.isPaused ||
-          loggedNow > 0 ||
-          commitment.schedule!.isDueOn(
-            today,
-            doneDaysThisWeek: weekDone[commitment.uuid] ?? 0,
-          ),
-      CommitmentType.project => loggedNow > 0 || !item.projectCompleted,
-      // Pending and due (today or overdue) — never future-planted
-      // (checkpoint P2) — or completed today.
-      CommitmentType.todo => loggedNow > 0 ||
-          (total == 0 &&
-              (commitment.dueDay == null ||
-                  commitment.dueDay!.compareTo(today) <= 0)),
-    };
+    // Anything watered today stays visible; paused habits rest in view;
+    // otherwise the shared due rule decides (future to-dos stay off).
+    final visible =
+        loggedNow > 0 ||
+        commitment.isPaused ||
+        isDueOn(
+          commitment,
+          today,
+          doneDaysThisWeek: weekDone[commitment.uuid] ?? 0,
+          totalLogged: total,
+        );
     if (visible) items.add(item);
   }
 

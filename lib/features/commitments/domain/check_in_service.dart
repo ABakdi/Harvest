@@ -44,6 +44,8 @@ class CheckInService {
   static const _uuid = Uuid();
 
   /// Logs [quantity] units for [commitment] on today's Harvest Day.
+  /// The cap is read and the rows written inside one transaction, so
+  /// two fast taps cannot both slip under it.
   Future<CheckInResult> checkIn(
     Commitment commitment, {
     int quantity = 1,
@@ -51,36 +53,35 @@ class CheckInService {
   }) async {
     final harvestDay = day ?? HarvestDay.today();
 
-    var toLog = quantity;
-    var capped = false;
+    final result = await _db.transaction(() async {
+      var toLog = quantity;
+      var capped = false;
+      final loggedToday = await _loggedOn(commitment.uuid, harvestDay);
 
-    if (commitment.type == CommitmentType.project) {
-      final loggedToday = await _loggedOn(commitment.uuid, harvestDay);
-      final room = commitment.maxUnitsPerDay - loggedToday;
-      if (toLog > room) {
-        toLog = room.clamp(0, quantity);
-        capped = true;
+      if (commitment.type == CommitmentType.project) {
+        final room = commitment.maxUnitsPerDay - loggedToday;
+        if (toLog > room) {
+          toLog = room.clamp(0, quantity);
+          capped = true;
+        }
+      } else {
+        if (loggedToday > 0) {
+          // Habits and to-dos are once per day; a second tap is a no-op.
+          return const CheckInCapped(quantityLogged: 0, xpEarned: 0);
+        }
+        toLog = 1;
       }
-    } else {
-      final loggedToday = await _loggedOn(commitment.uuid, harvestDay);
-      if (loggedToday > 0) {
-        // Habits and to-dos are once per day; a second tap is a no-op.
+      if (toLog <= 0) {
         return const CheckInCapped(quantityLogged: 0, xpEarned: 0);
       }
-      toLog = 1;
-    }
 
-    if (toLog <= 0) {
-      return const CheckInCapped(quantityLogged: 0, xpEarned: 0);
-    }
-
-    final xp = commitment.type == CommitmentType.project
-        ? Xp.perProjectUnit * toLog
-        : Xp.habitOrTodo;
-    final checkInUuid = _uuid.v4();
-
-    await _db.transaction(() async {
-      await _db.into(_db.checkIns).insert(
+      final xp = commitment.type == CommitmentType.project
+          ? Xp.perProjectUnit * toLog
+          : Xp.habitOrTodo;
+      final checkInUuid = _uuid.v4();
+      await _db
+          .into(_db.checkIns)
+          .insert(
             CheckInsCompanion.insert(
               uuid: checkInUuid,
               commitmentUuid: commitment.uuid,
@@ -88,7 +89,9 @@ class CheckInService {
               quantity: Value(toLog),
             ),
           );
-      await _db.into(_db.ledger).insert(
+      await _db
+          .into(_db.ledger)
+          .insert(
             LedgerCompanion.insert(
               uuid: _uuid.v4(),
               kind: 'xp',
@@ -97,48 +100,61 @@ class CheckInService {
               harvestDay: harvestDay.key,
             ),
           );
-      await _db.into(_db.outbox).insert(
-            OutboxCompanion.insert(
-              targetTable: 'check_ins',
-              rowUuid: checkInUuid,
-              op: 'insert',
-            ),
-          );
+      await _outbox(checkInUuid, 'insert');
+      return capped
+          ? CheckInCapped(quantityLogged: toLog, xpEarned: xp)
+          : CheckInSuccess(quantityLogged: toLog, xpEarned: xp);
     });
 
-    await _streaks.onCheckIn(commitment, harvestDay);
-
-    return capped
-        ? CheckInCapped(quantityLogged: toLog, xpEarned: xp)
-        : CheckInSuccess(quantityLogged: toLog, xpEarned: xp);
+    final logged = switch (result) {
+      CheckInSuccess(:final quantityLogged) => quantityLogged,
+      CheckInCapped(:final quantityLogged) => quantityLogged,
+    };
+    if (logged > 0) await _streaks.onCheckIn(commitment, harvestDay);
+    return result;
   }
 
-  /// Undoes today's check-ins for [commitment] — same-day corrections only.
+  /// Undoes today's check-ins for [commitment] — same-day corrections
+  /// only. Rows are soft-deleted and the XP is reversed with its own
+  /// ledger entry, so history stays honest and sync can follow.
   Future<void> undoToday(Commitment commitment, {HarvestDay? day}) async {
     final harvestDay = day ?? HarvestDay.today();
-    final rows = await (_db.select(_db.checkIns)
-          ..where(
-            (c) =>
-                c.commitmentUuid.equals(commitment.uuid) &
-                c.harvestDay.equals(harvestDay.key) &
-                c.deletedAt.isNull(),
-          ))
-        .get();
+    final now = DateTime.now();
 
     await _db.transaction(() async {
+      final rows =
+          await (_db.select(_db.checkIns)..where(
+                (c) =>
+                    c.commitmentUuid.equals(commitment.uuid) &
+                    c.harvestDay.equals(harvestDay.key) &
+                    c.deletedAt.isNull(),
+              ))
+              .get();
       for (final row in rows) {
-        await (_db.delete(_db.checkIns)..where((c) => c.uuid.equals(row.uuid)))
-            .go();
-        await (_db.delete(_db.ledger)
-              ..where((l) => l.reason.equals('checkin:${row.uuid}')))
-            .go();
-        await _db.into(_db.outbox).insert(
-              OutboxCompanion.insert(
-                targetTable: 'check_ins',
-                rowUuid: row.uuid,
-                op: 'delete',
-              ),
-            );
+        await (_db.update(
+          _db.checkIns,
+        )..where((c) => c.uuid.equals(row.uuid))).write(
+          CheckInsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        );
+        final earned = _db.ledger.delta.sum();
+        final earnedQuery = _db.selectOnly(_db.ledger)
+          ..addColumns([earned])
+          ..where(_db.ledger.reason.equals('checkin:${row.uuid}'));
+        final xp = (await earnedQuery.getSingle()).read(earned) ?? 0;
+        if (xp != 0) {
+          await _db
+              .into(_db.ledger)
+              .insert(
+                LedgerCompanion.insert(
+                  uuid: _uuid.v4(),
+                  kind: 'xp',
+                  delta: -xp,
+                  reason: 'undo:${row.uuid}',
+                  harvestDay: harvestDay.key,
+                ),
+              );
+        }
+        await _outbox(row.uuid, 'update');
       }
     });
     await _streaks.onUndo(commitment, harvestDay);
@@ -156,10 +172,20 @@ class CheckInService {
     final row = await query.getSingle();
     return row.read(quantity) ?? 0;
   }
+
+  Future<void> _outbox(String uuid, String op) => _db
+      .into(_db.outbox)
+      .insert(
+        OutboxCompanion.insert(
+          targetTable: 'check_ins',
+          rowUuid: uuid,
+          op: op,
+        ),
+      );
 }
 
 @Riverpod(keepAlive: true)
 CheckInService checkInService(Ref ref) => CheckInService(
-      ref.watch(databaseProvider),
-      ref.watch(streakServiceProvider),
-    );
+  ref.watch(databaseProvider),
+  ref.watch(streakServiceProvider),
+);

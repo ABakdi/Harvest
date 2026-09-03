@@ -6,12 +6,12 @@ import 'package:harvest/features/commitments/presentation/field_providers.dart';
 
 void main() {
   Commitment todo(String id, HarvestDay dueDay) => Commitment(
-        uuid: id,
-        type: CommitmentType.todo,
-        title: id,
-        createdAt: DateTime(2026),
-        dueDay: dueDay,
-      );
+    uuid: id,
+    type: CommitmentType.todo,
+    title: id,
+    createdAt: DateTime(2026),
+    dueDay: dueDay,
+  );
 
   test('future-planted to-dos stay off today (checkpoint P2)', () async {
     final today = HarvestDay.today();

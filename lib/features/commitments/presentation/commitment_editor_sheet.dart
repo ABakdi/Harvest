@@ -8,23 +8,26 @@ import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 Future<void> showCommitmentEditor(
   BuildContext context, {
   Commitment? existing,
-}) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(HarvestRadii.sheet),
-        ),
-      ),
-      builder: (_) => _EditorSheet(existing: existing),
-    );
+}) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      top: Radius.circular(HarvestRadii.sheet),
+    ),
+  ),
+  builder: (_) => _EditorSheet(existing: existing),
+);
+
+/// How far ahead a date picker lets a seed be planted.
+const planningHorizon = Duration(days: 365 * 3);
 
 enum _ScheduleKind { daily, weekly, interval, timesPerWeek }
 
@@ -68,18 +71,22 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     _titleController.text = existing.title;
     _noteController.text = existing.note ?? '';
     _deadline = existing.deadline;
-    if (existing.remindAt != null) {
-      final parts = existing.remindAt!.split(':');
-      final hour = int.tryParse(parts.first);
-      final minute = parts.length > 1 ? int.tryParse(parts[1]) : null;
-      if (hour != null && minute != null) {
-        _remindAt = TimeOfDay(hour: hour, minute: minute);
-      }
+    if (SettingsRepository.parseTime(existing.remindAt) case final time?) {
+      _remindAt = TimeOfDay(hour: time.$1, minute: time.$2);
     }
     _totalController.text = '${existing.totalTarget ?? ''}';
     _dailyController.text = '${existing.dailyCommitment ?? ''}';
-    _dueToday = existing.dueDay == null ||
-        existing.dueDay!.compareTo(HarvestDay.today()) <= 0;
+    // Keep the planned day exactly as it was: today/tomorrow use the
+    // chips, anything else stays a custom date (never silently moved).
+    final today = HarvestDay.today();
+    final due = existing.dueDay;
+    if (due == null || due.compareTo(today) <= 0) {
+      _dueToday = true;
+    } else if (due == today.next) {
+      _dueToday = false;
+    } else {
+      _customDueDay = due;
+    }
     switch (existing.schedule) {
       case DailySchedule():
         _scheduleKind = _ScheduleKind.daily;
@@ -110,7 +117,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
 
   String? get _remindAtString => _remindAt == null
       ? null
-      : '${_remindAt!.hour}:${_remindAt!.minute.toString().padLeft(2, '0')}';
+      : SettingsRepository.formatTime(_remindAt!.hour, _remindAt!.minute);
 
   String? get _noteOrNull {
     final note = _noteController.text.trim();
@@ -118,7 +125,8 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   }
 
   HarvestDay get _todoDueDay =>
-      _customDueDay ?? (_dueToday ? HarvestDay.today() : HarvestDay.today().next);
+      _customDueDay ??
+      (_dueToday ? HarvestDay.today() : HarvestDay.today().next);
 
   bool get _valid {
     if (_titleController.text.trim().isEmpty) return false;
@@ -138,10 +146,22 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     setState(() => _saving = true);
     final editor = ref.read(commitmentEditorProvider.notifier);
     final title = _titleController.text.trim();
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    try {
+      await _persist(editor, title);
+      navigator.pop();
+    } on Object {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.checkInFailed)));
+    }
+  }
 
+  Future<void> _persist(CommitmentEditor editor, String title) async {
     if (_editing) {
       await _saveEdit(editor, title);
-      if (mounted) Navigator.of(context).pop();
       return;
     }
 
@@ -151,11 +171,12 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           _ScheduleKind.daily => const DailySchedule(),
           _ScheduleKind.weekly => WeeklySchedule(weekdays: {..._weekdays}),
           _ScheduleKind.interval => IntervalSchedule(
-              everyDays: _intervalDays,
-              anchorDay: HarvestDay.today(),
-            ),
-          _ScheduleKind.timesPerWeek =>
-            TimesPerWeekSchedule(times: _timesPerWeek),
+            everyDays: _intervalDays,
+            anchorDay: HarvestDay.today(),
+          ),
+          _ScheduleKind.timesPerWeek => TimesPerWeekSchedule(
+            times: _timesPerWeek,
+          ),
         };
         await editor.createHabit(
           title: title,
@@ -178,10 +199,8 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           dueDay: _todoDueDay,
           note: _noteOrNull,
           remindAt: _remindAtString,
-          deadline: _deadline,
         );
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _saveEdit(CommitmentEditor editor, String title) async {
@@ -190,27 +209,28 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
       _ScheduleKind.daily => const DailySchedule(),
       _ScheduleKind.weekly => WeeklySchedule(weekdays: {..._weekdays}),
       _ScheduleKind.interval => IntervalSchedule(
-          everyDays: _intervalDays,
-          anchorDay: existing.schedule is IntervalSchedule
-              ? (existing.schedule! as IntervalSchedule).anchorDay
-              : HarvestDay.today(),
-        ),
+        everyDays: _intervalDays,
+        anchorDay: existing.schedule is IntervalSchedule
+            ? (existing.schedule! as IntervalSchedule).anchorDay
+            : HarvestDay.today(),
+      ),
       _ScheduleKind.timesPerWeek => TimesPerWeekSchedule(times: _timesPerWeek),
     };
     await editor.updateCommitment(
+      previousRemindAt: existing.remindAt,
       existing.copyWith(
         title: title,
         schedule: existing.type == CommitmentType.habit ? schedule : null,
         totalTarget: int.tryParse(_totalController.text),
         dailyCommitment: int.tryParse(_dailyController.text),
-        dueDay:
-            existing.type == CommitmentType.todo ? _todoDueDay : null,
+        dueDay: existing.type == CommitmentType.todo ? _todoDueDay : null,
         note: _noteOrNull,
         remindAt: _remindAtString,
-        deadline: _deadline,
+        deadline: existing.type == CommitmentType.project ? _deadline : null,
         clearNote: _noteOrNull == null,
         clearRemindAt: _remindAtString == null,
-        clearDeadline: _deadline == null,
+        clearDeadline:
+            existing.type != CommitmentType.project || _deadline == null,
       ),
     );
   }
@@ -239,23 +259,23 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
             const SizedBox(height: HarvestSpacing.md),
             if (!_editing)
               SegmentedButton<CommitmentType>(
-              segments: [
-                ButtonSegment(
-                  value: CommitmentType.habit,
-                  label: Text(l10n.typeHabit),
-                  icon: const Icon(Icons.repeat),
-                ),
-                ButtonSegment(
-                  value: CommitmentType.project,
-                  label: Text(l10n.typeProject),
-                  icon: const Icon(Icons.flag),
-                ),
-                ButtonSegment(
-                  value: CommitmentType.todo,
-                  label: Text(l10n.typeTodo),
-                  icon: const Icon(Icons.check),
-                ),
-              ],
+                segments: [
+                  ButtonSegment(
+                    value: CommitmentType.habit,
+                    label: Text(l10n.typeHabit),
+                    icon: const Icon(Icons.repeat),
+                  ),
+                  ButtonSegment(
+                    value: CommitmentType.project,
+                    label: Text(l10n.typeProject),
+                    icon: const Icon(Icons.flag),
+                  ),
+                  ButtonSegment(
+                    value: CommitmentType.todo,
+                    label: Text(l10n.typeTodo),
+                    icon: const Icon(Icons.check),
+                  ),
+                ],
                 selected: {_type},
                 onSelectionChanged: (s) => setState(() => _type = s.first),
               ),
@@ -272,9 +292,6 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
                   CommitmentType.project => l10n.titleHintProject,
                   CommitmentType.todo => l10n.titleHintTodo,
                 },
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(HarvestRadii.button),
-                ),
               ),
             ),
             const SizedBox(height: HarvestSpacing.md),
@@ -297,69 +314,66 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   }
 
   List<Widget> _habitFields(AppLocalizations l10n) => [
-        Text(l10n.scheduleLabel),
-        const SizedBox(height: HarvestSpacing.sm),
-        SegmentedButton<_ScheduleKind>(
-          segments: [
-            ButtonSegment(
-              value: _ScheduleKind.daily,
-              label: Text(l10n.scheduleDaily),
-            ),
-            ButtonSegment(
-              value: _ScheduleKind.weekly,
-              label: Text(l10n.scheduleWeekly),
-            ),
-            ButtonSegment(
-              value: _ScheduleKind.interval,
-              label: Text(l10n.scheduleInterval),
-            ),
-            ButtonSegment(
-              value: _ScheduleKind.timesPerWeek,
-              label: Text(l10n.scheduleTimesPerWeek),
-            ),
-          ],
-          selected: {_scheduleKind},
-          showSelectedIcon: false,
-          onSelectionChanged: (s) =>
-              setState(() => _scheduleKind = s.first),
+    Text(l10n.scheduleLabel),
+    const SizedBox(height: HarvestSpacing.sm),
+    SegmentedButton<_ScheduleKind>(
+      segments: [
+        ButtonSegment(
+          value: _ScheduleKind.daily,
+          label: Text(l10n.scheduleDaily),
         ),
-        const SizedBox(height: HarvestSpacing.md),
-        ...switch (_scheduleKind) {
-          _ScheduleKind.daily => const <Widget>[],
-          _ScheduleKind.weekly => [_weekdayPicker()],
-          _ScheduleKind.interval => [
-              _Stepper(
-                label: l10n.everyDaysLabel(_intervalDays),
-                value: _intervalDays,
-                min: 2,
-                max: 30,
-                onChanged: (v) => setState(() => _intervalDays = v),
-              ),
-            ],
-          _ScheduleKind.timesPerWeek => [
-              _Stepper(
-                label: l10n.timesPerWeekLabel(_timesPerWeek),
-                value: _timesPerWeek,
-                min: 1,
-                max: 6,
-                onChanged: (v) => setState(() => _timesPerWeek = v),
-              ),
-            ],
-        },
-      ];
+        ButtonSegment(
+          value: _ScheduleKind.weekly,
+          label: Text(l10n.scheduleWeekly),
+        ),
+        ButtonSegment(
+          value: _ScheduleKind.interval,
+          label: Text(l10n.scheduleInterval),
+        ),
+        ButtonSegment(
+          value: _ScheduleKind.timesPerWeek,
+          label: Text(l10n.scheduleTimesPerWeek),
+        ),
+      ],
+      selected: {_scheduleKind},
+      showSelectedIcon: false,
+      onSelectionChanged: (s) => setState(() => _scheduleKind = s.first),
+    ),
+    const SizedBox(height: HarvestSpacing.md),
+    ...switch (_scheduleKind) {
+      _ScheduleKind.daily => const <Widget>[],
+      _ScheduleKind.weekly => [_weekdayPicker()],
+      _ScheduleKind.interval => [
+        _Stepper(
+          label: l10n.everyDaysLabel(_intervalDays),
+          value: _intervalDays,
+          min: 2,
+          max: 30,
+          onChanged: (v) => setState(() => _intervalDays = v),
+        ),
+      ],
+      _ScheduleKind.timesPerWeek => [
+        _Stepper(
+          label: l10n.timesPerWeekLabel(_timesPerWeek),
+          value: _timesPerWeek,
+          min: 1,
+          max: 6,
+          onChanged: (v) => setState(() => _timesPerWeek = v),
+        ),
+      ],
+    },
+  ];
 
   Widget _weekdayPicker() {
     final locale = Localizations.localeOf(context).toString();
-    // Monday-first row of localized weekday chips.
-    final monday = DateTime(2026, 9, 7);
+    // Monday-first row of localized weekday chips; intl lists Sunday first.
+    final names = DateFormat.E(locale).dateSymbols.STANDALONESHORTWEEKDAYS;
     return Wrap(
       spacing: HarvestSpacing.xs,
       children: [
         for (var i = 0; i < 7; i++)
           FilterChip(
-            label: Text(
-              DateFormat.E(locale).format(monday.add(Duration(days: i))),
-            ),
+            label: Text(names[(i + 1) % 7]),
             selected: _weekdays.contains(i + 1),
             onSelected: (selected) => setState(() {
               if (selected) {
@@ -374,30 +388,24 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   }
 
   List<Widget> _projectFields(AppLocalizations l10n) => [
-        TextField(
-          controller: _totalController,
-          keyboardType: TextInputType.number,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            labelText: l10n.totalTargetLabel,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(HarvestRadii.button),
-            ),
-          ),
-        ),
-        const SizedBox(height: HarvestSpacing.md),
-        TextField(
-          controller: _dailyController,
-          keyboardType: TextInputType.number,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            labelText: l10n.dailyCommitmentLabel,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(HarvestRadii.button),
-            ),
-          ),
-        ),
-      ];
+    TextField(
+      controller: _totalController,
+      keyboardType: TextInputType.number,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        labelText: l10n.totalTargetLabel,
+      ),
+    ),
+    const SizedBox(height: HarvestSpacing.md),
+    TextField(
+      controller: _dailyController,
+      keyboardType: TextInputType.number,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        labelText: l10n.dailyCommitmentLabel,
+      ),
+    ),
+  ];
 
   Widget _advancedSection(AppLocalizations l10n) {
     final locale = Localizations.localeOf(context).toString();
@@ -412,9 +420,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
       shape: const Border(),
       title: Text(
         l10n.advancedOptions,
-        style: Theme.of(context)
-            .textTheme
-            .titleSmall
+        style: Theme.of(context).textTheme.titleSmall
             ?.copyWith(fontWeight: FontWeight.w800),
       ),
       children: [
@@ -424,20 +430,19 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           minLines: 1,
           decoration: InputDecoration(
             labelText: l10n.seedNoteLabel,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(HarvestRadii.button),
-            ),
           ),
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.alarm),
           title: Text(l10n.remindMeAt),
-          subtitle:
-              Text(_remindAt == null ? l10n.notSet : _remindAt!.format(context)),
+          subtitle: Text(
+            _remindAt == null ? l10n.notSet : _remindAt!.format(context),
+          ),
           trailing: _remindAt == null
               ? null
               : IconButton(
+                  tooltip: l10n.clearValue,
                   icon: const Icon(Icons.close),
                   onPressed: () => setState(() => _remindAt = null),
                 ),
@@ -449,7 +454,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
             if (picked != null) setState(() => _remindAt = picked);
           },
         ),
-        if (_type != CommitmentType.habit)
+        if (_type == CommitmentType.project)
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.flag_outlined),
@@ -458,6 +463,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
             trailing: _deadline == null
                 ? null
                 : IconButton(
+                    tooltip: l10n.clearValue,
                     icon: const Icon(Icons.close),
                     onPressed: () => setState(() => _deadline = null),
                   ),
@@ -467,7 +473,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
                 context: context,
                 initialDate: now,
                 firstDate: now,
-                lastDate: now.add(const Duration(days: 365 * 3)),
+                lastDate: now.add(planningHorizon),
               );
               if (picked != null) {
                 setState(() => _deadline = HarvestDay.fromDate(picked));
@@ -480,59 +486,59 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   }
 
   List<Widget> _todoFields(AppLocalizations l10n) => [
-        Text(l10n.dueLabel),
-        const SizedBox(height: HarvestSpacing.sm),
-        Wrap(
-          spacing: HarvestSpacing.xs,
-          children: [
-            ChoiceChip(
-              label: Text(l10n.dueToday),
-              selected: _customDueDay == null && _dueToday,
-              onSelected: (_) => setState(() {
-                _dueToday = true;
-                _customDueDay = null;
-              }),
-            ),
-            ChoiceChip(
-              label: Text(l10n.dueTomorrow),
-              selected: _customDueDay == null && !_dueToday,
-              onSelected: (_) => setState(() {
-                _dueToday = false;
-                _customDueDay = null;
-              }),
-            ),
-            ChoiceChip(
-              avatar: const Icon(Icons.event, size: 18),
-              label: Text(
-                _customDueDay == null
-                    ? l10n.pickDate
-                    : DateFormat.MMMd(
-                        Localizations.localeOf(context).toString(),
-                      ).format(
-                        DateTime(
-                          _customDueDay!.year,
-                          _customDueDay!.month,
-                          _customDueDay!.day,
-                        ),
-                      ),
-              ),
-              selected: _customDueDay != null,
-              onSelected: (_) async {
-                final now = DateTime.now();
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: now,
-                  firstDate: now,
-                  lastDate: now.add(const Duration(days: 365 * 3)),
-                );
-                if (picked != null) {
-                  setState(() => _customDueDay = HarvestDay.fromDate(picked));
-                }
-              },
-            ),
-          ],
+    Text(l10n.dueLabel),
+    const SizedBox(height: HarvestSpacing.sm),
+    Wrap(
+      spacing: HarvestSpacing.xs,
+      children: [
+        ChoiceChip(
+          label: Text(l10n.dueToday),
+          selected: _customDueDay == null && _dueToday,
+          onSelected: (_) => setState(() {
+            _dueToday = true;
+            _customDueDay = null;
+          }),
         ),
-      ];
+        ChoiceChip(
+          label: Text(l10n.dueTomorrow),
+          selected: _customDueDay == null && !_dueToday,
+          onSelected: (_) => setState(() {
+            _dueToday = false;
+            _customDueDay = null;
+          }),
+        ),
+        ChoiceChip(
+          avatar: const Icon(Icons.event, size: 18),
+          label: Text(
+            _customDueDay == null
+                ? l10n.pickDate
+                : DateFormat.MMMd(
+                    Localizations.localeOf(context).toString(),
+                  ).format(
+                    DateTime(
+                      _customDueDay!.year,
+                      _customDueDay!.month,
+                      _customDueDay!.day,
+                    ),
+                  ),
+          ),
+          selected: _customDueDay != null,
+          onSelected: (_) async {
+            final now = DateTime.now();
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: now,
+              firstDate: now,
+              lastDate: now.add(planningHorizon),
+            );
+            if (picked != null) {
+              setState(() => _customDueDay = HarvestDay.fromDate(picked));
+            }
+          },
+        ),
+      ],
+    ),
+  ];
 }
 
 class _Stepper extends StatelessWidget {
@@ -559,11 +565,13 @@ class _Stepper extends StatelessWidget {
         Row(
           children: [
             IconButton.filledTonal(
+              tooltip: AppLocalizations.of(context).decrease,
               onPressed: value > min ? () => onChanged(value - 1) : null,
               icon: const Icon(Icons.remove),
             ),
             const SizedBox(width: HarvestSpacing.xs),
             IconButton.filledTonal(
+              tooltip: AppLocalizations.of(context).increase,
               onPressed: value < max ? () => onChanged(value + 1) : null,
               icon: const Icon(Icons.add),
             ),

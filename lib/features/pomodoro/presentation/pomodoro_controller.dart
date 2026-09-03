@@ -23,11 +23,16 @@ abstract final class PomodoroActions {
 /// machine across any boundaries that passed while the app was away.
 @Riverpod(keepAlive: true)
 class PomodoroController extends _$PomodoroController {
-  PomodoroConfig get config =>
-      ref.read(pomodoroConfigSettingProvider).value ?? const PomodoroConfig();
+  /// The lengths in force; read once the settings stream has spoken so
+  /// a cold start never catches up with the defaults.
+  late PomodoroConfig config;
+
+  /// The one advance in flight: two tickers can ask, one clock answers.
+  Future<PomodoroSnapshot>? _advancing;
 
   @override
   Future<PomodoroSnapshot?> build() async {
+    config = await ref.watch(pomodoroConfigSettingProvider.future);
     final snapshot = await ref.watch(pomodoroServiceProvider).loadActive();
     if (snapshot == null) return null;
     final advanced = await _advance(snapshot);
@@ -50,11 +55,13 @@ class PomodoroController extends _$PomodoroController {
     state = AsyncData(snapshot);
   }
 
-  /// Re-checks the clock; called by the screen's ticker and on resume.
+  /// Re-checks the clock; called by the ticker and on resume. Concurrent
+  /// calls share one advance so a boundary is never paid out twice.
   Future<void> evaluate() async {
     final snapshot = state.value;
-    if (snapshot == null) return;
-    final advanced = await _advance(snapshot);
+    if (snapshot == null || !snapshot.isRunning) return;
+    final advanced = await (_advancing ??= _advance(snapshot)
+        .whenComplete(() => _advancing = null));
     if (advanced != snapshot) state = AsyncData(advanced);
   }
 
@@ -155,9 +162,11 @@ class PomodoroController extends _$PomodoroController {
     await notifications.showCountdown(
       id: _timerNotificationId,
       channelId: NotificationChannels.pomodoro,
-      title: snapshot.phase == PomodoroPhase.focus
-          ? l10n.phaseFocus
-          : l10n.phaseShortBreak,
+      title: switch (snapshot.phase) {
+        PomodoroPhase.focus => l10n.phaseFocus,
+        PomodoroPhase.shortBreak => l10n.phaseShortBreak,
+        PomodoroPhase.longBreak => l10n.phaseLongBreak,
+      },
       until: snapshot.endsAt!,
       actions: [
         (PomodoroActions.pause, l10n.pause),

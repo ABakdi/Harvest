@@ -10,6 +10,7 @@ import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/stat_tile.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
+import 'package:harvest/l10n/app_localizations.dart';
 
 /// Golden coverage for the signature components across theme x direction.
 /// Regenerate with: flutter test --update-goldens test/goldens
@@ -17,6 +18,12 @@ void main() {
   Widget gallery(ThemeData theme, TextDirection direction) => MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: theme,
+    // The signature widgets speak: they need the app's strings.
+    locale: direction == TextDirection.rtl
+        ? const Locale('ar')
+        : const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Directionality(
       textDirection: direction,
       child: Scaffold(

@@ -7,46 +7,44 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
+import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/commitments/presentation/quantity_sheet.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
+import 'package:harvest/features/pomodoro/presentation/pomodoro_clock.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
-class PomodoroScreen extends ConsumerStatefulWidget {
+class PomodoroScreen extends ConsumerWidget {
   const PomodoroScreen({this.commitment, super.key});
 
-  /// The crop this session waters; null for a free session.
+  /// The crop a new session will water; null for a free session. A
+  /// session already running knows its own crop.
   final Commitment? commitment;
 
-  @override
-  ConsumerState<PomodoroScreen> createState() => _PomodoroScreenState();
-}
-
-class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
-  Timer? _ticker;
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      unawaited(ref.read(pomodoroControllerProvider.notifier).evaluate());
-      if (mounted) setState(() {});
-    });
+  /// The crop of the running session, or the one this screen opened for.
+  Commitment? _attached(WidgetRef ref, PomodoroSnapshot? snapshot) {
+    final uuid = snapshot?.commitmentUuid;
+    if (uuid == null) return snapshot == null ? commitment : null;
+    final active = ref.watch(activeCommitmentsProvider).value ?? const [];
+    return active.where((c) => c.uuid == uuid).firstOrNull ?? commitment;
   }
 
   @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final snapshot = ref.watch(pomodoroControllerProvider).value;
-    final controller = ref.read(pomodoroControllerProvider.notifier);
-    final config = ref.watch(pomodoroConfigSettingProvider).value ??
+    final attached = _attached(ref, snapshot);
+    final config =
+        ref.watch(pomodoroConfigSettingProvider).value ??
         const PomodoroConfig();
+    if (snapshot != null && snapshot.isRunning) {
+      ref
+        ..watch(pomodoroClockProvider)
+        ..listen(pomodoroClockProvider, (_, _) {
+          unawaited(ref.read(pomodoroControllerProvider.notifier).evaluate());
+        });
+    }
 
     final phase = snapshot?.phase ?? PomodoroPhase.focus;
     final total = config.of(phase);
@@ -54,7 +52,8 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
         ? total
         : _clampDuration(snapshot.remaining(DateTime.now()), total);
     final isBreak = phase != PomodoroPhase.focus;
-    final waitingNextFocus = snapshot != null &&
+    final waitingNextFocus =
+        snapshot != null &&
         !snapshot.isRunning &&
         !isBreak &&
         !snapshot.userPaused;
@@ -71,7 +70,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                widget.commitment?.title ?? l10n.freeSession,
+                attached?.title ?? l10n.freeSession,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w800,
@@ -92,8 +91,9 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
                             : remaining.inSeconds / total.inSeconds,
                         strokeWidth: 12,
                         strokeCap: StrokeCap.round,
-                        backgroundColor:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                        backgroundColor: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.08,
+                        ),
                         valueColor: AlwaysStoppedAnimation(
                           isBreak
                               ? theme.colorScheme.secondary
@@ -123,8 +123,9 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
                                 },
                           textAlign: TextAlign.center,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                       ],
@@ -138,7 +139,14 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
                 perLong: config.blocksPerLongBreak,
               ),
               const SizedBox(height: HarvestSpacing.xl),
-              ..._buttons(context, l10n, snapshot, controller),
+              ..._buttons(
+                context,
+                ref,
+                l10n,
+                snapshot,
+                attached,
+                waitingNextFocus,
+              ),
             ],
           ),
         ),
@@ -148,17 +156,19 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
 
   List<Widget> _buttons(
     BuildContext context,
+    WidgetRef ref,
     AppLocalizations l10n,
     PomodoroSnapshot? snapshot,
-    PomodoroController controller,
+    Commitment? attached,
+    bool waitingNextFocus,
   ) {
+    final controller = ref.read(pomodoroControllerProvider.notifier);
     if (snapshot == null) {
       return [
         FilledButton.icon(
           icon: const Icon(Icons.play_arrow),
-          onPressed: () => unawaited(
-            controller.start(commitmentUuid: widget.commitment?.uuid),
-          ),
+          onPressed: () =>
+              unawaited(controller.start(commitmentUuid: attached?.uuid)),
           label: Text(l10n.startFocus),
         ),
       ];
@@ -178,9 +188,8 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
         FilledButton.icon(
           icon: const Icon(Icons.play_arrow),
           onPressed: () => unawaited(controller.resume()),
-          label: Text(snapshot.blocksDone > 0 && !snapshot.isRunning
-              ? l10n.startFocus
-              : l10n.resume),
+          // A break that ran out waits for the next block; a pause resumes.
+          label: Text(waitingNextFocus ? l10n.startFocus : l10n.resume),
         ),
       );
     }
@@ -188,7 +197,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
       ..add(const SizedBox(height: HarvestSpacing.sm))
       ..add(
         TextButton(
-          onPressed: () => unawaited(_finish(context)),
+          onPressed: () => unawaited(_finish(context, ref, attached)),
           child: Text(
             snapshot.blocksDone > 0 ? l10n.finishSession : l10n.abandonSession,
           ),
@@ -205,7 +214,11 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
     return buttons;
   }
 
-  Future<void> _finish(BuildContext context) async {
+  Future<void> _finish(
+    BuildContext context,
+    WidgetRef ref,
+    Commitment? commitment,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
@@ -213,13 +226,25 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
     final commitmentUuid = await controller.finish();
 
     // A fruitful session attached to a habit/to-do checks it in directly;
-    // projects get a nudge to log their quantity on the field.
-    final commitment = widget.commitment;
-    if (commitmentUuid != null && commitment != null) {
+    // a project opens the quantity sheet right here.
+    if (commitmentUuid != null && commitment != null && context.mounted) {
       if (commitment.type == CommitmentType.project) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.pomodoroLogPrompt)),
+        final logged = ref.read(loggedTodayProvider).value ?? const {};
+        final totals = ref.read(lifetimeTotalsProvider).value ?? const {};
+        final result = await showQuantitySheet(
+          context,
+          ref,
+          item: FieldItem(
+            commitment: commitment,
+            loggedToday: logged[commitment.uuid] ?? 0,
+            totalLogged: totals[commitment.uuid] ?? 0,
+          ),
         );
+        if (result is CheckInSuccess) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.xpEarned(result.xpEarned))),
+          );
+        }
       } else {
         final result = await ref
             .read(checkInControllerProvider.notifier)
@@ -234,12 +259,12 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
     router.pop();
   }
 
-  Duration _clampDuration(Duration value, Duration max) {
+  static Duration _clampDuration(Duration value, Duration max) {
     if (value.isNegative) return Duration.zero;
     return value > max ? max : value;
   }
 
-  String _format(Duration duration) {
+  static String _format(Duration duration) {
     final minutes = duration.inMinutes.toString().padLeft(2, '0');
     final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
     return '$minutes:$seconds';

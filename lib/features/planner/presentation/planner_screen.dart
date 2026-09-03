@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
+import 'package:harvest/features/commitments/domain/due.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -17,7 +18,7 @@ part 'planner_screen.g.dart';
 ({List<Commitment> habits, List<Commitment> todos}) tomorrowPlan(Ref ref) {
   final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
   final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
-  final tomorrow = HarvestDay.today().next;
+  final tomorrow = ref.watch(currentHarvestDayProvider).next;
 
   final habits = <Commitment>[];
   final todos = <Commitment>[];
@@ -25,7 +26,7 @@ part 'planner_screen.g.dart';
     switch (commitment.type) {
       case CommitmentType.habit:
         // Flexible schedules count as due unless the week is done.
-        if (commitment.schedule!.isDueOn(tomorrow)) habits.add(commitment);
+        if (isDueOn(commitment, tomorrow)) habits.add(commitment);
       case CommitmentType.todo:
         final done = (totals[commitment.uuid] ?? 0) > 0;
         if (!done && commitment.dueDay == tomorrow) todos.add(commitment);
@@ -57,9 +58,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     final title = _controller.text.trim();
     if (title.isEmpty) return;
     _controller.clear();
-    await ref.read(commitmentEditorProvider.notifier).createTodo(
+    await ref
+        .read(commitmentEditorProvider.notifier)
+        .createTodo(
           title: title,
-          dueDay: HarvestDay.today().next,
+          dueDay: ref.read(currentHarvestDayProvider).next,
         );
   }
 
@@ -81,9 +84,6 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             decoration: InputDecoration(
               hintText: l10n.plannerAddHint,
               prefixIcon: const Icon(Icons.add),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(HarvestRadii.button),
-              ),
             ),
           ),
           const SizedBox(height: HarvestSpacing.lg),
@@ -99,8 +99,9 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           if (plan.todos.isNotEmpty) ...[
             Text(
               l10n.plannerTodos,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: HarvestSpacing.sm),
             for (final todo in plan.todos)
@@ -109,6 +110,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                   leading: const Icon(Icons.check_circle_outline),
                   title: Text(todo.title),
                   trailing: IconButton(
+                    tooltip: l10n.removeAction,
                     icon: const Icon(Icons.close),
                     onPressed: () => unawaited(
                       ref
@@ -123,8 +125,9 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           if (plan.habits.isNotEmpty) ...[
             Text(
               l10n.plannerHabitsDue,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: HarvestSpacing.sm),
             for (final habit in plan.habits)
