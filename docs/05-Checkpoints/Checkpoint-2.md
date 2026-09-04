@@ -183,6 +183,48 @@ it is worth a fix.
 | Strings | 20 new keys in English and Arabic. The workbook's own headers stay English by rule X5. |
 | Tests | `test/features/security/app_lock_test.dart` (13), `test/features/export/workbook_test.dart` (16) and `export_service_test.dart` (5), plus three fakes in `test/support`. 145 → 179. |
 
+## Release signing — the key changed
+
+v0.9.5-beta is the first build signed with a **real upload key**.
+Everything up to and including v0.9.4-beta went out on the debug
+keystore, which [[Security-Audit]] S-06 called out: `~/.android/debug.keystore`
+uses the well-known password `android`, is regenerated on any new
+machine, and a copy of it lets anyone build an "update" Android will
+install over Harvest and read its data directory.
+
+The new key is RSA 4096, valid to 2053, held at
+`~/keystores/harvest-upload.jks` and pointed at by `android/key.properties`
+(git-ignored, never committed). Certificate:
+
+```
+CN=Harvest, O=Abderrahmane Bakdi, C=DZ
+SHA-256  61:DD:B3:5C:1D:C3:E1:0D:FF:E9:48:C9:A7:C7:88:01:
+         90:3E:DF:6D:4B:42:B0:DF:0B:6E:B3:38:7B:BD:89:94
+```
+
+**The cost, stated plainly.** Android refuses to install an APK over one
+signed by a different key. v0.9.5 therefore cannot update v0.9.4-beta in
+place: the old build has to be uninstalled first, and uninstalling takes
+the database with it — `allowBackup="false"` means there is no copy to
+restore from either (S-01, and that is working as intended).
+
+**The way through, on a phone that already holds data.** The export
+landed in this very checkpoint, so the order matters:
+
+1. Install a build signed with the **old debug key** over v0.9.4-beta —
+   it updates in place, and carries the new export with it.
+2. Run **Settings → My data → Export to Downloads** and put the
+   spreadsheet somewhere safe.
+3. Uninstall, then install v0.9.5-beta properly signed.
+
+The spreadsheet is a readable record, not a restore — there is no
+importer yet. That is the real price of having shipped four releases on
+a debug key, paid once.
+
+**Lose the keystore and Harvest can never be updated again.** It is
+backed up off this machine, and the password lives in a password
+manager, not in the repo.
+
 ## Verified on the emulator
 
 | Rule | What I did | What happened |
