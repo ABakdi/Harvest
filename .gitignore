@@ -38,9 +38,11 @@ app.*.symbols
 /build/symbols/
 
 # Signing material never enters the repo
-/android/key.properties
+key.properties
 *.jks
 *.keystore
+*.env
+.env
 
 # Golden failure artifacts
 test/**/failures/
@@ -58,3 +60,8 @@ app.*.map.json
 
 # Obsidian per-machine state
 docs/.obsidian/workspace.json
+
+# The spreadsheet export (checkpoint C2-2) is the whole database in one
+# file — every expense, every debt, every balance. This repo is public.
+harvest-*.xlsx
+*.xlsx

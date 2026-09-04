@@ -42,6 +42,38 @@ IDs refer to the reports.
 | Code quality, part 2 | F-01 live debts · F-02 linked expenses · F-03 no ref after pop · F-04 day-keyed providers · F-05 wallet caps · F-06 payment validation · F-07 zero-limit budget · F-08 money parsing and formatting · F-09 rate sanity · F-14 guarded writes · F-19/F-20/F-23 shared providers and helpers · F-24 one sheet body · F-30…F-35 dead code and strings · F-39 delete with undo · F-41 semantics · F-45 the missing tests | **F-25/F-26/F-29 widget extraction** and **F-36 file splits** — the flows moved behind a service, which was the point; splitting the remaining files is cosmetic and can ride along with the next feature |
 | UX | U-01 wallet toggle instead of four question sheets · U-02 withdrawals land in the wallet · U-03 dead setting gone · U-04 Money section in Settings · U-05 Stats duplicates gone · U-06 simplified budget card · U-07 every reminder visible and named · U-08 coins labelled with an earn hint · U-09 tooltips and an overflow button · U-10 deadlines for projects only · U-11 undo · U-12 pomodoro flows · U-13 calendar · U-14 onboarding skip · U-15 renames | Barn wording is now Archive everywhere, but there is still no screen listing archived seeds. That is a feature, not a fix — noted for the backlog |
 
+## Leak check on the public repo (2026-09-04)
+
+The repo is public, and v0.9.5 added both a signing key and a feature
+that writes my whole financial history to a file. I swept for anything
+that should not be out there.
+
+**Clean.** No `.jks`, `.keystore`, `key.properties`, `.env` or `.xlsx`
+has ever been committed, on any ref, at any point in history. The
+keystore password appears in no blob, no commit message and no author
+field. No token pattern anywhere. The published release carries the APK
+and nothing else — no R8 mapping, no debug symbols. The one network
+endpoint (`api.frankfurter.dev`) needs no key.
+
+**The shipped APK holds up.** `allowBackup=false` and the extraction
+rules survived into the release manifest, nothing is `debuggable`, and
+every `exported=true` component is either `MainActivity` or a stock
+AndroidX one. `libapp.so` carries no DWARF sections and seven symbol
+entries — the build's "unobfuscated DWARF" warning is informational; the
+library really is stripped. Riverpod's provider names and the
+`security.appLock` settings key survive as string literals, which
+`--obfuscate` never removes and which give away structure, not secrets.
+
+**One gap, and the export created it.** `.gitignore` covered `*.jks`,
+`*.keystore` and `/android/key.properties` — but not `*.xlsx`. The
+export writes every expense, debt and balance I have into a workbook,
+and the natural thing to do with one is drop it next to the project to
+look at it. A single `git add -A` would then have published my finances.
+`*.xlsx` is ignored now, along with `.env` and a bare `key.properties`
+at the root rather than only under `android/`.
+
+Nothing leaked. The hole was one careless `git add` away from opening.
+
 ## What came out of it beyond the reports
 
 Verifying the fixes on the device turned up three more, all fixed:
