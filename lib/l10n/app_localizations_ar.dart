@@ -1171,4 +1171,253 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get exportFailed => 'لم يكتمل التصدير. حاول مجددًا.';
+
+  @override
+  String get deleteAction => 'حذف';
+
+  @override
+  String get restoreAction => 'استرجاع';
+
+  @override
+  String reminderRingsIn(String time) {
+    return 'يرنّ بعد $time';
+  }
+
+  @override
+  String get reminderNow => 'يرنّ الآن';
+
+  @override
+  String get editExpense => 'تعديل المصروف';
+
+  @override
+  String get deleteExpenseTitle => 'حذف هذا المصروف؟';
+
+  @override
+  String deleteExpenseBody(String amount) {
+    return 'سيُحذف $amount من اليوم، ويُعاد أي سحب من المحفظة تمّ من أجله.';
+  }
+
+  @override
+  String get archiveTitle => 'الأرشيف';
+
+  @override
+  String get archiveEmpty => 'لا شيء في الأرشيف بعد';
+
+  @override
+  String get archiveEmptyBody =>
+      'البذور التي تؤرشفها تصل إلى هنا، ومعها الملاحظة التي تشرح السبب.';
+
+  @override
+  String archiveSheetBody(String title) {
+    return 'أرشفة $title. سجلّها يبقى كما هو.';
+  }
+
+  @override
+  String get archiveNoteLabel => 'لماذا تؤرشفها؟';
+
+  @override
+  String get archiveNoteHint => 'أنهيتها — إلى التالية';
+
+  @override
+  String get archiveKeepsHistory => 'يحتفظ بكل تسجيل';
+
+  @override
+  String archivedOn(String day) {
+    return 'أُرشفت في $day';
+  }
+
+  @override
+  String restoredToField(String title) {
+    return 'عادت $title إلى الحقل';
+  }
+
+  @override
+  String get deleteSeedTitle => 'حذف هذه البذرة؟';
+
+  @override
+  String deleteSeedBody(String title) {
+    return 'ستختفي $title وكل تسجيلاتها وكل ملاحظاتها نهائيًا. لا رجعة في هذا — أرشفها بدل ذلك إن أردت الاحتفاظ بالسجلّ.';
+  }
+
+  @override
+  String get deleteSeedSubtitle => 'نهائيًا، بكل سجلّها';
+
+  @override
+  String get seedNotesTitle => 'الملاحظات';
+
+  @override
+  String get seedNotesSubtitle => 'أين توقّفت اليوم';
+
+  @override
+  String get seedNotesSheetSubtitle => 'ملاحظة اليوم، وآخر ملاحظة';
+
+  @override
+  String get seedNotesExplainer =>
+      'ملاحظة جديدة كل يوم. ملاحظة الأمس تبقى في السجلّ.';
+
+  @override
+  String get seedNoteHint => 'توقّفت عند صفحة ١٤٣';
+
+  @override
+  String noteForDay(String day) {
+    return 'ملاحظة $day';
+  }
+
+  @override
+  String lastTimeOn(String day) {
+    return 'آخر مرة · $day';
+  }
+
+  @override
+  String get seedHistoryTitle => 'السجلّ';
+
+  @override
+  String get seedHistorySheetSubtitle => 'كل يوم، وما كتبته فيه';
+
+  @override
+  String seedHistorySubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام في السجلّ',
+      two: 'يومان في السجلّ',
+      one: 'يوم واحد في السجلّ',
+      zero: 'لا أيام بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get seedHistoryEmpty => 'لا سجلّ بعد';
+
+  @override
+  String get seedHistoryEmptyBody => 'سجّل مرة واحدة وسيمتلئ هذا.';
+
+  @override
+  String get seedGone => 'هذه البذرة لم تعد موجودة';
+
+  @override
+  String get seedGoneBody => 'حُذفت، فلم يبقَ ما يُعرض.';
+
+  @override
+  String get streakLabel => 'السلسلة';
+
+  @override
+  String get bestLabel => 'الأفضل';
+
+  @override
+  String get daysLoggedLabel => 'أيام';
+
+  @override
+  String get unitsLabel => 'وحدات';
+
+  @override
+  String get checkInsLabel => 'تسجيلات';
+
+  @override
+  String dayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+      zero: 'لا أيام',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String unitsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count وحدات',
+      two: 'وحدتان',
+      one: 'وحدة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checkedIn => 'تم التسجيل';
+
+  @override
+  String get noteOnlyDay => 'ملاحظة فقط';
+
+  @override
+  String runStripLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام نشطة في الأسابيع الثمانية الأخيرة',
+      two: 'يومان نشطان في الأسابيع الثمانية الأخيرة',
+      one: 'يوم نشط واحد في الأسابيع الثمانية الأخيرة',
+      zero: 'لا أيام نشطة في الأسابيع الثمانية الأخيرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get comebackDay1Title => 'حقلك ينتظرك 🌱';
+
+  @override
+  String get comebackDay1Body =>
+      'يوم هادئ واحد لا أكثر. اسقِ شيئًا واحدًا وتستمر السلسلة.';
+
+  @override
+  String get comebackDay3Title => 'ثلاثة أيام بلا سقاية';
+
+  @override
+  String get comebackDay3Body => 'التربة ما زالت طيّبة. ابدأ بأسهل بذرة عندك.';
+
+  @override
+  String get comebackWeek1Title => 'أسبوع بعيدًا 🌾';
+
+  @override
+  String get comebackWeek1Body =>
+      'أفضل سلسلة لك ما زالت مسجّلة. تسجيل واحد يبدأ التالية.';
+
+  @override
+  String get comebackWeek2Title => 'أسبوعان من الهدوء';
+
+  @override
+  String get comebackWeek2Body =>
+      'لم يضع شيء — سجلّك في مكانه تمامًا كما تركته.';
+
+  @override
+  String get comebackMonth1Title => 'شهر من أرض بور';
+
+  @override
+  String get comebackMonth1Body =>
+      'لا لوم ولا تعويض. افتح Harvest وازرع شيئًا واحدًا لليوم.';
+
+  @override
+  String get comebackMonth2Title => 'ما زلنا هنا متى عدت';
+
+  @override
+  String get comebackMonth2Body =>
+      'كل بذرة وكل تسجيل وكل رقم ما زال على هاتفك.';
+
+  @override
+  String get widgetTitle => 'أداة الشاشة الرئيسية';
+
+  @override
+  String get widgetBody =>
+      'سلسلتك وحقل اليوم على الشاشة الرئيسية. أضفها من منتقي الأدوات في المشغّل.';
+
+  @override
+  String get widgetStreakLabel => 'يوم متتالٍ';
+
+  @override
+  String get widgetTasksLabel => 'اليوم';
+
+  @override
+  String get widgetEmpty => 'لا شيء مستحق اليوم';
+
+  @override
+  String get loadingTagline => 'ازرع يومك.';
+
+  @override
+  String get widgetRefresh => 'حدّثها الآن';
 }

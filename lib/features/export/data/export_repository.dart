@@ -23,6 +23,7 @@ class ExportRepository {
   Future<ExportData> read({DateTime? generatedAt}) async {
     final seeds = await _db.select(_db.commitments).get();
     final checkIns = await _db.select(_db.checkIns).get();
+    final seedNotes = await _db.select(_db.seedNotes).get();
     final expenses = await _db.select(_db.expenses).get();
     final money = await _db.select(_db.moneyTxns).get();
     final debts = await _db.select(_db.debts).get();
@@ -49,6 +50,7 @@ class ExportRepository {
             row.deadline,
             _at(row.pausedAt),
             _at(row.archivedAt),
+            row.archiveNote,
             _at(row.deletedAt),
             _at(row.createdAt),
             _at(row.updatedAt),
@@ -61,6 +63,17 @@ class ExportRepository {
             row.commitmentUuid,
             row.harvestDay,
             row.quantity,
+            _at(row.loggedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      seedNotes: [
+        for (final row in seedNotes)
+          [
+            row.uuid,
+            row.commitmentUuid,
+            row.harvestDay,
+            row.body,
             _at(row.loggedAt),
             _at(row.deletedAt),
           ],

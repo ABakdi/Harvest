@@ -39,6 +39,7 @@ void main() {
     String? dueDay,
     int? totalTarget,
     int? dailyCommitment,
+    DateTime? createdAt,
   }) => db
       .into(db.commitments)
       .insert(
@@ -51,6 +52,9 @@ void main() {
           dueDay: Value(dueDay),
           totalTarget: Value(totalTarget),
           dailyCommitment: Value(dailyCommitment),
+          // Planted well before the day these tests plan for: a seed is
+          // never due on a day that ended before it existed.
+          createdAt: Value(createdAt ?? DateTime(2026)),
         ),
       );
 
@@ -86,7 +90,7 @@ void main() {
             );
         await planner.planToday(now: DateTime(2026, 9, 3, 6));
 
-        expect(gateway.ids, [
+        expect(gateway.ids.where(ReminderIds.rituals.contains), [
           ReminderIds.morning,
           ReminderIds.eveningPlan,
           ReminderIds.streakRisk,

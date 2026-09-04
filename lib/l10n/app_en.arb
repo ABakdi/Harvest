@@ -752,5 +752,103 @@
   },
   "exportFailedPermission": "Harvest was not allowed to write to Downloads.",
   "exportFailedUnsupported": "Exporting is only available on Android for now.",
-  "exportFailed": "The export did not finish. Try again."
+  "exportFailed": "The export did not finish. Try again.",
+  "deleteAction": "Delete",
+  "restoreAction": "Restore",
+  "reminderRingsIn": "rings in {time}",
+  "@reminderRingsIn": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "reminderNow": "Ringing now",
+  "editExpense": "Edit expense",
+  "deleteExpenseTitle": "Delete this expense?",
+  "deleteExpenseBody": "{amount} will be removed from the day, and any wallet withdrawal it made will be refunded.",
+  "@deleteExpenseBody": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "archiveTitle": "Archive",
+  "archiveEmpty": "Nothing put away yet",
+  "archiveEmptyBody": "Seeds you archive land here, with the note that says why.",
+  "archiveSheetBody": "Put {title} away. Its history stays.",
+  "@archiveSheetBody": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "archiveNoteLabel": "Why are you archiving it?",
+  "archiveNoteHint": "Finished it — on to the next one",
+  "archiveKeepsHistory": "Keeps every check-in",
+  "archivedOn": "Archived {day}",
+  "@archivedOn": {
+    "placeholders": { "day": { "type": "String" } }
+  },
+  "restoredToField": "{title} is back on the field",
+  "@restoredToField": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "deleteSeedTitle": "Delete this seed?",
+  "deleteSeedBody": "{title}, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.",
+  "@deleteSeedBody": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "deleteSeedSubtitle": "Gone for good, history and all",
+  "seedNotesTitle": "Notes",
+  "seedNotesSubtitle": "Where you left off today",
+  "seedNotesSheetSubtitle": "Today's note, and the last one",
+  "seedNotesExplainer": "A fresh note every day. Yesterday's stays in the history.",
+  "seedNoteHint": "Stopped on page 143",
+  "noteForDay": "Note for {day}",
+  "@noteForDay": {
+    "placeholders": { "day": { "type": "String" } }
+  },
+  "lastTimeOn": "Last time · {day}",
+  "@lastTimeOn": {
+    "placeholders": { "day": { "type": "String" } }
+  },
+  "seedHistoryTitle": "History",
+  "seedHistorySheetSubtitle": "Every day, and what you wrote",
+  "seedHistorySubtitle": "{count, plural, =0{No days yet} =1{1 day on record} other{{count} days on record}}",
+  "@seedHistorySubtitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "seedHistoryEmpty": "No history yet",
+  "seedHistoryEmptyBody": "Check in once and this fills up.",
+  "seedGone": "This seed is gone",
+  "seedGoneBody": "It was deleted, so there is nothing left to show.",
+  "streakLabel": "Streak",
+  "bestLabel": "Best",
+  "daysLoggedLabel": "Days",
+  "unitsLabel": "Units",
+  "checkInsLabel": "Check-ins",
+  "dayCount": "{count, plural, =0{no days} =1{1 day} other{{count} days}}",
+  "@dayCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "unitsLogged": "{count, plural, =1{1 unit logged} other{{count} units logged}}",
+  "@unitsLogged": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "checkedIn": "Checked in",
+  "noteOnlyDay": "Note only",
+  "runStripLabel": "{count, plural, =0{No active days in the last eight weeks} =1{1 active day in the last eight weeks} other{{count} active days in the last eight weeks}}",
+  "@runStripLabel": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "comebackDay1Title": "Your field is waiting 🌱",
+  "comebackDay1Body": "One quiet day, that's all. Water something and the streak keeps going.",
+  "comebackDay3Title": "Three days without water",
+  "comebackDay3Body": "The soil is still good. Pick the easiest seed and start there.",
+  "comebackWeek1Title": "A week away 🌾",
+  "comebackWeek1Body": "Your best streak is still on record. A single check-in starts the next one.",
+  "comebackWeek2Title": "Two weeks quiet",
+  "comebackWeek2Body": "Nothing here is lost — your history is exactly where you left it.",
+  "comebackMonth1Title": "A month of fallow ground",
+  "comebackMonth1Body": "No guilt, no catching up. Open Harvest and plant one thing for today.",
+  "comebackMonth2Title": "Still here whenever you are",
+  "comebackMonth2Body": "Every seed, every check-in and every number is still on your phone.",
+  "widgetTitle": "Home-screen widget",
+  "widgetBody": "Your streak and today's field on the home screen. Add it from the launcher's widget picker.",
+  "widgetStreakLabel": "day streak",
+  "widgetTasksLabel": "today",
+  "widgetEmpty": "Nothing due today",
+  "loadingTagline": "Cultivate your day.",
+  "widgetRefresh": "Refresh it now"
 }

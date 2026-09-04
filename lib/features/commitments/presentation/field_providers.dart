@@ -1,5 +1,6 @@
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
+import 'package:harvest/features/commitments/data/seed_notes_repository.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -16,6 +17,19 @@ Stream<List<Commitment>> activeCommitments(Ref ref) =>
 Stream<Map<String, int>> loggedToday(Ref ref) => ref
     .watch(commitmentsRepositoryProvider)
     .watchLoggedOn(ref.watch(currentHarvestDayProvider));
+
+/// Today's note per seed, so a card can show where I left off without
+/// anyone opening a sheet.
+@riverpod
+Stream<Map<String, String>> todayNotes(Ref ref) {
+  final day = ref.watch(currentHarvestDayProvider);
+  return ref
+      .watch(seedNotesRepositoryProvider)
+      .watchNotesOn(day)
+      .map(
+        (notes) => {for (final note in notes) note.commitmentUuid: note.body},
+      );
+}
 
 @riverpod
 Stream<Map<String, int>> lifetimeTotals(Ref ref) =>

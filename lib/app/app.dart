@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/app/bootstrap.dart';
 import 'package:harvest/app/router.dart';
+import 'package:harvest/app/splash_screen.dart';
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/core/ui/tokens.dart';
@@ -13,6 +14,7 @@ import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/security/domain/app_lock.dart';
 import 'package:harvest/features/security/presentation/lock_gate.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
+import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Gentle bounce at list edges everywhere — never the stretch effect
@@ -50,6 +52,11 @@ class HarvestApp extends ConsumerStatefulWidget {
 class _HarvestAppState extends ConsumerState<HarvestApp> {
   AppLifecycleListener? _lifecycle;
 
+  /// The splash leaves when the tree has finished growing *and* startup
+  /// has landed — whichever is slower. Startup is local and usually
+  /// wins, so what is normally being waited on is the animation.
+  var _grown = false;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +79,7 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
     try {
       await ref.read(streakServiceProvider).reconcile();
       await ref.read(notificationPlannerProvider).planToday();
+      await ref.read(widgetServiceProvider).refresh();
     } on Object catch (error) {
       ref.read(bootstrapStatusProvider.notifier).report('resume', error);
     }
@@ -94,13 +102,20 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
 
     // Until the day is judged, nothing is tappable: a check-in on an
     // un-reconciled streak would count against the wrong day.
-    if (booted.isLoading) {
+    if (booted.isLoading || !_grown) {
       return MaterialApp(
         theme: HarvestTheme.light(preset),
         darkTheme: HarvestTheme.dark(preset),
         themeMode: themeMode,
         debugShowCheckedModeBanner: false,
-        home: const Scaffold(body: SizedBox.expand()),
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SplashScreen(
+          onGrown: () {
+            if (mounted && !_grown) setState(() => _grown = true);
+          },
+        ),
       );
     }
     return MaterialApp.router(

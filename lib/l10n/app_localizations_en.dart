@@ -1167,4 +1167,251 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportFailed => 'The export did not finish. Try again.';
+
+  @override
+  String get deleteAction => 'Delete';
+
+  @override
+  String get restoreAction => 'Restore';
+
+  @override
+  String reminderRingsIn(String time) {
+    return 'rings in $time';
+  }
+
+  @override
+  String get reminderNow => 'Ringing now';
+
+  @override
+  String get editExpense => 'Edit expense';
+
+  @override
+  String get deleteExpenseTitle => 'Delete this expense?';
+
+  @override
+  String deleteExpenseBody(String amount) {
+    return '$amount will be removed from the day, and any wallet withdrawal it made will be refunded.';
+  }
+
+  @override
+  String get archiveTitle => 'Archive';
+
+  @override
+  String get archiveEmpty => 'Nothing put away yet';
+
+  @override
+  String get archiveEmptyBody =>
+      'Seeds you archive land here, with the note that says why.';
+
+  @override
+  String archiveSheetBody(String title) {
+    return 'Put $title away. Its history stays.';
+  }
+
+  @override
+  String get archiveNoteLabel => 'Why are you archiving it?';
+
+  @override
+  String get archiveNoteHint => 'Finished it — on to the next one';
+
+  @override
+  String get archiveKeepsHistory => 'Keeps every check-in';
+
+  @override
+  String archivedOn(String day) {
+    return 'Archived $day';
+  }
+
+  @override
+  String restoredToField(String title) {
+    return '$title is back on the field';
+  }
+
+  @override
+  String get deleteSeedTitle => 'Delete this seed?';
+
+  @override
+  String deleteSeedBody(String title) {
+    return '$title, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.';
+  }
+
+  @override
+  String get deleteSeedSubtitle => 'Gone for good, history and all';
+
+  @override
+  String get seedNotesTitle => 'Notes';
+
+  @override
+  String get seedNotesSubtitle => 'Where you left off today';
+
+  @override
+  String get seedNotesSheetSubtitle => 'Today\'s note, and the last one';
+
+  @override
+  String get seedNotesExplainer =>
+      'A fresh note every day. Yesterday\'s stays in the history.';
+
+  @override
+  String get seedNoteHint => 'Stopped on page 143';
+
+  @override
+  String noteForDay(String day) {
+    return 'Note for $day';
+  }
+
+  @override
+  String lastTimeOn(String day) {
+    return 'Last time · $day';
+  }
+
+  @override
+  String get seedHistoryTitle => 'History';
+
+  @override
+  String get seedHistorySheetSubtitle => 'Every day, and what you wrote';
+
+  @override
+  String seedHistorySubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days on record',
+      one: '1 day on record',
+      zero: 'No days yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get seedHistoryEmpty => 'No history yet';
+
+  @override
+  String get seedHistoryEmptyBody => 'Check in once and this fills up.';
+
+  @override
+  String get seedGone => 'This seed is gone';
+
+  @override
+  String get seedGoneBody =>
+      'It was deleted, so there is nothing left to show.';
+
+  @override
+  String get streakLabel => 'Streak';
+
+  @override
+  String get bestLabel => 'Best';
+
+  @override
+  String get daysLoggedLabel => 'Days';
+
+  @override
+  String get unitsLabel => 'Units';
+
+  @override
+  String get checkInsLabel => 'Check-ins';
+
+  @override
+  String dayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+      zero: 'no days',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String unitsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units logged',
+      one: '1 unit logged',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checkedIn => 'Checked in';
+
+  @override
+  String get noteOnlyDay => 'Note only';
+
+  @override
+  String runStripLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active days in the last eight weeks',
+      one: '1 active day in the last eight weeks',
+      zero: 'No active days in the last eight weeks',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get comebackDay1Title => 'Your field is waiting 🌱';
+
+  @override
+  String get comebackDay1Body =>
+      'One quiet day, that\'s all. Water something and the streak keeps going.';
+
+  @override
+  String get comebackDay3Title => 'Three days without water';
+
+  @override
+  String get comebackDay3Body =>
+      'The soil is still good. Pick the easiest seed and start there.';
+
+  @override
+  String get comebackWeek1Title => 'A week away 🌾';
+
+  @override
+  String get comebackWeek1Body =>
+      'Your best streak is still on record. A single check-in starts the next one.';
+
+  @override
+  String get comebackWeek2Title => 'Two weeks quiet';
+
+  @override
+  String get comebackWeek2Body =>
+      'Nothing here is lost — your history is exactly where you left it.';
+
+  @override
+  String get comebackMonth1Title => 'A month of fallow ground';
+
+  @override
+  String get comebackMonth1Body =>
+      'No guilt, no catching up. Open Harvest and plant one thing for today.';
+
+  @override
+  String get comebackMonth2Title => 'Still here whenever you are';
+
+  @override
+  String get comebackMonth2Body =>
+      'Every seed, every check-in and every number is still on your phone.';
+
+  @override
+  String get widgetTitle => 'Home-screen widget';
+
+  @override
+  String get widgetBody =>
+      'Your streak and today\'s field on the home screen. Add it from the launcher\'s widget picker.';
+
+  @override
+  String get widgetStreakLabel => 'day streak';
+
+  @override
+  String get widgetTasksLabel => 'today';
+
+  @override
+  String get widgetEmpty => 'Nothing due today';
+
+  @override
+  String get loadingTagline => 'Cultivate your day.';
+
+  @override
+  String get widgetRefresh => 'Refresh it now';
 }

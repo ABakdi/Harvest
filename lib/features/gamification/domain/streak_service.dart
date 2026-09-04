@@ -243,9 +243,11 @@ class StreakService {
   }
 
   /// Vacation mode and archiving only excuse the days after they were
-  /// switched on — pausing after a miss does not rewrite the miss.
+  /// switched on — pausing after a miss does not rewrite the miss. A
+  /// day that ended before the habit existed is not its day either.
   bool _wasActiveOn(CommitmentRow habit, HarvestDay day) {
     final dayEnd = day.next.startsAt;
+    if (HarvestDay.of(habit.createdAt).compareTo(day) > 0) return false;
     final pausedBefore =
         habit.pausedAt != null && habit.pausedAt!.isBefore(dayEnd);
     final archivedBefore =

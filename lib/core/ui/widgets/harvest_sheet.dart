@@ -16,11 +16,16 @@ class HarvestSheet extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onAction,
+    this.trailing,
     super.key,
   });
 
   final String title;
   final String? subtitle;
+
+  /// Sits beside the title — where a destructive action belongs, well
+  /// away from the confirm button at the foot of the form.
+  final Widget? trailing;
   final List<Widget> children;
 
   /// Label of the confirm button; omitted when null.
@@ -53,11 +58,18 @@ class HarvestSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                ?trailing,
+              ],
             ),
             if (subtitle != null)
               Padding(

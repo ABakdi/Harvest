@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:harvest/app/shell.dart';
 import 'package:harvest/features/calendar/presentation/calendar_screen.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
+import 'package:harvest/features/commitments/presentation/archive_screen.dart';
+import 'package:harvest/features/commitments/presentation/seed_detail_screen.dart';
 import 'package:harvest/features/field/field_screen.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart';
@@ -20,6 +22,10 @@ abstract final class AppRoutes {
   static const pomodoro = '/field/pomodoro';
   static const planner = '/field/planner';
   static const calendar = '/field/calendar';
+  static const archive = '/field/archive';
+
+  /// The seed detail screen; append the seed's uuid.
+  static const seed = '/field/seed';
   static const finances = '/finances';
   static const stats = '/stats';
   static const settings = '/settings';
@@ -77,6 +83,16 @@ GoRouter router(Ref ref) {
                   GoRoute(
                     path: 'calendar',
                     builder: (context, state) => const CalendarScreen(),
+                  ),
+                  GoRoute(
+                    path: 'archive',
+                    builder: (context, state) => const ArchiveScreen(),
+                  ),
+                  GoRoute(
+                    path: 'seed/:uuid',
+                    builder: (context, state) => SeedDetailScreen(
+                      uuid: state.pathParameters['uuid']!,
+                    ),
                   ),
                 ],
               ),

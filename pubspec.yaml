@@ -1,7 +1,7 @@
 name: harvest
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.9.5+5
+version: 0.9.6+6
 
 environment:
   sdk: ^3.13.2
@@ -20,6 +20,7 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^3.4.2
   go_router: ^18.0.0
+  home_widget: ^0.9.4
   http: ^1.6.0
   intl: ^0.20.3
   local_auth: ^3.0.2

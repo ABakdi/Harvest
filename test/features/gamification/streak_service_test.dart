@@ -23,6 +23,9 @@ void main() {
             type: 'habit',
             title: id,
             scheduleJson: const Value('{"type":"daily"}'),
+            // Planted before the days these tests judge: nothing is due
+            // on a day that ended before the seed existed.
+            createdAt: Value(DateTime(2026)),
           ),
         );
     return Commitment(

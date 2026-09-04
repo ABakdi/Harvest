@@ -16,6 +16,7 @@ import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/security/presentation/app_lock_card.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
+import 'package:harvest/features/widget/presentation/widget_card.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Settings, in the order they matter: the goal, the reminders, the
@@ -134,6 +135,8 @@ class SettingsScreen extends ConsumerWidget {
           const AppLockCard(),
           SectionHeader(l10n.settingsData),
           const ExportCard(),
+          const SizedBox(height: HarvestSpacing.sm),
+          const WidgetCard(),
           SectionHeader(l10n.settingsAppearance),
           const _AppearanceCard(),
           if (startupProblem != null) ...[

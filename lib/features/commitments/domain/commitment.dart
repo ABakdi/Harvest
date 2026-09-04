@@ -21,6 +21,7 @@ class Commitment {
     this.deadline,
     this.pausedAt,
     this.archivedAt,
+    this.archiveNote,
   }) : assert(
          type != CommitmentType.habit || schedule != null,
          'habits need a schedule',
@@ -61,8 +62,16 @@ class Commitment {
 
   final DateTime? archivedAt;
 
+  /// Why it was archived, written at the moment it was put away.
+  final String? archiveNote;
+
   bool get isArchived => archivedAt != null;
   bool get isPaused => pausedAt != null;
+
+  /// The first Harvest Day this seed counts for. A seed planted today
+  /// is due from today forward and never backwards: the calendar must
+  /// not invent a history the seed never had.
+  HarvestDay get startDay => HarvestDay.of(createdAt);
 
   /// Over-log cap (business rule #2): max units for a project in one day.
   int get maxUnitsPerDay =>
@@ -78,6 +87,7 @@ class Commitment {
     String? remindAt,
     HarvestDay? deadline,
     DateTime? archivedAt,
+    String? archiveNote,
     bool clearNote = false,
     bool clearRemindAt = false,
     bool clearDeadline = false,
@@ -96,6 +106,7 @@ class Commitment {
     deadline: clearDeadline ? null : deadline ?? this.deadline,
     pausedAt: pausedAt,
     archivedAt: archivedAt ?? this.archivedAt,
+    archiveNote: archiveNote ?? this.archiveNote,
   );
 }
 

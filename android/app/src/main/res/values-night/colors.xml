@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The launch window is the brand green in both modes: the splash
+         itself is the same gradient whatever theme the app is set to. -->
+    <color name="launch_background">#1F8A46</color>
+</resources>

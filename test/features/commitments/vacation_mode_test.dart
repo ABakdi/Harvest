@@ -37,6 +37,7 @@ void main() {
       type: CommitmentType.habit,
       title: 'Exercise',
       schedule: const DailySchedule(),
+      createdAt: DateTime(2026),
     );
     // Build a 1-day streak on the 1st.
     await checkIns.checkIn(habit, day: HarvestDay.parse('2026-09-01'));
@@ -73,6 +74,7 @@ void main() {
       type: CommitmentType.habit,
       title: 'Exercise',
       schedule: const DailySchedule(),
+      createdAt: DateTime(2026),
     );
     await checkIns.checkIn(habit, day: HarvestDay.parse('2026-09-01'));
     await setLastJudged('2026-09-01');

@@ -108,6 +108,28 @@ extension HarvestThemeX on ThemeData {
       LinearGradient(colors: [colorScheme.primary, colorScheme.tertiary]);
 }
 
+/// The brand green, straight off the launcher icon.
+///
+/// The five presets recolour the app; they do not recolour Harvest
+/// itself. The icon, the splash and the home-screen widget all wear
+/// this one gradient so the app looks like itself before any of its
+/// settings have been read.
+abstract final class HarvestBrand {
+  static const deep = Color(0xFF1F8A46);
+  static const mid = Color(0xFF4FB54C);
+  static const light = Color(0xFF8AD84E);
+
+  /// The olive's own dark green — fruit on the splash tree.
+  static const olive = Color(0xFF17492C);
+
+  static const gradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [deep, mid, light],
+    stops: [0, 0.55, 1],
+  );
+}
+
 abstract final class HarvestSpacing {
   static const double xs = 4;
   static const double sm = 8;

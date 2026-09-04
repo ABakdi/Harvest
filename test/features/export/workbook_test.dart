@@ -15,19 +15,21 @@ void main() {
     List<List<Object?>> debtPayments = const [],
     List<List<Object?>> seeds = const [],
     List<List<Object?>> checkIns = const [],
+    List<List<Object?>> seedNotes = const [],
     List<List<Object?>> ledger = const [],
   }) => (
     generatedAt: DateTime.utc(2026, 9, 4, 18, 30),
     seeds: seeds,
     checkIns: checkIns,
+    seedNotes: seedNotes,
     expenses: expenses,
     money: money,
     debts: debts,
     debtPayments: debtPayments,
-    focus: const [],
+    focus: const <List<Object?>>[],
     ledger: ledger,
-    streaks: const [],
-    settings: const [],
+    streaks: const <List<Object?>>[],
+    settings: const <List<Object?>>[],
   );
 
   ExportSheet sheetNamed(List<ExportSheet> sheets, String name) =>
@@ -77,6 +79,7 @@ void main() {
         SheetNames.summary,
         SheetNames.seeds,
         SheetNames.checkIns,
+        SheetNames.seedNotes,
         SheetNames.expenses,
         SheetNames.money,
         SheetNames.debts,

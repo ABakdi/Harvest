@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <g fill="#fff">
+  <path d="M 312.8 711.2 C 416.4 567.8, 567.8 416.4, 711.2 312.8" fill="none" stroke="#fff" stroke-width="49.8" stroke-linecap="round"/>
+  <path d="M -99.6 0 Q 0 -41.8 99.6 0 Q 0 41.8 -99.6 0 Z" transform="translate(471.3 400.9) rotate(-105.0)"/>
+  <path d="M -103.6 0 Q 0 -43.5 103.6 0 Q 0 43.5 -103.6 0 Z" transform="translate(650.5 475.2) rotate(17.2)"/>
+  <path d="M -101.6 0 Q 0 -42.7 101.6 0 Q 0 42.7 -101.6 0 Z" transform="translate(588.7 295.0) rotate(-100.6)"/>
+  <path d="M -93.6 0 Q 0 -39.3 93.6 0 Q 0 39.3 -93.6 0 Z" transform="translate(750.5 383.5) rotate(21.9)"/>
+  <path d="M -81.7 0 Q 0 -34.3 81.7 0 Q 0 34.3 -81.7 0 Z" transform="translate(702.9 231.6) rotate(-95.8)"/>
+  <line x1="332.0" y1="685.3" x2="430.8" y2="723.5" stroke="#fff" stroke-width="19.9" stroke-linecap="round"/>
+  <ellipse cx="430.8" cy="723.5" rx="43.8" ry="49.1" transform="rotate(111.1 430.8 723.5)"/>
+  <line x1="394.9" y1="607.3" x2="510.1" y2="660.0" stroke="#fff" stroke-width="19.9" stroke-linecap="round"/>
+  <ellipse cx="510.1" cy="660.0" rx="43.8" ry="49.1" transform="rotate(114.6 510.1 660.0)"/>
+  <line x1="464.5" y1="530.4" x2="558.3" y2="579.6" stroke="#fff" stroke-width="19.9" stroke-linecap="round"/>
+  <ellipse cx="558.3" cy="579.6" rx="43.8" ry="49.1" transform="rotate(117.7 558.3 579.6)"/>
+  </g>
+</svg>

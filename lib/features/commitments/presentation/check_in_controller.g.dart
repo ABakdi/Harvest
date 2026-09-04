@@ -47,7 +47,7 @@ final class CheckInControllerProvider
   }
 }
 
-String _$checkInControllerHash() => r'3a3ad8f31e9fdc146aa8e76daffd26011ec31f11';
+String _$checkInControllerHash() => r'a32976edfe4a6d563d2c4bf774f17898e0cf6f2d';
 
 /// Check-ins from the UI. The state is the in-flight write: the field
 /// disables taps while it is loading and shows the error when it fails.
@@ -109,7 +109,7 @@ final class CommitmentEditorProvider
   }
 }
 
-String _$commitmentEditorHash() => r'b67bcfed1f9a767f20d22701c74e324ad52aa1bc';
+String _$commitmentEditorHash() => r'5f046424eb3a127fceaac8cd81a9e95ad2c69adb';
 
 /// Creates, edits, pauses and archives seeds. Every write replans the
 /// reminders; a newly set reminder time asks the OS once for permission.

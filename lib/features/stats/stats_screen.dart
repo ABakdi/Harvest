@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:harvest/app/router.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
@@ -140,6 +144,13 @@ class StatsScreen extends ConsumerWidget {
                             streaks[habit.uuid]?.current ?? 0,
                             streaks[habit.uuid]?.best ?? 0,
                           ),
+                        ),
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        onTap: () => unawaited(
+                          context.push('${AppRoutes.field}/seed/${habit.uuid}'),
                         ),
                       ),
                     ),

@@ -2041,6 +2041,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The export did not finish. Try again.'**
   String get exportFailed;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteAction;
+
+  /// No description provided for @restoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreAction;
+
+  /// No description provided for @reminderRingsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'rings in {time}'**
+  String reminderRingsIn(String time);
+
+  /// No description provided for @reminderNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Ringing now'**
+  String get reminderNow;
+
+  /// No description provided for @editExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit expense'**
+  String get editExpense;
+
+  /// No description provided for @deleteExpenseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this expense?'**
+  String get deleteExpenseTitle;
+
+  /// No description provided for @deleteExpenseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} will be removed from the day, and any wallet withdrawal it made will be refunded.'**
+  String deleteExpenseBody(String amount);
+
+  /// No description provided for @archiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archiveTitle;
+
+  /// No description provided for @archiveEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing put away yet'**
+  String get archiveEmpty;
+
+  /// No description provided for @archiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeds you archive land here, with the note that says why.'**
+  String get archiveEmptyBody;
+
+  /// No description provided for @archiveSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Put {title} away. Its history stays.'**
+  String archiveSheetBody(String title);
+
+  /// No description provided for @archiveNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you archiving it?'**
+  String get archiveNoteLabel;
+
+  /// No description provided for @archiveNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished it — on to the next one'**
+  String get archiveNoteHint;
+
+  /// No description provided for @archiveKeepsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps every check-in'**
+  String get archiveKeepsHistory;
+
+  /// No description provided for @archivedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived {day}'**
+  String archivedOn(String day);
+
+  /// No description provided for @restoredToField.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} is back on the field'**
+  String restoredToField(String title);
+
+  /// No description provided for @deleteSeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this seed?'**
+  String get deleteSeedTitle;
+
+  /// No description provided for @deleteSeedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{title}, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.'**
+  String deleteSeedBody(String title);
+
+  /// No description provided for @deleteSeedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gone for good, history and all'**
+  String get deleteSeedSubtitle;
+
+  /// No description provided for @seedNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get seedNotesTitle;
+
+  /// No description provided for @seedNotesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where you left off today'**
+  String get seedNotesSubtitle;
+
+  /// No description provided for @seedNotesSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s note, and the last one'**
+  String get seedNotesSheetSubtitle;
+
+  /// No description provided for @seedNotesExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'A fresh note every day. Yesterday\'s stays in the history.'**
+  String get seedNotesExplainer;
+
+  /// No description provided for @seedNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped on page 143'**
+  String get seedNoteHint;
+
+  /// No description provided for @noteForDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for {day}'**
+  String noteForDay(String day);
+
+  /// No description provided for @lastTimeOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time · {day}'**
+  String lastTimeOn(String day);
+
+  /// No description provided for @seedHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get seedHistoryTitle;
+
+  /// No description provided for @seedHistorySheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day, and what you wrote'**
+  String get seedHistorySheetSubtitle;
+
+  /// No description provided for @seedHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No days yet} =1{1 day on record} other{{count} days on record}}'**
+  String seedHistorySubtitle(int count);
+
+  /// No description provided for @seedHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet'**
+  String get seedHistoryEmpty;
+
+  /// No description provided for @seedHistoryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in once and this fills up.'**
+  String get seedHistoryEmptyBody;
+
+  /// No description provided for @seedGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This seed is gone'**
+  String get seedGone;
+
+  /// No description provided for @seedGoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It was deleted, so there is nothing left to show.'**
+  String get seedGoneBody;
+
+  /// No description provided for @streakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get streakLabel;
+
+  /// No description provided for @bestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get bestLabel;
+
+  /// No description provided for @daysLoggedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get daysLoggedLabel;
+
+  /// No description provided for @unitsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Units'**
+  String get unitsLabel;
+
+  /// No description provided for @checkInsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get checkInsLabel;
+
+  /// No description provided for @dayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no days} =1{1 day} other{{count} days}}'**
+  String dayCount(int count);
+
+  /// No description provided for @unitsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unit logged} other{{count} units logged}}'**
+  String unitsLogged(int count);
+
+  /// No description provided for @checkedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get checkedIn;
+
+  /// No description provided for @noteOnlyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Note only'**
+  String get noteOnlyDay;
+
+  /// No description provided for @runStripLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No active days in the last eight weeks} =1{1 active day in the last eight weeks} other{{count} active days in the last eight weeks}}'**
+  String runStripLabel(int count);
+
+  /// No description provided for @comebackDay1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your field is waiting 🌱'**
+  String get comebackDay1Title;
+
+  /// No description provided for @comebackDay1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'One quiet day, that\'s all. Water something and the streak keeps going.'**
+  String get comebackDay1Body;
+
+  /// No description provided for @comebackDay3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Three days without water'**
+  String get comebackDay3Title;
+
+  /// No description provided for @comebackDay3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'The soil is still good. Pick the easiest seed and start there.'**
+  String get comebackDay3Body;
+
+  /// No description provided for @comebackWeek1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'A week away 🌾'**
+  String get comebackWeek1Title;
+
+  /// No description provided for @comebackWeek1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best streak is still on record. A single check-in starts the next one.'**
+  String get comebackWeek1Body;
+
+  /// No description provided for @comebackWeek2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks quiet'**
+  String get comebackWeek2Title;
+
+  /// No description provided for @comebackWeek2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here is lost — your history is exactly where you left it.'**
+  String get comebackWeek2Body;
+
+  /// No description provided for @comebackMonth1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'A month of fallow ground'**
+  String get comebackMonth1Title;
+
+  /// No description provided for @comebackMonth1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'No guilt, no catching up. Open Harvest and plant one thing for today.'**
+  String get comebackMonth1Body;
+
+  /// No description provided for @comebackMonth2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Still here whenever you are'**
+  String get comebackMonth2Title;
+
+  /// No description provided for @comebackMonth2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Every seed, every check-in and every number is still on your phone.'**
+  String get comebackMonth2Body;
+
+  /// No description provided for @widgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-screen widget'**
+  String get widgetTitle;
+
+  /// No description provided for @widgetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak and today\'s field on the home screen. Add it from the launcher\'s widget picker.'**
+  String get widgetBody;
+
+  /// No description provided for @widgetStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'day streak'**
+  String get widgetStreakLabel;
+
+  /// No description provided for @widgetTasksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get widgetTasksLabel;
+
+  /// No description provided for @widgetEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due today'**
+  String get widgetEmpty;
+
+  /// No description provided for @loadingTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Cultivate your day.'**
+  String get loadingTagline;
+
+  /// No description provided for @widgetRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh it now'**
+  String get widgetRefresh;
 }
 
 class _AppLocalizationsDelegate

@@ -16,7 +16,10 @@ class CropCard extends StatelessWidget {
     this.onOptions,
     this.progress,
     this.urgent = false,
+    this.note,
+    this.dayNote,
     this.extra,
+    this.reminder,
     this.busy = false,
     super.key,
   });
@@ -36,8 +39,18 @@ class CropCard extends StatelessWidget {
   /// Tints the subtitle in the error color (overdue deadline).
   final bool urgent;
 
-  /// Optional row under the subtitle (deadline countdown).
+  /// The seed's standing note — what it is about, shown on the card so
+  /// I do not have to open anything to remember it.
+  final String? note;
+
+  /// Today's note on this seed: where I left off, written today.
+  final String? dayNote;
+
+  /// Optional chip under the subtitle (deadline countdown).
   final Widget? extra;
+
+  /// Optional chip: the live countdown to this seed's reminder.
+  final Widget? reminder;
 
   /// A write is in flight: taps are ignored until it lands.
   final bool busy;
@@ -53,7 +66,7 @@ class CropCard extends StatelessWidget {
       button: true,
       enabled: !busy,
       label: '$title, ${done ? l10n.cropDone : l10n.cropPending}',
-      hint: subtitle,
+      hint: [subtitle, note, dayNote].nonNulls.join('. '),
       child: Card(
         margin: const EdgeInsets.only(bottom: HarvestSpacing.sm + 4),
         child: InkWell(
@@ -97,9 +110,26 @@ class CropCard extends StatelessWidget {
                           ),
                         ),
                       ],
-                      if (extra != null) ...[
-                        const SizedBox(height: 2),
-                        extra!,
+                      if (note != null && note!.isNotEmpty)
+                        _NoteLine(
+                          icon: Icons.sticky_note_2_outlined,
+                          text: note!,
+                          color: muted,
+                        ),
+                      if (dayNote != null && dayNote!.isNotEmpty)
+                        _NoteLine(
+                          icon: Icons.bookmark_outline,
+                          text: dayNote!,
+                          color: scheme.tertiary,
+                          emphasis: true,
+                        ),
+                      if (extra != null || reminder != null) ...[
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: HarvestSpacing.sm,
+                          runSpacing: 2,
+                          children: [?reminder, ?extra],
+                        ),
                       ],
                     ],
                   ),
@@ -179,6 +209,51 @@ class _Trailing extends StatelessWidget {
             duration: 350.ms,
             curve: Curves.elasticOut,
           ),
+    );
+  }
+}
+
+/// One quiet line of note text under a crop's subtitle. Two lines at
+/// most: the card is a reminder of the note, not the note itself.
+class _NoteLine extends StatelessWidget {
+  const _NoteLine({
+    required this.icon,
+    required this.text,
+    required this.color,
+    this.emphasis = false,
+  });
+
+  final IconData icon;
+  final String text;
+  final Color color;
+  final bool emphasis;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4, top: 1),
+            child: Icon(icon, size: 13, color: color),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: color,
+                fontWeight: emphasis ? FontWeight.w700 : null,
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

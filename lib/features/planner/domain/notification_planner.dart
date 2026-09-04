@@ -12,6 +12,7 @@ import 'package:harvest/features/commitments/domain/due.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/planner/domain/comeback.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -32,6 +33,10 @@ abstract final class ReminderIds {
   static const taskBase = 2100;
   static const debtBase = 3100;
 
+  /// The comeback ladder: at most one id per rung, well clear of the
+  /// snoozed copies that start at 5000.
+  static const comebackBase = 4100;
+
   /// How many per-item reminders a range holds before it would run
   /// into the next one.
   static const rangeSize = 1000;
@@ -48,6 +53,7 @@ abstract final class ReminderKeys {
 
   static const taskIds = 'reminders.taskIds';
   static const debtIds = 'reminders.debtIds';
+  static const comebackIds = 'reminders.comebackIds';
 }
 
 /// The defaults the rituals fall back to.
@@ -96,9 +102,14 @@ class NotificationPlanner {
         NotificationChannels.pomodoro: l10n.channelPomodoro,
       };
 
+    final lastActive = await _lastActiveDay(at);
+    final comebackToday =
+        rungOn(lastActive, _dayOf(at)) != null && !await _activeOn(_dayOf(at));
+
     if (await _settings.getBool(ReminderKeys.enabled) ?? false) {
-      await _planRituals(at, l10n);
+      await _planRituals(at, l10n, skipMorning: comebackToday);
     }
+    await _planComebacks(at, l10n, lastActive);
     await _planTaskReminders(at, l10n);
     await _planDebtReminders(at, l10n);
     await SnoozeStore(_db).reapply(_notifications, now: at);
@@ -117,6 +128,7 @@ class NotificationPlanner {
       await _notifications.cancel(ReminderIds.expenses);
     }
     await _planTaskReminders(at, l10n);
+    await _planComebacks(at, l10n, await _lastActiveDay(at));
   }
 
   /// The localized "remind me in…" actions every reminder carries.
@@ -128,13 +140,19 @@ class NotificationPlanner {
 
   /// Morning review, evening plan, expense check-in and the streak-risk
   /// nudge — the daily rituals behind the master switch.
-  Future<void> _planRituals(DateTime at, AppLocalizations l10n) async {
+  Future<void> _planRituals(
+    DateTime at,
+    AppLocalizations l10n, {
+    bool skipMorning = false,
+  }) async {
     final morning = _todayAt(
       await _settings.getTime(ReminderKeys.morningTime) ??
           ReminderDefaults.morning,
       at,
     );
-    if (morning.isAfter(at)) {
+    // A comeback nudge speaks at the same hour and says more; two
+    // notifications in the same minute would only spend the day's cap.
+    if (!skipMorning && morning.isAfter(at)) {
       await _notifications.schedule(
         id: ReminderIds.morning,
         channelId: NotificationChannels.reminders,
@@ -286,6 +304,118 @@ class NotificationPlanner {
       scheduled.add(id);
     }
     await _storeIds(ReminderKeys.taskIds, scheduled);
+  }
+
+  /// The comeback ladder (checkpoint C3-8): one nudge per rung of
+  /// absence, scheduled ahead so it fires whether or not the app is
+  /// ever opened again, and wiped the moment anything is logged.
+  ///
+  /// It is deliberately outside the master reminder switch in only one
+  /// direction: turning reminders off silences it too, because this is
+  /// a ritual, not a time I asked for.
+  Future<void> _planComebacks(
+    DateTime at,
+    AppLocalizations l10n,
+    HarvestDay lastActive,
+  ) async {
+    await _cancelStored(ReminderKeys.comebackIds);
+    if (!(await _settings.getBool(ReminderKeys.enabled) ?? false)) {
+      await _storeIds(ReminderKeys.comebackIds, const []);
+      return;
+    }
+
+    final time =
+        await _settings.getTime(ReminderKeys.morningTime) ??
+        ReminderDefaults.morning;
+    final scheduled = <int>[];
+    for (final (rung, day) in upcomingComebacks(lastActive, _dayOf(at))) {
+      final when = DateTime(day.year, day.month, day.day, time.$1, time.$2);
+      if (!when.isAfter(at)) continue;
+      final id = ReminderIds.comebackBase + rung.index;
+      await _notifications.schedule(
+        id: id,
+        channelId: NotificationChannels.reminders,
+        title: _comebackTitle(l10n, rung),
+        body: _comebackBody(l10n, rung),
+        when: when,
+        alarm: false,
+        route: ReminderRoutes.field,
+        snoozeLabels: const [],
+      );
+      scheduled.add(id);
+    }
+    await _storeIds(ReminderKeys.comebackIds, scheduled);
+  }
+
+  /// The rotation: one voice per rung, warm at the top and plainer as
+  /// the silence grows. Never shame, per the notification spec.
+  static String _comebackTitle(AppLocalizations l10n, ComebackRung rung) =>
+      switch (rung) {
+        ComebackRung.day1 => l10n.comebackDay1Title,
+        ComebackRung.day3 => l10n.comebackDay3Title,
+        ComebackRung.week1 => l10n.comebackWeek1Title,
+        ComebackRung.week2 => l10n.comebackWeek2Title,
+        ComebackRung.month1 => l10n.comebackMonth1Title,
+        ComebackRung.month2 => l10n.comebackMonth2Title,
+      };
+
+  static String _comebackBody(AppLocalizations l10n, ComebackRung rung) =>
+      switch (rung) {
+        ComebackRung.day1 => l10n.comebackDay1Body,
+        ComebackRung.day3 => l10n.comebackDay3Body,
+        ComebackRung.week1 => l10n.comebackWeek1Body,
+        ComebackRung.week2 => l10n.comebackWeek2Body,
+        ComebackRung.month1 => l10n.comebackMonth1Body,
+        ComebackRung.month2 => l10n.comebackMonth2Body,
+      };
+
+  /// The last Harvest Day I did anything at all — checked a seed in or
+  /// logged an expense. With nothing on record the ladder starts from
+  /// the day the first seed was planted, so an app installed and then
+  /// forgotten still speaks up.
+  Future<HarvestDay> _lastActiveDay(DateTime at) async {
+    final today = _dayOf(at);
+    final checkIn =
+        await (_db.select(_db.checkIns)
+              ..where((c) => c.deletedAt.isNull())
+              ..orderBy([(c) => OrderingTerm.desc(c.harvestDay)])
+              ..limit(1))
+            .getSingleOrNull();
+    final expense =
+        await (_db.select(_db.expenses)
+              ..where((e) => e.deletedAt.isNull())
+              ..orderBy([(e) => OrderingTerm.desc(e.harvestDay)])
+              ..limit(1))
+            .getSingleOrNull();
+    final days = [
+      HarvestDay.tryParse(checkIn?.harvestDay),
+      HarvestDay.tryParse(expense?.harvestDay),
+    ].nonNulls.toList();
+    if (days.isNotEmpty) {
+      days.sort((a, b) => b.compareTo(a));
+      return days.first.compareTo(today) > 0 ? today : days.first;
+    }
+
+    final firstSeed =
+        await (_db.select(_db.commitments)
+              ..where((c) => c.deletedAt.isNull())
+              ..orderBy([(c) => OrderingTerm.asc(c.createdAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    return firstSeed == null ? today : HarvestDay.of(firstSeed.createdAt);
+  }
+
+  /// Anything logged on [day]: the comeback ladder's silencer.
+  Future<bool> _activeOn(HarvestDay day) async {
+    final checkIn =
+        await (_db.select(_db.checkIns)
+              ..where(
+                (c) => c.harvestDay.equals(day.key) & c.deletedAt.isNull(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    if (checkIn != null) return true;
+    return _expensesLogged(day);
   }
 
   // --------------------------------------------------------------- helpers

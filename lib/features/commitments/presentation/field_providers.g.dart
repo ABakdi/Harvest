@@ -95,6 +95,55 @@ final class LoggedTodayProvider
 
 String _$loggedTodayHash() => r'0ffc171389057535a9dc405d6a64d22630c2b5b4';
 
+/// Today's note per seed, so a card can show where I left off without
+/// anyone opening a sheet.
+
+@ProviderFor(todayNotes)
+final todayNotesProvider = TodayNotesProvider._();
+
+/// Today's note per seed, so a card can show where I left off without
+/// anyone opening a sheet.
+
+final class TodayNotesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, String>>,
+          Map<String, String>,
+          Stream<Map<String, String>>
+        >
+    with
+        $FutureModifier<Map<String, String>>,
+        $StreamProvider<Map<String, String>> {
+  /// Today's note per seed, so a card can show where I left off without
+  /// anyone opening a sheet.
+  TodayNotesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'todayNotesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$todayNotesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<String, String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<String, String>> create(Ref ref) {
+    return todayNotes(ref);
+  }
+}
+
+String _$todayNotesHash() => r'959f8844b23ec535697f0709b42580fd2073cf09';
+
 @ProviderFor(lifetimeTotals)
 final lifetimeTotalsProvider = LifetimeTotalsProvider._();
 

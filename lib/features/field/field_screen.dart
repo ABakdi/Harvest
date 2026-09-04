@@ -14,6 +14,7 @@ import 'package:harvest/core/ui/widgets/crop_card.dart';
 import 'package:harvest/core/ui/widgets/deadline_countdown.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
+import 'package:harvest/core/ui/widgets/reminder_countdown.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
@@ -35,6 +36,7 @@ import 'package:harvest/features/gamification/presentation/gamification_provider
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
@@ -60,6 +62,11 @@ class FieldScreen extends ConsumerWidget {
             tooltip: l10n.calendarTitle,
             icon: const Icon(Icons.calendar_month_outlined),
             onPressed: () => unawaited(context.push(AppRoutes.calendar)),
+          ),
+          IconButton(
+            tooltip: l10n.archiveTitle,
+            icon: const Icon(Icons.inventory_2_outlined),
+            onPressed: () => unawaited(context.push(AppRoutes.archive)),
           ),
           const MiniTimerChip(),
           Padding(
@@ -225,11 +232,22 @@ class _CropTile extends ConsumerWidget {
     final today = ref.watch(currentHarvestDayProvider);
     final busy = ref.watch(checkInControllerProvider).isLoading;
     final overdue = _overdue(today);
+    final dayNote = ref.watch(todayNotesProvider).value?[commitment.uuid];
+    final remindAt = SettingsRepository.parseTime(commitment.remindAt);
 
     return CropCard(
       title: commitment.title,
       subtitle: _subtitle(context, l10n, today, overdue),
       urgent: overdue,
+      note: commitment.note,
+      dayNote: dayNote,
+      reminder: remindAt == null
+          ? null
+          : ReminderCountdown(
+              hour: remindAt.$1,
+              minute: remindAt.$2,
+              silenced: item.isDone,
+            ),
       extra: commitment.deadline != null && !item.isDone && !overdue
           ? DeadlineCountdown(deadline: commitment.deadline!)
           : null,
@@ -286,10 +304,9 @@ class _CropTile extends ConsumerWidget {
         if (overdue && due != null) {
           return l10n.overdueBy(formatDay(context, due));
         }
-        return commitment.note ??
-            (due == null || due == today
-                ? l10n.dueToday
-                : l10n.plannedFor(formatDay(context, due)));
+        return due == null || due == today
+            ? l10n.dueToday
+            : l10n.plannedFor(formatDay(context, due));
     }
   }
 

@@ -131,6 +131,17 @@ class $CommitmentsTable extends Commitments
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _archiveNoteMeta = const VerificationMeta(
+    'archiveNote',
+  );
+  @override
+  late final GeneratedColumn<String> archiveNote = GeneratedColumn<String>(
+    'archive_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
   );
@@ -180,6 +191,7 @@ class $CommitmentsTable extends Commitments
     remindAt,
     deadline,
     archivedAt,
+    archiveNote,
     deletedAt,
     createdAt,
     updatedAt,
@@ -283,6 +295,15 @@ class $CommitmentsTable extends Commitments
         archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
       );
     }
+    if (data.containsKey('archive_note')) {
+      context.handle(
+        _archiveNoteMeta,
+        archiveNote.isAcceptableOrUnknown(
+          data['archive_note']!,
+          _archiveNoteMeta,
+        ),
+      );
+    }
     if (data.containsKey('deleted_at')) {
       context.handle(
         _deletedAtMeta,
@@ -358,6 +379,10 @@ class $CommitmentsTable extends Commitments
         DriftSqlType.dateTime,
         data['${effectivePrefix}archived_at'],
       ),
+      archiveNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}archive_note'],
+      ),
       deletedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
@@ -410,6 +435,10 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
   /// Accomplish-before day (yyyy-MM-dd); overdue seeds turn urgent.
   final String? deadline;
   final DateTime? archivedAt;
+
+  /// Why this seed was put away — written when it is archived, and the
+  /// only thing the archive can tell me later that the title cannot.
+  final String? archiveNote;
   final DateTime? deletedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -426,6 +455,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     this.remindAt,
     this.deadline,
     this.archivedAt,
+    this.archiveNote,
     this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
@@ -462,6 +492,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     }
     if (!nullToAbsent || archivedAt != null) {
       map['archived_at'] = Variable<DateTime>(archivedAt);
+    }
+    if (!nullToAbsent || archiveNote != null) {
+      map['archive_note'] = Variable<String>(archiveNote);
     }
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -501,6 +534,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       archivedAt: archivedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(archivedAt),
+      archiveNote: archiveNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveNote),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
@@ -527,6 +563,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       remindAt: serializer.fromJson<String?>(json['remindAt']),
       deadline: serializer.fromJson<String?>(json['deadline']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
+      archiveNote: serializer.fromJson<String?>(json['archiveNote']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -548,6 +585,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       'remindAt': serializer.toJson<String?>(remindAt),
       'deadline': serializer.toJson<String?>(deadline),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
+      'archiveNote': serializer.toJson<String?>(archiveNote),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -567,6 +605,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     Value<String?> remindAt = const Value.absent(),
     Value<String?> deadline = const Value.absent(),
     Value<DateTime?> archivedAt = const Value.absent(),
+    Value<String?> archiveNote = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -585,6 +624,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     remindAt: remindAt.present ? remindAt.value : this.remindAt,
     deadline: deadline.present ? deadline.value : this.deadline,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+    archiveNote: archiveNote.present ? archiveNote.value : this.archiveNote,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -611,6 +651,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       archivedAt: data.archivedAt.present
           ? data.archivedAt.value
           : this.archivedAt,
+      archiveNote: data.archiveNote.present
+          ? data.archiveNote.value
+          : this.archiveNote,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -632,6 +675,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           ..write('remindAt: $remindAt, ')
           ..write('deadline: $deadline, ')
           ..write('archivedAt: $archivedAt, ')
+          ..write('archiveNote: $archiveNote, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -653,6 +697,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     remindAt,
     deadline,
     archivedAt,
+    archiveNote,
     deletedAt,
     createdAt,
     updatedAt,
@@ -673,6 +718,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           other.remindAt == this.remindAt &&
           other.deadline == this.deadline &&
           other.archivedAt == this.archivedAt &&
+          other.archiveNote == this.archiveNote &&
           other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -691,6 +737,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
   final Value<String?> remindAt;
   final Value<String?> deadline;
   final Value<DateTime?> archivedAt;
+  final Value<String?> archiveNote;
   final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -708,6 +755,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.remindAt = const Value.absent(),
     this.deadline = const Value.absent(),
     this.archivedAt = const Value.absent(),
+    this.archiveNote = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -726,6 +774,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.remindAt = const Value.absent(),
     this.deadline = const Value.absent(),
     this.archivedAt = const Value.absent(),
+    this.archiveNote = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -746,6 +795,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Expression<String>? remindAt,
     Expression<String>? deadline,
     Expression<DateTime>? archivedAt,
+    Expression<String>? archiveNote,
     Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -764,6 +814,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       if (remindAt != null) 'remind_at': remindAt,
       if (deadline != null) 'deadline': deadline,
       if (archivedAt != null) 'archived_at': archivedAt,
+      if (archiveNote != null) 'archive_note': archiveNote,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -784,6 +835,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Value<String?>? remindAt,
     Value<String?>? deadline,
     Value<DateTime?>? archivedAt,
+    Value<String?>? archiveNote,
     Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -802,6 +854,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       remindAt: remindAt ?? this.remindAt,
       deadline: deadline ?? this.deadline,
       archivedAt: archivedAt ?? this.archivedAt,
+      archiveNote: archiveNote ?? this.archiveNote,
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -848,6 +901,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     if (archivedAt.present) {
       map['archived_at'] = Variable<DateTime>(archivedAt.value);
     }
+    if (archiveNote.present) {
+      map['archive_note'] = Variable<String>(archiveNote.value);
+    }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
@@ -878,6 +934,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
           ..write('remindAt: $remindAt, ')
           ..write('deadline: $deadline, ')
           ..write('archivedAt: $archivedAt, ')
+          ..write('archiveNote: $archiveNote, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -1354,6 +1411,480 @@ class CheckInsCompanion extends UpdateCompanion<CheckInRow> {
           ..write('commitmentUuid: $commitmentUuid, ')
           ..write('harvestDay: $harvestDay, ')
           ..write('quantity: $quantity, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SeedNotesTable extends SeedNotes
+    with TableInfo<$SeedNotesTable, SeedNoteRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SeedNotesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _commitmentUuidMeta = const VerificationMeta(
+    'commitmentUuid',
+  );
+  @override
+  late final GeneratedColumn<String> commitmentUuid = GeneratedColumn<String>(
+    'commitment_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES commitments (uuid)',
+    ),
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loggedAtMeta = const VerificationMeta(
+    'loggedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+    'logged_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    commitmentUuid,
+    harvestDay,
+    body,
+    loggedAt,
+    deletedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'seed_notes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SeedNoteRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('commitment_uuid')) {
+      context.handle(
+        _commitmentUuidMeta,
+        commitmentUuid.isAcceptableOrUnknown(
+          data['commitment_uuid']!,
+          _commitmentUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_commitmentUuidMeta);
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('logged_at')) {
+      context.handle(
+        _loggedAtMeta,
+        loggedAt.isAcceptableOrUnknown(data['logged_at']!, _loggedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  SeedNoteRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SeedNoteRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      commitmentUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}commitment_uuid'],
+      )!,
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      loggedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SeedNotesTable createAlias(String alias) {
+    return $SeedNotesTable(attachedDatabase, alias);
+  }
+}
+
+class SeedNoteRow extends DataClass implements Insertable<SeedNoteRow> {
+  final String uuid;
+  final String commitmentUuid;
+
+  /// The Harvest Day this note belongs to.
+  final String harvestDay;
+  final String body;
+  final DateTime loggedAt;
+  final DateTime? deletedAt;
+  final DateTime updatedAt;
+  const SeedNoteRow({
+    required this.uuid,
+    required this.commitmentUuid,
+    required this.harvestDay,
+    required this.body,
+    required this.loggedAt,
+    this.deletedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['commitment_uuid'] = Variable<String>(commitmentUuid);
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['body'] = Variable<String>(body);
+    map['logged_at'] = Variable<DateTime>(loggedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  SeedNotesCompanion toCompanion(bool nullToAbsent) {
+    return SeedNotesCompanion(
+      uuid: Value(uuid),
+      commitmentUuid: Value(commitmentUuid),
+      harvestDay: Value(harvestDay),
+      body: Value(body),
+      loggedAt: Value(loggedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SeedNoteRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SeedNoteRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      commitmentUuid: serializer.fromJson<String>(json['commitmentUuid']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      body: serializer.fromJson<String>(json['body']),
+      loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'commitmentUuid': serializer.toJson<String>(commitmentUuid),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'body': serializer.toJson<String>(body),
+      'loggedAt': serializer.toJson<DateTime>(loggedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  SeedNoteRow copyWith({
+    String? uuid,
+    String? commitmentUuid,
+    String? harvestDay,
+    String? body,
+    DateTime? loggedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => SeedNoteRow(
+    uuid: uuid ?? this.uuid,
+    commitmentUuid: commitmentUuid ?? this.commitmentUuid,
+    harvestDay: harvestDay ?? this.harvestDay,
+    body: body ?? this.body,
+    loggedAt: loggedAt ?? this.loggedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SeedNoteRow copyWithCompanion(SeedNotesCompanion data) {
+    return SeedNoteRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      commitmentUuid: data.commitmentUuid.present
+          ? data.commitmentUuid.value
+          : this.commitmentUuid,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      body: data.body.present ? data.body.value : this.body,
+      loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SeedNoteRow(')
+          ..write('uuid: $uuid, ')
+          ..write('commitmentUuid: $commitmentUuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('body: $body, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    commitmentUuid,
+    harvestDay,
+    body,
+    loggedAt,
+    deletedAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SeedNoteRow &&
+          other.uuid == this.uuid &&
+          other.commitmentUuid == this.commitmentUuid &&
+          other.harvestDay == this.harvestDay &&
+          other.body == this.body &&
+          other.loggedAt == this.loggedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SeedNotesCompanion extends UpdateCompanion<SeedNoteRow> {
+  final Value<String> uuid;
+  final Value<String> commitmentUuid;
+  final Value<String> harvestDay;
+  final Value<String> body;
+  final Value<DateTime> loggedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const SeedNotesCompanion({
+    this.uuid = const Value.absent(),
+    this.commitmentUuid = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.body = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SeedNotesCompanion.insert({
+    required String uuid,
+    required String commitmentUuid,
+    required String harvestDay,
+    required String body,
+    this.loggedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       commitmentUuid = Value(commitmentUuid),
+       harvestDay = Value(harvestDay),
+       body = Value(body);
+  static Insertable<SeedNoteRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? commitmentUuid,
+    Expression<String>? harvestDay,
+    Expression<String>? body,
+    Expression<DateTime>? loggedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (commitmentUuid != null) 'commitment_uuid': commitmentUuid,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (body != null) 'body': body,
+      if (loggedAt != null) 'logged_at': loggedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SeedNotesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? commitmentUuid,
+    Value<String>? harvestDay,
+    Value<String>? body,
+    Value<DateTime>? loggedAt,
+    Value<DateTime?>? deletedAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SeedNotesCompanion(
+      uuid: uuid ?? this.uuid,
+      commitmentUuid: commitmentUuid ?? this.commitmentUuid,
+      harvestDay: harvestDay ?? this.harvestDay,
+      body: body ?? this.body,
+      loggedAt: loggedAt ?? this.loggedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (commitmentUuid.present) {
+      map['commitment_uuid'] = Variable<String>(commitmentUuid.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (loggedAt.present) {
+      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SeedNotesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('commitmentUuid: $commitmentUuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('body: $body, ')
           ..write('loggedAt: $loggedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -6440,6 +6971,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   $HarvestDatabaseManager get managers => $HarvestDatabaseManager(this);
   late final $CommitmentsTable commitments = $CommitmentsTable(this);
   late final $CheckInsTable checkIns = $CheckInsTable(this);
+  late final $SeedNotesTable seedNotes = $SeedNotesTable(this);
   late final $StreaksTable streaks = $StreaksTable(this);
   late final $LedgerTable ledger = $LedgerTable(this);
   late final $QuestsTable quests = $QuestsTable(this);
@@ -6461,6 +6993,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     commitments,
     checkIns,
+    seedNotes,
     streaks,
     ledger,
     quests,
@@ -6489,6 +7022,7 @@ typedef $$CommitmentsTableCreateCompanionBuilder =
       Value<String?> remindAt,
       Value<String?> deadline,
       Value<DateTime?> archivedAt,
+      Value<String?> archiveNote,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -6508,6 +7042,7 @@ typedef $$CommitmentsTableUpdateCompanionBuilder =
       Value<String?> remindAt,
       Value<String?> deadline,
       Value<DateTime?> archivedAt,
+      Value<String?> archiveNote,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -6531,6 +7066,23 @@ final class $$CommitmentsTableReferences
     );
 
     final cache = $_typedResult.readTableOrNull(_checkInsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SeedNotesTable, List<SeedNoteRow>>
+  _seedNotesRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
+    db.seedNotes,
+    aliasName: 'commitments__uuid__seed_notes__commitment_uuid',
+  );
+
+  $$SeedNotesTableProcessedTableManager get seedNotesRefs {
+    final manager = $$SeedNotesTableTableManager($_db, $_db.seedNotes).filter(
+      (f) => f.commitmentUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_seedNotesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -6606,6 +7158,11 @@ class $$CommitmentsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get archiveNote => $composableBuilder(
+    column: $table.archiveNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
@@ -6637,6 +7194,31 @@ class $$CommitmentsTableFilterComposer
           }) => $$CheckInsTableFilterComposer(
             $db: $db,
             $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> seedNotesRefs(
+    Expression<bool> Function($$SeedNotesTableFilterComposer f) f,
+  ) {
+    final $$SeedNotesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.seedNotes,
+      getReferencedColumn: (t) => t.commitmentUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SeedNotesTableFilterComposer(
+            $db: $db,
+            $table: $db.seedNotes,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6716,6 +7298,11 @@ class $$CommitmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get archiveNote => $composableBuilder(
+    column: $table.archiveNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
@@ -6785,6 +7372,11 @@ class $$CommitmentsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get archiveNote => $composableBuilder(
+    column: $table.archiveNote,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
@@ -6818,6 +7410,31 @@ class $$CommitmentsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> seedNotesRefs<T extends Object>(
+    Expression<T> Function($$SeedNotesTableAnnotationComposer a) f,
+  ) {
+    final $$SeedNotesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.seedNotes,
+      getReferencedColumn: (t) => t.commitmentUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SeedNotesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.seedNotes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CommitmentsTableTableManager
@@ -6833,7 +7450,7 @@ class $$CommitmentsTableTableManager
           $$CommitmentsTableUpdateCompanionBuilder,
           (CommitmentRow, $$CommitmentsTableReferences),
           CommitmentRow,
-          PrefetchHooks Function({bool checkInsRefs})
+          PrefetchHooks Function({bool checkInsRefs, bool seedNotesRefs})
         > {
   $$CommitmentsTableTableManager(_$HarvestDatabase db, $CommitmentsTable table)
     : super(
@@ -6860,6 +7477,7 @@ class $$CommitmentsTableTableManager
                 Value<String?> remindAt = const Value.absent(),
                 Value<String?> deadline = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
+                Value<String?> archiveNote = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -6877,6 +7495,7 @@ class $$CommitmentsTableTableManager
                 remindAt: remindAt,
                 deadline: deadline,
                 archivedAt: archivedAt,
+                archiveNote: archiveNote,
                 deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -6896,6 +7515,7 @@ class $$CommitmentsTableTableManager
                 Value<String?> remindAt = const Value.absent(),
                 Value<String?> deadline = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
+                Value<String?> archiveNote = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -6913,6 +7533,7 @@ class $$CommitmentsTableTableManager
                 remindAt: remindAt,
                 deadline: deadline,
                 archivedAt: archivedAt,
+                archiveNote: archiveNote,
                 deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -6926,38 +7547,63 @@ class $$CommitmentsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({checkInsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (checkInsRefs) db.checkIns],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (checkInsRefs)
-                    await $_getPrefetchedData<
-                      CommitmentRow,
-                      $CommitmentsTable,
-                      CheckInRow
-                    >(
-                      currentTable: table,
-                      referencedTable: $$CommitmentsTableReferences
-                          ._checkInsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$CommitmentsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).checkInsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.commitmentUuid == item.uuid,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({checkInsRefs = false, seedNotesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (checkInsRefs) db.checkIns,
+                    if (seedNotesRefs) db.seedNotes,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (checkInsRefs)
+                        await $_getPrefetchedData<
+                          CommitmentRow,
+                          $CommitmentsTable,
+                          CheckInRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CommitmentsTableReferences
+                              ._checkInsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CommitmentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).checkInsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.commitmentUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (seedNotesRefs)
+                        await $_getPrefetchedData<
+                          CommitmentRow,
+                          $CommitmentsTable,
+                          SeedNoteRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CommitmentsTableReferences
+                              ._seedNotesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CommitmentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).seedNotesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.commitmentUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -6974,7 +7620,7 @@ typedef $$CommitmentsTableProcessedTableManager =
       $$CommitmentsTableUpdateCompanionBuilder,
       (CommitmentRow, $$CommitmentsTableReferences),
       CommitmentRow,
-      PrefetchHooks Function({bool checkInsRefs})
+      PrefetchHooks Function({bool checkInsRefs, bool seedNotesRefs})
     >;
 typedef $$CheckInsTableCreateCompanionBuilder = CheckInsCompanion Function({
   required String uuid,
@@ -7328,6 +7974,360 @@ typedef $$CheckInsTableProcessedTableManager =
       $$CheckInsTableUpdateCompanionBuilder,
       (CheckInRow, $$CheckInsTableReferences),
       CheckInRow,
+      PrefetchHooks Function({bool commitmentUuid})
+    >;
+typedef $$SeedNotesTableCreateCompanionBuilder = SeedNotesCompanion Function({
+  required String uuid,
+  required String commitmentUuid,
+  required String harvestDay,
+  required String body,
+  Value<DateTime> loggedAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$SeedNotesTableUpdateCompanionBuilder = SeedNotesCompanion Function({
+  Value<String> uuid,
+  Value<String> commitmentUuid,
+  Value<String> harvestDay,
+  Value<String> body,
+  Value<DateTime> loggedAt,
+  Value<DateTime?> deletedAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+final class $$SeedNotesTableReferences
+    extends BaseReferences<_$HarvestDatabase, $SeedNotesTable, SeedNoteRow> {
+  $$SeedNotesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CommitmentsTable _commitmentUuidTable(_$HarvestDatabase db) => db
+      .commitments
+      .createAlias('seed_notes__commitment_uuid__commitments__uuid');
+
+  $$CommitmentsTableProcessedTableManager get commitmentUuid {
+    final $_column = $_itemColumn<String>('commitment_uuid')!;
+
+    final manager = $$CommitmentsTableTableManager(
+      $_db,
+      $_db.commitments,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_commitmentUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SeedNotesTableFilterComposer
+    extends Composer<_$HarvestDatabase, $SeedNotesTable> {
+  $$SeedNotesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CommitmentsTableFilterComposer get commitmentUuid {
+    final $$CommitmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.commitmentUuid,
+      referencedTable: $db.commitments,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.commitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SeedNotesTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $SeedNotesTable> {
+  $$SeedNotesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CommitmentsTableOrderingComposer get commitmentUuid {
+    final $$CommitmentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.commitmentUuid,
+      referencedTable: $db.commitments,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.commitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SeedNotesTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $SeedNotesTable> {
+  $$SeedNotesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get loggedAt =>
+      $composableBuilder(column: $table.loggedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$CommitmentsTableAnnotationComposer get commitmentUuid {
+    final $$CommitmentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.commitmentUuid,
+      referencedTable: $db.commitments,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.commitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SeedNotesTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $SeedNotesTable,
+          SeedNoteRow,
+          $$SeedNotesTableFilterComposer,
+          $$SeedNotesTableOrderingComposer,
+          $$SeedNotesTableAnnotationComposer,
+          $$SeedNotesTableCreateCompanionBuilder,
+          $$SeedNotesTableUpdateCompanionBuilder,
+          (SeedNoteRow, $$SeedNotesTableReferences),
+          SeedNoteRow,
+          PrefetchHooks Function({bool commitmentUuid})
+        > {
+  $$SeedNotesTableTableManager(_$HarvestDatabase db, $SeedNotesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SeedNotesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SeedNotesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SeedNotesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> commitmentUuid = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SeedNotesCompanion(
+                uuid: uuid,
+                commitmentUuid: commitmentUuid,
+                harvestDay: harvestDay,
+                body: body,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String commitmentUuid,
+                required String harvestDay,
+                required String body,
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SeedNotesCompanion.insert(
+                uuid: uuid,
+                commitmentUuid: commitmentUuid,
+                harvestDay: harvestDay,
+                body: body,
+                loggedAt: loggedAt,
+                deletedAt: deletedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SeedNotesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({commitmentUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (commitmentUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.commitmentUuid,
+                        referencedTable: $$SeedNotesTableReferences
+                            ._commitmentUuidTable(db),
+                        referencedColumn: $$SeedNotesTableReferences
+                            ._commitmentUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SeedNotesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $SeedNotesTable,
+      SeedNoteRow,
+      $$SeedNotesTableFilterComposer,
+      $$SeedNotesTableOrderingComposer,
+      $$SeedNotesTableAnnotationComposer,
+      $$SeedNotesTableCreateCompanionBuilder,
+      $$SeedNotesTableUpdateCompanionBuilder,
+      (SeedNoteRow, $$SeedNotesTableReferences),
+      SeedNoteRow,
       PrefetchHooks Function({bool commitmentUuid})
     >;
 typedef $$StreaksTableCreateCompanionBuilder = StreaksCompanion Function({
@@ -10171,6 +11171,8 @@ class $HarvestDatabaseManager {
       $$CommitmentsTableTableManager(_db, _db.commitments);
   $$CheckInsTableTableManager get checkIns =>
       $$CheckInsTableTableManager(_db, _db.checkIns);
+  $$SeedNotesTableTableManager get seedNotes =>
+      $$SeedNotesTableTableManager(_db, _db.seedNotes);
   $$StreaksTableTableManager get streaks =>
       $$StreaksTableTableManager(_db, _db.streaks);
   $$LedgerTableTableManager get ledger =>

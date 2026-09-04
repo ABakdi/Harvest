@@ -6,6 +6,8 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
+import 'package:harvest/features/widget/data/home_widget_gateway.dart';
+import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:workmanager/workmanager.dart';
 
 /// The 3 AM day-reset background job (business rule #1).
@@ -45,6 +47,9 @@ void _dispatcher() {
       final streaks = StreakService(db);
       await streaks.reconcile();
       await NotificationPlanner(db, NotificationService(), streaks).planToday();
+      // A new Harvest Day resets today's count: the widget must not
+      // spend the morning showing yesterday's.
+      await WidgetService(db, HomeWidgetBridge()).refresh();
     } on Object catch (error) {
       debugPrint('[day reset] failed: ${error.runtimeType}');
     } finally {

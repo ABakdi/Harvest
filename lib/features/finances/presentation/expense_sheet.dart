@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
@@ -205,6 +206,39 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     }
   }
 
+  /// Removing an expense from the sheet I opened it in. The swipe on
+  /// the day's list does the same thing, but a mis-log is noticed after
+  /// tapping the row, not before — and there was no way out of here.
+  Future<void> _delete() async {
+    final existing = widget.existing;
+    if (existing == null) return;
+    final l10n = AppLocalizations.of(context);
+    final actions = ref.read(financeActionsProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final ok = await confirm(
+      context,
+      title: l10n.deleteExpenseTitle,
+      body: l10n.deleteExpenseBody(
+        formatAmount(existing.amountMinor, existing.currency),
+      ),
+      confirmLabel: l10n.deleteAction,
+      destructive: true,
+    );
+    if (!ok) return;
+    navigator.pop();
+    await actions.removeExpense(existing.uuid);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.deleted),
+        action: SnackBarAction(
+          label: l10n.undoAction,
+          onPressed: () => unawaited(actions.restoreExpense(existing.uuid)),
+        ),
+      ),
+    );
+  }
+
   Future<void> _createCategory(BuildContext context) async {
     final created = await showCategoryCreator(context, ref);
     if (created != null) setState(() => _category = created);
@@ -218,7 +252,14 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     final currency = _currencyOr(ref.watch(defaultCurrencyProvider));
 
     return HarvestSheet(
-      title: l10n.logExpense,
+      title: widget.existing == null ? l10n.logExpense : l10n.editExpense,
+      trailing: widget.existing == null
+          ? null
+          : IconButton(
+              tooltip: l10n.deleteAction,
+              icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+              onPressed: () => unawaited(_delete()),
+            ),
       actionLabel: l10n.log,
       onAction: _amountMinor == null ? null : () => unawaited(_log()),
       children: [

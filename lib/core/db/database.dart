@@ -37,6 +37,10 @@ class Commitments extends Table {
   TextColumn get deadline => text().nullable()();
 
   DateTimeColumn get archivedAt => dateTime().nullable()();
+
+  /// Why this seed was put away — written when it is archived, and the
+  /// only thing the archive can tell me later that the title cannot.
+  TextColumn get archiveNote => text().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -56,6 +60,25 @@ class CheckIns extends Table {
 
   /// Units logged: 1 for habits/todos, page/minute counts for projects.
   IntColumn get quantity => integer().withDefault(const Constant(1))();
+  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One note per seed per Harvest Day — the page I stopped on, the set
+/// I managed, what to pick up tomorrow. A new day starts a blank one;
+/// yesterday's is still there to read.
+@DataClassName('SeedNoteRow')
+class SeedNotes extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get commitmentUuid => text().references(Commitments, #uuid)();
+
+  /// The Harvest Day this note belongs to.
+  TextColumn get harvestDay => text()();
+  TextColumn get body => text()();
   DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -259,6 +282,7 @@ class KvSettings extends Table {
   tables: [
     Commitments,
     CheckIns,
+    SeedNotes,
     Streaks,
     Ledger,
     Quests,
@@ -278,7 +302,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -313,6 +337,10 @@ class HarvestDatabase extends _$HarvestDatabase {
       }
       if (from < 8 && !moneyTxnsJustCreated) {
         await m.addColumn(moneyTxns, moneyTxns.linkUuid);
+      }
+      if (from < 9) {
+        await m.addColumn(commitments, commitments.archiveNote);
+        await m.createTable(seedNotes);
       }
     },
   );

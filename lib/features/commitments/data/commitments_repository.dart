@@ -44,6 +44,53 @@ class CommitmentsRepository {
     return result;
   }
 
+  /// Archived seeds, most recently put away first — the archive screen.
+  Stream<List<Commitment>> watchArchived() {
+    final query = _db.select(_db.commitments)
+      ..where((c) => c.archivedAt.isNotNull() & c.deletedAt.isNull())
+      ..orderBy([(c) => OrderingTerm.desc(c.archivedAt)]);
+    return query.watch().map(_toDomainList);
+  }
+
+  /// One seed by uuid, archived or not; null when it is gone.
+  Stream<Commitment?> watchOne(String uuid) {
+    final query = _db.select(_db.commitments)
+      ..where((c) => c.uuid.equals(uuid) & c.deletedAt.isNull());
+    return query.watchSingleOrNull().map(
+      (row) => row == null ? null : toDomain(row),
+    );
+  }
+
+  /// Every check-in for one seed, newest day first — its history.
+  Stream<List<({HarvestDay day, int quantity, DateTime loggedAt})>>
+  watchHistory(String uuid) {
+    final query = _db.select(_db.checkIns)
+      ..where((c) => c.commitmentUuid.equals(uuid) & c.deletedAt.isNull())
+      ..orderBy([(c) => OrderingTerm.desc(c.loggedAt)]);
+    return query.watch().map((rows) {
+      final byDay = <String, ({int quantity, DateTime loggedAt})>{};
+      for (final row in rows) {
+        final seen = byDay[row.harvestDay];
+        byDay[row.harvestDay] = (
+          quantity: (seen?.quantity ?? 0) + row.quantity,
+          loggedAt: seen == null || seen.loggedAt.isBefore(row.loggedAt)
+              ? row.loggedAt
+              : seen.loggedAt,
+        );
+      }
+      final days = byDay.keys.map(HarvestDay.tryParse).nonNulls.toList()
+        ..sort((a, b) => b.compareTo(a));
+      return [
+        for (final day in days)
+          (
+            day: day,
+            quantity: byDay[day.key]!.quantity,
+            loggedAt: byDay[day.key]!.loggedAt,
+          ),
+      ];
+    });
+  }
+
   /// Units logged for one commitment on one day.
   Future<int> loggedOnOnce(String commitmentUuid, HarvestDay day) async {
     final quantity = _db.checkIns.quantity.sum();
@@ -135,12 +182,15 @@ class CommitmentsRepository {
     String? note,
     String? remindAt,
     HarvestDay? deadline,
+    DateTime? createdAt,
   }) async {
     final commitment = Commitment(
       uuid: _uuid.v4(),
       type: type,
       title: title,
-      createdAt: DateTime.now(),
+      // When the seed starts counting. Only tests pass it; the app
+      // always plants in the present.
+      createdAt: createdAt ?? DateTime.now(),
       schedule: schedule,
       totalTarget: totalTarget,
       dailyCommitment: dailyCommitment,
@@ -182,16 +232,58 @@ class CommitmentsRepository {
         await _appendOutbox('commitments', uuid, 'update');
       });
 
-  Future<void> archive(String uuid) => _db.transaction(() async {
+  /// Puts a seed away, with the note that says why. History stays.
+  Future<void> archive(String uuid, {String? note}) =>
+      _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(
+          _db.commitments,
+        )..where((c) => c.uuid.equals(uuid))).write(
+          CommitmentsCompanion(
+            archivedAt: Value(now),
+            archiveNote: Value(note),
+            updatedAt: Value(now),
+          ),
+        );
+        await _appendOutbox('commitments', uuid, 'update');
+      });
+
+  /// Back onto the field, note and all cleared.
+  Future<void> restore(String uuid) => _db.transaction(() async {
     await (_db.update(
       _db.commitments,
     )..where((c) => c.uuid.equals(uuid))).write(
       CommitmentsCompanion(
-        archivedAt: Value(DateTime.now()),
+        archivedAt: const Value(null),
+        archiveNote: const Value(null),
         updatedAt: Value(DateTime.now()),
       ),
     );
     await _appendOutbox('commitments', uuid, 'update');
+  });
+
+  /// Gone for good: the seed, its check-ins, its notes and its streak.
+  ///
+  /// The ordinary way to retire a seed is [archive], which keeps every
+  /// row it ever wrote. This is the other case — the one I planted by
+  /// mistake — and for it a soft delete is the wrong answer: the row
+  /// would keep skewing stats for thirty days and then vanish anyway.
+  /// The UI confirms first; nothing here is recoverable.
+  Future<void> hardDelete(String uuid) => _db.transaction(() async {
+    await (_db.delete(
+      _db.seedNotes,
+    )..where((n) => n.commitmentUuid.equals(uuid))).go();
+    await (_db.delete(
+      _db.checkIns,
+    )..where((c) => c.commitmentUuid.equals(uuid))).go();
+    await (_db.delete(_db.streaks)..where((s) => s.scope.equals(uuid))).go();
+    await (_db.update(_db.pomodoroSessions)
+          ..where((p) => p.commitmentUuid.equals(uuid)))
+        .write(const PomodoroSessionsCompanion(commitmentUuid: Value(null)));
+    await (_db.delete(
+      _db.commitments,
+    )..where((c) => c.uuid.equals(uuid))).go();
+    await _appendOutbox('commitments', uuid, 'delete');
   });
 
   /// Hard-deletes commitments and check-ins that were soft-deleted
@@ -264,6 +356,7 @@ class CommitmentsRepository {
       deadline: HarvestDay.tryParse(row.deadline),
       pausedAt: row.pausedAt,
       archivedAt: row.archivedAt,
+      archiveNote: row.archiveNote,
     );
   }
 
@@ -271,6 +364,7 @@ class CommitmentsRepository {
     uuid: c.uuid,
     type: c.type.name,
     title: c.title,
+    createdAt: Value(c.createdAt),
     scheduleJson: Value(
       c.schedule == null ? null : jsonEncode(c.schedule!.toJson()),
     ),
@@ -282,6 +376,7 @@ class CommitmentsRepository {
     deadline: Value(c.deadline?.key),
     pausedAt: Value(c.pausedAt),
     archivedAt: Value(c.archivedAt),
+    archiveNote: Value(c.archiveNote),
   );
 }
 

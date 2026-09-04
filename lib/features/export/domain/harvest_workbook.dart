@@ -9,6 +9,7 @@ typedef ExportData = ({
   DateTime generatedAt,
   List<List<Object?>> seeds,
   List<List<Object?>> checkIns,
+  List<List<Object?>> seedNotes,
   List<List<Object?>> expenses,
   List<List<Object?>> money,
   List<List<Object?>> debts,
@@ -25,6 +26,7 @@ abstract final class SheetNames {
   static const summary = 'Summary';
   static const seeds = 'Seeds';
   static const checkIns = 'CheckIns';
+  static const seedNotes = 'SeedNotes';
   static const expenses = 'Expenses';
   static const money = 'Money';
   static const debts = 'Debts';
@@ -63,6 +65,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'Deadline',
       'PausedAt',
       'ArchivedAt',
+      'ArchiveNote',
       'DeletedAt',
       'CreatedAt',
       'UpdatedAt',
@@ -81,6 +84,20 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'DeletedAt',
     ],
     rows: data.checkIns,
+    derived: const [(header: 'Seed', template: _seedTitle)],
+  );
+
+  final seedNotes = ExportSheet(
+    name: SheetNames.seedNotes,
+    headers: const [
+      'Uuid',
+      'CommitmentUuid',
+      'HarvestDay',
+      'Body',
+      'LoggedAt',
+      'DeletedAt',
+    ],
+    rows: data.seedNotes,
     derived: const [(header: 'Seed', template: _seedTitle)],
   );
 
@@ -217,6 +234,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
   final sheets = [
     seeds,
     checkIns,
+    seedNotes,
     expenses,
     money,
     debts,

@@ -8,6 +8,7 @@ import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
+import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'check_in_controller.g.dart';
@@ -42,8 +43,10 @@ class CheckInController extends _$CheckInController {
   Future<void> _replan() async {
     try {
       await ref.read(notificationPlannerProvider).reevaluate();
+      await ref.read(widgetServiceProvider).refresh();
     } on Object catch (_) {
-      // Reminders are best-effort; the check-in itself already landed.
+      // Reminders and the widget are best-effort; the check-in itself
+      // already landed.
     }
   }
 
@@ -75,6 +78,7 @@ class CommitmentEditor extends _$CommitmentEditor {
       }
     }
     await ref.read(notificationPlannerProvider).reevaluate();
+    await ref.read(widgetServiceProvider).refresh();
   }
 
   Future<void> _write(Future<void> Function() run) async {
@@ -144,8 +148,20 @@ class CommitmentEditor extends _$CommitmentEditor {
     await _afterWrite(remindAt: remindAt);
   });
 
-  Future<void> archive(String uuid) => _write(() async {
-    await ref.read(commitmentsRepositoryProvider).archive(uuid);
+  Future<void> archive(String uuid, {String? note}) => _write(() async {
+    await ref.read(commitmentsRepositoryProvider).archive(uuid, note: note);
+    await _afterWrite();
+  });
+
+  Future<void> restore(String uuid) => _write(() async {
+    await ref.read(commitmentsRepositoryProvider).restore(uuid);
+    await _afterWrite();
+  });
+
+  /// The mistake path: the seed and everything it ever wrote, gone.
+  /// Confirmed in the UI first — there is no undo behind this one.
+  Future<void> hardDelete(String uuid) => _write(() async {
+    await ref.read(commitmentsRepositoryProvider).hardDelete(uuid);
     await _afterWrite();
   });
 
