@@ -51,13 +51,15 @@ The card wraps its content, so switching a section off makes the widget
 | :--- | :--- | :---: |
 | **Streak** | The streak, and today's progress under it | never — it is the app |
 | **Money** | Today's spend and the wallet balance, in the default currency | ✓ |
-| **Today's field** | What is still due as a row of boxes, undone first, with `+N` for the rest | ✓ |
+| **Today's field** | What is still due, one full-width card at a time, cycling sideways through all of it | ✓ |
 | **Quick actions** | Log an expense · plant a seed — each opens the app on that sheet | ✓ |
 
-The field is a row rather than a list because a widget is wider than it
-is tall — and it does not scroll because `RemoteViews` has no
-horizontally-scrolling container: its two collections go up and down,
-and a `HorizontalScrollView` is refused at inflation ([[Checkpoint-3]]).
+The field is one card at a time rather than a list because a widget is
+wider than it is tall, and a card that wide is legible at arm's length.
+It turns its own pages because nothing else can: `RemoteViews` has no
+horizontally-scrolling container, its two collections go up and down, a
+`HorizontalScrollView` is refused at inflation, and a chevron wired to
+a broadcast never reaches the flipper ([[Checkpoint-3]]).
 
 The switches live in Settings → My data. Everything is computed **from
 the database** with the same `isDueOn` rule the field uses, so it is

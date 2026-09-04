@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The next card arrives from the right.
+
+     A bare objectAnimator, not a set: AdapterViewAnimator casts these
+     to ObjectAnimator, and an AnimatorSet is a ClassCastException at
+     inflation time — which the home screen reports as "Can't load
+     widget" and nothing more. -->
+<objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:propertyName="translationX"
+    android:valueFrom="110dp"
+    android:valueTo="0dp"
+    android:valueType="floatType"
+    android:interpolator="@android:interpolator/decelerate_quad"
+    android:duration="200" />

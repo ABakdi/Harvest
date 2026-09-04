@@ -401,7 +401,7 @@ Four sections, three of them switchable in Settings → My data:
 | :--- | :--- |
 | **Streak** | The number and the day count. **Always shown** — the switch is there and disabled, because a widget that can be configured into showing nothing is a widget with a bug in it |
 | **Money** | Today's spend and the wallet balance, both converted into the default currency face-value-first, exactly as the Granary's own gauge does it |
-| **Today's field** | What is still due as a row of boxes — undone first, with `+N` counting whatever did not fit |
+| **Today's field** | What is still due, one full-width card at a time, cycling sideways through all of it |
 | **Quick actions** | Two pills: log an expense, plant a seed. Each opens the app straight onto that sheet |
 
 The service writes every number regardless of which sections are on,
@@ -409,35 +409,56 @@ and the provider decides what is visible. Flipping a switch is then a
 redraw, not a recompute — and there is one less way for the widget to
 be showing a stale figure it was told not to display.
 
-### Boxes in a row, and the thing the platform will not do
+### One card at a time, and four things the platform said no to
 
-Today's field started as a vertical list, which looked like a list and
-fought the widget's shape. It should be boxes, read left to right.
+Today's field started as a vertical list of thin rows. It looked like a
+list, it fought the widget's shape, and the titles were too small to
+read at arm's length. What it wants to be is one card, as wide as the
+widget, moving sideways through everything still due.
 
-It should also scroll sideways, and **it cannot**, which is worth
-recording properly rather than quietly shipping around. A widget is
-`RemoteViews`, and `RemoteViews` inflates only an allowlisted set of
-views. Its two scrolling collections — `ListView` and `GridView` — go
-up and down only, and the obvious answer gets an unambiguous refusal
-from the launcher:
+Getting there was four refusals in a row, and they are worth recording
+because every one of them is invisible until a device tells you:
 
-```
-android.view.InflateException: Class not allowed to be inflated
-android.widget.HorizontalScrollView
-```
+1. **`HorizontalScrollView`** — the obvious answer. `RemoteViews`
+   inflates an allowlist, and this is not on it. The home screen says
+   *Can't load widget*; the log says
+   `Class not allowed to be inflated android.widget.HorizontalScrollView`.
+   Its two scrolling collections, `ListView` and `GridView`, go up and
+   down only. **There is no sideways swipe to be had in a widget.**
+2. **`StackView`** — the one collection you move through by hand. It
+   inflates, but its stack effect needs real vertical room; in a strip
+   it drew every card piled on top of the last with their edges
+   showing, which is worse than a list.
+3. **`AdapterViewFlipper` with `@anim` animations** — a flipper
+   animates with `ObjectAnimator`s, not view `Animation`s, and a
+   `<set>` is a `ClassCastException` at inflation. It takes one bare
+   `<objectAnimator>` per direction and nothing more.
+4. **Chevrons** — a `‹ ›` pair wired to a broadcast that comes back and
+   calls `showNext`. The broadcast arrives; the partial update is
+   simply dropped, and the card never moves. Dead controls are worse
+   than no controls, so they came out.
 
-So the strip is what is actually available: **three boxes sharing the
-width**, weighted so short titles stay compact and long ones ellipsize,
-with a `+N` chip counting the rest. Done boxes fill with the accent and
-flip their tick, the way a checked crop card fills its circle. Making
-the widget wider gives the boxes more room; tapping any of them opens
-the app, which is where the whole list lives.
+What actually works, and what shipped: **an `AdapterViewFlipper` that
+turns its own pages.** One card at a time, the full width of the
+widget, sliding in from the right every four seconds and looping, with
+`n/total` on each so it is clear where you are in the day. Done cards
+fill with the accent and flip their tick, the way a checked crop card
+fills its circle. Tapping opens the app, which is where the list you
+can actually scroll lives. The flipper stops on its own when the home
+screen is not on screen, so the motion costs nothing while the phone is
+in a pocket.
 
-That also removed a moving part. The first version fed a `ListView`
-from a `RemoteViewsFactory` in a `BIND_REMOTEVIEWS` service; a fixed row
-of slots the provider fills needs no service, no adapter and no second
-process, and the JSON Dart writes is read in the one place that draws
-it.
+The cards are fed by a `RemoteViewsFactory` in a `BIND_REMOTEVIEWS`
+service, reading the same JSON blob Dart writes into the widget's
+preferences, so the cards and the numbers above them cannot disagree.
+A malformed blob is an empty field, never an exception inside the
+launcher's own process.
+
+One measurement detail cost a build and is worth keeping: an
+`AdapterViewAnimator` whose own height is `wrap_content` measures its
+children **unspecified**, so a `match_parent` card wraps its text
+instead of filling the width. The flipper has a fixed height now, and
+the cards are as wide as the widget — which was the whole point.
 
 The quick actions are the other half of the same problem in reverse: a
 home-screen button cannot open a bottom sheet, it can only start the
@@ -503,6 +524,11 @@ asserted in unit tests without a launcher.
   accents — and a `values-night` half so it follows the system.
 - **The card wraps its content.** Switching a section off makes the
   widget smaller rather than emptier.
+- **The field cycles itself rather than offering controls that do not
+  work.** A widget cannot be swiped sideways and cannot be stepped by a
+  chevron; a flipper turning its own pages is the only arrangement that
+  actually moves, and one full-width card is the most readable this
+  ever gets.
 - **The streak is not switchable.** Everything else on the widget can be
   turned off; a widget that can be configured into showing nothing is a
   widget with a bug in it.
@@ -582,8 +608,8 @@ Release build, fresh install, driven by hand from onboarding.
 | C3-3 | Logged DA450, tapped the row | The sheet is titled **Edit expense** and carries a red bin. It confirmed with the amount in the question, removed it, and offered Undo |
 | C3-8 | Read the scheduled alarms off the device | The whole ladder, at the morning hour: `4100` Sep 6, `4101` Sep 8, `4102` Sep 12, `4103` Sep 19, `4104` Oct 5, `4105` Nov 4 — one, three, seven, fourteen, thirty and sixty days after the last check-in, plus one |
 | C3-11 | Added the widget from the launcher's picker | Offered as **4 × 2** and placed as a full-width bar: cream card, hairline edge, green flame badge, streak and `2/6 today` on the left, `DA0 today · DA0 in the wallet` on the right |
-| C3-11 | Looked at it with six seeds due | Three boxes — Stretch · Journal · Water — and a `+3` chip. Done seeds fill with the accent and carry a tick |
-| C3-11 | Tried it with a `HorizontalScrollView` first | **"Can't load widget"**, and the log said why: *Class not allowed to be inflated android.widget.HorizontalScrollView*. The row of boxes is what the platform allows |
+| C3-11 | Watched the field strip | One full-width card at a time — `Exercise 2/3`, then `Read Atomic Habits 3/3`, then `clean the room 1/3` — sliding in from the right every four seconds. Done ones filled with the accent and carrying a tick |
+| C3-11 | Tried a `HorizontalScrollView`, then a `StackView`, then `@anim` animations, then chevrons | **"Can't load widget"** twice, a pile of overlapping cards once, and a chevron that received its broadcast and moved nothing. The self-turning flipper is what the platform actually allows |
 | C3-11 | Checked a seed in inside the app, went home | The placed widget had already moved from `1/2 today` to `2/2 today`. The refresh path works with the widget on screen and the app in the background |
 | C3-11 | Tapped **+ Expense**, then **+ Seed** | The app opened on the Granary with *Log an expense* up, and on the Field with *Plant a seed* up |
 | C3-11 | Turned Today's field and Quick actions off | The card itself shrank to a slim streak-and-money strip, giving the space back to the wallpaper rather than leaving a hole. Turning them back on grew it again |
@@ -623,7 +649,7 @@ rebuilt:
 | `app/shell.dart` | A `ConsumerStatefulWidget` now: it drains the pending widget action and opens the sheet it names, because it is the first thing under the navigator. |
 | `features/export` | `SeedNotes` sheet; `ArchiveNote` column on `Seeds`. |
 | `app/` | `SplashScreen` above the router; the widget refreshed at startup and on resume. |
-| Android | `HarvestWidgetProvider.kt`; the widget layout, six drawables (card, badge, chip, done chip, pill) and four vector icons; light and night colour sets for the widget's surface, text and accent; the provider info and the receiver in the manifest; the launch window is brand green in both modes; regenerated launcher icons at every density. |
+| Android | `HarvestWidgetProvider.kt` and `HarvestWidgetTaskService.kt` (the card factory); the widget layout, its card layout, six drawables, four vector icons and two object animators; light and night colour sets for the widget's surface, text and accent; the provider info, the receiver and the `BIND_REMOTEVIEWS` service in the manifest; the launch window is brand green in both modes; regenerated launcher icons at every density. |
 | `assets/icon/` | The olive branch, PNGs and the SVG sources that produce them. |
 | Strings | 80 new keys in English and Arabic. |
 | Tests | 180 → 232, plus `FakeHomeWidgetGateway` in `test/support`. |

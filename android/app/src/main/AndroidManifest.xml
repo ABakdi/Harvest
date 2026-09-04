@@ -87,6 +87,13 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/harvest_widget_info" />
         </receiver>
+        <!-- Feeds the widget's swipeable task cards. The launcher binds
+             to it, so it must hold BIND_REMOTEVIEWS and nothing else
+             may. -->
+        <service
+            android:name=".HarvestWidgetTaskService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

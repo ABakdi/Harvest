@@ -114,137 +114,26 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Today's field as a row of boxes rather than a column of
-             rows: a widget is wider than it is tall, and a list was
-             fighting that shape. It does not scroll, and that is the
-             platform's answer rather than mine — RemoteViews will not
-             inflate a HorizontalScrollView, and its two scrolling
-             collections only go up and down. The boxes share the width,
-             ellipsing as they must, and whatever does not fit is
-             counted on the last chip. -->
-        <LinearLayout
+        <!-- Today's field, one card at a time and the full width of
+             the widget, sliding sideways through everything still due.
+
+             It advances itself because nothing else can. RemoteViews
+             will not inflate a HorizontalScrollView, its two scrolling
+             collections only go up and down, and a chevron wired to a
+             broadcast is received but never reaches the flipper — the
+             partial update is simply dropped. A flipper that turns its
+             own pages is the one arrangement that actually moves, and
+             it stops on its own when the home screen is not on screen. -->
+        <AdapterViewFlipper
             android:id="@+id/widget_tasks"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_marginTop="9dp"
-            android:orientation="horizontal"
-            android:baselineAligned="false">
-
-                <LinearLayout
-                    android:id="@+id/task_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/widget_chip"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="9dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="7dp"
-                    android:paddingBottom="7dp"
-                    android:visibility="gone">
-
-                    <ImageView
-                        android:id="@+id/task_1_mark"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_widget_pending"
-                        android:contentDescription="@null" />
-
-                    <TextView
-                        android:id="@+id/task_1_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/widget_text"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/task_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/widget_chip"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="9dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="7dp"
-                    android:paddingBottom="7dp"
-                    android:visibility="gone">
-
-                    <ImageView
-                        android:id="@+id/task_2_mark"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_widget_pending"
-                        android:contentDescription="@null" />
-
-                    <TextView
-                        android:id="@+id/task_2_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/widget_text"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/task_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/widget_chip"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="9dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="7dp"
-                    android:paddingBottom="7dp"
-                    android:visibility="gone">
-
-                    <ImageView
-                        android:id="@+id/task_3_mark"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_widget_pending"
-                        android:contentDescription="@null" />
-
-                    <TextView
-                        android:id="@+id/task_3_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/widget_text"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-                </LinearLayout>
-                <TextView
-                    android:id="@+id/task_more"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/widget_chip"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="7dp"
-                    android:paddingBottom="7dp"
-                    android:textColor="@color/widget_accent"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:visibility="gone" />
-        </LinearLayout>
+            android:autoStart="true"
+            android:flipInterval="4000"
+            android:loopViews="true"
+            android:inAnimation="@animator/widget_slide_in"
+            android:outAnimation="@animator/widget_slide_out" />
 
         <TextView
             android:id="@+id/widget_tasks_empty"

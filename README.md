@@ -64,9 +64,9 @@ in daily use; gym & health is next. Grab the latest build from the
   a month, and Harvest says something warm and gets out of the way.
   Never more than one a day, never any shame.
 - **Home-screen widget** — a wide card with your streak, today's spend
-  and wallet, what's still due as a row of boxes, and two buttons to log
-  an expense or plant a seed. Pick what it shows in Settings, and it
-  shrinks to fit what you picked.
+  and wallet, what's still due cycling one card at a time, and two
+  buttons to log an expense or plant a seed. Pick what it shows in
+  Settings, and it shrinks to fit what you picked.
 - **Calendar and stats** — a month view of everything due, an activity
   heat-map, project burn-up, habit streaks, and a weekly harvest report.
 - **The lock and the export** — the whole app behind your phone's own
