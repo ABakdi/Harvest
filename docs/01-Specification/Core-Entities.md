@@ -13,7 +13,16 @@ erDiagram
         int totalTarget "projects only"
         int dailyCommitment "projects only"
         date dueDate "todos only"
+        date startDay "created day - nothing is due before it"
         bool archived
+        string archiveNote "why it was put away"
+    }
+    COMMITMENT ||--o{ SEED_NOTE : "journalled in"
+    SEED_NOTE {
+        string id
+        string commitmentId
+        date harvestDay
+        string body
     }
     CHECK_IN {
         string id
@@ -51,6 +60,14 @@ erDiagram
         int capMinutes
     }
 ```
+
+## Seed Note
+
+One note per seed per Harvest Day ([[Checkpoint-3]]). Separate from the
+seed's standing note: that one says what the seed is, this one says
+where I am in it. Today opens blank with yesterday's quoted above it;
+the sequence is the seed's own journal. Spec:
+[[Productivity-Engine#Day notes Checkpoint-3|Day notes]].
 
 ## Project (finite)
 

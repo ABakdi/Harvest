@@ -75,15 +75,30 @@ XP and coins are a **ledger**, not a counter — balances are sums, history is f
 
 Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `sleep_sessions`, `workout_plans`, `workout_sessions` (Phase 3); `screen_goals`, `usage_days` (Phase 4).
 
+`seed_notes` (v9) hangs off `commitments` the way `check_ins` does — one row per seed per Harvest Day, holding what I wrote about it that day ([[Checkpoint-3]]).
+
 ## Migrations
 
-Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one.
+Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table.
 
-**Deleting means deleting, eventually.** Every "delete" in the app is a
-soft delete: the row keeps its history and its `updated_at` for a future
-sync. On each launch, rows soft-deleted more than 30 days ago are purged
-for good (`purgeDeleted` on the commitments, finances and vault
-repositories). Nothing about money lingers forever by accident.
+A seed's **start day** deliberately has no column: `created_at` already
+says when it was planted, so the rule that nothing is due before then
+([[Business-Rules]] #12) is derived rather than stored, and it is
+correct for every row that was already in the database.
+
+**Deleting means deleting, eventually.** Almost every "delete" in the
+app is a soft delete: the row keeps its history and its `updated_at` for
+a future sync. On each launch, rows soft-deleted more than 30 days ago
+are purged for good (`purgeDeleted` on the commitments, finances and
+vault repositories). Nothing about money lingers forever by accident.
+
+The one hard delete is `CommitmentsRepository.hardDelete` — the seed I
+planted by mistake, confirmed in the UI first, taking its check-ins, its
+notes and its streak row with it in a single transaction and leaving a
+`delete` outbox row behind ([[Business-Rules]] #8). Its focus sessions
+are detached rather than deleted: the time was still spent. A soft
+delete would have been worse here, not safer — the row would skew the
+stats for thirty days and then be lost anyway.
 
 **Every table is exportable.** The spreadsheet export
 ([[ADR-006-Export-Format]]) reads each table directly rather than through

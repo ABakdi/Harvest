@@ -49,6 +49,11 @@ The rules that make it a contract rather than a dump:
    totals are `SUMIFS`, the month breakdown is a `SUMPRODUCT` over a
    range bounded at the real last row.
 
+The rule earns its keep every time the schema moves: schema v9's
+`seed_notes` owed the workbook a sheet and `commitments.archive_note`
+owed the `Seeds` sheet a column, and both landed with the migration
+rather than after it ([[Checkpoint-3]]).
+
 ## Consequences
 
 **Good.** The file is a working spreadsheet, not an archive. Editing it

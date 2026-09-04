@@ -20,3 +20,7 @@ The farming metaphor runs through the whole app. These are the canonical terms �
 | **Floating Daily Limit** | Remaining monthly budget ÷ remaining days. |
 | **Sleep Debt** | Accumulated shortfall of actual vs. target sleep, paid down minute-for-minute. |
 | **Harvest Day** | The app's logical day: 3:00 AM → 3:00 AM local time. See [[Business-Rules]]. |
+| **Start Day** | The Harvest Day a seed was planted. Nothing is ever due before it ([[Business-Rules]] #12). |
+| **Day Note** | One note per seed per Harvest Day — where I left off today, with yesterday's quoted above it. |
+| **The Archive** | Where retired and finished seeds live, each with the note saying why it was put away. |
+| **Comeback Nudge** | The escalating reminder that fires because I *stopped* logging: a day, three, a week, and on ([[Notifications]]). |

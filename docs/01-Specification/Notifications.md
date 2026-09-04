@@ -34,11 +34,51 @@ flowchart TD
     F -- yes --> G[One urgent nudge — never more]
 ```
 
-- Hard cap: **max 4 scheduled notifications per day** (excluding the alarm and live timers).
+- Hard cap: **max 4 scheduled notifications per day** (excluding the alarm and live timers). A comeback nudge takes the morning ritual's place rather than adding to the count.
 - Every category individually mutable in settings.
 - Copy always uses the farming voice ([[Glossary]]) — warm, short, no shame.
 
 Implementation details: [[Notifications-and-Background]].
+
+## The comeback ladder ([[Checkpoint-3]])
+
+Every other reminder here fires because I asked it to. This one fires
+because I **stopped** asking — and for a streak app that is the one
+case worth getting right, because an app that goes quiet the moment you
+stop opening it has given up on the single thing it does.
+
+Six rungs, escalating from warm to plain, one message each. The ladder
+*is* the rotation:
+
+| Rung | Fires | Voice |
+| :--- | :--- | :--- |
+| 1 day | the morning after one missed day | 🌱 *"Your field is waiting"* |
+| 3 days | | *"Three days without water"* |
+| 1 week | | 🌾 *"A week away"* |
+| 2 weeks | | *"Two weeks quiet"* |
+| 1 month | | *"A month of fallow ground"* |
+| 2 months | then every 30 days | *"Still here whenever you are"* |
+
+- A rung fires the morning **after** its run of missed days is complete,
+  so the one-day nudge lands two days after the last check-in.
+- Past the last rung the ladder settles into a **monthly heartbeat**
+  rather than going silent. Someone who put the phone down in March
+  should still hear from their field in June.
+- **Anything counts as showing up**: a check-in or a logged expense
+  resets the whole ladder, which is replanned on every check-in, every
+  expense, every app open and every 3 AM reset.
+- A rung **replaces** the morning ritual on the day it fires rather than
+  stacking on it — the 4/day cap is a rule, not a target
+  ([[Business-Rules]] #9).
+- It is a ritual, so the master "Allow reminders" switch silences it —
+  unlike a seed's own reminder, which is a time I asked for.
+- It is **not** an alarm: no full-screen intent, no alarm stream, no
+  snooze. "We miss you" does not get to wake anybody up.
+- No shame, ever. Every message says the history is safe and one
+  check-in starts the next streak; none of them counts the days lost.
+
+An app installed and never opened still gets the ladder — with no
+check-ins on record it counts from the day the first seed was planted.
 
 ## Alarms, not toasts (checkpoint round 5)
 

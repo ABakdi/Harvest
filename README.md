@@ -51,8 +51,25 @@ in daily use; gym & health is next. Grab the latest build from the
   with exchange rates, weekly and monthly charts.
 - **The Vault** — wallet, savings pots per currency, and debts, each with
   its total and its own transaction ledger that says what every move was.
+- **Notes that carry over** — a note per seed per day, so tomorrow's
+  sheet opens with yesterday's quoted above it: *stopped on page 143*.
+  Today's shows on the card, and the whole run is in the seed's history.
+- **A seed's own screen** — its streak, its best, an eight-week strip of
+  the days you showed up, and a timeline of everything you logged and
+  wrote, day by day.
+- **Archive, and delete** — retiring a seed asks why, and the answer is
+  kept with it on the Archive screen; restore it, or delete it for good
+  with its whole history, confirmed first.
+- **It notices when you stop** — miss a day, three, a week, a fortnight,
+  a month, and Harvest says something warm and gets out of the way.
+  Never more than one a day, never any shame.
+- **Home-screen widget** — the streak, today's field, your rank. Tap to
+  open.
 - **Calendar and stats** — a month view of everything due, an activity
   heat-map, project burn-up, habit streaks, and a weekly harvest report.
+- **The lock and the export** — the whole app behind your phone's own
+  fingerprint or PIN, and one tap to drop every row into a spreadsheet
+  in Downloads with the totals as live formulas.
 - **Five looks, two languages** — Harvest, Sunrise, Ocean, Orchard, and
   Dusk presets, each light and dark, in English and Arabic with full RTL.
 
@@ -71,8 +88,11 @@ Android only for now (API 26+).
 2. Allow installs from unknown sources when the phone asks.
 3. Open Harvest and plant your first seed.
 
-Beta builds are signed with a debug key, so uninstall a beta before
-installing a later signed build.
+From v0.9.5-beta the release is signed with a real upload key. Builds up
+to v0.9.4-beta went out on the debug keystore, and Android will not
+install over a differently-signed APK — so if you are on one of those,
+export your data first (Settings → My data), then uninstall before
+installing a newer build.
 
 ## Documentation
 
@@ -133,6 +153,8 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | Note | What's in it |
 | :--- | :--- |
 | [Checkpoint 1](docs/05-Checkpoints/Checkpoint-1.md) | Road to v1: progress review, bugs, gap list, and the dogfooding rounds |
+| [Checkpoint 2](docs/05-Checkpoints/Checkpoint-2.md) | The app lock and the spreadsheet export |
+| [Checkpoint 3](docs/05-Checkpoints/Checkpoint-3.md) | Eleven things a fortnight of living with it turned up |
 
 ### Audit
 
@@ -227,10 +249,14 @@ lib/
     calendar/     month view
     stats/        heat-map, reports
     settings/     preferences, rates
+    security/     the app lock
+    export/       the spreadsheet workbook
+    widget/       the home-screen widget
     onboarding/
   l10n/           ARB files (en, ar)
+assets/icon/      the olive-branch launcher icon and its SVG sources
 docs/             the Obsidian vault
-drift_schemas/    exported schema snapshots (v1 … v7)
+drift_schemas/    exported schema snapshots (v1 … v9)
 test/             unit, migration, and golden tests
 ```
 
@@ -243,7 +269,11 @@ test/             unit, migration, and golden tests
 | 2 — Finances | Expense quick-log, budgets, gauge, vault | ✅ |
 | 3 — Gym & Health | Sleep alarm + debt, workout plans & sessions | next |
 | 4 — Screen Time | Usage caps, weed-pull interventions | |
-| 5 — Sync & Social | Accounts, MongoDB sync, rankings, widgets, iOS polish | |
+| 5 — Sync & Social | Accounts, MongoDB sync, rankings, iOS polish | |
+
+The compact home-screen widget came forward out of phase 5 in
+[Checkpoint 3](docs/05-Checkpoints/Checkpoint-3.md) — nothing about a
+widget needed a sync server.
 
 Working rule: each phase ends with a tagged release I install and live
 with before starting the next — dogfooding is the QA department.

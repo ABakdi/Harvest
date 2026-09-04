@@ -11,10 +11,11 @@ These rules are the app's constitution. Any feature that conflicts with them is 
 | 5 | **Local-first, always** | Every feature must be fully functional with no network, forever. Sync ([[Sync-Strategy]]) is additive. |
 | 6 | **Financial privacy** | Expense data stays on-device; if synced later, end-to-end encrypted only. Never shared, never sold. |
 | 7 | **Blocking is self-imposed** | Screen-time locks are always escapable by deliberate action ([[Screen-Time]]). No dark patterns anywhere. |
-| 8 | **History is append-only** | Deleting a commitment never deletes its check-in history; stats and streak math stay truthful. |
-| 9 | **Notifications: max 4/day** | Scheduled nudges are capped and suppressed when already done ([[Notifications]]). |
+| 8 | **History is append-only, with one confirmed exception** | Retiring a seed never destroys its history — that is what **Archive** is for, and it keeps every check-in and every note ([[Checkpoint-3]]). The exception is the seed I planted by mistake: a **deliberate, confirmed delete** removes it, its check-ins, its notes and its streak, because a row that should never have existed is not history. Nothing else in the app hard-deletes; the confirm dialog says what it costs and offers Archive instead. |
+| 9 | **Notifications: max 4/day** | Scheduled nudges are capped and suppressed when already done ([[Notifications]]). The comeback ladder counts against the cap like everything else: on a day one of its rungs fires it **replaces** the morning ritual rather than stacking on it. |
 | 10 | **The lock is the device's, not mine** | The app lock ([[Checkpoint-2]]) is off by default and, when armed, defers entirely to whatever the phone already trusts — fingerprint, face, PIN, pattern, password. Harvest never stores a secret of its own, and never invents a PIN screen. |
 | 11 | **My data is always exportable** | One tap produces a spreadsheet holding every row the database has, soft-deleted ones included ([[ADR-006-Export-Format]]). No feature may add a table the export does not carry. |
+| 12 | **Nothing is due before it was planted** | A schedule describes a rhythm, not a history. Every seed carries a **start day** — the Harvest Day it was created — and no screen, streak or reminder may treat it as due on any day before that. One rule, `isDueOn`, enforces it for the field, the calendar and the planner alike ([[Checkpoint-3]]). |
 
 ## The 3 AM reset job
 

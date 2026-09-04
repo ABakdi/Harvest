@@ -14,7 +14,8 @@ Spec: [[Sync-Strategy]]. The local-first core goes multi-device and lightly soci
 - [ ] Weekly Harvest Report share card
 
 ## M5.3 — Reach
-- [ ] Home-screen widgets: compact + Vitality ([[Dashboard-and-Widgets]])
+- [x] ~~Home-screen widget: compact~~ — **shipped early in [[Checkpoint-3]]**; nothing about a widget needed a sync server
+- [ ] Home-screen widget: medium "Vitality" ([[Dashboard-and-Widgets]]) — waits on the pillars behind its gauges
 - [ ] iOS release pass: Screen Time API enforcement, BGTaskScheduler tuning, alarm strategy
 - [ ] Web dashboard ("The Field" grid + keyboard quick-log)
 
