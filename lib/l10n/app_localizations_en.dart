@@ -1453,8 +1453,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetSectionTasks => 'Today\'s field';
 
   @override
-  String get widgetSectionTasksBody =>
-      'What\'s still due — scroll the widget for the rest';
+  String get widgetSectionTasksBody => 'What\'s still due, as a row of boxes';
 
   @override
   String get widgetSectionActions => 'Quick actions';

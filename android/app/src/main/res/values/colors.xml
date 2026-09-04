@@ -2,4 +2,16 @@
 <resources>
     <!-- The first colour of the Harvest gradient; see the splash. -->
     <color name="launch_background">#1F8A46</color>
+
+    <!-- The widget wears the app's own surface language rather than the
+         full brand gradient: a cream card with a hairline edge and green
+         accents, so it sits on a home screen instead of shouting at it.
+         values-night carries the dark half. -->
+    <color name="widget_surface">#FCF7EA</color>
+    <color name="widget_edge">#1F32355C</color>
+    <color name="widget_text">#32355C</color>
+    <color name="widget_muted">#8A32355C</color>
+    <color name="widget_accent">#1F8A46</color>
+    <color name="widget_accent_soft">#1F2E9E4E</color>
+    <color name="widget_on_accent">#FFFFFF</color>
 </resources>

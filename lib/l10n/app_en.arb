@@ -868,7 +868,7 @@
   "widgetSectionMoney": "Money",
   "widgetSectionMoneyBody": "Today's spend and your wallet balance",
   "widgetSectionTasks": "Today's field",
-  "widgetSectionTasksBody": "What's still due — scroll the widget for the rest",
+  "widgetSectionTasksBody": "What's still due, as a row of boxes",
   "widgetSectionActions": "Quick actions",
   "widgetSectionActionsBody": "Log an expense or plant a seed from the home screen"
 }

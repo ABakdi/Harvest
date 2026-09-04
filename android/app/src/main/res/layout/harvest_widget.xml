@@ -1,188 +1,326 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Wide and low: the streak on the left, money on the right, then
-     whatever else is switched on. Every section below the header can be
-     turned off in Settings; the streak cannot, because it is the app. -->
+<!-- The widget wears the app's surface language: one card a step above
+     the wallpaper, a hairline edge, 22dp corners, and the accent green
+     doing the work the brand gradient used to do by shouting.
+
+     The card is `wrap_content` inside a transparent, centred frame, so
+     switching a section off in Settings genuinely makes the widget
+     smaller instead of leaving a hole where it used to be. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:gravity="center_vertical"
-    android:padding="12dp">
+    android:gravity="center">
 
     <LinearLayout
+        android:id="@+id/widget_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/ic_launcher_foreground"
-            android:contentDescription="@null" />
+        android:background="@drawable/widget_card"
+        android:orientation="vertical"
+        android:padding="11dp">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <FrameLayout
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginEnd="9dp"
+                android:background="@drawable/widget_badge">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_widget_streak"
+                    android:contentDescription="@null" />
+            </FrameLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="bottom">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/widget_streak"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#FFFFFF"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
-                    android:includeFontPadding="false"
-                    android:text="0" />
+                    android:orientation="horizontal"
+                    android:gravity="bottom">
+
+                    <TextView
+                        android:id="@+id/widget_streak"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/widget_text"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:includeFontPadding="false"
+                        android:text="0" />
+
+                    <TextView
+                        android:id="@+id/widget_streak_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginBottom="1dp"
+                        android:textColor="@color/widget_muted"
+                        android:textSize="12sp"
+                        android:maxLines="1"
+                        android:text="day streak" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/widget_streak_label"
+                    android:id="@+id/widget_progress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginBottom="2dp"
-                    android:textColor="#E8FFE0"
+                    android:textColor="@color/widget_accent"
                     android:textSize="12sp"
+                    android:textStyle="bold"
                     android:maxLines="1"
-                    android:text="day streak" />
+                    android:ellipsize="end" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/widget_progress"
+            <LinearLayout
+                android:id="@+id/widget_money"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#DCF7CF"
-                android:textSize="12sp"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <TextView
+                    android:id="@+id/widget_spent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/widget_text"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/widget_wallet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/widget_muted"
+                    android:textSize="11sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- Today's field as a row of boxes rather than a column of
+             rows: a widget is wider than it is tall, and a list was
+             fighting that shape. It does not scroll, and that is the
+             platform's answer rather than mine — RemoteViews will not
+             inflate a HorizontalScrollView, and its two scrolling
+             collections only go up and down. The boxes share the width,
+             ellipsing as they must, and whatever does not fit is
+             counted on the last chip. -->
         <LinearLayout
-            android:id="@+id/widget_money"
-            android:layout_width="wrap_content"
+            android:id="@+id/widget_tasks"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="end">
-
-            <TextView
-                android:id="@+id/widget_spent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
-            <TextView
-                android:id="@+id/widget_wallet"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#DCF7CF"
-                android:textSize="12sp"
-                android:maxLines="1"
-                android:ellipsize="end" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- The task list scrolls: the widget shows what is next, and the
-         rest is one flick away instead of a second screen. -->
-    <ListView
-        android:id="@+id/widget_tasks"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="6dp"
-        android:divider="@null"
-        android:dividerHeight="0dp"
-        android:scrollbars="none" />
-
-    <TextView
-        android:id="@+id/widget_tasks_empty"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="6dp"
-        android:gravity="center"
-        android:textColor="#E8FFE0"
-        android:textSize="13sp"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/widget_actions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:id="@+id/widget_action_expense"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/widget_pill"
+            android:layout_marginTop="9dp"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:paddingTop="7dp"
-            android:paddingBottom="7dp">
+            android:baselineAligned="false">
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="5dp"
-                android:src="@drawable/ic_widget_add"
-                android:contentDescription="@null" />
+                <LinearLayout
+                    android:id="@+id/task_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/widget_chip"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="9dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:visibility="gone">
 
-            <TextView
-                android:id="@+id/widget_action_expense_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                    <ImageView
+                        android:id="@+id/task_1_mark"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_widget_pending"
+                        android:contentDescription="@null" />
+
+                    <TextView
+                        android:id="@+id/task_1_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/widget_text"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/task_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/widget_chip"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="9dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/task_2_mark"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_widget_pending"
+                        android:contentDescription="@null" />
+
+                    <TextView
+                        android:id="@+id/task_2_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/widget_text"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/task_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/widget_chip"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="9dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/task_3_mark"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_widget_pending"
+                        android:contentDescription="@null" />
+
+                    <TextView
+                        android:id="@+id/task_3_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/widget_text"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/task_more"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/widget_chip"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:textColor="@color/widget_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:visibility="gone" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/widget_action_task"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/widget_tasks_empty"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/widget_pill"
-            android:orientation="horizontal"
+            android:layout_marginTop="9dp"
             android:gravity="center"
-            android:paddingTop="7dp"
-            android:paddingBottom="7dp">
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="5dp"
-                android:src="@drawable/ic_widget_add"
-                android:contentDescription="@null" />
+        <LinearLayout
+            android:id="@+id/widget_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/widget_action_task_label"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/widget_action_expense"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:layout_weight="1"
+                android:layout_marginEnd="7dp"
+                android:background="@drawable/widget_pill"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp">
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginEnd="5dp"
+                    android:src="@drawable/ic_widget_add"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:id="@+id/widget_action_expense_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/widget_on_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_action_task"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/widget_pill"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp">
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginEnd="5dp"
+                    android:src="@drawable/ic_widget_add"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:id="@+id/widget_action_task_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/widget_on_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

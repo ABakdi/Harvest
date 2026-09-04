@@ -1459,8 +1459,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get widgetSectionTasks => 'حقل اليوم';
 
   @override
-  String get widgetSectionTasksBody =>
-      'ما تبقّى مستحقًّا — مرّر داخل الأداة لرؤية الباقي';
+  String get widgetSectionTasksBody => 'ما تبقّى مستحقًّا، في صفّ من الصناديق';
 
   @override
   String get widgetSectionActions => 'إجراءات سريعة';

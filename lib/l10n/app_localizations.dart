@@ -2483,7 +2483,7 @@ abstract class AppLocalizations {
   /// No description provided for @widgetSectionTasksBody.
   ///
   /// In en, this message translates to:
-  /// **'What\'s still due — scroll the widget for the rest'**
+  /// **'What\'s still due, as a row of boxes'**
   String get widgetSectionTasksBody;
 
   /// No description provided for @widgetSectionActions.

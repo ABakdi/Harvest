@@ -3,4 +3,13 @@
     <!-- The launch window is the brand green in both modes: the splash
          itself is the same gradient whatever theme the app is set to. -->
     <color name="launch_background">#1F8A46</color>
+
+    <!-- The widget's dark half, on the app's own dark surface. -->
+    <color name="widget_surface">#262941</color>
+    <color name="widget_edge">#33F0EBDA</color>
+    <color name="widget_text">#F0EBDA</color>
+    <color name="widget_muted">#99F0EBDA</color>
+    <color name="widget_accent">#63C97B</color>
+    <color name="widget_accent_soft">#2663C97B</color>
+    <color name="widget_on_accent">#12261A</color>
 </resources>

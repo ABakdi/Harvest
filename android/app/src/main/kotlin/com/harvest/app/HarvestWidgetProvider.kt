@@ -3,23 +3,24 @@ package com.harvest.app
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
+import org.json.JSONArray
+import org.json.JSONException
 
 /**
  * The home-screen widget: the streak, and whatever else is switched on
- * in Settings — today's money, the scrollable list of what is still
- * due, and the two quick actions.
+ * in Settings — today's money, today's field as a row of boxes, and the
+ * two quick actions.
  *
  * It renders from whatever Dart last wrote into the shared preferences
  * store, so it is correct the moment the app writes and stays correct
- * with the app closed. Tapping the background opens Harvest; the action
- * pills open it on the sheet they name.
+ * with the app closed. Tapping the card opens Harvest; the action pills
+ * open it on the sheet they name.
  */
 class HarvestWidgetProvider : HomeWidgetProvider() {
 
@@ -32,9 +33,7 @@ class HarvestWidgetProvider : HomeWidgetProvider() {
         val showMoney = widgetData.getBoolean(KEY_SHOW_MONEY, true)
         val showTasks = widgetData.getBoolean(KEY_SHOW_TASKS, true)
         val showActions = widgetData.getBoolean(KEY_SHOW_ACTIONS, true)
-        // An empty list still needs its own line: a blank strip where
-        // the tasks were reads as a broken widget, not as a free day.
-        val hasTasks = widgetData.getString(KEY_TASKS, "[]").orEmpty().length > 2
+        val tasks = readTasks(widgetData.getString(KEY_TASKS, "[]"))
 
         appWidgetIds.forEach { id ->
             val views = RemoteViews(context.packageName, R.layout.harvest_widget).apply {
@@ -49,12 +48,19 @@ class HarvestWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_spent, widgetData.getString(KEY_SPENT, ""))
                 setTextViewText(R.id.widget_wallet, widgetData.getString(KEY_WALLET, ""))
 
-                setViewVisibility(R.id.widget_tasks, visibility(showTasks && hasTasks))
-                setViewVisibility(R.id.widget_tasks_empty, visibility(showTasks && !hasTasks))
+                // An empty field still needs its own line: a strip that
+                // simply vanishes reads as a broken widget, not as a
+                // day with nothing left in it.
+                setViewVisibility(R.id.widget_tasks, visibility(showTasks && tasks.isNotEmpty()))
+                setViewVisibility(
+                    R.id.widget_tasks_empty,
+                    visibility(showTasks && tasks.isEmpty()),
+                )
                 setTextViewText(
                     R.id.widget_tasks_empty,
                     widgetData.getString(KEY_TASKS_EMPTY, ""),
                 )
+                fillTasks(context, tasks)
 
                 setViewVisibility(R.id.widget_actions, visibility(showActions))
                 setTextViewText(
@@ -66,18 +72,7 @@ class HarvestWidgetProvider : HomeWidgetProvider() {
                     widgetData.getString(KEY_ACTION_TASK, ""),
                 )
 
-                // The list is served by HarvestWidgetTaskService, which
-                // reads the same preferences this method does.
-                val listIntent = Intent(context, HarvestWidgetTaskService::class.java).apply {
-                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
-                    // A distinct data URI per widget id, so Android does
-                    // not hand two instances the same cached factory.
-                    data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
-                }
-                setRemoteAdapter(R.id.widget_tasks, listIntent)
-                setPendingIntentTemplate(R.id.widget_tasks, launch(context))
-
-                setOnClickPendingIntent(R.id.widget_root, launch(context))
+                setOnClickPendingIntent(R.id.widget_card, launch(context))
                 setOnClickPendingIntent(
                     R.id.widget_action_expense,
                     launch(context, ACTION_EXPENSE),
@@ -89,9 +84,68 @@ class HarvestWidgetProvider : HomeWidgetProvider() {
             }
             appWidgetManager.updateAppWidget(id, views)
         }
-        // The adapter caches its rows; without this the list keeps
-        // showing yesterday's field until the host feels like asking.
-        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_tasks)
+    }
+
+    private data class Task(val title: String, val done: Boolean)
+
+    /** A half-written blob is an empty field, never a crash in the launcher. */
+    private fun readTasks(raw: String?): List<Task> = try {
+        val array = JSONArray(raw ?: "[]")
+        (0 until array.length()).map { i ->
+            val item = array.getJSONObject(i)
+            Task(item.optString("title"), item.optBoolean("done"))
+        }
+    } catch (error: JSONException) {
+        emptyList()
+    }
+
+    /**
+     * Pours the tasks into the strip's slots, and counts what is left
+     * over onto the last chip.
+     *
+     * The slots are declared in the layout rather than built by an
+     * adapter because there is nothing to adapt into: RemoteViews
+     * refuses to inflate a HorizontalScrollView, and its two scrolling
+     * collections only go up and down. Three boxes sharing the width,
+     * plus "+N more", is what the platform actually allows.
+     */
+    private fun RemoteViews.fillTasks(context: Context, tasks: List<Task>) {
+        // Resolved here rather than left to the layout: the chip's text
+        // flips to the on-accent colour once the task is done, and a
+        // RemoteViews colour has to arrive as an ARGB int. The provider
+        // runs in our process, so the night-mode variant resolves
+        // correctly on the way out.
+        val pendingColor = context.getColor(R.color.widget_text)
+        val doneColor = context.getColor(R.color.widget_on_accent)
+        // With more than the strip holds, the last slot gives up its
+        // task so the count has somewhere to live.
+        val overflow = (tasks.size - SLOTS.size).coerceAtLeast(0)
+        val shown = if (overflow > 0) SLOTS.size else tasks.size
+
+        SLOTS.forEachIndexed { index, slot ->
+            val task = if (index < shown) tasks.getOrNull(index) else null
+            if (task == null) {
+                setViewVisibility(slot.root, View.GONE)
+                return@forEachIndexed
+            }
+            setViewVisibility(slot.root, View.VISIBLE)
+            setTextViewText(slot.title, task.title)
+            setInt(
+                slot.root,
+                "setBackgroundResource",
+                if (task.done) R.drawable.widget_chip_done else R.drawable.widget_chip,
+            )
+            setImageViewResource(
+                slot.mark,
+                if (task.done) R.drawable.ic_widget_done else R.drawable.ic_widget_pending,
+            )
+            setTextColor(slot.title, if (task.done) doneColor else pendingColor)
+        }
+
+        setViewVisibility(R.id.task_more, visibility(overflow > 0))
+        if (overflow > 0) {
+            setTextViewText(R.id.task_more, "+$overflow")
+        }
     }
 
     private fun visibility(shown: Boolean) = if (shown) View.VISIBLE else View.GONE
@@ -123,5 +177,14 @@ class HarvestWidgetProvider : HomeWidgetProvider() {
 
         const val ACTION_EXPENSE = "harvest://expense"
         const val ACTION_TASK = "harvest://task"
+
+        /** As many boxes as stay legible across a four-cell widget. */
+        val SLOTS = listOf(
+            Slot(R.id.task_1, R.id.task_1_mark, R.id.task_1_title),
+            Slot(R.id.task_2, R.id.task_2_mark, R.id.task_2_title),
+            Slot(R.id.task_3, R.id.task_3_mark, R.id.task_3_title),
+        )
     }
+
+    private data class Slot(val root: Int, val mark: Int, val title: Int)
 }

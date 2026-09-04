@@ -39,15 +39,25 @@ Shipped early, out of [[Phase-5-Sync-and-Social]]: nothing about a
 widget needs a sync server.
 
 A **bar, not a tile** — four cells wide, one header row, resizable both
-ways down to a single row. On the brand gradient, and tapping the
-background opens the app.
+ways. It wears the app's own surface rather than the brand gradient: a
+card a step above the wallpaper with a hairline edge, the same 22 dp
+corner, green as an accent rather than a wash, and a dark variant that
+follows the system. Tapping the card opens the app.
+
+The card wraps its content, so switching a section off makes the widget
+**smaller**, not emptier.
 
 | Section | Shows | Switchable |
 | :--- | :--- | :---: |
 | **Streak** | The streak, and today's progress under it | never — it is the app |
 | **Money** | Today's spend and the wallet balance, in the default currency | ✓ |
-| **Today's field** | What is still due, **scrollable inside the widget**, undone first | ✓ |
+| **Today's field** | What is still due as a row of boxes, undone first, with `+N` for the rest | ✓ |
 | **Quick actions** | Log an expense · plant a seed — each opens the app on that sheet | ✓ |
+
+The field is a row rather than a list because a widget is wider than it
+is tall — and it does not scroll because `RemoteViews` has no
+horizontally-scrolling container: its two collections go up and down,
+and a `HorizontalScrollView` is refused at inflation ([[Checkpoint-3]]).
 
 The switches live in Settings → My data. Everything is computed **from
 the database** with the same `isDueOn` rule the field uses, so it is

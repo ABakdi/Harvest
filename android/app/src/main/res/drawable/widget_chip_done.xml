@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The quick actions: the app's primary button, at widget scale. -->
+<!-- A watered task: filled in the accent, the way a checked crop card
+     fills its circle. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/widget_accent" />
-    <corners android:radius="16dp" />
+    <corners android:radius="14dp" />
 </shape>

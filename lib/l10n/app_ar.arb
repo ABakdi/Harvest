@@ -404,7 +404,7 @@
   "widgetSectionMoney": "المال",
   "widgetSectionMoneyBody": "مصروف اليوم ورصيد محفظتك",
   "widgetSectionTasks": "حقل اليوم",
-  "widgetSectionTasksBody": "ما تبقّى مستحقًّا — مرّر داخل الأداة لرؤية الباقي",
+  "widgetSectionTasksBody": "ما تبقّى مستحقًّا، في صفّ من الصناديق",
   "widgetSectionActions": "إجراءات سريعة",
   "widgetSectionActionsBody": "سجّل مصروفًا أو ازرع بذرة من الشاشة الرئيسية"
 }

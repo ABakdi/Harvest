@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Wide and low by default, and resizable both ways: with every
-     section off it is a one-row streak bar, with them all on it wants
-     two. -->
+<!-- Wide and low, and resizable both ways. The card inside wraps its
+     own content, so the widget shrinks when a section is switched off
+     rather than leaving a hole where it used to be. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
-    android:minHeight="50dp"
+    android:minHeight="40dp"
     android:targetCellWidth="4"
     android:targetCellHeight="2"
     android:description="@string/widget_description"
