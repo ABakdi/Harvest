@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
-import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
@@ -15,14 +15,8 @@ import 'package:intl/intl.dart';
 Future<void> showCommitmentEditor(
   BuildContext context, {
   Commitment? existing,
-}) => showModalBottomSheet<void>(
-  context: context,
-  isScrollControlled: true,
-  shape: const RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(
-      top: Radius.circular(HarvestRadii.sheet),
-    ),
-  ),
+}) => showHarvestSheet<void>(
+  context,
   builder: (_) => _EditorSheet(existing: existing),
 );
 
@@ -238,78 +232,59 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(HarvestSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _editing ? l10n.editSeed : l10n.addCommitment,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
+    return HarvestSheet(
+      title: _editing ? l10n.editSeed : l10n.addCommitment,
+      actionLabel: l10n.save,
+      onAction: _valid && !_saving ? _save : null,
+      children: [
+        if (!_editing) ...[
+          SegmentedButton<CommitmentType>(
+            segments: [
+              ButtonSegment(
+                value: CommitmentType.habit,
+                label: Text(l10n.typeHabit),
+                icon: const Icon(Icons.repeat),
               ),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            if (!_editing)
-              SegmentedButton<CommitmentType>(
-                segments: [
-                  ButtonSegment(
-                    value: CommitmentType.habit,
-                    label: Text(l10n.typeHabit),
-                    icon: const Icon(Icons.repeat),
-                  ),
-                  ButtonSegment(
-                    value: CommitmentType.project,
-                    label: Text(l10n.typeProject),
-                    icon: const Icon(Icons.flag),
-                  ),
-                  ButtonSegment(
-                    value: CommitmentType.todo,
-                    label: Text(l10n.typeTodo),
-                    icon: const Icon(Icons.check),
-                  ),
-                ],
-                selected: {_type},
-                onSelectionChanged: (s) => setState(() => _type = s.first),
+              ButtonSegment(
+                value: CommitmentType.project,
+                label: Text(l10n.typeProject),
+                icon: const Icon(Icons.flag),
               ),
-            const SizedBox(height: HarvestSpacing.md),
-            TextField(
-              controller: _titleController,
-              autofocus: true,
-              textInputAction: TextInputAction.done,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.titleLabel,
-                hintText: switch (_type) {
-                  CommitmentType.habit => l10n.titleHintHabit,
-                  CommitmentType.project => l10n.titleHintProject,
-                  CommitmentType.todo => l10n.titleHintTodo,
-                },
+              ButtonSegment(
+                value: CommitmentType.todo,
+                label: Text(l10n.typeTodo),
+                icon: const Icon(Icons.check),
               ),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            ...switch (_type) {
-              CommitmentType.habit => _habitFields(l10n),
-              CommitmentType.project => _projectFields(l10n),
-              CommitmentType.todo => _todoFields(l10n),
+            ],
+            selected: {_type},
+            onSelectionChanged: (s) => setState(() => _type = s.first),
+          ),
+          const SizedBox(height: HarvestSpacing.md),
+        ],
+        TextField(
+          controller: _titleController,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            labelText: l10n.titleLabel,
+            hintText: switch (_type) {
+              CommitmentType.habit => l10n.titleHintHabit,
+              CommitmentType.project => l10n.titleHintProject,
+              CommitmentType.todo => l10n.titleHintTodo,
             },
-            const SizedBox(height: HarvestSpacing.sm),
-            _advancedSection(l10n),
-            const SizedBox(height: HarvestSpacing.md),
-            BigBouncySheetButton(
-              onPressed: _valid && !_saving ? _save : null,
-              child: Text(l10n.save),
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: HarvestSpacing.md),
+        ...switch (_type) {
+          CommitmentType.habit => _habitFields(l10n),
+          CommitmentType.project => _projectFields(l10n),
+          CommitmentType.todo => _todoFields(l10n),
+        },
+        const SizedBox(height: HarvestSpacing.sm),
+        _advancedSection(l10n),
+      ],
     );
   }
 

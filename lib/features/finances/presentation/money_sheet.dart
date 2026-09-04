@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
-import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -35,9 +35,8 @@ Future<MoneyEntry?> showMoneySheet(
   /// the switch starts on when the wallet can cover the amount.
   Map<Currency, int>? walletBalances,
   String? walletLabel,
-}) => showModalBottomSheet<MoneyEntry>(
-  context: context,
-  isScrollControlled: true,
+}) => showHarvestSheet<MoneyEntry>(
+  context,
   builder: (_) => _MoneySheet(
     title: title,
     subtitle: subtitle,
@@ -133,117 +132,90 @@ class _MoneySheetState extends State<_MoneySheet> {
     final theme = Theme.of(context);
     final accent = widget.accent ?? theme.colorScheme.primary;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: HarvestSpacing.lg,
-        right: HarvestSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + HarvestSpacing.lg,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            widget.title,
-            style: theme.textTheme.headlineSmall?.copyWith(
+    return HarvestSheet(
+      title: widget.title,
+      subtitle: widget.subtitle,
+      actionLabel: l10n.save,
+      onAction: _valid ? _submit : null,
+      children: [
+        TextField(
+          controller: _amountController,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: (_) => setState(() {}),
+          onSubmitted: (_) => _submit(),
+          style: theme.textTheme.displaySmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: _overCap ? theme.colorScheme.error : accent,
+          ),
+          decoration: InputDecoration(
+            hintText: '0',
+            hintStyle: theme.textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.w800,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
+            ),
+            prefixText: '${_currency.symbol} ',
+            prefixStyle: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            errorText: _overCap
+                ? '${l10n.amountLabel} ≤ ${_currency.symbol}${formatMinor(_cap!)}'
+                : null,
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        if (!widget.lockCurrency)
+          SegmentedButton<Currency>(
+            segments: [
+              for (final option in Currency.values)
+                ButtonSegment(value: option, label: Text(option.symbol)),
+            ],
+            selected: {_currency},
+            onSelectionChanged: (selection) {
+              unawaited(HarvestHaptics.tick());
+              setState(() => _currency = selection.first);
+            },
+          ),
+        if (_cap != null && !_overCap)
+          Padding(
+            padding: const EdgeInsets.only(top: HarvestSpacing.sm),
+            child: Text(
+              '${_currency.symbol}${formatMinor(_cap!)}',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          if (widget.subtitle != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                widget.subtitle!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          const SizedBox(height: HarvestSpacing.md),
-          TextField(
-            controller: _amountController,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: (_) => setState(() {}),
-            onSubmitted: (_) => _submit(),
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: _overCap ? theme.colorScheme.error : accent,
-            ),
-            decoration: InputDecoration(
-              hintText: '0',
-              hintStyle: theme.textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
-              ),
-              prefixText: '${_currency.symbol} ',
-              prefixStyle: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              errorText: _overCap
-                  ? '${l10n.amountLabel} ≤ ${_currency.symbol}${formatMinor(_cap!)}'
-                  : null,
-            ),
-          ),
+        if (_hasWalletOption) ...[
           const SizedBox(height: HarvestSpacing.sm),
-          if (!widget.lockCurrency)
-            SegmentedButton<Currency>(
-              segments: [
-                for (final option in Currency.values)
-                  ButtonSegment(value: option, label: Text(option.symbol)),
-              ],
-              selected: {_currency},
-              onSelectionChanged: (selection) {
-                unawaited(HarvestHaptics.tick());
-                setState(() => _currency = selection.first);
-              },
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(widget.walletLabel ?? l10n.fromWalletToggle),
+            subtitle: Text(
+              _minor != null && !_walletCanCover
+                  ? l10n.walletShort
+                  : l10n.walletHas(formatAmount(_walletBalance, _currency)),
             ),
-          if (_cap != null && !_overCap)
-            Padding(
-              padding: const EdgeInsets.only(top: HarvestSpacing.sm),
-              child: Text(
-                '${_currency.symbol}${formatMinor(_cap!)}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          if (_hasWalletOption) ...[
-            const SizedBox(height: HarvestSpacing.sm),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(widget.walletLabel ?? l10n.fromWalletToggle),
-              subtitle: Text(
-                _minor != null && !_walletCanCover
-                    ? l10n.walletShort
-                    : l10n.walletHas(formatAmount(_walletBalance, _currency)),
-              ),
-              value: _useWallet,
-              onChanged: _walletCanCover
-                  ? (value) => setState(() => _fromWallet = value)
-                  : null,
-            ),
-          ],
-          const SizedBox(height: HarvestSpacing.md),
-          TextField(
-            controller: _noteController,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _submit(),
-            maxLength: noteMaxLength,
-            decoration: InputDecoration(
-              labelText: l10n.noteLabel,
-              counterText: '',
-            ),
-          ),
-          const SizedBox(height: HarvestSpacing.lg),
-          BigBouncySheetButton(
-            onPressed: _valid ? _submit : null,
-            child: Text(l10n.save),
+            value: _useWallet,
+            onChanged: _walletCanCover
+                ? (value) => setState(() => _fromWallet = value)
+                : null,
           ),
         ],
-      ),
+        const SizedBox(height: HarvestSpacing.md),
+        TextField(
+          controller: _noteController,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _submit(),
+          maxLength: noteMaxLength,
+          decoration: InputDecoration(
+            labelText: l10n.noteLabel,
+            counterText: '',
+          ),
+        ),
+      ],
     );
   }
 }

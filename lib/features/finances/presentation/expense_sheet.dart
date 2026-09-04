@@ -81,9 +81,8 @@ String categoryLabel(AppLocalizations l10n, String key) {
 /// The sub-5-second quick-log: amount, category chip, optional note.
 /// Pass [existing] to edit a same-day entry in place.
 Future<void> showExpenseSheet(BuildContext context, {Expense? existing}) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
+    showHarvestSheet<void>(
+      context,
       builder: (_) => _ExpenseSheet(existing: existing),
     );
 
@@ -326,43 +325,45 @@ Future<String?> showCategoryCreator(BuildContext context, WidgetRef ref) {
     builder: (dialogContext) => StatefulBuilder(
       builder: (dialogContext, setState) => AlertDialog(
         title: Text(l10n.newCategory),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: InputDecoration(labelText: l10n.categoryName),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            SizedBox(
-              width: 280,
-              child: Wrap(
-                spacing: HarvestSpacing.xs,
-                runSpacing: HarvestSpacing.xs,
-                children: [
-                  for (final entry in categoryIconRegistry.entries)
-                    InkWell(
-                      borderRadius: BorderRadius.circular(HarvestRadii.chip),
-                      onTap: () => setState(() => icon = entry.key),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                            HarvestRadii.chip,
-                          ),
-                          color: icon == entry.key
-                              ? Theme.of(dialogContext).colorScheme.secondary
-                                    .withValues(alpha: 0.3)
-                              : null,
-                        ),
-                        child: Icon(entry.value, size: 22),
-                      ),
-                    ),
-                ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(labelText: l10n.categoryName),
               ),
-            ),
-          ],
+              const SizedBox(height: HarvestSpacing.md),
+              SizedBox(
+                width: 280,
+                child: Wrap(
+                  spacing: HarvestSpacing.xs,
+                  runSpacing: HarvestSpacing.xs,
+                  children: [
+                    for (final entry in categoryIconRegistry.entries)
+                      InkWell(
+                        borderRadius: BorderRadius.circular(HarvestRadii.chip),
+                        onTap: () => setState(() => icon = entry.key),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              HarvestRadii.chip,
+                            ),
+                            color: icon == entry.key
+                                ? Theme.of(dialogContext).colorScheme.secondary
+                                      .withValues(alpha: 0.3)
+                                : null,
+                          ),
+                          child: Icon(entry.value, size: 22),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(

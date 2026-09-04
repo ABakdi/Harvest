@@ -16,11 +16,8 @@ Future<void> showCropOptions(BuildContext context, Commitment commitment) {
   unawaited(HarvestHaptics.tick());
   return showModalBottomSheet<void>(
     context: context,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(HarvestRadii.sheet),
-      ),
-    ),
+    isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => _OptionsSheet(commitment: commitment),
   );
 }
@@ -36,83 +33,85 @@ class _OptionsSheet extends ConsumerWidget {
     final editor = ref.read(commitmentEditorProvider.notifier);
 
     return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(HarvestSpacing.md),
-            child: Text(
-              commitment.title,
-              style: Theme.of(context).textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w800),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(HarvestSpacing.md),
+              child: Text(
+                commitment.title,
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.timer_outlined),
-            title: Text(l10n.focusTimer),
-            onTap: () {
-              Navigator.of(context).pop();
-              unawaited(context.push(AppRoutes.pomodoro, extra: commitment));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: Text(l10n.editSeed),
-            onTap: () {
-              Navigator.of(context).pop();
-              unawaited(showCommitmentEditor(context, existing: commitment));
-            },
-          ),
-          if (commitment.type == CommitmentType.habit)
             ListTile(
-              leading: Icon(
-                commitment.isPaused
-                    ? Icons.play_circle_outline
-                    : Icons.pause_circle_outline,
-              ),
-              title: Text(
-                commitment.isPaused ? l10n.resumeHabit : l10n.pauseHabit,
-              ),
+              leading: const Icon(Icons.timer_outlined),
+              title: Text(l10n.focusTimer),
               onTap: () {
                 Navigator.of(context).pop();
-                unawaited(
-                  editor.setPaused(
-                    commitment.uuid,
-                    paused: !commitment.isPaused,
-                  ),
-                );
+                unawaited(context.push(AppRoutes.pomodoro, extra: commitment));
               },
             ),
-          ListTile(
-            leading: const Icon(Icons.archive_outlined),
-            title: Text(l10n.archiveAction),
-            onTap: () async {
-              final navigator = Navigator.of(context);
-              final confirmed = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text(l10n.archiveConfirmTitle),
-                  content: Text(l10n.archiveConfirmBody(commitment.title)),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text(l10n.cancel),
-                    ),
-                    FilledButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: Text(l10n.archiveAction),
-                    ),
-                  ],
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(l10n.editSeed),
+              onTap: () {
+                Navigator.of(context).pop();
+                unawaited(showCommitmentEditor(context, existing: commitment));
+              },
+            ),
+            if (commitment.type == CommitmentType.habit)
+              ListTile(
+                leading: Icon(
+                  commitment.isPaused
+                      ? Icons.play_circle_outline
+                      : Icons.pause_circle_outline,
                 ),
-              );
-              if (confirmed ?? false) {
-                await editor.archive(commitment.uuid);
-              }
-              navigator.pop();
-            },
-          ),
-          const SizedBox(height: HarvestSpacing.sm),
-        ],
+                title: Text(
+                  commitment.isPaused ? l10n.resumeHabit : l10n.pauseHabit,
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  unawaited(
+                    editor.setPaused(
+                      commitment.uuid,
+                      paused: !commitment.isPaused,
+                    ),
+                  );
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.archive_outlined),
+              title: Text(l10n.archiveAction),
+              onTap: () async {
+                final navigator = Navigator.of(context);
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(l10n.archiveConfirmTitle),
+                    content: Text(l10n.archiveConfirmBody(commitment.title)),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text(l10n.cancel),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(l10n.archiveAction),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed ?? false) {
+                  await editor.archive(commitment.uuid);
+                }
+                navigator.pop();
+              },
+            ),
+            const SizedBox(height: HarvestSpacing.sm),
+          ],
+        ),
       ),
     );
   }

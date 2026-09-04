@@ -111,7 +111,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.calendarTitle)),
-      body: Column(
+      // One scroll view, not a grid above an expanded list: the quick-add
+      // field raises the keyboard, and a fixed-height month grid over a
+      // shrunken body is exactly how a column overflows.
+      body: ListView(
+        padding: const EdgeInsets.only(bottom: HarvestSpacing.lg),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
           Card(
             margin: const EdgeInsets.all(HarvestSpacing.md),
@@ -186,14 +191,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
             ),
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                HarvestSpacing.md,
-                0,
-                HarvestSpacing.md,
-                HarvestSpacing.lg,
-              ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: HarvestSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (isFuture)
                   Padding(

@@ -360,12 +360,10 @@ class _BudgetCard extends ConsumerWidget {
   }
 }
 
-Future<void> showBudgetSheet(BuildContext context) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => const _BudgetSheet(),
-    );
+Future<void> showBudgetSheet(BuildContext context) => showHarvestSheet<void>(
+  context,
+  builder: (_) => const _BudgetSheet(),
+);
 
 class _BudgetSheet extends ConsumerStatefulWidget {
   const _BudgetSheet();

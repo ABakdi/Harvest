@@ -27,10 +27,12 @@ Future<T?> showChoiceSheet<T>(
   required List<ChoiceOption<T>> options,
 }) => showModalBottomSheet<T>(
   context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
   builder: (sheetContext) {
     final theme = Theme.of(sheetContext);
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           HarvestSpacing.lg,
           0,

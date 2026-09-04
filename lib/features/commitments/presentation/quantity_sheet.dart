@@ -87,7 +87,6 @@ class _QuantitySheetState extends State<_QuantitySheet> {
       subtitle: widget.commitment.title,
       actionLabel: l10n.log,
       onAction: _quantity == null || _busy ? null : _submit,
-      scrollable: false,
       children: [
         TextField(
           controller: _controller,
