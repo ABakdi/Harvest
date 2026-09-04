@@ -7,18 +7,21 @@ import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/features/export/presentation/export_card.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/category_settings.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
+import 'package:harvest/features/security/presentation/app_lock_card.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Settings, in the order they matter: the goal, the reminders, the
-/// focus timer, money, then looks. A startup problem, if any, sits at
-/// the very bottom so it is never missed and never in the way.
+/// focus timer, money, who may open the app, getting the data out,
+/// then looks. A startup problem, if any, sits at the very bottom so it
+/// is never missed and never in the way.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -127,6 +130,10 @@ class SettingsScreen extends ConsumerWidget {
           const CategorySettingsCard(),
           const SizedBox(height: HarvestSpacing.sm),
           const RatesCard(),
+          SectionHeader(l10n.settingsPrivacy),
+          const AppLockCard(),
+          SectionHeader(l10n.settingsData),
+          const ExportCard(),
           SectionHeader(l10n.settingsAppearance),
           const _AppearanceCard(),
           if (startupProblem != null) ...[

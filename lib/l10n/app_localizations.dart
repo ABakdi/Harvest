@@ -1921,6 +1921,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your daily limit is what\'s left of the month divided by the days left in it.'**
   String get budgetExplainer;
+
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get settingsPrivacy;
+
+  /// No description provided for @appLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Harvest'**
+  String get appLockTitle;
+
+  /// No description provided for @appLockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for your fingerprint, PIN or password before opening the app.'**
+  String get appLockBody;
+
+  /// No description provided for @appLockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a fingerprint, PIN or password on this device first.'**
+  String get appLockUnavailable;
+
+  /// No description provided for @lockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest is locked'**
+  String get lockTitle;
+
+  /// No description provided for @lockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to get back to your field.'**
+  String get lockBody;
+
+  /// No description provided for @lockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Harvest'**
+  String get lockReason;
+
+  /// No description provided for @lockUnlockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get lockUnlockAction;
+
+  /// No description provided for @lockRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not match. Try again.'**
+  String get lockRefused;
+
+  /// No description provided for @lockTooManyTries.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a moment, then try again.'**
+  String get lockTooManyTries;
+
+  /// No description provided for @lockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The device could not show the unlock prompt.'**
+  String get lockUnavailable;
+
+  /// No description provided for @settingsData.
+  ///
+  /// In en, this message translates to:
+  /// **'My data'**
+  String get settingsData;
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export a spreadsheet'**
+  String get exportTitle;
+
+  /// No description provided for @exportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every seed, check-in, expense and movement in one .xlsx file, with the totals as live formulas.'**
+  String get exportBody;
+
+  /// No description provided for @exportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Downloads'**
+  String get exportAction;
+
+  /// No description provided for @exportRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Building the workbook…'**
+  String get exportRunning;
+
+  /// No description provided for @exportSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {path}'**
+  String exportSaved(String path);
+
+  /// No description provided for @exportFailedPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest was not allowed to write to Downloads.'**
+  String get exportFailedPermission;
+
+  /// No description provided for @exportFailedUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting is only available on Android for now.'**
+  String get exportFailedUnsupported;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The export did not finish. Try again.'**
+  String get exportFailed;
 }
 
 class _AppLocalizationsDelegate

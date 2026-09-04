@@ -13,6 +13,8 @@ These rules are the app's constitution. Any feature that conflicts with them is 
 | 7 | **Blocking is self-imposed** | Screen-time locks are always escapable by deliberate action ([[Screen-Time]]). No dark patterns anywhere. |
 | 8 | **History is append-only** | Deleting a commitment never deletes its check-in history; stats and streak math stay truthful. |
 | 9 | **Notifications: max 4/day** | Scheduled nudges are capped and suppressed when already done ([[Notifications]]). |
+| 10 | **The lock is the device's, not mine** | The app lock ([[Checkpoint-2]]) is off by default and, when armed, defers entirely to whatever the phone already trusts — fingerprint, face, PIN, pattern, password. Harvest never stores a secret of its own, and never invents a PIN screen. |
+| 11 | **My data is always exportable** | One tap produces a spreadsheet holding every row the database has, soft-deleted ones included ([[ADR-006-Export-Format]]). No feature may add a table the export does not carry. |
 
 ## The 3 AM reset job
 

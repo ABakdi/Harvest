@@ -51,3 +51,22 @@ device in plaintext under any setting. Everything else (commitments,
 check-ins, streaks, the ledger) syncs under the ordinary account
 encryption.
 
+## The spreadsheet is the first half of sync ([[Checkpoint-2]])
+
+Phase 5 is a long way off and until it lands the data has exactly one
+home. The **workbook export** is the stopgap that is also the first
+step: one `.xlsx` holding every table, which Google Sheets imports with
+its formulas live.
+
+The shape is deliberately a contract, not a dump — fixed English sheet
+names and headers, money in minor units, ISO-8601 timestamps,
+soft-deleted rows carried with their `deletedAt`. See
+[[ADR-006-Export-Format]] for why each of those is the way it is.
+
+When sync arrives it writes **these same tabs** into a real Google
+Sheet rather than inventing a second shape, and the privacy tiers above
+still decide what may leave the device. The export itself is
+unencrypted and lands in Downloads: it is a backup I take deliberately,
+not a channel, and it is outside the tiers because I am the one moving
+it.
+

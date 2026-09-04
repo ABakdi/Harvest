@@ -725,5 +725,32 @@
   "saveFailed": "That did not save. Try again.",
   "categoryExists": "A category with that name already exists",
   "withdrawToWallet": "To the wallet",
-  "budgetExplainer": "Your daily limit is what's left of the month divided by the days left in it."
+  "budgetExplainer": "Your daily limit is what's left of the month divided by the days left in it.",
+  "settingsPrivacy": "Privacy",
+  "appLockTitle": "Lock Harvest",
+  "appLockBody": "Ask for your fingerprint, PIN or password before opening the app.",
+  "appLockUnavailable": "Set a fingerprint, PIN or password on this device first.",
+  "lockTitle": "Harvest is locked",
+  "lockBody": "Unlock to get back to your field.",
+  "lockReason": "Unlock Harvest",
+  "lockUnlockAction": "Unlock",
+  "lockRefused": "That did not match. Try again.",
+  "lockTooManyTries": "Too many tries. Wait a moment, then try again.",
+  "lockUnavailable": "The device could not show the unlock prompt.",
+  "settingsData": "My data",
+  "exportTitle": "Export a spreadsheet",
+  "exportBody": "Every seed, check-in, expense and movement in one .xlsx file, with the totals as live formulas.",
+  "exportAction": "Export to Downloads",
+  "exportRunning": "Building the workbook…",
+  "exportSaved": "Saved to {path}",
+  "@exportSaved": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailedPermission": "Harvest was not allowed to write to Downloads.",
+  "exportFailedUnsupported": "Exporting is only available on Android for now.",
+  "exportFailed": "The export did not finish. Try again."
 }

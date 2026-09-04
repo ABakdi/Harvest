@@ -85,6 +85,13 @@ sync. On each launch, rows soft-deleted more than 30 days ago are purged
 for good (`purgeDeleted` on the commitments, finances and vault
 repositories). Nothing about money lingers forever by accident.
 
+**Every table is exportable.** The spreadsheet export
+([[ADR-006-Export-Format]]) reads each table directly rather than through
+the feature repositories, because those filter to what a screen should
+show and a backup that quietly drops rows is not a backup. A new table
+therefore owes the export a sheet — that is [[Business-Rules]] #11, and
+`ExportRepository` is the one place to add it.
+
 **The outbox and privacy.** `money_txns`, `debts`, `debt_payments` and
 `expense_categories` append to the same outbox as expenses, and they
 carry the most sensitive data in the app — amounts, and other people's

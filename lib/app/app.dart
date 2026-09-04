@@ -10,6 +10,8 @@ import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
+import 'package:harvest/features/security/domain/app_lock.dart';
+import 'package:harvest/features/security/presentation/lock_gate.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -53,7 +55,12 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
     super.initState();
     // Coming back to the foreground may mean a new Harvest Day: refresh
     // the clock, judge what was missed, and replan today's reminders.
-    _lifecycle = AppLifecycleListener(onResume: _onResume);
+    // Leaving it may mean the lock's grace window has started.
+    _lifecycle = AppLifecycleListener(
+      onResume: _onResume,
+      onHide: () => ref.read(appLockProvider.notifier).onHidden(),
+      onShow: () => ref.read(appLockProvider.notifier).onShown(),
+    );
   }
 
   void _onResume() {
@@ -99,6 +106,10 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
     return MaterialApp.router(
       scrollBehavior: const _HarvestScrollBehavior(),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      // Above the navigator, so the lock covers every route, sheet and
+      // dialog at once instead of being one screen among many.
+      builder: (context, child) =>
+          LockGate(child: child ?? const SizedBox.shrink()),
       routerConfig: ref.watch(routerProvider),
       theme: HarvestTheme.light(preset),
       darkTheme: HarvestTheme.dark(preset),

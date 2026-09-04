@@ -303,5 +303,32 @@
   "saveFailed": "لم يُحفظ ذلك. حاول مجددًا.",
   "categoryExists": "توجد فئة بهذا الاسم",
   "withdrawToWallet": "إلى المحفظة",
-  "budgetExplainer": "حدّك اليومي هو ما تبقّى من الشهر مقسومًا على أيامه المتبقية."
+  "budgetExplainer": "حدّك اليومي هو ما تبقّى من الشهر مقسومًا على أيامه المتبقية.",
+  "settingsPrivacy": "الخصوصية",
+  "appLockTitle": "قفل Harvest",
+  "appLockBody": "اطلب بصمتك أو رمزك أو كلمة سرك قبل فتح التطبيق.",
+  "appLockUnavailable": "اضبط بصمة أو رمزًا أو كلمة سر على هذا الجهاز أولًا.",
+  "lockTitle": "Harvest مقفل",
+  "lockBody": "افتح القفل للعودة إلى حقلك.",
+  "lockReason": "افتح قفل Harvest",
+  "lockUnlockAction": "افتح القفل",
+  "lockRefused": "لم يتطابق. حاول مجددًا.",
+  "lockTooManyTries": "محاولات كثيرة. انتظر قليلًا ثم حاول مجددًا.",
+  "lockUnavailable": "تعذّر على الجهاز عرض نافذة فتح القفل.",
+  "settingsData": "بياناتي",
+  "exportTitle": "تصدير جدول بيانات",
+  "exportBody": "كل بذرة وتسجيل ومصروف وحركة في ملف ‎.xlsx واحد، مع المجاميع كمعادلات حيّة.",
+  "exportAction": "التصدير إلى التنزيلات",
+  "exportRunning": "جارٍ بناء الجدول…",
+  "exportSaved": "حُفظ في {path}",
+  "@exportSaved": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailedPermission": "لم يُسمح لـ Harvest بالكتابة في التنزيلات.",
+  "exportFailedUnsupported": "التصدير متاح على أندرويد فقط في الوقت الحالي.",
+  "exportFailed": "لم يكتمل التصدير. حاول مجددًا."
 }

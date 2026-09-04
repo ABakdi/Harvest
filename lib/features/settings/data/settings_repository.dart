@@ -11,6 +11,10 @@ part 'settings_repository.g.dart';
 abstract final class SettingKeys {
   static const themeMode = 'themeMode';
   static const locale = 'locale';
+
+  /// Whether the device's own unlock prompt guards the app
+  /// (checkpoint C2-1).
+  static const appLock = 'security.appLock';
 }
 
 /// Reactive key-value settings on top of the local database.

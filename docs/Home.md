@@ -44,6 +44,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 
 ### 🏁 Checkpoints
 - [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list
+- [[Checkpoint-2]] — the app lock and the spreadsheet export
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board
@@ -55,6 +56,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[ADR-003-UI-Toolkit]] — Material 3 + custom design system
 - [[ADR-004-Localization]] — gen-l10n with ARB files
 - [[ADR-005-Local-First-Sync]] — outbox pattern toward MongoDB
+- [[ADR-006-Export-Format]] — the workbook is the backup format
 
 ## The big picture
 

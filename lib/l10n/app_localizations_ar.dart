@@ -1105,4 +1105,70 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get budgetExplainer =>
       'حدّك اليومي هو ما تبقّى من الشهر مقسومًا على أيامه المتبقية.';
+
+  @override
+  String get settingsPrivacy => 'الخصوصية';
+
+  @override
+  String get appLockTitle => 'قفل Harvest';
+
+  @override
+  String get appLockBody => 'اطلب بصمتك أو رمزك أو كلمة سرك قبل فتح التطبيق.';
+
+  @override
+  String get appLockUnavailable =>
+      'اضبط بصمة أو رمزًا أو كلمة سر على هذا الجهاز أولًا.';
+
+  @override
+  String get lockTitle => 'Harvest مقفل';
+
+  @override
+  String get lockBody => 'افتح القفل للعودة إلى حقلك.';
+
+  @override
+  String get lockReason => 'افتح قفل Harvest';
+
+  @override
+  String get lockUnlockAction => 'افتح القفل';
+
+  @override
+  String get lockRefused => 'لم يتطابق. حاول مجددًا.';
+
+  @override
+  String get lockTooManyTries => 'محاولات كثيرة. انتظر قليلًا ثم حاول مجددًا.';
+
+  @override
+  String get lockUnavailable => 'تعذّر على الجهاز عرض نافذة فتح القفل.';
+
+  @override
+  String get settingsData => 'بياناتي';
+
+  @override
+  String get exportTitle => 'تصدير جدول بيانات';
+
+  @override
+  String get exportBody =>
+      'كل بذرة وتسجيل ومصروف وحركة في ملف ‎.xlsx واحد، مع المجاميع كمعادلات حيّة.';
+
+  @override
+  String get exportAction => 'التصدير إلى التنزيلات';
+
+  @override
+  String get exportRunning => 'جارٍ بناء الجدول…';
+
+  @override
+  String exportSaved(String path) {
+    return 'حُفظ في $path';
+  }
+
+  @override
+  String get exportFailedPermission =>
+      'لم يُسمح لـ Harvest بالكتابة في التنزيلات.';
+
+  @override
+  String get exportFailedUnsupported =>
+      'التصدير متاح على أندرويد فقط في الوقت الحالي.';
+
+  @override
+  String get exportFailed => 'لم يكتمل التصدير. حاول مجددًا.';
 }

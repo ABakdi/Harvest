@@ -1099,4 +1099,72 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get budgetExplainer =>
       'Your daily limit is what\'s left of the month divided by the days left in it.';
+
+  @override
+  String get settingsPrivacy => 'Privacy';
+
+  @override
+  String get appLockTitle => 'Lock Harvest';
+
+  @override
+  String get appLockBody =>
+      'Ask for your fingerprint, PIN or password before opening the app.';
+
+  @override
+  String get appLockUnavailable =>
+      'Set a fingerprint, PIN or password on this device first.';
+
+  @override
+  String get lockTitle => 'Harvest is locked';
+
+  @override
+  String get lockBody => 'Unlock to get back to your field.';
+
+  @override
+  String get lockReason => 'Unlock Harvest';
+
+  @override
+  String get lockUnlockAction => 'Unlock';
+
+  @override
+  String get lockRefused => 'That did not match. Try again.';
+
+  @override
+  String get lockTooManyTries =>
+      'Too many tries. Wait a moment, then try again.';
+
+  @override
+  String get lockUnavailable => 'The device could not show the unlock prompt.';
+
+  @override
+  String get settingsData => 'My data';
+
+  @override
+  String get exportTitle => 'Export a spreadsheet';
+
+  @override
+  String get exportBody =>
+      'Every seed, check-in, expense and movement in one .xlsx file, with the totals as live formulas.';
+
+  @override
+  String get exportAction => 'Export to Downloads';
+
+  @override
+  String get exportRunning => 'Building the workbook…';
+
+  @override
+  String exportSaved(String path) {
+    return 'Saved to $path';
+  }
+
+  @override
+  String get exportFailedPermission =>
+      'Harvest was not allowed to write to Downloads.';
+
+  @override
+  String get exportFailedUnsupported =>
+      'Exporting is only available on Android for now.';
+
+  @override
+  String get exportFailed => 'The export did not finish. Try again.';
 }

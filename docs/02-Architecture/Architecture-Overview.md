@@ -51,11 +51,21 @@ lib/
 │   ├── finances/         # Phase 2
 │   ├── health/           # Phase 3 — sleep + gym
 │   ├── screentime/       # Phase 4
+│   ├── security/         # app lock (checkpoint C2-1)
+│   ├── export/           # spreadsheet export (checkpoint C2-2)
 │   └── onboarding/
 └── main.dart
 ```
 
 Every feature folder repeats the same `domain/ data/ presentation/` trio. Cross-feature communication goes through domain services (e.g., any check-in calls the gamification service), never by importing another feature's presentation layer.
+
+**Platform edges are interfaces.** Anything that can only answer on a
+real device sits behind an abstract interface in `data/`, with the
+plugin or method channel as one implementation and a fake in `test/support`:
+`NotificationGateway`, `AuthGateway` and `ScreenGuard` (the app lock),
+`DownloadsGateway` (the export). The rule earns its keep — the lock's
+grace window and the workbook's formulas are both fully tested without a
+thumb or a folder.
 
 ## Key flows
 

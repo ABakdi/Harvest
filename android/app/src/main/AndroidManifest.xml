@@ -9,6 +9,12 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- The app lock uses the device's own prompt (checkpoint C2-1). -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <!-- Spreadsheet export writes to Downloads. Android 10+ goes
+         through MediaStore and needs nothing; only 8.0-9.0 needs this,
+         so it stops at API 28 (checkpoint rule X6). -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <!-- Money data never leaves the device: no auto backup, no
          extraction, no device transfer. -->
     <application
