@@ -2381,7 +2381,7 @@ abstract class AppLocalizations {
   /// No description provided for @widgetBody.
   ///
   /// In en, this message translates to:
-  /// **'Your streak and today\'s field on the home screen. Add it from the launcher\'s widget picker.'**
+  /// **'Add it from the launcher\'s widget picker, then pick what it shows.'**
   String get widgetBody;
 
   /// No description provided for @widgetStreakLabel.
@@ -2413,6 +2413,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh it now'**
   String get widgetRefresh;
+
+  /// No description provided for @widgetSpentToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} today'**
+  String widgetSpentToday(String amount);
+
+  /// No description provided for @widgetWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} in the wallet'**
+  String widgetWallet(String amount);
+
+  /// No description provided for @widgetActionExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get widgetActionExpense;
+
+  /// No description provided for @widgetActionTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed'**
+  String get widgetActionTask;
+
+  /// No description provided for @widgetAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'The field is watered 🌾'**
+  String get widgetAllDone;
+
+  /// No description provided for @widgetSections.
+  ///
+  /// In en, this message translates to:
+  /// **'What it shows'**
+  String get widgetSections;
+
+  /// No description provided for @widgetSectionStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get widgetSectionStreak;
+
+  /// No description provided for @widgetSectionStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown'**
+  String get widgetSectionStreakBody;
+
+  /// No description provided for @widgetSectionMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get widgetSectionMoney;
+
+  /// No description provided for @widgetSectionMoneyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s spend and your wallet balance'**
+  String get widgetSectionMoneyBody;
+
+  /// No description provided for @widgetSectionTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s field'**
+  String get widgetSectionTasks;
+
+  /// No description provided for @widgetSectionTasksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s still due — scroll the widget for the rest'**
+  String get widgetSectionTasksBody;
+
+  /// No description provided for @widgetSectionActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get widgetSectionActions;
+
+  /// No description provided for @widgetSectionActionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log an expense or plant a seed from the home screen'**
+  String get widgetSectionActionsBody;
 }
 
 class _AppLocalizationsDelegate

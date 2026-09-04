@@ -63,8 +63,9 @@ in daily use; gym & health is next. Grab the latest build from the
 - **It notices when you stop** — miss a day, three, a week, a fortnight,
   a month, and Harvest says something warm and gets out of the way.
   Never more than one a day, never any shame.
-- **Home-screen widget** — the streak, today's field, your rank. Tap to
-  open.
+- **Home-screen widget** — a wide bar with your streak, today's spend
+  and wallet, a scrollable list of what's still due, and two buttons to
+  log an expense or plant a seed. Pick what it shows in Settings.
 - **Calendar and stats** — a month view of everything due, an activity
   heat-map, project burn-up, habit streaks, and a weekly harvest report.
 - **The lock and the export** — the whole app behind your phone's own

@@ -38,12 +38,23 @@ A shareable summary card:
 Shipped early, out of [[Phase-5-Sync-and-Social]]: nothing about a
 widget needs a sync server.
 
-- **Compact:** the streak as a big number, today's field as `3/5 today`,
-  and the farmer rank, on the brand gradient. Tapping opens the app.
-- It is computed **from the database** with the same `isDueOn` rule the
-  field uses, so it is right when no screen exists — refreshed at
-  startup, after every check-in and seed edit, on resume, and by the
-  3 AM job.
+A **bar, not a tile** — four cells wide, one header row, resizable both
+ways down to a single row. On the brand gradient, and tapping the
+background opens the app.
+
+| Section | Shows | Switchable |
+| :--- | :--- | :---: |
+| **Streak** | The streak, and today's progress under it | never — it is the app |
+| **Money** | Today's spend and the wallet balance, in the default currency | ✓ |
+| **Today's field** | What is still due, **scrollable inside the widget**, undone first | ✓ |
+| **Quick actions** | Log an expense · plant a seed — each opens the app on that sheet | ✓ |
+
+The switches live in Settings → My data. Everything is computed **from
+the database** with the same `isDueOn` rule the field uses, so it is
+right when no screen exists — refreshed at startup, after every
+check-in and seed edit, on resume, and by the 3 AM job. The service
+writes every number whatever the switches say; the widget decides what
+to show, so turning a section on is a redraw rather than a recompute.
 
 Still to come: the medium **"Vitality"** widget — four mini-gauges
 (tasks X/Y, sleep hrs, screen X/cap, spent X/limit) — once the pillars

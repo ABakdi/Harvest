@@ -359,11 +359,69 @@ Home-screen widgets were [[Phase-5-Sync-and-Social|Phase 5]], M5.3,
 behind a sync server I have not written. Nothing about a widget needs
 sync, so it came forward.
 
-A compact widget: the streak as a big number, today's field as
-`3/5 today`, the farmer rank underneath, on the brand gradient. Tapping
-anywhere opens the app.
+### Wide and low, not a tile
 
-`WidgetService` computes what it shows **from the database**, using the
+The first cut was a 3×2 block, and on the home screen it read as a
+square with a lot of empty green in it. A widget is a *bar*: it lives
+between rows of icons and it should look like it belongs there.
+
+So: **4 cells wide, and everything that can go on one line does.** The
+streak and today's progress on the left, money on the right, both in
+the same header row. It resizes both ways, and its floor is 50 dp — with
+every optional section off it is a one-row streak bar.
+
+### It shows what I tell it to
+
+Four sections, three of them switchable in Settings → My data:
+
+| Section | What it is |
+| :--- | :--- |
+| **Streak** | The number and the day count. **Always shown** — the switch is there and disabled, because a widget that can be configured into showing nothing is a widget with a bug in it |
+| **Money** | Today's spend and the wallet balance, both converted into the default currency face-value-first, exactly as the Granary's own gauge does it |
+| **Today's field** | What is still due, **scrollable inside the widget** — undone first, so a flick gets me the rest instead of a second screen |
+| **Quick actions** | Two pills: log an expense, plant a seed. Each opens the app straight onto that sheet |
+
+The service writes every number regardless of which sections are on,
+and the provider decides what is visible. Flipping a switch is then a
+redraw, not a recompute — and there is one less way for the widget to
+be showing a stale figure it was told not to display.
+
+### What it took
+
+A scrolling list inside a widget is not a list you can hand over: a
+`RemoteViews` `ListView` is fed by a factory living in a service the
+launcher binds to. `HarvestWidgetTaskService` is that service, and it
+reads the same JSON blob Dart writes into the widget's preferences, so
+the list and the numbers above it cannot disagree. A malformed blob
+gives a blank list rather than an exception inside the launcher's own
+process.
+
+The quick actions are the other half of the same problem in reverse: a
+home-screen button cannot open a bottom sheet, it can only start the
+activity with a URI attached. `harvest://expense` and `harvest://task`
+travel on the launch intent; `PendingWidgetAction` catches them —
+including the one that launched a cold app — and `HarvestShell` is the
+first thing under the navigator, so it is the first thing that *can*
+open the sheet.
+
+That listener is gated on `Platform.isAndroid`, and the reason is worth
+recording: the event channel reaches for the services binding the
+moment it is listened to, which off a device is an error no `catch` in
+that method is positioned to see. It failed three startup tests before
+the gate went in.
+
+And the URI needed one more thing, which only the device could have
+told me. Flutter's automatic deep linking is on by default, so it read
+`harvest://expense` off the launch intent and handed it to the router
+before any of my code ran — and the router, quite correctly, has no
+such route. Tapping the widget's expense button showed *GoException: no
+routes for location*. `flutter_deeplinking_enabled=false` in the
+manifest is the fix: this URI is a private signal to the app, not a
+place to navigate to. The router also gained an `onException` that
+sends anything it cannot match to the field, because a red error page
+is never the right answer to a stale link.
+
+`WidgetService` computes everything **from the database**, using the
 same `isDueOn` rule the field uses, because it has to be right when no
 screen exists — at the 3 AM reset, or right after a check-in that
 closed the app. It is refreshed at startup, after every check-in and
@@ -393,6 +451,16 @@ asserted in unit tests without a launcher.
   shared-preferences bridge readable from a broadcast receiver in
   another process — that is a real amount of Android to own, and the
   plugin already owns it correctly.
+- **The widget is a bar, not a tile.** Four cells wide, one row of
+  header, resizable down to a single row. It sits between rows of icons
+  and it should look like it belongs there.
+- **The streak is not switchable.** Everything else on the widget can be
+  turned off; a widget that can be configured into showing nothing is a
+  widget with a bug in it.
+- **The service writes every number, the provider decides what shows.**
+  Flipping a section on is then a redraw rather than a recompute, and
+  the widget can never display a figure it was told to hide but never
+  refreshed.
 - **The splash is code, not Lottie.** One painter, no asset pipeline,
   and it respects reduce-motion for free.
 - **Schema v9, not v10-and-a-second-migration.** One version carries
@@ -427,14 +495,14 @@ see it fits before I look at it.
 
 - [x] All eleven implemented
 - [x] Analyzer clean, format clean on every touched file
-- [x] Tests green — **225**, up from 180: 45 new cases across the start
+- [x] Tests green — **232**, up from 180: 52 new cases across the start
       day (6), day notes (6), archive and delete (6), the comeback
-      ladder (13), the reminder countdown (8) and the widget (7), plus
+      ladder (13), the reminder countdown (8) and the widget (14), plus
       a v8 → v9 migration path
 - [x] Schema v9 dumped, generated and migration-tested from every
       earlier version
 - [x] The export carries the new table and the new column (rule #11)
-- [x] English and Arabic strings for all of it — 62 new keys in each
+- [x] English and Arabic strings for all of it — 80 new keys in each
 - [x] The APK builds, and the widget survives the manifest merge: the
       receiver, `harvest_widget_info.xml`, the layout and the gradient
       drawable are all in the packaged APK
@@ -464,8 +532,12 @@ Release build, fresh install, driven by hand from onboarding.
 | C3-5 | Deleted it from the archive | The dialog said what it costs and offered Archive instead; after confirming, "Removed", the archive empty, and the row **gone from `commitments`** — checked in the database, not just the screen |
 | C3-3 | Logged DA450, tapped the row | The sheet is titled **Edit expense** and carries a red bin. It confirmed with the amount in the question, removed it, and offered Undo |
 | C3-8 | Read the scheduled alarms off the device | The whole ladder, at the morning hour: `4100` Sep 6, `4101` Sep 8, `4102` Sep 12, `4103` Sep 19, `4104` Oct 5, `4105` Nov 4 — one, three, seven, fourteen, thirty and sixty days after the last check-in, plus one |
-| C3-11 | Added the widget from the launcher's picker | `0 day streak · 1/2 today · Sprout` on the brand gradient — real numbers from the real database. Tapping it opened the app |
-| C3-11 | Checked a seed in inside the app, went home | The placed widget had already gone from `1/2 today` to `2/2 today`. The refresh path works with the widget on screen and the app in the background |
+| C3-11 | Added the widget from the launcher's picker | Offered as **4 × 2** and placed as a full-width bar: streak and `2/6 today` on the left, `DA0 today · DA0 in the wallet` on the right, the task list under them, the two pills at the foot |
+| C3-11 | Checked a seed in inside the app, went home | The placed widget had already moved from `1/2 today` to `2/2 today`. The refresh path works with the widget on screen and the app in the background |
+| C3-11 | Swiped inside the widget with six seeds due | The list scrolled — Stretch/Journal/Water/Walk gave way to Water/Walk and the two done ones, dimmed with filled ticks, at the bottom |
+| C3-11 | Tapped **+ Expense**, then **+ Seed** | The app opened on the Granary with *Log an expense* up, and on the Field with *Plant a seed* up |
+| C3-11 | Turned Money and Today's field off in Settings | Both vanished from the widget within the second; the streak and the pills centred themselves in the space rather than clinging to the top. Turning them back on brought them straight back |
+| C3-11 | Looked at the Streak switch | On, and disabled — "Always shown" |
 | — | Exported the workbook and read the file | 12 sheets: `SeedNotes` is there with the note and its `Seed` lookup, and `Seeds` carries `ArchiveNote`. Rule #11 holds |
 | — | Read `pragma user_version` on the device | **9**, with `seed_notes` created and `commitments.archive_note` present |
 
@@ -496,10 +568,11 @@ rebuilt:
 | `core/ui` | `HarvestBrand` (the one green, for icon, splash and widget); `ReminderCountdown`; `GrowingOliveTree`; `confirm()`; `CropCard` gained note, day-note and chip slots; `HarvestSheet` gained `trailing`. |
 | `features/commitments` | `SeedNotesRepository` + `SeedNote`; `archive(note:)`, `restore`, `hardDelete`, `watchArchived`, `watchOne`, `watchHistory`; `seed_providers.dart`; the archive screen, the archive sheet, the seed detail screen, the day-note sheet; crop options rebuilt. |
 | `features/planner` | `comeback.dart` (the ladder, pure); the planner schedules and cancels it, and suppresses the morning ritual on a rung day. |
-| `features/widget` | New feature: `HomeWidgetGateway` + `HomeWidgetBridge`, `WidgetService`, the settings card. |
+| `features/widget` | New feature: `HomeWidgetGateway` + `HomeWidgetBridge`; `WidgetService` (streak, progress, today's spend, wallet balance, the task list, the section switches); `WidgetKeys`; `PendingWidgetAction` + `WidgetAction` for the quick-action deep links; the settings card with its three switches. |
+| `app/shell.dart` | A `ConsumerStatefulWidget` now: it drains the pending widget action and opens the sheet it names, because it is the first thing under the navigator. |
 | `features/export` | `SeedNotes` sheet; `ArchiveNote` column on `Seeds`. |
 | `app/` | `SplashScreen` above the router; the widget refreshed at startup and on resume. |
-| Android | `HarvestWidgetProvider.kt`, the widget layout, its background drawable and its provider info; the receiver in the manifest; the launch window is brand green in both modes; regenerated launcher icons at every density. |
+| Android | `HarvestWidgetProvider.kt` and `HarvestWidgetTaskService.kt` (the list factory); the widget layout, its row layout, the gradient and pill drawables, three vector icons and the provider info; the receiver and the `BIND_REMOTEVIEWS` service in the manifest; the launch window is brand green in both modes; regenerated launcher icons at every density. |
 | `assets/icon/` | The olive branch, PNGs and the SVG sources that produce them. |
-| Strings | 62 new keys in English and Arabic. |
-| Tests | 180 → 225, plus `FakeHomeWidgetGateway` in `test/support`. |
+| Strings | 80 new keys in English and Arabic. |
+| Tests | 180 → 232, plus `FakeHomeWidgetGateway` in `test/support`. |

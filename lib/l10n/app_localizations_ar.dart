@@ -1404,7 +1404,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get widgetBody =>
-      'سلسلتك وحقل اليوم على الشاشة الرئيسية. أضفها من منتقي الأدوات في المشغّل.';
+      'أضفها من منتقي الأدوات في المشغّل، ثم اختر ما تعرضه.';
 
   @override
   String get widgetStreakLabel => 'يوم متتالٍ';
@@ -1420,4 +1420,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get widgetRefresh => 'حدّثها الآن';
+
+  @override
+  String widgetSpentToday(String amount) {
+    return '$amount اليوم';
+  }
+
+  @override
+  String widgetWallet(String amount) {
+    return '$amount في المحفظة';
+  }
+
+  @override
+  String get widgetActionExpense => 'مصروف';
+
+  @override
+  String get widgetActionTask => 'بذرة';
+
+  @override
+  String get widgetAllDone => 'الحقل مسقيّ 🌾';
+
+  @override
+  String get widgetSections => 'ما تعرضه';
+
+  @override
+  String get widgetSectionStreak => 'السلسلة';
+
+  @override
+  String get widgetSectionStreakBody => 'تُعرض دائمًا';
+
+  @override
+  String get widgetSectionMoney => 'المال';
+
+  @override
+  String get widgetSectionMoneyBody => 'مصروف اليوم ورصيد محفظتك';
+
+  @override
+  String get widgetSectionTasks => 'حقل اليوم';
+
+  @override
+  String get widgetSectionTasksBody =>
+      'ما تبقّى مستحقًّا — مرّر داخل الأداة لرؤية الباقي';
+
+  @override
+  String get widgetSectionActions => 'إجراءات سريعة';
+
+  @override
+  String get widgetSectionActionsBody =>
+      'سجّل مصروفًا أو ازرع بذرة من الشاشة الرئيسية';
 }

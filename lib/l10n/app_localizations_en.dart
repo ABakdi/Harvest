@@ -1398,7 +1398,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetBody =>
-      'Your streak and today\'s field on the home screen. Add it from the launcher\'s widget picker.';
+      'Add it from the launcher\'s widget picker, then pick what it shows.';
 
   @override
   String get widgetStreakLabel => 'day streak';
@@ -1414,4 +1414,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetRefresh => 'Refresh it now';
+
+  @override
+  String widgetSpentToday(String amount) {
+    return '$amount today';
+  }
+
+  @override
+  String widgetWallet(String amount) {
+    return '$amount in the wallet';
+  }
+
+  @override
+  String get widgetActionExpense => 'Expense';
+
+  @override
+  String get widgetActionTask => 'Seed';
+
+  @override
+  String get widgetAllDone => 'The field is watered 🌾';
+
+  @override
+  String get widgetSections => 'What it shows';
+
+  @override
+  String get widgetSectionStreak => 'Streak';
+
+  @override
+  String get widgetSectionStreakBody => 'Always shown';
+
+  @override
+  String get widgetSectionMoney => 'Money';
+
+  @override
+  String get widgetSectionMoneyBody => 'Today\'s spend and your wallet balance';
+
+  @override
+  String get widgetSectionTasks => 'Today\'s field';
+
+  @override
+  String get widgetSectionTasksBody =>
+      'What\'s still due — scroll the widget for the rest';
+
+  @override
+  String get widgetSectionActions => 'Quick actions';
+
+  @override
+  String get widgetSectionActionsBody =>
+      'Log an expense or plant a seed from the home screen';
 }

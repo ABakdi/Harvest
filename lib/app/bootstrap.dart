@@ -11,6 +11,7 @@ import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
+import 'package:harvest/features/widget/domain/widget_actions.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -84,6 +85,12 @@ Future<void> appBootstrap(Ref ref) async {
     step('reminders', ref.read(notificationPlannerProvider).planToday),
   );
   unawaited(step('widget', ref.read(widgetServiceProvider).refresh));
+  unawaited(
+    step(
+      'widget actions',
+      ref.read(pendingWidgetActionProvider.notifier).listen,
+    ),
+  );
   unawaited(
     step('purge', () async {
       await ref

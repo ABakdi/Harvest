@@ -845,10 +845,30 @@
   "comebackMonth2Title": "Still here whenever you are",
   "comebackMonth2Body": "Every seed, every check-in and every number is still on your phone.",
   "widgetTitle": "Home-screen widget",
-  "widgetBody": "Your streak and today's field on the home screen. Add it from the launcher's widget picker.",
+  "widgetBody": "Add it from the launcher's widget picker, then pick what it shows.",
   "widgetStreakLabel": "day streak",
   "widgetTasksLabel": "today",
   "widgetEmpty": "Nothing due today",
   "loadingTagline": "Cultivate your day.",
-  "widgetRefresh": "Refresh it now"
+  "widgetRefresh": "Refresh it now",
+  "widgetSpentToday": "{amount} today",
+  "@widgetSpentToday": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "widgetWallet": "{amount} in the wallet",
+  "@widgetWallet": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "widgetActionExpense": "Expense",
+  "widgetActionTask": "Seed",
+  "widgetAllDone": "The field is watered 🌾",
+  "widgetSections": "What it shows",
+  "widgetSectionStreak": "Streak",
+  "widgetSectionStreakBody": "Always shown",
+  "widgetSectionMoney": "Money",
+  "widgetSectionMoneyBody": "Today's spend and your wallet balance",
+  "widgetSectionTasks": "Today's field",
+  "widgetSectionTasksBody": "What's still due — scroll the widget for the rest",
+  "widgetSectionActions": "Quick actions",
+  "widgetSectionActionsBody": "Log an expense or plant a seed from the home screen"
 }

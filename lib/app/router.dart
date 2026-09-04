@@ -45,6 +45,13 @@ GoRouter router(Ref ref) {
   return GoRouter(
     initialLocation: AppRoutes.field,
     refreshListenable: refresh,
+    // A location the router does not know is a bug somewhere else —
+    // a stale deep link, a reminder payload from an older build. The
+    // field is a better answer than a red error page.
+    onException: (context, state, router) {
+      debugPrint('[router] no route for ${state.uri}');
+      router.go(AppRoutes.field);
+    },
     redirect: (context, state) {
       final done = ref.read(onboardingDoneProvider);
       if (!done && state.matchedLocation != AppRoutes.onboarding) {
