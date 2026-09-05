@@ -109,4 +109,4 @@ flowchart LR
 
 ## Privacy — non-negotiable
 
-Financial data **never leaves the device** in plaintext. Local-only in Phases 2–4; when [[Phase-5-Sync-and-Social]] arrives, expense records sync end-to-end encrypted or stay local by choice. Never sold, never shared. See [[Business-Rules]].
+Financial data **never leaves the device** in plaintext. Local-only in Phases 2–4; when [[Phase-6-Sync-and-Social]] arrives, expense records sync end-to-end encrypted or stay local by choice. Never sold, never shared. See [[Business-Rules]].

@@ -73,7 +73,14 @@ erDiagram
 
 XP and coins are a **ledger**, not a counter — balances are sums, history is free, and sync conflicts become trivial merges.
 
-Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `sleep_sessions`, `workout_plans`, `workout_sessions` (Phase 3); `screen_goals`, `usage_days` (Phase 4).
+Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `workout_plans`, `workout_sessions` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
+
+**Phase 3 is the first time a row points at a file.** A note's body is
+text in the database, but a memory is a path into the app's own
+storage. Two consequences worth settling before the code: a memory's
+delete is a **hard** delete, because a photo asked to be gone must be
+gone; and the archive stops being a spreadsheet, because a photo in a
+spreadsheet cell is not an export ([[ADR-007-Archive-Format]]).
 
 `seed_notes` (v9) hangs off `commitments` the way `check_ins` does — one row per seed per Harvest Day, holding what I wrote about it that day ([[Checkpoint-3]]).
 

@@ -1,6 +1,6 @@
 # Core Entities
 
-Six entities cover everything the app tracks. Three belong to the productivity pillar (MVP), three arrive with later phases.
+Six entities cover everything the app tracks today. Three belong to the productivity pillar (MVP), three arrive with later phases — and Phase 3 adds the first things in this app that are *files* rather than rows ([[Notes]], [[Gallery]]).
 
 ```mermaid
 erDiagram
@@ -90,11 +90,27 @@ An ongoing behavior with a frequency. Supported schedules:
 
 A single non-repeating task, optionally with a due day. One tap to complete. To-dos are what the [[Productivity-Engine#The daily plan ritual|daily plan ritual]] is mostly about: each evening or morning I set the day's to-dos.
 
-## Sleep Session (Phase 3)
+## Note (Phase 3)
+
+One markdown file: a title, a folder, a body, and `[[links]]` to other
+notes resolved by title. A link to a note that does not exist yet is an
+invitation to write it, not an error. Spec: [[Notes]].
+
+## Album and Memory (Phase 3)
+
+An **Album** is a named run of photos or video — *Gym*, *Face* — with
+an optional schedule. A **Memory** is one file in it, with its Harvest
+Day and a note.
+
+An album with a schedule **is a seed**: due on the field, checked in by
+adding a memory, feeding the Global Streak like any other check-in.
+Spec: [[Gallery]].
+
+## Sleep Session (Phase 4)
 
 Planned vs. actual sleep window plus a 1–5 restfulness rating; feeds the sleep-debt gauge. Spec: [[Health-and-Gym]].
 
-## Screen Goal (Phase 4)
+## Screen Goal (Phase 5)
 
 A daily cap on total usage or a specific app. Spec: [[Screen-Time]].
 

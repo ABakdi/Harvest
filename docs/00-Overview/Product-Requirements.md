@@ -1,6 +1,6 @@
 # Product Requirements — Harvest
 
-**Version:** 1.3 · **Platforms:** Android first, iOS next, Web later (Flutter) · **Tagline:** *Cultivate your day. Harvest your potential.*
+**Version:** 2.0 · **Platforms:** Android first, iOS next, Web later (Flutter) · **Tagline:** *Cultivate your day. Harvest your potential.*
 
 This is the consolidated PRD. Each section links to the detailed spec note that owns it.
 
@@ -20,6 +20,8 @@ Six entities structure everything (full spec: [[Core-Entities]]):
 | **Sleep Session** | Daily | Target 11 PM–7 AM, actual logged | Logged → sleep debt |
 | **Screen Goal** | Daily | Social media ≤ 45 min/day | Resets daily |
 | **Expense Entry** | Daily | $15 lunch, Food category | Logged → budget |
+| **Note** (P3) | Free | "What I want from this year" | Kept, linked, searchable |
+| **Album** (P3) | Recurring | "Gym — every Monday" | Perpetual; a memory a day, played back |
 
 ## 3. Modules
 
@@ -33,7 +35,9 @@ Six entities structure everything (full spec: [[Core-Entities]]):
 | Focus Field | Screen caps, weed-pull interventions | [[Screen-Time]] |
 | Notifications | Gentle-to-urgent escalation | [[Notifications]] |
 | Dashboard & Widgets | Today view, weekly report, home-screen widgets | [[Dashboard-and-Widgets]] |
-| Onboarding | Templates, Daily Harvest Goal setup | [[Onboarding]] |
+| Notes (Phase 3) | Markdown notes with links between them | [[Notes]] |
+| Gallery (Phase 3) | Photo albums that are seeds; the daily picture, played back | [[Gallery]] |
+| Onboarding | Templates, Daily Harvest Goal setup, the two opt-ins | [[Onboarding]] |
 
 ## 4. Immutable rules
 
@@ -50,11 +54,15 @@ Day reset at 3 AM, over-log cap at 2×, minute-for-minute sleep-debt payment, on
 
 ## 6. Delivery
 
-Built in phases — productivity core first (MVP), then finances, then gym & health, then screen time, then sync and social. Details and milestones in the [[Roadmap]].
+Built in phases — productivity core first (MVP), then finances. That
+reached **v1.0**. Next comes what a number cannot hold — notes and the
+gallery, with the archive rewritten around them — and then gym &
+health, screen time, and sync. Details and milestones in the
+[[Roadmap]].
 
 ## 7. Later (post-V1)
 
-- **Server sync + rankings** on MongoDB — [[Phase-5-Sync-and-Social]]
+- **Server sync + rankings** on MongoDB — [[Phase-6-Sync-and-Social]]
 - **Social guilds:** 2–5 person accountability groups with anonymous streak visibility
 - **Soundscapes:** unlockable ambient nature audio for focus sessions
 - **Insights coach:** weekly personalized summaries correlating sleep, screen and spending data

@@ -355,7 +355,7 @@ itself before any of its settings have been read — `HarvestBrand` in
 
 ## C3-11 — The widget
 
-Home-screen widgets were [[Phase-5-Sync-and-Social|Phase 5]], M5.3,
+Home-screen widgets were [[Phase-6-Sync-and-Social|Phase 5]], M5.3,
 behind a sync server I have not written. Nothing about a widget needs
 sync, so it came forward.
 

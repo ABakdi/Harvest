@@ -5,7 +5,7 @@ The Duolingo core — one engine fed by every pillar.
 ## Streaks (the heartbeat)
 
 - **Global Streak:** consecutive Harvest Days on which I met my **Daily Harvest Goal** (minimum productive actions, set in [[Onboarding]]).
-- **Individual streaks:** each Habit and Project tracks its own.
+- **Individual streaks:** each Habit and Project tracks its own — and, from Phase 3, each scheduled photo album ([[Gallery]]).
 - **Streak Freeze:** spend Harvest Coins to shield the Global Streak for one missed day. Max 2 stored at a time. Applied automatically at the 3 AM reset if the day was missed.
 
 ```mermaid
@@ -32,6 +32,7 @@ which deriving it from activity would have dropped.
 | Action | XP |
 | :--- | ---: |
 | Habit or To-Do checked off | +10 |
+| Memory added to a scheduled album | +10 |
 | Project unit logged (per unit) | +2 |
 | Sleep session logged | +15 |
 | Screen time kept under cap | +20 |

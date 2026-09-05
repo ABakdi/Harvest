@@ -4,13 +4,25 @@
 
 Harvest is a gamified life-management app I'm building with Flutter. It
 takes the streak psychology that keeps people coming back to Duolingo and
-points it at the four pillars of an ordinary day — productivity, money,
-health, and focus — while staying minimalist, local-first, and entirely
-under my control. No accounts, no cloud, nothing leaves the phone.
+points it at the pillars of an ordinary day — what you get done, what you
+spend, and in time what you do with your body and your attention — while
+staying minimalist, local-first, and entirely under my control. No
+accounts, no cloud, no telemetry, nothing leaves the phone.
 
-**Status:** v1 candidate. Productivity core and finances are complete and
-in daily use; gym & health is next. Grab the latest build from the
+The whole idea is one streak, fed by everything. Duolingo asks for a
+lesson a day and that single anchor is enough to pull people back for
+years — but it only covers one narrow slice of a life, and the bar never
+moves. Here the bar is mine to raise, and the streak is fed by whatever
+I decide matters this month.
+
+**Status: v1.0 — the first real release.** The productivity core and the
+finances are complete and in daily use, behind an optional lock, with a
+one-tap export of everything. Grab it from the
 [releases page](https://github.com/ABakdi/Harvest/releases).
+
+Next up is [Phase 3](docs/03-Planning/Phase-3-Notes-and-Gallery.md):
+markdown notes, photo albums that count toward your streak, and an
+archive that finally imports as well as exports.
 
 ## Table of contents
 
@@ -94,7 +106,11 @@ From v0.9.5-beta the release is signed with a real upload key. Builds up
 to v0.9.4-beta went out on the debug keystore, and Android will not
 install over a differently-signed APK — so if you are on one of those,
 export your data first (Settings → My data), then uninstall before
-installing a newer build.
+installing v1.0.0. From v0.9.5-beta onward it updates in place.
+
+There is no importer yet, so that export is a readable record rather
+than a restore. Fixing that is the third item in
+[Phase 3](docs/03-Planning/Phase-3-Notes-and-Gallery.md).
 
 ## Documentation
 
@@ -118,7 +134,9 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Productivity Engine](docs/01-Specification/Productivity-Engine.md) | Commitments, check-ins, the daily plan ritual |
 | [Gamification](docs/01-Specification/Gamification.md) | Streaks, XP, coins, ranks |
 | [Pomodoro](docs/01-Specification/Pomodoro.md) | The focus timer |
-| [Notifications](docs/01-Specification/Notifications.md) | The gentle-to-urgent reminder system |
+| [Notifications](docs/01-Specification/Notifications.md) | The gentle-to-urgent reminder system, the comeback ladder, the daily cycle |
+| [Notes](docs/01-Specification/Notes.md) | Markdown notes with links between them (Phase 3) |
+| [Gallery](docs/01-Specification/Gallery.md) | Albums, the daily picture, the timelapse (Phase 3) |
 | [Finances](docs/01-Specification/Finances.md) | Expense logging, budgets, the vault |
 | [Health and Gym](docs/01-Specification/Health-and-Gym.md) | Sleep tracking, alarm, workouts |
 | [Screen Time](docs/01-Specification/Screen-Time.md) | Usage caps and interventions |
@@ -146,9 +164,10 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Phase 0 — Foundation](docs/03-Planning/Phase-0-Foundation.md) | Scaffold, design system, l10n, DB ✅ |
 | [Phase 1 — Productivity Core](docs/03-Planning/Phase-1-Productivity-Core.md) | The MVP ✅ |
 | [Phase 2 — Finances](docs/03-Planning/Phase-2-Finances.md) | Expenses, budgets, gauge ✅ |
-| [Phase 3 — Health and Gym](docs/03-Planning/Phase-3-Health-and-Gym.md) | Sleep alarm and debt, workouts |
-| [Phase 4 — Screen Time](docs/03-Planning/Phase-4-Screen-Time.md) | Usage caps, interventions |
-| [Phase 5 — Sync and Social](docs/03-Planning/Phase-5-Sync-and-Social.md) | Accounts, sync, rankings, widgets |
+| [Phase 3 — Notes, Gallery and the Archive](docs/03-Planning/Phase-3-Notes-and-Gallery.md) | Markdown notes, photo albums, the zip archive and its importer ← **next** |
+| [Phase 4 — Health and Gym](docs/03-Planning/Phase-4-Health-and-Gym.md) | Sleep alarm and debt, workouts |
+| [Phase 5 — Screen Time](docs/03-Planning/Phase-5-Screen-Time.md) | Usage caps, interventions |
+| [Phase 6 — Sync and Social](docs/03-Planning/Phase-6-Sync-and-Social.md) | Accounts, sync, rankings, iOS |
 
 ### Checkpoints
 
@@ -177,6 +196,8 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [ADR-003](docs/04-Decisions/ADR-003-UI-Toolkit.md) | Material 3 + a custom design system |
 | [ADR-004](docs/04-Decisions/ADR-004-Localization.md) | gen-l10n with ARB files |
 | [ADR-005](docs/04-Decisions/ADR-005-Local-First-Sync.md) | Outbox pattern toward MongoDB |
+| [ADR-006](docs/04-Decisions/ADR-006-Export-Format.md) | The workbook is the backup format |
+| [ADR-007](docs/04-Decisions/ADR-007-Archive-Format.md) | The archive is a zip, and it comes back |
 
 ## Stack
 
@@ -270,13 +291,40 @@ test/             unit, migration, and golden tests
 | 0 — Foundation | Scaffold, design system, l10n, DB, routing | ✅ |
 | 1 — Productivity Core | Commitments, plan ritual, streaks, XP, pomodoro, notifications | ✅ |
 | 2 — Finances | Expense quick-log, budgets, gauge, vault | ✅ |
-| 3 — Gym & Health | Sleep alarm + debt, workout plans & sessions | next |
-| 4 — Screen Time | Usage caps, weed-pull interventions | |
-| 5 — Sync & Social | Accounts, MongoDB sync, rankings, iOS polish | |
+| — | Four checkpoints: calendar, app lock, export, seed notes and history, the archive, the comeback ladder, the widget, the daily cycle | ✅ **v1.0** |
+| 3 — Notes, Gallery & the Archive | Markdown notes with links; photo albums that are seeds; the zip archive **and an importer** | next |
+| 4 — Gym & Health | Sleep alarm + debt, workout plans & sessions | |
+| 5 — Screen Time | Usage caps, weed-pull interventions | |
+| 6 — Sync & Social | Accounts, MongoDB sync, rankings, iOS polish | |
 
-The compact home-screen widget came forward out of phase 5 in
+### What's coming in Phase 3
+
+Two features that add what a number cannot reach, and one long-overdue
+fix that both of them force.
+
+- **[Notes](docs/01-Specification/Notes.md)** — a small vault of
+  markdown files with `[[links]]` between them. Deliberately not
+  Obsidian: folders, links, backlinks, search, and nothing else. It's
+  **off by default** — you're asked once in onboarding and there's a
+  switch in settings. What it exports *is* an Obsidian vault, so it can
+  never trap anything.
+- **[Gallery](docs/01-Specification/Gallery.md)** — albums of photos and
+  video, kept in order and playable as a timelapse. The point is the
+  things a spreadsheet can't hold: whether the gym is working, what a
+  year actually looked like. An album with a schedule **is a seed** —
+  it shows up on your field, you check it in by taking the picture, and
+  it feeds the same streak as everything else. Also off by default, and
+  it asks for the camera only when you switch it on.
+- **The archive becomes a zip, and it imports.** A note is a file and a
+  photo is not a spreadsheet cell, so the export grows into a zip: the
+  workbook, plus `notes/` as markdown and `gallery/` as folders of
+  pictures. And it finally goes the other way — until now the export was
+  a readable record, not a restore ([ADR-007](docs/04-Decisions/ADR-007-Archive-Format.md)).
+
+The home-screen widget came forward out of the sync phase in
 [Checkpoint 3](docs/05-Checkpoints/Checkpoint-3.md) — nothing about a
-widget needed a sync server.
+widget needed a server. Phase 3 jumped the whole queue for the reason
+above: the archive rewrite is cheapest now, while the data set is small.
 
 Working rule: each phase ends with a tagged release I install and live
 with before starting the next — dogfooding is the QA department.

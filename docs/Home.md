@@ -17,6 +17,8 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Gamification]] — streaks, XP, coins, quests
 - [[Pomodoro]] — the focus timer
 - [[Notifications]] — the gentle-to-urgent reminder system
+- [[Notes]] — markdown notes with links (Phase 3)
+- [[Gallery]] — albums, the daily photo, the timelapse (Phase 3)
 - [[Finances]] — expense logging and budgets
 - [[Health-and-Gym]] — sleep tracking, alarm, workouts
 - [[Screen-Time]] — usage caps and interventions
@@ -38,9 +40,10 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-0-Foundation]]
 - [[Phase-1-Productivity-Core]] ← **the MVP**
 - [[Phase-2-Finances]]
-- [[Phase-3-Health-and-Gym]]
-- [[Phase-4-Screen-Time]]
-- [[Phase-5-Sync-and-Social]]
+- [[Phase-3-Notes-and-Gallery]] ← **next**
+- [[Phase-4-Health-and-Gym]]
+- [[Phase-5-Screen-Time]]
+- [[Phase-6-Sync-and-Social]]
 
 ### 🏁 Checkpoints
 - [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list
@@ -59,6 +62,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[ADR-004-Localization]] — gen-l10n with ARB files
 - [[ADR-005-Local-First-Sync]] — outbox pattern toward MongoDB
 - [[ADR-006-Export-Format]] — the workbook is the backup format
+- [[ADR-007-Archive-Format]] — the archive is a zip, and it comes back
 
 ## The big picture
 

@@ -16,6 +16,12 @@ flowchart LR
 3. **Daily Harvest Goal:** commit to a minimum number of productive actions per day (default 3) — this defines the Global Streak ([[Gamification]]).
 4. **Reminder times:** wake window and bedtime, powering the plan ritual ([[Notifications]]).
 5. **Language & theme:** English/Arabic, light/dark/system ([[Localization]], [[Theming-and-Design-System]]).
-6. **First check-in demo:** the field appears with the chosen seeds; a guided first tap fires the full haptic + sprite celebration, teaching the core gesture immediately.
+6. **The optional halves** (Phase 3): two plain questions, both
+   defaulting to **no** — do you want [[Notes]], and do you want the
+   [[Gallery]]? Neither is on unless asked for, both are switchable in
+   Settings forever after, and the gallery asks for the camera only
+   when it is switched on. Someone who came for a streak tracker should
+   reach their field without walking past either.
+7. **First check-in demo:** the field appears with the chosen seeds; a guided first tap fires the full haptic + sprite celebration, teaching the core gesture immediately.
 
 No account, no email, no paywall — the app is fully functional offline from second one ([[Sync-Strategy]]).

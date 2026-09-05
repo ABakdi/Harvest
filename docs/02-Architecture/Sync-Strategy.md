@@ -1,6 +1,6 @@
 # Sync Strategy — Local-First, Server Later
 
-The rule ([[Business-Rules]] #5): the app is complete without a network. Sync, arriving in [[Phase-5-Sync-and-Social]], adds cross-device convenience and rankings — it never becomes a dependency.
+The rule ([[Business-Rules]] #5): the app is complete without a network. Sync, arriving in [[Phase-6-Sync-and-Social]], adds cross-device convenience and rankings — it never becomes a dependency.
 
 ## Why this shape
 

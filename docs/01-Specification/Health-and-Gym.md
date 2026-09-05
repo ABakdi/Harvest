@@ -1,6 +1,6 @@
 # Health — Sleep Sanctuary & Gym
 
-Phase 3 module ([[Phase-3-Health-and-Gym]]). Two halves: rest (soil health) and training.
+Phase 3 module ([[Phase-4-Health-and-Gym]]). Two halves: rest (soil health) and training.
 
 ## Sleep Sanctuary
 
