@@ -283,18 +283,36 @@ Nothing moves without a yes, and **Leave them** is a real answer.
 - [x] The release APK builds and installs
 - [x] Docs updated: this page, and the [[Finances]], [[Gamification]],
       [[Notifications]] and [[Dashboard-and-Widgets]] specs
-- [ ] **Driven by hand on the emulator — not this round**
+- [x] Driven by hand on the emulator — see below
 
-The last one is worth stating rather than quietly leaving unticked.
-This AVD wedged twice during the session: `screencap` returns a
-genuinely black framebuffer and `SystemUI` keeps the notification shade
-focused whatever it is sent. Three restarts, one of them onto the
-software renderer, did not clear it. So what is verified here is the
-analyzer, the suite, and a build that installs — and what is **not** is
-anything only a screen can show: the amounts sitting where they should
-on the bars, the two greens reading as two different things, the filter
-bar folding away, and the widget's list under a finger. That is the
-first thing to do next, and none of it is a claim I am making yet.
+The AVD fought this one. `screencap` returned a genuinely black
+framebuffer and `SystemUI` held the notification shade focused whatever
+it was sent; the emulator's own log named the cause —
+*"Your GPU drivers may have a bug. Switching to software rendering."*
+It took four restarts and a `-wipe-data` to clear, which is worth
+recording only because I nearly shipped this checkpoint with the box
+unticked and an honest paragraph instead of a pass.
+
+## Verified on the emulator
+
+Release build, fresh install, with a ten-day streak, a fortnight of
+expenses and a handful of movements seeded into the database.
+
+| # | What I did | What happened |
+| :- | :--- | :--- |
+| C4-3 | Opened Stats | *"10 green squares are your streak"* under the heading, and the grid ends in **exactly ten solid greens** — six in this week's column, four in last week's — over a legend reading Streak · Active · Quiet |
+| C4-2 | Opened Insights on the week | `Aug 31 — Sep 6` spelled out; **DA980, DA2,500, DA640, DA320 written above their bars**; `Transport 64% (DA2,820)`, `Food 20% (DA900)`, `Shopping 16% (DA720)` beside the donut |
+| C4-2 | Checked the average | `DA4,440` total, `DA740 / day` — divided by the **six days elapsed**, not the seven in the week |
+| C4-2 | Switched to Custom and picked Aug 23 – Sep 5 | `DA8,930` over `DA637.85 / day` across fourteen days, and with more than ten bars only the peak is labelled — `DA2,950` — exactly as designed |
+| C4-2 | Scrolled to the bottom of Insights | The range's own movements, grouped by day, in the Vault's ledger rows |
+| C4-2 | Typed "Sam" into the search | **6 movements → 2**: the debt payment *to* Sam, matched on its reference, and *Coffee with Sam*, matched on its note |
+| C4-2 | Opened the filter panel | Form chips (added or taken · transfer · expense · debt payment), every category chip, `2 of 6` and a **Clear**, with a `1` badge on the collapsed toggle |
+| C4-5 | Settings → Daily cycle | *"The app bends to your hours, not the other way round"* — bedtime 11:00 PM, wake 7:00 AM, and *8 hours of sleep — that's the target* |
+| C4-5 | Moved the wake time to 9 AM, with reminders at 7:30 AM and 6 PM | **One reminder is now in your sleep** · *Read Atomic Habits · 7:30 AM → 9:30 AM* · Leave them / Move them. The 6 PM one was not listed, because it does not fall in the new night |
+| C4-5 | Tapped Move them | The database says `09:30` for that seed and `18:00` for the other — the offset from waking held, and nothing else was touched |
+| C4-5 | Set a three-hour night | *"3 hours is less than anyone should run on. Eight is the target, five the floor."* in red, and the setting was accepted |
+| C4-1 | Placed the widget and left it alone for nine seconds | **Zero pixels changed.** Nothing moves on its own any more |
+| C4-1 | Swiped once inside the strip | *Spanish* gave way to *Read a book (300 pages)* — full-width cards, scrolled by a finger |
 
 ## Everything that changed
 
