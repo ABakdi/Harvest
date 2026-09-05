@@ -20,25 +20,28 @@ import 'package:harvest/core/ui/widgets/xp_bar.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
-import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/commitments/presentation/quantity_sheet.dart';
+import 'package:harvest/features/commitments/presentation/schedule_label.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/budget_colors.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/gallery/domain/gallery.dart';
+import 'package:harvest/features/gallery/presentation/album_crop_tile.dart';
+import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
-import 'package:intl/intl.dart';
 
 /// Clearance under the list so the floating action never covers a crop.
 const _fabClearance = 96.0;
@@ -50,6 +53,11 @@ class FieldScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final items = ref.watch(todayFieldProvider);
+    // Scheduled albums are seeds too (rule G3) — but only when the
+    // gallery is on, and only then is anything even queried.
+    final albums = ref.watch(galleryEnabledProvider)
+        ? ref.watch(albumsDueTodayProvider)
+        : const <({Album album, bool done})>[];
     final xp = ref.watch(xpTotalProvider).value ?? 0;
     final streak = ref.watch(globalStreakProvider).value;
     final budget = ref.watch(budgetSnapshotProvider);
@@ -116,14 +124,24 @@ class FieldScreen extends ConsumerWidget {
                 _fabClearance,
               ),
               children: [
-                if (items.isEmpty)
+                if (items.isEmpty && albums.isEmpty)
                   const _EmptyField()
-                else
+                else ...[
                   for (final item in items)
                     _CropTile(key: ValueKey(item.commitment.uuid), item: item)
                         .animate()
                         .fadeIn(duration: 220.ms)
                         .slideY(begin: 0.05, curve: Curves.easeOut),
+                  for (final entry in albums)
+                    AlbumCropTile(
+                          key: ValueKey('album:${entry.album.uuid}'),
+                          album: entry.album,
+                          done: entry.done,
+                        )
+                        .animate()
+                        .fadeIn(duration: 220.ms)
+                        .slideY(begin: 0.05, curve: Curves.easeOut),
+                ],
                 const SizedBox(height: HarvestSpacing.sm),
                 const _TomorrowCard(),
               ],
@@ -298,7 +316,7 @@ class _CropTile extends ConsumerWidget {
         return '$base · ${overdue ? l10n.overdueBy(when) : l10n.dueOn(when)}';
       case CommitmentType.habit:
         if (commitment.isPaused) return l10n.pausedLabel;
-        return _scheduleLabel(context, l10n, commitment.schedule);
+        return scheduleLabel(context, l10n, commitment.schedule);
       case CommitmentType.todo:
         final due = commitment.dueDay;
         if (overdue && due != null) {
@@ -308,25 +326,6 @@ class _CropTile extends ConsumerWidget {
             ? l10n.dueToday
             : l10n.plannedFor(formatDay(context, due));
     }
-  }
-
-  String _scheduleLabel(
-    BuildContext context,
-    AppLocalizations l10n,
-    Schedule? schedule,
-  ) => switch (schedule) {
-    WeeklySchedule(:final weekdays) => _weekdayNames(context, weekdays),
-    IntervalSchedule(:final everyDays) => l10n.scheduleEveryDays(everyDays),
-    TimesPerWeekSchedule(:final times) =>
-      l10n.scheduleTimesShort(times, 0).split(' · ').first,
-    DailySchedule() || null => l10n.scheduleDailyShort,
-  };
-
-  String _weekdayNames(BuildContext context, Set<int> weekdays) {
-    final names = DateFormat.E(localeTag(context)).dateSymbols.SHORTWEEKDAYS;
-    final sorted = weekdays.toList()..sort();
-    // intl lists Sunday first; weekdays are ISO (Monday = 1).
-    return sorted.map((d) => names[d % 7]).join(' · ');
   }
 
   Future<void> _onTap(BuildContext context, WidgetRef ref) async {

@@ -8,6 +8,7 @@ import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -65,9 +66,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _picked = <String>{'read', 'fit'};
   var _goal = 3;
   var _remindersOn = true;
+  var _notesOn = false;
+  var _galleryOn = false;
   var _finishing = false;
 
-  static const _pages = 4;
+  static const _pages = 5;
 
   @override
   void dispose() {
@@ -131,6 +134,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           .read(reminderSettingsProvider.notifier)
           .setEnabled(enabled: true);
     }
+    // Both default to no, and both are written either way so the
+    // answer is a decision on record rather than an absent row.
+    final settings = ref.read(settingsRepositoryProvider);
+    await settings.setBool(FeatureKeys.notes, value: _notesOn);
+    await settings.setBool(FeatureKeys.gallery, value: _galleryOn);
     await _markDone();
   }
 
@@ -173,6 +181,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     l10n: l10n,
                     enabled: _remindersOn,
                     onChanged: (on) => setState(() => _remindersOn = on),
+                  ),
+                  _ExtrasPage(
+                    l10n: l10n,
+                    notes: _notesOn,
+                    gallery: _galleryOn,
+                    onNotes: (on) => setState(() => _notesOn = on),
+                    onGallery: (on) => setState(() => _galleryOn = on),
                   ),
                 ],
               ),
@@ -415,6 +430,82 @@ class _RemindersPage extends StatelessWidget {
             title: Text(l10n.remindersMaster),
             value: enabled,
             onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The last question: the two halves of the app that stay hidden
+/// unless asked for.
+///
+/// Both are off under the switch, and saying no here costs nothing —
+/// Settings has them forever after. Someone who came for a streak
+/// tracker leaves this page with exactly the app they came for.
+class _ExtrasPage extends StatelessWidget {
+  const _ExtrasPage({
+    required this.l10n,
+    required this.notes,
+    required this.gallery,
+    required this.onNotes,
+    required this.onGallery,
+  });
+
+  final AppLocalizations l10n;
+  final bool notes;
+  final bool gallery;
+  final ValueChanged<bool> onNotes;
+  final ValueChanged<bool> onGallery;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(HarvestSpacing.xl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.tune,
+            size: 88,
+            color: theme.colorScheme.tertiary,
+          ),
+          const SizedBox(height: HarvestSpacing.lg),
+          Text(
+            l10n.obExtrasTitle,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          Text(
+            l10n.obExtrasBody,
+            style: theme.textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: HarvestSpacing.lg),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const Icon(Icons.description_outlined),
+                  title: Text(l10n.featureNotes),
+                  subtitle: Text(l10n.featureNotesHint),
+                  value: notes,
+                  onChanged: onNotes,
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.photo_library_outlined),
+                  title: Text(l10n.featureGallery),
+                  subtitle: Text(l10n.featureGalleryHint),
+                  value: gallery,
+                  onChanged: onGallery,
+                ),
+              ],
+            ),
           ),
         ],
       ),

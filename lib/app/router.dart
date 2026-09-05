@@ -7,6 +7,10 @@ import 'package:harvest/features/commitments/presentation/archive_screen.dart';
 import 'package:harvest/features/commitments/presentation/seed_detail_screen.dart';
 import 'package:harvest/features/field/field_screen.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
+import 'package:harvest/features/gallery/presentation/album_screen.dart';
+import 'package:harvest/features/gallery/presentation/gallery_screen.dart';
+import 'package:harvest/features/notes/presentation/note_screen.dart';
+import 'package:harvest/features/notes/presentation/notes_screen.dart';
 import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_screen.dart';
@@ -29,6 +33,23 @@ abstract final class AppRoutes {
   static const finances = '/finances';
   static const stats = '/stats';
   static const settings = '/settings';
+
+  /// Optional features. Their branches always exist; the shell decides
+  /// whether a tab points at them (rules N1 and G1: off until asked
+  /// for, and switching one off hides it without deleting a thing).
+  static const notes = '/notes';
+  static const gallery = '/gallery';
+}
+
+/// Which branch of the shell each tab is, in the order they are
+/// declared below. The shell shows a subset of these.
+abstract final class ShellBranch {
+  static const field = 0;
+  static const finances = 1;
+  static const stats = 2;
+  static const settings = 3;
+  static const notes = 4;
+  static const gallery = 5;
 }
 
 /// Re-runs the redirect whenever onboarding completes.
@@ -126,6 +147,36 @@ GoRouter router(Ref ref) {
               GoRoute(
                 path: AppRoutes.settings,
                 builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.notes,
+                builder: (context, state) => const NotesScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':uuid',
+                    builder: (context, state) =>
+                        NoteScreen(uuid: state.pathParameters['uuid']!),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.gallery,
+                builder: (context, state) => const GalleryScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':uuid',
+                    builder: (context, state) =>
+                        AlbumScreen(uuid: state.pathParameters['uuid']!),
+                  ),
+                ],
               ),
             ],
           ),

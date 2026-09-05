@@ -1144,11 +1144,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsData => 'بياناتي';
 
   @override
-  String get exportTitle => 'تصدير جدول بيانات';
+  String get exportTitle => 'أخذ أرشيف';
 
   @override
   String get exportBody =>
-      'كل بذرة وتسجيل ومصروف وحركة في ملف ‎.xlsx واحد، مع المجاميع كمعادلات حيّة.';
+      'ملف ‎.zip واحد: الجدول بمجاميعه كمعادلات حيّة، وملاحظاتك كمجلد ماركداون، وكل صورة في ألبومها.';
 
   @override
   String get exportAction => 'التصدير إلى التنزيلات';
@@ -1618,4 +1618,401 @@ class AppLocalizationsAr extends AppLocalizations {
   String shareOfSpending(int percent, String amount) {
     return '$percent٪ ($amount)';
   }
+
+  @override
+  String get editAction => 'تعديل';
+
+  @override
+  String get navNotes => 'الملاحظات';
+
+  @override
+  String get navGallery => 'المعرض';
+
+  @override
+  String get notesTitle => 'الملاحظات';
+
+  @override
+  String get notesNew => 'ملاحظة جديدة';
+
+  @override
+  String get notesUntitled => 'بلا عنوان';
+
+  @override
+  String get notesTitleHint => 'العنوان';
+
+  @override
+  String get notesBodyHint =>
+      'اكتب. تُعرض الماركداون عند القراءة، و[[رابط]] يصل بملاحظة أخرى.';
+
+  @override
+  String get notesSearchHint => 'ابحث في العناوين والنصوص';
+
+  @override
+  String get notesAllFolders => 'الكل';
+
+  @override
+  String get notesFolder => 'المجلد';
+
+  @override
+  String get notesFolderHint =>
+      'مسار، لا أكثر. المجلدات المتداخلة تُنشأ بتسميتها.';
+
+  @override
+  String get notesSort => 'الترتيب';
+
+  @override
+  String get notesSortEdited => 'آخر تعديل';
+
+  @override
+  String get notesSortCreated => 'تاريخ الإنشاء';
+
+  @override
+  String get notesSortTitle => 'العنوان';
+
+  @override
+  String get notesEmpty => 'لا ملاحظات بعد';
+
+  @override
+  String get notesEmptyBody => 'التطبيق يعرف ما فعلته. هنا تحفظ ما فكّرت فيه.';
+
+  @override
+  String get notesNoMatch => 'لا شيء يطابق ذلك';
+
+  @override
+  String get notesNoMatchBody => 'جرّب كلمة أخرى أو مجلدًا آخر.';
+
+  @override
+  String get notesGone => 'هذه الملاحظة اختفت';
+
+  @override
+  String get notesGoneBody => 'حُذفت، أو لم توجد أصلًا.';
+
+  @override
+  String get notesRead => 'قراءة';
+
+  @override
+  String get notesEdit => 'تحرير';
+
+  @override
+  String get notesCreate => 'إنشاء';
+
+  @override
+  String notesCreateLinkTitle(String title) {
+    return 'أتكتب «$title»؟';
+  }
+
+  @override
+  String get notesCreateLinkBody =>
+      'هذه الملاحظة غير موجودة بعد. الرابط إلى ملاحظة لم تكتبها أمر طبيعي، وهذا ينشئها.';
+
+  @override
+  String get notesDeleteTitle => 'أتحذف هذه الملاحظة؟';
+
+  @override
+  String get notesDeleteBody => 'ستغادر الخزانة. يمكنك التراجع فورًا.';
+
+  @override
+  String notesBacklinks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملاحظات تشير إلى هنا',
+      two: 'ملاحظتان تشيران إلى هنا',
+      one: 'ملاحظة واحدة تشير إلى هنا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galleryTitle => 'المعرض';
+
+  @override
+  String get galleryNewAlbum => 'ألبوم جديد';
+
+  @override
+  String get galleryEditAlbum => 'تعديل الألبوم';
+
+  @override
+  String get galleryCreateAlbum => 'إنشاء الألبوم';
+
+  @override
+  String get galleryAlbumHint =>
+      'سلسلة صور باسم. أعطها جدولًا فتصير بذرة في حقلك.';
+
+  @override
+  String get galleryAlbumName => 'الألبوم';
+
+  @override
+  String get galleryAlbumNameHint => 'النادي، الوجه، البيت';
+
+  @override
+  String get gallerySchedule => 'الجدول';
+
+  @override
+  String get galleryScheduleNone => 'بلا جدول';
+
+  @override
+  String get gallerySeedHint =>
+      'الألبوم المجدول يستحق كالعادة، ويُسجَّل بإضافة صورة، ويغذّي السلسلة نفسها.';
+
+  @override
+  String get galleryIsSeed => 'في حقلك';
+
+  @override
+  String get galleryEmpty => 'لا ألبومات بعد';
+
+  @override
+  String get galleryEmptyBody =>
+      'صورة كل يوم، محفوظة بالترتيب، تُعرض كشريط. ابدأ بما تريد أن تراه يتغيّر.';
+
+  @override
+  String get galleryAlbumEmpty => 'لا شيء هنا بعد';
+
+  @override
+  String get galleryAlbumEmptyBody => 'أضف أول صورة. المقارنة تبدأ من الثانية.';
+
+  @override
+  String get galleryAlbumGone => 'هذا الألبوم اختفى';
+
+  @override
+  String galleryAlbumCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ذكريات',
+      two: 'ذكريان',
+      one: 'ذكرى واحدة',
+      zero: 'فارغ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galleryAdd => 'إضافة';
+
+  @override
+  String galleryAddTo(String album) {
+    return 'أضف إلى $album';
+  }
+
+  @override
+  String get galleryCheckInHint => 'أول صورة اليوم تُسجّل هذا الألبوم.';
+
+  @override
+  String get galleryTakePhoto => 'الكاميرا';
+
+  @override
+  String get galleryPickPhoto => 'الصور';
+
+  @override
+  String get galleryTakeVideo => 'تسجيل';
+
+  @override
+  String get galleryPickVideo => 'الفيديو';
+
+  @override
+  String get galleryNoCapture => 'لم يُلتقط شيء.';
+
+  @override
+  String get galleryMemoryNote => 'ملاحظة';
+
+  @override
+  String get galleryMemoryNoteHint =>
+      'ما الذي تغيّر، كم كان وزنك، ما الذي كنت تجرّبه';
+
+  @override
+  String get gallerySearchNotes => 'ابحث في الملاحظات';
+
+  @override
+  String get gallerySearchHint => 'ابحث في ملاحظات هذه الصور';
+
+  @override
+  String get galleryNoMatch => 'لا صورة تحمل ملاحظة كهذه';
+
+  @override
+  String get galleryPlay => 'تشغيل';
+
+  @override
+  String get gallerySpeed => 'السرعة';
+
+  @override
+  String galleryFps(int fps) {
+    return '$fps/ث';
+  }
+
+  @override
+  String get galleryCompare => 'مقارنة';
+
+  @override
+  String get galleryCompareLeft => 'يمين';
+
+  @override
+  String get galleryCompareRight => 'يسار';
+
+  @override
+  String get galleryDeleteMemoryTitle => 'أتحذف هذه الذكرى؟';
+
+  @override
+  String get galleryDeleteMemoryBody =>
+      'يذهب الملف معها نهائيًا. لا تراجع عن هذه.';
+
+  @override
+  String galleryDeleteAlbumTitle(String album) {
+    return 'أتحذف $album؟';
+  }
+
+  @override
+  String get galleryDeleteAlbumBody =>
+      'كل صورة فيه تُحذف معه، بملفاتها. لا تراجع.';
+
+  @override
+  String get settingsFeatures => 'إضافات';
+
+  @override
+  String get settingsFeaturesHint =>
+      'نصفان من التطبيق يبقيان بعيدين حتى تطلبهما.';
+
+  @override
+  String get featureNotes => 'الملاحظات';
+
+  @override
+  String get featureNotesHint => 'ملاحظات ماركداون في مجلدات، يصل بعضها ببعض.';
+
+  @override
+  String get featureGallery => 'المعرض';
+
+  @override
+  String get featureGalleryHint =>
+      'ألبومات صور عبر الزمن تُعرض كشريط. والألبوم المجدول يصير بذرة في حقلك.';
+
+  @override
+  String featureGallerySize(String size) {
+    return 'يشغل $size';
+  }
+
+  @override
+  String get obExtrasTitle => 'اثنتان أخريان، إن أردتهما';
+
+  @override
+  String get obExtrasBody =>
+      'كلتاهما مخفية حتى توافق. ويمكنك تغيير رأيك في الإعدادات متى شئت.';
+
+  @override
+  String get albumReminderBody => 'صورة اليوم ما زالت ناقصة.';
+
+  @override
+  String get exportPreparing => 'أقرأ كل شيء…';
+
+  @override
+  String exportProgress(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get exportStopped => 'توقّف. لم يُكتب شيء.';
+
+  @override
+  String get importTitle => 'استرجاع أرشيف';
+
+  @override
+  String get importBody =>
+      'افتح ملف حصاد ‎.zip. سترى بالضبط ما سيتغيّر قبل أن يحدث شيء، ولا يُحذف هنا شيء لغيابه عنه.';
+
+  @override
+  String get importAction => 'اختر أرشيفًا';
+
+  @override
+  String get importReading => 'أقرأ…';
+
+  @override
+  String get importApplying => 'أدمج…';
+
+  @override
+  String get importConfirm => 'ادمجه';
+
+  @override
+  String importSummary(int added, int updated) {
+    return '$added جديد، و$updated للتحديث';
+  }
+
+  @override
+  String importRowCounts(int added, int updated) {
+    return '+$added · ↻$updated';
+  }
+
+  @override
+  String importFiles(int newFiles, int files) {
+    String _temp0 = intl.Intl.pluralLogic(
+      newFiles,
+      locale: localeName,
+      other: '$newFiles ملفات جديدة من $files في الأرشيف',
+      two: 'ملفان جديدان من $files في الأرشيف',
+      one: 'ملف جديد واحد من $files في الأرشيف',
+      zero: 'لا ملفات جديدة من $files في الأرشيف',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNothingToDo => 'كل ما فيه موجود على هذا الهاتف.';
+
+  @override
+  String get importNeverDeletes =>
+      'لا يُحذف شيء محلي. والصفوف الموجودة لا تُمسّ إلا إذا كانت نسخة الأرشيف أحدث.';
+
+  @override
+  String importDone(int added, int updated) {
+    return 'تم — أُضيف $added، وحُدِّث $updated.';
+  }
+
+  @override
+  String get importNotHarvest => 'هذا الملف ليس أرشيف حصاد.';
+
+  @override
+  String get importUnreadable => 'تعذّر فتح هذا الملف.';
+
+  @override
+  String get importBadWorkbook => 'تعذّرت قراءة الجدول داخل هذا الأرشيف.';
+
+  @override
+  String get importFailed => 'لم يكتمل الاستيراد.';
+
+  @override
+  String get sheetSeeds => 'البذور';
+
+  @override
+  String get sheetCheckIns => 'التسجيلات';
+
+  @override
+  String get sheetSeedNotes => 'ملاحظات اليوم';
+
+  @override
+  String get sheetExpenses => 'المصاريف';
+
+  @override
+  String get sheetMoney => 'الحركات';
+
+  @override
+  String get sheetDebts => 'الديون';
+
+  @override
+  String get sheetDebtPayments => 'سداد الديون';
+
+  @override
+  String get sheetFocus => 'جلسات التركيز';
+
+  @override
+  String get sheetLedger => 'سجل الخبرة';
+
+  @override
+  String get sheetSettings => 'الإعدادات';
+
+  @override
+  String get sheetNotes => 'الملاحظات';
+
+  @override
+  String get sheetAlbums => 'الألبومات';
+
+  @override
+  String get sheetMemories => 'الذكريات';
 }

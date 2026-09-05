@@ -1140,11 +1140,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsData => 'My data';
 
   @override
-  String get exportTitle => 'Export a spreadsheet';
+  String get exportTitle => 'Take an archive';
 
   @override
   String get exportBody =>
-      'Every seed, check-in, expense and movement in one .xlsx file, with the totals as live formulas.';
+      'One .zip: the spreadsheet with its totals as live formulas, your notes as a folder of markdown, and every picture in its album.';
 
   @override
   String get exportAction => 'Export to Downloads';
@@ -1610,4 +1610,405 @@ class AppLocalizationsEn extends AppLocalizations {
   String shareOfSpending(int percent, String amount) {
     return '$percent% ($amount)';
   }
+
+  @override
+  String get editAction => 'Edit';
+
+  @override
+  String get navNotes => 'Notes';
+
+  @override
+  String get navGallery => 'Gallery';
+
+  @override
+  String get notesTitle => 'Notes';
+
+  @override
+  String get notesNew => 'New note';
+
+  @override
+  String get notesUntitled => 'Untitled';
+
+  @override
+  String get notesTitleHint => 'Title';
+
+  @override
+  String get notesBodyHint =>
+      'Write. Markdown is rendered when you read; [[link]] to another note.';
+
+  @override
+  String get notesSearchHint => 'Search titles and text';
+
+  @override
+  String get notesAllFolders => 'All';
+
+  @override
+  String get notesFolder => 'Folder';
+
+  @override
+  String get notesFolderHint =>
+      'A path, nothing more. Nested folders are made by naming one.';
+
+  @override
+  String get notesSort => 'Sort';
+
+  @override
+  String get notesSortEdited => 'Last edited';
+
+  @override
+  String get notesSortCreated => 'Created';
+
+  @override
+  String get notesSortTitle => 'Title';
+
+  @override
+  String get notesEmpty => 'No notes yet';
+
+  @override
+  String get notesEmptyBody =>
+      'The app knows what you did. This is where you keep what you thought about it.';
+
+  @override
+  String get notesNoMatch => 'Nothing matches that';
+
+  @override
+  String get notesNoMatchBody => 'Try another word, or a different folder.';
+
+  @override
+  String get notesGone => 'This note is gone';
+
+  @override
+  String get notesGoneBody => 'It was deleted, or it never existed.';
+
+  @override
+  String get notesRead => 'Read';
+
+  @override
+  String get notesEdit => 'Edit';
+
+  @override
+  String get notesCreate => 'Create';
+
+  @override
+  String notesCreateLinkTitle(String title) {
+    return 'Write \"$title\"?';
+  }
+
+  @override
+  String get notesCreateLinkBody =>
+      'That note does not exist yet. A link to a note you have not written is normal — this makes it.';
+
+  @override
+  String get notesDeleteTitle => 'Delete this note?';
+
+  @override
+  String get notesDeleteBody =>
+      'It leaves the vault. You can undo this straight away.';
+
+  @override
+  String notesBacklinks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes link here',
+      one: '1 note links here',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galleryTitle => 'Gallery';
+
+  @override
+  String get galleryNewAlbum => 'New album';
+
+  @override
+  String get galleryEditAlbum => 'Edit album';
+
+  @override
+  String get galleryCreateAlbum => 'Create album';
+
+  @override
+  String get galleryAlbumHint =>
+      'A named run of pictures. Give it a schedule and it becomes a seed on your field.';
+
+  @override
+  String get galleryAlbumName => 'Album';
+
+  @override
+  String get galleryAlbumNameHint => 'Gym, Face, The flat';
+
+  @override
+  String get gallerySchedule => 'Schedule';
+
+  @override
+  String get galleryScheduleNone => 'No schedule';
+
+  @override
+  String get gallerySeedHint =>
+      'A scheduled album is due like a habit, checked in by adding a picture, and feeds the same streak.';
+
+  @override
+  String get galleryIsSeed => 'On your field';
+
+  @override
+  String get galleryEmpty => 'No albums yet';
+
+  @override
+  String get galleryEmptyBody =>
+      'One picture a day, kept in order, playable as a run. Start with the thing you want to see change.';
+
+  @override
+  String get galleryAlbumEmpty => 'Nothing in here yet';
+
+  @override
+  String get galleryAlbumEmptyBody =>
+      'Add the first picture. The comparison only gets interesting from the second one.';
+
+  @override
+  String get galleryAlbumGone => 'This album is gone';
+
+  @override
+  String galleryAlbumCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count memories',
+      one: '1 memory',
+      zero: 'Empty',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galleryAdd => 'Add';
+
+  @override
+  String galleryAddTo(String album) {
+    return 'Add to $album';
+  }
+
+  @override
+  String get galleryCheckInHint =>
+      'The first picture today checks this album in.';
+
+  @override
+  String get galleryTakePhoto => 'Camera';
+
+  @override
+  String get galleryPickPhoto => 'Photos';
+
+  @override
+  String get galleryTakeVideo => 'Record';
+
+  @override
+  String get galleryPickVideo => 'Videos';
+
+  @override
+  String get galleryNoCapture => 'Nothing was captured.';
+
+  @override
+  String get galleryMemoryNote => 'Note';
+
+  @override
+  String get galleryMemoryNoteHint =>
+      'What changed, what you weighed, what you were trying';
+
+  @override
+  String get gallerySearchNotes => 'Search notes';
+
+  @override
+  String get gallerySearchHint => 'Search the notes on these pictures';
+
+  @override
+  String get galleryNoMatch => 'No picture has a note like that';
+
+  @override
+  String get galleryPlay => 'Play';
+
+  @override
+  String get gallerySpeed => 'Speed';
+
+  @override
+  String galleryFps(int fps) {
+    return '$fps/s';
+  }
+
+  @override
+  String get galleryCompare => 'Compare';
+
+  @override
+  String get galleryCompareLeft => 'Left';
+
+  @override
+  String get galleryCompareRight => 'Right';
+
+  @override
+  String get galleryDeleteMemoryTitle => 'Delete this memory?';
+
+  @override
+  String get galleryDeleteMemoryBody =>
+      'The file goes with it, for good. There is no undo behind this one.';
+
+  @override
+  String galleryDeleteAlbumTitle(String album) {
+    return 'Delete $album?';
+  }
+
+  @override
+  String get galleryDeleteAlbumBody =>
+      'Every picture in it is deleted with it, files and all. There is no undo.';
+
+  @override
+  String get settingsFeatures => 'Extras';
+
+  @override
+  String get settingsFeaturesHint =>
+      'Two halves of the app that stay out of the way until you ask for them.';
+
+  @override
+  String get featureNotes => 'Notes';
+
+  @override
+  String get featureNotesHint =>
+      'Markdown notes in folders, linked to each other.';
+
+  @override
+  String get featureGallery => 'Gallery';
+
+  @override
+  String get featureGalleryHint =>
+      'Albums of photos over time, playable as a run. A scheduled album becomes a seed on your field.';
+
+  @override
+  String featureGallerySize(String size) {
+    return 'Using $size';
+  }
+
+  @override
+  String get obExtrasTitle => 'Two more, if you want them';
+
+  @override
+  String get obExtrasBody =>
+      'Both stay hidden unless you say yes. You can change your mind in Settings at any time.';
+
+  @override
+  String get albumReminderBody => 'Today\'s picture is still missing.';
+
+  @override
+  String get exportPreparing => 'Reading everything…';
+
+  @override
+  String exportProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get exportStopped => 'Stopped. Nothing was written.';
+
+  @override
+  String get importTitle => 'Bring an archive back';
+
+  @override
+  String get importBody =>
+      'Open a Harvest .zip. You will see exactly what it would change before anything happens, and nothing here is ever deleted for being missing from it.';
+
+  @override
+  String get importAction => 'Choose an archive';
+
+  @override
+  String get importReading => 'Reading…';
+
+  @override
+  String get importApplying => 'Merging…';
+
+  @override
+  String get importConfirm => 'Merge it in';
+
+  @override
+  String importSummary(int added, int updated) {
+    return '$added new, $updated to update';
+  }
+
+  @override
+  String importRowCounts(int added, int updated) {
+    return '+$added · ↻$updated';
+  }
+
+  @override
+  String importFiles(int newFiles, int files) {
+    String _temp0 = intl.Intl.pluralLogic(
+      newFiles,
+      locale: localeName,
+      other: '$newFiles new files of $files in the archive',
+      one: '1 new file of $files in the archive',
+      zero: 'No new files among the $files in the archive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNothingToDo =>
+      'Everything in here is already on this phone.';
+
+  @override
+  String get importNeverDeletes =>
+      'Nothing local is deleted. Rows already here are only touched if the archive\'s copy is newer.';
+
+  @override
+  String importDone(int added, int updated) {
+    return 'Done — $added added, $updated updated.';
+  }
+
+  @override
+  String get importNotHarvest => 'That zip is not a Harvest archive.';
+
+  @override
+  String get importUnreadable => 'That file could not be opened.';
+
+  @override
+  String get importBadWorkbook =>
+      'The spreadsheet inside that archive could not be read.';
+
+  @override
+  String get importFailed => 'The import did not finish.';
+
+  @override
+  String get sheetSeeds => 'Seeds';
+
+  @override
+  String get sheetCheckIns => 'Check-ins';
+
+  @override
+  String get sheetSeedNotes => 'Day notes';
+
+  @override
+  String get sheetExpenses => 'Expenses';
+
+  @override
+  String get sheetMoney => 'Movements';
+
+  @override
+  String get sheetDebts => 'Debts';
+
+  @override
+  String get sheetDebtPayments => 'Debt payments';
+
+  @override
+  String get sheetFocus => 'Focus sessions';
+
+  @override
+  String get sheetLedger => 'XP ledger';
+
+  @override
+  String get sheetSettings => 'Settings';
+
+  @override
+  String get sheetNotes => 'Notes';
+
+  @override
+  String get sheetAlbums => 'Albums';
+
+  @override
+  String get sheetMemories => 'Memories';
 }

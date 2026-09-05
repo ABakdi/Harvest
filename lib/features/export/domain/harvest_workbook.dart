@@ -18,6 +18,22 @@ typedef ExportData = ({
   List<List<Object?>> ledger,
   List<List<Object?>> streaks,
   List<List<Object?>> settings,
+  List<List<Object?>> notes,
+  List<List<Object?>> albums,
+  List<List<Object?>> memories,
+});
+
+/// Everything the zip is written from: the rows, and the files the
+/// rows point at (ADR-007).
+typedef ArchiveContents = ({
+  ExportData data,
+
+  /// One `.md` per live note, at the path its row names.
+  List<({String path, String body})> notes,
+
+  /// One picture or clip, at the path its row names, read back out of
+  /// the gallery directory by [storedPath].
+  List<({String path, String storedPath})> memories,
 });
 
 /// Sheet names are part of the file's contract with a future sync, so
@@ -35,6 +51,9 @@ abstract final class SheetNames {
   static const ledger = 'Ledger';
   static const streaks = 'Streaks';
   static const settings = 'Settings';
+  static const notes = 'Notes';
+  static const albums = 'Albums';
+  static const memories = 'Memories';
 }
 
 /// Minor units to major, as a live formula rather than a Dart division
@@ -46,6 +65,12 @@ String _major(String minorHeader) => '={$minorHeader}{row}/100';
 const _seedTitle =
     '=IFERROR(VLOOKUP({CommitmentUuid}{row},'
     '${SheetNames.seeds}!\$A:\$C,3,FALSE),"")';
+
+/// The same trick for an album, so the Memories sheet reads as names
+/// rather than a column of uuids.
+const _albumName =
+    '=IFERROR(VLOOKUP({AlbumUuid}{row},'
+    '${SheetNames.albums}!\$A:\$B,2,FALSE),"")';
 
 /// Lays out the whole workbook: one sheet per table, plus a Summary
 /// whose every number is a formula over the others.
@@ -231,6 +256,58 @@ List<ExportSheet> harvestSheets(ExportData data) {
     rows: data.settings,
   );
 
+  // The three file-backed sheets (ADR-007). `File` holds the path
+  // inside the zip, so the tree is browsable and the sheet is its
+  // index: the real title lives here, the filename is a sanitised
+  // version of it.
+  final notes = ExportSheet(
+    name: SheetNames.notes,
+    headers: const [
+      'Uuid',
+      'Title',
+      'Folder',
+      'File',
+      'Body',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.notes,
+  );
+
+  final albums = ExportSheet(
+    name: SheetNames.albums,
+    headers: const [
+      'Uuid',
+      'Name',
+      'Folder',
+      'ScheduleJson',
+      'RemindAt',
+      'Note',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.albums,
+  );
+
+  final memories = ExportSheet(
+    name: SheetNames.memories,
+    headers: const [
+      'Uuid',
+      'AlbumUuid',
+      'HarvestDay',
+      'File',
+      'StoredPath',
+      'Kind',
+      'Note',
+      'CapturedAt',
+      'UpdatedAt',
+    ],
+    rows: data.memories,
+    derived: const [(header: 'Album', template: _albumName)],
+  );
+
   final sheets = [
     seeds,
     checkIns,
@@ -243,6 +320,9 @@ List<ExportSheet> harvestSheets(ExportData data) {
     ledger,
     streaks,
     settings,
+    notes,
+    albums,
+    memories,
   ];
 
   return [

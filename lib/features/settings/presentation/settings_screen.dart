@@ -11,10 +11,12 @@ import 'package:harvest/features/export/presentation/export_card.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/category_settings.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/import/presentation/import_card.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/security/presentation/app_lock_card.dart';
 import 'package:harvest/features/settings/presentation/daily_cycle_card.dart';
+import 'package:harvest/features/settings/presentation/features_card.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/features/widget/presentation/widget_card.dart';
@@ -82,6 +84,11 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           SectionHeader(
+            l10n.settingsFeatures,
+            subtitle: l10n.settingsFeaturesHint,
+          ),
+          const FeaturesCard(),
+          SectionHeader(
             l10n.settingsCycle,
             subtitle: l10n.settingsCycleHint,
           ),
@@ -141,6 +148,8 @@ class SettingsScreen extends ConsumerWidget {
           const AppLockCard(),
           SectionHeader(l10n.settingsData),
           const ExportCard(),
+          const SizedBox(height: HarvestSpacing.sm),
+          const ImportCard(),
           const SizedBox(height: HarvestSpacing.sm),
           const WidgetCard(),
           SectionHeader(l10n.settingsAppearance),

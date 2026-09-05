@@ -54,6 +54,26 @@ class StreakService {
   /// Productive actions on [day]: each habit/to-do checked in counts one;
   /// a project counts one once it reached its daily commitment. Effort
   /// on a seed that was archived later still counts — it was real.
+  /// Distinct scheduled albums that got a picture on [day].
+  ///
+  /// A scheduled album is a seed (Gallery rule G3), so it counts toward
+  /// the Daily Harvest Goal exactly like a habit does. Unscheduled
+  /// albums do not: adding to a scrapbook is not a commitment kept.
+  Future<int> albumActions(HarvestDay day) async {
+    final scheduled = await (_db.select(_db.albums)
+          ..where((a) => a.deletedAt.isNull() & a.scheduleJson.isNotNull()))
+        .get();
+    if (scheduled.isEmpty) return 0;
+    final uuids = scheduled.map((a) => a.uuid).toList();
+    final query = _db.selectOnly(_db.memories, distinct: true)
+      ..addColumns([_db.memories.albumUuid])
+      ..where(
+        _db.memories.harvestDay.equals(day.key) &
+            _db.memories.albumUuid.isIn(uuids),
+      );
+    return (await query.get()).length;
+  }
+
   Future<int> productiveActions(HarvestDay day) async {
     final quantity = _db.checkIns.quantity.sum();
     final query = _db.selectOnly(_db.checkIns)
@@ -67,13 +87,14 @@ class StreakService {
       for (final row in await query.get())
         row.read(_db.checkIns.commitmentUuid)!: row.read(quantity) ?? 0,
     };
-    if (sums.isEmpty) return 0;
+    final albums = await albumActions(day);
+    if (sums.isEmpty) return albums;
 
     final commitments = await (_db.select(
       _db.commitments,
     )..where((c) => c.uuid.isIn(sums.keys.toList()))).get();
 
-    var actions = 0;
+    var actions = albums;
     for (final row in commitments) {
       if (row.type == CommitmentType.project.name) {
         final daily = row.dailyCommitment ?? 0;
@@ -100,6 +121,37 @@ class StreakService {
           freezesStored: streak.freezesStored,
         );
       }
+    }
+    await _refreshGlobal(day);
+  }
+
+  /// A picture landed in a scheduled album: its own streak counts the
+  /// day, and the global streak is re-judged like any other check-in.
+  Future<void> onAlbumMemory(String albumUuid, HarvestDay day) async {
+    final streak = await _row(albumUuid);
+    if (streak.lastEarnedDay != day.key) {
+      await _write(
+        scope: albumUuid,
+        current: streak.current + 1,
+        best: _max(streak.best, streak.current + 1),
+        lastEarnedDay: day.key,
+        freezesStored: streak.freezesStored,
+      );
+    }
+    await _refreshGlobal(day);
+  }
+
+  /// The last picture of the day was deleted; take the day back.
+  Future<void> onAlbumMemoryRemoved(String albumUuid, HarvestDay day) async {
+    final streak = await _row(albumUuid);
+    if (streak.lastEarnedDay == day.key) {
+      await _write(
+        scope: albumUuid,
+        current: math.max(0, streak.current - 1),
+        best: streak.best,
+        lastEarnedDay: _earnedBefore(day, streak.current - 1),
+        freezesStored: streak.freezesStored,
+      );
     }
     await _refreshGlobal(day);
   }

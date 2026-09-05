@@ -1997,13 +1997,13 @@ abstract class AppLocalizations {
   /// No description provided for @exportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Export a spreadsheet'**
+  /// **'Take an archive'**
   String get exportTitle;
 
   /// No description provided for @exportBody.
   ///
   /// In en, this message translates to:
-  /// **'Every seed, check-in, expense and movement in one .xlsx file, with the totals as live formulas.'**
+  /// **'One .zip: the spreadsheet with its totals as live formulas, your notes as a folder of markdown, and every picture in its album.'**
   String get exportBody;
 
   /// No description provided for @exportAction.
@@ -2707,6 +2707,678 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{percent}% ({amount})'**
   String shareOfSpending(int percent, String amount);
+
+  /// No description provided for @editAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editAction;
+
+  /// No description provided for @navNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get navNotes;
+
+  /// No description provided for @navGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get navGallery;
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesTitle;
+
+  /// No description provided for @notesNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get notesNew;
+
+  /// No description provided for @notesUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get notesUntitled;
+
+  /// No description provided for @notesTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notesTitleHint;
+
+  /// No description provided for @notesBodyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write. Markdown is rendered when you read; [[link]] to another note.'**
+  String get notesBodyHint;
+
+  /// No description provided for @notesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search titles and text'**
+  String get notesSearchHint;
+
+  /// No description provided for @notesAllFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get notesAllFolders;
+
+  /// No description provided for @notesFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get notesFolder;
+
+  /// No description provided for @notesFolderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A path, nothing more. Nested folders are made by naming one.'**
+  String get notesFolderHint;
+
+  /// No description provided for @notesSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get notesSort;
+
+  /// No description provided for @notesSortEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Last edited'**
+  String get notesSortEdited;
+
+  /// No description provided for @notesSortCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get notesSortCreated;
+
+  /// No description provided for @notesSortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notesSortTitle;
+
+  /// No description provided for @notesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get notesEmpty;
+
+  /// No description provided for @notesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app knows what you did. This is where you keep what you thought about it.'**
+  String get notesEmptyBody;
+
+  /// No description provided for @notesNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that'**
+  String get notesNoMatch;
+
+  /// No description provided for @notesNoMatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another word, or a different folder.'**
+  String get notesNoMatchBody;
+
+  /// No description provided for @notesGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This note is gone'**
+  String get notesGone;
+
+  /// No description provided for @notesGoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It was deleted, or it never existed.'**
+  String get notesGoneBody;
+
+  /// No description provided for @notesRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get notesRead;
+
+  /// No description provided for @notesEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get notesEdit;
+
+  /// No description provided for @notesCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get notesCreate;
+
+  /// No description provided for @notesCreateLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write \"{title}\"?'**
+  String notesCreateLinkTitle(String title);
+
+  /// No description provided for @notesCreateLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'That note does not exist yet. A link to a note you have not written is normal — this makes it.'**
+  String get notesCreateLinkBody;
+
+  /// No description provided for @notesDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this note?'**
+  String get notesDeleteTitle;
+
+  /// No description provided for @notesDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the vault. You can undo this straight away.'**
+  String get notesDeleteBody;
+
+  /// No description provided for @notesBacklinks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note links here} other{{count} notes link here}}'**
+  String notesBacklinks(int count);
+
+  /// No description provided for @galleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get galleryTitle;
+
+  /// No description provided for @galleryNewAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'New album'**
+  String get galleryNewAlbum;
+
+  /// No description provided for @galleryEditAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit album'**
+  String get galleryEditAlbum;
+
+  /// No description provided for @galleryCreateAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Create album'**
+  String get galleryCreateAlbum;
+
+  /// No description provided for @galleryAlbumHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A named run of pictures. Give it a schedule and it becomes a seed on your field.'**
+  String get galleryAlbumHint;
+
+  /// No description provided for @galleryAlbumName.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get galleryAlbumName;
+
+  /// No description provided for @galleryAlbumNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym, Face, The flat'**
+  String get galleryAlbumNameHint;
+
+  /// No description provided for @gallerySchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get gallerySchedule;
+
+  /// No description provided for @galleryScheduleNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule'**
+  String get galleryScheduleNone;
+
+  /// No description provided for @gallerySeedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A scheduled album is due like a habit, checked in by adding a picture, and feeds the same streak.'**
+  String get gallerySeedHint;
+
+  /// No description provided for @galleryIsSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'On your field'**
+  String get galleryIsSeed;
+
+  /// No description provided for @galleryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No albums yet'**
+  String get galleryEmpty;
+
+  /// No description provided for @galleryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One picture a day, kept in order, playable as a run. Start with the thing you want to see change.'**
+  String get galleryEmptyBody;
+
+  /// No description provided for @galleryAlbumEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in here yet'**
+  String get galleryAlbumEmpty;
+
+  /// No description provided for @galleryAlbumEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the first picture. The comparison only gets interesting from the second one.'**
+  String get galleryAlbumEmptyBody;
+
+  /// No description provided for @galleryAlbumGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This album is gone'**
+  String get galleryAlbumGone;
+
+  /// No description provided for @galleryAlbumCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Empty} =1{1 memory} other{{count} memories}}'**
+  String galleryAlbumCount(int count);
+
+  /// No description provided for @galleryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get galleryAdd;
+
+  /// No description provided for @galleryAddTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to {album}'**
+  String galleryAddTo(String album);
+
+  /// No description provided for @galleryCheckInHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The first picture today checks this album in.'**
+  String get galleryCheckInHint;
+
+  /// No description provided for @galleryTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get galleryTakePhoto;
+
+  /// No description provided for @galleryPickPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get galleryPickPhoto;
+
+  /// No description provided for @galleryTakeVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get galleryTakeVideo;
+
+  /// No description provided for @galleryPickVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get galleryPickVideo;
+
+  /// No description provided for @galleryNoCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was captured.'**
+  String get galleryNoCapture;
+
+  /// No description provided for @galleryMemoryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get galleryMemoryNote;
+
+  /// No description provided for @galleryMemoryNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What changed, what you weighed, what you were trying'**
+  String get galleryMemoryNoteHint;
+
+  /// No description provided for @gallerySearchNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes'**
+  String get gallerySearchNotes;
+
+  /// No description provided for @gallerySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search the notes on these pictures'**
+  String get gallerySearchHint;
+
+  /// No description provided for @galleryNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No picture has a note like that'**
+  String get galleryNoMatch;
+
+  /// No description provided for @galleryPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get galleryPlay;
+
+  /// No description provided for @gallerySpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get gallerySpeed;
+
+  /// No description provided for @galleryFps.
+  ///
+  /// In en, this message translates to:
+  /// **'{fps}/s'**
+  String galleryFps(int fps);
+
+  /// No description provided for @galleryCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get galleryCompare;
+
+  /// No description provided for @galleryCompareLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get galleryCompareLeft;
+
+  /// No description provided for @galleryCompareRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get galleryCompareRight;
+
+  /// No description provided for @galleryDeleteMemoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this memory?'**
+  String get galleryDeleteMemoryTitle;
+
+  /// No description provided for @galleryDeleteMemoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The file goes with it, for good. There is no undo behind this one.'**
+  String get galleryDeleteMemoryBody;
+
+  /// No description provided for @galleryDeleteAlbumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {album}?'**
+  String galleryDeleteAlbumTitle(String album);
+
+  /// No description provided for @galleryDeleteAlbumBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every picture in it is deleted with it, files and all. There is no undo.'**
+  String get galleryDeleteAlbumBody;
+
+  /// No description provided for @settingsFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Extras'**
+  String get settingsFeatures;
+
+  /// No description provided for @settingsFeaturesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Two halves of the app that stay out of the way until you ask for them.'**
+  String get settingsFeaturesHint;
+
+  /// No description provided for @featureNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get featureNotes;
+
+  /// No description provided for @featureNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Markdown notes in folders, linked to each other.'**
+  String get featureNotesHint;
+
+  /// No description provided for @featureGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get featureGallery;
+
+  /// No description provided for @featureGalleryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums of photos over time, playable as a run. A scheduled album becomes a seed on your field.'**
+  String get featureGalleryHint;
+
+  /// No description provided for @featureGallerySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {size}'**
+  String featureGallerySize(String size);
+
+  /// No description provided for @obExtrasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two more, if you want them'**
+  String get obExtrasTitle;
+
+  /// No description provided for @obExtrasBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Both stay hidden unless you say yes. You can change your mind in Settings at any time.'**
+  String get obExtrasBody;
+
+  /// No description provided for @albumReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s picture is still missing.'**
+  String get albumReminderBody;
+
+  /// No description provided for @exportPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading everything…'**
+  String get exportPreparing;
+
+  /// No description provided for @exportProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String exportProgress(int done, int total);
+
+  /// No description provided for @exportStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped. Nothing was written.'**
+  String get exportStopped;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring an archive back'**
+  String get importTitle;
+
+  /// No description provided for @importBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a Harvest .zip. You will see exactly what it would change before anything happens, and nothing here is ever deleted for being missing from it.'**
+  String get importBody;
+
+  /// No description provided for @importAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an archive'**
+  String get importAction;
+
+  /// No description provided for @importReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading…'**
+  String get importReading;
+
+  /// No description provided for @importApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Merging…'**
+  String get importApplying;
+
+  /// No description provided for @importConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge it in'**
+  String get importConfirm;
+
+  /// No description provided for @importSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{added} new, {updated} to update'**
+  String importSummary(int added, int updated);
+
+  /// No description provided for @importRowCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'+{added} · ↻{updated}'**
+  String importRowCounts(int added, int updated);
+
+  /// No description provided for @importFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{newFiles, plural, =0{No new files among the {files} in the archive} =1{1 new file of {files} in the archive} other{{newFiles} new files of {files} in the archive}}'**
+  String importFiles(int newFiles, int files);
+
+  /// No description provided for @importNothingToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in here is already on this phone.'**
+  String get importNothingToDo;
+
+  /// No description provided for @importNeverDeletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing local is deleted. Rows already here are only touched if the archive\'s copy is newer.'**
+  String get importNeverDeletes;
+
+  /// No description provided for @importDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done — {added} added, {updated} updated.'**
+  String importDone(int added, int updated);
+
+  /// No description provided for @importNotHarvest.
+  ///
+  /// In en, this message translates to:
+  /// **'That zip is not a Harvest archive.'**
+  String get importNotHarvest;
+
+  /// No description provided for @importUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'That file could not be opened.'**
+  String get importUnreadable;
+
+  /// No description provided for @importBadWorkbook.
+  ///
+  /// In en, this message translates to:
+  /// **'The spreadsheet inside that archive could not be read.'**
+  String get importBadWorkbook;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The import did not finish.'**
+  String get importFailed;
+
+  /// No description provided for @sheetSeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeds'**
+  String get sheetSeeds;
+
+  /// No description provided for @sheetCheckIns.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get sheetCheckIns;
+
+  /// No description provided for @sheetSeedNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Day notes'**
+  String get sheetSeedNotes;
+
+  /// No description provided for @sheetExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get sheetExpenses;
+
+  /// No description provided for @sheetMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Movements'**
+  String get sheetMoney;
+
+  /// No description provided for @sheetDebts.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts'**
+  String get sheetDebts;
+
+  /// No description provided for @sheetDebtPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt payments'**
+  String get sheetDebtPayments;
+
+  /// No description provided for @sheetFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus sessions'**
+  String get sheetFocus;
+
+  /// No description provided for @sheetLedger.
+  ///
+  /// In en, this message translates to:
+  /// **'XP ledger'**
+  String get sheetLedger;
+
+  /// No description provided for @sheetSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get sheetSettings;
+
+  /// No description provided for @sheetNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get sheetNotes;
+
+  /// No description provided for @sheetAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get sheetAlbums;
+
+  /// No description provided for @sheetMemories.
+  ///
+  /// In en, this message translates to:
+  /// **'Memories'**
+  String get sheetMemories;
 }
 
 class _AppLocalizationsDelegate

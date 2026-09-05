@@ -1,5 +1,6 @@
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/features/export/domain/archive_layout.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -20,7 +21,16 @@ class ExportRepository {
   /// and no spreadsheet has to guess at a serial date.
   static String? _at(DateTime? value) => value?.toIso8601String();
 
-  Future<ExportData> read({DateTime? generatedAt}) async {
+  /// The workbook rows alone — the file tree is [readArchive].
+  Future<ExportData> read({DateTime? generatedAt}) async =>
+      (await readArchive(generatedAt: generatedAt)).data;
+
+  /// Everything the archive is written from, in one pass.
+  ///
+  /// The rows and the files have to be computed together: the sheet
+  /// says where each file went, and the names are only unique once
+  /// the collisions have been resolved (ADR-007 rule 4).
+  Future<ArchiveContents> readArchive({DateTime? generatedAt}) async {
     final seeds = await _db.select(_db.commitments).get();
     final checkIns = await _db.select(_db.checkIns).get();
     final seedNotes = await _db.select(_db.seedNotes).get();
@@ -32,8 +42,61 @@ class ExportRepository {
     final ledger = await _db.select(_db.ledger).get();
     final streaks = await _db.select(_db.streaks).get();
     final settings = await _db.select(_db.kvSettings).get();
+    final noteRows = await _db.select(_db.notes).get();
+    final albumRows = await _db.select(_db.albums).get();
+    final memoryRows = await _db.select(_db.memories).get();
 
-    return (
+    final taken = <String>{};
+    final noteFiles = <({String path, String body})>[];
+    final noteRowsOut = <List<Object?>>[];
+    for (final row in noteRows) {
+      final path = notePath(
+        title: row.title,
+        folder: row.folder,
+        taken: taken,
+      );
+      // A deleted note keeps its row so the merge can see it, but it
+      // does not get a file — the vault is what I still have.
+      if (row.deletedAt == null) {
+        noteFiles.add((path: path, body: row.body));
+      }
+      noteRowsOut.add([
+        row.uuid,
+        row.title,
+        row.folder,
+        if (row.deletedAt == null) path else null,
+        row.body,
+        _at(row.createdAt),
+        _at(row.updatedAt),
+        _at(row.deletedAt),
+      ]);
+    }
+
+    final albumNames = {for (final row in albumRows) row.uuid: row.name};
+    final memoryFiles = <({String path, String storedPath})>[];
+    final memoryRowsOut = <List<Object?>>[];
+    for (final row in memoryRows) {
+      final path = memoryPath(
+        albumName: albumNames[row.albumUuid] ?? 'Album',
+        day: row.harvestDay,
+        storedPath: row.path,
+        taken: taken,
+      );
+      memoryFiles.add((path: path, storedPath: row.path));
+      memoryRowsOut.add([
+        row.uuid,
+        row.albumUuid,
+        row.harvestDay,
+        path,
+        row.path,
+        row.kind,
+        row.note,
+        _at(row.capturedAt),
+        _at(row.updatedAt),
+      ]);
+    }
+
+    final data = (
       generatedAt: generatedAt ?? DateTime.now(),
       seeds: [
         for (final row in seeds)
@@ -171,7 +234,25 @@ class ExportRepository {
         for (final row in settings)
           [row.key, row.valueJson, _at(row.updatedAt)],
       ],
+      notes: noteRowsOut,
+      albums: [
+        for (final row in albumRows)
+          [
+            row.uuid,
+            row.name,
+            albumFolder(row.name),
+            row.scheduleJson,
+            row.remindAt,
+            row.note,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      memories: memoryRowsOut,
     );
+
+    return (data: data, notes: noteFiles, memories: memoryFiles);
   }
 }
 
