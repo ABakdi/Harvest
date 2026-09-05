@@ -55,6 +55,23 @@ class VaultRepository {
     return query.watch().map((rows) => rows.map(_toTxn).toList());
   }
 
+  /// Every movement in a span, newest first — the Insights page's
+  /// ledger, which is bounded by dates rather than by a row count.
+  Stream<List<MoneyTxn>> watchTxnsBetween(HarvestDay from, HarvestDay to) {
+    final query = _db.select(_db.moneyTxns)
+      ..where(
+        (t) =>
+            t.harvestDay.isBiggerOrEqualValue(from.key) &
+            t.harvestDay.isSmallerOrEqualValue(to.key) &
+            t.deletedAt.isNull(),
+      )
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.loggedAt),
+        (t) => OrderingTerm.desc(t.rowId),
+      ]);
+    return query.watch().map((rows) => rows.map(_toTxn).toList());
+  }
+
   /// Recent movements across both pots, newest first.
   Stream<List<MoneyTxn>> watchRecentTxns({int limit = 30}) =>
       watchTxns(limit: limit);
@@ -287,6 +304,18 @@ class VaultRepository {
         row.read(_db.debtPayments.debtUuid)!: row.read(sum) ?? 0,
     };
   }
+
+  /// Moves one debt's daily reminder, and nothing else about it.
+  Future<void> setDebtRemindAt(String uuid, String? remindAt) =>
+      _db.transaction(() async {
+        await (_db.update(_db.debts)..where((d) => d.uuid.equals(uuid))).write(
+          DebtsCompanion(
+            remindAt: Value(remindAt),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        await _outbox('debts', uuid, 'update');
+      });
 
   Future<void> createDebt({
     required String person,

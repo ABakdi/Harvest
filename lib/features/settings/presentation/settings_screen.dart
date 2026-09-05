@@ -14,6 +14,7 @@ import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/security/presentation/app_lock_card.dart';
+import 'package:harvest/features/settings/presentation/daily_cycle_card.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/features/widget/presentation/widget_card.dart';
@@ -80,6 +81,11 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          SectionHeader(
+            l10n.settingsCycle,
+            subtitle: l10n.settingsCycleHint,
+          ),
+          const DailyCycleCard(),
           SectionHeader(l10n.settingsReminders),
           const _RemindersCard(),
           SectionHeader(l10n.settingsPomodoro),

@@ -6,8 +6,19 @@ Phase 2 module ([[Phase-2-Finances]]). Money is a pillar like any other: log it 
 
 The Granary has three tabs: **Today** (gauge, quick-log, today's
 entries), **Vault** (wallet, savings, debts, movement history), and
-**Insights** (daily bar chart + category donut, week/month, totals
-and per-day average).
+**Insights** (daily bars, category donut, totals, per-day average, and
+the range's own ledger).
+
+**Insights reads one span** ([[Checkpoint-4]]): this week, this month,
+or any two dates I pick. Whichever it is, the dates are spelled out
+under the segments, and the per-day average divides by the days that
+have actually elapsed rather than the days in the span.
+
+Every number is on the page, not implied by it: each bar carries its
+amount (the peak only, on a range too long to label every bar — and any
+bar answers on a tap), and each donut slice reads `38% (DA4,500)`.
+Below the charts sit the **moves** the span contains, in the Vault's
+own ledger rows.
 
 ## The Vault
 
@@ -26,6 +37,12 @@ shows a hero card with its per-currency balances and its actions, then
   lands **in the wallet** (spending it is then an ordinary expense),
   and it can't exceed the pot. Total savings (converted) below 10% of
   the monthly budget turns the section red.
+- **Moves can be narrowed** ([[Checkpoint-4]]), on the Vault's pots and
+  on Insights alike: by **form** (added or taken · transfer · expense ·
+  debt payment), by **category**, and by a word searched in the note —
+  and in the reference too, so "Sam" finds the debt paid to Sam. The
+  three stack; empty means everything, and the collapsed filter carries
+  a count so it can never hide rows silently.
 - **Every movement is a row** — balances are sums over the signed
   transaction history. Each row carries a **kind** so the ledger
   explains itself: added / taken out / saved / withdrawn (manual),

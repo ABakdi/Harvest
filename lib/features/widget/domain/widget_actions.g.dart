@@ -60,7 +60,7 @@ final class PendingWidgetActionProvider
 }
 
 String _$pendingWidgetActionHash() =>
-    r'fa4c928507ae9161563e1efdeb549af8d1b7e902';
+    r'3144024f3e3b2e2323c03a44306a4500422dbf1e';
 
 /// The action a widget button asked for, waiting to be carried out.
 ///

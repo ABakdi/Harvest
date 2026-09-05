@@ -157,6 +157,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Checkpoint 1](docs/05-Checkpoints/Checkpoint-1.md) | Road to v1: progress review, bugs, gap list, and the dogfooding rounds |
 | [Checkpoint 2](docs/05-Checkpoints/Checkpoint-2.md) | The app lock and the spreadsheet export |
 | [Checkpoint 3](docs/05-Checkpoints/Checkpoint-3.md) | Eleven things a fortnight of living with it turned up |
+| [Checkpoint 4](docs/05-Checkpoints/Checkpoint-4.md) | Numbers on the charts, filterable money, and a day that keeps my hours |
 
 ### Audit
 

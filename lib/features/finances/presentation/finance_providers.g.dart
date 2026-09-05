@@ -758,6 +758,343 @@ final class RatesProvider
 
 String _$ratesHash() => r'5fe8a66e65e3acd2694c10b2b11d1ada7acb380c';
 
+/// Every expense in a span — the one source the Insights page reads,
+/// whichever of the three ranges is chosen.
+
+@ProviderFor(rangeExpenses)
+final rangeExpensesProvider = RangeExpensesFamily._();
+
+/// Every expense in a span — the one source the Insights page reads,
+/// whichever of the three ranges is chosen.
+
+final class RangeExpensesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Expense>>,
+          List<Expense>,
+          Stream<List<Expense>>
+        >
+    with $FutureModifier<List<Expense>>, $StreamProvider<List<Expense>> {
+  /// Every expense in a span — the one source the Insights page reads,
+  /// whichever of the three ranges is chosen.
+  RangeExpensesProvider._({
+    required RangeExpensesFamily super.from,
+    required DayRange super.argument,
+  }) : super(
+         retry: null,
+         name: r'rangeExpensesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$rangeExpensesHash();
+
+  @override
+  String toString() {
+    return r'rangeExpensesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Expense>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Expense>> create(Ref ref) {
+    final argument = this.argument as DayRange;
+    return rangeExpenses(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RangeExpensesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$rangeExpensesHash() => r'c3f43aa4d3e9481c2c95c15db4f28e23edc7f2d6';
+
+/// Every expense in a span — the one source the Insights page reads,
+/// whichever of the three ranges is chosen.
+
+final class RangeExpensesFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<Expense>>, DayRange> {
+  RangeExpensesFamily._()
+    : super(
+        retry: null,
+        name: r'rangeExpensesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Every expense in a span — the one source the Insights page reads,
+  /// whichever of the three ranges is chosen.
+
+  RangeExpensesProvider call(DayRange range) =>
+      RangeExpensesProvider._(argument: range, from: this);
+
+  @override
+  String toString() => r'rangeExpensesProvider';
+}
+
+@ProviderFor(rangeTotals)
+final rangeTotalsProvider = RangeTotalsFamily._();
+
+final class RangeTotalsProvider
+    extends
+        $FunctionalProvider<
+          Map<String, int>,
+          Map<String, int>,
+          Map<String, int>
+        >
+    with $Provider<Map<String, int>> {
+  RangeTotalsProvider._({
+    required RangeTotalsFamily super.from,
+    required DayRange super.argument,
+  }) : super(
+         retry: null,
+         name: r'rangeTotalsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$rangeTotalsHash();
+
+  @override
+  String toString() {
+    return r'rangeTotalsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<Map<String, int>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Map<String, int> create(Ref ref) {
+    final argument = this.argument as DayRange;
+    return rangeTotals(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, int> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, int>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RangeTotalsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$rangeTotalsHash() => r'4c5170a554a91e71c9f803a7ee91cd4a0a25daed';
+
+final class RangeTotalsFamily extends $Family
+    with $FunctionalFamilyOverride<Map<String, int>, DayRange> {
+  RangeTotalsFamily._()
+    : super(
+        retry: null,
+        name: r'rangeTotalsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RangeTotalsProvider call(DayRange range) =>
+      RangeTotalsProvider._(argument: range, from: this);
+
+  @override
+  String toString() => r'rangeTotalsProvider';
+}
+
+@ProviderFor(rangeByCategory)
+final rangeByCategoryProvider = RangeByCategoryFamily._();
+
+final class RangeByCategoryProvider
+    extends
+        $FunctionalProvider<
+          Map<String, int>,
+          Map<String, int>,
+          Map<String, int>
+        >
+    with $Provider<Map<String, int>> {
+  RangeByCategoryProvider._({
+    required RangeByCategoryFamily super.from,
+    required DayRange super.argument,
+  }) : super(
+         retry: null,
+         name: r'rangeByCategoryProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$rangeByCategoryHash();
+
+  @override
+  String toString() {
+    return r'rangeByCategoryProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<Map<String, int>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Map<String, int> create(Ref ref) {
+    final argument = this.argument as DayRange;
+    return rangeByCategory(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, int> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, int>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RangeByCategoryProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$rangeByCategoryHash() => r'e23f20709399db25adada3b27696abe5ef329c33';
+
+final class RangeByCategoryFamily extends $Family
+    with $FunctionalFamilyOverride<Map<String, int>, DayRange> {
+  RangeByCategoryFamily._()
+    : super(
+        retry: null,
+        name: r'rangeByCategoryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RangeByCategoryProvider call(DayRange range) =>
+      RangeByCategoryProvider._(argument: range, from: this);
+
+  @override
+  String toString() => r'rangeByCategoryProvider';
+}
+
+/// Every movement in a span, for the Insights page's own ledger.
+
+@ProviderFor(rangeTxns)
+final rangeTxnsProvider = RangeTxnsFamily._();
+
+/// Every movement in a span, for the Insights page's own ledger.
+
+final class RangeTxnsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<MoneyTxn>>,
+          List<MoneyTxn>,
+          Stream<List<MoneyTxn>>
+        >
+    with $FutureModifier<List<MoneyTxn>>, $StreamProvider<List<MoneyTxn>> {
+  /// Every movement in a span, for the Insights page's own ledger.
+  RangeTxnsProvider._({
+    required RangeTxnsFamily super.from,
+    required DayRange super.argument,
+  }) : super(
+         retry: null,
+         name: r'rangeTxnsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$rangeTxnsHash();
+
+  @override
+  String toString() {
+    return r'rangeTxnsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<MoneyTxn>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<MoneyTxn>> create(Ref ref) {
+    final argument = this.argument as DayRange;
+    return rangeTxns(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RangeTxnsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$rangeTxnsHash() => r'e956cb5a6eb7f01a33ae7e2a2a5553d3defc8b2d';
+
+/// Every movement in a span, for the Insights page's own ledger.
+
+final class RangeTxnsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<MoneyTxn>>, DayRange> {
+  RangeTxnsFamily._()
+    : super(
+        retry: null,
+        name: r'rangeTxnsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Every movement in a span, for the Insights page's own ledger.
+
+  RangeTxnsProvider call(DayRange range) =>
+      RangeTxnsProvider._(argument: range, from: this);
+
+  @override
+  String toString() => r'rangeTxnsProvider';
+}
+
 @ProviderFor(monthTotals)
 final monthTotalsProvider = MonthTotalsProvider._();
 

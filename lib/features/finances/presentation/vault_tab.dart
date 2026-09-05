@@ -12,15 +12,16 @@ import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/stat_tile.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
-import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/finance_actions.dart';
+import 'package:harvest/features/finances/domain/move_filter.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/finances/presentation/debt_sheet.dart';
-import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/guarded.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/finances/presentation/money_sheet.dart';
+import 'package:harvest/features/finances/presentation/move_filter_bar.dart';
+import 'package:harvest/features/finances/presentation/moves_ledger.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
@@ -41,6 +42,10 @@ class VaultTab extends ConsumerStatefulWidget {
 
 class _VaultTabState extends ConsumerState<VaultTab> {
   VaultSection _section = VaultSection.wallet;
+
+  /// One filter for the whole tab: narrowing to "food" and then
+  /// switching pot should still be narrowed to food.
+  MoveFilter _filter = MoveFilter.empty;
 
   void _select(VaultSection section) {
     if (section == _section) return;
@@ -128,8 +133,14 @@ class _VaultTabState extends ConsumerState<VaultTab> {
           child: KeyedSubtree(
             key: ValueKey(_section),
             child: switch (_section) {
-              VaultSection.wallet => const _WalletSection(),
-              VaultSection.savings => const _SavingsSection(),
+              VaultSection.wallet => _WalletSection(
+                filter: _filter,
+                onFilter: (filter) => setState(() => _filter = filter),
+              ),
+              VaultSection.savings => _SavingsSection(
+                filter: _filter,
+                onFilter: (filter) => setState(() => _filter = filter),
+              ),
               VaultSection.debts => const _DebtsSection(),
             },
           ),
@@ -142,7 +153,10 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 // ------------------------------------------------------------------ wallet
 
 class _WalletSection extends ConsumerWidget {
-  const _WalletSection();
+  const _WalletSection({required this.filter, required this.onFilter});
+
+  final MoveFilter filter;
+  final ValueChanged<MoveFilter> onFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -151,6 +165,7 @@ class _WalletSection extends ConsumerWidget {
     final balances = ref.watch(accountBalancesProvider(MoneyAccount.wallet));
     final txns =
         ref.watch(accountTxnsProvider(MoneyAccount.wallet)).value ?? const [];
+    final shown = filter.apply(txns);
     final rates = ref.watch(ratesOrDefaultProvider);
     final defaultCurrency = ref.watch(defaultCurrencyProvider);
 
@@ -219,13 +234,31 @@ class _WalletSection extends ConsumerWidget {
           ),
         ),
         SectionHeader(l10n.movesTitle),
-        _Ledger(
-          txns: txns,
-          rates: rates,
-          emptyTitle: l10n.noMovesYet,
-          emptyIcon: Icons.account_balance_wallet_outlined,
-          color: theme.colorScheme.primary,
+        MoveFilterBar(
+          filter: filter,
+          matches: shown.length,
+          total: txns.length,
+          onChanged: onFilter,
         ),
+        const SizedBox(height: HarvestSpacing.sm),
+        if (txns.isNotEmpty && shown.isEmpty)
+          Card(
+            child: EmptyState(
+              icon: Icons.search_off,
+              title: l10n.movesNoMatch,
+              body: l10n.movesNoMatchBody,
+              color: theme.colorScheme.tertiary,
+              compact: true,
+            ),
+          )
+        else
+          MovesLedger(
+            txns: shown,
+            rates: rates,
+            emptyTitle: l10n.noMovesYet,
+            emptyIcon: Icons.account_balance_wallet_outlined,
+            color: theme.colorScheme.primary,
+          ),
       ],
     );
   }
@@ -264,7 +297,10 @@ class _WalletSection extends ConsumerWidget {
 // ----------------------------------------------------------------- savings
 
 class _SavingsSection extends ConsumerWidget {
-  const _SavingsSection();
+  const _SavingsSection({required this.filter, required this.onFilter});
+
+  final MoveFilter filter;
+  final ValueChanged<MoveFilter> onFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -273,6 +309,7 @@ class _SavingsSection extends ConsumerWidget {
     final balances = ref.watch(accountBalancesProvider(MoneyAccount.savings));
     final txns =
         ref.watch(accountTxnsProvider(MoneyAccount.savings)).value ?? const [];
+    final shown = filter.apply(txns);
     final rates = ref.watch(ratesOrDefaultProvider);
     final defaultCurrency = ref.watch(defaultCurrencyProvider);
     final low = ref.watch(savingsHealthProvider) == SavingsHealth.low;
@@ -347,13 +384,31 @@ class _SavingsSection extends ConsumerWidget {
           ),
         ),
         SectionHeader(l10n.movesTitle),
-        _Ledger(
-          txns: txns,
-          rates: rates,
-          emptyTitle: l10n.noMovesYet,
-          emptyIcon: Icons.savings_outlined,
-          color: scheme.secondary,
+        MoveFilterBar(
+          filter: filter,
+          matches: shown.length,
+          total: txns.length,
+          onChanged: onFilter,
         ),
+        const SizedBox(height: HarvestSpacing.sm),
+        if (txns.isNotEmpty && shown.isEmpty)
+          Card(
+            child: EmptyState(
+              icon: Icons.search_off,
+              title: l10n.movesNoMatch,
+              body: l10n.movesNoMatchBody,
+              color: scheme.tertiary,
+              compact: true,
+            ),
+          )
+        else
+          MovesLedger(
+            txns: shown,
+            rates: rates,
+            emptyTitle: l10n.noMovesYet,
+            emptyIcon: Icons.savings_outlined,
+            color: scheme.secondary,
+          ),
       ],
     );
   }
@@ -867,113 +922,3 @@ class _HeroAction extends StatelessWidget {
 }
 
 /// One pot's ledger, grouped by day, inside a card.
-class _Ledger extends ConsumerWidget {
-  const _Ledger({
-    required this.txns,
-    required this.rates,
-    required this.emptyTitle,
-    required this.emptyIcon,
-    required this.color,
-  });
-
-  final List<MoneyTxn> txns;
-  final Rates rates;
-  final String emptyTitle;
-  final IconData emptyIcon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final customs = ref.watch(customCategoriesProvider).value ?? const [];
-    if (txns.isEmpty) {
-      return Card(
-        child: EmptyState(
-          icon: emptyIcon,
-          title: emptyTitle,
-          color: color,
-          compact: true,
-        ),
-      );
-    }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          HarvestSpacing.sm,
-          0,
-          HarvestSpacing.sm,
-          HarvestSpacing.sm,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: groupByDay<MoneyTxn>(
-            items: txns,
-            dayOf: (txn) => txn.day,
-            rowOf: (txn) => _TxnRow(txn: txn, rates: rates, customs: customs),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TxnRow extends StatelessWidget {
-  const _TxnRow({
-    required this.txn,
-    required this.rates,
-    required this.customs,
-  });
-
-  final MoneyTxn txn;
-  final Rates rates;
-  final List<CustomCategory> customs;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final locale = Localizations.localeOf(context).toString();
-    final deposit = txn.isDeposit;
-    final wallet = txn.account == MoneyAccount.wallet;
-
-    final (IconData icon, Color color, String title) = switch (txn.kind) {
-      TxnKind.manual => (
-        deposit ? Icons.add_circle : Icons.remove_circle,
-        deposit ? scheme.secondary : scheme.onSurface.withValues(alpha: 0.7),
-        wallet
-            ? (deposit ? l10n.txnAdded : l10n.txnTaken)
-            : (deposit ? l10n.txnSaved : l10n.txnWithdrawn),
-      ),
-      TxnKind.transfer => (
-        Icons.swap_horiz,
-        scheme.primary,
-        wallet
-            ? (deposit ? l10n.txnFromSavings : l10n.txnToSavings)
-            : (deposit ? l10n.txnFromWallet : l10n.txnToWallet),
-      ),
-      TxnKind.expense => (
-        categoryIcon(txn.reference ?? '', customs: customs),
-        scheme.error,
-        '${l10n.txnExpense} · ${categoryLabel(l10n, txn.reference ?? ExpenseCategory.other.name)}',
-      ),
-      TxnKind.debt => (
-        Icons.handshake,
-        scheme.tertiary,
-        l10n.txnDebtPayment(txn.reference ?? ''),
-      ),
-    };
-
-    return LedgerRow(
-      icon: icon,
-      color: color,
-      title: title,
-      subtitle: txn.note ?? DateFormat.jm(locale).format(txn.loggedAt),
-      amount: formatSigned(txn.deltaMinor, txn.currency),
-      amountColor: deposit ? scheme.secondary : null,
-      caption: conversionCaption(
-        minor: txn.deltaMinor.abs(),
-        currency: txn.currency,
-        rates: rates,
-      ),
-    );
-  }
-}

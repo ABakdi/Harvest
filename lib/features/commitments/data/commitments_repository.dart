@@ -232,6 +232,23 @@ class CommitmentsRepository {
         await _appendOutbox('commitments', uuid, 'update');
       });
 
+  /// Moves one seed's reminder, and nothing else about it.
+  ///
+  /// The daily cycle shifts reminders when the wake time moves, and it
+  /// has no business rewriting a whole row to do it.
+  Future<void> setRemindAt(String uuid, String? remindAt) =>
+      _db.transaction(() async {
+        await (_db.update(
+          _db.commitments,
+        )..where((c) => c.uuid.equals(uuid))).write(
+          CommitmentsCompanion(
+            remindAt: Value(remindAt),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        await _appendOutbox('commitments', uuid, 'update');
+      });
+
   /// Puts a seed away, with the note that says why. History stays.
   Future<void> archive(String uuid, {String? note}) =>
       _db.transaction(() async {

@@ -2,6 +2,7 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/domain/day_range.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -192,6 +193,29 @@ Map<String, int> totalsByCategory(List<Expense> expenses, Rates rates) {
   }
   return totals;
 }
+
+/// Every expense in a span — the one source the Insights page reads,
+/// whichever of the three ranges is chosen.
+@riverpod
+Stream<List<Expense>> rangeExpenses(Ref ref, DayRange range) =>
+    ref.watch(financesRepositoryProvider).watchRange(range.from, range.to);
+
+@riverpod
+Map<String, int> rangeTotals(Ref ref, DayRange range) => totalsByDay(
+  ref.watch(rangeExpensesProvider(range)).value ?? const [],
+  ref.watch(ratesOrDefaultProvider),
+);
+
+@riverpod
+Map<String, int> rangeByCategory(Ref ref, DayRange range) => totalsByCategory(
+  ref.watch(rangeExpensesProvider(range)).value ?? const [],
+  ref.watch(ratesOrDefaultProvider),
+);
+
+/// Every movement in a span, for the Insights page's own ledger.
+@riverpod
+Stream<List<MoneyTxn>> rangeTxns(Ref ref, DayRange range) =>
+    ref.watch(vaultRepositoryProvider).watchTxnsBetween(range.from, range.to);
 
 @riverpod
 Map<String, int> monthTotals(Ref ref) => totalsByDay(

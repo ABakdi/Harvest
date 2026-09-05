@@ -40,6 +40,26 @@ flowchart TD
 
 Implementation details: [[Notifications-and-Background]].
 
+## The daily cycle ([[Checkpoint-4]])
+
+Every default above assumes a shape of day. Settings → **Daily cycle**
+makes that shape mine: a bedtime and a wake time, eight hours
+recommended, a red warning below five and no refusal — a night shift is
+a fact, not a mistake for a dialog to correct.
+
+Changing either time finds every reminder the **new** night would
+swallow, seeds and unsettled debts alike, and asks by name before
+touching anything. Answering yes moves them by one rule: **a reminder
+keeps its distance from waking.** Something set for two hours after I
+get up stays two hours after I get up, wrapping past midnight rather
+than falling off the end of the day. Only the clashing ones move;
+leaving them is a real answer.
+
+The point is to remove an excuse. An app whose reminders only make
+sense for someone who rises at seven is quietly telling everyone else
+to fix their sleep before they can start — which is the same "I'll
+begin on Monday" the whole thing exists to defeat.
+
 ## The comeback ladder ([[Checkpoint-3]])
 
 Every other reminder here fires because I asked it to. This one fires

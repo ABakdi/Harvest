@@ -19,6 +19,14 @@ stateDiagram-v2
     Broken --> Active: start again (best streak preserved)
 ```
 
+The activity grid on [[Dashboard-and-Widgets|Stats]] shows the streak
+rather than merely implying it ([[Checkpoint-4]]): the days **in the
+current run** are solid green — ten days of streak, ten green squares —
+while days that had activity outside the run keep a fainter shade, and
+quiet days stay grey. The run comes from the streak row's own
+`lastEarnedDay` and `current`, so **days a freeze covered are in it**,
+which deriving it from activity would have dropped.
+
 ## XP & Farmer Ranks
 
 | Action | XP |

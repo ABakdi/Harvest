@@ -870,5 +870,65 @@
   "widgetSectionTasks": "Today's field",
   "widgetSectionTasksBody": "What's still due, as a row of boxes",
   "widgetSectionActions": "Quick actions",
-  "widgetSectionActionsBody": "Log an expense or plant a seed from the home screen"
+  "widgetSectionActionsBody": "Log an expense or plant a seed from the home screen",
+  "statsStreakSquares": "{count, plural, =0{No streak running} =1{1 green square is your streak} other{{count} green squares are your streak}}",
+  "@statsStreakSquares": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "legendStreak": "Streak",
+  "legendActive": "Active",
+  "legendQuiet": "Quiet",
+  "settingsCycle": "Daily cycle",
+  "settingsCycleHint": "The app bends to your hours, not the other way round",
+  "cycleBedTime": "I go to sleep at",
+  "cycleWakeTime": "I wake up at",
+  "cycleGood": "{hours} hours of sleep — that's the target",
+  "@cycleGood": { "placeholders": { "hours": { "type": "String" } } },
+  "cycleBelowTarget": "{hours} hours of sleep. Eight is the target.",
+  "@cycleBelowTarget": { "placeholders": { "hours": { "type": "String" } } },
+  "cycleTooShort": "{hours} hours is less than anyone should run on. Eight is the target, five the floor.",
+  "@cycleTooShort": { "placeholders": { "hours": { "type": "String" } } },
+  "cycleClashTitle": "{count, plural, =1{One reminder is now in your sleep} other{{count} reminders are now in your sleep}}",
+  "@cycleClashTitle": { "placeholders": { "count": { "type": "int" } } },
+  "cycleClashBody": "Move them with your new wake time? Each keeps the same distance from waking.",
+  "cycleClashMove": "{title} · {from} → {to}",
+  "@cycleClashMove": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "from": { "type": "String" },
+      "to": { "type": "String" }
+    }
+  },
+  "cycleClashMore": "…and {count} more",
+  "@cycleClashMore": { "placeholders": { "count": { "type": "int" } } },
+  "cycleClashKeep": "Leave them",
+  "cycleClashShift": "Move them",
+  "movesSearchHint": "Search notes",
+  "movesFilter": "Filter",
+  "movesByKind": "Form",
+  "movesByCategory": "Category",
+  "movesShowing": "Showing {matches} of {total}",
+  "@movesShowing": {
+    "placeholders": { "matches": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "movesClear": "Clear",
+  "movesNoMatch": "Nothing matches that",
+  "movesNoMatchBody": "Try a different category, form or word.",
+  "kindManual": "Added or taken",
+  "kindTransfer": "Transfer",
+  "kindExpense": "Expense",
+  "kindDebt": "Debt payment",
+  "rangeCustom": "Custom",
+  "rangePick": "Pick dates",
+  "rangeOf": "{from} — {to}",
+  "@rangeOf": {
+    "placeholders": { "from": { "type": "String" }, "to": { "type": "String" } }
+  },
+  "insightsMoves": "Moves in this range",
+  "insightsMovesCount": "{count, plural, =0{Nothing moved} =1{1 movement} other{{count} movements}}",
+  "@insightsMovesCount": { "placeholders": { "count": { "type": "int" } } },
+  "shareOfSpending": "{percent}% ({amount})",
+  "@shareOfSpending": {
+    "placeholders": { "percent": { "type": "int" }, "amount": { "type": "String" } }
+  }
 }

@@ -1467,4 +1467,155 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get widgetSectionActionsBody =>
       'سجّل مصروفًا أو ازرع بذرة من الشاشة الرئيسية';
+
+  @override
+  String statsStreakSquares(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مربّعات خضراء هي سلسلتك',
+      two: 'مربّعان أخضران هما سلسلتك',
+      one: 'مربّع أخضر واحد هو سلسلتك',
+      zero: 'لا سلسلة جارية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get legendStreak => 'السلسلة';
+
+  @override
+  String get legendActive => 'نشط';
+
+  @override
+  String get legendQuiet => 'هادئ';
+
+  @override
+  String get settingsCycle => 'الدورة اليومية';
+
+  @override
+  String get settingsCycleHint => 'التطبيق يتكيّف مع ساعاتك، لا العكس';
+
+  @override
+  String get cycleBedTime => 'أنام في';
+
+  @override
+  String get cycleWakeTime => 'أستيقظ في';
+
+  @override
+  String cycleGood(String hours) {
+    return '$hours ساعات نوم — هذا هو الهدف';
+  }
+
+  @override
+  String cycleBelowTarget(String hours) {
+    return '$hours ساعات نوم. الهدف ثماني ساعات.';
+  }
+
+  @override
+  String cycleTooShort(String hours) {
+    return '$hours ساعات أقل ممّا يكفي أحدًا. الهدف ثماني ساعات، والحدّ الأدنى خمس.';
+  }
+
+  @override
+  String cycleClashTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تذكيرات صارت داخل نومك',
+      two: 'تذكيران صارا داخل نومك',
+      one: 'تذكير واحد صار داخل نومك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cycleClashBody =>
+      'هل أنقلها مع وقت استيقاظك الجديد؟ كلٌّ منها يحتفظ بالمسافة نفسها من الاستيقاظ.';
+
+  @override
+  String cycleClashMove(String title, String from, String to) {
+    return '$title · $from ← $to';
+  }
+
+  @override
+  String cycleClashMore(int count) {
+    return '…و$count غيرها';
+  }
+
+  @override
+  String get cycleClashKeep => 'اتركها';
+
+  @override
+  String get cycleClashShift => 'انقلها';
+
+  @override
+  String get movesSearchHint => 'ابحث في الملاحظات';
+
+  @override
+  String get movesFilter => 'تصفية';
+
+  @override
+  String get movesByKind => 'النوع';
+
+  @override
+  String get movesByCategory => 'الفئة';
+
+  @override
+  String movesShowing(int matches, int total) {
+    return 'عرض $matches من $total';
+  }
+
+  @override
+  String get movesClear => 'مسح';
+
+  @override
+  String get movesNoMatch => 'لا شيء يطابق ذلك';
+
+  @override
+  String get movesNoMatchBody => 'جرّب فئة أو نوعًا أو كلمة أخرى.';
+
+  @override
+  String get kindManual => 'إضافة أو سحب';
+
+  @override
+  String get kindTransfer => 'تحويل';
+
+  @override
+  String get kindExpense => 'مصروف';
+
+  @override
+  String get kindDebt => 'سداد دين';
+
+  @override
+  String get rangeCustom => 'مخصّص';
+
+  @override
+  String get rangePick => 'اختر التواريخ';
+
+  @override
+  String rangeOf(String from, String to) {
+    return '$from — $to';
+  }
+
+  @override
+  String get insightsMoves => 'الحركات في هذا المدى';
+
+  @override
+  String insightsMovesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حركات',
+      two: 'حركتان',
+      one: 'حركة واحدة',
+      zero: 'لا حركات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareOfSpending(int percent, String amount) {
+    return '$percent٪ ($amount)';
+  }
 }

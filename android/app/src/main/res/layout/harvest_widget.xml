@@ -114,26 +114,32 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Today's field, one card at a time and the full width of
-             the widget, sliding sideways through everything still due.
+        <!-- Today's field: full-width cards, scrolled by hand.
 
-             It advances itself because nothing else can. RemoteViews
-             will not inflate a HorizontalScrollView, its two scrolling
-             collections only go up and down, and a chevron wired to a
-             broadcast is received but never reaches the flipper — the
-             partial update is simply dropped. A flipper that turns its
-             own pages is the one arrangement that actually moves, and
-             it stops on its own when the home screen is not on screen. -->
-        <AdapterViewFlipper
+             It turned its own pages for one release and that was a
+             mistake — a flipper draws the outgoing and incoming card at
+             once, so every four seconds the strip was two titles on top
+             of each other. Nothing here moves unless a finger moves it.
+
+             The direction is the platform's, not a preference: a widget
+             cannot be scrolled sideways at all. RemoteViews refuses to
+             inflate a HorizontalScrollView, and ListView and GridView
+             are its only scrolling collections.
+
+             Its height is fixed rather than weighted: the card above it
+             wraps its content so the widget can shrink when a section is
+             switched off, and a weight inside a wrapping parent resolves
+             to nothing at all. Two cards fit; the rest are a flick
+             away. -->
+        <ListView
             android:id="@+id/widget_tasks"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="74dp"
             android:layout_marginTop="9dp"
-            android:autoStart="true"
-            android:flipInterval="4000"
-            android:loopViews="true"
-            android:inAnimation="@animator/widget_slide_in"
-            android:outAnimation="@animator/widget_slide_out" />
+            android:divider="@null"
+            android:dividerHeight="6dp"
+            android:scrollbars="none"
+            android:clipToPadding="false" />
 
         <TextView
             android:id="@+id/widget_tasks_empty"

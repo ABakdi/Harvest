@@ -9,7 +9,7 @@ import org.json.JSONArray
 import org.json.JSONException
 
 /**
- * Serves the widget's swipeable task cards.
+ * Serves the widget's task cards.
  *
  * A RemoteViews collection cannot be handed a list of rows directly —
  * it is fed by a factory living in a service the launcher binds to.
@@ -55,8 +55,6 @@ private class TaskFactory(private val context: Context) :
         val task = tasks[position]
         return RemoteViews(context.packageName, R.layout.harvest_widget_task).apply {
             setTextViewText(R.id.task_title, task.title)
-            // Which of how many, so swiping has somewhere to end.
-            setTextViewText(R.id.task_position, "${position + 1}/${tasks.size}")
             setInt(
                 R.id.task_card,
                 "setBackgroundResource",
@@ -70,7 +68,6 @@ private class TaskFactory(private val context: Context) :
                 if (task.done) R.color.widget_on_accent else R.color.widget_text,
             )
             setTextColor(R.id.task_title, title)
-            setTextColor(R.id.task_position, title)
             // Every card opens the app; the template lives on the stack.
             setOnClickFillInIntent(R.id.task_card, Intent())
         }

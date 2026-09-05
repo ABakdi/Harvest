@@ -229,6 +229,115 @@ final class CommitmentStreaksProvider
 
 String _$commitmentStreaksHash() => r'2db63fda312d78705961ec9c2e01139ebc402ed6';
 
+/// The Harvest Days the current global streak is made of.
+///
+/// A streak is a run, and the engine already records both ends of it:
+/// the day it was last earned and how many days long it is. Counting
+/// back from one by the other is the whole set — including the days a
+/// freeze covered, which are part of the streak whether or not anything
+/// was logged on them.
+
+@ProviderFor(streakDays)
+final streakDaysProvider = StreakDaysProvider._();
+
+/// The Harvest Days the current global streak is made of.
+///
+/// A streak is a run, and the engine already records both ends of it:
+/// the day it was last earned and how many days long it is. Counting
+/// back from one by the other is the whole set — including the days a
+/// freeze covered, which are part of the streak whether or not anything
+/// was logged on them.
+
+final class StreakDaysProvider
+    extends
+        $FunctionalProvider<Set<HarvestDay>, Set<HarvestDay>, Set<HarvestDay>>
+    with $Provider<Set<HarvestDay>> {
+  /// The Harvest Days the current global streak is made of.
+  ///
+  /// A streak is a run, and the engine already records both ends of it:
+  /// the day it was last earned and how many days long it is. Counting
+  /// back from one by the other is the whole set — including the days a
+  /// freeze covered, which are part of the streak whether or not anything
+  /// was logged on them.
+  StreakDaysProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'streakDaysProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$streakDaysHash();
+
+  @$internal
+  @override
+  $ProviderElement<Set<HarvestDay>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Set<HarvestDay> create(Ref ref) {
+    return streakDays(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Set<HarvestDay> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Set<HarvestDay>>(value),
+    );
+  }
+}
+
+String _$streakDaysHash() => r'cf6cb77b84e9a71dfe8265e249a572236385e10a';
+
+/// The last day the global streak was earned; null before the first.
+
+@ProviderFor(lastEarnedDay)
+final lastEarnedDayProvider = LastEarnedDayProvider._();
+
+/// The last day the global streak was earned; null before the first.
+
+final class LastEarnedDayProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<HarvestDay?>,
+          HarvestDay?,
+          Stream<HarvestDay?>
+        >
+    with $FutureModifier<HarvestDay?>, $StreamProvider<HarvestDay?> {
+  /// The last day the global streak was earned; null before the first.
+  LastEarnedDayProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'lastEarnedDayProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$lastEarnedDayHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<HarvestDay?> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<HarvestDay?> create(Ref ref) {
+    return lastEarnedDay(ref);
+  }
+}
+
+String _$lastEarnedDayHash() => r'098b106dc8b255cdfb24f821fdff7b94cb06cae0';
+
 @ProviderFor(weeklyXp)
 final weeklyXpProvider = WeeklyXpProvider._();
 

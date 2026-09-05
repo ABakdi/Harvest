@@ -96,6 +96,15 @@ class GamificationRepository {
     return query.watchSingle().map((row) => row.read(sum) ?? 0);
   }
 
+  /// The day the global streak was last earned, if it ever was.
+  Stream<HarvestDay?> watchLastEarnedDay() {
+    final query = _db.select(_db.streaks)
+      ..where((s) => s.scope.equals('global'));
+    return query.watchSingleOrNull().map(
+      (row) => HarvestDay.tryParse(row?.lastEarnedDay),
+    );
+  }
+
   /// Every non-global streak row, keyed by commitment uuid.
   Stream<Map<String, ({int current, int best})>> watchCommitmentStreaks() {
     final query = _db.select(_db.streaks)

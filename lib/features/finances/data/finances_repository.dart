@@ -50,6 +50,18 @@ class FinancesRepository {
     return query.watch().map((rows) => rows.map(_toDomain).toList());
   }
 
+  /// Every expense in a span, both ends included.
+  Stream<List<Expense>> watchRange(HarvestDay from, HarvestDay to) {
+    final query = _db.select(_db.expenses)
+      ..where(
+        (e) =>
+            e.harvestDay.isBiggerOrEqualValue(from.key) &
+            e.harvestDay.isSmallerOrEqualValue(to.key) &
+            e.deletedAt.isNull(),
+      );
+    return query.watch().map((rows) => rows.map(_toDomain).toList());
+  }
+
   /// User-created categories, newest last.
   Stream<List<CustomCategory>> watchCategories() =>
       (_db.select(_db.expenseCategories)

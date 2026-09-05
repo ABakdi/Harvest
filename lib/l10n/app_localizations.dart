@@ -2497,6 +2497,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log an expense or plant a seed from the home screen'**
   String get widgetSectionActionsBody;
+
+  /// No description provided for @statsStreakSquares.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No streak running} =1{1 green square is your streak} other{{count} green squares are your streak}}'**
+  String statsStreakSquares(int count);
+
+  /// No description provided for @legendStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get legendStreak;
+
+  /// No description provided for @legendActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get legendActive;
+
+  /// No description provided for @legendQuiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet'**
+  String get legendQuiet;
+
+  /// No description provided for @settingsCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily cycle'**
+  String get settingsCycle;
+
+  /// No description provided for @settingsCycleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The app bends to your hours, not the other way round'**
+  String get settingsCycleHint;
+
+  /// No description provided for @cycleBedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'I go to sleep at'**
+  String get cycleBedTime;
+
+  /// No description provided for @cycleWakeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'I wake up at'**
+  String get cycleWakeTime;
+
+  /// No description provided for @cycleGood.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours of sleep — that\'s the target'**
+  String cycleGood(String hours);
+
+  /// No description provided for @cycleBelowTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours of sleep. Eight is the target.'**
+  String cycleBelowTarget(String hours);
+
+  /// No description provided for @cycleTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours is less than anyone should run on. Eight is the target, five the floor.'**
+  String cycleTooShort(String hours);
+
+  /// No description provided for @cycleClashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One reminder is now in your sleep} other{{count} reminders are now in your sleep}}'**
+  String cycleClashTitle(int count);
+
+  /// No description provided for @cycleClashBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Move them with your new wake time? Each keeps the same distance from waking.'**
+  String get cycleClashBody;
+
+  /// No description provided for @cycleClashMove.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · {from} → {to}'**
+  String cycleClashMove(String title, String from, String to);
+
+  /// No description provided for @cycleClashMore.
+  ///
+  /// In en, this message translates to:
+  /// **'…and {count} more'**
+  String cycleClashMore(int count);
+
+  /// No description provided for @cycleClashKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave them'**
+  String get cycleClashKeep;
+
+  /// No description provided for @cycleClashShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Move them'**
+  String get cycleClashShift;
+
+  /// No description provided for @movesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes'**
+  String get movesSearchHint;
+
+  /// No description provided for @movesFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get movesFilter;
+
+  /// No description provided for @movesByKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Form'**
+  String get movesByKind;
+
+  /// No description provided for @movesByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get movesByCategory;
+
+  /// No description provided for @movesShowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {matches} of {total}'**
+  String movesShowing(int matches, int total);
+
+  /// No description provided for @movesClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get movesClear;
+
+  /// No description provided for @movesNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that'**
+  String get movesNoMatch;
+
+  /// No description provided for @movesNoMatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different category, form or word.'**
+  String get movesNoMatchBody;
+
+  /// No description provided for @kindManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Added or taken'**
+  String get kindManual;
+
+  /// No description provided for @kindTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get kindTransfer;
+
+  /// No description provided for @kindExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get kindExpense;
+
+  /// No description provided for @kindDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt payment'**
+  String get kindDebt;
+
+  /// No description provided for @rangeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get rangeCustom;
+
+  /// No description provided for @rangePick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick dates'**
+  String get rangePick;
+
+  /// No description provided for @rangeOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} — {to}'**
+  String rangeOf(String from, String to);
+
+  /// No description provided for @insightsMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves in this range'**
+  String get insightsMoves;
+
+  /// No description provided for @insightsMovesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing moved} =1{1 movement} other{{count} movements}}'**
+  String insightsMovesCount(int count);
+
+  /// No description provided for @shareOfSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% ({amount})'**
+  String shareOfSpending(int percent, String amount);
 }
 
 class _AppLocalizationsDelegate

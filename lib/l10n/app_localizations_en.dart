@@ -1461,4 +1461,153 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get widgetSectionActionsBody =>
       'Log an expense or plant a seed from the home screen';
+
+  @override
+  String statsStreakSquares(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count green squares are your streak',
+      one: '1 green square is your streak',
+      zero: 'No streak running',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get legendStreak => 'Streak';
+
+  @override
+  String get legendActive => 'Active';
+
+  @override
+  String get legendQuiet => 'Quiet';
+
+  @override
+  String get settingsCycle => 'Daily cycle';
+
+  @override
+  String get settingsCycleHint =>
+      'The app bends to your hours, not the other way round';
+
+  @override
+  String get cycleBedTime => 'I go to sleep at';
+
+  @override
+  String get cycleWakeTime => 'I wake up at';
+
+  @override
+  String cycleGood(String hours) {
+    return '$hours hours of sleep — that\'s the target';
+  }
+
+  @override
+  String cycleBelowTarget(String hours) {
+    return '$hours hours of sleep. Eight is the target.';
+  }
+
+  @override
+  String cycleTooShort(String hours) {
+    return '$hours hours is less than anyone should run on. Eight is the target, five the floor.';
+  }
+
+  @override
+  String cycleClashTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reminders are now in your sleep',
+      one: 'One reminder is now in your sleep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cycleClashBody =>
+      'Move them with your new wake time? Each keeps the same distance from waking.';
+
+  @override
+  String cycleClashMove(String title, String from, String to) {
+    return '$title · $from → $to';
+  }
+
+  @override
+  String cycleClashMore(int count) {
+    return '…and $count more';
+  }
+
+  @override
+  String get cycleClashKeep => 'Leave them';
+
+  @override
+  String get cycleClashShift => 'Move them';
+
+  @override
+  String get movesSearchHint => 'Search notes';
+
+  @override
+  String get movesFilter => 'Filter';
+
+  @override
+  String get movesByKind => 'Form';
+
+  @override
+  String get movesByCategory => 'Category';
+
+  @override
+  String movesShowing(int matches, int total) {
+    return 'Showing $matches of $total';
+  }
+
+  @override
+  String get movesClear => 'Clear';
+
+  @override
+  String get movesNoMatch => 'Nothing matches that';
+
+  @override
+  String get movesNoMatchBody => 'Try a different category, form or word.';
+
+  @override
+  String get kindManual => 'Added or taken';
+
+  @override
+  String get kindTransfer => 'Transfer';
+
+  @override
+  String get kindExpense => 'Expense';
+
+  @override
+  String get kindDebt => 'Debt payment';
+
+  @override
+  String get rangeCustom => 'Custom';
+
+  @override
+  String get rangePick => 'Pick dates';
+
+  @override
+  String rangeOf(String from, String to) {
+    return '$from — $to';
+  }
+
+  @override
+  String get insightsMoves => 'Moves in this range';
+
+  @override
+  String insightsMovesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count movements',
+      one: '1 movement',
+      zero: 'Nothing moved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareOfSpending(int percent, String amount) {
+    return '$percent% ($amount)';
+  }
 }

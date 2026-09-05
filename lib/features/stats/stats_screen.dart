@@ -27,6 +27,7 @@ class StatsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final streak = ref.watch(globalStreakProvider).value;
+    final streakDays = ref.watch(streakDaysProvider);
     final checkIns = ref.watch(checkInCountProvider).value ?? 0;
     final activity = ref.watch(dailyActivityProvider).value ?? const {};
     final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
@@ -72,11 +73,25 @@ class StatsScreen extends ConsumerWidget {
                   activity: activity,
                   weekSpending: weekSpending,
                 ),
-                SectionHeader(l10n.statsActivity),
+                SectionHeader(
+                  l10n.statsActivity,
+                  subtitle: l10n.statsStreakSquares(streak?.current ?? 0),
+                ),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(HarvestSpacing.md),
-                    child: _HeatMap(activity: activity, goal: goal),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _HeatMap(
+                          activity: activity,
+                          goal: goal,
+                          streakDays: streakDays,
+                        ),
+                        const SizedBox(height: HarvestSpacing.sm),
+                        const _HeatMapLegend(),
+                      ],
+                    ),
                   ),
                 ),
                 if (projects.isNotEmpty) ...[
@@ -162,14 +177,24 @@ class StatsScreen extends ConsumerWidget {
   }
 }
 
-/// Six months of daily activity, garden style: the greener the cell,
-/// the closer the day came to the Daily Harvest Goal. Month names run
-/// along the top; screen readers get the count of active days.
+/// Six months of daily activity, garden style.
+///
+/// Two things are being said at once, so they are said differently. A
+/// day that is **part of the current streak** is solid green — ten days
+/// of streak, ten green squares, which is the number the flame is
+/// showing. A day that had activity but is not in the run is the same
+/// green, faded to how close it came to the Daily Harvest Goal. Month
+/// names run along the top; screen readers get both counts.
 class _HeatMap extends StatelessWidget {
-  const _HeatMap({required this.activity, required this.goal});
+  const _HeatMap({
+    required this.activity,
+    required this.goal,
+    required this.streakDays,
+  });
 
   final Map<String, int> activity;
   final int goal;
+  final Set<HarvestDay> streakDays;
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +246,11 @@ class _HeatMap extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                           color: cell == null
                               ? Colors.transparent
-                              : _color(scheme, activity[cell.key] ?? 0),
+                              : _color(
+                                  scheme,
+                                  activity[cell.key] ?? 0,
+                                  inStreak: streakDays.contains(cell),
+                                ),
                         ),
                       ),
                     ),
@@ -252,10 +281,65 @@ class _HeatMap extends StatelessWidget {
     );
   }
 
-  Color _color(ColorScheme scheme, int count) {
+  Color _color(ColorScheme scheme, int count, {required bool inStreak}) {
+    // The streak is the headline number, so its days are not shaded by
+    // how much was done on them: they are simply on.
+    if (inStreak) return scheme.secondary;
     if (count == 0) return scheme.onSurface.withValues(alpha: 0.06);
-    final intensity = (count / goal).clamp(0.25, 1.0);
+    final intensity = (count / goal).clamp(0.25, 0.55);
     return scheme.secondary.withValues(alpha: intensity);
+  }
+}
+
+/// Two greens mean two things; the legend says which.
+class _HeatMapLegend extends StatelessWidget {
+  const _HeatMapLegend();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    Widget swatch(Color color) => Container(
+      width: 11,
+      height: 11,
+      margin: const EdgeInsetsDirectional.only(end: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(3),
+        color: color,
+      ),
+    );
+
+    return DefaultTextStyle.merge(
+      style: theme.textTheme.labelSmall!.copyWith(
+        color: scheme.onSurfaceVariant,
+      ),
+      child: Wrap(
+        spacing: HarvestSpacing.md,
+        runSpacing: 4,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [swatch(scheme.secondary), Text(l10n.legendStreak)],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              swatch(scheme.secondary.withValues(alpha: 0.35)),
+              Text(l10n.legendActive),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              swatch(scheme.onSurface.withValues(alpha: 0.06)),
+              Text(l10n.legendQuiet),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

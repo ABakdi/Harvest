@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Wide and low, and resizable both ways. The card inside wraps its
-     own content, so the widget shrinks when a section is switched off
-     rather than leaving a hole where it used to be. -->
+<!-- Wide and low, and resizable both ways. Three rows by default is
+     what the field's cards need; the card inside wraps its own content,
+     so the widget shrinks when a section is switched off rather than
+     leaving a hole where it used to be. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
     android:minHeight="40dp"
     android:targetCellWidth="4"
-    android:targetCellHeight="2"
+    android:targetCellHeight="3"
     android:description="@string/widget_description"
     android:initialLayout="@layout/harvest_widget"
     android:previewLayout="@layout/harvest_widget"
