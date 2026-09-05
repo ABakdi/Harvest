@@ -132,7 +132,7 @@ void main() {
   });
 
   group('removing a memory', () {
-    test('deletes the file, immediately and for good (rule G5)', () async {
+    test('moves it to the trash and leaves the file alone', () async {
       final gym = await album();
       final file = await storage.fileOf('gym/a.jpg');
       await file.create(recursive: true);
@@ -145,8 +145,46 @@ void main() {
 
       await gallery.remove(memory, album: gym);
 
-      expect(file.existsSync(), isFalse);
+      // The file survives so it can come back; the album no longer
+      // counts it (rule G5, revised in checkpoint 5).
+      expect(file.existsSync(), isTrue);
       expect(await repository.countOn(gym.uuid, monday), 0);
+      expect(await repository.watchDeletedMemories().first, hasLength(1));
+    });
+
+    test('emptying the trash is what deletes the file', () async {
+      final gym = await album();
+      final file = await storage.fileOf('gym/a.jpg');
+      await file.create(recursive: true);
+      await file.writeAsBytes([1, 2, 3]);
+      final memory = await gallery.add(
+        album: gym,
+        path: 'gym/a.jpg',
+        day: monday,
+      );
+      await gallery.remove(memory, album: gym);
+
+      expect(await repository.emptyTrash(), 1);
+
+      expect(file.existsSync(), isFalse);
+      expect(await db.select(db.memories).get(), isEmpty);
+    });
+
+    test('putting it back pays the day again', () async {
+      final gym = await album();
+      final memory = await gallery.add(
+        album: gym,
+        path: 'gym/a.jpg',
+        day: monday,
+      );
+      await gallery.remove(memory, album: gym);
+      expect(await xpTotal(), 0);
+
+      await gallery.restore(memory, album: gym);
+
+      expect(await xpTotal(), Xp.habitOrTodo);
+      expect(await albumStreak(gym.uuid), 1);
+      expect(await repository.countOn(gym.uuid, monday), 1);
     });
 
     test('takes the day back only when it was the last one', () async {
@@ -208,7 +246,7 @@ void main() {
   });
 
   group('deleting an album', () {
-    test('takes every picture and every file with it', () async {
+    test('moves it to the trash, pictures and files intact', () async {
       final gym = await album();
       final file = await storage.fileOf('gym/a.jpg');
       await file.create(recursive: true);
@@ -217,6 +255,31 @@ void main() {
       await repository.deleteAlbum(gym.uuid);
 
       expect(await repository.albumsOnce(), isEmpty);
+      expect(await repository.watchDeletedAlbums().first, hasLength(1));
+      expect(file.existsSync(), isTrue);
+    });
+
+    test('comes back whole when restored', () async {
+      final gym = await album();
+      await gallery.add(album: gym, path: 'gym/a.jpg', day: monday);
+      await repository.deleteAlbum(gym.uuid);
+
+      await repository.restoreAlbum(gym.uuid);
+
+      expect(await repository.albumsOnce(), hasLength(1));
+      expect(await repository.countOn(gym.uuid, monday), 1);
+    });
+
+    test('emptying the trash takes every picture and file with it', () async {
+      final gym = await album();
+      final file = await storage.fileOf('gym/a.jpg');
+      await file.create(recursive: true);
+      await gallery.add(album: gym, path: 'gym/a.jpg', day: monday);
+      await repository.deleteAlbum(gym.uuid);
+
+      await repository.emptyTrash();
+
+      expect(await db.select(db.albums).get(), isEmpty);
       expect(await db.select(db.memories).get(), isEmpty);
       expect(file.existsSync(), isFalse);
     });

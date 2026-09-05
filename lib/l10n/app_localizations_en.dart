@@ -1634,7 +1634,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notesBodyHint =>
-      'Write. Markdown is rendered when you read; [[link]] to another note.';
+      'Write. Markdown renders as you go and shows its syntax on the line you are on. [[Link]] to another note.';
 
   @override
   String get notesSearchHint => 'Search titles and text';
@@ -2011,4 +2011,167 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sheetMemories => 'Memories';
+
+  @override
+  String get navRecords => 'Records';
+
+  @override
+  String get shareAction => 'Share';
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get trashEmpty => 'Empty';
+
+  @override
+  String get trashEmptyTitle => 'The trash is empty';
+
+  @override
+  String get trashNotesEmptyBody =>
+      'Deleted notes wait here so a wrong tap is not the end of one.';
+
+  @override
+  String get trashGalleryEmptyBody =>
+      'Deleted pictures and albums wait here. Their files stay on the phone until you empty it.';
+
+  @override
+  String get trashKeeps =>
+      'Nothing leaves here on its own. Restore what you want back, or empty the lot.';
+
+  @override
+  String get trashKeepsFiles =>
+      'The files are still on the phone. Emptying the trash is what removes them.';
+
+  @override
+  String get trashRestore => 'Put it back';
+
+  @override
+  String get trashDeleteForever => 'Delete for good';
+
+  @override
+  String get trashDeleteForeverConfirm => 'Delete this for good?';
+
+  @override
+  String get trashDeleteForeverBody => 'There is nothing behind this one.';
+
+  @override
+  String trashEmptyConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Empty the trash — $count items?',
+      one: 'Empty the trash — 1 item?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trashEmptyConfirmBody => 'Everything in the trash goes for good.';
+
+  @override
+  String get trashEmptyFilesBody =>
+      'Every picture in here is deleted from the phone, files and all. There is no undo.';
+
+  @override
+  String get trashWholeAlbum => 'The whole album';
+
+  @override
+  String get notesNewFolder => 'New folder';
+
+  @override
+  String get notesNewSubfolder => 'New folder inside';
+
+  @override
+  String get notesRenameFolder => 'Rename folder';
+
+  @override
+  String get notesDeleteFolder => 'Delete folder';
+
+  @override
+  String get notesDeleteFolderHint => 'Its notes go to the trash';
+
+  @override
+  String get notesFolderOptions => 'Folder options';
+
+  @override
+  String get notesFolderNameHint => 'Health, Work, Reading';
+
+  @override
+  String get notesNewHere => 'New note';
+
+  @override
+  String get notesMoveToFolder => 'Move to folder';
+
+  @override
+  String get notesSharePdf => 'Share as PDF';
+
+  @override
+  String get notesPdfFailed => 'That note could not be turned into a PDF.';
+
+  @override
+  String get notesMovedToTrash => 'Moved to the trash';
+
+  @override
+  String notesFolderTrashed(String folder, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$folder and $count notes moved to the trash',
+      one: '$folder and 1 note moved to the trash',
+      zero: '$folder is gone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mdHeading => 'Heading';
+
+  @override
+  String get mdBold => 'Bold';
+
+  @override
+  String get mdItalic => 'Italic';
+
+  @override
+  String get mdCode => 'Code';
+
+  @override
+  String get mdList => 'List';
+
+  @override
+  String get mdTask => 'Task';
+
+  @override
+  String get mdQuote => 'Quote';
+
+  @override
+  String get mdWikiLink => 'Link a note';
+
+  @override
+  String get mdTable => 'Table';
+
+  @override
+  String get mdTableRow => 'Add a row';
+
+  @override
+  String get mdTableColumn => 'Add a column';
+
+  @override
+  String get mdRowShort => 'Row';
+
+  @override
+  String get mdColumnShort => 'Col';
+
+  @override
+  String get mdHideKeyboard => 'Hide the keyboard';
+
+  @override
+  String get galleryDoneToday => 'Done';
+
+  @override
+  String get galleryMovedToTrash => 'Moved to the trash';
+
+  @override
+  String get galleryFileGone => 'That file is no longer on the phone.';
 }

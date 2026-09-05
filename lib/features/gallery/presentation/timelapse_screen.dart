@@ -80,6 +80,10 @@ class _TimelapseScreenState extends State<TimelapseScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+        ),
         title: Text(widget.album.name, overflow: TextOverflow.ellipsis),
       ),
       body: Column(

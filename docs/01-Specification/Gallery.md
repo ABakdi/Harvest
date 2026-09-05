@@ -69,6 +69,8 @@ side. It is a habit whose evidence happens to be an image.
   default, or two I choose.
 - **Search** reads the notes, so "the week I started creatine" is
   findable without scrolling a year of thumbnails.
+- **Share** sends one picture out through the system sheet. It is the
+  only door out of the app's own storage, and it opens by hand.
 
 ## Storage, honestly
 
@@ -81,9 +83,10 @@ Photos are large and this app has been careful about what it keeps.
   video on a phone is a battery fire.
 - The album view shows **how much space it is using**, and says so
   before I start rather than after.
-- Deleting a memory deletes its file. This is the one place where a
-  soft delete would be actively wrong: a photo I asked to be gone must
-  be gone.
+- Deleting a memory puts it in the **trash**, and emptying the trash
+  deletes the file. The promise that a photo asked to be gone is gone
+  still holds — it just takes two deliberate steps, because a photo
+  deleted by a fat thumb was gone for good too ([[Checkpoint-5]]).
 
 ## Rules
 
@@ -93,7 +96,7 @@ Photos are large and this app has been careful about what it keeps.
 | G2 | Files live in the app's own storage, not the system gallery. Nothing here is written where other apps browse. |
 | G3 | A scheduled album is a seed: it is due, it is checked in by adding a memory, and it feeds the streak like anything else. |
 | G4 | Images are downscaled on import. Storage is shown, not discovered. |
-| G5 | Deleting a memory deletes the file, immediately and for good. |
+| G5 | Deleting moves a memory to the trash; emptying the trash deletes the file, for good. |
 | G6 | The export carries every file at full stored quality, in album folders ([[ADR-007-Archive-Format]]). |
 
 Related: [[Notes]] · [[Gamification]] · [[Productivity-Engine]] · [[ADR-007-Archive-Format]]

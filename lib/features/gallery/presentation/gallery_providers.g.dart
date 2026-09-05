@@ -192,6 +192,89 @@ final class AlbumMemoriesFamily extends $Family
   String toString() => r'albumMemoriesProvider';
 }
 
+/// What is in the gallery trash.
+
+@ProviderFor(deletedMemories)
+final deletedMemoriesProvider = DeletedMemoriesProvider._();
+
+/// What is in the gallery trash.
+
+final class DeletedMemoriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Memory>>,
+          List<Memory>,
+          Stream<List<Memory>>
+        >
+    with $FutureModifier<List<Memory>>, $StreamProvider<List<Memory>> {
+  /// What is in the gallery trash.
+  DeletedMemoriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deletedMemoriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deletedMemoriesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Memory>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Memory>> create(Ref ref) {
+    return deletedMemories(ref);
+  }
+}
+
+String _$deletedMemoriesHash() => r'9cfacb372a92e3f3e5782fb68211670f72464d92';
+
+@ProviderFor(deletedAlbums)
+final deletedAlbumsProvider = DeletedAlbumsProvider._();
+
+final class DeletedAlbumsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Album>>,
+          List<Album>,
+          Stream<List<Album>>
+        >
+    with $FutureModifier<List<Album>>, $StreamProvider<List<Album>> {
+  DeletedAlbumsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deletedAlbumsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deletedAlbumsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Album>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Album>> create(Ref ref) {
+    return deletedAlbums(ref);
+  }
+}
+
+String _$deletedAlbumsHash() => r'01d686cb3263545ede26d9576ae7e64e28bc46c4';
+
 @ProviderFor(albumSummaries)
 final albumSummariesProvider = AlbumSummariesProvider._();
 

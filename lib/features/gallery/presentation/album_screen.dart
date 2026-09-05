@@ -60,8 +60,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     final theme = Theme.of(context);
     final album = ref.watch(albumProvider(widget.uuid)).value;
     final all =
-        ref.watch(albumMemoriesProvider(widget.uuid)).value ??
-        const <Memory>[];
+        ref.watch(albumMemoriesProvider(widget.uuid)).value ?? const <Memory>[];
 
     if (album == null) {
       return Scaffold(
@@ -135,14 +134,15 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 children: [
                   Expanded(
                     child: FilledButton.tonalIcon(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => TimelapseScreen(
-                            album: album,
-                            memories: all.reversed.toList(),
+                      onPressed: () =>
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => TimelapseScreen(
+                                album: album,
+                                memories: all.reversed.toList(),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
                       icon: const Icon(Icons.play_arrow),
                       label: Text(l10n.galleryPlay),
                     ),
@@ -150,14 +150,15 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                   const SizedBox(width: HarvestSpacing.sm),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => CompareScreen(
-                            album: album,
-                            memories: all,
+                      onPressed: () =>
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => CompareScreen(
+                                album: album,
+                                memories: all,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
                       icon: const Icon(Icons.compare_arrows),
                       label: Text(l10n.galleryCompare),
                     ),
@@ -191,15 +192,18 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                     itemCount: memories.length,
                     itemBuilder: (context, index) => _MemoryTile(
                       memory: memories[index],
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => MemoryViewer(
-                            album: album,
-                            memories: memories,
-                            initial: index,
+                      // Full screen means full screen: the root
+                      // navigator puts a picture over the app's own bar.
+                      onTap: () =>
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => MemoryViewer(
+                                album: album,
+                                memories: memories,
+                                initial: index,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
                     ),
                   ),
           ),

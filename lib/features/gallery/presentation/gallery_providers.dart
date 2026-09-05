@@ -17,6 +17,15 @@ Stream<Album?> album(Ref ref, String uuid) =>
 Stream<List<Memory>> albumMemories(Ref ref, String uuid) =>
     ref.watch(galleryRepositoryProvider).watchMemories(uuid);
 
+/// What is in the gallery trash.
+@riverpod
+Stream<List<Memory>> deletedMemories(Ref ref) =>
+    ref.watch(galleryRepositoryProvider).watchDeletedMemories();
+
+@riverpod
+Stream<List<Album>> deletedAlbums(Ref ref) =>
+    ref.watch(galleryRepositoryProvider).watchDeletedAlbums();
+
 @riverpod
 Stream<List<AlbumSummary>> albumSummaries(Ref ref) => ref
     .watch(galleryRepositoryProvider)

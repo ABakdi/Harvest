@@ -45,7 +45,7 @@ class GalleryRepository {
   /// One album's memories, oldest first — the order a timelapse plays.
   Stream<List<Memory>> watchMemories(String albumUuid) {
     final query = _db.select(_db.memories)
-      ..where((m) => m.albumUuid.equals(albumUuid))
+      ..where((m) => m.albumUuid.equals(albumUuid) & m.deletedAt.isNull())
       ..orderBy([
         (m) => OrderingTerm.asc(m.harvestDay),
         (m) => OrderingTerm.asc(m.capturedAt),
@@ -55,14 +55,40 @@ class GalleryRepository {
 
   Stream<List<Memory>> watchAllMemories() {
     final query = _db.select(_db.memories)
+      ..where((m) => m.deletedAt.isNull())
       ..orderBy([(m) => OrderingTerm.desc(m.capturedAt)]);
     return query.watch().map((rows) => rows.map(_toMemory).toList());
+  }
+
+  /// Deleted memories and the albums they belonged to, newest first.
+  Stream<List<Memory>> watchDeletedMemories() {
+    final query = _db.select(_db.memories)
+      ..where((m) => m.deletedAt.isNotNull())
+      ..orderBy([(m) => OrderingTerm.desc(m.deletedAt)]);
+    return query.watch().map((rows) => rows.map(_toMemory).toList());
+  }
+
+  /// Albums in the trash, newest first.
+  Stream<List<Album>> watchDeletedAlbums() {
+    final query = _db.select(_db.albums)
+      ..where((a) => a.deletedAt.isNotNull())
+      ..orderBy([(a) => OrderingTerm.desc(a.deletedAt)]);
+    return query.watch().map((rows) => rows.map(_toAlbum).toList());
+  }
+
+  /// Every memory of an album, trashed ones included — what deleting
+  /// the album has to sweep up, and what emptying the trash removes.
+  Future<List<Memory>> allMemoriesOnce(String albumUuid) async {
+    final rows = await (_db.select(
+      _db.memories,
+    )..where((m) => m.albumUuid.equals(albumUuid))).get();
+    return rows.map(_toMemory).toList();
   }
 
   Future<List<Memory>> memoriesOnce(String albumUuid) async {
     final rows =
         await (_db.select(_db.memories)
-              ..where((m) => m.albumUuid.equals(albumUuid))
+              ..where((m) => m.albumUuid.equals(albumUuid) & m.deletedAt.isNull())
               ..orderBy([(m) => OrderingTerm.asc(m.harvestDay)]))
             .get();
     return rows.map(_toMemory).toList();
@@ -83,7 +109,8 @@ class GalleryRepository {
       ..addColumns([count])
       ..where(
         _db.memories.albumUuid.equals(albumUuid) &
-            _db.memories.harvestDay.equals(day.key),
+            _db.memories.harvestDay.equals(day.key) &
+            _db.memories.deletedAt.isNull(),
       );
     return (await query.getSingle()).read(count) ?? 0;
   }
@@ -95,7 +122,8 @@ class GalleryRepository {
       ..addColumns([_db.memories.harvestDay])
       ..where(
         _db.memories.albumUuid.equals(albumUuid) &
-            _db.memories.harvestDay.isIn(day.weekDays.map((d) => d.key)),
+            _db.memories.harvestDay.isIn(day.weekDays.map((d) => d.key)) &
+            _db.memories.deletedAt.isNull(),
       );
     return (await query.get()).length;
   }
@@ -103,7 +131,7 @@ class GalleryRepository {
   /// Memories per album on one day, for the field.
   Stream<Map<String, int>> watchCountsOn(HarvestDay day) {
     final query = _db.select(_db.memories)
-      ..where((m) => m.harvestDay.equals(day.key));
+      ..where((m) => m.harvestDay.equals(day.key) & m.deletedAt.isNull());
     return query.watch().map((rows) {
       final counts = <String, int>{};
       for (final row in rows) {
@@ -117,7 +145,7 @@ class GalleryRepository {
   Stream<Map<String, int>> watchDoneDaysThisWeek(HarvestDay day) {
     final days = day.weekDays.map((d) => d.key).toList();
     final query = _db.select(_db.memories)
-      ..where((m) => m.harvestDay.isIn(days));
+      ..where((m) => m.harvestDay.isIn(days) & m.deletedAt.isNull());
     return query.watch().map((rows) {
       final byAlbum = <String, Set<String>>{};
       for (final row in rows) {
@@ -205,10 +233,31 @@ class GalleryRepository {
     await _outbox('albums', album.uuid, 'update');
   });
 
-  /// Removes an album and every picture in it, files included. There is
-  /// no undo behind this, and the UI confirms first.
-  Future<void> deleteAlbum(String uuid) async {
-    final memories = await memoriesOnce(uuid);
+  /// Moves an album to the trash. Its pictures go with it and its
+  /// files stay on disk — restoring brings the whole run back.
+  Future<void> deleteAlbum(String uuid) => _db.transaction(() async {
+    await (_db.update(_db.albums)..where((a) => a.uuid.equals(uuid))).write(
+      AlbumsCompanion(
+        deletedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('albums', uuid, 'update');
+  });
+
+  Future<void> restoreAlbum(String uuid) => _db.transaction(() async {
+    await (_db.update(_db.albums)..where((a) => a.uuid.equals(uuid))).write(
+      AlbumsCompanion(
+        deletedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('albums', uuid, 'update');
+  });
+
+  /// The album, its rows and every one of its files, for good.
+  Future<void> purgeAlbum(String uuid) async {
+    final memories = await allMemoriesOnce(uuid);
     for (final memory in memories) {
       await _storage.delete(memory.path);
     }
@@ -271,9 +320,32 @@ class GalleryRepository {
         await _outbox('memories', uuid, 'update');
       });
 
-  /// Deletes the row **and the file**. A picture asked to be gone must
-  /// be gone; a soft delete here would be a lie (rule G5).
-  Future<void> deleteMemory(String uuid) async {
+  /// Moves a memory to the trash. The file stays where it is until the
+  /// trash is emptied — rule G5 revised: gone for good is still the
+  /// promise, it just now takes two deliberate steps to get there.
+  Future<void> deleteMemory(String uuid) => _db.transaction(() async {
+    await (_db.update(_db.memories)..where((m) => m.uuid.equals(uuid))).write(
+      MemoriesCompanion(
+        deletedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('memories', uuid, 'update');
+  });
+
+  Future<void> restoreMemory(String uuid) => _db.transaction(() async {
+    await (_db.update(_db.memories)..where((m) => m.uuid.equals(uuid))).write(
+      MemoriesCompanion(
+        deletedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('memories', uuid, 'update');
+  });
+
+  /// The step that actually deletes: the row goes, and so does the
+  /// file. There is nothing behind this one.
+  Future<void> purgeMemory(String uuid) async {
     final row =
         await (_db.select(_db.memories)..where((m) => m.uuid.equals(uuid)))
             .getSingleOrNull();
@@ -283,6 +355,20 @@ class GalleryRepository {
       await (_db.delete(_db.memories)..where((m) => m.uuid.equals(uuid))).go();
       await _outbox('memories', uuid, 'delete');
     });
+  }
+
+  /// Empties the gallery trash: every trashed memory, and every
+  /// picture inside a trashed album, files and all.
+  Future<int> emptyTrash() async {
+    final memories = await watchDeletedMemories().first;
+    for (final memory in memories) {
+      await purgeMemory(memory.uuid);
+    }
+    final albums = await watchDeletedAlbums().first;
+    for (final album in albums) {
+      await purgeAlbum(album.uuid);
+    }
+    return memories.length + albums.length;
   }
 
   Future<File> fileOf(Memory memory) => _storage.fileOf(memory.path);

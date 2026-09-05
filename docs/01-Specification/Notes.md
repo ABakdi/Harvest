@@ -56,8 +56,16 @@ because it is how notes actually get written.
 
 ## Writing
 
-- A plain text field, monospace optional, no live preview. Markdown is
-  rendered when **reading**, edited as text.
+- **One mode.** The body renders as markdown and shows its syntax on
+  whichever line the caret is on — the Obsidian behaviour, and the
+  right one: a note with a Read button and an Edit button is two
+  documents that happen to share a body ([[Checkpoint-5]]).
+- Nothing is ever removed from the stored string to achieve that. Every
+  marker stays a character at its own offset, drawn at a hair's width
+  when folded, so the caret and the selection need no translation.
+- A **bar above the keyboard** carries the syntax worth one tap:
+  heading, bold, italic, code, list, task, quote, wiki link, table —
+  and add-a-row and add-a-column while the caret is in a table.
 - Supported when rendering: headings, bold, italic, lists, task lists,
   quotes, code, links, and `[[wiki links]]`. Anything else passes
   through as text rather than being silently eaten.
@@ -67,9 +75,18 @@ because it is how notes actually get written.
 
 ## Finding things
 
+All of it in a **sidebar**, never in the middle of the screen — that
+space is for one note ([[Checkpoint-5]]).
+
 - Search across titles and bodies, matching as I type.
-- Filter by folder.
+- A folder tree, with a new note at any level.
 - Sort by edited, created, or title.
+- The **trash**: deleting a note is undoable, and emptying the trash is
+  the step that is not.
+
+A folder may exist before it holds a note. The truth about where a note
+lives is still the note's own path; the empty ones are remembered in
+settings, which means they ride in the archive for free.
 
 Nothing cleverer. When the vault is big enough to need more than that,
 it is big enough to live in Obsidian.
@@ -94,5 +111,9 @@ that the export does not already give it.
 | N2 | The body is the truth. The link index is derived and may be rebuilt from the bodies at any time. |
 | N3 | A note exports as a `.md` file at its folder path, with the title as the filename. What comes out opens in any editor. |
 | N4 | No feature may require Harvest to read the note back. If it cannot survive being edited in a text editor, it does not belong. |
+| N5 | The editor draws markdown by styling it, never by rewriting it. What is rendered and what is stored are the same string, character for character. |
 
-Related: [[Gallery]] · [[ADR-007-Archive-Format]] · [[Core-Entities]]
+A note also goes out as a **PDF**, rendered rather than dumped, through
+the system share sheet.
+
+Related: [[Gallery]] · [[ADR-007-Archive-Format]] · [[Core-Entities]] · [[Checkpoint-5]]

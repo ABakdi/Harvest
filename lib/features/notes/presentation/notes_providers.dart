@@ -15,6 +15,11 @@ Stream<List<Note>> allNotes(Ref ref) =>
 Stream<List<String>> noteFolders(Ref ref) =>
     ref.watch(notesRepositoryProvider).watchFolders();
 
+/// What is in the trash.
+@riverpod
+Stream<List<Note>> deletedNotes(Ref ref) =>
+    ref.watch(notesRepositoryProvider).watchDeleted();
+
 @riverpod
 Stream<Note?> note(Ref ref, String uuid) =>
     ref.watch(notesRepositoryProvider).watchOne(uuid);

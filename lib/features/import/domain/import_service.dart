@@ -497,6 +497,7 @@ class ImportService {
                   note: Value(row['Note']),
                   capturedAt: Value(_time(row['CapturedAt']) ?? DateTime.now()),
                   updatedAt: Value(_time(row['UpdatedAt']) ?? DateTime.now()),
+                  deletedAt: Value(_time(row['DeletedAt'])),
                 ),
               );
         }

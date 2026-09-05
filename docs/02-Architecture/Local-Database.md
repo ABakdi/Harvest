@@ -97,7 +97,7 @@ can drop the files back under a fresh root and repoint nothing
 
 ## Migrations
 
-Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`.
+Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`; **v11** added `memories.deleted_at`, the gallery's trash ([[Checkpoint-5]]).
 
 A seed's **start day** deliberately has no column: `created_at` already
 says when it was planted, so the rule that nothing is due before then

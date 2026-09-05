@@ -1642,7 +1642,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notesBodyHint =>
-      'اكتب. تُعرض الماركداون عند القراءة، و[[رابط]] يصل بملاحظة أخرى.';
+      'اكتب. تُعرض الماركداون وأنت تكتب، وتظهر رموزها في السطر الذي أنت فيه. و[[رابط]] يصل بملاحظة أخرى.';
 
   @override
   String get notesSearchHint => 'ابحث في العناوين والنصوص';
@@ -2015,4 +2015,169 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sheetMemories => 'الذكريات';
+
+  @override
+  String get navRecords => 'السجل';
+
+  @override
+  String get shareAction => 'مشاركة';
+
+  @override
+  String get trashTitle => 'المهملات';
+
+  @override
+  String get trashEmpty => 'إفراغ';
+
+  @override
+  String get trashEmptyTitle => 'المهملات فارغة';
+
+  @override
+  String get trashNotesEmptyBody =>
+      'الملاحظات المحذوفة تنتظر هنا حتى لا تكون لمسة خاطئة نهايتها.';
+
+  @override
+  String get trashGalleryEmptyBody =>
+      'الصور والألبومات المحذوفة تنتظر هنا. وتبقى ملفاتها على الهاتف حتى تُفرغها.';
+
+  @override
+  String get trashKeeps =>
+      'لا شيء يغادر هنا من تلقاء نفسه. أعِد ما تريد، أو أفرغ الكل.';
+
+  @override
+  String get trashKeepsFiles =>
+      'الملفات ما زالت على الهاتف. إفراغ المهملات هو ما يزيلها.';
+
+  @override
+  String get trashRestore => 'استرجاع';
+
+  @override
+  String get trashDeleteForever => 'حذف نهائي';
+
+  @override
+  String get trashDeleteForeverConfirm => 'أتحذف هذا نهائيًا؟';
+
+  @override
+  String get trashDeleteForeverBody => 'لا شيء بعد هذه الخطوة.';
+
+  @override
+  String trashEmptyConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أتفرغ المهملات — $count عناصر؟',
+      two: 'أتفرغ المهملات — عنصران؟',
+      one: 'أتفرغ المهملات — عنصر واحد؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trashEmptyConfirmBody => 'كل ما في المهملات يذهب نهائيًا.';
+
+  @override
+  String get trashEmptyFilesBody =>
+      'كل صورة هنا تُحذف من الهاتف بملفاتها. لا تراجع.';
+
+  @override
+  String get trashWholeAlbum => 'الألبوم كاملًا';
+
+  @override
+  String get notesNewFolder => 'مجلد جديد';
+
+  @override
+  String get notesNewSubfolder => 'مجلد بداخله';
+
+  @override
+  String get notesRenameFolder => 'إعادة تسمية المجلد';
+
+  @override
+  String get notesDeleteFolder => 'حذف المجلد';
+
+  @override
+  String get notesDeleteFolderHint => 'تذهب ملاحظاته إلى المهملات';
+
+  @override
+  String get notesFolderOptions => 'خيارات المجلد';
+
+  @override
+  String get notesFolderNameHint => 'الصحة، العمل، القراءة';
+
+  @override
+  String get notesNewHere => 'ملاحظة جديدة';
+
+  @override
+  String get notesMoveToFolder => 'نقل إلى مجلد';
+
+  @override
+  String get notesSharePdf => 'مشاركة كـ PDF';
+
+  @override
+  String get notesPdfFailed => 'تعذّر تحويل هذه الملاحظة إلى PDF.';
+
+  @override
+  String get notesMovedToTrash => 'نُقلت إلى المهملات';
+
+  @override
+  String notesFolderTrashed(String folder, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$folder و$count ملاحظات إلى المهملات',
+      two: '$folder وملاحظتان إلى المهملات',
+      one: '$folder وملاحظة واحدة إلى المهملات',
+      zero: 'اختفى $folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mdHeading => 'عنوان';
+
+  @override
+  String get mdBold => 'عريض';
+
+  @override
+  String get mdItalic => 'مائل';
+
+  @override
+  String get mdCode => 'شفرة';
+
+  @override
+  String get mdList => 'قائمة';
+
+  @override
+  String get mdTask => 'مهمة';
+
+  @override
+  String get mdQuote => 'اقتباس';
+
+  @override
+  String get mdWikiLink => 'ربط ملاحظة';
+
+  @override
+  String get mdTable => 'جدول';
+
+  @override
+  String get mdTableRow => 'إضافة صف';
+
+  @override
+  String get mdTableColumn => 'إضافة عمود';
+
+  @override
+  String get mdRowShort => 'صف';
+
+  @override
+  String get mdColumnShort => 'عمود';
+
+  @override
+  String get mdHideKeyboard => 'إخفاء لوحة المفاتيح';
+
+  @override
+  String get galleryDoneToday => 'تم';
+
+  @override
+  String get galleryMovedToTrash => 'نُقلت إلى المهملات';
+
+  @override
+  String get galleryFileGone => 'لم يعد هذا الملف على الهاتف.';
 }

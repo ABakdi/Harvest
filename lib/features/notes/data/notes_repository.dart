@@ -62,6 +62,14 @@ class NotesRepository {
     return folders.toList()..sort();
   });
 
+  /// What is in the trash, most recently deleted first.
+  Stream<List<Note>> watchDeleted() {
+    final query = _db.select(_db.notes)
+      ..where((n) => n.deletedAt.isNotNull())
+      ..orderBy([(n) => OrderingTerm.desc(n.deletedAt)]);
+    return query.watch().map((rows) => rows.map(_toDomain).toList());
+  }
+
   /// The notes that link *here* — "what links here", as a list.
   Stream<List<Note>> watchBacklinks(String uuid) {
     final links = _db.select(_db.noteLinks)
@@ -187,6 +195,59 @@ class NotesRepository {
     await _resolveInbound(row.title, uuid);
     await _appendOutbox(uuid, 'update');
   });
+
+  /// Empties the trash now, rather than waiting for the age-out.
+  Future<void> emptyTrash() => purgeDeleted(olderThan: Duration.zero);
+
+  /// One note, gone for good, from the trash.
+  Future<void> purge(String uuid) => _db.transaction(() async {
+    await (_db.delete(_db.noteLinks)..where((l) => l.fromUuid.equals(uuid)))
+        .go();
+    // A link that pointed here becomes unresolved again rather than
+    // pointing at a row that is not there.
+    await (_db.update(_db.noteLinks)..where((l) => l.toUuid.equals(uuid)))
+        .write(const NoteLinksCompanion(toUuid: Value(null)));
+    await (_db.delete(_db.notes)..where((n) => n.uuid.equals(uuid))).go();
+    await _appendOutbox(uuid, 'delete');
+  });
+
+  /// Moves every note under [from] to [to], prefix and all.
+  ///
+  /// Renaming `Health` to `Body` moves `Health/Sleep` with it, because
+  /// a folder is a path and half a path is nothing.
+  Future<void> renameFolder(String from, String to) => _db.transaction(() async {
+    final rows = await (_db.select(_db.notes)
+          ..where((n) => n.folder.equals(from) | n.folder.like('$from/%')))
+        .get();
+    for (final row in rows) {
+      final moved = to.isEmpty
+          ? row.folder.substring(from.length).replaceFirst(RegExp('^/'), '')
+          : to + row.folder.substring(from.length);
+      await (_db.update(_db.notes)..where((n) => n.uuid.equals(row.uuid)))
+          .write(
+            NotesCompanion(
+              folder: Value(moved),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
+      await _appendOutbox(row.uuid, 'update');
+    }
+  });
+
+  /// Puts every note under [folder] in the trash.
+  Future<int> trashFolder(String folder) async {
+    final rows = await (_db.select(_db.notes)
+          ..where(
+            (n) =>
+                (n.folder.equals(folder) | n.folder.like('$folder/%')) &
+                n.deletedAt.isNull(),
+          ))
+        .get();
+    for (final row in rows) {
+      await remove(row.uuid);
+    }
+    return rows.length;
+  }
 
   Future<void> purgeDeleted({required Duration olderThan}) async {
     final cutoff = DateTime.now().subtract(olderThan);

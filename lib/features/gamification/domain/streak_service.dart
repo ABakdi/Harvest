@@ -69,7 +69,9 @@ class StreakService {
       ..addColumns([_db.memories.albumUuid])
       ..where(
         _db.memories.harvestDay.equals(day.key) &
-            _db.memories.albumUuid.isIn(uuids),
+            _db.memories.albumUuid.isIn(uuids) &
+            // A picture in the trash is not an action kept.
+            _db.memories.deletedAt.isNull(),
       );
     return (await query.get()).length;
   }

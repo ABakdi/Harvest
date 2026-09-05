@@ -3271,6 +3271,17 @@ class $MemoriesTable extends Memories
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
@@ -3281,6 +3292,7 @@ class $MemoriesTable extends Memories
     note,
     capturedAt,
     updatedAt,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3350,6 +3362,12 @@ class $MemoriesTable extends Memories
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -3391,6 +3409,10 @@ class $MemoriesTable extends Memories
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -3414,6 +3436,9 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
   final String? note;
   final DateTime capturedAt;
   final DateTime updatedAt;
+
+  /// In the trash since. Null is a memory I still have.
+  final DateTime? deletedAt;
   const MemoryRow({
     required this.uuid,
     required this.albumUuid,
@@ -3423,6 +3448,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     this.note,
     required this.capturedAt,
     required this.updatedAt,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3437,6 +3463,9 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     }
     map['captured_at'] = Variable<DateTime>(capturedAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -3450,6 +3479,9 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       capturedAt: Value(capturedAt),
       updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -3467,6 +3499,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
       note: serializer.fromJson<String?>(json['note']),
       capturedAt: serializer.fromJson<DateTime>(json['capturedAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -3481,6 +3514,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
       'note': serializer.toJson<String?>(note),
       'capturedAt': serializer.toJson<DateTime>(capturedAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
@@ -3493,6 +3527,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     Value<String?> note = const Value.absent(),
     DateTime? capturedAt,
     DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
   }) => MemoryRow(
     uuid: uuid ?? this.uuid,
     albumUuid: albumUuid ?? this.albumUuid,
@@ -3502,6 +3537,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     note: note.present ? note.value : this.note,
     capturedAt: capturedAt ?? this.capturedAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   MemoryRow copyWithCompanion(MemoriesCompanion data) {
     return MemoryRow(
@@ -3517,6 +3553,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
           ? data.capturedAt.value
           : this.capturedAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -3530,7 +3567,8 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
           ..write('kind: $kind, ')
           ..write('note: $note, ')
           ..write('capturedAt: $capturedAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
@@ -3545,6 +3583,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     note,
     capturedAt,
     updatedAt,
+    deletedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -3557,7 +3596,8 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
           other.kind == this.kind &&
           other.note == this.note &&
           other.capturedAt == this.capturedAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
@@ -3569,6 +3609,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
   final Value<String?> note;
   final Value<DateTime> capturedAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const MemoriesCompanion({
     this.uuid = const Value.absent(),
@@ -3579,6 +3620,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     this.note = const Value.absent(),
     this.capturedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MemoriesCompanion.insert({
@@ -3590,6 +3632,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     this.note = const Value.absent(),
     this.capturedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid),
        albumUuid = Value(albumUuid),
@@ -3604,6 +3647,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     Expression<String>? note,
     Expression<DateTime>? capturedAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3615,6 +3659,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
       if (note != null) 'note': note,
       if (capturedAt != null) 'captured_at': capturedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3628,6 +3673,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     Value<String?>? note,
     Value<DateTime>? capturedAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
     return MemoriesCompanion(
@@ -3639,6 +3685,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
       note: note ?? this.note,
       capturedAt: capturedAt ?? this.capturedAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3670,6 +3717,9 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3687,6 +3737,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
           ..write('note: $note, ')
           ..write('capturedAt: $capturedAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11125,6 +11176,7 @@ typedef $$MemoriesTableCreateCompanionBuilder = MemoriesCompanion Function({
   Value<String?> note,
   Value<DateTime> capturedAt,
   Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
   Value<int> rowid,
 });
 typedef $$MemoriesTableUpdateCompanionBuilder = MemoriesCompanion Function({
@@ -11136,6 +11188,7 @@ typedef $$MemoriesTableUpdateCompanionBuilder = MemoriesCompanion Function({
   Value<String?> note,
   Value<DateTime> capturedAt,
   Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
   Value<int> rowid,
 });
 
@@ -11202,6 +11255,11 @@ class $$MemoriesTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11273,6 +11331,11 @@ class $$MemoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$AlbumsTableOrderingComposer get albumUuid {
     final $$AlbumsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -11330,6 +11393,9 @@ class $$MemoriesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   $$AlbumsTableAnnotationComposer get albumUuid {
     final $$AlbumsTableAnnotationComposer composer = $composerBuilder(
@@ -11391,6 +11457,7 @@ class $$MemoriesTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> capturedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemoriesCompanion(
                 uuid: uuid,
@@ -11401,6 +11468,7 @@ class $$MemoriesTableTableManager
                 note: note,
                 capturedAt: capturedAt,
                 updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -11413,6 +11481,7 @@ class $$MemoriesTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> capturedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MemoriesCompanion.insert(
                 uuid: uuid,
@@ -11423,6 +11492,7 @@ class $$MemoriesTableTableManager
                 note: note,
                 capturedAt: capturedAt,
                 updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

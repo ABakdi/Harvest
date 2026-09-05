@@ -56,6 +56,126 @@ class InlineSpanPart {
   String toString() => '${kind.name}("$text"${target == null ? '' : ' → $target'})';
 }
 
+/// The one pattern both inline scanners run.
+///
+/// Wiki links are matched before ordinary links so `[[Reading]]` is
+/// never read as a link whose text is `[Reading`. Emphasis markers
+/// must sit against the word they wrap, so `2 * 3 * 4` stays
+/// arithmetic instead of turning into italics.
+final _inlinePattern = RegExp(
+  r'\[\[([^\[\]\n]+)\]\]' // wiki link
+  r'|\[([^\]\n]*)\]\(([^)\s]+)\)' // [text](target)
+  r'|`([^`\n]+)`' // code
+  r'|\*\*(\S|\S[^*\n]*\S)\*\*' // bold
+  r'|__(\S|\S[^_\n]*\S)__' // bold
+  r'|\*(\S|\S[^*\n]*\S)\*' // italic
+  r'|_(\S|\S[^_\n]*\S)_', // italic
+);
+
+/// An inline run **with its markers kept**, for the live editor.
+///
+/// [parseInline] throws the markers away because a reader has no use
+/// for them. The editor does: it has to draw `**` at its own offset so
+/// the caret can be put between the asterisks. Same scan, different
+/// question — so the pattern lives in one place and both ask it.
+@immutable
+class InlineScan {
+  const InlineScan({
+    required this.kind,
+    required this.text,
+    this.open = '',
+    this.close = '',
+    this.target,
+  });
+
+  final InlineKind kind;
+
+  /// The content between the markers.
+  final String text;
+
+  /// The markers themselves, verbatim; empty for plain text.
+  final String open;
+  final String close;
+  final String? target;
+}
+
+/// Every inline run in [source], markers included, in order.
+///
+/// Concatenating `open + text + close` across the result rebuilds
+/// [source] exactly — the editor depends on that, because a character
+/// it loses is a character the caret cannot reach.
+List<InlineScan> scanInline(String source) {
+  final scans = <InlineScan>[];
+  var cursor = 0;
+
+  void plain(int until) {
+    if (until > cursor) {
+      scans.add(
+        InlineScan(kind: InlineKind.text, text: source.substring(cursor, until)),
+      );
+    }
+  }
+
+  for (final match in _inlinePattern.allMatches(source)) {
+    plain(match.start);
+    final whole = match.group(0)!;
+    if (match.group(1) != null) {
+      final title = match.group(1)!;
+      scans.add(
+        InlineScan(
+          kind: InlineKind.wikiLink,
+          text: title,
+          open: '[[',
+          close: ']]',
+          target: title.trim(),
+        ),
+      );
+    } else if (match.group(3) != null) {
+      scans.add(
+        InlineScan(
+          kind: InlineKind.link,
+          text: match.group(2)!,
+          open: '[',
+          close: '](${match.group(3)!})',
+          target: match.group(3),
+        ),
+      );
+    } else if (match.group(4) != null) {
+      scans.add(
+        InlineScan(
+          kind: InlineKind.code,
+          text: match.group(4)!,
+          open: '`',
+          close: '`',
+        ),
+      );
+    } else if (match.group(5) != null || match.group(6) != null) {
+      final marker = whole.startsWith('**') ? '**' : '__';
+      scans.add(
+        InlineScan(
+          kind: InlineKind.bold,
+          text: match.group(5) ?? match.group(6)!,
+          open: marker,
+          close: marker,
+        ),
+      );
+    } else {
+      final marker = whole.startsWith('*') ? '*' : '_';
+      scans.add(
+        InlineScan(
+          kind: InlineKind.italic,
+          text: match.group(7) ?? match.group(8)!,
+          open: marker,
+          close: marker,
+        ),
+      );
+    }
+    cursor = match.end;
+  }
+  plain(source.length);
+  return scans;
+}
+
 /// Splits markdown into blocks. Anything unrecognised stays a paragraph
 /// rather than being eaten (rule: unknown syntax passes through).
 List<MarkdownBlock> parseMarkdown(String source) {
@@ -195,17 +315,7 @@ bool _startsBlock(String trimmed) =>
 /// never read as a link whose text is `[Reading`.
 List<InlineSpanPart> parseInline(String source) {
   final spans = <InlineSpanPart>[];
-  final pattern = RegExp(
-    r'\[\[([^\[\]\n]+)\]\]'          // wiki link
-    r'|\[([^\]\n]*)\]\(([^)\s]+)\)'  // [text](target)
-    r'|`([^`\n]+)`'                  // code
-    // Emphasis markers must sit against the word they wrap, so
-    // `2 * 3 * 4` stays arithmetic instead of turning into italics.
-    r'|\*\*(\S|\S[^*\n]*\S)\*\*'     // bold
-    r'|__(\S|\S[^_\n]*\S)__'         // bold
-    r'|\*(\S|\S[^*\n]*\S)\*'         // italic
-    r'|_(\S|\S[^_\n]*\S)_',          // italic
-  );
+  final pattern = _inlinePattern;
 
   var cursor = 0;
   for (final match in pattern.allMatches(source)) {

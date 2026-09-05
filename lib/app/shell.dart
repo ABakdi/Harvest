@@ -17,11 +17,15 @@ typedef _Tab = ({int branch, IconData icon, IconData active, String label});
 /// App shell: bottom navigation hosting the main tabs, and the place a
 /// quick action tapped on the home-screen widget lands.
 ///
-/// Notes and the Gallery have branches whether or not they are on; what
-/// the switch changes is whether a tab points at one. That keeps the
-/// route valid for a deep link or a reminder payload written while the
-/// feature was enabled, and keeps the bar down to four for someone who
-/// only came for a streak.
+/// Records has a branch whether or not it is on; what the switches
+/// change is whether a tab points at it. That keeps the route valid for
+/// a deep link or a reminder payload written while the feature was
+/// enabled, and keeps the bar down to four for someone who only came
+/// for a streak — five with the extras, never six.
+///
+/// The bar hides itself while the keyboard is up: on a note that is the
+/// difference between a toolbar sitting on the keyboard and a toolbar
+/// sitting on a navigation bar sitting on the keyboard.
 class HarvestShell extends ConsumerStatefulWidget {
   const HarvestShell({required this.navigationShell, super.key});
 
@@ -69,19 +73,14 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
         active: Icons.grass,
         label: l10n.navField,
       ),
-      if (ref.watch(notesEnabledProvider))
+      // Notes and the Gallery share one tab: they are the same
+      // instinct kept two ways, and five tabs is already the ceiling.
+      if (ref.watch(notesEnabledProvider) || ref.watch(galleryEnabledProvider))
         (
-          branch: ShellBranch.notes,
-          icon: Icons.description_outlined,
-          active: Icons.description,
-          label: l10n.navNotes,
-        ),
-      if (ref.watch(galleryEnabledProvider))
-        (
-          branch: ShellBranch.gallery,
-          icon: Icons.photo_library_outlined,
-          active: Icons.photo_library,
-          label: l10n.navGallery,
+          branch: ShellBranch.records,
+          icon: Icons.auto_stories_outlined,
+          active: Icons.auto_stories,
+          label: l10n.navRecords,
         ),
       (
         branch: ShellBranch.finances,
@@ -110,27 +109,35 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
       (tab) => tab.branch == widget.navigationShell.currentIndex,
     );
 
+    // With the keyboard up the bar goes — but the Scaffold stays, or
+    // the whole subtree remounts, the field loses focus and the
+    // keyboard shuts the instant it opens.
+    final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     return Scaffold(
       body: widget.navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: current < 0 ? 0 : current,
-        onDestinationSelected: (index) {
-          unawaited(HarvestHaptics.tick());
-          final branch = tabs[index].branch;
-          widget.navigationShell.goBranch(
-            branch,
-            initialLocation: branch == widget.navigationShell.currentIndex,
-          );
-        },
-        destinations: [
-          for (final tab in tabs)
-            NavigationDestination(
-              icon: Icon(tab.icon),
-              selectedIcon: Icon(tab.active),
-              label: tab.label,
+      bottomNavigationBar: typing
+          ? null
+          : NavigationBar(
+              selectedIndex: current < 0 ? 0 : current,
+              onDestinationSelected: (index) {
+                unawaited(HarvestHaptics.tick());
+                final branch = tabs[index].branch;
+                widget.navigationShell.goBranch(
+                  branch,
+                  initialLocation:
+                      branch == widget.navigationShell.currentIndex,
+                );
+              },
+              destinations: [
+                for (final tab in tabs)
+                  NavigationDestination(
+                    icon: Icon(tab.icon),
+                    selectedIcon: Icon(tab.active),
+                    label: tab.label,
+                  ),
+              ],
             ),
-        ],
-      ),
     );
   }
 }

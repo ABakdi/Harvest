@@ -303,6 +303,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'Note',
       'CapturedAt',
       'UpdatedAt',
+      'DeletedAt',
     ],
     rows: data.memories,
     derived: const [(header: 'Album', template: _albumName)],

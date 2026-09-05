@@ -76,6 +76,9 @@ class ExportRepository {
     final memoryFiles = <({String path, String storedPath})>[];
     final memoryRowsOut = <List<Object?>>[];
     for (final row in memoryRows) {
+      // A memory in the trash keeps its row and its file: the archive
+      // carries the trash as it stands, so an import does not quietly
+      // resurrect what I threw away.
       final path = memoryPath(
         albumName: albumNames[row.albumUuid] ?? 'Album',
         day: row.harvestDay,
@@ -93,6 +96,7 @@ class ExportRepository {
         row.note,
         _at(row.capturedAt),
         _at(row.updatedAt),
+        _at(row.deletedAt),
       ]);
     }
 

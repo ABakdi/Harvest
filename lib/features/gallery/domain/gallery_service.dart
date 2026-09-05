@@ -110,7 +110,28 @@ class GalleryService {
     return memory;
   }
 
-  /// Deletes a memory and its file, and takes back what it earned if it
+  /// Puts a memory back and pays its day again if it is now the only
+  /// one on it. The mirror of [remove], because a trash you cannot come
+  /// back from is a delete with extra steps.
+  Future<void> restore(Memory memory, {required Album album}) async {
+    await _repository.restoreMemory(memory.uuid);
+    if (!album.isScheduled) return;
+    if (await _repository.countOn(album.uuid, memory.day) != 1) return;
+    await _db
+        .into(_db.ledger)
+        .insert(
+          LedgerCompanion.insert(
+            uuid: _uuid.v4(),
+            kind: 'xp',
+            delta: Xp.habitOrTodo,
+            reason: 'memory:${memory.uuid}',
+            harvestDay: memory.day.key,
+          ),
+        );
+    await _streaks.onAlbumMemory(album.uuid, memory.day);
+  }
+
+  /// Moves a memory to the trash, and takes back what it earned if it
   /// was the day's only one.
   Future<void> remove(Memory memory, {required Album album}) async {
     await _repository.deleteMemory(memory.uuid);
@@ -124,7 +145,10 @@ class GalleryService {
     final earned = _db.ledger.delta.sum();
     final query = _db.selectOnly(_db.ledger)
       ..addColumns([earned])
-      ..where(_db.ledger.reason.equals('memory:${memory.uuid}'));
+      ..where(
+        _db.ledger.reason.equals('memory:${memory.uuid}') |
+            _db.ledger.reason.equals('memory-undo:${memory.uuid}'),
+      );
     final granted = (await query.getSingle()).read(earned) ?? 0;
     if (granted != 0) {
       await _db

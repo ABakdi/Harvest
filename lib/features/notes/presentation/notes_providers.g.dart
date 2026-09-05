@@ -86,6 +86,49 @@ final class NoteFoldersProvider
 
 String _$noteFoldersHash() => r'f9ef6598449868aff992f8240aa92e5b0b29ddff';
 
+/// What is in the trash.
+
+@ProviderFor(deletedNotes)
+final deletedNotesProvider = DeletedNotesProvider._();
+
+/// What is in the trash.
+
+final class DeletedNotesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Note>>,
+          List<Note>,
+          Stream<List<Note>>
+        >
+    with $FutureModifier<List<Note>>, $StreamProvider<List<Note>> {
+  /// What is in the trash.
+  DeletedNotesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deletedNotesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deletedNotesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Note>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Note>> create(Ref ref) {
+    return deletedNotes(ref);
+  }
+}
+
+String _$deletedNotesHash() => r'1fa80578afb20aa8fdcc4e986392f61b1b37bbc4';
+
 @ProviderFor(note)
 final noteProvider = NoteFamily._();
 

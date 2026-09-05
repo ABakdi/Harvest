@@ -2753,7 +2753,7 @@ abstract class AppLocalizations {
   /// No description provided for @notesBodyHint.
   ///
   /// In en, this message translates to:
-  /// **'Write. Markdown is rendered when you read; [[link]] to another note.'**
+  /// **'Write. Markdown renders as you go and shows its syntax on the line you are on. [[Link]] to another note.'**
   String get notesBodyHint;
 
   /// No description provided for @notesSearchHint.
@@ -3379,6 +3379,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Memories'**
   String get sheetMemories;
+
+  /// No description provided for @navRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navRecords;
+
+  /// No description provided for @shareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareAction;
+
+  /// No description provided for @trashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trashTitle;
+
+  /// No description provided for @trashEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get trashEmpty;
+
+  /// No description provided for @trashEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The trash is empty'**
+  String get trashEmptyTitle;
+
+  /// No description provided for @trashNotesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted notes wait here so a wrong tap is not the end of one.'**
+  String get trashNotesEmptyBody;
+
+  /// No description provided for @trashGalleryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted pictures and albums wait here. Their files stay on the phone until you empty it.'**
+  String get trashGalleryEmptyBody;
+
+  /// No description provided for @trashKeeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing leaves here on its own. Restore what you want back, or empty the lot.'**
+  String get trashKeeps;
+
+  /// No description provided for @trashKeepsFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'The files are still on the phone. Emptying the trash is what removes them.'**
+  String get trashKeepsFiles;
+
+  /// No description provided for @trashRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Put it back'**
+  String get trashRestore;
+
+  /// No description provided for @trashDeleteForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete for good'**
+  String get trashDeleteForever;
+
+  /// No description provided for @trashDeleteForeverConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this for good?'**
+  String get trashDeleteForeverConfirm;
+
+  /// No description provided for @trashDeleteForeverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is nothing behind this one.'**
+  String get trashDeleteForeverBody;
+
+  /// No description provided for @trashEmptyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Empty the trash — 1 item?} other{Empty the trash — {count} items?}}'**
+  String trashEmptyConfirm(int count);
+
+  /// No description provided for @trashEmptyConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in the trash goes for good.'**
+  String get trashEmptyConfirmBody;
+
+  /// No description provided for @trashEmptyFilesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every picture in here is deleted from the phone, files and all. There is no undo.'**
+  String get trashEmptyFilesBody;
+
+  /// No description provided for @trashWholeAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole album'**
+  String get trashWholeAlbum;
+
+  /// No description provided for @notesNewFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get notesNewFolder;
+
+  /// No description provided for @notesNewSubfolder.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder inside'**
+  String get notesNewSubfolder;
+
+  /// No description provided for @notesRenameFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename folder'**
+  String get notesRenameFolder;
+
+  /// No description provided for @notesDeleteFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete folder'**
+  String get notesDeleteFolder;
+
+  /// No description provided for @notesDeleteFolderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Its notes go to the trash'**
+  String get notesDeleteFolderHint;
+
+  /// No description provided for @notesFolderOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder options'**
+  String get notesFolderOptions;
+
+  /// No description provided for @notesFolderNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Health, Work, Reading'**
+  String get notesFolderNameHint;
+
+  /// No description provided for @notesNewHere.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get notesNewHere;
+
+  /// No description provided for @notesMoveToFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to folder'**
+  String get notesMoveToFolder;
+
+  /// No description provided for @notesSharePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as PDF'**
+  String get notesSharePdf;
+
+  /// No description provided for @notesPdfFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That note could not be turned into a PDF.'**
+  String get notesPdfFailed;
+
+  /// No description provided for @notesMovedToTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to the trash'**
+  String get notesMovedToTrash;
+
+  /// No description provided for @notesFolderTrashed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{{folder} is gone} =1{{folder} and 1 note moved to the trash} other{{folder} and {count} notes moved to the trash}}'**
+  String notesFolderTrashed(String folder, int count);
+
+  /// No description provided for @mdHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get mdHeading;
+
+  /// No description provided for @mdBold.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get mdBold;
+
+  /// No description provided for @mdItalic.
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get mdItalic;
+
+  /// No description provided for @mdCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get mdCode;
+
+  /// No description provided for @mdList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get mdList;
+
+  /// No description provided for @mdTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get mdTask;
+
+  /// No description provided for @mdQuote.
+  ///
+  /// In en, this message translates to:
+  /// **'Quote'**
+  String get mdQuote;
+
+  /// No description provided for @mdWikiLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a note'**
+  String get mdWikiLink;
+
+  /// No description provided for @mdTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get mdTable;
+
+  /// No description provided for @mdTableRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a row'**
+  String get mdTableRow;
+
+  /// No description provided for @mdTableColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a column'**
+  String get mdTableColumn;
+
+  /// No description provided for @mdRowShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Row'**
+  String get mdRowShort;
+
+  /// No description provided for @mdColumnShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Col'**
+  String get mdColumnShort;
+
+  /// No description provided for @mdHideKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the keyboard'**
+  String get mdHideKeyboard;
+
+  /// No description provided for @galleryDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get galleryDoneToday;
+
+  /// No description provided for @galleryMovedToTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to the trash'**
+  String get galleryMovedToTrash;
+
+  /// No description provided for @galleryFileGone.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is no longer on the phone.'**
+  String get galleryFileGone;
 }
 
 class _AppLocalizationsDelegate

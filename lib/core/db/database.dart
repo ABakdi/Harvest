@@ -148,8 +148,11 @@ class Albums extends Table {
 /// One photo or video in an album, with the Harvest Day it belongs to.
 ///
 /// The file itself lives in the app's own storage; this row points at
-/// it. Deleting a memory deletes the file, so there is no soft delete
-/// here — a picture asked to be gone must be gone (rule G5).
+/// it. Deleting is a two-step: [deletedAt] puts the memory in the
+/// trash and the file stays where it is, and emptying the trash is
+/// what actually deletes it (rule G5, revised in [[Checkpoint-5]] —
+/// "gone for good" now means gone from the trash, because a picture
+/// deleted by a fat thumb was gone for good too).
 @DataClassName('MemoryRow')
 class Memories extends Table {
   TextColumn get uuid => text()();
@@ -165,6 +168,9 @@ class Memories extends Table {
   TextColumn get note => text().nullable()();
   DateTimeColumn get capturedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// In the trash since. Null is a memory I still have.
+  DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -389,7 +395,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -398,6 +404,7 @@ class HarvestDatabase extends _$HarvestDatabase {
       // columns; later addColumn steps must skip it.
       final expensesJustCreated = from < 2;
       final moneyTxnsJustCreated = from < 6;
+      final memoriesJustCreated = from < 10;
       if (from < 2) {
         await m.createTable(expenses);
       }
@@ -434,6 +441,9 @@ class HarvestDatabase extends _$HarvestDatabase {
         await m.createTable(noteLinks);
         await m.createTable(albums);
         await m.createTable(memories);
+      }
+      if (from < 11 && !memoriesJustCreated) {
+        await m.addColumn(memories, memories.deletedAt);
       }
     },
   );

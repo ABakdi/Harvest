@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
-import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/domain/gallery_service.dart';
 import 'package:harvest/features/gallery/presentation/memory_view.dart';
 import 'package:harvest/l10n/app_localizations.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
 /// Full-screen memory, swipeable, with its note and the way out.
@@ -46,50 +46,58 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
   Memory get _current => widget.memories[_index];
 
   Future<void> _editNote() async {
-    final l10n = AppLocalizations.of(context);
     final memory = _current;
-    final controller = TextEditingController(text: memory.note ?? '');
     final note = await showHarvestSheet<String>(
       context,
-      builder: (context) => HarvestSheet(
-        title: l10n.galleryMemoryNote,
-        actionLabel: l10n.save,
-        onAction: () => Navigator.of(context).pop(controller.text.trim()),
-        children: [
-          TextField(
-            controller: controller,
-            autofocus: true,
-            maxLines: 4,
-            minLines: 2,
-            decoration: InputDecoration(hintText: l10n.galleryMemoryNoteHint),
-          ),
-        ],
-      ),
+      builder: (_) => _NoteSheet(initial: memory.note ?? ''),
     );
-    controller.dispose();
     if (note == null) return;
     await ref
         .read(galleryRepositoryProvider)
         .setMemoryNote(memory.uuid, note.isEmpty ? null : note);
   }
 
-  /// Rule G5: a photo I asked to be gone must be gone. No undo, and the
-  /// dialog says so before the file goes.
+  /// Out of the app, deliberately.
+  ///
+  /// The gallery keeps its files to itself (rule G2) — this is the one
+  /// door out, and it is one I have to open by hand, per picture.
+  Future<void> _share() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final memory = _current;
+    final file = await ref.read(galleryRepositoryProvider).fileOf(memory);
+    if (!file.existsSync()) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.galleryFileGone)));
+      return;
+    }
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path)],
+        text: memory.note,
+      ),
+    );
+  }
+
+  /// Rule G5, as revised: the picture goes to the trash rather than
+  /// off the disk, and the snack bar can put it straight back.
   Future<void> _delete() async {
     final l10n = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
-    final ok = await confirm(
-      context,
-      title: l10n.galleryDeleteMemoryTitle,
-      body: l10n.galleryDeleteMemoryBody,
-      confirmLabel: l10n.deleteAction,
-      destructive: true,
-    );
-    if (!ok) return;
-    await ref
-        .read(galleryServiceProvider)
-        .remove(_current, album: widget.album);
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(galleryServiceProvider);
+    final memory = _current;
+    await service.remove(memory, album: widget.album);
     navigator.pop();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.galleryMovedToTrash),
+        action: SnackBarAction(
+          label: l10n.undoAction,
+          onPressed: () =>
+              service.restore(memory, album: widget.album).ignore(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -104,12 +112,23 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        // The theme's title colour is meant for a cream app bar; on
+        // black it disappears.
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+        ),
         title: Text(formatDay(context, current.day, weekday: true)),
         actions: [
           IconButton(
             tooltip: l10n.galleryMemoryNote,
             icon: const Icon(Icons.sticky_note_2_outlined),
             onPressed: () => unawaited(_editNote()),
+          ),
+          IconButton(
+            tooltip: l10n.shareAction,
+            icon: const Icon(Icons.ios_share),
+            onPressed: () => unawaited(_share()),
           ),
           IconButton(
             tooltip: l10n.deleteAction,
@@ -224,6 +243,49 @@ class _VideoMemoryState extends ConsumerState<_VideoMemory> {
           child: VideoPlayer(controller),
         ),
       ),
+    );
+  }
+}
+
+/// What I wrote about one picture.
+///
+/// Its own widget so the controller dies with the sheet rather than
+/// the instant the sheet's future completes.
+class _NoteSheet extends StatefulWidget {
+  const _NoteSheet({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_NoteSheet> createState() => _NoteSheetState();
+}
+
+class _NoteSheetState extends State<_NoteSheet> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return HarvestSheet(
+      title: l10n.galleryMemoryNote,
+      actionLabel: l10n.save,
+      onAction: () => Navigator.of(context).pop(_controller.text.trim()),
+      children: [
+        TextField(
+          controller: _controller,
+          autofocus: true,
+          maxLines: 4,
+          minLines: 2,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(hintText: l10n.galleryMemoryNoteHint),
+        ),
+      ],
     );
   }
 }

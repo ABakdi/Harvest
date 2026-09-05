@@ -41,6 +41,10 @@ class _CompareScreenState extends State<CompareScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+        ),
         title: Text(l10n.galleryCompare),
       ),
       body: SafeArea(

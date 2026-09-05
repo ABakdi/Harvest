@@ -50,6 +50,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-2]] — the app lock and the spreadsheet export
 - [[Checkpoint-3]] — eleven things a fortnight of using it turned up
 - [[Checkpoint-4]] — numbers on the charts, and a day that keeps my hours
+- [[Checkpoint-5]] — Records under one tab, and an editor worth writing in
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board
