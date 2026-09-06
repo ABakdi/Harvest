@@ -9277,6 +9277,634 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSetRow> {
   }
 }
 
+class $SleepSessionsTable extends SleepSessions
+    with TableInfo<$SleepSessionsTable, SleepSessionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SleepSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fellAsleepAtMeta = const VerificationMeta(
+    'fellAsleepAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fellAsleepAt = GeneratedColumn<DateTime>(
+    'fell_asleep_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _wokeAtMeta = const VerificationMeta('wokeAt');
+  @override
+  late final GeneratedColumn<DateTime> wokeAt = GeneratedColumn<DateTime>(
+    'woke_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetMinutesMeta = const VerificationMeta(
+    'targetMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> targetMinutes = GeneratedColumn<int>(
+    'target_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _restedStarsMeta = const VerificationMeta(
+    'restedStars',
+  );
+  @override
+  late final GeneratedColumn<int> restedStars = GeneratedColumn<int>(
+    'rested_stars',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    harvestDay,
+    fellAsleepAt,
+    wokeAt,
+    targetMinutes,
+    restedStars,
+    note,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sleep_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SleepSessionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('fell_asleep_at')) {
+      context.handle(
+        _fellAsleepAtMeta,
+        fellAsleepAt.isAcceptableOrUnknown(
+          data['fell_asleep_at']!,
+          _fellAsleepAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fellAsleepAtMeta);
+    }
+    if (data.containsKey('woke_at')) {
+      context.handle(
+        _wokeAtMeta,
+        wokeAt.isAcceptableOrUnknown(data['woke_at']!, _wokeAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wokeAtMeta);
+    }
+    if (data.containsKey('target_minutes')) {
+      context.handle(
+        _targetMinutesMeta,
+        targetMinutes.isAcceptableOrUnknown(
+          data['target_minutes']!,
+          _targetMinutesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetMinutesMeta);
+    }
+    if (data.containsKey('rested_stars')) {
+      context.handle(
+        _restedStarsMeta,
+        restedStars.isAcceptableOrUnknown(
+          data['rested_stars']!,
+          _restedStarsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  SleepSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SleepSessionRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      fellAsleepAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fell_asleep_at'],
+      )!,
+      wokeAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}woke_at'],
+      )!,
+      targetMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_minutes'],
+      )!,
+      restedStars: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rested_stars'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $SleepSessionsTable createAlias(String alias) {
+    return $SleepSessionsTable(attachedDatabase, alias);
+  }
+}
+
+class SleepSessionRow extends DataClass implements Insertable<SleepSessionRow> {
+  final String uuid;
+
+  /// The Harvest Day I woke up on: a night is filed under its morning,
+  /// because that is the day it decides how I feel.
+  final String harvestDay;
+  final DateTime fellAsleepAt;
+  final DateTime wokeAt;
+
+  /// What the night was meant to be, in minutes, as of that night.
+  final int targetMinutes;
+
+  /// 1-5. Null is a legitimate answer at 6 AM.
+  final int? restedStars;
+  final String? note;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const SleepSessionRow({
+    required this.uuid,
+    required this.harvestDay,
+    required this.fellAsleepAt,
+    required this.wokeAt,
+    required this.targetMinutes,
+    this.restedStars,
+    this.note,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['fell_asleep_at'] = Variable<DateTime>(fellAsleepAt);
+    map['woke_at'] = Variable<DateTime>(wokeAt);
+    map['target_minutes'] = Variable<int>(targetMinutes);
+    if (!nullToAbsent || restedStars != null) {
+      map['rested_stars'] = Variable<int>(restedStars);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  SleepSessionsCompanion toCompanion(bool nullToAbsent) {
+    return SleepSessionsCompanion(
+      uuid: Value(uuid),
+      harvestDay: Value(harvestDay),
+      fellAsleepAt: Value(fellAsleepAt),
+      wokeAt: Value(wokeAt),
+      targetMinutes: Value(targetMinutes),
+      restedStars: restedStars == null && nullToAbsent
+          ? const Value.absent()
+          : Value(restedStars),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory SleepSessionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SleepSessionRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      fellAsleepAt: serializer.fromJson<DateTime>(json['fellAsleepAt']),
+      wokeAt: serializer.fromJson<DateTime>(json['wokeAt']),
+      targetMinutes: serializer.fromJson<int>(json['targetMinutes']),
+      restedStars: serializer.fromJson<int?>(json['restedStars']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'fellAsleepAt': serializer.toJson<DateTime>(fellAsleepAt),
+      'wokeAt': serializer.toJson<DateTime>(wokeAt),
+      'targetMinutes': serializer.toJson<int>(targetMinutes),
+      'restedStars': serializer.toJson<int?>(restedStars),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  SleepSessionRow copyWith({
+    String? uuid,
+    String? harvestDay,
+    DateTime? fellAsleepAt,
+    DateTime? wokeAt,
+    int? targetMinutes,
+    Value<int?> restedStars = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => SleepSessionRow(
+    uuid: uuid ?? this.uuid,
+    harvestDay: harvestDay ?? this.harvestDay,
+    fellAsleepAt: fellAsleepAt ?? this.fellAsleepAt,
+    wokeAt: wokeAt ?? this.wokeAt,
+    targetMinutes: targetMinutes ?? this.targetMinutes,
+    restedStars: restedStars.present ? restedStars.value : this.restedStars,
+    note: note.present ? note.value : this.note,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  SleepSessionRow copyWithCompanion(SleepSessionsCompanion data) {
+    return SleepSessionRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      fellAsleepAt: data.fellAsleepAt.present
+          ? data.fellAsleepAt.value
+          : this.fellAsleepAt,
+      wokeAt: data.wokeAt.present ? data.wokeAt.value : this.wokeAt,
+      targetMinutes: data.targetMinutes.present
+          ? data.targetMinutes.value
+          : this.targetMinutes,
+      restedStars: data.restedStars.present
+          ? data.restedStars.value
+          : this.restedStars,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SleepSessionRow(')
+          ..write('uuid: $uuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('fellAsleepAt: $fellAsleepAt, ')
+          ..write('wokeAt: $wokeAt, ')
+          ..write('targetMinutes: $targetMinutes, ')
+          ..write('restedStars: $restedStars, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    harvestDay,
+    fellAsleepAt,
+    wokeAt,
+    targetMinutes,
+    restedStars,
+    note,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SleepSessionRow &&
+          other.uuid == this.uuid &&
+          other.harvestDay == this.harvestDay &&
+          other.fellAsleepAt == this.fellAsleepAt &&
+          other.wokeAt == this.wokeAt &&
+          other.targetMinutes == this.targetMinutes &&
+          other.restedStars == this.restedStars &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class SleepSessionsCompanion extends UpdateCompanion<SleepSessionRow> {
+  final Value<String> uuid;
+  final Value<String> harvestDay;
+  final Value<DateTime> fellAsleepAt;
+  final Value<DateTime> wokeAt;
+  final Value<int> targetMinutes;
+  final Value<int?> restedStars;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const SleepSessionsCompanion({
+    this.uuid = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.fellAsleepAt = const Value.absent(),
+    this.wokeAt = const Value.absent(),
+    this.targetMinutes = const Value.absent(),
+    this.restedStars = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SleepSessionsCompanion.insert({
+    required String uuid,
+    required String harvestDay,
+    required DateTime fellAsleepAt,
+    required DateTime wokeAt,
+    required int targetMinutes,
+    this.restedStars = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       harvestDay = Value(harvestDay),
+       fellAsleepAt = Value(fellAsleepAt),
+       wokeAt = Value(wokeAt),
+       targetMinutes = Value(targetMinutes);
+  static Insertable<SleepSessionRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? fellAsleepAt,
+    Expression<DateTime>? wokeAt,
+    Expression<int>? targetMinutes,
+    Expression<int>? restedStars,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (fellAsleepAt != null) 'fell_asleep_at': fellAsleepAt,
+      if (wokeAt != null) 'woke_at': wokeAt,
+      if (targetMinutes != null) 'target_minutes': targetMinutes,
+      if (restedStars != null) 'rested_stars': restedStars,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SleepSessionsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? harvestDay,
+    Value<DateTime>? fellAsleepAt,
+    Value<DateTime>? wokeAt,
+    Value<int>? targetMinutes,
+    Value<int?>? restedStars,
+    Value<String?>? note,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return SleepSessionsCompanion(
+      uuid: uuid ?? this.uuid,
+      harvestDay: harvestDay ?? this.harvestDay,
+      fellAsleepAt: fellAsleepAt ?? this.fellAsleepAt,
+      wokeAt: wokeAt ?? this.wokeAt,
+      targetMinutes: targetMinutes ?? this.targetMinutes,
+      restedStars: restedStars ?? this.restedStars,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (fellAsleepAt.present) {
+      map['fell_asleep_at'] = Variable<DateTime>(fellAsleepAt.value);
+    }
+    if (wokeAt.present) {
+      map['woke_at'] = Variable<DateTime>(wokeAt.value);
+    }
+    if (targetMinutes.present) {
+      map['target_minutes'] = Variable<int>(targetMinutes.value);
+    }
+    if (restedStars.present) {
+      map['rested_stars'] = Variable<int>(restedStars.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SleepSessionsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('fellAsleepAt: $fellAsleepAt, ')
+          ..write('wokeAt: $wokeAt, ')
+          ..write('targetMinutes: $targetMinutes, ')
+          ..write('restedStars: $restedStars, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StreaksTable extends Streaks with TableInfo<$StreaksTable, StreakRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -14374,6 +15002,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     this,
   );
   late final $WorkoutSetsTable workoutSets = $WorkoutSetsTable(this);
+  late final $SleepSessionsTable sleepSessions = $SleepSessionsTable(this);
   late final $StreaksTable streaks = $StreaksTable(this);
   late final $LedgerTable ledger = $LedgerTable(this);
   late final $QuestsTable quests = $QuestsTable(this);
@@ -14411,6 +15040,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     workoutSessions,
     sessionExercises,
     workoutSets,
+    sleepSessions,
     streaks,
     ledger,
     quests,
@@ -21191,6 +21821,315 @@ typedef $$WorkoutSetsTableProcessedTableManager =
       WorkoutSetRow,
       PrefetchHooks Function({bool sessionExerciseUuid})
     >;
+typedef $$SleepSessionsTableCreateCompanionBuilder =
+    SleepSessionsCompanion Function({
+      required String uuid,
+      required String harvestDay,
+      required DateTime fellAsleepAt,
+      required DateTime wokeAt,
+      required int targetMinutes,
+      Value<int?> restedStars,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$SleepSessionsTableUpdateCompanionBuilder =
+    SleepSessionsCompanion Function({
+      Value<String> uuid,
+      Value<String> harvestDay,
+      Value<DateTime> fellAsleepAt,
+      Value<DateTime> wokeAt,
+      Value<int> targetMinutes,
+      Value<int?> restedStars,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$SleepSessionsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $SleepSessionsTable> {
+  $$SleepSessionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fellAsleepAt => $composableBuilder(
+    column: $table.fellAsleepAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get wokeAt => $composableBuilder(
+    column: $table.wokeAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetMinutes => $composableBuilder(
+    column: $table.targetMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get restedStars => $composableBuilder(
+    column: $table.restedStars,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SleepSessionsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $SleepSessionsTable> {
+  $$SleepSessionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fellAsleepAt => $composableBuilder(
+    column: $table.fellAsleepAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get wokeAt => $composableBuilder(
+    column: $table.wokeAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetMinutes => $composableBuilder(
+    column: $table.targetMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get restedStars => $composableBuilder(
+    column: $table.restedStars,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SleepSessionsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $SleepSessionsTable> {
+  $$SleepSessionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get fellAsleepAt => $composableBuilder(
+    column: $table.fellAsleepAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get wokeAt =>
+      $composableBuilder(column: $table.wokeAt, builder: (column) => column);
+
+  GeneratedColumn<int> get targetMinutes => $composableBuilder(
+    column: $table.targetMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get restedStars => $composableBuilder(
+    column: $table.restedStars,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$SleepSessionsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $SleepSessionsTable,
+          SleepSessionRow,
+          $$SleepSessionsTableFilterComposer,
+          $$SleepSessionsTableOrderingComposer,
+          $$SleepSessionsTableAnnotationComposer,
+          $$SleepSessionsTableCreateCompanionBuilder,
+          $$SleepSessionsTableUpdateCompanionBuilder,
+          (
+            SleepSessionRow,
+            BaseReferences<
+              _$HarvestDatabase,
+              $SleepSessionsTable,
+              SleepSessionRow
+            >,
+          ),
+          SleepSessionRow,
+          PrefetchHooks Function()
+        > {
+  $$SleepSessionsTableTableManager(
+    _$HarvestDatabase db,
+    $SleepSessionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SleepSessionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SleepSessionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SleepSessionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> fellAsleepAt = const Value.absent(),
+                Value<DateTime> wokeAt = const Value.absent(),
+                Value<int> targetMinutes = const Value.absent(),
+                Value<int?> restedStars = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SleepSessionsCompanion(
+                uuid: uuid,
+                harvestDay: harvestDay,
+                fellAsleepAt: fellAsleepAt,
+                wokeAt: wokeAt,
+                targetMinutes: targetMinutes,
+                restedStars: restedStars,
+                note: note,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String harvestDay,
+                required DateTime fellAsleepAt,
+                required DateTime wokeAt,
+                required int targetMinutes,
+                Value<int?> restedStars = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SleepSessionsCompanion.insert(
+                uuid: uuid,
+                harvestDay: harvestDay,
+                fellAsleepAt: fellAsleepAt,
+                wokeAt: wokeAt,
+                targetMinutes: targetMinutes,
+                restedStars: restedStars,
+                note: note,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SleepSessionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $SleepSessionsTable,
+      SleepSessionRow,
+      $$SleepSessionsTableFilterComposer,
+      $$SleepSessionsTableOrderingComposer,
+      $$SleepSessionsTableAnnotationComposer,
+      $$SleepSessionsTableCreateCompanionBuilder,
+      $$SleepSessionsTableUpdateCompanionBuilder,
+      (
+        SleepSessionRow,
+        BaseReferences<_$HarvestDatabase, $SleepSessionsTable, SleepSessionRow>,
+      ),
+      SleepSessionRow,
+      PrefetchHooks Function()
+    >;
 typedef $$StreaksTableCreateCompanionBuilder = StreaksCompanion Function({
   required String scope,
   Value<int> current,
@@ -24064,6 +25003,8 @@ class $HarvestDatabaseManager {
       $$SessionExercisesTableTableManager(_db, _db.sessionExercises);
   $$WorkoutSetsTableTableManager get workoutSets =>
       $$WorkoutSetsTableTableManager(_db, _db.workoutSets);
+  $$SleepSessionsTableTableManager get sleepSessions =>
+      $$SleepSessionsTableTableManager(_db, _db.sleepSessions);
   $$StreaksTableTableManager get streaks =>
       $$StreaksTableTableManager(_db, _db.streaks);
   $$LedgerTableTableManager get ledger =>

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/app/bootstrap.dart';
@@ -11,6 +12,7 @@ import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/category_settings.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/gym/presentation/media_card.dart';
+import 'package:harvest/features/health/presentation/sleep_settings_card.dart';
 import 'package:harvest/features/import/presentation/import_card.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
@@ -98,6 +100,12 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: l10n.settingsCycleHint,
           ),
           const DailyCycleCard(),
+          // Sleep sits directly under the cycle because it is the same
+          // two times, put to work.
+          if (ref.watch(healthEnabledProvider)) ...[
+            SectionHeader(l10n.sleepSection),
+            const SleepSettingsCard(),
+          ],
           SectionHeader(l10n.settingsReminders),
           const _RemindersCard(),
           SectionHeader(l10n.settingsPomodoro),

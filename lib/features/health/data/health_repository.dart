@@ -61,39 +61,42 @@ class HealthRepository {
     String? note,
     DateTime? measuredAt,
   }) => _db.transaction(() async {
-    await (_db.update(_db.bodyWeights)..where((w) => w.uuid.equals(uuid)))
-        .write(
-          BodyWeightsCompanion(
-            grams: grams == null ? const Value.absent() : Value(grams),
-            note: Value(note),
-            harvestDay: measuredAt == null
-                ? const Value.absent()
-                : Value(HarvestDay.of(measuredAt).key),
-            measuredAt: measuredAt == null
-                ? const Value.absent()
-                : Value(measuredAt),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
+    await (_db.update(
+      _db.bodyWeights,
+    )..where((w) => w.uuid.equals(uuid))).write(
+      BodyWeightsCompanion(
+        grams: grams == null ? const Value.absent() : Value(grams),
+        note: Value(note),
+        harvestDay: measuredAt == null
+            ? const Value.absent()
+            : Value(HarvestDay.of(measuredAt).key),
+        measuredAt: measuredAt == null
+            ? const Value.absent()
+            : Value(measuredAt),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
     await _outbox('body_weights', uuid, 'update');
   });
 
   Future<void> removeWeight(String uuid) => _db.transaction(() async {
-    await (_db.update(_db.bodyWeights)..where((w) => w.uuid.equals(uuid)))
-        .write(
-          BodyWeightsCompanion(
-            deletedAt: Value(DateTime.now()),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
+    await (_db.update(
+      _db.bodyWeights,
+    )..where((w) => w.uuid.equals(uuid))).write(
+      BodyWeightsCompanion(
+        deletedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
     await _outbox('body_weights', uuid, 'update');
   });
 
   Future<void> restoreWeight(String uuid) => _db.transaction(() async {
-    await (_db.update(_db.bodyWeights)..where((w) => w.uuid.equals(uuid)))
-        .write(
-          const BodyWeightsCompanion(deletedAt: Value(null)),
-        );
+    await (_db.update(
+      _db.bodyWeights,
+    )..where((w) => w.uuid.equals(uuid))).write(
+      const BodyWeightsCompanion(deletedAt: Value(null)),
+    );
     await _outbox('body_weights', uuid, 'update');
   });
 

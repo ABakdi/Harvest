@@ -13,21 +13,25 @@ import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/domain/steps.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
+import 'package:harvest/features/health/presentation/sleep_card.dart';
 import 'package:harvest/features/health/presentation/weight_chart.dart';
 import 'package:harvest/features/health/presentation/weight_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
-/// Steps, weight, and — later — sleep.
+/// Sleep, steps and weight.
 ///
 /// Three numbers with one thing in common: none of them is a target to
-/// hit every day, and all of them are a line to look at.
+/// hit every day, and all of them are a line to look at. Sleep is
+/// first because it is the only one of the three I have to write down
+/// myself, and the moment to do it is this morning.
 class HealthScreen extends ConsumerWidget {
   const HealthScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final weights = ref.watch(bodyWeightsProvider).value ?? const <BodyWeight>[];
+    final weights =
+        ref.watch(bodyWeightsProvider).value ?? const <BodyWeight>[];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navHealth)),
@@ -46,6 +50,7 @@ class HealthScreen extends ConsumerWidget {
           120,
         ),
         children: [
+          const SleepCard(),
           const _StepsCard(),
           SectionHeader(l10n.weightTitle),
           if (weights.isEmpty)
@@ -65,6 +70,8 @@ class HealthScreen extends ConsumerWidget {
             for (final weight in weights.reversed.take(20))
               _WeightRow(weight: weight),
           ],
+          SectionHeader(l10n.sleepNights),
+          const SleepNightsList(),
         ],
       ),
     );

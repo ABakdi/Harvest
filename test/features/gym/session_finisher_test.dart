@@ -163,7 +163,7 @@ void main() {
   });
 
   group('the day it counts for', () {
-    test('is the session\'s day, not the moment it was finished', () async {
+    test("is the session's day, not the moment it was finished", () async {
       final made = await aProgram();
       // A session that began before 3 AM belongs to the night before,
       // and finishing it at 2:30 must not check in tomorrow.

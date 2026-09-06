@@ -4508,6 +4508,216 @@ abstract class AppLocalizations {
   /// **'Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.'**
   String gymPlateShortfall(String total, String short);
 
+  /// No description provided for @sleepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last night'**
+  String get sleepTitle;
+
+  /// No description provided for @sleepSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two times and a feeling. Nothing here was measured by the phone, and none of it is a test.'**
+  String get sleepSubtitle;
+
+  /// No description provided for @sleepSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Write it down'**
+  String get sleepSave;
+
+  /// No description provided for @sleepFellAsleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Fell asleep'**
+  String get sleepFellAsleep;
+
+  /// No description provided for @sleepWoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Woke'**
+  String get sleepWoke;
+
+  /// No description provided for @sleepRested.
+  ///
+  /// In en, this message translates to:
+  /// **'How rested?'**
+  String get sleepRested;
+
+  /// No description provided for @sleepLength.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String sleepLength(int hours, int minutes);
+
+  /// No description provided for @sleepLastNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Last night'**
+  String get sleepLastNight;
+
+  /// No description provided for @sleepNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not written down'**
+  String get sleepNothingYet;
+
+  /// No description provided for @sleepLogIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get sleepLogIt;
+
+  /// No description provided for @sleepAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m on average, over {nights} nights'**
+  String sleepAverage(int hours, int minutes, int nights);
+
+  /// No description provided for @sleepDebtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to yourself'**
+  String get sleepDebtLabel;
+
+  /// No description provided for @sleepDebtBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks of short nights, added up. Long nights pay it back.'**
+  String get sleepDebtBody;
+
+  /// No description provided for @sleepSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get sleepSection;
+
+  /// No description provided for @sleepAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake me'**
+  String get sleepAlarm;
+
+  /// No description provided for @sleepAlarmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings at the wake time your day is already built around.'**
+  String get sleepAlarmBody;
+
+  /// No description provided for @sleepAlarmExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow exact alarms'**
+  String get sleepAlarmExact;
+
+  /// No description provided for @sleepAlarmExactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.'**
+  String get sleepAlarmExactBody;
+
+  /// No description provided for @sleepWindDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Say something before bed'**
+  String get sleepWindDown;
+
+  /// No description provided for @sleepWindDownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Half an hour before the bedtime your day is built around.'**
+  String get sleepWindDownBody;
+
+  /// No description provided for @sleepWindDownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Half an hour to bed'**
+  String get sleepWindDownTitle;
+
+  /// No description provided for @sleepWindDownText.
+  ///
+  /// In en, this message translates to:
+  /// **'Whatever you are in the middle of will still be there tomorrow.'**
+  String get sleepWindDownText;
+
+  /// No description provided for @sleepAlarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get sleepAlarmTitle;
+
+  /// No description provided for @sleepAlarmText.
+  ///
+  /// In en, this message translates to:
+  /// **'Two questions and a feeling, while you still remember it.'**
+  String get sleepAlarmText;
+
+  /// No description provided for @sleepNights.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nights'**
+  String get sleepNights;
+
+  /// No description provided for @sleepNoNights.
+  ///
+  /// In en, this message translates to:
+  /// **'No nights written down yet'**
+  String get sleepNoNights;
+
+  /// No description provided for @sleepNoNightsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write down one morning and the line starts. Two weeks of them and it has a shape.'**
+  String get sleepNoNightsBody;
+
+  /// No description provided for @sleepOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Nights of their own'**
+  String get sleepOverrides;
+
+  /// No description provided for @sleepOverrideCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 weekday of its own} other{{count} weekdays of their own}}'**
+  String sleepOverrideCount(int count);
+
+  /// No description provided for @sleepOverridesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday is not Tuesday. A weekday set here overrides the hours your day is built around.'**
+  String get sleepOverridesBody;
+
+  /// No description provided for @sleepSameAsUsual.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as usual'**
+  String get sleepSameAsUsual;
+
+  /// No description provided for @sleepNightOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String sleepNightOf(String from, String to);
+
+  /// No description provided for @sleepDeleteNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this night?'**
+  String get sleepDeleteNight;
+
+  /// No description provided for @sleepDeleteNightBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the line and the debt is worked out again without it.'**
+  String get sleepDeleteNightBody;
+
+  /// No description provided for @sleepStars.
+  ///
+  /// In en, this message translates to:
+  /// **'{stars, plural, =0{} =1{1 star} other{{stars} stars}}'**
+  String sleepStars(int stars);
+
   /// No description provided for @gymPlantProgram.
   ///
   /// In en, this message translates to:

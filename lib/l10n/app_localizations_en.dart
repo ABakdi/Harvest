@@ -2724,6 +2724,144 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sleepTitle => 'Last night';
+
+  @override
+  String get sleepSubtitle =>
+      'Two times and a feeling. Nothing here was measured by the phone, and none of it is a test.';
+
+  @override
+  String get sleepSave => 'Write it down';
+
+  @override
+  String get sleepFellAsleep => 'Fell asleep';
+
+  @override
+  String get sleepWoke => 'Woke';
+
+  @override
+  String get sleepRested => 'How rested?';
+
+  @override
+  String sleepLength(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get sleepLastNight => 'Last night';
+
+  @override
+  String get sleepNothingYet => 'Not written down';
+
+  @override
+  String get sleepLogIt => 'Log it';
+
+  @override
+  String sleepAverage(int hours, int minutes, int nights) {
+    return '${hours}h ${minutes}m on average, over $nights nights';
+  }
+
+  @override
+  String get sleepDebtLabel => 'Owed to yourself';
+
+  @override
+  String get sleepDebtBody =>
+      'Two weeks of short nights, added up. Long nights pay it back.';
+
+  @override
+  String get sleepSection => 'Sleep';
+
+  @override
+  String get sleepAlarm => 'Wake me';
+
+  @override
+  String get sleepAlarmBody =>
+      'Rings at the wake time your day is already built around.';
+
+  @override
+  String get sleepAlarmExact => 'Allow exact alarms';
+
+  @override
+  String get sleepAlarmExactBody =>
+      'Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.';
+
+  @override
+  String get sleepWindDown => 'Say something before bed';
+
+  @override
+  String get sleepWindDownBody =>
+      'Half an hour before the bedtime your day is built around.';
+
+  @override
+  String get sleepWindDownTitle => 'Half an hour to bed';
+
+  @override
+  String get sleepWindDownText =>
+      'Whatever you are in the middle of will still be there tomorrow.';
+
+  @override
+  String get sleepAlarmTitle => 'Morning';
+
+  @override
+  String get sleepAlarmText =>
+      'Two questions and a feeling, while you still remember it.';
+
+  @override
+  String get sleepNights => 'Your nights';
+
+  @override
+  String get sleepNoNights => 'No nights written down yet';
+
+  @override
+  String get sleepNoNightsBody =>
+      'Write down one morning and the line starts. Two weeks of them and it has a shape.';
+
+  @override
+  String get sleepOverrides => 'Nights of their own';
+
+  @override
+  String sleepOverrideCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weekdays of their own',
+      one: '1 weekday of its own',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepOverridesBody =>
+      'Saturday is not Tuesday. A weekday set here overrides the hours your day is built around.';
+
+  @override
+  String get sleepSameAsUsual => 'Same as usual';
+
+  @override
+  String sleepNightOf(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get sleepDeleteNight => 'Delete this night?';
+
+  @override
+  String get sleepDeleteNightBody =>
+      'It leaves the line and the debt is worked out again without it.';
+
+  @override
+  String sleepStars(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: '$stars stars',
+      one: '1 star',
+      zero: '',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get gymPlantProgram => 'Plant this on your field';
 
   @override

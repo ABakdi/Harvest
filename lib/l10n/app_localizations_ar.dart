@@ -2735,6 +2735,144 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get sleepTitle => 'ليلة أمس';
+
+  @override
+  String get sleepSubtitle =>
+      'وقتان وشعور. لم يقس الهاتف شيئًا من هذا، وليس شيء منه امتحانًا.';
+
+  @override
+  String get sleepSave => 'دوّنها';
+
+  @override
+  String get sleepFellAsleep => 'غفوت';
+
+  @override
+  String get sleepWoke => 'استيقظت';
+
+  @override
+  String get sleepRested => 'كم ارتحت؟';
+
+  @override
+  String sleepLength(int hours, int minutes) {
+    return '$hoursس $minutesد';
+  }
+
+  @override
+  String get sleepLastNight => 'ليلة أمس';
+
+  @override
+  String get sleepNothingYet => 'غير مدوّنة';
+
+  @override
+  String get sleepLogIt => 'دوّنها';
+
+  @override
+  String sleepAverage(int hours, int minutes, int nights) {
+    return '$hoursس $minutesد في المتوسط، عبر $nights ليلة';
+  }
+
+  @override
+  String get sleepDebtLabel => 'دَين لنفسك';
+
+  @override
+  String get sleepDebtBody =>
+      'أسبوعان من الليالي القصيرة، مجموعة. والليالي الطويلة تسدّده.';
+
+  @override
+  String get sleepSection => 'النوم';
+
+  @override
+  String get sleepAlarm => 'أيقظني';
+
+  @override
+  String get sleepAlarmBody =>
+      'يرنّ في وقت الاستيقاظ الذي بُني عليه يومك أصلًا.';
+
+  @override
+  String get sleepAlarmExact => 'اسمح بالمنبّهات الدقيقة';
+
+  @override
+  String get sleepAlarmExactBody =>
+      'أندرويد يمنح هذا في شاشة إعداداته. بدونه يرنّ المنبّه، لكن ليس بالضرورة في دقيقته.';
+
+  @override
+  String get sleepWindDown => 'قل شيئًا قبل النوم';
+
+  @override
+  String get sleepWindDownBody =>
+      'قبل نصف ساعة من موعد النوم الذي بُني عليه يومك.';
+
+  @override
+  String get sleepWindDownTitle => 'نصف ساعة على النوم';
+
+  @override
+  String get sleepWindDownText => 'ما أنت منشغل به سيبقى غدًا.';
+
+  @override
+  String get sleepAlarmTitle => 'صباح';
+
+  @override
+  String get sleepAlarmText => 'سؤالان وشعور، وأنت ما زلت تذكره.';
+
+  @override
+  String get sleepNights => 'لياليك';
+
+  @override
+  String get sleepNoNights => 'لا ليالٍ مدوّنة بعد';
+
+  @override
+  String get sleepNoNightsBody =>
+      'دوّن صباحًا واحدًا فيبدأ الخط. وأسبوعان منها ويصير له شكل.';
+
+  @override
+  String get sleepOverrides => 'ليالٍ لها وقتها';
+
+  @override
+  String sleepOverrideCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام لها وقتها',
+      two: 'يومان لهما وقتهما',
+      one: 'يوم له وقته',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepOverridesBody =>
+      'السبت ليس الثلاثاء. اليوم المضبوط هنا يتقدّم على ساعات يومك المعتادة.';
+
+  @override
+  String get sleepSameAsUsual => 'كالمعتاد';
+
+  @override
+  String sleepNightOf(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String get sleepDeleteNight => 'تحذف هذه الليلة؟';
+
+  @override
+  String get sleepDeleteNightBody =>
+      'تخرج من الخط ويُحسب الدَّين من جديد بدونها.';
+
+  @override
+  String sleepStars(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: '$stars نجوم',
+      two: 'نجمتان',
+      one: 'نجمة',
+      zero: '',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get gymPlantProgram => 'ازرعه في حقلك';
 
   @override

@@ -609,6 +609,37 @@ class KvSettings extends Table {
   Set<Column<Object>> get primaryKey => {key};
 }
 
+/// One night, as reported the morning after.
+///
+/// The app does not watch anyone sleep: both ends are times I said. The
+/// target is frozen into the row for the same reason a workout set
+/// keeps its target — moving my bedtime must not rewrite last month's
+/// debt ([[Health]]).
+@DataClassName('SleepSessionRow')
+class SleepSessions extends Table {
+  TextColumn get uuid => text()();
+
+  /// The Harvest Day I woke up on: a night is filed under its morning,
+  /// because that is the day it decides how I feel.
+  TextColumn get harvestDay => text()();
+
+  DateTimeColumn get fellAsleepAt => dateTime()();
+  DateTimeColumn get wokeAt => dateTime()();
+
+  /// What the night was meant to be, in minutes, as of that night.
+  IntColumn get targetMinutes => integer()();
+
+  /// 1-5. Null is a legitimate answer at 6 AM.
+  IntColumn get restedStars => integer().nullable()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
 @DriftDatabase(
   tables: [
     Commitments,
@@ -629,6 +660,7 @@ class KvSettings extends Table {
     WorkoutSessions,
     SessionExercises,
     WorkoutSets,
+    SleepSessions,
     Streaks,
     Ledger,
     Quests,
@@ -648,7 +680,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -713,6 +745,9 @@ class HarvestDatabase extends _$HarvestDatabase {
         await m.createTable(workoutSessions);
         await m.createTable(sessionExercises);
         await m.createTable(workoutSets);
+      }
+      if (from < 13) {
+        await m.createTable(sleepSessions);
       }
     },
   );

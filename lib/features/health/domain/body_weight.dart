@@ -128,7 +128,10 @@ WeightTrend? weightTrend(
 }) {
   if (entries.length < 2) return null;
   final series = weightSeries(entries, window: window);
-  final withAverage = [for (final point in series) if (point.average != null) point];
+  final withAverage = [
+    for (final point in series)
+      if (point.average != null) point,
+  ];
   if (withAverage.length < 2) return null;
 
   final last = withAverage.last;
