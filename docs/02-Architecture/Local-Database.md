@@ -73,7 +73,7 @@ erDiagram
 
 XP and coins are a **ledger**, not a counter — balances are sums, history is free, and sync conflicts become trivial merges.
 
-Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `workout_plans`, `workout_sessions` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
+Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
 
 **Phase 3 is the first time a row points at a file.** A note's body is
 text in the database, but a memory is a path into the app's own
@@ -131,3 +131,19 @@ carry the most sensitive data in the app — amounts, and other people's
 names. They belong in the same tier as expenses in [[Sync-Strategy]]:
 end-to-end encrypted, or local-only by choice. The outbox row itself
 holds no content, only a table, a uuid and an operation.
+
+
+## Reference data is not database data (Phase 4)
+
+The exercise catalogue — 1,324 rows of names, muscles and instructions
+— ships as a **bundled asset, not a table**
+([[ADR-008-Exercise-Catalogue]]). It has no migration, no outbox rows
+and no place in the archive, because it is not mine: a logged set
+refers to an exercise by its `id` and that is the whole relationship.
+
+Exercises I add myself *are* mine, and those are an ordinary table that
+migrates, syncs and exports like everything else.
+
+The same line applies to the animations: fetched, cached in app
+storage, and never confused with data. Clearing that cache loses
+nothing.

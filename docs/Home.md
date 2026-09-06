@@ -20,7 +20,8 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Notes]] — markdown notes with links (Phase 3)
 - [[Gallery]] — albums, the daily photo, the timelapse (Phase 3)
 - [[Finances]] — expense logging and budgets
-- [[Health-and-Gym]] — sleep tracking, alarm, workouts
+- [[Health]] — sleep, steps and body weight
+- [[Gym]] — programs, sessions, sets and personal records
 - [[Screen-Time]] — usage caps and interventions
 - [[Onboarding]] — first-run experience
 - [[Dashboard-and-Widgets]] — home screen, reports, widgets
@@ -64,6 +65,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[ADR-005-Local-First-Sync]] — outbox pattern toward MongoDB
 - [[ADR-006-Export-Format]] — the workbook is the backup format
 - [[ADR-007-Archive-Format]] — the archive is a zip, and it comes back
+- [[ADR-008-Exercise-Catalogue]] — the exercise list is borrowed, the animations are fetched
 
 ## The big picture
 
@@ -80,6 +82,8 @@ mindmap
       Budgets
     Health
       Sleep
+      Steps
+      Weight
       Gym
     Focus
       Screen caps
