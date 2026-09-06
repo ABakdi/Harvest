@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gym/data/exercise_media.dart';
+import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/exercise.dart';
+import 'package:harvest/features/gym/domain/session.dart';
 import 'package:harvest/features/gym/presentation/exercise_image.dart';
+import 'package:harvest/features/gym/presentation/weight_text.dart';
+import 'package:harvest/features/health/domain/body_weight.dart';
+import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// What it is and how it goes: the animation, the muscles, the steps.
@@ -94,7 +101,161 @@ class _ExerciseDetail extends StatelessWidget {
                 ],
               ),
             ),
+        const SizedBox(height: HarvestSpacing.md),
+        _Records(exerciseId: exercise.id),
         const SizedBox(height: HarvestSpacing.sm),
+      ],
+    );
+  }
+}
+
+/// What I have actually done on this exercise.
+///
+/// Under the instructions rather than above them, because the numbers
+/// are why I open this sheet the tenth time and the instructions are
+/// why I open it the first.
+class _Records extends ConsumerWidget {
+  const _Records({required this.exerciseId});
+
+  final String exerciseId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
+    final records =
+        ref.watch(exerciseRecordsProvider(exerciseId)).value ?? noRecords;
+    final history = ref.watch(exerciseHistoryProvider(exerciseId)).value;
+
+    if (history == null || history.isEmpty) {
+      return Text(
+        l10n.gymNoRecords,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    final heaviest = records.heaviest;
+    final estimate = records.bestSetEstimate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.gymRecords,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.xs),
+        Row(
+          children: [
+            if (heaviest != null)
+              Expanded(
+                child: _Stat(
+                  label: l10n.gymHeaviestLabel,
+                  value:
+                      '${formatLoad(heaviest.weightGrams, unit)}'
+                      '×${heaviest.reps}',
+                ),
+              ),
+            if (estimate != null)
+              Expanded(
+                child: _Stat(
+                  label: l10n.gymEstimatedLabel,
+                  value: formatLoad(estimate, unit),
+                  hint: l10n.gymEstimatedHint,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: HarvestSpacing.md),
+        Text(
+          l10n.gymHistory,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.xs),
+        for (final outing in history.take(8))
+          Padding(
+            padding: const EdgeInsets.only(bottom: HarvestSpacing.xs),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 76,
+                  child: Text(
+                    formatDay(context, outing.day),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    [
+                      for (final set in outing.sets)
+                        '${formatLoad(set.weightGrams, unit)}×${set.reps}',
+                    ].join('  '),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                if (outing.bestEstimate != null)
+                  Text(
+                    formatLoad(outing.bestEstimate!, unit),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.secondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({required this.label, required this.value, this.hint});
+
+  final String label;
+  final String value;
+  final String? hint;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: scheme.secondary,
+          ),
+        ),
+        if (hint != null)
+          Text(
+            hint!,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
       ],
     );
   }

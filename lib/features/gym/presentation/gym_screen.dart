@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
@@ -9,16 +10,24 @@ import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
 import 'package:harvest/features/gym/data/exercise_catalogue.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
+import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/presentation/exercise_detail.dart';
 import 'package:harvest/features/gym/presentation/exercise_picker.dart';
 import 'package:harvest/features/gym/presentation/program_editor.dart';
+import 'package:harvest/features/gym/presentation/session_history.dart';
+import 'package:harvest/features/gym/presentation/session_screen.dart';
+import 'package:harvest/features/gym/presentation/session_start.dart';
+import 'package:harvest/features/health/domain/body_weight.dart';
+import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Programs, sessions and records.
 ///
-/// The catalogue works; the programs and the session screen land in
-/// M4.4 and M4.5, so the tab says so plainly rather than pretending.
+/// Ordered by how often I open the tab for each: the running session
+/// first, because if one is running that is the only reason I am
+/// here; then starting one; then the programs I would edit between
+/// sessions; then the catalogue, which is a reference book.
 class GymScreen extends ConsumerWidget {
   const GymScreen({super.key});
 
@@ -29,12 +38,16 @@ class GymScreen extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final catalogue = ref.watch(exerciseCatalogueProvider).value;
     final programs = ref.watch(programsProvider).value;
+    final running = ref.watch(runningSessionProvider).value;
+    final finished = ref.watch(finishedSessionsProvider).value;
+    final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navGym)),
       floatingActionButton: HarvestFab(
-        onPressed: () => unawaited(_newProgram(context, ref)),
-        label: l10n.gymNewProgram,
+        onPressed: () => unawaited(startSession(context, ref)),
+        icon: Icons.play_arrow,
+        label: running == null ? l10n.gymStart : l10n.gymResume,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
@@ -44,6 +57,60 @@ class GymScreen extends ConsumerWidget {
           120,
         ),
         children: [
+          // A session left running is the loudest thing on the screen:
+          // the app killed mid-workout is the normal case, not the
+          // exception, and picking it back up must be one tap.
+          if (running != null)
+            Card(
+              color: scheme.secondaryContainer,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(HarvestRadii.card),
+                onTap: () => Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => SessionScreen(uuid: running.uuid),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(HarvestSpacing.md),
+                  child: Row(
+                    children: [
+                      IconBadge(
+                        Icons.fitness_center,
+                        color: scheme.onSecondaryContainer,
+                      ),
+                      const SizedBox(width: HarvestSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              running.title ?? l10n.gymRunningSession,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: scheme.onSecondaryContainer,
+                              ),
+                            ),
+                            Text(
+                              l10n.gymRunningSessionBody(
+                                running.doneSets,
+                                running.totalSets,
+                              ),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSecondaryContainer,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: scheme.onSecondaryContainer,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           SectionHeader(l10n.gymExercisesTitle),
           Card(
             child: InkWell(
@@ -53,7 +120,10 @@ class GymScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(HarvestSpacing.md),
                 child: Row(
                   children: [
-                    IconBadge(Icons.menu_book_outlined, color: scheme.secondary),
+                    IconBadge(
+                      Icons.menu_book_outlined,
+                      color: scheme.secondary,
+                    ),
                     const SizedBox(width: HarvestSpacing.md),
                     Expanded(
                       child: Column(
@@ -82,7 +152,14 @@ class GymScreen extends ConsumerWidget {
               ),
             ),
           ),
-          SectionHeader(l10n.gymProgramsTitle),
+          SectionHeader(
+            l10n.gymProgramsTitle,
+            trailing: IconButton(
+              tooltip: l10n.gymNewProgram,
+              icon: const Icon(Icons.add),
+              onPressed: () => unawaited(_newProgram(context, ref)),
+            ),
+          ),
           if (programs != null && programs.isEmpty)
             Card(
               child: EmptyState(
@@ -127,6 +204,21 @@ class GymScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+          if (finished != null && finished.isNotEmpty) ...[
+            SectionHeader(
+              l10n.gymHistory,
+              trailing: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SessionHistoryScreen(),
+                  ),
+                ),
+                child: Text(l10n.gymSeeAll),
+              ),
+            ),
+            for (final session in finished.take(3))
+              SessionTile(session: session, unit: unit),
+          ],
         ],
       ),
     );

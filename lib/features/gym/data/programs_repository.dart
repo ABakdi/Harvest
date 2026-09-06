@@ -35,9 +35,9 @@ class ProgramsRepository {
   ]);
 
   Stream<List<Program>> watchAll() async* {
-    yield await _allOnce();
+    yield await allOnce();
     await for (final _ in _db.tableUpdates(_programTables)) {
-      yield await _allOnce();
+      yield await allOnce();
     }
   }
 
@@ -48,7 +48,7 @@ class ProgramsRepository {
     }
   }
 
-  Future<List<Program>> _allOnce() async {
+  Future<List<Program>> allOnce() async {
     final rows =
         await (_db.select(_db.programs)
               ..where((p) => p.deletedAt.isNull())
@@ -58,9 +58,11 @@ class ProgramsRepository {
   }
 
   Future<Program?> once(String uuid) async {
-    final row = await (_db.select(
-      _db.programs,
-    )..where((p) => p.uuid.equals(uuid) & p.deletedAt.isNull())).getSingleOrNull();
+    final row =
+        await (_db.select(
+              _db.programs,
+            )..where((p) => p.uuid.equals(uuid) & p.deletedAt.isNull()))
+            .getSingleOrNull();
     return row == null ? null : _hydrate(row);
   }
 
@@ -257,14 +259,13 @@ class ProgramsRepository {
     String? name,
     String? accessories,
     int? week,
-  }) =>
-      (_db.update(_db.programDays)..where((d) => d.uuid.equals(uuid))).write(
-        ProgramDaysCompanion(
-          name: name == null ? const Value.absent() : Value(name.trim()),
-          accessories: Value(accessories),
-          week: week == null ? const Value.absent() : Value(week),
-        ),
-      );
+  }) => (_db.update(_db.programDays)..where((d) => d.uuid.equals(uuid))).write(
+    ProgramDaysCompanion(
+      name: name == null ? const Value.absent() : Value(name.trim()),
+      accessories: Value(accessories),
+      week: week == null ? const Value.absent() : Value(week),
+    ),
+  );
 
   Future<void> removeDay(String uuid) => _db.transaction(() async {
     final slots = await (_db.select(
@@ -275,8 +276,9 @@ class ProgramsRepository {
         _db.targetSets,
       )..where((t) => t.slotUuid.equals(slot.uuid))).go();
     }
-    await (_db.delete(_db.programSlots)..where((s) => s.dayUuid.equals(uuid)))
-        .go();
+    await (_db.delete(
+      _db.programSlots,
+    )..where((s) => s.dayUuid.equals(uuid))).go();
     await (_db.delete(_db.programDays)..where((d) => d.uuid.equals(uuid))).go();
   });
 
@@ -362,10 +364,12 @@ class ProgramsRepository {
   );
 
   Future<void> removeSlot(String uuid) => _db.transaction(() async {
-    await (_db.delete(_db.targetSets)..where((t) => t.slotUuid.equals(uuid)))
-        .go();
-    await (_db.delete(_db.programSlots)..where((s) => s.uuid.equals(uuid)))
-        .go();
+    await (_db.delete(
+      _db.targetSets,
+    )..where((t) => t.slotUuid.equals(uuid))).go();
+    await (_db.delete(
+      _db.programSlots,
+    )..where((s) => s.uuid.equals(uuid))).go();
   });
 
   /// Reorders the slots of a day to the given uuids, in that order.

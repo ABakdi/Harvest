@@ -2588,4 +2588,187 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gymNeedsTrainingMaxBody =>
       'Until then its percentage sets show a percentage rather than a weight.';
+
+  @override
+  String get gymStart => 'Start';
+
+  @override
+  String get gymResume => 'Carry on';
+
+  @override
+  String get gymRunningSession => 'A session is running';
+
+  @override
+  String gymRunningSessionBody(int done, int total) {
+    return '$done of $total sets done. Finish or drop it before starting another.';
+  }
+
+  @override
+  String get gymPickDay => 'Which day?';
+
+  @override
+  String get gymNoProgramToStart => 'No program to start';
+
+  @override
+  String get gymNoProgramToStartBody =>
+      'Write a program first — a session is a day of one, with the weights already filled in.';
+
+  @override
+  String get gymSession => 'Session';
+
+  @override
+  String get gymSessionGone => 'This session is gone';
+
+  @override
+  String gymSessionProgress(int done, int total) {
+    return '$done of $total sets';
+  }
+
+  @override
+  String get gymSessionNote => 'Note on the session';
+
+  @override
+  String get gymSessionNoteHint => 'Slept badly, belt on, gym was packed…';
+
+  @override
+  String get gymDiscardSession => 'Drop this session';
+
+  @override
+  String gymDiscardBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'The $done sets you logged go with it.',
+      one: 'The one set you logged goes with it.',
+      zero: 'Nothing is logged yet, so nothing is lost.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymFinish => 'Finish';
+
+  @override
+  String get gymFinishEmptyTitle => 'Finish with nothing logged?';
+
+  @override
+  String get gymFinishEmptyBody =>
+      'It is kept as a session you turned up for, which is worth something, but no set counts towards a record.';
+
+  @override
+  String gymInsteadOf(String name) {
+    return 'instead of $name';
+  }
+
+  @override
+  String gymLastTime(String sets) {
+    return 'Last time: $sets';
+  }
+
+  @override
+  String get gymSwap => 'Swap it out';
+
+  @override
+  String get gymSkip => 'Skip it';
+
+  @override
+  String get gymUnskip => 'Put it back';
+
+  @override
+  String get gymNote => 'Note';
+
+  @override
+  String get gymSetColumn => 'Set';
+
+  @override
+  String get gymTargetColumn => 'Target';
+
+  @override
+  String get gymRepsColumn => 'Reps';
+
+  @override
+  String get gymTick => 'Log this set';
+
+  @override
+  String get gymUntick => 'Not done after all';
+
+  @override
+  String gymRecordHeaviest(String load) {
+    return 'Heaviest ever: $load';
+  }
+
+  @override
+  String gymRecordEstimated(String load) {
+    return 'Best set yet — about $load for one';
+  }
+
+  @override
+  String gymRestPlus(int seconds) {
+    return '+${seconds}s';
+  }
+
+  @override
+  String get gymRestSkip => 'Done resting';
+
+  @override
+  String gymPerSide(String bar) {
+    return 'Per side, on a $bar bar';
+  }
+
+  @override
+  String get gymJustTheBar => 'Just the bar';
+
+  @override
+  String gymPlateShortfall(String total, String short) {
+    return 'Closest is $total — $short short. A bar loads in pairs, so it cannot make every number.';
+  }
+
+  @override
+  String get gymHistory => 'History';
+
+  @override
+  String get gymSeeAll => 'See all';
+
+  @override
+  String get gymNoSetsLogged => 'Nothing logged';
+
+  @override
+  String get gymNoHistory => 'No sessions yet';
+
+  @override
+  String get gymNoHistoryBody =>
+      'Start a day of your program. What you log here is what the records are made of.';
+
+  @override
+  String gymSessionSummary(int sets, String volume) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+    );
+    return '$_temp0 · $volume';
+  }
+
+  @override
+  String get gymVolume => 'Volume';
+
+  @override
+  String get gymBest => 'Best';
+
+  @override
+  String get gymRecords => 'Personal records';
+
+  @override
+  String get gymNoRecords => 'Nothing logged for this one yet';
+
+  @override
+  String get gymHeaviestLabel => 'Heaviest set';
+
+  @override
+  String get gymEstimatedLabel => 'Best estimated single';
+
+  @override
+  String get gymEstimatedHint =>
+      'Worked out from the weight and the reps, not a single you actually pulled.';
 }

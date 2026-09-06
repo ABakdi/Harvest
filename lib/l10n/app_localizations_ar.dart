@@ -2598,4 +2598,189 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gymNeedsTrainingMaxBody =>
       'وإلى أن تضبطه تعرض مجموعاته النسبة بدل الوزن.';
+
+  @override
+  String get gymStart => 'ابدأ';
+
+  @override
+  String get gymResume => 'أكمل';
+
+  @override
+  String get gymRunningSession => 'هناك حصة جارية';
+
+  @override
+  String gymRunningSessionBody(int done, int total) {
+    return 'أنجزت $done من $total مجموعة. أنهها أو ألغها قبل بدء غيرها.';
+  }
+
+  @override
+  String get gymPickDay => 'أي يوم؟';
+
+  @override
+  String get gymNoProgramToStart => 'لا برنامج لتبدأ به';
+
+  @override
+  String get gymNoProgramToStartBody =>
+      'اكتب برنامجًا أولًا — الحصة هي يوم من برنامج بأوزانه جاهزة.';
+
+  @override
+  String get gymSession => 'حصة';
+
+  @override
+  String get gymSessionGone => 'هذه الحصة لم تعد موجودة';
+
+  @override
+  String gymSessionProgress(int done, int total) {
+    return '$done من $total مجموعة';
+  }
+
+  @override
+  String get gymSessionNote => 'ملاحظة على الحصة';
+
+  @override
+  String get gymSessionNoteHint => 'نوم سيّئ، بحزام، النادي مزدحم…';
+
+  @override
+  String get gymDiscardSession => 'ألغِ هذه الحصة';
+
+  @override
+  String gymDiscardBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'المجموعات الـ$done التي سجّلتها تذهب معها.',
+      two: 'المجموعتان اللتان سجّلتهما تذهبان معها.',
+      one: 'المجموعة التي سجّلتها تذهب معها.',
+      zero: 'لم تسجّل شيئًا بعد، فلا شيء يضيع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymFinish => 'أنهِ';
+
+  @override
+  String get gymFinishEmptyTitle => 'تنهيها دون تسجيل شيء؟';
+
+  @override
+  String get gymFinishEmptyBody =>
+      'تُحفظ كحصة حضرتَها، وهذا له قيمته، لكن لا مجموعة فيها تُحسب في الأرقام القياسية.';
+
+  @override
+  String gymInsteadOf(String name) {
+    return 'بدل $name';
+  }
+
+  @override
+  String gymLastTime(String sets) {
+    return 'آخر مرة: $sets';
+  }
+
+  @override
+  String get gymSwap => 'استبدله';
+
+  @override
+  String get gymSkip => 'تخطّه';
+
+  @override
+  String get gymUnskip => 'أعده';
+
+  @override
+  String get gymNote => 'ملاحظة';
+
+  @override
+  String get gymSetColumn => 'المجموعة';
+
+  @override
+  String get gymTargetColumn => 'المطلوب';
+
+  @override
+  String get gymRepsColumn => 'التكرار';
+
+  @override
+  String get gymTick => 'سجّل هذه المجموعة';
+
+  @override
+  String get gymUntick => 'لم تُنجز في النهاية';
+
+  @override
+  String gymRecordHeaviest(String load) {
+    return 'أثقل ما رفعت: $load';
+  }
+
+  @override
+  String gymRecordEstimated(String load) {
+    return 'أفضل مجموعة حتى الآن — نحو $load لمرة واحدة';
+  }
+
+  @override
+  String gymRestPlus(int seconds) {
+    return '+$secondsث';
+  }
+
+  @override
+  String get gymRestSkip => 'انتهت الراحة';
+
+  @override
+  String gymPerSide(String bar) {
+    return 'لكل جهة، على بار $bar';
+  }
+
+  @override
+  String get gymJustTheBar => 'البار وحده';
+
+  @override
+  String gymPlateShortfall(String total, String short) {
+    return 'أقرب ما يمكن $total — بنقص $short. البار يُحمّل مثنى مثنى، فلا يبلغ كل رقم.';
+  }
+
+  @override
+  String get gymHistory => 'السجل';
+
+  @override
+  String get gymSeeAll => 'الكل';
+
+  @override
+  String get gymNoSetsLogged => 'لم يُسجَّل شيء';
+
+  @override
+  String get gymNoHistory => 'لا حصص بعد';
+
+  @override
+  String get gymNoHistoryBody =>
+      'ابدأ يومًا من برنامجك. ما تسجّله هنا هو ما تُصنع منه الأرقام القياسية.';
+
+  @override
+  String gymSessionSummary(int sets, String volume) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0 · $volume';
+  }
+
+  @override
+  String get gymVolume => 'الحجم';
+
+  @override
+  String get gymBest => 'الأفضل';
+
+  @override
+  String get gymRecords => 'الأرقام القياسية';
+
+  @override
+  String get gymNoRecords => 'لا شيء مسجّل لهذا بعد';
+
+  @override
+  String get gymHeaviestLabel => 'أثقل مجموعة';
+
+  @override
+  String get gymEstimatedLabel => 'أفضل مرة واحدة مقدَّرة';
+
+  @override
+  String get gymEstimatedHint =>
+      'محسوبة من الوزن والتكرار، لا رفعة واحدة أدّيتها فعلًا.';
 }

@@ -126,7 +126,7 @@ class _TargetSetSheet extends ConsumerWidget {
               ? l10n.notSet
               : l10n.gymRestSeconds(slot.restSeconds!),
           children: [
-            for (final seconds in [60, 90, 120, 180])
+            for (final seconds in restChoices)
               ChoiceChip(
                 label: Text(l10n.gymRestSeconds(seconds)),
                 selected: slot.restSeconds == seconds,

@@ -18,6 +18,16 @@ const roundingGrams = 250;
 /// not a constant.
 const int defaultBarGrams = 20 * gramsPerKg;
 
+/// The rest to count down when nothing else has been said.
+///
+/// Two minutes is wrong for curls and wrong for a heavy single, and
+/// right often enough that it beats asking before every timer.
+const int defaultRestSeconds = 120;
+
+/// The rests worth one tap. Anything else is a number nobody wants to
+/// type while holding a bar.
+const restChoices = [60, 90, 120, 180, 240, 300];
+
 /// Rounds to something that can actually be loaded.
 int roundLoad(num grams) => (grams / roundingGrams).round() * roundingGrams;
 

@@ -4297,6 +4297,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Until then its percentage sets show a percentage rather than a weight.'**
   String get gymNeedsTrainingMaxBody;
+
+  /// No description provided for @gymStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get gymStart;
+
+  /// No description provided for @gymResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry on'**
+  String get gymResume;
+
+  /// No description provided for @gymRunningSession.
+  ///
+  /// In en, this message translates to:
+  /// **'A session is running'**
+  String get gymRunningSession;
+
+  /// No description provided for @gymRunningSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets done. Finish or drop it before starting another.'**
+  String gymRunningSessionBody(int done, int total);
+
+  /// No description provided for @gymPickDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Which day?'**
+  String get gymPickDay;
+
+  /// No description provided for @gymNoProgramToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'No program to start'**
+  String get gymNoProgramToStart;
+
+  /// No description provided for @gymNoProgramToStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a program first — a session is a day of one, with the weights already filled in.'**
+  String get gymNoProgramToStartBody;
+
+  /// No description provided for @gymSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get gymSession;
+
+  /// No description provided for @gymSessionGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This session is gone'**
+  String get gymSessionGone;
+
+  /// No description provided for @gymSessionProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets'**
+  String gymSessionProgress(int done, int total);
+
+  /// No description provided for @gymSessionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note on the session'**
+  String get gymSessionNote;
+
+  /// No description provided for @gymSessionNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Slept badly, belt on, gym was packed…'**
+  String get gymSessionNoteHint;
+
+  /// No description provided for @gymDiscardSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop this session'**
+  String get gymDiscardSession;
+
+  /// No description provided for @gymDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done, plural, =0{Nothing is logged yet, so nothing is lost.} =1{The one set you logged goes with it.} other{The {done} sets you logged go with it.}}'**
+  String gymDiscardBody(int done);
+
+  /// No description provided for @gymFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get gymFinish;
+
+  /// No description provided for @gymFinishEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish with nothing logged?'**
+  String get gymFinishEmptyTitle;
+
+  /// No description provided for @gymFinishEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It is kept as a session you turned up for, which is worth something, but no set counts towards a record.'**
+  String get gymFinishEmptyBody;
+
+  /// No description provided for @gymInsteadOf.
+  ///
+  /// In en, this message translates to:
+  /// **'instead of {name}'**
+  String gymInsteadOf(String name);
+
+  /// No description provided for @gymLastTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time: {sets}'**
+  String gymLastTime(String sets);
+
+  /// No description provided for @gymSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap it out'**
+  String get gymSwap;
+
+  /// No description provided for @gymSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip it'**
+  String get gymSkip;
+
+  /// No description provided for @gymUnskip.
+  ///
+  /// In en, this message translates to:
+  /// **'Put it back'**
+  String get gymUnskip;
+
+  /// No description provided for @gymNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get gymNote;
+
+  /// No description provided for @gymSetColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get gymSetColumn;
+
+  /// No description provided for @gymTargetColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get gymTargetColumn;
+
+  /// No description provided for @gymRepsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps'**
+  String get gymRepsColumn;
+
+  /// No description provided for @gymTick.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this set'**
+  String get gymTick;
+
+  /// No description provided for @gymUntick.
+  ///
+  /// In en, this message translates to:
+  /// **'Not done after all'**
+  String get gymUntick;
+
+  /// No description provided for @gymRecordHeaviest.
+  ///
+  /// In en, this message translates to:
+  /// **'Heaviest ever: {load}'**
+  String gymRecordHeaviest(String load);
+
+  /// No description provided for @gymRecordEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Best set yet — about {load} for one'**
+  String gymRecordEstimated(String load);
+
+  /// No description provided for @gymRestPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'+{seconds}s'**
+  String gymRestPlus(int seconds);
+
+  /// No description provided for @gymRestSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Done resting'**
+  String get gymRestSkip;
+
+  /// No description provided for @gymPerSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Per side, on a {bar} bar'**
+  String gymPerSide(String bar);
+
+  /// No description provided for @gymJustTheBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Just the bar'**
+  String get gymJustTheBar;
+
+  /// No description provided for @gymPlateShortfall.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.'**
+  String gymPlateShortfall(String total, String short);
+
+  /// No description provided for @gymHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get gymHistory;
+
+  /// No description provided for @gymSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get gymSeeAll;
+
+  /// No description provided for @gymNoSetsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged'**
+  String get gymNoSetsLogged;
+
+  /// No description provided for @gymNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions yet'**
+  String get gymNoHistory;
+
+  /// No description provided for @gymNoHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a day of your program. What you log here is what the records are made of.'**
+  String get gymNoHistoryBody;
+
+  /// No description provided for @gymSessionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{sets, plural, =1{1 set} other{{sets} sets}} · {volume}'**
+  String gymSessionSummary(int sets, String volume);
+
+  /// No description provided for @gymVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get gymVolume;
+
+  /// No description provided for @gymBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get gymBest;
+
+  /// No description provided for @gymRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal records'**
+  String get gymRecords;
+
+  /// No description provided for @gymNoRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged for this one yet'**
+  String get gymNoRecords;
+
+  /// No description provided for @gymHeaviestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Heaviest set'**
+  String get gymHeaviestLabel;
+
+  /// No description provided for @gymEstimatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best estimated single'**
+  String get gymEstimatedLabel;
+
+  /// No description provided for @gymEstimatedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked out from the weight and the reps, not a single you actually pulled.'**
+  String get gymEstimatedHint;
 }
 
 class _AppLocalizationsDelegate
