@@ -15,6 +15,11 @@
          through MediaStore and needs nothing; only 8.0-9.0 needs this,
          so it stops at API 28 (checkpoint rule X6). -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+    <!-- The gallery takes pictures through the system camera app, so
+         there is no CAMERA permission to ask for: the intent hands a
+         file back and Android does the asking. Photos are picked
+         through the system photo picker, which needs nothing either.
+         That is rule G1 honoured by not needing a prompt at all. -->
     <!-- Money data never leaves the device: no auto backup, no
          extraction, no device transfer. -->
     <application
@@ -109,6 +114,18 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Package visibility: without these the camera and the
+             document picker cannot even be resolved on Android 11+. -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE"/>
+        </intent>
+        <intent>
+            <action android:name="android.media.action.VIDEO_CAPTURE"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT"/>
+            <data android:mimeType="*/*"/>
         </intent>
     </queries>
 </manifest>

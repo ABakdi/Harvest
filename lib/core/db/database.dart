@@ -87,6 +87,95 @@ class SeedNotes extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
+/// A markdown note (phase 3). The body is the truth; everything else
+/// about a note is derived from it, including its links.
+@DataClassName('NoteRow')
+class Notes extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get title => text()();
+
+  /// Folder path, "" for the root. Slash-separated, created by naming.
+  TextColumn get folder => text().withDefault(const Constant(''))();
+  TextColumn get body => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One `[[link]]` found in a note's body, indexed so "what links here"
+/// is a query rather than a scan of every note. Rebuildable from the
+/// bodies at any time (rule N2).
+@DataClassName('NoteLinkRow')
+class NoteLinks extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get fromUuid => text().references(Notes, #uuid)();
+
+  /// The title as written between the brackets.
+  TextColumn get toTitle => text()();
+
+  /// The note that title resolves to, null while it does not exist yet.
+  TextColumn get toUuid => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// A run of memories — "Gym", "Face" — optionally scheduled, in which
+/// case it is a seed on the field (phase 3).
+@DataClassName('AlbumRow')
+class Albums extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get name => text()();
+
+  /// Habit-style schedule rules, JSON-encoded. Null means unscheduled:
+  /// an album I add to when I feel like it, not a seed.
+  TextColumn get scheduleJson => text().nullable()();
+
+  /// "HH:mm" reminder, on days the album is due.
+  TextColumn get remindAt => text().nullable()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One photo or video in an album, with the Harvest Day it belongs to.
+///
+/// The file itself lives in the app's own storage; this row points at
+/// it. Deleting is a two-step: [deletedAt] puts the memory in the
+/// trash and the file stays where it is, and emptying the trash is
+/// what actually deletes it (rule G5, revised in [[Checkpoint-5]] —
+/// "gone for good" now means gone from the trash, because a picture
+/// deleted by a fat thumb was gone for good too).
+@DataClassName('MemoryRow')
+class Memories extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get albumUuid => text().references(Albums, #uuid)();
+  TextColumn get harvestDay => text()();
+
+  /// Path relative to the gallery directory, so the row survives the
+  /// app's storage moving between installs.
+  TextColumn get path => text()();
+
+  /// `photo` | `video`.
+  TextColumn get kind => text().withDefault(const Constant('photo'))();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get capturedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// In the trash since. Null is a memory I still have.
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
 /// Current and best streaks; derived state, never synced.
 @DataClassName('StreakRow')
 class Streaks extends Table {
@@ -283,6 +372,10 @@ class KvSettings extends Table {
     Commitments,
     CheckIns,
     SeedNotes,
+    Notes,
+    NoteLinks,
+    Albums,
+    Memories,
     Streaks,
     Ledger,
     Quests,
@@ -302,7 +395,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -311,6 +404,7 @@ class HarvestDatabase extends _$HarvestDatabase {
       // columns; later addColumn steps must skip it.
       final expensesJustCreated = from < 2;
       final moneyTxnsJustCreated = from < 6;
+      final memoriesJustCreated = from < 10;
       if (from < 2) {
         await m.createTable(expenses);
       }
@@ -341,6 +435,15 @@ class HarvestDatabase extends _$HarvestDatabase {
       if (from < 9) {
         await m.addColumn(commitments, commitments.archiveNote);
         await m.createTable(seedNotes);
+      }
+      if (from < 10) {
+        await m.createTable(notes);
+        await m.createTable(noteLinks);
+        await m.createTable(albums);
+        await m.createTable(memories);
+      }
+      if (from < 11 && !memoriesJustCreated) {
+        await m.addColumn(memories, memories.deletedAt);
       }
     },
   );

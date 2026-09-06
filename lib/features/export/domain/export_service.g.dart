@@ -48,17 +48,29 @@ final class ExportServiceProvider
   }
 }
 
-String _$exportServiceHash() => r'1caaad39f620d015399e56ce25eb14ba7eeac5e9';
+String _$exportServiceHash() => r'801ec16f6fa37bf1475f2dcf766acf603e799cc2';
 
 /// Runs one export at a time and reports where it got to.
+///
+/// The archive is now slow enough to need both halves of this: a count
+/// that moves, and a way to stop it. A cancelled export has written
+/// nothing anywhere.
 
 @ProviderFor(ExportController)
 final exportControllerProvider = ExportControllerProvider._();
 
 /// Runs one export at a time and reports where it got to.
+///
+/// The archive is now slow enough to need both halves of this: a count
+/// that moves, and a way to stop it. A cancelled export has written
+/// nothing anywhere.
 final class ExportControllerProvider
     extends $NotifierProvider<ExportController, ExportStatus> {
   /// Runs one export at a time and reports where it got to.
+  ///
+  /// The archive is now slow enough to need both halves of this: a count
+  /// that moves, and a way to stop it. A cancelled export has written
+  /// nothing anywhere.
   ExportControllerProvider._()
     : super(
         from: null,
@@ -86,9 +98,13 @@ final class ExportControllerProvider
   }
 }
 
-String _$exportControllerHash() => r'96ff229ddd5907cf34fa37366ad3217f8739a8b6';
+String _$exportControllerHash() => r'af48f862be52b449adc0890b81f512f67718b822';
 
 /// Runs one export at a time and reports where it got to.
+///
+/// The archive is now slow enough to need both halves of this: a count
+/// that moves, and a way to stop it. A cancelled export has written
+/// nothing anywhere.
 
 abstract class _$ExportController extends $Notifier<ExportStatus> {
   ExportStatus build();

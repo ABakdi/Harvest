@@ -11,6 +11,8 @@ import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/planner/domain/comeback.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -33,6 +35,11 @@ abstract final class ReminderIds {
   static const taskBase = 2100;
   static const debtBase = 3100;
 
+  /// Scheduled albums, which are seeds and get an ordinary seed
+  /// reminder (rule G3). Its own range so a new album never renumbers
+  /// a task's pending notification.
+  static const albumBase = 6100;
+
   /// The comeback ladder: at most one id per rung, well clear of the
   /// snoozed copies that start at 5000.
   static const comebackBase = 4100;
@@ -52,6 +59,7 @@ abstract final class ReminderKeys {
   static const streakNudge = 'reminders.streakNudge';
 
   static const taskIds = 'reminders.taskIds';
+  static const albumIds = 'reminders.albumIds';
   static const debtIds = 'reminders.debtIds';
   static const comebackIds = 'reminders.comebackIds';
 }
@@ -78,13 +86,18 @@ abstract final class ReminderDefaults {
 class NotificationPlanner {
   NotificationPlanner(this._db, this._notifications, this._streaks)
     : _settings = SettingsRepository(_db),
-      _commitments = CommitmentsRepository(_db);
+      _commitments = CommitmentsRepository(_db),
+      _gallery = GalleryRepository(_db, GalleryStorage());
 
   final HarvestDatabase _db;
   final NotificationGateway _notifications;
   final StreakService _streaks;
   final SettingsRepository _settings;
   final CommitmentsRepository _commitments;
+
+  /// Reminder planning only reads album rows, so the storage handed in
+  /// here never has to resolve a directory.
+  final GalleryRepository _gallery;
 
   /// (Re)schedules today's reminders. Idempotent: cancels the reserved
   /// ids first, then schedules only what still lies ahead.
@@ -111,6 +124,7 @@ class NotificationPlanner {
     }
     await _planComebacks(at, l10n, lastActive);
     await _planTaskReminders(at, l10n);
+    await _planAlbumReminders(at, l10n);
     await _planDebtReminders(at, l10n);
     await SnoozeStore(_db).reapply(_notifications, now: at);
   }
@@ -128,6 +142,7 @@ class NotificationPlanner {
       await _notifications.cancel(ReminderIds.expenses);
     }
     await _planTaskReminders(at, l10n);
+    await _planAlbumReminders(at, l10n);
     await _planComebacks(at, l10n, await _lastActiveDay(at));
   }
 
@@ -304,6 +319,49 @@ class NotificationPlanner {
       scheduled.add(id);
     }
     await _storeIds(ReminderKeys.taskIds, scheduled);
+  }
+
+  /// A scheduled album is a seed, so it gets the same nudge a seed
+  /// gets — same channel, same snooze, same silence once it is fed.
+  Future<void> _planAlbumReminders(DateTime at, AppLocalizations l10n) async {
+    await _cancelStored(ReminderKeys.albumIds);
+
+    final albums = (await _gallery.albumsOnce())
+        .where((album) => album.isScheduled && album.remindAt != null)
+        .toList();
+    if (albums.isEmpty) {
+      await _storeIds(ReminderKeys.albumIds, const []);
+      return;
+    }
+
+    final scheduled = <int>[];
+    for (final album in albums) {
+      if (scheduled.length >= ReminderIds.rangeSize) break;
+      final time = SettingsRepository.parseTime(album.remindAt);
+      if (time == null) continue;
+      final when = _todayAt(time, at);
+      if (!when.isAfter(at)) continue;
+
+      final day = _dayOf(when);
+      if (await _gallery.countOn(album.uuid, day) > 0) continue;
+      final due = album.isDueOn(
+        day,
+        doneDaysThisWeek: await _gallery.doneDaysInWeekOnce(album.uuid, day),
+      );
+      if (!due) continue;
+
+      final id = ReminderIds.albumBase + scheduled.length;
+      await _notifications.schedule(
+        id: id,
+        channelId: NotificationChannels.reminders,
+        title: album.name,
+        body: l10n.albumReminderBody,
+        when: when,
+        route: ReminderRoutes.field,
+      );
+      scheduled.add(id);
+    }
+    await _storeIds(ReminderKeys.albumIds, scheduled);
   }
 
   /// The comeback ladder (checkpoint C3-8): one nudge per rung of

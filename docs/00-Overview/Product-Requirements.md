@@ -31,7 +31,7 @@ Six entities structure everything (full spec: [[Core-Entities]]):
 | Pomodoro | Focus timer attached to tasks | [[Pomodoro]] |
 | Gamification | Streaks, XP, coins, quests, ranks | [[Gamification]] |
 | Financial Granary | Expenses, budgets, floating limit | [[Finances]] |
-| Health (Sleep Sanctuary + Gym) | Alarm, sleep debt, workouts | [[Health-and-Gym]] |
+| Health (Sleep Sanctuary + Gym) | Alarm, sleep debt, workouts | [[Health]] |
 | Focus Field | Screen caps, weed-pull interventions | [[Screen-Time]] |
 | Notifications | Gentle-to-urgent escalation | [[Notifications]] |
 | Dashboard & Widgets | Today view, weekly report, home-screen widgets | [[Dashboard-and-Widgets]] |

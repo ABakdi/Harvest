@@ -108,7 +108,47 @@ Spec: [[Gallery]].
 
 ## Sleep Session (Phase 4)
 
-Planned vs. actual sleep window plus a 1–5 restfulness rating; feeds the sleep-debt gauge. Spec: [[Health-and-Gym]].
+Planned vs. actual sleep window plus a 1–5 restfulness rating; feeds the sleep-debt gauge. Spec: [[Health]].
+
+## Step Day (Phase 4)
+
+One Harvest Day's step total, summed from the phone's own sensor. A
+passive number: it never checks a seed in and never breaks a streak.
+Spec: [[Health]].
+
+## Weight Entry (Phase 4)
+
+A body weight in **grams**, with the moment it was taken and an
+optional note. Kilograms and pounds are a display choice, never a
+storage one. Spec: [[Health]].
+
+## Program, Day and Slot (Phase 4)
+
+A **Program** is a routine I wrote — *nSuns 5/3/1*, *Push Pull Legs*.
+It holds **Days**, a day holds ordered **Slots** (one exercise each),
+and a slot holds **Target Sets**: reps plus either a weight, a
+percentage of that exercise's **training max**, or an open `1+`.
+
+A program binds to a habit schedule, so the gym is a seed like any
+other. Spec: [[Gym]].
+
+## Session and Set (Phase 4)
+
+A **Session** is one day of a program, actually done: when it started,
+when it finished, notes, and the exercises as they really went —
+including anything skipped or swapped for something else.
+
+A **Set** is the row that matters: weight, reps, ticked. It is written
+the moment it is ticked, not when the session ends, so a workout
+survives the app being killed. **Personal records are derived from
+these rows**, never stored as the only copy. Spec: [[Gym]].
+
+## Exercise (Phase 4)
+
+Reference data, not my data: 1,324 of them from an open catalogue, plus
+any I add myself. A logged set refers to one by id. The catalogue never
+syncs and never exports; mine do.
+Spec: [[Gym]] · [[ADR-008-Exercise-Catalogue]].
 
 ## Screen Goal (Phase 5)
 

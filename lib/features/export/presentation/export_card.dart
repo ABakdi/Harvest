@@ -7,7 +7,12 @@ import 'package:harvest/features/export/domain/export_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// "My data": one button that drops the whole database in Downloads as
-/// a spreadsheet with its formulas already wired up.
+/// a zip — the spreadsheet with its formulas already wired up, the
+/// notes as a vault, and every picture in its album's folder.
+///
+/// It shows a count while it works and can be stopped, because a
+/// five-year gallery takes long enough that a still button reads as a
+/// hang (ADR-007).
 class ExportCard extends ConsumerWidget {
   const ExportCard({super.key});
 
@@ -26,7 +31,7 @@ class ExportCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.table_chart_outlined),
+                const Icon(Icons.folder_zip_outlined),
                 const SizedBox(width: HarvestSpacing.md),
                 Expanded(child: Text(l10n.exportTitle)),
               ],
@@ -48,6 +53,33 @@ class ExportCard extends ConsumerWidget {
                   : const Icon(Icons.download_outlined),
               label: Text(running ? l10n.exportRunning : l10n.exportAction),
             ),
+            if (status is ExportRunning) ...[
+              const SizedBox(height: HarvestSpacing.sm),
+              LinearProgressIndicator(value: status.fraction),
+              const SizedBox(height: HarvestSpacing.xs),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      status.progress == null
+                          ? l10n.exportPreparing
+                          : l10n.exportProgress(
+                              status.progress!.done,
+                              status.progress!.total,
+                            ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        ref.read(exportControllerProvider.notifier).cancel(),
+                    child: Text(l10n.cancel),
+                  ),
+                ],
+              ),
+            ],
             if (_message(l10n, status) case final message?) ...[
               const SizedBox(height: HarvestSpacing.sm),
               Text(
@@ -72,6 +104,7 @@ class ExportCard extends ConsumerWidget {
         ExportFailed(reason: 'permission') => l10n.exportFailedPermission,
         ExportFailed(reason: 'unsupported') => l10n.exportFailedUnsupported,
         ExportFailed() => l10n.exportFailed,
+        ExportCancelled() => l10n.exportStopped,
         ExportIdle() || ExportRunning() => null,
       };
 }

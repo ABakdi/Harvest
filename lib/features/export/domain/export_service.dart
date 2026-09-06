@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:harvest/features/export/data/downloads_gateway.dart';
 import 'package:harvest/features/export/data/export_repository.dart';
+import 'package:harvest/features/export/domain/archive_service.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/export/domain/workbook.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,14 +21,39 @@ String exportFileName(DateTime at) {
       '-${two(at.hour)}${two(at.minute)}.xlsx';
 }
 
-/// Reads the database, builds the workbook, drops it in Downloads.
+/// Reads the database, builds the archive, drops it in Downloads.
+///
+/// Since ADR-007 what lands there is a zip holding the workbook, the
+/// notes as a vault and the gallery as folders of files. The workbook
+/// alone is still built the same way, and still exactly as ADR-006
+/// specified it — it is now one entry inside the archive.
 class ExportService {
-  ExportService(this._repository, this._downloads);
+  ExportService(this._repository, this._downloads, this._archive);
 
   final ExportRepository _repository;
   final DownloadsGateway _downloads;
+  final ArchiveService _archive;
 
-  /// Returns the path the file landed on.
+  /// The whole archive. Returns the path the file landed on.
+  Future<String> exportArchive({
+    DateTime? now,
+    void Function(ArchiveProgress)? onProgress,
+    bool Function()? cancelled,
+  }) async {
+    final at = now ?? DateTime.now();
+    final bytes = await _archive.build(
+      now: at,
+      onProgress: onProgress,
+      cancelled: cancelled,
+    );
+    return _downloads.save(
+      fileName: archiveFileName(at),
+      bytes: bytes,
+      mimeType: zipMimeType,
+    );
+  }
+
+  /// The workbook on its own, without the files.
   Future<String> exportWorkbook({DateTime? now}) async {
     final at = now ?? DateTime.now();
     final data = await _repository.read(generatedAt: at);
@@ -44,6 +70,7 @@ class ExportService {
 ExportService exportService(Ref ref) => ExportService(
   ref.watch(exportRepositoryProvider),
   ref.watch(downloadsGatewayProvider),
+  ref.watch(archiveServiceProvider),
 );
 
 /// Where the export got to, for the Settings card to show.
@@ -56,7 +83,22 @@ class ExportIdle extends ExportStatus {
 }
 
 class ExportRunning extends ExportStatus {
-  const ExportRunning();
+  const ExportRunning([this.progress]);
+
+  /// Null until the first entry is written.
+  final ArchiveProgress? progress;
+
+  /// 0..1, or null while the total is not known yet.
+  double? get fraction {
+    final at = progress;
+    if (at == null || at.total == 0) return null;
+    return at.done / at.total;
+  }
+}
+
+/// Stopped part-way, deliberately. Nothing was written.
+class ExportCancelled extends ExportStatus {
+  const ExportCancelled();
 }
 
 class ExportSaved extends ExportStatus {
@@ -73,17 +115,37 @@ class ExportFailed extends ExportStatus {
 }
 
 /// Runs one export at a time and reports where it got to.
+///
+/// The archive is now slow enough to need both halves of this: a count
+/// that moves, and a way to stop it. A cancelled export has written
+/// nothing anywhere.
 @riverpod
 class ExportController extends _$ExportController {
+  var _cancelled = false;
+
   @override
   ExportStatus build() => const ExportIdle();
 
+  void cancel() {
+    if (state is ExportRunning) _cancelled = true;
+  }
+
   Future<void> run() async {
     if (state is ExportRunning) return;
+    _cancelled = false;
     state = const ExportRunning();
     try {
-      final path = await ref.read(exportServiceProvider).exportWorkbook();
+      final path = await ref
+          .read(exportServiceProvider)
+          .exportArchive(
+            onProgress: (progress) {
+              if (state is ExportRunning) state = ExportRunning(progress);
+            },
+            cancelled: () => _cancelled,
+          );
       state = ExportSaved(path);
+    } on ArchiveCancelled {
+      state = const ExportCancelled();
     } on DownloadFailure catch (failure) {
       state = ExportFailed(failure.reason);
     } on Object {

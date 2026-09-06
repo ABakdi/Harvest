@@ -17,6 +17,9 @@ void main() {
     List<List<Object?>> checkIns = const [],
     List<List<Object?>> seedNotes = const [],
     List<List<Object?>> ledger = const [],
+    List<List<Object?>> notes = const [],
+    List<List<Object?>> albums = const [],
+    List<List<Object?>> memories = const [],
   }) => (
     generatedAt: DateTime.utc(2026, 9, 4, 18, 30),
     seeds: seeds,
@@ -30,6 +33,9 @@ void main() {
     ledger: ledger,
     streaks: const <List<Object?>>[],
     settings: const <List<Object?>>[],
+    notes: notes,
+    albums: albums,
+    memories: memories,
   );
 
   ExportSheet sheetNamed(List<ExportSheet> sheets, String name) =>
@@ -88,6 +94,9 @@ void main() {
         SheetNames.ledger,
         SheetNames.streaks,
         SheetNames.settings,
+        SheetNames.notes,
+        SheetNames.albums,
+        SheetNames.memories,
       ]);
     });
 

@@ -15,14 +15,15 @@ years — but it only covers one narrow slice of a life, and the bar never
 moves. Here the bar is mine to raise, and the streak is fed by whatever
 I decide matters this month.
 
-**Status: v1.0 — the first real release.** The productivity core and the
-finances are complete and in daily use, behind an optional lock, with a
-one-tap export of everything. Grab it from the
-[releases page](https://github.com/ABakdi/Harvest/releases).
+**Status: v1.1 — notes, a gallery, and an archive that comes back.** The
+productivity core and the finances are in daily use behind an optional
+lock; on top of them sit a markdown vault, photo albums that count
+toward your streak, and — for the first time — an export that imports.
+Grab it from the [releases page](https://github.com/ABakdi/Harvest/releases).
 
-Next up is [Phase 3](docs/03-Planning/Phase-3-Notes-and-Gallery.md):
-markdown notes, photo albums that count toward your streak, and an
-archive that finally imports as well as exports.
+Next up is [Phase 4](docs/03-Planning/Phase-4-Health-and-Gym.md): steps,
+body weight, and a real training log — programs, sessions and personal
+records — plus the sleep alarm.
 
 ## Table of contents
 
@@ -108,9 +109,8 @@ install over a differently-signed APK — so if you are on one of those,
 export your data first (Settings → My data), then uninstall before
 installing v1.0.0. From v0.9.5-beta onward it updates in place.
 
-There is no importer yet, so that export is a readable record rather
-than a restore. Fixing that is the third item in
-[Phase 3](docs/03-Planning/Phase-3-Notes-and-Gallery.md).
+From v1.1.0 the export is a zip that **imports**, so moving to a new
+phone is: take an archive, install, bring it back.
 
 ## Documentation
 
@@ -138,7 +138,8 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Notes](docs/01-Specification/Notes.md) | Markdown notes with links between them (Phase 3) |
 | [Gallery](docs/01-Specification/Gallery.md) | Albums, the daily picture, the timelapse (Phase 3) |
 | [Finances](docs/01-Specification/Finances.md) | Expense logging, budgets, the vault |
-| [Health and Gym](docs/01-Specification/Health-and-Gym.md) | Sleep tracking, alarm, workouts |
+| [Health](docs/01-Specification/Health.md) | Sleep, steps and body weight (Phase 4) |
+| [Gym](docs/01-Specification/Gym.md) | Programs, sessions, sets and personal records (Phase 4) |
 | [Screen Time](docs/01-Specification/Screen-Time.md) | Usage caps and interventions |
 | [Onboarding](docs/01-Specification/Onboarding.md) | First-run experience |
 | [Dashboard and Widgets](docs/01-Specification/Dashboard-and-Widgets.md) | Home screen, reports, widgets |
@@ -198,6 +199,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [ADR-005](docs/04-Decisions/ADR-005-Local-First-Sync.md) | Outbox pattern toward MongoDB |
 | [ADR-006](docs/04-Decisions/ADR-006-Export-Format.md) | The workbook is the backup format |
 | [ADR-007](docs/04-Decisions/ADR-007-Archive-Format.md) | The archive is a zip, and it comes back |
+| [ADR-008](docs/04-Decisions/ADR-008-Exercise-Catalogue.md) | The exercise list is borrowed, the animations are fetched |
 
 ## Stack
 
@@ -292,39 +294,47 @@ test/             unit, migration, and golden tests
 | 1 — Productivity Core | Commitments, plan ritual, streaks, XP, pomodoro, notifications | ✅ |
 | 2 — Finances | Expense quick-log, budgets, gauge, vault | ✅ |
 | — | Four checkpoints: calendar, app lock, export, seed notes and history, the archive, the comeback ladder, the widget, the daily cycle | ✅ **v1.0** |
-| 3 — Notes, Gallery & the Archive | Markdown notes with links; photo albums that are seeds; the zip archive **and an importer** | next |
-| 4 — Gym & Health | Sleep alarm + debt, workout plans & sessions | |
+| 3 — Notes, Gallery & the Archive | Markdown notes with links; photo albums that are seeds; the zip archive **and an importer** | ✅ **v1.1** |
+| 4 — Health & the Gym | Steps, body weight, and a training log — programs, sessions, personal records — plus the sleep alarm | next |
 | 5 — Screen Time | Usage caps, weed-pull interventions | |
 | 6 — Sync & Social | Accounts, MongoDB sync, rankings, iOS polish | |
 
-### What's coming in Phase 3
+### What's coming in Phase 4
 
-Two features that add what a number cannot reach, and one long-overdue
-fix that both of them force.
+The body half. Three numbers that need no logging effort, and one
+genuinely large feature.
 
-- **[Notes](docs/01-Specification/Notes.md)** — a small vault of
-  markdown files with `[[links]]` between them. Deliberately not
-  Obsidian: folders, links, backlinks, search, and nothing else. It's
-  **off by default** — you're asked once in onboarding and there's a
-  switch in settings. What it exports *is* an Obsidian vault, so it can
-  never trap anything.
-- **[Gallery](docs/01-Specification/Gallery.md)** — albums of photos and
-  video, kept in order and playable as a timelapse. The point is the
-  things a spreadsheet can't hold: whether the gym is working, what a
-  year actually looked like. An album with a schedule **is a seed** —
-  it shows up on your field, you check it in by taking the picture, and
-  it feeds the same streak as everything else. Also off by default, and
-  it asks for the camera only when you switch it on.
-- **The archive becomes a zip, and it imports.** A note is a file and a
-  photo is not a spreadsheet cell, so the export grows into a zip: the
-  workbook, plus `notes/` as markdown and `gallery/` as folders of
-  pictures. And it finally goes the other way — until now the export was
-  a readable record, not a restore ([ADR-007](docs/04-Decisions/ADR-007-Archive-Format.md)).
+- **[The gym](docs/01-Specification/Gym.md)** — the one seed a tick
+  can't hold. *Did I go* is table stakes; *what did I lift, and did it
+  beat last time* is the point. Programs with days, exercise slots and
+  target sets — a weight, a percentage of a training max, or an open
+  `1+`. Then a session screen built for one hand and cold fingers,
+  where a set that went to plan is **one tap** because the target is
+  already in the box. Rest timer, plate calculator, skip an exercise,
+  swap one on the fly. Every set is written the moment it's ticked, so
+  a killed app resumes instead of losing an hour — and a personal
+  record is announced at the moment you beat it.
+- **The gym is a seed, and an album.** Finishing a session checks the
+  gym habit in — once, the same streak as everything else. Creating one
+  offers a [gallery](docs/01-Specification/Gallery.md) album to go with
+  it, and prompts for the picture before or after the session, your
+  choice.
+- **[Steps and body weight](docs/01-Specification/Health.md)** — steps
+  from the phone's own sensor, no account and no fitness platform, and
+  deliberately passive: they never check a seed in and never break a
+  streak, because the phone did the counting. Weight logged whenever
+  you stand on the scale, charted as a 7-day average over the raw dots,
+  with one plain sentence saying the direction — and never whether
+  that's good.
+- **Sleep** — the gradual-volume alarm, the morning retrospective, and
+  the sleep-debt gauge.
 
-The home-screen widget came forward out of the sync phase in
-[Checkpoint 3](docs/05-Checkpoints/Checkpoint-3.md) — nothing about a
-widget needed a server. Phase 3 jumped the whole queue for the reason
-above: the archive rewrite is cheapest now, while the data set is small.
+The exercise catalogue is 1,324 exercises from an
+[open dataset](https://github.com/hasaneyldrm/exercises-dataset). The
+words ship in the app; the animations are fetched when you open an
+exercise and cached forever, with a button to grab them all before a
+trip and a switch to never fetch at all
+([ADR-008](docs/04-Decisions/ADR-008-Exercise-Catalogue.md)).
 
 Working rule: each phase ends with a tagged release I install and live
 with before starting the next — dogfooding is the QA department.

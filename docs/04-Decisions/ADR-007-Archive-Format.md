@@ -47,11 +47,14 @@ harvest-2026-09-05-1430.zip
 The rules that make it an archive rather than a dump:
 
 1. **The workbook is unchanged.** Every rule in
-   [[ADR-006-Export-Format]] still applies to it, and it gains two
-   sheets — `Notes` and `Memories` — carrying the rows behind the
-   files. `Memories` is the sheet that says which file belongs to which
-   album, on which day, with which note: **the file tree is browsable,
-   and the sheet is the index.**
+   [[ADR-006-Export-Format]] still applies to it, and it gains three
+   sheets — `Notes`, `Albums` and `Memories` — carrying the rows behind
+   the files. `Memories` is the sheet that says which file belongs to
+   which album, on which day, with which note: **the file tree is
+   browsable, and the sheet is the index.** `Albums` is there because a
+   folder of pictures cannot say what an album's *schedule* was, and an
+   album without its schedule comes back as a shoebox rather than a
+   seed.
 2. **Notes come out as an Obsidian vault.** `notes/` is the folder
    structure the app shows, with one `.md` per note named by its title.
    Nothing about it needs Harvest to be readable.
