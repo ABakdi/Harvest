@@ -20,6 +20,9 @@ void main() {
     List<List<Object?>> notes = const [],
     List<List<Object?>> albums = const [],
     List<List<Object?>> memories = const [],
+    List<List<Object?>> weights = const [],
+    List<List<Object?>> sleep = const [],
+    List<List<Object?>> sets = const [],
   }) => (
     generatedAt: DateTime.utc(2026, 9, 4, 18, 30),
     seeds: seeds,
@@ -36,6 +39,18 @@ void main() {
     notes: notes,
     albums: albums,
     memories: memories,
+    steps: const <List<Object?>>[],
+    weights: weights,
+    sleep: sleep,
+    exercises: const <List<Object?>>[],
+    programs: const <List<Object?>>[],
+    programDays: const <List<Object?>>[],
+    programSlots: const <List<Object?>>[],
+    targetSets: const <List<Object?>>[],
+    trainingMaxes: const <List<Object?>>[],
+    sessions: const <List<Object?>>[],
+    sessionExercises: const <List<Object?>>[],
+    sets: sets,
   );
 
   ExportSheet sheetNamed(List<ExportSheet> sheets, String name) =>
@@ -97,6 +112,18 @@ void main() {
         SheetNames.notes,
         SheetNames.albums,
         SheetNames.memories,
+        SheetNames.steps,
+        SheetNames.weights,
+        SheetNames.sleep,
+        SheetNames.exercises,
+        SheetNames.programs,
+        SheetNames.programDays,
+        SheetNames.programSlots,
+        SheetNames.targetSets,
+        SheetNames.trainingMaxes,
+        SheetNames.sessions,
+        SheetNames.sessionExercises,
+        SheetNames.sets,
       ]);
     });
 

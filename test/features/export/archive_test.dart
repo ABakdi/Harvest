@@ -43,7 +43,8 @@ void main() {
     if (root.existsSync()) await root.delete(recursive: true);
   });
 
-  Future<Archive> zip() async => ZipDecoder().decodeBytes(await archive.build());
+  Future<Archive> zip() async =>
+      ZipDecoder().decodeBytes(await archive.build());
 
   Set<String> namesOf(Archive zip) => {
     for (final file in zip.files)

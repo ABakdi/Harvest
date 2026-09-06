@@ -360,6 +360,310 @@ class ImportService {
     final memoryResult = await _mergeMemories(bundle, write: write);
     tables[SheetNames.memories] = memoryResult.count;
 
+    // ------------------------------------------------------------ body
+    //
+    // Parents before children, so a half-applied import leaves rows
+    // that still point at something. Several of the child tables carry
+    // no timestamp of their own — a target set is not edited, it is
+    // replaced — so they are added when missing and otherwise left
+    // alone, which is the conservative half of the merge rule.
+
+    tables[SheetNames.steps] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.steps),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.stepDays).get())
+          row.harvestDay: row.updatedAt,
+      },
+      stampOf: (row) => _time(row['UpdatedAt']),
+      keyOf: (row) => row['HarvestDay'],
+      insert: (row) => _db
+          .into(_db.stepDays)
+          .insertOnConflictUpdate(
+            StepDaysCompanion.insert(
+              harvestDay: row['HarvestDay']!,
+              steps: Value(_int(row['Steps']) ?? 0),
+              lastCounter: Value(_int(row['LastCounter'])),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? DateTime.now()),
+            ),
+          ),
+    );
+
+    tables[SheetNames.weights] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.weights),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.bodyWeights).get())
+          row.uuid: row.measuredAt,
+      },
+      stampOf: (row) => _time(row['MeasuredAt']),
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.bodyWeights)
+          .insertOnConflictUpdate(
+            BodyWeightsCompanion.insert(
+              uuid: row['Uuid']!,
+              harvestDay: row['HarvestDay'] ?? '',
+              grams: _int(row['Grams']) ?? 0,
+              note: Value(row['Note']),
+              measuredAt: Value(_time(row['MeasuredAt']) ?? DateTime.now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    );
+
+    tables[SheetNames.sleep] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.sleep),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.sleepSessions).get())
+          row.uuid: row.updatedAt,
+      },
+      stampOf: (row) => _time(row['UpdatedAt']),
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.sleepSessions)
+          .insertOnConflictUpdate(
+            SleepSessionsCompanion.insert(
+              uuid: row['Uuid']!,
+              harvestDay: row['HarvestDay'] ?? '',
+              fellAsleepAt: _time(row['FellAsleepAt']) ?? DateTime.now(),
+              wokeAt: _time(row['WokeAt']) ?? DateTime.now(),
+              targetMinutes: _int(row['TargetMinutes']) ?? 0,
+              restedStars: Value(_int(row['RestedStars'])),
+              note: Value(row['Note']),
+              createdAt: Value(_time(row['CreatedAt']) ?? DateTime.now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? DateTime.now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    );
+
+    tables[SheetNames.exercises] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.exercises),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.exercises).get())
+          row.uuid: row.updatedAt,
+      },
+      stampOf: (row) => _time(row['UpdatedAt']),
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.exercises)
+          .insertOnConflictUpdate(
+            ExercisesCompanion.insert(
+              uuid: row['Uuid']!,
+              name: row['Name'] ?? '',
+              bodyPart: Value(row['BodyPart']),
+              equipment: Value(row['Equipment']),
+              target: Value(row['Target']),
+              note: Value(row['Note']),
+              createdAt: Value(_time(row['CreatedAt']) ?? DateTime.now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? DateTime.now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    );
+
+    tables[SheetNames.programs] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.programs),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.programs).get())
+          row.uuid: row.updatedAt,
+      },
+      stampOf: (row) => _time(row['UpdatedAt']),
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.programs)
+          .insertOnConflictUpdate(
+            ProgramsCompanion.insert(
+              uuid: row['Uuid']!,
+              name: row['Name'] ?? '',
+              note: Value(row['Note']),
+              weeks: Value(_int(row['Weeks'])),
+              commitmentUuid: Value(row['CommitmentUuid']),
+              albumUuid: Value(row['AlbumUuid']),
+              photoPrompt: Value(row['PhotoPrompt'] ?? 'after'),
+              createdAt: Value(_time(row['CreatedAt']) ?? DateTime.now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? DateTime.now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    );
+
+    tables[SheetNames.programDays] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.programDays),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.programDays).get())
+          row.uuid: _epoch,
+      },
+      stampOf: (_) => null,
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.programDays)
+          .insertOnConflictUpdate(
+            ProgramDaysCompanion.insert(
+              uuid: row['Uuid']!,
+              programUuid: row['ProgramUuid'] ?? '',
+              name: row['Name'] ?? '',
+              position: _int(row['Position']) ?? 0,
+              week: Value(_int(row['Week'])),
+            ),
+          ),
+    );
+
+    tables[SheetNames.programSlots] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.programSlots),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.programSlots).get())
+          row.uuid: _epoch,
+      },
+      stampOf: (_) => null,
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.programSlots)
+          .insertOnConflictUpdate(
+            ProgramSlotsCompanion.insert(
+              uuid: row['Uuid']!,
+              dayUuid: row['DayUuid'] ?? '',
+              exerciseId: row['ExerciseId'] ?? '',
+              position: _int(row['Position']) ?? 0,
+              restSeconds: Value(_int(row['RestSeconds'])),
+              barGrams: Value(_int(row['BarGrams']) ?? 20000),
+              note: Value(row['Note']),
+            ),
+          ),
+    );
+
+    tables[SheetNames.targetSets] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.targetSets),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.targetSets).get())
+          row.uuid: _epoch,
+      },
+      stampOf: (_) => null,
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.targetSets)
+          .insertOnConflictUpdate(
+            TargetSetsCompanion.insert(
+              uuid: row['Uuid']!,
+              slotUuid: row['SlotUuid'] ?? '',
+              position: _int(row['Position']) ?? 0,
+              reps: Value(_int(row['Reps'])),
+              weightGrams: Value(_int(row['WeightGrams'])),
+              percentTenths: Value(_int(row['PercentTenths'])),
+              openEnded: Value(_bool(row['OpenEnded'])),
+            ),
+          ),
+    );
+
+    tables[SheetNames.trainingMaxes] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.trainingMaxes),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.trainingMaxes).get())
+          '${row.programUuid}/${row.exerciseId}': row.updatedAt,
+      },
+      stampOf: (row) => _time(row['UpdatedAt']),
+      keyOf: (row) => row['ProgramUuid'] == null || row['ExerciseId'] == null
+          ? null
+          : '${row['ProgramUuid']}/${row['ExerciseId']}',
+      insert: (row) => _db
+          .into(_db.trainingMaxes)
+          .insertOnConflictUpdate(
+            TrainingMaxesCompanion.insert(
+              programUuid: row['ProgramUuid']!,
+              exerciseId: row['ExerciseId']!,
+              grams: _int(row['Grams']) ?? 0,
+              updatedAt: Value(_time(row['UpdatedAt']) ?? DateTime.now()),
+            ),
+          ),
+    );
+
+    tables[SheetNames.sessions] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.sessions),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.workoutSessions).get())
+          row.uuid: row.startedAt,
+      },
+      stampOf: (row) => _time(row['StartedAt']),
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.workoutSessions)
+          .insertOnConflictUpdate(
+            WorkoutSessionsCompanion.insert(
+              uuid: row['Uuid']!,
+              programUuid: Value(row['ProgramUuid']),
+              dayUuid: Value(row['DayUuid']),
+              title: Value(row['Title']),
+              harvestDay: row['HarvestDay'] ?? '',
+              note: Value(row['Note']),
+              startedAt: Value(_time(row['StartedAt']) ?? DateTime.now()),
+              endedAt: Value(_time(row['EndedAt'])),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    );
+
+    tables[SheetNames.sessionExercises] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.sessionExercises),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.sessionExercises).get())
+          row.uuid: _epoch,
+      },
+      stampOf: (_) => null,
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.sessionExercises)
+          .insertOnConflictUpdate(
+            SessionExercisesCompanion.insert(
+              uuid: row['Uuid']!,
+              sessionUuid: row['SessionUuid'] ?? '',
+              position: _int(row['Position']) ?? 0,
+              exerciseId: row['ExerciseId'] ?? '',
+              plannedExerciseId: Value(row['PlannedExerciseId']),
+              slotUuid: Value(row['SlotUuid']),
+              skipped: Value(_bool(row['Skipped'])),
+              note: Value(row['Note']),
+              restSeconds: Value(_int(row['RestSeconds'])),
+              barGrams: Value(_int(row['BarGrams']) ?? 20000),
+            ),
+          ),
+    );
+
+    tables[SheetNames.sets] = await _mergeRows(
+      rows: bundle.sheet(SheetNames.sets),
+      write: write,
+      localStamps: {
+        for (final row in await _db.select(_db.workoutSets).get())
+          row.uuid: row.loggedAt,
+      },
+      stampOf: (row) => _time(row['LoggedAt']),
+      keyOf: (row) => row['Uuid'],
+      insert: (row) => _db
+          .into(_db.workoutSets)
+          .insertOnConflictUpdate(
+            WorkoutSetsCompanion.insert(
+              uuid: row['Uuid']!,
+              sessionExerciseUuid: row['SessionExerciseUuid'] ?? '',
+              position: _int(row['Position']) ?? 0,
+              weightGrams: Value(_int(row['WeightGrams']) ?? 0),
+              reps: Value(_int(row['Reps']) ?? 0),
+              done: Value(_bool(row['Done'])),
+              targetLabel: Value(row['TargetLabel']),
+              openEnded: Value(_bool(row['OpenEnded'])),
+              loggedAt: Value(_time(row['LoggedAt']) ?? DateTime.now()),
+            ),
+          ),
+    );
+
     tables[SheetNames.settings] = await _mergeRows(
       rows: bundle.sheet(SheetNames.settings),
       write: write,
@@ -517,6 +821,19 @@ class ImportService {
     if (value == null || value.isEmpty) return null;
     return int.tryParse(value) ?? double.tryParse(value)?.round();
   }
+
+  /// A spreadsheet writes booleans half a dozen ways, and a person
+  /// editing one writes them a seventh. Anything that is not plainly
+  /// true is false.
+  static bool _bool(String? value) {
+    final text = value?.trim().toLowerCase();
+    return text == 'true' || text == '1' || text == 'yes';
+  }
+
+  /// The stamp for a child row that has none of its own — always older
+  /// than anything incoming, so an existing row is never overwritten
+  /// by one that cannot prove it is newer.
+  static final DateTime _epoch = DateTime.fromMillisecondsSinceEpoch(0);
 }
 
 @Riverpod(keepAlive: true)

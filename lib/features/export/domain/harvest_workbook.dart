@@ -21,6 +21,18 @@ typedef ExportData = ({
   List<List<Object?>> notes,
   List<List<Object?>> albums,
   List<List<Object?>> memories,
+  List<List<Object?>> steps,
+  List<List<Object?>> weights,
+  List<List<Object?>> sleep,
+  List<List<Object?>> exercises,
+  List<List<Object?>> programs,
+  List<List<Object?>> programDays,
+  List<List<Object?>> programSlots,
+  List<List<Object?>> targetSets,
+  List<List<Object?>> trainingMaxes,
+  List<List<Object?>> sessions,
+  List<List<Object?>> sessionExercises,
+  List<List<Object?>> sets,
 });
 
 /// Everything the zip is written from: the rows, and the files the
@@ -54,6 +66,21 @@ abstract final class SheetNames {
   static const notes = 'Notes';
   static const albums = 'Albums';
   static const memories = 'Memories';
+  static const steps = 'Steps';
+  static const weights = 'Weights';
+  static const sleep = 'Sleep';
+
+  /// Only the exercises I wrote. The 1324 in the bundled catalogue are
+  /// not mine and do not belong in my archive.
+  static const exercises = 'Exercises';
+  static const programs = 'Programs';
+  static const programDays = 'ProgramDays';
+  static const programSlots = 'ProgramSlots';
+  static const targetSets = 'TargetSets';
+  static const trainingMaxes = 'TrainingMaxes';
+  static const sessions = 'Sessions';
+  static const sessionExercises = 'SessionExercises';
+  static const sets = 'Sets';
 }
 
 /// Minor units to major, as a live formula rather than a Dart division
@@ -309,6 +336,192 @@ List<ExportSheet> harvestSheets(ExportData data) {
     derived: const [(header: 'Album', template: _albumName)],
   );
 
+  // ------------------------------------------------------------ body
+  //
+  // Weights and barbell loads are grams and stay grams, for the same
+  // reason money stays minor units (rule X4): the integer is the truth
+  // and the kilogram is a formula away.
+
+  final steps = ExportSheet(
+    name: SheetNames.steps,
+    headers: const [
+      'HarvestDay',
+      'Steps',
+      'LastCounter',
+      'UpdatedAt',
+    ],
+    rows: data.steps,
+  );
+
+  final weights = ExportSheet(
+    name: SheetNames.weights,
+    headers: const [
+      'Uuid',
+      'HarvestDay',
+      'Grams',
+      'Note',
+      'MeasuredAt',
+      'DeletedAt',
+    ],
+    rows: data.weights,
+    derived: const [(header: 'Kg', template: '={Grams}{row}/1000')],
+  );
+
+  final sleep = ExportSheet(
+    name: SheetNames.sleep,
+    headers: const [
+      'Uuid',
+      'HarvestDay',
+      'FellAsleepAt',
+      'WokeAt',
+      'TargetMinutes',
+      'RestedStars',
+      'Note',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.sleep,
+  );
+
+  final exercises = ExportSheet(
+    name: SheetNames.exercises,
+    headers: const [
+      'Uuid',
+      'Name',
+      'BodyPart',
+      'Equipment',
+      'Target',
+      'Note',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.exercises,
+  );
+
+  final programs = ExportSheet(
+    name: SheetNames.programs,
+    headers: const [
+      'Uuid',
+      'Name',
+      'Note',
+      'Weeks',
+      'CommitmentUuid',
+      'AlbumUuid',
+      'PhotoPrompt',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.programs,
+    derived: const [(header: 'Seed', template: _seedTitle)],
+  );
+
+  final programDays = ExportSheet(
+    name: SheetNames.programDays,
+    headers: const ['Uuid', 'ProgramUuid', 'Name', 'Position', 'Week'],
+    rows: data.programDays,
+  );
+
+  final programSlots = ExportSheet(
+    name: SheetNames.programSlots,
+    headers: const [
+      'Uuid',
+      'DayUuid',
+      'ExerciseId',
+      'Position',
+      'RestSeconds',
+      'BarGrams',
+      'Note',
+    ],
+    rows: data.programSlots,
+  );
+
+  final targetSets = ExportSheet(
+    name: SheetNames.targetSets,
+    headers: const [
+      'Uuid',
+      'SlotUuid',
+      'Position',
+      'Reps',
+      'WeightGrams',
+      'PercentTenths',
+      'OpenEnded',
+    ],
+    rows: data.targetSets,
+  );
+
+  final trainingMaxes = ExportSheet(
+    name: SheetNames.trainingMaxes,
+    headers: const [
+      'ProgramUuid',
+      'ExerciseId',
+      'Grams',
+      'UpdatedAt',
+    ],
+    rows: data.trainingMaxes,
+    derived: const [(header: 'Kg', template: '={Grams}{row}/1000')],
+  );
+
+  final sessions = ExportSheet(
+    name: SheetNames.sessions,
+    headers: const [
+      'Uuid',
+      'ProgramUuid',
+      'DayUuid',
+      'Title',
+      'HarvestDay',
+      'Note',
+      'StartedAt',
+      'EndedAt',
+      'DeletedAt',
+    ],
+    rows: data.sessions,
+  );
+
+  final sessionExercises = ExportSheet(
+    name: SheetNames.sessionExercises,
+    headers: const [
+      'Uuid',
+      'SessionUuid',
+      'Position',
+      'ExerciseId',
+      'PlannedExerciseId',
+      'SlotUuid',
+      'Skipped',
+      'Note',
+      'RestSeconds',
+      'BarGrams',
+    ],
+    rows: data.sessionExercises,
+  );
+
+  final sets = ExportSheet(
+    name: SheetNames.sets,
+    headers: const [
+      'Uuid',
+      'SessionExerciseUuid',
+      'Position',
+      'WeightGrams',
+      'Reps',
+      'Done',
+      'TargetLabel',
+      'OpenEnded',
+      'LoggedAt',
+    ],
+    rows: data.sets,
+    derived: const [
+      (header: 'Kg', template: '={WeightGrams}{row}/1000'),
+      // Volume the way a lifter means it, live off the two columns
+      // beside it — edit a rep count and the number follows.
+      (
+        header: 'VolumeKg',
+        template: '={WeightGrams}{row}*{Reps}{row}/1000',
+      ),
+    ],
+  );
+
   final sheets = [
     seeds,
     checkIns,
@@ -324,6 +537,18 @@ List<ExportSheet> harvestSheets(ExportData data) {
     notes,
     albums,
     memories,
+    steps,
+    weights,
+    sleep,
+    exercises,
+    programs,
+    programDays,
+    programSlots,
+    targetSets,
+    trainingMaxes,
+    sessions,
+    sessionExercises,
+    sets,
   ];
 
   return [
