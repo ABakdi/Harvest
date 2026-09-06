@@ -63,6 +63,7 @@ A **program** is what I follow: *nSuns 5/3/1*, *Push Pull Legs*,
 | **Day** | One session's worth: *Week 1 · Day 4*, or just *Push* |
 | **Slot** | One exercise in a day, in order, with its targets and rest |
 | **Target set** | What I am *meant* to do: reps, and a weight or a % |
+| **Bar** | What the bar itself weighs — per exercise, 20 kg unless changed |
 
 A target set says one of three things:
 
@@ -71,6 +72,10 @@ A target set says one of three things:
   when the session starts. This is what makes a percentage program like
   5/3/1 usable at all, and it is why a program carries a **training
   max per exercise** that I set and bump.
+
+  Resolved weights are **rounded to the nearest 0.25 kg**. `75%` of a
+  111 kg training max is `83.25`, not `83.25000000000001`, and not a
+  number nobody can load.
 - **An open set** — `1+`, `AMRAP`: as many as I can. The screenshot
   case, marked so it is obvious which set is the one that matters.
 
@@ -122,7 +127,10 @@ What a session can do while it is running:
   through the lock screen. Silence-able for one session without
   changing the program.
 - **Plate calculator.** Given a target weight and a bar, what goes on
-  each side. Two taps of arithmetic I should never do tired.
+  each side. The bar is the exercise's own — **20 kg by default**,
+  because that is right nearly always, and changeable because an EZ bar
+  and a Smith machine are not. Two taps of arithmetic I should never do
+  tired.
 - **Notes** — one for the session, one per exercise.
 - **Finish**, which writes everything, or **discard**, which asks
   twice.
@@ -211,5 +219,6 @@ skipping it costs nothing.
 | Y5 | Records are derived from the log and recomputed, never the only copy of a number. |
 | Y6 | Estimated 1RM is labelled as an estimate wherever it appears, with the formula named. |
 | Y7 | A replaced or skipped exercise is recorded as such. History must be able to say what the day was meant to be. |
+| Y8 | Weights round to 0.25 kg. A number nobody can load onto a bar is a bug. |
 
 Related: [[Health]] · [[Gallery]] · [[Gamification]] · [[Productivity-Engine]] · [[ADR-008-Exercise-Catalogue]]

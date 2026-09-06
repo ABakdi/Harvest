@@ -45,6 +45,18 @@ class ExportRepository {
     final noteRows = await _db.select(_db.notes).get();
     final albumRows = await _db.select(_db.albums).get();
     final memoryRows = await _db.select(_db.memories).get();
+    final stepRows = await _db.select(_db.stepDays).get();
+    final weightRows = await _db.select(_db.bodyWeights).get();
+    final sleepRows = await _db.select(_db.sleepSessions).get();
+    final exerciseRows = await _db.select(_db.exercises).get();
+    final programRows = await _db.select(_db.programs).get();
+    final dayRows = await _db.select(_db.programDays).get();
+    final slotRows = await _db.select(_db.programSlots).get();
+    final targetRows = await _db.select(_db.targetSets).get();
+    final maxRows = await _db.select(_db.trainingMaxes).get();
+    final sessionRows = await _db.select(_db.workoutSessions).get();
+    final sessionExerciseRows = await _db.select(_db.sessionExercises).get();
+    final setRows = await _db.select(_db.workoutSets).get();
 
     final taken = <String>{};
     final noteFiles = <({String path, String body})>[];
@@ -254,6 +266,150 @@ class ExportRepository {
           ],
       ],
       memories: memoryRowsOut,
+      steps: [
+        for (final row in stepRows)
+          [
+            row.harvestDay,
+            row.steps,
+            row.lastCounter,
+            _at(row.updatedAt),
+          ],
+      ],
+      weights: [
+        for (final row in weightRows)
+          [
+            row.uuid,
+            row.harvestDay,
+            row.grams,
+            row.note,
+            _at(row.measuredAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      sleep: [
+        for (final row in sleepRows)
+          [
+            row.uuid,
+            row.harvestDay,
+            _at(row.fellAsleepAt),
+            _at(row.wokeAt),
+            row.targetMinutes,
+            row.restedStars,
+            row.note,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      exercises: [
+        for (final row in exerciseRows)
+          [
+            row.uuid,
+            row.name,
+            row.bodyPart,
+            row.equipment,
+            row.target,
+            row.note,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      programs: [
+        for (final row in programRows)
+          [
+            row.uuid,
+            row.name,
+            row.note,
+            row.weeks,
+            row.commitmentUuid,
+            row.albumUuid,
+            row.photoPrompt,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      programDays: [
+        for (final row in dayRows)
+          [row.uuid, row.programUuid, row.name, row.position, row.week],
+      ],
+      programSlots: [
+        for (final row in slotRows)
+          [
+            row.uuid,
+            row.dayUuid,
+            row.exerciseId,
+            row.position,
+            row.restSeconds,
+            row.barGrams,
+            row.note,
+          ],
+      ],
+      targetSets: [
+        for (final row in targetRows)
+          [
+            row.uuid,
+            row.slotUuid,
+            row.position,
+            row.reps,
+            row.weightGrams,
+            row.percentTenths,
+            row.openEnded,
+          ],
+      ],
+      trainingMaxes: [
+        for (final row in maxRows)
+          [
+            row.programUuid,
+            row.exerciseId,
+            row.grams,
+            _at(row.updatedAt),
+          ],
+      ],
+      sessions: [
+        for (final row in sessionRows)
+          [
+            row.uuid,
+            row.programUuid,
+            row.dayUuid,
+            row.title,
+            row.harvestDay,
+            row.note,
+            _at(row.startedAt),
+            _at(row.endedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      sessionExercises: [
+        for (final row in sessionExerciseRows)
+          [
+            row.uuid,
+            row.sessionUuid,
+            row.position,
+            row.exerciseId,
+            row.plannedExerciseId,
+            row.slotUuid,
+            row.skipped,
+            row.note,
+            row.restSeconds,
+            row.barGrams,
+          ],
+      ],
+      sets: [
+        for (final row in setRows)
+          [
+            row.uuid,
+            row.sessionExerciseUuid,
+            row.position,
+            row.weightGrams,
+            row.reps,
+            row.done,
+            row.targetLabel,
+            row.openEnded,
+            _at(row.loggedAt),
+          ],
+      ],
     );
 
     return (data: data, notes: noteFiles, memories: memoryFiles);

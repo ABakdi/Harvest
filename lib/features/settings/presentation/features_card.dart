@@ -20,6 +20,8 @@ class FeaturesCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final notes = ref.watch(notesEnabledProvider);
     final gallery = ref.watch(galleryEnabledProvider);
+    final health = ref.watch(healthEnabledProvider);
+    final gym = ref.watch(gymEnabledProvider);
 
     Future<void> set(String key, {required bool on}) async {
       await HarvestHaptics.tick();
@@ -45,6 +47,22 @@ class FeaturesCard extends ConsumerWidget {
             onChanged: (on) => set(FeatureKeys.gallery, on: on),
           ),
           if (gallery) const _GallerySize(),
+          const Divider(height: 1),
+          SwitchListTile(
+            secondary: const Icon(Icons.monitor_heart_outlined),
+            title: Text(l10n.featureHealth),
+            subtitle: Text(l10n.featureHealthHint),
+            value: health,
+            onChanged: (on) => set(FeatureKeys.health, on: on),
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            secondary: const Icon(Icons.fitness_center),
+            title: Text(l10n.featureGym),
+            subtitle: Text(l10n.featureGymHint),
+            value: gym,
+            onChanged: (on) => set(FeatureKeys.gym, on: on),
+          ),
         ],
       ),
     );

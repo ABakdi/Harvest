@@ -3744,6 +3744,6167 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
   }
 }
 
+class $StepDaysTable extends StepDays
+    with TableInfo<$StepDaysTable, StepDayRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StepDaysTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stepsMeta = const VerificationMeta('steps');
+  @override
+  late final GeneratedColumn<int> steps = GeneratedColumn<int>(
+    'steps',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastCounterMeta = const VerificationMeta(
+    'lastCounter',
+  );
+  @override
+  late final GeneratedColumn<int> lastCounter = GeneratedColumn<int>(
+    'last_counter',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    harvestDay,
+    steps,
+    lastCounter,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'step_days';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StepDayRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('steps')) {
+      context.handle(
+        _stepsMeta,
+        steps.isAcceptableOrUnknown(data['steps']!, _stepsMeta),
+      );
+    }
+    if (data.containsKey('last_counter')) {
+      context.handle(
+        _lastCounterMeta,
+        lastCounter.isAcceptableOrUnknown(
+          data['last_counter']!,
+          _lastCounterMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {harvestDay};
+  @override
+  StepDayRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StepDayRow(
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      steps: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}steps'],
+      )!,
+      lastCounter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_counter'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StepDaysTable createAlias(String alias) {
+    return $StepDaysTable(attachedDatabase, alias);
+  }
+}
+
+class StepDayRow extends DataClass implements Insertable<StepDayRow> {
+  final String harvestDay;
+  final int steps;
+
+  /// The sensor's own since-boot count at the last sync. Null before
+  /// the first reading of the day.
+  final int? lastCounter;
+  final DateTime updatedAt;
+  const StepDayRow({
+    required this.harvestDay,
+    required this.steps,
+    this.lastCounter,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['steps'] = Variable<int>(steps);
+    if (!nullToAbsent || lastCounter != null) {
+      map['last_counter'] = Variable<int>(lastCounter);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  StepDaysCompanion toCompanion(bool nullToAbsent) {
+    return StepDaysCompanion(
+      harvestDay: Value(harvestDay),
+      steps: Value(steps),
+      lastCounter: lastCounter == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastCounter),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory StepDayRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StepDayRow(
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      steps: serializer.fromJson<int>(json['steps']),
+      lastCounter: serializer.fromJson<int?>(json['lastCounter']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'steps': serializer.toJson<int>(steps),
+      'lastCounter': serializer.toJson<int?>(lastCounter),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  StepDayRow copyWith({
+    String? harvestDay,
+    int? steps,
+    Value<int?> lastCounter = const Value.absent(),
+    DateTime? updatedAt,
+  }) => StepDayRow(
+    harvestDay: harvestDay ?? this.harvestDay,
+    steps: steps ?? this.steps,
+    lastCounter: lastCounter.present ? lastCounter.value : this.lastCounter,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  StepDayRow copyWithCompanion(StepDaysCompanion data) {
+    return StepDayRow(
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      steps: data.steps.present ? data.steps.value : this.steps,
+      lastCounter: data.lastCounter.present
+          ? data.lastCounter.value
+          : this.lastCounter,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StepDayRow(')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('steps: $steps, ')
+          ..write('lastCounter: $lastCounter, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(harvestDay, steps, lastCounter, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StepDayRow &&
+          other.harvestDay == this.harvestDay &&
+          other.steps == this.steps &&
+          other.lastCounter == this.lastCounter &&
+          other.updatedAt == this.updatedAt);
+}
+
+class StepDaysCompanion extends UpdateCompanion<StepDayRow> {
+  final Value<String> harvestDay;
+  final Value<int> steps;
+  final Value<int?> lastCounter;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const StepDaysCompanion({
+    this.harvestDay = const Value.absent(),
+    this.steps = const Value.absent(),
+    this.lastCounter = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StepDaysCompanion.insert({
+    required String harvestDay,
+    this.steps = const Value.absent(),
+    this.lastCounter = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : harvestDay = Value(harvestDay);
+  static Insertable<StepDayRow> custom({
+    Expression<String>? harvestDay,
+    Expression<int>? steps,
+    Expression<int>? lastCounter,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (steps != null) 'steps': steps,
+      if (lastCounter != null) 'last_counter': lastCounter,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StepDaysCompanion copyWith({
+    Value<String>? harvestDay,
+    Value<int>? steps,
+    Value<int?>? lastCounter,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return StepDaysCompanion(
+      harvestDay: harvestDay ?? this.harvestDay,
+      steps: steps ?? this.steps,
+      lastCounter: lastCounter ?? this.lastCounter,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (steps.present) {
+      map['steps'] = Variable<int>(steps.value);
+    }
+    if (lastCounter.present) {
+      map['last_counter'] = Variable<int>(lastCounter.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StepDaysCompanion(')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('steps: $steps, ')
+          ..write('lastCounter: $lastCounter, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BodyWeightsTable extends BodyWeights
+    with TableInfo<$BodyWeightsTable, BodyWeightRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BodyWeightsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _gramsMeta = const VerificationMeta('grams');
+  @override
+  late final GeneratedColumn<int> grams = GeneratedColumn<int>(
+    'grams',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _measuredAtMeta = const VerificationMeta(
+    'measuredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> measuredAt = GeneratedColumn<DateTime>(
+    'measured_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    grams,
+    harvestDay,
+    note,
+    measuredAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'body_weights';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BodyWeightRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('grams')) {
+      context.handle(
+        _gramsMeta,
+        grams.isAcceptableOrUnknown(data['grams']!, _gramsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gramsMeta);
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('measured_at')) {
+      context.handle(
+        _measuredAtMeta,
+        measuredAt.isAcceptableOrUnknown(data['measured_at']!, _measuredAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  BodyWeightRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BodyWeightRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      grams: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grams'],
+      )!,
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      measuredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}measured_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $BodyWeightsTable createAlias(String alias) {
+    return $BodyWeightsTable(attachedDatabase, alias);
+  }
+}
+
+class BodyWeightRow extends DataClass implements Insertable<BodyWeightRow> {
+  final String uuid;
+  final int grams;
+  final String harvestDay;
+  final String? note;
+
+  /// More than one a day is allowed — morning and evening are
+  /// different facts.
+  final DateTime measuredAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const BodyWeightRow({
+    required this.uuid,
+    required this.grams,
+    required this.harvestDay,
+    this.note,
+    required this.measuredAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['grams'] = Variable<int>(grams);
+    map['harvest_day'] = Variable<String>(harvestDay);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['measured_at'] = Variable<DateTime>(measuredAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  BodyWeightsCompanion toCompanion(bool nullToAbsent) {
+    return BodyWeightsCompanion(
+      uuid: Value(uuid),
+      grams: Value(grams),
+      harvestDay: Value(harvestDay),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      measuredAt: Value(measuredAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory BodyWeightRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BodyWeightRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      grams: serializer.fromJson<int>(json['grams']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      note: serializer.fromJson<String?>(json['note']),
+      measuredAt: serializer.fromJson<DateTime>(json['measuredAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'grams': serializer.toJson<int>(grams),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'note': serializer.toJson<String?>(note),
+      'measuredAt': serializer.toJson<DateTime>(measuredAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  BodyWeightRow copyWith({
+    String? uuid,
+    int? grams,
+    String? harvestDay,
+    Value<String?> note = const Value.absent(),
+    DateTime? measuredAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => BodyWeightRow(
+    uuid: uuid ?? this.uuid,
+    grams: grams ?? this.grams,
+    harvestDay: harvestDay ?? this.harvestDay,
+    note: note.present ? note.value : this.note,
+    measuredAt: measuredAt ?? this.measuredAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  BodyWeightRow copyWithCompanion(BodyWeightsCompanion data) {
+    return BodyWeightRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      grams: data.grams.present ? data.grams.value : this.grams,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      note: data.note.present ? data.note.value : this.note,
+      measuredAt: data.measuredAt.present
+          ? data.measuredAt.value
+          : this.measuredAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BodyWeightRow(')
+          ..write('uuid: $uuid, ')
+          ..write('grams: $grams, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('note: $note, ')
+          ..write('measuredAt: $measuredAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    grams,
+    harvestDay,
+    note,
+    measuredAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BodyWeightRow &&
+          other.uuid == this.uuid &&
+          other.grams == this.grams &&
+          other.harvestDay == this.harvestDay &&
+          other.note == this.note &&
+          other.measuredAt == this.measuredAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class BodyWeightsCompanion extends UpdateCompanion<BodyWeightRow> {
+  final Value<String> uuid;
+  final Value<int> grams;
+  final Value<String> harvestDay;
+  final Value<String?> note;
+  final Value<DateTime> measuredAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const BodyWeightsCompanion({
+    this.uuid = const Value.absent(),
+    this.grams = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.note = const Value.absent(),
+    this.measuredAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BodyWeightsCompanion.insert({
+    required String uuid,
+    required int grams,
+    required String harvestDay,
+    this.note = const Value.absent(),
+    this.measuredAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       grams = Value(grams),
+       harvestDay = Value(harvestDay);
+  static Insertable<BodyWeightRow> custom({
+    Expression<String>? uuid,
+    Expression<int>? grams,
+    Expression<String>? harvestDay,
+    Expression<String>? note,
+    Expression<DateTime>? measuredAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (grams != null) 'grams': grams,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (note != null) 'note': note,
+      if (measuredAt != null) 'measured_at': measuredAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BodyWeightsCompanion copyWith({
+    Value<String>? uuid,
+    Value<int>? grams,
+    Value<String>? harvestDay,
+    Value<String?>? note,
+    Value<DateTime>? measuredAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return BodyWeightsCompanion(
+      uuid: uuid ?? this.uuid,
+      grams: grams ?? this.grams,
+      harvestDay: harvestDay ?? this.harvestDay,
+      note: note ?? this.note,
+      measuredAt: measuredAt ?? this.measuredAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (grams.present) {
+      map['grams'] = Variable<int>(grams.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (measuredAt.present) {
+      map['measured_at'] = Variable<DateTime>(measuredAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BodyWeightsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('grams: $grams, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('note: $note, ')
+          ..write('measuredAt: $measuredAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExercisesTable extends Exercises
+    with TableInfo<$ExercisesTable, ExerciseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExercisesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyPartMeta = const VerificationMeta(
+    'bodyPart',
+  );
+  @override
+  late final GeneratedColumn<String> bodyPart = GeneratedColumn<String>(
+    'body_part',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _equipmentMeta = const VerificationMeta(
+    'equipment',
+  );
+  @override
+  late final GeneratedColumn<String> equipment = GeneratedColumn<String>(
+    'equipment',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _targetMeta = const VerificationMeta('target');
+  @override
+  late final GeneratedColumn<String> target = GeneratedColumn<String>(
+    'target',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    name,
+    bodyPart,
+    equipment,
+    target,
+    note,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercises';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExerciseRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('body_part')) {
+      context.handle(
+        _bodyPartMeta,
+        bodyPart.isAcceptableOrUnknown(data['body_part']!, _bodyPartMeta),
+      );
+    }
+    if (data.containsKey('equipment')) {
+      context.handle(
+        _equipmentMeta,
+        equipment.isAcceptableOrUnknown(data['equipment']!, _equipmentMeta),
+      );
+    }
+    if (data.containsKey('target')) {
+      context.handle(
+        _targetMeta,
+        target.isAcceptableOrUnknown(data['target']!, _targetMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  ExerciseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      bodyPart: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body_part'],
+      ),
+      equipment: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}equipment'],
+      ),
+      target: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $ExercisesTable createAlias(String alias) {
+    return $ExercisesTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseRow extends DataClass implements Insertable<ExerciseRow> {
+  final String uuid;
+  final String name;
+  final String? bodyPart;
+  final String? equipment;
+  final String? target;
+  final String? note;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const ExerciseRow({
+    required this.uuid,
+    required this.name,
+    this.bodyPart,
+    this.equipment,
+    this.target,
+    this.note,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || bodyPart != null) {
+      map['body_part'] = Variable<String>(bodyPart);
+    }
+    if (!nullToAbsent || equipment != null) {
+      map['equipment'] = Variable<String>(equipment);
+    }
+    if (!nullToAbsent || target != null) {
+      map['target'] = Variable<String>(target);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  ExercisesCompanion toCompanion(bool nullToAbsent) {
+    return ExercisesCompanion(
+      uuid: Value(uuid),
+      name: Value(name),
+      bodyPart: bodyPart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bodyPart),
+      equipment: equipment == null && nullToAbsent
+          ? const Value.absent()
+          : Value(equipment),
+      target: target == null && nullToAbsent
+          ? const Value.absent()
+          : Value(target),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory ExerciseRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      name: serializer.fromJson<String>(json['name']),
+      bodyPart: serializer.fromJson<String?>(json['bodyPart']),
+      equipment: serializer.fromJson<String?>(json['equipment']),
+      target: serializer.fromJson<String?>(json['target']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'name': serializer.toJson<String>(name),
+      'bodyPart': serializer.toJson<String?>(bodyPart),
+      'equipment': serializer.toJson<String?>(equipment),
+      'target': serializer.toJson<String?>(target),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  ExerciseRow copyWith({
+    String? uuid,
+    String? name,
+    Value<String?> bodyPart = const Value.absent(),
+    Value<String?> equipment = const Value.absent(),
+    Value<String?> target = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => ExerciseRow(
+    uuid: uuid ?? this.uuid,
+    name: name ?? this.name,
+    bodyPart: bodyPart.present ? bodyPart.value : this.bodyPart,
+    equipment: equipment.present ? equipment.value : this.equipment,
+    target: target.present ? target.value : this.target,
+    note: note.present ? note.value : this.note,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  ExerciseRow copyWithCompanion(ExercisesCompanion data) {
+    return ExerciseRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      name: data.name.present ? data.name.value : this.name,
+      bodyPart: data.bodyPart.present ? data.bodyPart.value : this.bodyPart,
+      equipment: data.equipment.present ? data.equipment.value : this.equipment,
+      target: data.target.present ? data.target.value : this.target,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseRow(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('bodyPart: $bodyPart, ')
+          ..write('equipment: $equipment, ')
+          ..write('target: $target, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    name,
+    bodyPart,
+    equipment,
+    target,
+    note,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseRow &&
+          other.uuid == this.uuid &&
+          other.name == this.name &&
+          other.bodyPart == this.bodyPart &&
+          other.equipment == this.equipment &&
+          other.target == this.target &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class ExercisesCompanion extends UpdateCompanion<ExerciseRow> {
+  final Value<String> uuid;
+  final Value<String> name;
+  final Value<String?> bodyPart;
+  final Value<String?> equipment;
+  final Value<String?> target;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const ExercisesCompanion({
+    this.uuid = const Value.absent(),
+    this.name = const Value.absent(),
+    this.bodyPart = const Value.absent(),
+    this.equipment = const Value.absent(),
+    this.target = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExercisesCompanion.insert({
+    required String uuid,
+    required String name,
+    this.bodyPart = const Value.absent(),
+    this.equipment = const Value.absent(),
+    this.target = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       name = Value(name);
+  static Insertable<ExerciseRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? name,
+    Expression<String>? bodyPart,
+    Expression<String>? equipment,
+    Expression<String>? target,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (name != null) 'name': name,
+      if (bodyPart != null) 'body_part': bodyPart,
+      if (equipment != null) 'equipment': equipment,
+      if (target != null) 'target': target,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExercisesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? name,
+    Value<String?>? bodyPart,
+    Value<String?>? equipment,
+    Value<String?>? target,
+    Value<String?>? note,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return ExercisesCompanion(
+      uuid: uuid ?? this.uuid,
+      name: name ?? this.name,
+      bodyPart: bodyPart ?? this.bodyPart,
+      equipment: equipment ?? this.equipment,
+      target: target ?? this.target,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (bodyPart.present) {
+      map['body_part'] = Variable<String>(bodyPart.value);
+    }
+    if (equipment.present) {
+      map['equipment'] = Variable<String>(equipment.value);
+    }
+    if (target.present) {
+      map['target'] = Variable<String>(target.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExercisesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('bodyPart: $bodyPart, ')
+          ..write('equipment: $equipment, ')
+          ..write('target: $target, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ProgramsTable extends Programs
+    with TableInfo<$ProgramsTable, ProgramRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProgramsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weeksMeta = const VerificationMeta('weeks');
+  @override
+  late final GeneratedColumn<int> weeks = GeneratedColumn<int>(
+    'weeks',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _commitmentUuidMeta = const VerificationMeta(
+    'commitmentUuid',
+  );
+  @override
+  late final GeneratedColumn<String> commitmentUuid = GeneratedColumn<String>(
+    'commitment_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _albumUuidMeta = const VerificationMeta(
+    'albumUuid',
+  );
+  @override
+  late final GeneratedColumn<String> albumUuid = GeneratedColumn<String>(
+    'album_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _photoPromptMeta = const VerificationMeta(
+    'photoPrompt',
+  );
+  @override
+  late final GeneratedColumn<String> photoPrompt = GeneratedColumn<String>(
+    'photo_prompt',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('after'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    name,
+    note,
+    weeks,
+    commitmentUuid,
+    albumUuid,
+    photoPrompt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'programs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProgramRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('weeks')) {
+      context.handle(
+        _weeksMeta,
+        weeks.isAcceptableOrUnknown(data['weeks']!, _weeksMeta),
+      );
+    }
+    if (data.containsKey('commitment_uuid')) {
+      context.handle(
+        _commitmentUuidMeta,
+        commitmentUuid.isAcceptableOrUnknown(
+          data['commitment_uuid']!,
+          _commitmentUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('album_uuid')) {
+      context.handle(
+        _albumUuidMeta,
+        albumUuid.isAcceptableOrUnknown(data['album_uuid']!, _albumUuidMeta),
+      );
+    }
+    if (data.containsKey('photo_prompt')) {
+      context.handle(
+        _photoPromptMeta,
+        photoPrompt.isAcceptableOrUnknown(
+          data['photo_prompt']!,
+          _photoPromptMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  ProgramRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProgramRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      weeks: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weeks'],
+      ),
+      commitmentUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}commitment_uuid'],
+      ),
+      albumUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}album_uuid'],
+      ),
+      photoPrompt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_prompt'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $ProgramsTable createAlias(String alias) {
+    return $ProgramsTable(attachedDatabase, alias);
+  }
+}
+
+class ProgramRow extends DataClass implements Insertable<ProgramRow> {
+  final String uuid;
+  final String name;
+  final String? note;
+
+  /// Null for a program that is just a list of days; a number for one
+  /// that cycles over N weeks.
+  final int? weeks;
+
+  /// The habit this program is: finishing a session checks it in
+  /// ([[Gym]] rule Y4). Null until it is bound to one.
+  final String? commitmentUuid;
+
+  /// The album the pictures go to, if I took the offer.
+  final String? albumUuid;
+
+  /// `after` | `before` | `never` — when the picture is asked for.
+  final String photoPrompt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const ProgramRow({
+    required this.uuid,
+    required this.name,
+    this.note,
+    this.weeks,
+    this.commitmentUuid,
+    this.albumUuid,
+    required this.photoPrompt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || weeks != null) {
+      map['weeks'] = Variable<int>(weeks);
+    }
+    if (!nullToAbsent || commitmentUuid != null) {
+      map['commitment_uuid'] = Variable<String>(commitmentUuid);
+    }
+    if (!nullToAbsent || albumUuid != null) {
+      map['album_uuid'] = Variable<String>(albumUuid);
+    }
+    map['photo_prompt'] = Variable<String>(photoPrompt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  ProgramsCompanion toCompanion(bool nullToAbsent) {
+    return ProgramsCompanion(
+      uuid: Value(uuid),
+      name: Value(name),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      weeks: weeks == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weeks),
+      commitmentUuid: commitmentUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(commitmentUuid),
+      albumUuid: albumUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumUuid),
+      photoPrompt: Value(photoPrompt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory ProgramRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProgramRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      name: serializer.fromJson<String>(json['name']),
+      note: serializer.fromJson<String?>(json['note']),
+      weeks: serializer.fromJson<int?>(json['weeks']),
+      commitmentUuid: serializer.fromJson<String?>(json['commitmentUuid']),
+      albumUuid: serializer.fromJson<String?>(json['albumUuid']),
+      photoPrompt: serializer.fromJson<String>(json['photoPrompt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'name': serializer.toJson<String>(name),
+      'note': serializer.toJson<String?>(note),
+      'weeks': serializer.toJson<int?>(weeks),
+      'commitmentUuid': serializer.toJson<String?>(commitmentUuid),
+      'albumUuid': serializer.toJson<String?>(albumUuid),
+      'photoPrompt': serializer.toJson<String>(photoPrompt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  ProgramRow copyWith({
+    String? uuid,
+    String? name,
+    Value<String?> note = const Value.absent(),
+    Value<int?> weeks = const Value.absent(),
+    Value<String?> commitmentUuid = const Value.absent(),
+    Value<String?> albumUuid = const Value.absent(),
+    String? photoPrompt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => ProgramRow(
+    uuid: uuid ?? this.uuid,
+    name: name ?? this.name,
+    note: note.present ? note.value : this.note,
+    weeks: weeks.present ? weeks.value : this.weeks,
+    commitmentUuid: commitmentUuid.present
+        ? commitmentUuid.value
+        : this.commitmentUuid,
+    albumUuid: albumUuid.present ? albumUuid.value : this.albumUuid,
+    photoPrompt: photoPrompt ?? this.photoPrompt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  ProgramRow copyWithCompanion(ProgramsCompanion data) {
+    return ProgramRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      name: data.name.present ? data.name.value : this.name,
+      note: data.note.present ? data.note.value : this.note,
+      weeks: data.weeks.present ? data.weeks.value : this.weeks,
+      commitmentUuid: data.commitmentUuid.present
+          ? data.commitmentUuid.value
+          : this.commitmentUuid,
+      albumUuid: data.albumUuid.present ? data.albumUuid.value : this.albumUuid,
+      photoPrompt: data.photoPrompt.present
+          ? data.photoPrompt.value
+          : this.photoPrompt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramRow(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('note: $note, ')
+          ..write('weeks: $weeks, ')
+          ..write('commitmentUuid: $commitmentUuid, ')
+          ..write('albumUuid: $albumUuid, ')
+          ..write('photoPrompt: $photoPrompt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    name,
+    note,
+    weeks,
+    commitmentUuid,
+    albumUuid,
+    photoPrompt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProgramRow &&
+          other.uuid == this.uuid &&
+          other.name == this.name &&
+          other.note == this.note &&
+          other.weeks == this.weeks &&
+          other.commitmentUuid == this.commitmentUuid &&
+          other.albumUuid == this.albumUuid &&
+          other.photoPrompt == this.photoPrompt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class ProgramsCompanion extends UpdateCompanion<ProgramRow> {
+  final Value<String> uuid;
+  final Value<String> name;
+  final Value<String?> note;
+  final Value<int?> weeks;
+  final Value<String?> commitmentUuid;
+  final Value<String?> albumUuid;
+  final Value<String> photoPrompt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const ProgramsCompanion({
+    this.uuid = const Value.absent(),
+    this.name = const Value.absent(),
+    this.note = const Value.absent(),
+    this.weeks = const Value.absent(),
+    this.commitmentUuid = const Value.absent(),
+    this.albumUuid = const Value.absent(),
+    this.photoPrompt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProgramsCompanion.insert({
+    required String uuid,
+    required String name,
+    this.note = const Value.absent(),
+    this.weeks = const Value.absent(),
+    this.commitmentUuid = const Value.absent(),
+    this.albumUuid = const Value.absent(),
+    this.photoPrompt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       name = Value(name);
+  static Insertable<ProgramRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? name,
+    Expression<String>? note,
+    Expression<int>? weeks,
+    Expression<String>? commitmentUuid,
+    Expression<String>? albumUuid,
+    Expression<String>? photoPrompt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (name != null) 'name': name,
+      if (note != null) 'note': note,
+      if (weeks != null) 'weeks': weeks,
+      if (commitmentUuid != null) 'commitment_uuid': commitmentUuid,
+      if (albumUuid != null) 'album_uuid': albumUuid,
+      if (photoPrompt != null) 'photo_prompt': photoPrompt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProgramsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? name,
+    Value<String?>? note,
+    Value<int?>? weeks,
+    Value<String?>? commitmentUuid,
+    Value<String?>? albumUuid,
+    Value<String>? photoPrompt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return ProgramsCompanion(
+      uuid: uuid ?? this.uuid,
+      name: name ?? this.name,
+      note: note ?? this.note,
+      weeks: weeks ?? this.weeks,
+      commitmentUuid: commitmentUuid ?? this.commitmentUuid,
+      albumUuid: albumUuid ?? this.albumUuid,
+      photoPrompt: photoPrompt ?? this.photoPrompt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (weeks.present) {
+      map['weeks'] = Variable<int>(weeks.value);
+    }
+    if (commitmentUuid.present) {
+      map['commitment_uuid'] = Variable<String>(commitmentUuid.value);
+    }
+    if (albumUuid.present) {
+      map['album_uuid'] = Variable<String>(albumUuid.value);
+    }
+    if (photoPrompt.present) {
+      map['photo_prompt'] = Variable<String>(photoPrompt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('note: $note, ')
+          ..write('weeks: $weeks, ')
+          ..write('commitmentUuid: $commitmentUuid, ')
+          ..write('albumUuid: $albumUuid, ')
+          ..write('photoPrompt: $photoPrompt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ProgramDaysTable extends ProgramDays
+    with TableInfo<$ProgramDaysTable, ProgramDayRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProgramDaysTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _programUuidMeta = const VerificationMeta(
+    'programUuid',
+  );
+  @override
+  late final GeneratedColumn<String> programUuid = GeneratedColumn<String>(
+    'program_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES programs (uuid)',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _weekMeta = const VerificationMeta('week');
+  @override
+  late final GeneratedColumn<int> week = GeneratedColumn<int>(
+    'week',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _accessoriesMeta = const VerificationMeta(
+    'accessories',
+  );
+  @override
+  late final GeneratedColumn<String> accessories = GeneratedColumn<String>(
+    'accessories',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    programUuid,
+    name,
+    position,
+    week,
+    accessories,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'program_days';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProgramDayRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('program_uuid')) {
+      context.handle(
+        _programUuidMeta,
+        programUuid.isAcceptableOrUnknown(
+          data['program_uuid']!,
+          _programUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_programUuidMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('week')) {
+      context.handle(
+        _weekMeta,
+        week.isAcceptableOrUnknown(data['week']!, _weekMeta),
+      );
+    }
+    if (data.containsKey('accessories')) {
+      context.handle(
+        _accessoriesMeta,
+        accessories.isAcceptableOrUnknown(
+          data['accessories']!,
+          _accessoriesMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  ProgramDayRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProgramDayRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      programUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}program_uuid'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      week: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}week'],
+      ),
+      accessories: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}accessories'],
+      ),
+    );
+  }
+
+  @override
+  $ProgramDaysTable createAlias(String alias) {
+    return $ProgramDaysTable(attachedDatabase, alias);
+  }
+}
+
+class ProgramDayRow extends DataClass implements Insertable<ProgramDayRow> {
+  final String uuid;
+  final String programUuid;
+  final String name;
+  final int position;
+
+  /// Which week of the cycle, for a program that has them.
+  final int? week;
+
+  /// Free text: "Back, Abs". A note, not a prescription.
+  final String? accessories;
+  const ProgramDayRow({
+    required this.uuid,
+    required this.programUuid,
+    required this.name,
+    required this.position,
+    this.week,
+    this.accessories,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['program_uuid'] = Variable<String>(programUuid);
+    map['name'] = Variable<String>(name);
+    map['position'] = Variable<int>(position);
+    if (!nullToAbsent || week != null) {
+      map['week'] = Variable<int>(week);
+    }
+    if (!nullToAbsent || accessories != null) {
+      map['accessories'] = Variable<String>(accessories);
+    }
+    return map;
+  }
+
+  ProgramDaysCompanion toCompanion(bool nullToAbsent) {
+    return ProgramDaysCompanion(
+      uuid: Value(uuid),
+      programUuid: Value(programUuid),
+      name: Value(name),
+      position: Value(position),
+      week: week == null && nullToAbsent ? const Value.absent() : Value(week),
+      accessories: accessories == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accessories),
+    );
+  }
+
+  factory ProgramDayRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProgramDayRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      programUuid: serializer.fromJson<String>(json['programUuid']),
+      name: serializer.fromJson<String>(json['name']),
+      position: serializer.fromJson<int>(json['position']),
+      week: serializer.fromJson<int?>(json['week']),
+      accessories: serializer.fromJson<String?>(json['accessories']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'programUuid': serializer.toJson<String>(programUuid),
+      'name': serializer.toJson<String>(name),
+      'position': serializer.toJson<int>(position),
+      'week': serializer.toJson<int?>(week),
+      'accessories': serializer.toJson<String?>(accessories),
+    };
+  }
+
+  ProgramDayRow copyWith({
+    String? uuid,
+    String? programUuid,
+    String? name,
+    int? position,
+    Value<int?> week = const Value.absent(),
+    Value<String?> accessories = const Value.absent(),
+  }) => ProgramDayRow(
+    uuid: uuid ?? this.uuid,
+    programUuid: programUuid ?? this.programUuid,
+    name: name ?? this.name,
+    position: position ?? this.position,
+    week: week.present ? week.value : this.week,
+    accessories: accessories.present ? accessories.value : this.accessories,
+  );
+  ProgramDayRow copyWithCompanion(ProgramDaysCompanion data) {
+    return ProgramDayRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      programUuid: data.programUuid.present
+          ? data.programUuid.value
+          : this.programUuid,
+      name: data.name.present ? data.name.value : this.name,
+      position: data.position.present ? data.position.value : this.position,
+      week: data.week.present ? data.week.value : this.week,
+      accessories: data.accessories.present
+          ? data.accessories.value
+          : this.accessories,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramDayRow(')
+          ..write('uuid: $uuid, ')
+          ..write('programUuid: $programUuid, ')
+          ..write('name: $name, ')
+          ..write('position: $position, ')
+          ..write('week: $week, ')
+          ..write('accessories: $accessories')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uuid, programUuid, name, position, week, accessories);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProgramDayRow &&
+          other.uuid == this.uuid &&
+          other.programUuid == this.programUuid &&
+          other.name == this.name &&
+          other.position == this.position &&
+          other.week == this.week &&
+          other.accessories == this.accessories);
+}
+
+class ProgramDaysCompanion extends UpdateCompanion<ProgramDayRow> {
+  final Value<String> uuid;
+  final Value<String> programUuid;
+  final Value<String> name;
+  final Value<int> position;
+  final Value<int?> week;
+  final Value<String?> accessories;
+  final Value<int> rowid;
+  const ProgramDaysCompanion({
+    this.uuid = const Value.absent(),
+    this.programUuid = const Value.absent(),
+    this.name = const Value.absent(),
+    this.position = const Value.absent(),
+    this.week = const Value.absent(),
+    this.accessories = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProgramDaysCompanion.insert({
+    required String uuid,
+    required String programUuid,
+    required String name,
+    required int position,
+    this.week = const Value.absent(),
+    this.accessories = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       programUuid = Value(programUuid),
+       name = Value(name),
+       position = Value(position);
+  static Insertable<ProgramDayRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? programUuid,
+    Expression<String>? name,
+    Expression<int>? position,
+    Expression<int>? week,
+    Expression<String>? accessories,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (programUuid != null) 'program_uuid': programUuid,
+      if (name != null) 'name': name,
+      if (position != null) 'position': position,
+      if (week != null) 'week': week,
+      if (accessories != null) 'accessories': accessories,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProgramDaysCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? programUuid,
+    Value<String>? name,
+    Value<int>? position,
+    Value<int?>? week,
+    Value<String?>? accessories,
+    Value<int>? rowid,
+  }) {
+    return ProgramDaysCompanion(
+      uuid: uuid ?? this.uuid,
+      programUuid: programUuid ?? this.programUuid,
+      name: name ?? this.name,
+      position: position ?? this.position,
+      week: week ?? this.week,
+      accessories: accessories ?? this.accessories,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (programUuid.present) {
+      map['program_uuid'] = Variable<String>(programUuid.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (week.present) {
+      map['week'] = Variable<int>(week.value);
+    }
+    if (accessories.present) {
+      map['accessories'] = Variable<String>(accessories.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramDaysCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('programUuid: $programUuid, ')
+          ..write('name: $name, ')
+          ..write('position: $position, ')
+          ..write('week: $week, ')
+          ..write('accessories: $accessories, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ProgramSlotsTable extends ProgramSlots
+    with TableInfo<$ProgramSlotsTable, ProgramSlotRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProgramSlotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dayUuidMeta = const VerificationMeta(
+    'dayUuid',
+  );
+  @override
+  late final GeneratedColumn<String> dayUuid = GeneratedColumn<String>(
+    'day_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES program_days (uuid)',
+    ),
+  );
+  static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
+    'exerciseId',
+  );
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+    'exercise_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _restSecondsMeta = const VerificationMeta(
+    'restSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> restSeconds = GeneratedColumn<int>(
+    'rest_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _barGramsMeta = const VerificationMeta(
+    'barGrams',
+  );
+  @override
+  late final GeneratedColumn<int> barGrams = GeneratedColumn<int>(
+    'bar_grams',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(20000),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    dayUuid,
+    exerciseId,
+    position,
+    restSeconds,
+    barGrams,
+    note,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'program_slots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProgramSlotRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('day_uuid')) {
+      context.handle(
+        _dayUuidMeta,
+        dayUuid.isAcceptableOrUnknown(data['day_uuid']!, _dayUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayUuidMeta);
+    }
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+        _exerciseIdMeta,
+        exerciseId.isAcceptableOrUnknown(data['exercise_id']!, _exerciseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('rest_seconds')) {
+      context.handle(
+        _restSecondsMeta,
+        restSeconds.isAcceptableOrUnknown(
+          data['rest_seconds']!,
+          _restSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bar_grams')) {
+      context.handle(
+        _barGramsMeta,
+        barGrams.isAcceptableOrUnknown(data['bar_grams']!, _barGramsMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  ProgramSlotRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProgramSlotRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      dayUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day_uuid'],
+      )!,
+      exerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exercise_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      restSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rest_seconds'],
+      ),
+      barGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bar_grams'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+    );
+  }
+
+  @override
+  $ProgramSlotsTable createAlias(String alias) {
+    return $ProgramSlotsTable(attachedDatabase, alias);
+  }
+}
+
+class ProgramSlotRow extends DataClass implements Insertable<ProgramSlotRow> {
+  final String uuid;
+  final String dayUuid;
+
+  /// A catalogue id ("0001") or the uuid of one of my own exercises.
+  final String exerciseId;
+  final int position;
+  final int? restSeconds;
+
+  /// What the bar itself weighs. 20 kg unless told otherwise, because
+  /// that is right nearly always ([[Gym]]).
+  final int barGrams;
+  final String? note;
+  const ProgramSlotRow({
+    required this.uuid,
+    required this.dayUuid,
+    required this.exerciseId,
+    required this.position,
+    this.restSeconds,
+    required this.barGrams,
+    this.note,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['day_uuid'] = Variable<String>(dayUuid);
+    map['exercise_id'] = Variable<String>(exerciseId);
+    map['position'] = Variable<int>(position);
+    if (!nullToAbsent || restSeconds != null) {
+      map['rest_seconds'] = Variable<int>(restSeconds);
+    }
+    map['bar_grams'] = Variable<int>(barGrams);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    return map;
+  }
+
+  ProgramSlotsCompanion toCompanion(bool nullToAbsent) {
+    return ProgramSlotsCompanion(
+      uuid: Value(uuid),
+      dayUuid: Value(dayUuid),
+      exerciseId: Value(exerciseId),
+      position: Value(position),
+      restSeconds: restSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(restSeconds),
+      barGrams: Value(barGrams),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+    );
+  }
+
+  factory ProgramSlotRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProgramSlotRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      dayUuid: serializer.fromJson<String>(json['dayUuid']),
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      position: serializer.fromJson<int>(json['position']),
+      restSeconds: serializer.fromJson<int?>(json['restSeconds']),
+      barGrams: serializer.fromJson<int>(json['barGrams']),
+      note: serializer.fromJson<String?>(json['note']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'dayUuid': serializer.toJson<String>(dayUuid),
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'position': serializer.toJson<int>(position),
+      'restSeconds': serializer.toJson<int?>(restSeconds),
+      'barGrams': serializer.toJson<int>(barGrams),
+      'note': serializer.toJson<String?>(note),
+    };
+  }
+
+  ProgramSlotRow copyWith({
+    String? uuid,
+    String? dayUuid,
+    String? exerciseId,
+    int? position,
+    Value<int?> restSeconds = const Value.absent(),
+    int? barGrams,
+    Value<String?> note = const Value.absent(),
+  }) => ProgramSlotRow(
+    uuid: uuid ?? this.uuid,
+    dayUuid: dayUuid ?? this.dayUuid,
+    exerciseId: exerciseId ?? this.exerciseId,
+    position: position ?? this.position,
+    restSeconds: restSeconds.present ? restSeconds.value : this.restSeconds,
+    barGrams: barGrams ?? this.barGrams,
+    note: note.present ? note.value : this.note,
+  );
+  ProgramSlotRow copyWithCompanion(ProgramSlotsCompanion data) {
+    return ProgramSlotRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      dayUuid: data.dayUuid.present ? data.dayUuid.value : this.dayUuid,
+      exerciseId: data.exerciseId.present
+          ? data.exerciseId.value
+          : this.exerciseId,
+      position: data.position.present ? data.position.value : this.position,
+      restSeconds: data.restSeconds.present
+          ? data.restSeconds.value
+          : this.restSeconds,
+      barGrams: data.barGrams.present ? data.barGrams.value : this.barGrams,
+      note: data.note.present ? data.note.value : this.note,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramSlotRow(')
+          ..write('uuid: $uuid, ')
+          ..write('dayUuid: $dayUuid, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('position: $position, ')
+          ..write('restSeconds: $restSeconds, ')
+          ..write('barGrams: $barGrams, ')
+          ..write('note: $note')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    dayUuid,
+    exerciseId,
+    position,
+    restSeconds,
+    barGrams,
+    note,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProgramSlotRow &&
+          other.uuid == this.uuid &&
+          other.dayUuid == this.dayUuid &&
+          other.exerciseId == this.exerciseId &&
+          other.position == this.position &&
+          other.restSeconds == this.restSeconds &&
+          other.barGrams == this.barGrams &&
+          other.note == this.note);
+}
+
+class ProgramSlotsCompanion extends UpdateCompanion<ProgramSlotRow> {
+  final Value<String> uuid;
+  final Value<String> dayUuid;
+  final Value<String> exerciseId;
+  final Value<int> position;
+  final Value<int?> restSeconds;
+  final Value<int> barGrams;
+  final Value<String?> note;
+  final Value<int> rowid;
+  const ProgramSlotsCompanion({
+    this.uuid = const Value.absent(),
+    this.dayUuid = const Value.absent(),
+    this.exerciseId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.restSeconds = const Value.absent(),
+    this.barGrams = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProgramSlotsCompanion.insert({
+    required String uuid,
+    required String dayUuid,
+    required String exerciseId,
+    required int position,
+    this.restSeconds = const Value.absent(),
+    this.barGrams = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       dayUuid = Value(dayUuid),
+       exerciseId = Value(exerciseId),
+       position = Value(position);
+  static Insertable<ProgramSlotRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? dayUuid,
+    Expression<String>? exerciseId,
+    Expression<int>? position,
+    Expression<int>? restSeconds,
+    Expression<int>? barGrams,
+    Expression<String>? note,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (dayUuid != null) 'day_uuid': dayUuid,
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (position != null) 'position': position,
+      if (restSeconds != null) 'rest_seconds': restSeconds,
+      if (barGrams != null) 'bar_grams': barGrams,
+      if (note != null) 'note': note,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProgramSlotsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? dayUuid,
+    Value<String>? exerciseId,
+    Value<int>? position,
+    Value<int?>? restSeconds,
+    Value<int>? barGrams,
+    Value<String?>? note,
+    Value<int>? rowid,
+  }) {
+    return ProgramSlotsCompanion(
+      uuid: uuid ?? this.uuid,
+      dayUuid: dayUuid ?? this.dayUuid,
+      exerciseId: exerciseId ?? this.exerciseId,
+      position: position ?? this.position,
+      restSeconds: restSeconds ?? this.restSeconds,
+      barGrams: barGrams ?? this.barGrams,
+      note: note ?? this.note,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (dayUuid.present) {
+      map['day_uuid'] = Variable<String>(dayUuid.value);
+    }
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (restSeconds.present) {
+      map['rest_seconds'] = Variable<int>(restSeconds.value);
+    }
+    if (barGrams.present) {
+      map['bar_grams'] = Variable<int>(barGrams.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramSlotsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('dayUuid: $dayUuid, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('position: $position, ')
+          ..write('restSeconds: $restSeconds, ')
+          ..write('barGrams: $barGrams, ')
+          ..write('note: $note, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TargetSetsTable extends TargetSets
+    with TableInfo<$TargetSetsTable, TargetSetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TargetSetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _slotUuidMeta = const VerificationMeta(
+    'slotUuid',
+  );
+  @override
+  late final GeneratedColumn<String> slotUuid = GeneratedColumn<String>(
+    'slot_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES program_slots (uuid)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _repsMeta = const VerificationMeta('reps');
+  @override
+  late final GeneratedColumn<int> reps = GeneratedColumn<int>(
+    'reps',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weightGramsMeta = const VerificationMeta(
+    'weightGrams',
+  );
+  @override
+  late final GeneratedColumn<int> weightGrams = GeneratedColumn<int>(
+    'weight_grams',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _percentTenthsMeta = const VerificationMeta(
+    'percentTenths',
+  );
+  @override
+  late final GeneratedColumn<int> percentTenths = GeneratedColumn<int>(
+    'percent_tenths',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _openEndedMeta = const VerificationMeta(
+    'openEnded',
+  );
+  @override
+  late final GeneratedColumn<bool> openEnded = GeneratedColumn<bool>(
+    'open_ended',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("open_ended" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    slotUuid,
+    position,
+    reps,
+    weightGrams,
+    percentTenths,
+    openEnded,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'target_sets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TargetSetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('slot_uuid')) {
+      context.handle(
+        _slotUuidMeta,
+        slotUuid.isAcceptableOrUnknown(data['slot_uuid']!, _slotUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_slotUuidMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('reps')) {
+      context.handle(
+        _repsMeta,
+        reps.isAcceptableOrUnknown(data['reps']!, _repsMeta),
+      );
+    }
+    if (data.containsKey('weight_grams')) {
+      context.handle(
+        _weightGramsMeta,
+        weightGrams.isAcceptableOrUnknown(
+          data['weight_grams']!,
+          _weightGramsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('percent_tenths')) {
+      context.handle(
+        _percentTenthsMeta,
+        percentTenths.isAcceptableOrUnknown(
+          data['percent_tenths']!,
+          _percentTenthsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_ended')) {
+      context.handle(
+        _openEndedMeta,
+        openEnded.isAcceptableOrUnknown(data['open_ended']!, _openEndedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  TargetSetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TargetSetRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      slotUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}slot_uuid'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      reps: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reps'],
+      ),
+      weightGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weight_grams'],
+      ),
+      percentTenths: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}percent_tenths'],
+      ),
+      openEnded: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}open_ended'],
+      )!,
+    );
+  }
+
+  @override
+  $TargetSetsTable createAlias(String alias) {
+    return $TargetSetsTable(attachedDatabase, alias);
+  }
+}
+
+class TargetSetRow extends DataClass implements Insertable<TargetSetRow> {
+  final String uuid;
+  final String slotUuid;
+  final int position;
+
+  /// Null on an open set — "as many as I can".
+  final int? reps;
+
+  /// Exactly one of these two carries the load.
+  final int? weightGrams;
+
+  /// Percent of the exercise's training max, ×10 so 82.5% is 825.
+  final int? percentTenths;
+
+  /// `1+` / AMRAP — the set that decides whether the weight goes up.
+  final bool openEnded;
+  const TargetSetRow({
+    required this.uuid,
+    required this.slotUuid,
+    required this.position,
+    this.reps,
+    this.weightGrams,
+    this.percentTenths,
+    required this.openEnded,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['slot_uuid'] = Variable<String>(slotUuid);
+    map['position'] = Variable<int>(position);
+    if (!nullToAbsent || reps != null) {
+      map['reps'] = Variable<int>(reps);
+    }
+    if (!nullToAbsent || weightGrams != null) {
+      map['weight_grams'] = Variable<int>(weightGrams);
+    }
+    if (!nullToAbsent || percentTenths != null) {
+      map['percent_tenths'] = Variable<int>(percentTenths);
+    }
+    map['open_ended'] = Variable<bool>(openEnded);
+    return map;
+  }
+
+  TargetSetsCompanion toCompanion(bool nullToAbsent) {
+    return TargetSetsCompanion(
+      uuid: Value(uuid),
+      slotUuid: Value(slotUuid),
+      position: Value(position),
+      reps: reps == null && nullToAbsent ? const Value.absent() : Value(reps),
+      weightGrams: weightGrams == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weightGrams),
+      percentTenths: percentTenths == null && nullToAbsent
+          ? const Value.absent()
+          : Value(percentTenths),
+      openEnded: Value(openEnded),
+    );
+  }
+
+  factory TargetSetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TargetSetRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      slotUuid: serializer.fromJson<String>(json['slotUuid']),
+      position: serializer.fromJson<int>(json['position']),
+      reps: serializer.fromJson<int?>(json['reps']),
+      weightGrams: serializer.fromJson<int?>(json['weightGrams']),
+      percentTenths: serializer.fromJson<int?>(json['percentTenths']),
+      openEnded: serializer.fromJson<bool>(json['openEnded']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'slotUuid': serializer.toJson<String>(slotUuid),
+      'position': serializer.toJson<int>(position),
+      'reps': serializer.toJson<int?>(reps),
+      'weightGrams': serializer.toJson<int?>(weightGrams),
+      'percentTenths': serializer.toJson<int?>(percentTenths),
+      'openEnded': serializer.toJson<bool>(openEnded),
+    };
+  }
+
+  TargetSetRow copyWith({
+    String? uuid,
+    String? slotUuid,
+    int? position,
+    Value<int?> reps = const Value.absent(),
+    Value<int?> weightGrams = const Value.absent(),
+    Value<int?> percentTenths = const Value.absent(),
+    bool? openEnded,
+  }) => TargetSetRow(
+    uuid: uuid ?? this.uuid,
+    slotUuid: slotUuid ?? this.slotUuid,
+    position: position ?? this.position,
+    reps: reps.present ? reps.value : this.reps,
+    weightGrams: weightGrams.present ? weightGrams.value : this.weightGrams,
+    percentTenths: percentTenths.present
+        ? percentTenths.value
+        : this.percentTenths,
+    openEnded: openEnded ?? this.openEnded,
+  );
+  TargetSetRow copyWithCompanion(TargetSetsCompanion data) {
+    return TargetSetRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      slotUuid: data.slotUuid.present ? data.slotUuid.value : this.slotUuid,
+      position: data.position.present ? data.position.value : this.position,
+      reps: data.reps.present ? data.reps.value : this.reps,
+      weightGrams: data.weightGrams.present
+          ? data.weightGrams.value
+          : this.weightGrams,
+      percentTenths: data.percentTenths.present
+          ? data.percentTenths.value
+          : this.percentTenths,
+      openEnded: data.openEnded.present ? data.openEnded.value : this.openEnded,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TargetSetRow(')
+          ..write('uuid: $uuid, ')
+          ..write('slotUuid: $slotUuid, ')
+          ..write('position: $position, ')
+          ..write('reps: $reps, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('percentTenths: $percentTenths, ')
+          ..write('openEnded: $openEnded')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    slotUuid,
+    position,
+    reps,
+    weightGrams,
+    percentTenths,
+    openEnded,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TargetSetRow &&
+          other.uuid == this.uuid &&
+          other.slotUuid == this.slotUuid &&
+          other.position == this.position &&
+          other.reps == this.reps &&
+          other.weightGrams == this.weightGrams &&
+          other.percentTenths == this.percentTenths &&
+          other.openEnded == this.openEnded);
+}
+
+class TargetSetsCompanion extends UpdateCompanion<TargetSetRow> {
+  final Value<String> uuid;
+  final Value<String> slotUuid;
+  final Value<int> position;
+  final Value<int?> reps;
+  final Value<int?> weightGrams;
+  final Value<int?> percentTenths;
+  final Value<bool> openEnded;
+  final Value<int> rowid;
+  const TargetSetsCompanion({
+    this.uuid = const Value.absent(),
+    this.slotUuid = const Value.absent(),
+    this.position = const Value.absent(),
+    this.reps = const Value.absent(),
+    this.weightGrams = const Value.absent(),
+    this.percentTenths = const Value.absent(),
+    this.openEnded = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TargetSetsCompanion.insert({
+    required String uuid,
+    required String slotUuid,
+    required int position,
+    this.reps = const Value.absent(),
+    this.weightGrams = const Value.absent(),
+    this.percentTenths = const Value.absent(),
+    this.openEnded = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       slotUuid = Value(slotUuid),
+       position = Value(position);
+  static Insertable<TargetSetRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? slotUuid,
+    Expression<int>? position,
+    Expression<int>? reps,
+    Expression<int>? weightGrams,
+    Expression<int>? percentTenths,
+    Expression<bool>? openEnded,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (slotUuid != null) 'slot_uuid': slotUuid,
+      if (position != null) 'position': position,
+      if (reps != null) 'reps': reps,
+      if (weightGrams != null) 'weight_grams': weightGrams,
+      if (percentTenths != null) 'percent_tenths': percentTenths,
+      if (openEnded != null) 'open_ended': openEnded,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TargetSetsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? slotUuid,
+    Value<int>? position,
+    Value<int?>? reps,
+    Value<int?>? weightGrams,
+    Value<int?>? percentTenths,
+    Value<bool>? openEnded,
+    Value<int>? rowid,
+  }) {
+    return TargetSetsCompanion(
+      uuid: uuid ?? this.uuid,
+      slotUuid: slotUuid ?? this.slotUuid,
+      position: position ?? this.position,
+      reps: reps ?? this.reps,
+      weightGrams: weightGrams ?? this.weightGrams,
+      percentTenths: percentTenths ?? this.percentTenths,
+      openEnded: openEnded ?? this.openEnded,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (slotUuid.present) {
+      map['slot_uuid'] = Variable<String>(slotUuid.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (reps.present) {
+      map['reps'] = Variable<int>(reps.value);
+    }
+    if (weightGrams.present) {
+      map['weight_grams'] = Variable<int>(weightGrams.value);
+    }
+    if (percentTenths.present) {
+      map['percent_tenths'] = Variable<int>(percentTenths.value);
+    }
+    if (openEnded.present) {
+      map['open_ended'] = Variable<bool>(openEnded.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TargetSetsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('slotUuid: $slotUuid, ')
+          ..write('position: $position, ')
+          ..write('reps: $reps, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('percentTenths: $percentTenths, ')
+          ..write('openEnded: $openEnded, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TrainingMaxesTable extends TrainingMaxes
+    with TableInfo<$TrainingMaxesTable, TrainingMaxRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TrainingMaxesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _programUuidMeta = const VerificationMeta(
+    'programUuid',
+  );
+  @override
+  late final GeneratedColumn<String> programUuid = GeneratedColumn<String>(
+    'program_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES programs (uuid)',
+    ),
+  );
+  static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
+    'exerciseId',
+  );
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+    'exercise_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _gramsMeta = const VerificationMeta('grams');
+  @override
+  late final GeneratedColumn<int> grams = GeneratedColumn<int>(
+    'grams',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    programUuid,
+    exerciseId,
+    grams,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'training_maxes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TrainingMaxRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('program_uuid')) {
+      context.handle(
+        _programUuidMeta,
+        programUuid.isAcceptableOrUnknown(
+          data['program_uuid']!,
+          _programUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_programUuidMeta);
+    }
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+        _exerciseIdMeta,
+        exerciseId.isAcceptableOrUnknown(data['exercise_id']!, _exerciseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('grams')) {
+      context.handle(
+        _gramsMeta,
+        grams.isAcceptableOrUnknown(data['grams']!, _gramsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gramsMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {programUuid, exerciseId};
+  @override
+  TrainingMaxRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TrainingMaxRow(
+      programUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}program_uuid'],
+      )!,
+      exerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exercise_id'],
+      )!,
+      grams: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grams'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TrainingMaxesTable createAlias(String alias) {
+    return $TrainingMaxesTable(attachedDatabase, alias);
+  }
+}
+
+class TrainingMaxRow extends DataClass implements Insertable<TrainingMaxRow> {
+  final String programUuid;
+  final String exerciseId;
+  final int grams;
+  final DateTime updatedAt;
+  const TrainingMaxRow({
+    required this.programUuid,
+    required this.exerciseId,
+    required this.grams,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['program_uuid'] = Variable<String>(programUuid);
+    map['exercise_id'] = Variable<String>(exerciseId);
+    map['grams'] = Variable<int>(grams);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  TrainingMaxesCompanion toCompanion(bool nullToAbsent) {
+    return TrainingMaxesCompanion(
+      programUuid: Value(programUuid),
+      exerciseId: Value(exerciseId),
+      grams: Value(grams),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory TrainingMaxRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TrainingMaxRow(
+      programUuid: serializer.fromJson<String>(json['programUuid']),
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      grams: serializer.fromJson<int>(json['grams']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'programUuid': serializer.toJson<String>(programUuid),
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'grams': serializer.toJson<int>(grams),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  TrainingMaxRow copyWith({
+    String? programUuid,
+    String? exerciseId,
+    int? grams,
+    DateTime? updatedAt,
+  }) => TrainingMaxRow(
+    programUuid: programUuid ?? this.programUuid,
+    exerciseId: exerciseId ?? this.exerciseId,
+    grams: grams ?? this.grams,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  TrainingMaxRow copyWithCompanion(TrainingMaxesCompanion data) {
+    return TrainingMaxRow(
+      programUuid: data.programUuid.present
+          ? data.programUuid.value
+          : this.programUuid,
+      exerciseId: data.exerciseId.present
+          ? data.exerciseId.value
+          : this.exerciseId,
+      grams: data.grams.present ? data.grams.value : this.grams,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingMaxRow(')
+          ..write('programUuid: $programUuid, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('grams: $grams, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(programUuid, exerciseId, grams, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TrainingMaxRow &&
+          other.programUuid == this.programUuid &&
+          other.exerciseId == this.exerciseId &&
+          other.grams == this.grams &&
+          other.updatedAt == this.updatedAt);
+}
+
+class TrainingMaxesCompanion extends UpdateCompanion<TrainingMaxRow> {
+  final Value<String> programUuid;
+  final Value<String> exerciseId;
+  final Value<int> grams;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const TrainingMaxesCompanion({
+    this.programUuid = const Value.absent(),
+    this.exerciseId = const Value.absent(),
+    this.grams = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TrainingMaxesCompanion.insert({
+    required String programUuid,
+    required String exerciseId,
+    required int grams,
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : programUuid = Value(programUuid),
+       exerciseId = Value(exerciseId),
+       grams = Value(grams);
+  static Insertable<TrainingMaxRow> custom({
+    Expression<String>? programUuid,
+    Expression<String>? exerciseId,
+    Expression<int>? grams,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (programUuid != null) 'program_uuid': programUuid,
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (grams != null) 'grams': grams,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TrainingMaxesCompanion copyWith({
+    Value<String>? programUuid,
+    Value<String>? exerciseId,
+    Value<int>? grams,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return TrainingMaxesCompanion(
+      programUuid: programUuid ?? this.programUuid,
+      exerciseId: exerciseId ?? this.exerciseId,
+      grams: grams ?? this.grams,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (programUuid.present) {
+      map['program_uuid'] = Variable<String>(programUuid.value);
+    }
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (grams.present) {
+      map['grams'] = Variable<int>(grams.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingMaxesCompanion(')
+          ..write('programUuid: $programUuid, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('grams: $grams, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WorkoutSessionsTable extends WorkoutSessions
+    with TableInfo<$WorkoutSessionsTable, WorkoutSessionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WorkoutSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _programUuidMeta = const VerificationMeta(
+    'programUuid',
+  );
+  @override
+  late final GeneratedColumn<String> programUuid = GeneratedColumn<String>(
+    'program_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dayUuidMeta = const VerificationMeta(
+    'dayUuid',
+  );
+  @override
+  late final GeneratedColumn<String> dayUuid = GeneratedColumn<String>(
+    'day_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _endedAtMeta = const VerificationMeta(
+    'endedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endedAt = GeneratedColumn<DateTime>(
+    'ended_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    programUuid,
+    dayUuid,
+    title,
+    harvestDay,
+    startedAt,
+    endedAt,
+    note,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'workout_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WorkoutSessionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('program_uuid')) {
+      context.handle(
+        _programUuidMeta,
+        programUuid.isAcceptableOrUnknown(
+          data['program_uuid']!,
+          _programUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('day_uuid')) {
+      context.handle(
+        _dayUuidMeta,
+        dayUuid.isAcceptableOrUnknown(data['day_uuid']!, _dayUuidMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    }
+    if (data.containsKey('ended_at')) {
+      context.handle(
+        _endedAtMeta,
+        endedAt.isAcceptableOrUnknown(data['ended_at']!, _endedAtMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  WorkoutSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WorkoutSessionRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      programUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}program_uuid'],
+      ),
+      dayUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day_uuid'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      )!,
+      endedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ended_at'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $WorkoutSessionsTable createAlias(String alias) {
+    return $WorkoutSessionsTable(attachedDatabase, alias);
+  }
+}
+
+class WorkoutSessionRow extends DataClass
+    implements Insertable<WorkoutSessionRow> {
+  final String uuid;
+  final String? programUuid;
+  final String? dayUuid;
+
+  /// Kept as text so a session survives its program being deleted.
+  final String? title;
+  final String harvestDay;
+  final DateTime startedAt;
+
+  /// Null while the session is still running — which is how an
+  /// interrupted workout is found and resumed ([[Gym]] rule Y3).
+  final DateTime? endedAt;
+  final String? note;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const WorkoutSessionRow({
+    required this.uuid,
+    this.programUuid,
+    this.dayUuid,
+    this.title,
+    required this.harvestDay,
+    required this.startedAt,
+    this.endedAt,
+    this.note,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || programUuid != null) {
+      map['program_uuid'] = Variable<String>(programUuid);
+    }
+    if (!nullToAbsent || dayUuid != null) {
+      map['day_uuid'] = Variable<String>(dayUuid);
+    }
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['started_at'] = Variable<DateTime>(startedAt);
+    if (!nullToAbsent || endedAt != null) {
+      map['ended_at'] = Variable<DateTime>(endedAt);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  WorkoutSessionsCompanion toCompanion(bool nullToAbsent) {
+    return WorkoutSessionsCompanion(
+      uuid: Value(uuid),
+      programUuid: programUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(programUuid),
+      dayUuid: dayUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dayUuid),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      harvestDay: Value(harvestDay),
+      startedAt: Value(startedAt),
+      endedAt: endedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endedAt),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory WorkoutSessionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WorkoutSessionRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      programUuid: serializer.fromJson<String?>(json['programUuid']),
+      dayUuid: serializer.fromJson<String?>(json['dayUuid']),
+      title: serializer.fromJson<String?>(json['title']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      startedAt: serializer.fromJson<DateTime>(json['startedAt']),
+      endedAt: serializer.fromJson<DateTime?>(json['endedAt']),
+      note: serializer.fromJson<String?>(json['note']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'programUuid': serializer.toJson<String?>(programUuid),
+      'dayUuid': serializer.toJson<String?>(dayUuid),
+      'title': serializer.toJson<String?>(title),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'startedAt': serializer.toJson<DateTime>(startedAt),
+      'endedAt': serializer.toJson<DateTime?>(endedAt),
+      'note': serializer.toJson<String?>(note),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  WorkoutSessionRow copyWith({
+    String? uuid,
+    Value<String?> programUuid = const Value.absent(),
+    Value<String?> dayUuid = const Value.absent(),
+    Value<String?> title = const Value.absent(),
+    String? harvestDay,
+    DateTime? startedAt,
+    Value<DateTime?> endedAt = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => WorkoutSessionRow(
+    uuid: uuid ?? this.uuid,
+    programUuid: programUuid.present ? programUuid.value : this.programUuid,
+    dayUuid: dayUuid.present ? dayUuid.value : this.dayUuid,
+    title: title.present ? title.value : this.title,
+    harvestDay: harvestDay ?? this.harvestDay,
+    startedAt: startedAt ?? this.startedAt,
+    endedAt: endedAt.present ? endedAt.value : this.endedAt,
+    note: note.present ? note.value : this.note,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  WorkoutSessionRow copyWithCompanion(WorkoutSessionsCompanion data) {
+    return WorkoutSessionRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      programUuid: data.programUuid.present
+          ? data.programUuid.value
+          : this.programUuid,
+      dayUuid: data.dayUuid.present ? data.dayUuid.value : this.dayUuid,
+      title: data.title.present ? data.title.value : this.title,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
+      note: data.note.present ? data.note.value : this.note,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkoutSessionRow(')
+          ..write('uuid: $uuid, ')
+          ..write('programUuid: $programUuid, ')
+          ..write('dayUuid: $dayUuid, ')
+          ..write('title: $title, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('endedAt: $endedAt, ')
+          ..write('note: $note, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    programUuid,
+    dayUuid,
+    title,
+    harvestDay,
+    startedAt,
+    endedAt,
+    note,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WorkoutSessionRow &&
+          other.uuid == this.uuid &&
+          other.programUuid == this.programUuid &&
+          other.dayUuid == this.dayUuid &&
+          other.title == this.title &&
+          other.harvestDay == this.harvestDay &&
+          other.startedAt == this.startedAt &&
+          other.endedAt == this.endedAt &&
+          other.note == this.note &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
+  final Value<String> uuid;
+  final Value<String?> programUuid;
+  final Value<String?> dayUuid;
+  final Value<String?> title;
+  final Value<String> harvestDay;
+  final Value<DateTime> startedAt;
+  final Value<DateTime?> endedAt;
+  final Value<String?> note;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const WorkoutSessionsCompanion({
+    this.uuid = const Value.absent(),
+    this.programUuid = const Value.absent(),
+    this.dayUuid = const Value.absent(),
+    this.title = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.endedAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WorkoutSessionsCompanion.insert({
+    required String uuid,
+    this.programUuid = const Value.absent(),
+    this.dayUuid = const Value.absent(),
+    this.title = const Value.absent(),
+    required String harvestDay,
+    this.startedAt = const Value.absent(),
+    this.endedAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       harvestDay = Value(harvestDay);
+  static Insertable<WorkoutSessionRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? programUuid,
+    Expression<String>? dayUuid,
+    Expression<String>? title,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? startedAt,
+    Expression<DateTime>? endedAt,
+    Expression<String>? note,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (programUuid != null) 'program_uuid': programUuid,
+      if (dayUuid != null) 'day_uuid': dayUuid,
+      if (title != null) 'title': title,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (startedAt != null) 'started_at': startedAt,
+      if (endedAt != null) 'ended_at': endedAt,
+      if (note != null) 'note': note,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WorkoutSessionsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String?>? programUuid,
+    Value<String?>? dayUuid,
+    Value<String?>? title,
+    Value<String>? harvestDay,
+    Value<DateTime>? startedAt,
+    Value<DateTime?>? endedAt,
+    Value<String?>? note,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return WorkoutSessionsCompanion(
+      uuid: uuid ?? this.uuid,
+      programUuid: programUuid ?? this.programUuid,
+      dayUuid: dayUuid ?? this.dayUuid,
+      title: title ?? this.title,
+      harvestDay: harvestDay ?? this.harvestDay,
+      startedAt: startedAt ?? this.startedAt,
+      endedAt: endedAt ?? this.endedAt,
+      note: note ?? this.note,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (programUuid.present) {
+      map['program_uuid'] = Variable<String>(programUuid.value);
+    }
+    if (dayUuid.present) {
+      map['day_uuid'] = Variable<String>(dayUuid.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (endedAt.present) {
+      map['ended_at'] = Variable<DateTime>(endedAt.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkoutSessionsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('programUuid: $programUuid, ')
+          ..write('dayUuid: $dayUuid, ')
+          ..write('title: $title, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('endedAt: $endedAt, ')
+          ..write('note: $note, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SessionExercisesTable extends SessionExercises
+    with TableInfo<$SessionExercisesTable, SessionExerciseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SessionExercisesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
+    'sessionUuid',
+  );
+  @override
+  late final GeneratedColumn<String> sessionUuid = GeneratedColumn<String>(
+    'session_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES workout_sessions (uuid)',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
+    'exerciseId',
+  );
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+    'exercise_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _plannedExerciseIdMeta = const VerificationMeta(
+    'plannedExerciseId',
+  );
+  @override
+  late final GeneratedColumn<String> plannedExerciseId =
+      GeneratedColumn<String>(
+        'planned_exercise_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _slotUuidMeta = const VerificationMeta(
+    'slotUuid',
+  );
+  @override
+  late final GeneratedColumn<String> slotUuid = GeneratedColumn<String>(
+    'slot_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _skippedMeta = const VerificationMeta(
+    'skipped',
+  );
+  @override
+  late final GeneratedColumn<bool> skipped = GeneratedColumn<bool>(
+    'skipped',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("skipped" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _restSecondsMeta = const VerificationMeta(
+    'restSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> restSeconds = GeneratedColumn<int>(
+    'rest_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _barGramsMeta = const VerificationMeta(
+    'barGrams',
+  );
+  @override
+  late final GeneratedColumn<int> barGrams = GeneratedColumn<int>(
+    'bar_grams',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(20000),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    sessionUuid,
+    position,
+    exerciseId,
+    plannedExerciseId,
+    slotUuid,
+    skipped,
+    note,
+    restSeconds,
+    barGrams,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'session_exercises';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SessionExerciseRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('session_uuid')) {
+      context.handle(
+        _sessionUuidMeta,
+        sessionUuid.isAcceptableOrUnknown(
+          data['session_uuid']!,
+          _sessionUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionUuidMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+        _exerciseIdMeta,
+        exerciseId.isAcceptableOrUnknown(data['exercise_id']!, _exerciseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('planned_exercise_id')) {
+      context.handle(
+        _plannedExerciseIdMeta,
+        plannedExerciseId.isAcceptableOrUnknown(
+          data['planned_exercise_id']!,
+          _plannedExerciseIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('slot_uuid')) {
+      context.handle(
+        _slotUuidMeta,
+        slotUuid.isAcceptableOrUnknown(data['slot_uuid']!, _slotUuidMeta),
+      );
+    }
+    if (data.containsKey('skipped')) {
+      context.handle(
+        _skippedMeta,
+        skipped.isAcceptableOrUnknown(data['skipped']!, _skippedMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('rest_seconds')) {
+      context.handle(
+        _restSecondsMeta,
+        restSeconds.isAcceptableOrUnknown(
+          data['rest_seconds']!,
+          _restSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bar_grams')) {
+      context.handle(
+        _barGramsMeta,
+        barGrams.isAcceptableOrUnknown(data['bar_grams']!, _barGramsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  SessionExerciseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SessionExerciseRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      sessionUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_uuid'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      exerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exercise_id'],
+      )!,
+      plannedExerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}planned_exercise_id'],
+      ),
+      slotUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}slot_uuid'],
+      ),
+      skipped: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}skipped'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      restSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rest_seconds'],
+      ),
+      barGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bar_grams'],
+      )!,
+    );
+  }
+
+  @override
+  $SessionExercisesTable createAlias(String alias) {
+    return $SessionExercisesTable(attachedDatabase, alias);
+  }
+}
+
+class SessionExerciseRow extends DataClass
+    implements Insertable<SessionExerciseRow> {
+  final String uuid;
+  final String sessionUuid;
+  final int position;
+
+  /// What I actually did.
+  final String exerciseId;
+
+  /// What the program asked for, when that is not the same thing.
+  final String? plannedExerciseId;
+  final String? slotUuid;
+  final bool skipped;
+  final String? note;
+  final int? restSeconds;
+  final int barGrams;
+  const SessionExerciseRow({
+    required this.uuid,
+    required this.sessionUuid,
+    required this.position,
+    required this.exerciseId,
+    this.plannedExerciseId,
+    this.slotUuid,
+    required this.skipped,
+    this.note,
+    this.restSeconds,
+    required this.barGrams,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['session_uuid'] = Variable<String>(sessionUuid);
+    map['position'] = Variable<int>(position);
+    map['exercise_id'] = Variable<String>(exerciseId);
+    if (!nullToAbsent || plannedExerciseId != null) {
+      map['planned_exercise_id'] = Variable<String>(plannedExerciseId);
+    }
+    if (!nullToAbsent || slotUuid != null) {
+      map['slot_uuid'] = Variable<String>(slotUuid);
+    }
+    map['skipped'] = Variable<bool>(skipped);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || restSeconds != null) {
+      map['rest_seconds'] = Variable<int>(restSeconds);
+    }
+    map['bar_grams'] = Variable<int>(barGrams);
+    return map;
+  }
+
+  SessionExercisesCompanion toCompanion(bool nullToAbsent) {
+    return SessionExercisesCompanion(
+      uuid: Value(uuid),
+      sessionUuid: Value(sessionUuid),
+      position: Value(position),
+      exerciseId: Value(exerciseId),
+      plannedExerciseId: plannedExerciseId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(plannedExerciseId),
+      slotUuid: slotUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(slotUuid),
+      skipped: Value(skipped),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      restSeconds: restSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(restSeconds),
+      barGrams: Value(barGrams),
+    );
+  }
+
+  factory SessionExerciseRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SessionExerciseRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      sessionUuid: serializer.fromJson<String>(json['sessionUuid']),
+      position: serializer.fromJson<int>(json['position']),
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      plannedExerciseId: serializer.fromJson<String?>(
+        json['plannedExerciseId'],
+      ),
+      slotUuid: serializer.fromJson<String?>(json['slotUuid']),
+      skipped: serializer.fromJson<bool>(json['skipped']),
+      note: serializer.fromJson<String?>(json['note']),
+      restSeconds: serializer.fromJson<int?>(json['restSeconds']),
+      barGrams: serializer.fromJson<int>(json['barGrams']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'sessionUuid': serializer.toJson<String>(sessionUuid),
+      'position': serializer.toJson<int>(position),
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'plannedExerciseId': serializer.toJson<String?>(plannedExerciseId),
+      'slotUuid': serializer.toJson<String?>(slotUuid),
+      'skipped': serializer.toJson<bool>(skipped),
+      'note': serializer.toJson<String?>(note),
+      'restSeconds': serializer.toJson<int?>(restSeconds),
+      'barGrams': serializer.toJson<int>(barGrams),
+    };
+  }
+
+  SessionExerciseRow copyWith({
+    String? uuid,
+    String? sessionUuid,
+    int? position,
+    String? exerciseId,
+    Value<String?> plannedExerciseId = const Value.absent(),
+    Value<String?> slotUuid = const Value.absent(),
+    bool? skipped,
+    Value<String?> note = const Value.absent(),
+    Value<int?> restSeconds = const Value.absent(),
+    int? barGrams,
+  }) => SessionExerciseRow(
+    uuid: uuid ?? this.uuid,
+    sessionUuid: sessionUuid ?? this.sessionUuid,
+    position: position ?? this.position,
+    exerciseId: exerciseId ?? this.exerciseId,
+    plannedExerciseId: plannedExerciseId.present
+        ? plannedExerciseId.value
+        : this.plannedExerciseId,
+    slotUuid: slotUuid.present ? slotUuid.value : this.slotUuid,
+    skipped: skipped ?? this.skipped,
+    note: note.present ? note.value : this.note,
+    restSeconds: restSeconds.present ? restSeconds.value : this.restSeconds,
+    barGrams: barGrams ?? this.barGrams,
+  );
+  SessionExerciseRow copyWithCompanion(SessionExercisesCompanion data) {
+    return SessionExerciseRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      sessionUuid: data.sessionUuid.present
+          ? data.sessionUuid.value
+          : this.sessionUuid,
+      position: data.position.present ? data.position.value : this.position,
+      exerciseId: data.exerciseId.present
+          ? data.exerciseId.value
+          : this.exerciseId,
+      plannedExerciseId: data.plannedExerciseId.present
+          ? data.plannedExerciseId.value
+          : this.plannedExerciseId,
+      slotUuid: data.slotUuid.present ? data.slotUuid.value : this.slotUuid,
+      skipped: data.skipped.present ? data.skipped.value : this.skipped,
+      note: data.note.present ? data.note.value : this.note,
+      restSeconds: data.restSeconds.present
+          ? data.restSeconds.value
+          : this.restSeconds,
+      barGrams: data.barGrams.present ? data.barGrams.value : this.barGrams,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionExerciseRow(')
+          ..write('uuid: $uuid, ')
+          ..write('sessionUuid: $sessionUuid, ')
+          ..write('position: $position, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('plannedExerciseId: $plannedExerciseId, ')
+          ..write('slotUuid: $slotUuid, ')
+          ..write('skipped: $skipped, ')
+          ..write('note: $note, ')
+          ..write('restSeconds: $restSeconds, ')
+          ..write('barGrams: $barGrams')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    sessionUuid,
+    position,
+    exerciseId,
+    plannedExerciseId,
+    slotUuid,
+    skipped,
+    note,
+    restSeconds,
+    barGrams,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SessionExerciseRow &&
+          other.uuid == this.uuid &&
+          other.sessionUuid == this.sessionUuid &&
+          other.position == this.position &&
+          other.exerciseId == this.exerciseId &&
+          other.plannedExerciseId == this.plannedExerciseId &&
+          other.slotUuid == this.slotUuid &&
+          other.skipped == this.skipped &&
+          other.note == this.note &&
+          other.restSeconds == this.restSeconds &&
+          other.barGrams == this.barGrams);
+}
+
+class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
+  final Value<String> uuid;
+  final Value<String> sessionUuid;
+  final Value<int> position;
+  final Value<String> exerciseId;
+  final Value<String?> plannedExerciseId;
+  final Value<String?> slotUuid;
+  final Value<bool> skipped;
+  final Value<String?> note;
+  final Value<int?> restSeconds;
+  final Value<int> barGrams;
+  final Value<int> rowid;
+  const SessionExercisesCompanion({
+    this.uuid = const Value.absent(),
+    this.sessionUuid = const Value.absent(),
+    this.position = const Value.absent(),
+    this.exerciseId = const Value.absent(),
+    this.plannedExerciseId = const Value.absent(),
+    this.slotUuid = const Value.absent(),
+    this.skipped = const Value.absent(),
+    this.note = const Value.absent(),
+    this.restSeconds = const Value.absent(),
+    this.barGrams = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SessionExercisesCompanion.insert({
+    required String uuid,
+    required String sessionUuid,
+    required int position,
+    required String exerciseId,
+    this.plannedExerciseId = const Value.absent(),
+    this.slotUuid = const Value.absent(),
+    this.skipped = const Value.absent(),
+    this.note = const Value.absent(),
+    this.restSeconds = const Value.absent(),
+    this.barGrams = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       sessionUuid = Value(sessionUuid),
+       position = Value(position),
+       exerciseId = Value(exerciseId);
+  static Insertable<SessionExerciseRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? sessionUuid,
+    Expression<int>? position,
+    Expression<String>? exerciseId,
+    Expression<String>? plannedExerciseId,
+    Expression<String>? slotUuid,
+    Expression<bool>? skipped,
+    Expression<String>? note,
+    Expression<int>? restSeconds,
+    Expression<int>? barGrams,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (sessionUuid != null) 'session_uuid': sessionUuid,
+      if (position != null) 'position': position,
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (plannedExerciseId != null) 'planned_exercise_id': plannedExerciseId,
+      if (slotUuid != null) 'slot_uuid': slotUuid,
+      if (skipped != null) 'skipped': skipped,
+      if (note != null) 'note': note,
+      if (restSeconds != null) 'rest_seconds': restSeconds,
+      if (barGrams != null) 'bar_grams': barGrams,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SessionExercisesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? sessionUuid,
+    Value<int>? position,
+    Value<String>? exerciseId,
+    Value<String?>? plannedExerciseId,
+    Value<String?>? slotUuid,
+    Value<bool>? skipped,
+    Value<String?>? note,
+    Value<int?>? restSeconds,
+    Value<int>? barGrams,
+    Value<int>? rowid,
+  }) {
+    return SessionExercisesCompanion(
+      uuid: uuid ?? this.uuid,
+      sessionUuid: sessionUuid ?? this.sessionUuid,
+      position: position ?? this.position,
+      exerciseId: exerciseId ?? this.exerciseId,
+      plannedExerciseId: plannedExerciseId ?? this.plannedExerciseId,
+      slotUuid: slotUuid ?? this.slotUuid,
+      skipped: skipped ?? this.skipped,
+      note: note ?? this.note,
+      restSeconds: restSeconds ?? this.restSeconds,
+      barGrams: barGrams ?? this.barGrams,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (sessionUuid.present) {
+      map['session_uuid'] = Variable<String>(sessionUuid.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (plannedExerciseId.present) {
+      map['planned_exercise_id'] = Variable<String>(plannedExerciseId.value);
+    }
+    if (slotUuid.present) {
+      map['slot_uuid'] = Variable<String>(slotUuid.value);
+    }
+    if (skipped.present) {
+      map['skipped'] = Variable<bool>(skipped.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (restSeconds.present) {
+      map['rest_seconds'] = Variable<int>(restSeconds.value);
+    }
+    if (barGrams.present) {
+      map['bar_grams'] = Variable<int>(barGrams.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionExercisesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('sessionUuid: $sessionUuid, ')
+          ..write('position: $position, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('plannedExerciseId: $plannedExerciseId, ')
+          ..write('slotUuid: $slotUuid, ')
+          ..write('skipped: $skipped, ')
+          ..write('note: $note, ')
+          ..write('restSeconds: $restSeconds, ')
+          ..write('barGrams: $barGrams, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WorkoutSetsTable extends WorkoutSets
+    with TableInfo<$WorkoutSetsTable, WorkoutSetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WorkoutSetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionExerciseUuidMeta =
+      const VerificationMeta('sessionExerciseUuid');
+  @override
+  late final GeneratedColumn<String> sessionExerciseUuid =
+      GeneratedColumn<String>(
+        'session_exercise_uuid',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES session_exercises (uuid)',
+        ),
+      );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _weightGramsMeta = const VerificationMeta(
+    'weightGrams',
+  );
+  @override
+  late final GeneratedColumn<int> weightGrams = GeneratedColumn<int>(
+    'weight_grams',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _repsMeta = const VerificationMeta('reps');
+  @override
+  late final GeneratedColumn<int> reps = GeneratedColumn<int>(
+    'reps',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _doneMeta = const VerificationMeta('done');
+  @override
+  late final GeneratedColumn<bool> done = GeneratedColumn<bool>(
+    'done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("done" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _targetLabelMeta = const VerificationMeta(
+    'targetLabel',
+  );
+  @override
+  late final GeneratedColumn<String> targetLabel = GeneratedColumn<String>(
+    'target_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _openEndedMeta = const VerificationMeta(
+    'openEnded',
+  );
+  @override
+  late final GeneratedColumn<bool> openEnded = GeneratedColumn<bool>(
+    'open_ended',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("open_ended" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _loggedAtMeta = const VerificationMeta(
+    'loggedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedAt = GeneratedColumn<DateTime>(
+    'logged_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    sessionExerciseUuid,
+    position,
+    weightGrams,
+    reps,
+    done,
+    targetLabel,
+    openEnded,
+    loggedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'workout_sets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WorkoutSetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('session_exercise_uuid')) {
+      context.handle(
+        _sessionExerciseUuidMeta,
+        sessionExerciseUuid.isAcceptableOrUnknown(
+          data['session_exercise_uuid']!,
+          _sessionExerciseUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionExerciseUuidMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('weight_grams')) {
+      context.handle(
+        _weightGramsMeta,
+        weightGrams.isAcceptableOrUnknown(
+          data['weight_grams']!,
+          _weightGramsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reps')) {
+      context.handle(
+        _repsMeta,
+        reps.isAcceptableOrUnknown(data['reps']!, _repsMeta),
+      );
+    }
+    if (data.containsKey('done')) {
+      context.handle(
+        _doneMeta,
+        done.isAcceptableOrUnknown(data['done']!, _doneMeta),
+      );
+    }
+    if (data.containsKey('target_label')) {
+      context.handle(
+        _targetLabelMeta,
+        targetLabel.isAcceptableOrUnknown(
+          data['target_label']!,
+          _targetLabelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_ended')) {
+      context.handle(
+        _openEndedMeta,
+        openEnded.isAcceptableOrUnknown(data['open_ended']!, _openEndedMeta),
+      );
+    }
+    if (data.containsKey('logged_at')) {
+      context.handle(
+        _loggedAtMeta,
+        loggedAt.isAcceptableOrUnknown(data['logged_at']!, _loggedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  WorkoutSetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WorkoutSetRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      sessionExerciseUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_exercise_uuid'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      weightGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weight_grams'],
+      )!,
+      reps: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reps'],
+      )!,
+      done: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}done'],
+      )!,
+      targetLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_label'],
+      ),
+      openEnded: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}open_ended'],
+      )!,
+      loggedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WorkoutSetsTable createAlias(String alias) {
+    return $WorkoutSetsTable(attachedDatabase, alias);
+  }
+}
+
+class WorkoutSetRow extends DataClass implements Insertable<WorkoutSetRow> {
+  final String uuid;
+  final String sessionExerciseUuid;
+  final int position;
+  final int weightGrams;
+  final int reps;
+  final bool done;
+
+  /// What this set was asked to be, kept so "did I hit the target?" is
+  /// answerable a year later without the program still existing.
+  final String? targetLabel;
+  final bool openEnded;
+  final DateTime loggedAt;
+  const WorkoutSetRow({
+    required this.uuid,
+    required this.sessionExerciseUuid,
+    required this.position,
+    required this.weightGrams,
+    required this.reps,
+    required this.done,
+    this.targetLabel,
+    required this.openEnded,
+    required this.loggedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['session_exercise_uuid'] = Variable<String>(sessionExerciseUuid);
+    map['position'] = Variable<int>(position);
+    map['weight_grams'] = Variable<int>(weightGrams);
+    map['reps'] = Variable<int>(reps);
+    map['done'] = Variable<bool>(done);
+    if (!nullToAbsent || targetLabel != null) {
+      map['target_label'] = Variable<String>(targetLabel);
+    }
+    map['open_ended'] = Variable<bool>(openEnded);
+    map['logged_at'] = Variable<DateTime>(loggedAt);
+    return map;
+  }
+
+  WorkoutSetsCompanion toCompanion(bool nullToAbsent) {
+    return WorkoutSetsCompanion(
+      uuid: Value(uuid),
+      sessionExerciseUuid: Value(sessionExerciseUuid),
+      position: Value(position),
+      weightGrams: Value(weightGrams),
+      reps: Value(reps),
+      done: Value(done),
+      targetLabel: targetLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetLabel),
+      openEnded: Value(openEnded),
+      loggedAt: Value(loggedAt),
+    );
+  }
+
+  factory WorkoutSetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WorkoutSetRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      sessionExerciseUuid: serializer.fromJson<String>(
+        json['sessionExerciseUuid'],
+      ),
+      position: serializer.fromJson<int>(json['position']),
+      weightGrams: serializer.fromJson<int>(json['weightGrams']),
+      reps: serializer.fromJson<int>(json['reps']),
+      done: serializer.fromJson<bool>(json['done']),
+      targetLabel: serializer.fromJson<String?>(json['targetLabel']),
+      openEnded: serializer.fromJson<bool>(json['openEnded']),
+      loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'sessionExerciseUuid': serializer.toJson<String>(sessionExerciseUuid),
+      'position': serializer.toJson<int>(position),
+      'weightGrams': serializer.toJson<int>(weightGrams),
+      'reps': serializer.toJson<int>(reps),
+      'done': serializer.toJson<bool>(done),
+      'targetLabel': serializer.toJson<String?>(targetLabel),
+      'openEnded': serializer.toJson<bool>(openEnded),
+      'loggedAt': serializer.toJson<DateTime>(loggedAt),
+    };
+  }
+
+  WorkoutSetRow copyWith({
+    String? uuid,
+    String? sessionExerciseUuid,
+    int? position,
+    int? weightGrams,
+    int? reps,
+    bool? done,
+    Value<String?> targetLabel = const Value.absent(),
+    bool? openEnded,
+    DateTime? loggedAt,
+  }) => WorkoutSetRow(
+    uuid: uuid ?? this.uuid,
+    sessionExerciseUuid: sessionExerciseUuid ?? this.sessionExerciseUuid,
+    position: position ?? this.position,
+    weightGrams: weightGrams ?? this.weightGrams,
+    reps: reps ?? this.reps,
+    done: done ?? this.done,
+    targetLabel: targetLabel.present ? targetLabel.value : this.targetLabel,
+    openEnded: openEnded ?? this.openEnded,
+    loggedAt: loggedAt ?? this.loggedAt,
+  );
+  WorkoutSetRow copyWithCompanion(WorkoutSetsCompanion data) {
+    return WorkoutSetRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      sessionExerciseUuid: data.sessionExerciseUuid.present
+          ? data.sessionExerciseUuid.value
+          : this.sessionExerciseUuid,
+      position: data.position.present ? data.position.value : this.position,
+      weightGrams: data.weightGrams.present
+          ? data.weightGrams.value
+          : this.weightGrams,
+      reps: data.reps.present ? data.reps.value : this.reps,
+      done: data.done.present ? data.done.value : this.done,
+      targetLabel: data.targetLabel.present
+          ? data.targetLabel.value
+          : this.targetLabel,
+      openEnded: data.openEnded.present ? data.openEnded.value : this.openEnded,
+      loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkoutSetRow(')
+          ..write('uuid: $uuid, ')
+          ..write('sessionExerciseUuid: $sessionExerciseUuid, ')
+          ..write('position: $position, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('reps: $reps, ')
+          ..write('done: $done, ')
+          ..write('targetLabel: $targetLabel, ')
+          ..write('openEnded: $openEnded, ')
+          ..write('loggedAt: $loggedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    sessionExerciseUuid,
+    position,
+    weightGrams,
+    reps,
+    done,
+    targetLabel,
+    openEnded,
+    loggedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WorkoutSetRow &&
+          other.uuid == this.uuid &&
+          other.sessionExerciseUuid == this.sessionExerciseUuid &&
+          other.position == this.position &&
+          other.weightGrams == this.weightGrams &&
+          other.reps == this.reps &&
+          other.done == this.done &&
+          other.targetLabel == this.targetLabel &&
+          other.openEnded == this.openEnded &&
+          other.loggedAt == this.loggedAt);
+}
+
+class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSetRow> {
+  final Value<String> uuid;
+  final Value<String> sessionExerciseUuid;
+  final Value<int> position;
+  final Value<int> weightGrams;
+  final Value<int> reps;
+  final Value<bool> done;
+  final Value<String?> targetLabel;
+  final Value<bool> openEnded;
+  final Value<DateTime> loggedAt;
+  final Value<int> rowid;
+  const WorkoutSetsCompanion({
+    this.uuid = const Value.absent(),
+    this.sessionExerciseUuid = const Value.absent(),
+    this.position = const Value.absent(),
+    this.weightGrams = const Value.absent(),
+    this.reps = const Value.absent(),
+    this.done = const Value.absent(),
+    this.targetLabel = const Value.absent(),
+    this.openEnded = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WorkoutSetsCompanion.insert({
+    required String uuid,
+    required String sessionExerciseUuid,
+    required int position,
+    this.weightGrams = const Value.absent(),
+    this.reps = const Value.absent(),
+    this.done = const Value.absent(),
+    this.targetLabel = const Value.absent(),
+    this.openEnded = const Value.absent(),
+    this.loggedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       sessionExerciseUuid = Value(sessionExerciseUuid),
+       position = Value(position);
+  static Insertable<WorkoutSetRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? sessionExerciseUuid,
+    Expression<int>? position,
+    Expression<int>? weightGrams,
+    Expression<int>? reps,
+    Expression<bool>? done,
+    Expression<String>? targetLabel,
+    Expression<bool>? openEnded,
+    Expression<DateTime>? loggedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (sessionExerciseUuid != null)
+        'session_exercise_uuid': sessionExerciseUuid,
+      if (position != null) 'position': position,
+      if (weightGrams != null) 'weight_grams': weightGrams,
+      if (reps != null) 'reps': reps,
+      if (done != null) 'done': done,
+      if (targetLabel != null) 'target_label': targetLabel,
+      if (openEnded != null) 'open_ended': openEnded,
+      if (loggedAt != null) 'logged_at': loggedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WorkoutSetsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? sessionExerciseUuid,
+    Value<int>? position,
+    Value<int>? weightGrams,
+    Value<int>? reps,
+    Value<bool>? done,
+    Value<String?>? targetLabel,
+    Value<bool>? openEnded,
+    Value<DateTime>? loggedAt,
+    Value<int>? rowid,
+  }) {
+    return WorkoutSetsCompanion(
+      uuid: uuid ?? this.uuid,
+      sessionExerciseUuid: sessionExerciseUuid ?? this.sessionExerciseUuid,
+      position: position ?? this.position,
+      weightGrams: weightGrams ?? this.weightGrams,
+      reps: reps ?? this.reps,
+      done: done ?? this.done,
+      targetLabel: targetLabel ?? this.targetLabel,
+      openEnded: openEnded ?? this.openEnded,
+      loggedAt: loggedAt ?? this.loggedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (sessionExerciseUuid.present) {
+      map['session_exercise_uuid'] = Variable<String>(
+        sessionExerciseUuid.value,
+      );
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (weightGrams.present) {
+      map['weight_grams'] = Variable<int>(weightGrams.value);
+    }
+    if (reps.present) {
+      map['reps'] = Variable<int>(reps.value);
+    }
+    if (done.present) {
+      map['done'] = Variable<bool>(done.value);
+    }
+    if (targetLabel.present) {
+      map['target_label'] = Variable<String>(targetLabel.value);
+    }
+    if (openEnded.present) {
+      map['open_ended'] = Variable<bool>(openEnded.value);
+    }
+    if (loggedAt.present) {
+      map['logged_at'] = Variable<DateTime>(loggedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkoutSetsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('sessionExerciseUuid: $sessionExerciseUuid, ')
+          ..write('position: $position, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('reps: $reps, ')
+          ..write('done: $done, ')
+          ..write('targetLabel: $targetLabel, ')
+          ..write('openEnded: $openEnded, ')
+          ..write('loggedAt: $loggedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SleepSessionsTable extends SleepSessions
+    with TableInfo<$SleepSessionsTable, SleepSessionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SleepSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fellAsleepAtMeta = const VerificationMeta(
+    'fellAsleepAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fellAsleepAt = GeneratedColumn<DateTime>(
+    'fell_asleep_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _wokeAtMeta = const VerificationMeta('wokeAt');
+  @override
+  late final GeneratedColumn<DateTime> wokeAt = GeneratedColumn<DateTime>(
+    'woke_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetMinutesMeta = const VerificationMeta(
+    'targetMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> targetMinutes = GeneratedColumn<int>(
+    'target_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _restedStarsMeta = const VerificationMeta(
+    'restedStars',
+  );
+  @override
+  late final GeneratedColumn<int> restedStars = GeneratedColumn<int>(
+    'rested_stars',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    harvestDay,
+    fellAsleepAt,
+    wokeAt,
+    targetMinutes,
+    restedStars,
+    note,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sleep_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SleepSessionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('fell_asleep_at')) {
+      context.handle(
+        _fellAsleepAtMeta,
+        fellAsleepAt.isAcceptableOrUnknown(
+          data['fell_asleep_at']!,
+          _fellAsleepAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fellAsleepAtMeta);
+    }
+    if (data.containsKey('woke_at')) {
+      context.handle(
+        _wokeAtMeta,
+        wokeAt.isAcceptableOrUnknown(data['woke_at']!, _wokeAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wokeAtMeta);
+    }
+    if (data.containsKey('target_minutes')) {
+      context.handle(
+        _targetMinutesMeta,
+        targetMinutes.isAcceptableOrUnknown(
+          data['target_minutes']!,
+          _targetMinutesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetMinutesMeta);
+    }
+    if (data.containsKey('rested_stars')) {
+      context.handle(
+        _restedStarsMeta,
+        restedStars.isAcceptableOrUnknown(
+          data['rested_stars']!,
+          _restedStarsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  SleepSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SleepSessionRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      fellAsleepAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fell_asleep_at'],
+      )!,
+      wokeAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}woke_at'],
+      )!,
+      targetMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_minutes'],
+      )!,
+      restedStars: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rested_stars'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $SleepSessionsTable createAlias(String alias) {
+    return $SleepSessionsTable(attachedDatabase, alias);
+  }
+}
+
+class SleepSessionRow extends DataClass implements Insertable<SleepSessionRow> {
+  final String uuid;
+
+  /// The Harvest Day I woke up on: a night is filed under its morning,
+  /// because that is the day it decides how I feel.
+  final String harvestDay;
+  final DateTime fellAsleepAt;
+  final DateTime wokeAt;
+
+  /// What the night was meant to be, in minutes, as of that night.
+  final int targetMinutes;
+
+  /// 1-5. Null is a legitimate answer at 6 AM.
+  final int? restedStars;
+  final String? note;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const SleepSessionRow({
+    required this.uuid,
+    required this.harvestDay,
+    required this.fellAsleepAt,
+    required this.wokeAt,
+    required this.targetMinutes,
+    this.restedStars,
+    this.note,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['fell_asleep_at'] = Variable<DateTime>(fellAsleepAt);
+    map['woke_at'] = Variable<DateTime>(wokeAt);
+    map['target_minutes'] = Variable<int>(targetMinutes);
+    if (!nullToAbsent || restedStars != null) {
+      map['rested_stars'] = Variable<int>(restedStars);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  SleepSessionsCompanion toCompanion(bool nullToAbsent) {
+    return SleepSessionsCompanion(
+      uuid: Value(uuid),
+      harvestDay: Value(harvestDay),
+      fellAsleepAt: Value(fellAsleepAt),
+      wokeAt: Value(wokeAt),
+      targetMinutes: Value(targetMinutes),
+      restedStars: restedStars == null && nullToAbsent
+          ? const Value.absent()
+          : Value(restedStars),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory SleepSessionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SleepSessionRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      fellAsleepAt: serializer.fromJson<DateTime>(json['fellAsleepAt']),
+      wokeAt: serializer.fromJson<DateTime>(json['wokeAt']),
+      targetMinutes: serializer.fromJson<int>(json['targetMinutes']),
+      restedStars: serializer.fromJson<int?>(json['restedStars']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'fellAsleepAt': serializer.toJson<DateTime>(fellAsleepAt),
+      'wokeAt': serializer.toJson<DateTime>(wokeAt),
+      'targetMinutes': serializer.toJson<int>(targetMinutes),
+      'restedStars': serializer.toJson<int?>(restedStars),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  SleepSessionRow copyWith({
+    String? uuid,
+    String? harvestDay,
+    DateTime? fellAsleepAt,
+    DateTime? wokeAt,
+    int? targetMinutes,
+    Value<int?> restedStars = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => SleepSessionRow(
+    uuid: uuid ?? this.uuid,
+    harvestDay: harvestDay ?? this.harvestDay,
+    fellAsleepAt: fellAsleepAt ?? this.fellAsleepAt,
+    wokeAt: wokeAt ?? this.wokeAt,
+    targetMinutes: targetMinutes ?? this.targetMinutes,
+    restedStars: restedStars.present ? restedStars.value : this.restedStars,
+    note: note.present ? note.value : this.note,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  SleepSessionRow copyWithCompanion(SleepSessionsCompanion data) {
+    return SleepSessionRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      fellAsleepAt: data.fellAsleepAt.present
+          ? data.fellAsleepAt.value
+          : this.fellAsleepAt,
+      wokeAt: data.wokeAt.present ? data.wokeAt.value : this.wokeAt,
+      targetMinutes: data.targetMinutes.present
+          ? data.targetMinutes.value
+          : this.targetMinutes,
+      restedStars: data.restedStars.present
+          ? data.restedStars.value
+          : this.restedStars,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SleepSessionRow(')
+          ..write('uuid: $uuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('fellAsleepAt: $fellAsleepAt, ')
+          ..write('wokeAt: $wokeAt, ')
+          ..write('targetMinutes: $targetMinutes, ')
+          ..write('restedStars: $restedStars, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    harvestDay,
+    fellAsleepAt,
+    wokeAt,
+    targetMinutes,
+    restedStars,
+    note,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SleepSessionRow &&
+          other.uuid == this.uuid &&
+          other.harvestDay == this.harvestDay &&
+          other.fellAsleepAt == this.fellAsleepAt &&
+          other.wokeAt == this.wokeAt &&
+          other.targetMinutes == this.targetMinutes &&
+          other.restedStars == this.restedStars &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class SleepSessionsCompanion extends UpdateCompanion<SleepSessionRow> {
+  final Value<String> uuid;
+  final Value<String> harvestDay;
+  final Value<DateTime> fellAsleepAt;
+  final Value<DateTime> wokeAt;
+  final Value<int> targetMinutes;
+  final Value<int?> restedStars;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const SleepSessionsCompanion({
+    this.uuid = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.fellAsleepAt = const Value.absent(),
+    this.wokeAt = const Value.absent(),
+    this.targetMinutes = const Value.absent(),
+    this.restedStars = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SleepSessionsCompanion.insert({
+    required String uuid,
+    required String harvestDay,
+    required DateTime fellAsleepAt,
+    required DateTime wokeAt,
+    required int targetMinutes,
+    this.restedStars = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       harvestDay = Value(harvestDay),
+       fellAsleepAt = Value(fellAsleepAt),
+       wokeAt = Value(wokeAt),
+       targetMinutes = Value(targetMinutes);
+  static Insertable<SleepSessionRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? fellAsleepAt,
+    Expression<DateTime>? wokeAt,
+    Expression<int>? targetMinutes,
+    Expression<int>? restedStars,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (fellAsleepAt != null) 'fell_asleep_at': fellAsleepAt,
+      if (wokeAt != null) 'woke_at': wokeAt,
+      if (targetMinutes != null) 'target_minutes': targetMinutes,
+      if (restedStars != null) 'rested_stars': restedStars,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SleepSessionsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? harvestDay,
+    Value<DateTime>? fellAsleepAt,
+    Value<DateTime>? wokeAt,
+    Value<int>? targetMinutes,
+    Value<int?>? restedStars,
+    Value<String?>? note,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return SleepSessionsCompanion(
+      uuid: uuid ?? this.uuid,
+      harvestDay: harvestDay ?? this.harvestDay,
+      fellAsleepAt: fellAsleepAt ?? this.fellAsleepAt,
+      wokeAt: wokeAt ?? this.wokeAt,
+      targetMinutes: targetMinutes ?? this.targetMinutes,
+      restedStars: restedStars ?? this.restedStars,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (fellAsleepAt.present) {
+      map['fell_asleep_at'] = Variable<DateTime>(fellAsleepAt.value);
+    }
+    if (wokeAt.present) {
+      map['woke_at'] = Variable<DateTime>(wokeAt.value);
+    }
+    if (targetMinutes.present) {
+      map['target_minutes'] = Variable<int>(targetMinutes.value);
+    }
+    if (restedStars.present) {
+      map['rested_stars'] = Variable<int>(restedStars.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SleepSessionsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('fellAsleepAt: $fellAsleepAt, ')
+          ..write('wokeAt: $wokeAt, ')
+          ..write('targetMinutes: $targetMinutes, ')
+          ..write('restedStars: $restedStars, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StreaksTable extends Streaks with TableInfo<$StreaksTable, StreakRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -8826,6 +14987,22 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   late final $NoteLinksTable noteLinks = $NoteLinksTable(this);
   late final $AlbumsTable albums = $AlbumsTable(this);
   late final $MemoriesTable memories = $MemoriesTable(this);
+  late final $StepDaysTable stepDays = $StepDaysTable(this);
+  late final $BodyWeightsTable bodyWeights = $BodyWeightsTable(this);
+  late final $ExercisesTable exercises = $ExercisesTable(this);
+  late final $ProgramsTable programs = $ProgramsTable(this);
+  late final $ProgramDaysTable programDays = $ProgramDaysTable(this);
+  late final $ProgramSlotsTable programSlots = $ProgramSlotsTable(this);
+  late final $TargetSetsTable targetSets = $TargetSetsTable(this);
+  late final $TrainingMaxesTable trainingMaxes = $TrainingMaxesTable(this);
+  late final $WorkoutSessionsTable workoutSessions = $WorkoutSessionsTable(
+    this,
+  );
+  late final $SessionExercisesTable sessionExercises = $SessionExercisesTable(
+    this,
+  );
+  late final $WorkoutSetsTable workoutSets = $WorkoutSetsTable(this);
+  late final $SleepSessionsTable sleepSessions = $SleepSessionsTable(this);
   late final $StreaksTable streaks = $StreaksTable(this);
   late final $LedgerTable ledger = $LedgerTable(this);
   late final $QuestsTable quests = $QuestsTable(this);
@@ -8852,6 +15029,18 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     noteLinks,
     albums,
     memories,
+    stepDays,
+    bodyWeights,
+    exercises,
+    programs,
+    programDays,
+    programSlots,
+    targetSets,
+    trainingMaxes,
+    workoutSessions,
+    sessionExercises,
+    workoutSets,
+    sleepSessions,
     streaks,
     ledger,
     quests,
@@ -11559,6 +17748,4387 @@ typedef $$MemoriesTableProcessedTableManager =
       (MemoryRow, $$MemoriesTableReferences),
       MemoryRow,
       PrefetchHooks Function({bool albumUuid})
+    >;
+typedef $$StepDaysTableCreateCompanionBuilder = StepDaysCompanion Function({
+  required String harvestDay,
+  Value<int> steps,
+  Value<int?> lastCounter,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$StepDaysTableUpdateCompanionBuilder = StepDaysCompanion Function({
+  Value<String> harvestDay,
+  Value<int> steps,
+  Value<int?> lastCounter,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$StepDaysTableFilterComposer
+    extends Composer<_$HarvestDatabase, $StepDaysTable> {
+  $$StepDaysTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get steps => $composableBuilder(
+    column: $table.steps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastCounter => $composableBuilder(
+    column: $table.lastCounter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StepDaysTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $StepDaysTable> {
+  $$StepDaysTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get steps => $composableBuilder(
+    column: $table.steps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastCounter => $composableBuilder(
+    column: $table.lastCounter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StepDaysTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $StepDaysTable> {
+  $$StepDaysTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get steps =>
+      $composableBuilder(column: $table.steps, builder: (column) => column);
+
+  GeneratedColumn<int> get lastCounter => $composableBuilder(
+    column: $table.lastCounter,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$StepDaysTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $StepDaysTable,
+          StepDayRow,
+          $$StepDaysTableFilterComposer,
+          $$StepDaysTableOrderingComposer,
+          $$StepDaysTableAnnotationComposer,
+          $$StepDaysTableCreateCompanionBuilder,
+          $$StepDaysTableUpdateCompanionBuilder,
+          (
+            StepDayRow,
+            BaseReferences<_$HarvestDatabase, $StepDaysTable, StepDayRow>,
+          ),
+          StepDayRow,
+          PrefetchHooks Function()
+        > {
+  $$StepDaysTableTableManager(_$HarvestDatabase db, $StepDaysTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StepDaysTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StepDaysTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StepDaysTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> harvestDay = const Value.absent(),
+                Value<int> steps = const Value.absent(),
+                Value<int?> lastCounter = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StepDaysCompanion(
+                harvestDay: harvestDay,
+                steps: steps,
+                lastCounter: lastCounter,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String harvestDay,
+                Value<int> steps = const Value.absent(),
+                Value<int?> lastCounter = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StepDaysCompanion.insert(
+                harvestDay: harvestDay,
+                steps: steps,
+                lastCounter: lastCounter,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StepDaysTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $StepDaysTable,
+      StepDayRow,
+      $$StepDaysTableFilterComposer,
+      $$StepDaysTableOrderingComposer,
+      $$StepDaysTableAnnotationComposer,
+      $$StepDaysTableCreateCompanionBuilder,
+      $$StepDaysTableUpdateCompanionBuilder,
+      (
+        StepDayRow,
+        BaseReferences<_$HarvestDatabase, $StepDaysTable, StepDayRow>,
+      ),
+      StepDayRow,
+      PrefetchHooks Function()
+    >;
+typedef $$BodyWeightsTableCreateCompanionBuilder =
+    BodyWeightsCompanion Function({
+      required String uuid,
+      required int grams,
+      required String harvestDay,
+      Value<String?> note,
+      Value<DateTime> measuredAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$BodyWeightsTableUpdateCompanionBuilder =
+    BodyWeightsCompanion Function({
+      Value<String> uuid,
+      Value<int> grams,
+      Value<String> harvestDay,
+      Value<String?> note,
+      Value<DateTime> measuredAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$BodyWeightsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $BodyWeightsTable> {
+  $$BodyWeightsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get grams => $composableBuilder(
+    column: $table.grams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get measuredAt => $composableBuilder(
+    column: $table.measuredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BodyWeightsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $BodyWeightsTable> {
+  $$BodyWeightsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get grams => $composableBuilder(
+    column: $table.grams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get measuredAt => $composableBuilder(
+    column: $table.measuredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BodyWeightsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $BodyWeightsTable> {
+  $$BodyWeightsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<int> get grams =>
+      $composableBuilder(column: $table.grams, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get measuredAt => $composableBuilder(
+    column: $table.measuredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$BodyWeightsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $BodyWeightsTable,
+          BodyWeightRow,
+          $$BodyWeightsTableFilterComposer,
+          $$BodyWeightsTableOrderingComposer,
+          $$BodyWeightsTableAnnotationComposer,
+          $$BodyWeightsTableCreateCompanionBuilder,
+          $$BodyWeightsTableUpdateCompanionBuilder,
+          (
+            BodyWeightRow,
+            BaseReferences<_$HarvestDatabase, $BodyWeightsTable, BodyWeightRow>,
+          ),
+          BodyWeightRow,
+          PrefetchHooks Function()
+        > {
+  $$BodyWeightsTableTableManager(_$HarvestDatabase db, $BodyWeightsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BodyWeightsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BodyWeightsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BodyWeightsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<int> grams = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> measuredAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BodyWeightsCompanion(
+                uuid: uuid,
+                grams: grams,
+                harvestDay: harvestDay,
+                note: note,
+                measuredAt: measuredAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required int grams,
+                required String harvestDay,
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> measuredAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BodyWeightsCompanion.insert(
+                uuid: uuid,
+                grams: grams,
+                harvestDay: harvestDay,
+                note: note,
+                measuredAt: measuredAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BodyWeightsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $BodyWeightsTable,
+      BodyWeightRow,
+      $$BodyWeightsTableFilterComposer,
+      $$BodyWeightsTableOrderingComposer,
+      $$BodyWeightsTableAnnotationComposer,
+      $$BodyWeightsTableCreateCompanionBuilder,
+      $$BodyWeightsTableUpdateCompanionBuilder,
+      (
+        BodyWeightRow,
+        BaseReferences<_$HarvestDatabase, $BodyWeightsTable, BodyWeightRow>,
+      ),
+      BodyWeightRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ExercisesTableCreateCompanionBuilder = ExercisesCompanion Function({
+  required String uuid,
+  required String name,
+  Value<String?> bodyPart,
+  Value<String?> equipment,
+  Value<String?> target,
+  Value<String?> note,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$ExercisesTableUpdateCompanionBuilder = ExercisesCompanion Function({
+  Value<String> uuid,
+  Value<String> name,
+  Value<String?> bodyPart,
+  Value<String?> equipment,
+  Value<String?> target,
+  Value<String?> note,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+
+class $$ExercisesTableFilterComposer
+    extends Composer<_$HarvestDatabase, $ExercisesTable> {
+  $$ExercisesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bodyPart => $composableBuilder(
+    column: $table.bodyPart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get equipment => $composableBuilder(
+    column: $table.equipment,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get target => $composableBuilder(
+    column: $table.target,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExercisesTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $ExercisesTable> {
+  $$ExercisesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bodyPart => $composableBuilder(
+    column: $table.bodyPart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get equipment => $composableBuilder(
+    column: $table.equipment,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get target => $composableBuilder(
+    column: $table.target,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExercisesTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $ExercisesTable> {
+  $$ExercisesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get bodyPart =>
+      $composableBuilder(column: $table.bodyPart, builder: (column) => column);
+
+  GeneratedColumn<String> get equipment =>
+      $composableBuilder(column: $table.equipment, builder: (column) => column);
+
+  GeneratedColumn<String> get target =>
+      $composableBuilder(column: $table.target, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$ExercisesTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $ExercisesTable,
+          ExerciseRow,
+          $$ExercisesTableFilterComposer,
+          $$ExercisesTableOrderingComposer,
+          $$ExercisesTableAnnotationComposer,
+          $$ExercisesTableCreateCompanionBuilder,
+          $$ExercisesTableUpdateCompanionBuilder,
+          (
+            ExerciseRow,
+            BaseReferences<_$HarvestDatabase, $ExercisesTable, ExerciseRow>,
+          ),
+          ExerciseRow,
+          PrefetchHooks Function()
+        > {
+  $$ExercisesTableTableManager(_$HarvestDatabase db, $ExercisesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExercisesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExercisesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExercisesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> bodyPart = const Value.absent(),
+                Value<String?> equipment = const Value.absent(),
+                Value<String?> target = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExercisesCompanion(
+                uuid: uuid,
+                name: name,
+                bodyPart: bodyPart,
+                equipment: equipment,
+                target: target,
+                note: note,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String name,
+                Value<String?> bodyPart = const Value.absent(),
+                Value<String?> equipment = const Value.absent(),
+                Value<String?> target = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExercisesCompanion.insert(
+                uuid: uuid,
+                name: name,
+                bodyPart: bodyPart,
+                equipment: equipment,
+                target: target,
+                note: note,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExercisesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $ExercisesTable,
+      ExerciseRow,
+      $$ExercisesTableFilterComposer,
+      $$ExercisesTableOrderingComposer,
+      $$ExercisesTableAnnotationComposer,
+      $$ExercisesTableCreateCompanionBuilder,
+      $$ExercisesTableUpdateCompanionBuilder,
+      (
+        ExerciseRow,
+        BaseReferences<_$HarvestDatabase, $ExercisesTable, ExerciseRow>,
+      ),
+      ExerciseRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ProgramsTableCreateCompanionBuilder = ProgramsCompanion Function({
+  required String uuid,
+  required String name,
+  Value<String?> note,
+  Value<int?> weeks,
+  Value<String?> commitmentUuid,
+  Value<String?> albumUuid,
+  Value<String> photoPrompt,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$ProgramsTableUpdateCompanionBuilder = ProgramsCompanion Function({
+  Value<String> uuid,
+  Value<String> name,
+  Value<String?> note,
+  Value<int?> weeks,
+  Value<String?> commitmentUuid,
+  Value<String?> albumUuid,
+  Value<String> photoPrompt,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+
+final class $$ProgramsTableReferences
+    extends BaseReferences<_$HarvestDatabase, $ProgramsTable, ProgramRow> {
+  $$ProgramsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ProgramDaysTable, List<ProgramDayRow>>
+  _programDaysRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
+    db.programDays,
+    aliasName: 'programs__uuid__program_days__program_uuid',
+  );
+
+  $$ProgramDaysTableProcessedTableManager get programDaysRefs {
+    final manager = $$ProgramDaysTableTableManager($_db, $_db.programDays)
+        .filter(
+          (f) => f.programUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_programDaysRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TrainingMaxesTable, List<TrainingMaxRow>>
+  _trainingMaxesRefsTable(_$HarvestDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.trainingMaxes,
+        aliasName: 'programs__uuid__training_maxes__program_uuid',
+      );
+
+  $$TrainingMaxesTableProcessedTableManager get trainingMaxesRefs {
+    final manager = $$TrainingMaxesTableTableManager($_db, $_db.trainingMaxes)
+        .filter(
+          (f) => f.programUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_trainingMaxesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ProgramsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $ProgramsTable> {
+  $$ProgramsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weeks => $composableBuilder(
+    column: $table.weeks,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get commitmentUuid => $composableBuilder(
+    column: $table.commitmentUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get albumUuid => $composableBuilder(
+    column: $table.albumUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoPrompt => $composableBuilder(
+    column: $table.photoPrompt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> programDaysRefs(
+    Expression<bool> Function($$ProgramDaysTableFilterComposer f) f,
+  ) {
+    final $$ProgramDaysTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.programDays,
+      getReferencedColumn: (t) => t.programUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramDaysTableFilterComposer(
+            $db: $db,
+            $table: $db.programDays,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> trainingMaxesRefs(
+    Expression<bool> Function($$TrainingMaxesTableFilterComposer f) f,
+  ) {
+    final $$TrainingMaxesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.trainingMaxes,
+      getReferencedColumn: (t) => t.programUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TrainingMaxesTableFilterComposer(
+            $db: $db,
+            $table: $db.trainingMaxes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ProgramsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $ProgramsTable> {
+  $$ProgramsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weeks => $composableBuilder(
+    column: $table.weeks,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get commitmentUuid => $composableBuilder(
+    column: $table.commitmentUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get albumUuid => $composableBuilder(
+    column: $table.albumUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoPrompt => $composableBuilder(
+    column: $table.photoPrompt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ProgramsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $ProgramsTable> {
+  $$ProgramsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get weeks =>
+      $composableBuilder(column: $table.weeks, builder: (column) => column);
+
+  GeneratedColumn<String> get commitmentUuid => $composableBuilder(
+    column: $table.commitmentUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get albumUuid =>
+      $composableBuilder(column: $table.albumUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get photoPrompt => $composableBuilder(
+    column: $table.photoPrompt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  Expression<T> programDaysRefs<T extends Object>(
+    Expression<T> Function($$ProgramDaysTableAnnotationComposer a) f,
+  ) {
+    final $$ProgramDaysTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.programDays,
+      getReferencedColumn: (t) => t.programUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramDaysTableAnnotationComposer(
+            $db: $db,
+            $table: $db.programDays,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> trainingMaxesRefs<T extends Object>(
+    Expression<T> Function($$TrainingMaxesTableAnnotationComposer a) f,
+  ) {
+    final $$TrainingMaxesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.trainingMaxes,
+      getReferencedColumn: (t) => t.programUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TrainingMaxesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.trainingMaxes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ProgramsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $ProgramsTable,
+          ProgramRow,
+          $$ProgramsTableFilterComposer,
+          $$ProgramsTableOrderingComposer,
+          $$ProgramsTableAnnotationComposer,
+          $$ProgramsTableCreateCompanionBuilder,
+          $$ProgramsTableUpdateCompanionBuilder,
+          (ProgramRow, $$ProgramsTableReferences),
+          ProgramRow,
+          PrefetchHooks Function({bool programDaysRefs, bool trainingMaxesRefs})
+        > {
+  $$ProgramsTableTableManager(_$HarvestDatabase db, $ProgramsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProgramsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProgramsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ProgramsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int?> weeks = const Value.absent(),
+                Value<String?> commitmentUuid = const Value.absent(),
+                Value<String?> albumUuid = const Value.absent(),
+                Value<String> photoPrompt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProgramsCompanion(
+                uuid: uuid,
+                name: name,
+                note: note,
+                weeks: weeks,
+                commitmentUuid: commitmentUuid,
+                albumUuid: albumUuid,
+                photoPrompt: photoPrompt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String name,
+                Value<String?> note = const Value.absent(),
+                Value<int?> weeks = const Value.absent(),
+                Value<String?> commitmentUuid = const Value.absent(),
+                Value<String?> albumUuid = const Value.absent(),
+                Value<String> photoPrompt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProgramsCompanion.insert(
+                uuid: uuid,
+                name: name,
+                note: note,
+                weeks: weeks,
+                commitmentUuid: commitmentUuid,
+                albumUuid: albumUuid,
+                photoPrompt: photoPrompt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ProgramsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({programDaysRefs = false, trainingMaxesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (programDaysRefs) db.programDays,
+                    if (trainingMaxesRefs) db.trainingMaxes,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (programDaysRefs)
+                        await $_getPrefetchedData<
+                          ProgramRow,
+                          $ProgramsTable,
+                          ProgramDayRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProgramsTableReferences
+                              ._programDaysRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProgramsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).programDaysRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.programUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (trainingMaxesRefs)
+                        await $_getPrefetchedData<
+                          ProgramRow,
+                          $ProgramsTable,
+                          TrainingMaxRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProgramsTableReferences
+                              ._trainingMaxesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProgramsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).trainingMaxesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.programUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ProgramsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $ProgramsTable,
+      ProgramRow,
+      $$ProgramsTableFilterComposer,
+      $$ProgramsTableOrderingComposer,
+      $$ProgramsTableAnnotationComposer,
+      $$ProgramsTableCreateCompanionBuilder,
+      $$ProgramsTableUpdateCompanionBuilder,
+      (ProgramRow, $$ProgramsTableReferences),
+      ProgramRow,
+      PrefetchHooks Function({bool programDaysRefs, bool trainingMaxesRefs})
+    >;
+typedef $$ProgramDaysTableCreateCompanionBuilder =
+    ProgramDaysCompanion Function({
+      required String uuid,
+      required String programUuid,
+      required String name,
+      required int position,
+      Value<int?> week,
+      Value<String?> accessories,
+      Value<int> rowid,
+    });
+typedef $$ProgramDaysTableUpdateCompanionBuilder =
+    ProgramDaysCompanion Function({
+      Value<String> uuid,
+      Value<String> programUuid,
+      Value<String> name,
+      Value<int> position,
+      Value<int?> week,
+      Value<String?> accessories,
+      Value<int> rowid,
+    });
+
+final class $$ProgramDaysTableReferences
+    extends
+        BaseReferences<_$HarvestDatabase, $ProgramDaysTable, ProgramDayRow> {
+  $$ProgramDaysTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProgramsTable _programUuidTable(_$HarvestDatabase db) =>
+      db.programs.createAlias('program_days__program_uuid__programs__uuid');
+
+  $$ProgramsTableProcessedTableManager get programUuid {
+    final $_column = $_itemColumn<String>('program_uuid')!;
+
+    final manager = $$ProgramsTableTableManager(
+      $_db,
+      $_db.programs,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_programUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ProgramSlotsTable, List<ProgramSlotRow>>
+  _programSlotsRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
+    db.programSlots,
+    aliasName: 'program_days__uuid__program_slots__day_uuid',
+  );
+
+  $$ProgramSlotsTableProcessedTableManager get programSlotsRefs {
+    final manager = $$ProgramSlotsTableTableManager(
+      $_db,
+      $_db.programSlots,
+    ).filter((f) => f.dayUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
+
+    final cache = $_typedResult.readTableOrNull(_programSlotsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ProgramDaysTableFilterComposer
+    extends Composer<_$HarvestDatabase, $ProgramDaysTable> {
+  $$ProgramDaysTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get week => $composableBuilder(
+    column: $table.week,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accessories => $composableBuilder(
+    column: $table.accessories,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProgramsTableFilterComposer get programUuid {
+    final $$ProgramsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.programUuid,
+      referencedTable: $db.programs,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramsTableFilterComposer(
+            $db: $db,
+            $table: $db.programs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> programSlotsRefs(
+    Expression<bool> Function($$ProgramSlotsTableFilterComposer f) f,
+  ) {
+    final $$ProgramSlotsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.programSlots,
+      getReferencedColumn: (t) => t.dayUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramSlotsTableFilterComposer(
+            $db: $db,
+            $table: $db.programSlots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ProgramDaysTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $ProgramDaysTable> {
+  $$ProgramDaysTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get week => $composableBuilder(
+    column: $table.week,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get accessories => $composableBuilder(
+    column: $table.accessories,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProgramsTableOrderingComposer get programUuid {
+    final $$ProgramsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.programUuid,
+      referencedTable: $db.programs,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramsTableOrderingComposer(
+            $db: $db,
+            $table: $db.programs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProgramDaysTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $ProgramDaysTable> {
+  $$ProgramDaysTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<int> get week =>
+      $composableBuilder(column: $table.week, builder: (column) => column);
+
+  GeneratedColumn<String> get accessories => $composableBuilder(
+    column: $table.accessories,
+    builder: (column) => column,
+  );
+
+  $$ProgramsTableAnnotationComposer get programUuid {
+    final $$ProgramsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.programUuid,
+      referencedTable: $db.programs,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.programs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> programSlotsRefs<T extends Object>(
+    Expression<T> Function($$ProgramSlotsTableAnnotationComposer a) f,
+  ) {
+    final $$ProgramSlotsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.programSlots,
+      getReferencedColumn: (t) => t.dayUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramSlotsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.programSlots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ProgramDaysTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $ProgramDaysTable,
+          ProgramDayRow,
+          $$ProgramDaysTableFilterComposer,
+          $$ProgramDaysTableOrderingComposer,
+          $$ProgramDaysTableAnnotationComposer,
+          $$ProgramDaysTableCreateCompanionBuilder,
+          $$ProgramDaysTableUpdateCompanionBuilder,
+          (ProgramDayRow, $$ProgramDaysTableReferences),
+          ProgramDayRow,
+          PrefetchHooks Function({bool programUuid, bool programSlotsRefs})
+        > {
+  $$ProgramDaysTableTableManager(_$HarvestDatabase db, $ProgramDaysTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProgramDaysTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProgramDaysTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ProgramDaysTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> programUuid = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int?> week = const Value.absent(),
+                Value<String?> accessories = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProgramDaysCompanion(
+                uuid: uuid,
+                programUuid: programUuid,
+                name: name,
+                position: position,
+                week: week,
+                accessories: accessories,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String programUuid,
+                required String name,
+                required int position,
+                Value<int?> week = const Value.absent(),
+                Value<String?> accessories = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProgramDaysCompanion.insert(
+                uuid: uuid,
+                programUuid: programUuid,
+                name: name,
+                position: position,
+                week: week,
+                accessories: accessories,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ProgramDaysTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({programUuid = false, programSlotsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (programSlotsRefs) db.programSlots,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (programUuid) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.programUuid,
+                            referencedTable: $$ProgramDaysTableReferences
+                                ._programUuidTable(db),
+                            referencedColumn: $$ProgramDaysTableReferences
+                                ._programUuidTable(db)
+                                .uuid,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (programSlotsRefs)
+                        await $_getPrefetchedData<
+                          ProgramDayRow,
+                          $ProgramDaysTable,
+                          ProgramSlotRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProgramDaysTableReferences
+                              ._programSlotsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProgramDaysTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).programSlotsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dayUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ProgramDaysTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $ProgramDaysTable,
+      ProgramDayRow,
+      $$ProgramDaysTableFilterComposer,
+      $$ProgramDaysTableOrderingComposer,
+      $$ProgramDaysTableAnnotationComposer,
+      $$ProgramDaysTableCreateCompanionBuilder,
+      $$ProgramDaysTableUpdateCompanionBuilder,
+      (ProgramDayRow, $$ProgramDaysTableReferences),
+      ProgramDayRow,
+      PrefetchHooks Function({bool programUuid, bool programSlotsRefs})
+    >;
+typedef $$ProgramSlotsTableCreateCompanionBuilder =
+    ProgramSlotsCompanion Function({
+      required String uuid,
+      required String dayUuid,
+      required String exerciseId,
+      required int position,
+      Value<int?> restSeconds,
+      Value<int> barGrams,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+typedef $$ProgramSlotsTableUpdateCompanionBuilder =
+    ProgramSlotsCompanion Function({
+      Value<String> uuid,
+      Value<String> dayUuid,
+      Value<String> exerciseId,
+      Value<int> position,
+      Value<int?> restSeconds,
+      Value<int> barGrams,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+
+final class $$ProgramSlotsTableReferences
+    extends
+        BaseReferences<_$HarvestDatabase, $ProgramSlotsTable, ProgramSlotRow> {
+  $$ProgramSlotsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProgramDaysTable _dayUuidTable(_$HarvestDatabase db) =>
+      db.programDays.createAlias('program_slots__day_uuid__program_days__uuid');
+
+  $$ProgramDaysTableProcessedTableManager get dayUuid {
+    final $_column = $_itemColumn<String>('day_uuid')!;
+
+    final manager = $$ProgramDaysTableTableManager(
+      $_db,
+      $_db.programDays,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dayUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$TargetSetsTable, List<TargetSetRow>>
+  _targetSetsRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
+    db.targetSets,
+    aliasName: 'program_slots__uuid__target_sets__slot_uuid',
+  );
+
+  $$TargetSetsTableProcessedTableManager get targetSetsRefs {
+    final manager = $$TargetSetsTableTableManager(
+      $_db,
+      $_db.targetSets,
+    ).filter((f) => f.slotUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
+
+    final cache = $_typedResult.readTableOrNull(_targetSetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ProgramSlotsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $ProgramSlotsTable> {
+  $$ProgramSlotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get barGrams => $composableBuilder(
+    column: $table.barGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProgramDaysTableFilterComposer get dayUuid {
+    final $$ProgramDaysTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dayUuid,
+      referencedTable: $db.programDays,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramDaysTableFilterComposer(
+            $db: $db,
+            $table: $db.programDays,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> targetSetsRefs(
+    Expression<bool> Function($$TargetSetsTableFilterComposer f) f,
+  ) {
+    final $$TargetSetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.targetSets,
+      getReferencedColumn: (t) => t.slotUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TargetSetsTableFilterComposer(
+            $db: $db,
+            $table: $db.targetSets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ProgramSlotsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $ProgramSlotsTable> {
+  $$ProgramSlotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get barGrams => $composableBuilder(
+    column: $table.barGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProgramDaysTableOrderingComposer get dayUuid {
+    final $$ProgramDaysTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dayUuid,
+      referencedTable: $db.programDays,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramDaysTableOrderingComposer(
+            $db: $db,
+            $table: $db.programDays,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProgramSlotsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $ProgramSlotsTable> {
+  $$ProgramSlotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get barGrams =>
+      $composableBuilder(column: $table.barGrams, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  $$ProgramDaysTableAnnotationComposer get dayUuid {
+    final $$ProgramDaysTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dayUuid,
+      referencedTable: $db.programDays,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramDaysTableAnnotationComposer(
+            $db: $db,
+            $table: $db.programDays,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> targetSetsRefs<T extends Object>(
+    Expression<T> Function($$TargetSetsTableAnnotationComposer a) f,
+  ) {
+    final $$TargetSetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.targetSets,
+      getReferencedColumn: (t) => t.slotUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TargetSetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.targetSets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ProgramSlotsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $ProgramSlotsTable,
+          ProgramSlotRow,
+          $$ProgramSlotsTableFilterComposer,
+          $$ProgramSlotsTableOrderingComposer,
+          $$ProgramSlotsTableAnnotationComposer,
+          $$ProgramSlotsTableCreateCompanionBuilder,
+          $$ProgramSlotsTableUpdateCompanionBuilder,
+          (ProgramSlotRow, $$ProgramSlotsTableReferences),
+          ProgramSlotRow,
+          PrefetchHooks Function({bool dayUuid, bool targetSetsRefs})
+        > {
+  $$ProgramSlotsTableTableManager(
+    _$HarvestDatabase db,
+    $ProgramSlotsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProgramSlotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProgramSlotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ProgramSlotsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> dayUuid = const Value.absent(),
+                Value<String> exerciseId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int?> restSeconds = const Value.absent(),
+                Value<int> barGrams = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProgramSlotsCompanion(
+                uuid: uuid,
+                dayUuid: dayUuid,
+                exerciseId: exerciseId,
+                position: position,
+                restSeconds: restSeconds,
+                barGrams: barGrams,
+                note: note,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String dayUuid,
+                required String exerciseId,
+                required int position,
+                Value<int?> restSeconds = const Value.absent(),
+                Value<int> barGrams = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProgramSlotsCompanion.insert(
+                uuid: uuid,
+                dayUuid: dayUuid,
+                exerciseId: exerciseId,
+                position: position,
+                restSeconds: restSeconds,
+                barGrams: barGrams,
+                note: note,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ProgramSlotsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({dayUuid = false, targetSetsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (targetSetsRefs) db.targetSets],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (dayUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.dayUuid,
+                        referencedTable: $$ProgramSlotsTableReferences
+                            ._dayUuidTable(db),
+                        referencedColumn: $$ProgramSlotsTableReferences
+                            ._dayUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (targetSetsRefs)
+                    await $_getPrefetchedData<
+                      ProgramSlotRow,
+                      $ProgramSlotsTable,
+                      TargetSetRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ProgramSlotsTableReferences
+                          ._targetSetsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$ProgramSlotsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).targetSetsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.slotUuid == item.uuid),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ProgramSlotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $ProgramSlotsTable,
+      ProgramSlotRow,
+      $$ProgramSlotsTableFilterComposer,
+      $$ProgramSlotsTableOrderingComposer,
+      $$ProgramSlotsTableAnnotationComposer,
+      $$ProgramSlotsTableCreateCompanionBuilder,
+      $$ProgramSlotsTableUpdateCompanionBuilder,
+      (ProgramSlotRow, $$ProgramSlotsTableReferences),
+      ProgramSlotRow,
+      PrefetchHooks Function({bool dayUuid, bool targetSetsRefs})
+    >;
+typedef $$TargetSetsTableCreateCompanionBuilder = TargetSetsCompanion Function({
+  required String uuid,
+  required String slotUuid,
+  required int position,
+  Value<int?> reps,
+  Value<int?> weightGrams,
+  Value<int?> percentTenths,
+  Value<bool> openEnded,
+  Value<int> rowid,
+});
+typedef $$TargetSetsTableUpdateCompanionBuilder = TargetSetsCompanion Function({
+  Value<String> uuid,
+  Value<String> slotUuid,
+  Value<int> position,
+  Value<int?> reps,
+  Value<int?> weightGrams,
+  Value<int?> percentTenths,
+  Value<bool> openEnded,
+  Value<int> rowid,
+});
+
+final class $$TargetSetsTableReferences
+    extends BaseReferences<_$HarvestDatabase, $TargetSetsTable, TargetSetRow> {
+  $$TargetSetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProgramSlotsTable _slotUuidTable(_$HarvestDatabase db) => db
+      .programSlots
+      .createAlias('target_sets__slot_uuid__program_slots__uuid');
+
+  $$ProgramSlotsTableProcessedTableManager get slotUuid {
+    final $_column = $_itemColumn<String>('slot_uuid')!;
+
+    final manager = $$ProgramSlotsTableTableManager(
+      $_db,
+      $_db.programSlots,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_slotUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TargetSetsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $TargetSetsTable> {
+  $$TargetSetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get percentTenths => $composableBuilder(
+    column: $table.percentTenths,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get openEnded => $composableBuilder(
+    column: $table.openEnded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProgramSlotsTableFilterComposer get slotUuid {
+    final $$ProgramSlotsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.slotUuid,
+      referencedTable: $db.programSlots,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramSlotsTableFilterComposer(
+            $db: $db,
+            $table: $db.programSlots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TargetSetsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $TargetSetsTable> {
+  $$TargetSetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get percentTenths => $composableBuilder(
+    column: $table.percentTenths,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get openEnded => $composableBuilder(
+    column: $table.openEnded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProgramSlotsTableOrderingComposer get slotUuid {
+    final $$ProgramSlotsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.slotUuid,
+      referencedTable: $db.programSlots,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramSlotsTableOrderingComposer(
+            $db: $db,
+            $table: $db.programSlots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TargetSetsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $TargetSetsTable> {
+  $$TargetSetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<int> get reps =>
+      $composableBuilder(column: $table.reps, builder: (column) => column);
+
+  GeneratedColumn<int> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get percentTenths => $composableBuilder(
+    column: $table.percentTenths,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get openEnded =>
+      $composableBuilder(column: $table.openEnded, builder: (column) => column);
+
+  $$ProgramSlotsTableAnnotationComposer get slotUuid {
+    final $$ProgramSlotsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.slotUuid,
+      referencedTable: $db.programSlots,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramSlotsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.programSlots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TargetSetsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $TargetSetsTable,
+          TargetSetRow,
+          $$TargetSetsTableFilterComposer,
+          $$TargetSetsTableOrderingComposer,
+          $$TargetSetsTableAnnotationComposer,
+          $$TargetSetsTableCreateCompanionBuilder,
+          $$TargetSetsTableUpdateCompanionBuilder,
+          (TargetSetRow, $$TargetSetsTableReferences),
+          TargetSetRow,
+          PrefetchHooks Function({bool slotUuid})
+        > {
+  $$TargetSetsTableTableManager(_$HarvestDatabase db, $TargetSetsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TargetSetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TargetSetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TargetSetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> slotUuid = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int?> reps = const Value.absent(),
+                Value<int?> weightGrams = const Value.absent(),
+                Value<int?> percentTenths = const Value.absent(),
+                Value<bool> openEnded = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TargetSetsCompanion(
+                uuid: uuid,
+                slotUuid: slotUuid,
+                position: position,
+                reps: reps,
+                weightGrams: weightGrams,
+                percentTenths: percentTenths,
+                openEnded: openEnded,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String slotUuid,
+                required int position,
+                Value<int?> reps = const Value.absent(),
+                Value<int?> weightGrams = const Value.absent(),
+                Value<int?> percentTenths = const Value.absent(),
+                Value<bool> openEnded = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TargetSetsCompanion.insert(
+                uuid: uuid,
+                slotUuid: slotUuid,
+                position: position,
+                reps: reps,
+                weightGrams: weightGrams,
+                percentTenths: percentTenths,
+                openEnded: openEnded,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TargetSetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({slotUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (slotUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.slotUuid,
+                        referencedTable: $$TargetSetsTableReferences
+                            ._slotUuidTable(db),
+                        referencedColumn: $$TargetSetsTableReferences
+                            ._slotUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TargetSetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $TargetSetsTable,
+      TargetSetRow,
+      $$TargetSetsTableFilterComposer,
+      $$TargetSetsTableOrderingComposer,
+      $$TargetSetsTableAnnotationComposer,
+      $$TargetSetsTableCreateCompanionBuilder,
+      $$TargetSetsTableUpdateCompanionBuilder,
+      (TargetSetRow, $$TargetSetsTableReferences),
+      TargetSetRow,
+      PrefetchHooks Function({bool slotUuid})
+    >;
+typedef $$TrainingMaxesTableCreateCompanionBuilder =
+    TrainingMaxesCompanion Function({
+      required String programUuid,
+      required String exerciseId,
+      required int grams,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$TrainingMaxesTableUpdateCompanionBuilder =
+    TrainingMaxesCompanion Function({
+      Value<String> programUuid,
+      Value<String> exerciseId,
+      Value<int> grams,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$TrainingMaxesTableReferences
+    extends
+        BaseReferences<_$HarvestDatabase, $TrainingMaxesTable, TrainingMaxRow> {
+  $$TrainingMaxesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ProgramsTable _programUuidTable(_$HarvestDatabase db) =>
+      db.programs.createAlias('training_maxes__program_uuid__programs__uuid');
+
+  $$ProgramsTableProcessedTableManager get programUuid {
+    final $_column = $_itemColumn<String>('program_uuid')!;
+
+    final manager = $$ProgramsTableTableManager(
+      $_db,
+      $_db.programs,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_programUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TrainingMaxesTableFilterComposer
+    extends Composer<_$HarvestDatabase, $TrainingMaxesTable> {
+  $$TrainingMaxesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get grams => $composableBuilder(
+    column: $table.grams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProgramsTableFilterComposer get programUuid {
+    final $$ProgramsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.programUuid,
+      referencedTable: $db.programs,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramsTableFilterComposer(
+            $db: $db,
+            $table: $db.programs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TrainingMaxesTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $TrainingMaxesTable> {
+  $$TrainingMaxesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get grams => $composableBuilder(
+    column: $table.grams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProgramsTableOrderingComposer get programUuid {
+    final $$ProgramsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.programUuid,
+      referencedTable: $db.programs,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramsTableOrderingComposer(
+            $db: $db,
+            $table: $db.programs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TrainingMaxesTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $TrainingMaxesTable> {
+  $$TrainingMaxesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get grams =>
+      $composableBuilder(column: $table.grams, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$ProgramsTableAnnotationComposer get programUuid {
+    final $$ProgramsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.programUuid,
+      referencedTable: $db.programs,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProgramsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.programs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TrainingMaxesTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $TrainingMaxesTable,
+          TrainingMaxRow,
+          $$TrainingMaxesTableFilterComposer,
+          $$TrainingMaxesTableOrderingComposer,
+          $$TrainingMaxesTableAnnotationComposer,
+          $$TrainingMaxesTableCreateCompanionBuilder,
+          $$TrainingMaxesTableUpdateCompanionBuilder,
+          (TrainingMaxRow, $$TrainingMaxesTableReferences),
+          TrainingMaxRow,
+          PrefetchHooks Function({bool programUuid})
+        > {
+  $$TrainingMaxesTableTableManager(
+    _$HarvestDatabase db,
+    $TrainingMaxesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TrainingMaxesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TrainingMaxesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TrainingMaxesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> programUuid = const Value.absent(),
+                Value<String> exerciseId = const Value.absent(),
+                Value<int> grams = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TrainingMaxesCompanion(
+                programUuid: programUuid,
+                exerciseId: exerciseId,
+                grams: grams,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String programUuid,
+                required String exerciseId,
+                required int grams,
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TrainingMaxesCompanion.insert(
+                programUuid: programUuid,
+                exerciseId: exerciseId,
+                grams: grams,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TrainingMaxesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({programUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (programUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.programUuid,
+                        referencedTable: $$TrainingMaxesTableReferences
+                            ._programUuidTable(db),
+                        referencedColumn: $$TrainingMaxesTableReferences
+                            ._programUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TrainingMaxesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $TrainingMaxesTable,
+      TrainingMaxRow,
+      $$TrainingMaxesTableFilterComposer,
+      $$TrainingMaxesTableOrderingComposer,
+      $$TrainingMaxesTableAnnotationComposer,
+      $$TrainingMaxesTableCreateCompanionBuilder,
+      $$TrainingMaxesTableUpdateCompanionBuilder,
+      (TrainingMaxRow, $$TrainingMaxesTableReferences),
+      TrainingMaxRow,
+      PrefetchHooks Function({bool programUuid})
+    >;
+typedef $$WorkoutSessionsTableCreateCompanionBuilder =
+    WorkoutSessionsCompanion Function({
+      required String uuid,
+      Value<String?> programUuid,
+      Value<String?> dayUuid,
+      Value<String?> title,
+      required String harvestDay,
+      Value<DateTime> startedAt,
+      Value<DateTime?> endedAt,
+      Value<String?> note,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$WorkoutSessionsTableUpdateCompanionBuilder =
+    WorkoutSessionsCompanion Function({
+      Value<String> uuid,
+      Value<String?> programUuid,
+      Value<String?> dayUuid,
+      Value<String?> title,
+      Value<String> harvestDay,
+      Value<DateTime> startedAt,
+      Value<DateTime?> endedAt,
+      Value<String?> note,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$WorkoutSessionsTableReferences
+    extends
+        BaseReferences<
+          _$HarvestDatabase,
+          $WorkoutSessionsTable,
+          WorkoutSessionRow
+        > {
+  $$WorkoutSessionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$SessionExercisesTable, List<SessionExerciseRow>>
+  _sessionExercisesRefsTable(_$HarvestDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.sessionExercises,
+        aliasName: 'workout_sessions__uuid__session_exercises__session_uuid',
+      );
+
+  $$SessionExercisesTableProcessedTableManager get sessionExercisesRefs {
+    final manager =
+        $$SessionExercisesTableTableManager($_db, $_db.sessionExercises).filter(
+          (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _sessionExercisesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$WorkoutSessionsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $WorkoutSessionsTable> {
+  $$WorkoutSessionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get programUuid => $composableBuilder(
+    column: $table.programUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dayUuid => $composableBuilder(
+    column: $table.dayUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> sessionExercisesRefs(
+    Expression<bool> Function($$SessionExercisesTableFilterComposer f) f,
+  ) {
+    final $$SessionExercisesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.sessionExercises,
+      getReferencedColumn: (t) => t.sessionUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionExercisesTableFilterComposer(
+            $db: $db,
+            $table: $db.sessionExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$WorkoutSessionsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $WorkoutSessionsTable> {
+  $$WorkoutSessionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get programUuid => $composableBuilder(
+    column: $table.programUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dayUuid => $composableBuilder(
+    column: $table.dayUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WorkoutSessionsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $WorkoutSessionsTable> {
+  $$WorkoutSessionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get programUuid => $composableBuilder(
+    column: $table.programUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dayUuid =>
+      $composableBuilder(column: $table.dayUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endedAt =>
+      $composableBuilder(column: $table.endedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  Expression<T> sessionExercisesRefs<T extends Object>(
+    Expression<T> Function($$SessionExercisesTableAnnotationComposer a) f,
+  ) {
+    final $$SessionExercisesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.sessionExercises,
+      getReferencedColumn: (t) => t.sessionUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionExercisesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sessionExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$WorkoutSessionsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $WorkoutSessionsTable,
+          WorkoutSessionRow,
+          $$WorkoutSessionsTableFilterComposer,
+          $$WorkoutSessionsTableOrderingComposer,
+          $$WorkoutSessionsTableAnnotationComposer,
+          $$WorkoutSessionsTableCreateCompanionBuilder,
+          $$WorkoutSessionsTableUpdateCompanionBuilder,
+          (WorkoutSessionRow, $$WorkoutSessionsTableReferences),
+          WorkoutSessionRow,
+          PrefetchHooks Function({bool sessionExercisesRefs})
+        > {
+  $$WorkoutSessionsTableTableManager(
+    _$HarvestDatabase db,
+    $WorkoutSessionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WorkoutSessionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WorkoutSessionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WorkoutSessionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String?> programUuid = const Value.absent(),
+                Value<String?> dayUuid = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> startedAt = const Value.absent(),
+                Value<DateTime?> endedAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkoutSessionsCompanion(
+                uuid: uuid,
+                programUuid: programUuid,
+                dayUuid: dayUuid,
+                title: title,
+                harvestDay: harvestDay,
+                startedAt: startedAt,
+                endedAt: endedAt,
+                note: note,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                Value<String?> programUuid = const Value.absent(),
+                Value<String?> dayUuid = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                required String harvestDay,
+                Value<DateTime> startedAt = const Value.absent(),
+                Value<DateTime?> endedAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkoutSessionsCompanion.insert(
+                uuid: uuid,
+                programUuid: programUuid,
+                dayUuid: dayUuid,
+                title: title,
+                harvestDay: harvestDay,
+                startedAt: startedAt,
+                endedAt: endedAt,
+                note: note,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WorkoutSessionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionExercisesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (sessionExercisesRefs) db.sessionExercises,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (sessionExercisesRefs)
+                    await $_getPrefetchedData<
+                      WorkoutSessionRow,
+                      $WorkoutSessionsTable,
+                      SessionExerciseRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$WorkoutSessionsTableReferences
+                          ._sessionExercisesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$WorkoutSessionsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).sessionExercisesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.sessionUuid == item.uuid,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$WorkoutSessionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $WorkoutSessionsTable,
+      WorkoutSessionRow,
+      $$WorkoutSessionsTableFilterComposer,
+      $$WorkoutSessionsTableOrderingComposer,
+      $$WorkoutSessionsTableAnnotationComposer,
+      $$WorkoutSessionsTableCreateCompanionBuilder,
+      $$WorkoutSessionsTableUpdateCompanionBuilder,
+      (WorkoutSessionRow, $$WorkoutSessionsTableReferences),
+      WorkoutSessionRow,
+      PrefetchHooks Function({bool sessionExercisesRefs})
+    >;
+typedef $$SessionExercisesTableCreateCompanionBuilder =
+    SessionExercisesCompanion Function({
+      required String uuid,
+      required String sessionUuid,
+      required int position,
+      required String exerciseId,
+      Value<String?> plannedExerciseId,
+      Value<String?> slotUuid,
+      Value<bool> skipped,
+      Value<String?> note,
+      Value<int?> restSeconds,
+      Value<int> barGrams,
+      Value<int> rowid,
+    });
+typedef $$SessionExercisesTableUpdateCompanionBuilder =
+    SessionExercisesCompanion Function({
+      Value<String> uuid,
+      Value<String> sessionUuid,
+      Value<int> position,
+      Value<String> exerciseId,
+      Value<String?> plannedExerciseId,
+      Value<String?> slotUuid,
+      Value<bool> skipped,
+      Value<String?> note,
+      Value<int?> restSeconds,
+      Value<int> barGrams,
+      Value<int> rowid,
+    });
+
+final class $$SessionExercisesTableReferences
+    extends
+        BaseReferences<
+          _$HarvestDatabase,
+          $SessionExercisesTable,
+          SessionExerciseRow
+        > {
+  $$SessionExercisesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WorkoutSessionsTable _sessionUuidTable(_$HarvestDatabase db) => db
+      .workoutSessions
+      .createAlias('session_exercises__session_uuid__workout_sessions__uuid');
+
+  $$WorkoutSessionsTableProcessedTableManager get sessionUuid {
+    final $_column = $_itemColumn<String>('session_uuid')!;
+
+    final manager = $$WorkoutSessionsTableTableManager(
+      $_db,
+      $_db.workoutSessions,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$WorkoutSetsTable, List<WorkoutSetRow>>
+  _workoutSetsRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
+    db.workoutSets,
+    aliasName: 'session_exercises__uuid__workout_sets__session_exercise_uuid',
+  );
+
+  $$WorkoutSetsTableProcessedTableManager get workoutSetsRefs {
+    final manager = $$WorkoutSetsTableTableManager($_db, $_db.workoutSets)
+        .filter(
+          (f) => f.sessionExerciseUuid.uuid.sqlEquals(
+            $_itemColumn<String>('uuid')!,
+          ),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_workoutSetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SessionExercisesTableFilterComposer
+    extends Composer<_$HarvestDatabase, $SessionExercisesTable> {
+  $$SessionExercisesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get plannedExerciseId => $composableBuilder(
+    column: $table.plannedExerciseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get slotUuid => $composableBuilder(
+    column: $table.slotUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get skipped => $composableBuilder(
+    column: $table.skipped,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get barGrams => $composableBuilder(
+    column: $table.barGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$WorkoutSessionsTableFilterComposer get sessionUuid {
+    final $$WorkoutSessionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionUuid,
+      referencedTable: $db.workoutSessions,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutSessionsTableFilterComposer(
+            $db: $db,
+            $table: $db.workoutSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> workoutSetsRefs(
+    Expression<bool> Function($$WorkoutSetsTableFilterComposer f) f,
+  ) {
+    final $$WorkoutSetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.workoutSets,
+      getReferencedColumn: (t) => t.sessionExerciseUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutSetsTableFilterComposer(
+            $db: $db,
+            $table: $db.workoutSets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SessionExercisesTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $SessionExercisesTable> {
+  $$SessionExercisesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get plannedExerciseId => $composableBuilder(
+    column: $table.plannedExerciseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get slotUuid => $composableBuilder(
+    column: $table.slotUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get skipped => $composableBuilder(
+    column: $table.skipped,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get barGrams => $composableBuilder(
+    column: $table.barGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$WorkoutSessionsTableOrderingComposer get sessionUuid {
+    final $$WorkoutSessionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionUuid,
+      referencedTable: $db.workoutSessions,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutSessionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.workoutSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SessionExercisesTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $SessionExercisesTable> {
+  $$SessionExercisesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get plannedExerciseId => $composableBuilder(
+    column: $table.plannedExerciseId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get slotUuid =>
+      $composableBuilder(column: $table.slotUuid, builder: (column) => column);
+
+  GeneratedColumn<bool> get skipped =>
+      $composableBuilder(column: $table.skipped, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get restSeconds => $composableBuilder(
+    column: $table.restSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get barGrams =>
+      $composableBuilder(column: $table.barGrams, builder: (column) => column);
+
+  $$WorkoutSessionsTableAnnotationComposer get sessionUuid {
+    final $$WorkoutSessionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionUuid,
+      referencedTable: $db.workoutSessions,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutSessionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.workoutSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> workoutSetsRefs<T extends Object>(
+    Expression<T> Function($$WorkoutSetsTableAnnotationComposer a) f,
+  ) {
+    final $$WorkoutSetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.workoutSets,
+      getReferencedColumn: (t) => t.sessionExerciseUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutSetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.workoutSets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SessionExercisesTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $SessionExercisesTable,
+          SessionExerciseRow,
+          $$SessionExercisesTableFilterComposer,
+          $$SessionExercisesTableOrderingComposer,
+          $$SessionExercisesTableAnnotationComposer,
+          $$SessionExercisesTableCreateCompanionBuilder,
+          $$SessionExercisesTableUpdateCompanionBuilder,
+          (SessionExerciseRow, $$SessionExercisesTableReferences),
+          SessionExerciseRow,
+          PrefetchHooks Function({bool sessionUuid, bool workoutSetsRefs})
+        > {
+  $$SessionExercisesTableTableManager(
+    _$HarvestDatabase db,
+    $SessionExercisesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SessionExercisesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SessionExercisesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SessionExercisesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> sessionUuid = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> exerciseId = const Value.absent(),
+                Value<String?> plannedExerciseId = const Value.absent(),
+                Value<String?> slotUuid = const Value.absent(),
+                Value<bool> skipped = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int?> restSeconds = const Value.absent(),
+                Value<int> barGrams = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SessionExercisesCompanion(
+                uuid: uuid,
+                sessionUuid: sessionUuid,
+                position: position,
+                exerciseId: exerciseId,
+                plannedExerciseId: plannedExerciseId,
+                slotUuid: slotUuid,
+                skipped: skipped,
+                note: note,
+                restSeconds: restSeconds,
+                barGrams: barGrams,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String sessionUuid,
+                required int position,
+                required String exerciseId,
+                Value<String?> plannedExerciseId = const Value.absent(),
+                Value<String?> slotUuid = const Value.absent(),
+                Value<bool> skipped = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int?> restSeconds = const Value.absent(),
+                Value<int> barGrams = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SessionExercisesCompanion.insert(
+                uuid: uuid,
+                sessionUuid: sessionUuid,
+                position: position,
+                exerciseId: exerciseId,
+                plannedExerciseId: plannedExerciseId,
+                slotUuid: slotUuid,
+                skipped: skipped,
+                note: note,
+                restSeconds: restSeconds,
+                barGrams: barGrams,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SessionExercisesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({sessionUuid = false, workoutSetsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (workoutSetsRefs) db.workoutSets,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (sessionUuid) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.sessionUuid,
+                            referencedTable: $$SessionExercisesTableReferences
+                                ._sessionUuidTable(db),
+                            referencedColumn: $$SessionExercisesTableReferences
+                                ._sessionUuidTable(db)
+                                .uuid,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (workoutSetsRefs)
+                        await $_getPrefetchedData<
+                          SessionExerciseRow,
+                          $SessionExercisesTable,
+                          WorkoutSetRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SessionExercisesTableReferences
+                              ._workoutSetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SessionExercisesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).workoutSetsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionExerciseUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SessionExercisesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $SessionExercisesTable,
+      SessionExerciseRow,
+      $$SessionExercisesTableFilterComposer,
+      $$SessionExercisesTableOrderingComposer,
+      $$SessionExercisesTableAnnotationComposer,
+      $$SessionExercisesTableCreateCompanionBuilder,
+      $$SessionExercisesTableUpdateCompanionBuilder,
+      (SessionExerciseRow, $$SessionExercisesTableReferences),
+      SessionExerciseRow,
+      PrefetchHooks Function({bool sessionUuid, bool workoutSetsRefs})
+    >;
+typedef $$WorkoutSetsTableCreateCompanionBuilder =
+    WorkoutSetsCompanion Function({
+      required String uuid,
+      required String sessionExerciseUuid,
+      required int position,
+      Value<int> weightGrams,
+      Value<int> reps,
+      Value<bool> done,
+      Value<String?> targetLabel,
+      Value<bool> openEnded,
+      Value<DateTime> loggedAt,
+      Value<int> rowid,
+    });
+typedef $$WorkoutSetsTableUpdateCompanionBuilder =
+    WorkoutSetsCompanion Function({
+      Value<String> uuid,
+      Value<String> sessionExerciseUuid,
+      Value<int> position,
+      Value<int> weightGrams,
+      Value<int> reps,
+      Value<bool> done,
+      Value<String?> targetLabel,
+      Value<bool> openEnded,
+      Value<DateTime> loggedAt,
+      Value<int> rowid,
+    });
+
+final class $$WorkoutSetsTableReferences
+    extends
+        BaseReferences<_$HarvestDatabase, $WorkoutSetsTable, WorkoutSetRow> {
+  $$WorkoutSetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $SessionExercisesTable _sessionExerciseUuidTable(
+    _$HarvestDatabase db,
+  ) => db.sessionExercises.createAlias(
+    'workout_sets__session_exercise_uuid__session_exercises__uuid',
+  );
+
+  $$SessionExercisesTableProcessedTableManager get sessionExerciseUuid {
+    final $_column = $_itemColumn<String>('session_exercise_uuid')!;
+
+    final manager = $$SessionExercisesTableTableManager(
+      $_db,
+      $_db.sessionExercises,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionExerciseUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$WorkoutSetsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $WorkoutSetsTable> {
+  $$WorkoutSetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get done => $composableBuilder(
+    column: $table.done,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetLabel => $composableBuilder(
+    column: $table.targetLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get openEnded => $composableBuilder(
+    column: $table.openEnded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SessionExercisesTableFilterComposer get sessionExerciseUuid {
+    final $$SessionExercisesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionExerciseUuid,
+      referencedTable: $db.sessionExercises,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionExercisesTableFilterComposer(
+            $db: $db,
+            $table: $db.sessionExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WorkoutSetsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $WorkoutSetsTable> {
+  $$WorkoutSetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get done => $composableBuilder(
+    column: $table.done,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetLabel => $composableBuilder(
+    column: $table.targetLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get openEnded => $composableBuilder(
+    column: $table.openEnded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
+    column: $table.loggedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SessionExercisesTableOrderingComposer get sessionExerciseUuid {
+    final $$SessionExercisesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionExerciseUuid,
+      referencedTable: $db.sessionExercises,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionExercisesTableOrderingComposer(
+            $db: $db,
+            $table: $db.sessionExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WorkoutSetsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $WorkoutSetsTable> {
+  $$WorkoutSetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<int> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reps =>
+      $composableBuilder(column: $table.reps, builder: (column) => column);
+
+  GeneratedColumn<bool> get done =>
+      $composableBuilder(column: $table.done, builder: (column) => column);
+
+  GeneratedColumn<String> get targetLabel => $composableBuilder(
+    column: $table.targetLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get openEnded =>
+      $composableBuilder(column: $table.openEnded, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get loggedAt =>
+      $composableBuilder(column: $table.loggedAt, builder: (column) => column);
+
+  $$SessionExercisesTableAnnotationComposer get sessionExerciseUuid {
+    final $$SessionExercisesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionExerciseUuid,
+      referencedTable: $db.sessionExercises,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionExercisesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sessionExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WorkoutSetsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $WorkoutSetsTable,
+          WorkoutSetRow,
+          $$WorkoutSetsTableFilterComposer,
+          $$WorkoutSetsTableOrderingComposer,
+          $$WorkoutSetsTableAnnotationComposer,
+          $$WorkoutSetsTableCreateCompanionBuilder,
+          $$WorkoutSetsTableUpdateCompanionBuilder,
+          (WorkoutSetRow, $$WorkoutSetsTableReferences),
+          WorkoutSetRow,
+          PrefetchHooks Function({bool sessionExerciseUuid})
+        > {
+  $$WorkoutSetsTableTableManager(_$HarvestDatabase db, $WorkoutSetsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WorkoutSetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WorkoutSetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WorkoutSetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> sessionExerciseUuid = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int> weightGrams = const Value.absent(),
+                Value<int> reps = const Value.absent(),
+                Value<bool> done = const Value.absent(),
+                Value<String?> targetLabel = const Value.absent(),
+                Value<bool> openEnded = const Value.absent(),
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkoutSetsCompanion(
+                uuid: uuid,
+                sessionExerciseUuid: sessionExerciseUuid,
+                position: position,
+                weightGrams: weightGrams,
+                reps: reps,
+                done: done,
+                targetLabel: targetLabel,
+                openEnded: openEnded,
+                loggedAt: loggedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String sessionExerciseUuid,
+                required int position,
+                Value<int> weightGrams = const Value.absent(),
+                Value<int> reps = const Value.absent(),
+                Value<bool> done = const Value.absent(),
+                Value<String?> targetLabel = const Value.absent(),
+                Value<bool> openEnded = const Value.absent(),
+                Value<DateTime> loggedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkoutSetsCompanion.insert(
+                uuid: uuid,
+                sessionExerciseUuid: sessionExerciseUuid,
+                position: position,
+                weightGrams: weightGrams,
+                reps: reps,
+                done: done,
+                targetLabel: targetLabel,
+                openEnded: openEnded,
+                loggedAt: loggedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WorkoutSetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionExerciseUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionExerciseUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.sessionExerciseUuid,
+                        referencedTable: $$WorkoutSetsTableReferences
+                            ._sessionExerciseUuidTable(db),
+                        referencedColumn: $$WorkoutSetsTableReferences
+                            ._sessionExerciseUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$WorkoutSetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $WorkoutSetsTable,
+      WorkoutSetRow,
+      $$WorkoutSetsTableFilterComposer,
+      $$WorkoutSetsTableOrderingComposer,
+      $$WorkoutSetsTableAnnotationComposer,
+      $$WorkoutSetsTableCreateCompanionBuilder,
+      $$WorkoutSetsTableUpdateCompanionBuilder,
+      (WorkoutSetRow, $$WorkoutSetsTableReferences),
+      WorkoutSetRow,
+      PrefetchHooks Function({bool sessionExerciseUuid})
+    >;
+typedef $$SleepSessionsTableCreateCompanionBuilder =
+    SleepSessionsCompanion Function({
+      required String uuid,
+      required String harvestDay,
+      required DateTime fellAsleepAt,
+      required DateTime wokeAt,
+      required int targetMinutes,
+      Value<int?> restedStars,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$SleepSessionsTableUpdateCompanionBuilder =
+    SleepSessionsCompanion Function({
+      Value<String> uuid,
+      Value<String> harvestDay,
+      Value<DateTime> fellAsleepAt,
+      Value<DateTime> wokeAt,
+      Value<int> targetMinutes,
+      Value<int?> restedStars,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$SleepSessionsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $SleepSessionsTable> {
+  $$SleepSessionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fellAsleepAt => $composableBuilder(
+    column: $table.fellAsleepAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get wokeAt => $composableBuilder(
+    column: $table.wokeAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetMinutes => $composableBuilder(
+    column: $table.targetMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get restedStars => $composableBuilder(
+    column: $table.restedStars,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SleepSessionsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $SleepSessionsTable> {
+  $$SleepSessionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fellAsleepAt => $composableBuilder(
+    column: $table.fellAsleepAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get wokeAt => $composableBuilder(
+    column: $table.wokeAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetMinutes => $composableBuilder(
+    column: $table.targetMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get restedStars => $composableBuilder(
+    column: $table.restedStars,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SleepSessionsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $SleepSessionsTable> {
+  $$SleepSessionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get fellAsleepAt => $composableBuilder(
+    column: $table.fellAsleepAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get wokeAt =>
+      $composableBuilder(column: $table.wokeAt, builder: (column) => column);
+
+  GeneratedColumn<int> get targetMinutes => $composableBuilder(
+    column: $table.targetMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get restedStars => $composableBuilder(
+    column: $table.restedStars,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$SleepSessionsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $SleepSessionsTable,
+          SleepSessionRow,
+          $$SleepSessionsTableFilterComposer,
+          $$SleepSessionsTableOrderingComposer,
+          $$SleepSessionsTableAnnotationComposer,
+          $$SleepSessionsTableCreateCompanionBuilder,
+          $$SleepSessionsTableUpdateCompanionBuilder,
+          (
+            SleepSessionRow,
+            BaseReferences<
+              _$HarvestDatabase,
+              $SleepSessionsTable,
+              SleepSessionRow
+            >,
+          ),
+          SleepSessionRow,
+          PrefetchHooks Function()
+        > {
+  $$SleepSessionsTableTableManager(
+    _$HarvestDatabase db,
+    $SleepSessionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SleepSessionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SleepSessionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SleepSessionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> fellAsleepAt = const Value.absent(),
+                Value<DateTime> wokeAt = const Value.absent(),
+                Value<int> targetMinutes = const Value.absent(),
+                Value<int?> restedStars = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SleepSessionsCompanion(
+                uuid: uuid,
+                harvestDay: harvestDay,
+                fellAsleepAt: fellAsleepAt,
+                wokeAt: wokeAt,
+                targetMinutes: targetMinutes,
+                restedStars: restedStars,
+                note: note,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String harvestDay,
+                required DateTime fellAsleepAt,
+                required DateTime wokeAt,
+                required int targetMinutes,
+                Value<int?> restedStars = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SleepSessionsCompanion.insert(
+                uuid: uuid,
+                harvestDay: harvestDay,
+                fellAsleepAt: fellAsleepAt,
+                wokeAt: wokeAt,
+                targetMinutes: targetMinutes,
+                restedStars: restedStars,
+                note: note,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SleepSessionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $SleepSessionsTable,
+      SleepSessionRow,
+      $$SleepSessionsTableFilterComposer,
+      $$SleepSessionsTableOrderingComposer,
+      $$SleepSessionsTableAnnotationComposer,
+      $$SleepSessionsTableCreateCompanionBuilder,
+      $$SleepSessionsTableUpdateCompanionBuilder,
+      (
+        SleepSessionRow,
+        BaseReferences<_$HarvestDatabase, $SleepSessionsTable, SleepSessionRow>,
+      ),
+      SleepSessionRow,
+      PrefetchHooks Function()
     >;
 typedef $$StreaksTableCreateCompanionBuilder = StreaksCompanion Function({
   required String scope,
@@ -14411,6 +24981,30 @@ class $HarvestDatabaseManager {
       $$AlbumsTableTableManager(_db, _db.albums);
   $$MemoriesTableTableManager get memories =>
       $$MemoriesTableTableManager(_db, _db.memories);
+  $$StepDaysTableTableManager get stepDays =>
+      $$StepDaysTableTableManager(_db, _db.stepDays);
+  $$BodyWeightsTableTableManager get bodyWeights =>
+      $$BodyWeightsTableTableManager(_db, _db.bodyWeights);
+  $$ExercisesTableTableManager get exercises =>
+      $$ExercisesTableTableManager(_db, _db.exercises);
+  $$ProgramsTableTableManager get programs =>
+      $$ProgramsTableTableManager(_db, _db.programs);
+  $$ProgramDaysTableTableManager get programDays =>
+      $$ProgramDaysTableTableManager(_db, _db.programDays);
+  $$ProgramSlotsTableTableManager get programSlots =>
+      $$ProgramSlotsTableTableManager(_db, _db.programSlots);
+  $$TargetSetsTableTableManager get targetSets =>
+      $$TargetSetsTableTableManager(_db, _db.targetSets);
+  $$TrainingMaxesTableTableManager get trainingMaxes =>
+      $$TrainingMaxesTableTableManager(_db, _db.trainingMaxes);
+  $$WorkoutSessionsTableTableManager get workoutSessions =>
+      $$WorkoutSessionsTableTableManager(_db, _db.workoutSessions);
+  $$SessionExercisesTableTableManager get sessionExercises =>
+      $$SessionExercisesTableTableManager(_db, _db.sessionExercises);
+  $$WorkoutSetsTableTableManager get workoutSets =>
+      $$WorkoutSetsTableTableManager(_db, _db.workoutSets);
+  $$SleepSessionsTableTableManager get sleepSessions =>
+      $$SleepSessionsTableTableManager(_db, _db.sleepSessions);
   $$StreaksTableTableManager get streaks =>
       $$StreaksTableTableManager(_db, _db.streaks);
   $$LedgerTableTableManager get ledger =>

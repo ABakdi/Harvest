@@ -3137,7 +3137,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsFeaturesHint.
   ///
   /// In en, this message translates to:
-  /// **'Two halves of the app that stay out of the way until you ask for them.'**
+  /// **'Parts of the app that stay out of the way until you ask for them. They pair up in the navigation bar, so switching them all on still leaves five tabs.'**
   String get settingsFeaturesHint;
 
   /// No description provided for @featureNotes.
@@ -3661,6 +3661,1266 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That file is no longer on the phone.'**
   String get galleryFileGone;
+
+  /// No description provided for @navBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get navBody;
+
+  /// No description provided for @navHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get navHealth;
+
+  /// No description provided for @navGym.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get navGym;
+
+  /// No description provided for @navFarmer.
+  ///
+  /// In en, this message translates to:
+  /// **'Farmer'**
+  String get navFarmer;
+
+  /// No description provided for @navProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get navProgress;
+
+  /// No description provided for @featureHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get featureHealth;
+
+  /// No description provided for @featureHealthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps from the phone\'s own sensor, and a body weight whenever you stand on the scale.'**
+  String get featureHealthHint;
+
+  /// No description provided for @featureGym.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get featureGym;
+
+  /// No description provided for @featureGymHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs, sessions and personal records. A gym habit lands on your field like any other seed.'**
+  String get featureGymHint;
+
+  /// No description provided for @stepsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps today'**
+  String get stepsToday;
+
+  /// No description provided for @stepsWeekAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day average'**
+  String get stepsWeekAverage;
+
+  /// No description provided for @stepsOfGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{steps} of {goal}'**
+  String stepsOfGoal(int steps, int goal);
+
+  /// No description provided for @stepsPassive.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone counts these. They never check a seed in and never break a streak.'**
+  String get stepsPassive;
+
+  /// No description provided for @weightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightTitle;
+
+  /// No description provided for @weightLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a weight'**
+  String get weightLog;
+
+  /// No description provided for @weightEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this weight'**
+  String get weightEdit;
+
+  /// No description provided for @weightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.'**
+  String get weightHint;
+
+  /// No description provided for @weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightLabel;
+
+  /// No description provided for @weightNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get weightNote;
+
+  /// No description provided for @weightNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'After the flu, new scale…'**
+  String get weightNoteHint;
+
+  /// No description provided for @weightEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No weights yet'**
+  String get weightEmpty;
+
+  /// No description provided for @weightEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One number, whenever you weigh yourself. The line gets interesting from about the third one.'**
+  String get weightEmptyBody;
+
+  /// No description provided for @weightHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Every reading'**
+  String get weightHistory;
+
+  /// No description provided for @weightWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get weightWindow;
+
+  /// No description provided for @weightDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String weightDays(int days);
+
+  /// No description provided for @weightNoTrendYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough readings for a trend yet'**
+  String get weightNoTrendYet;
+
+  /// No description provided for @weightDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Down {amount} over {days} days'**
+  String weightDown(String amount, int days);
+
+  /// No description provided for @weightUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up {amount} over {days} days'**
+  String weightUp(String amount, int days);
+
+  /// No description provided for @weightSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Level over {days} days'**
+  String weightSteady(int days);
+
+  /// No description provided for @weightToTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} from your target of {target}'**
+  String weightToTarget(String amount, String target);
+
+  /// No description provided for @weightLegendEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings'**
+  String get weightLegendEntries;
+
+  /// No description provided for @weightLegendTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day average'**
+  String get weightLegendTrend;
+
+  /// No description provided for @weightLegendTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get weightLegendTarget;
+
+  /// No description provided for @weightDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this reading?'**
+  String get weightDeleteTitle;
+
+  /// No description provided for @weightDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the chart. You can undo this straight away.'**
+  String get weightDeleteBody;
+
+  /// No description provided for @gymComingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym is next'**
+  String get gymComingTitle;
+
+  /// No description provided for @gymComingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs, sessions and personal records are being built. Steps and weight work now.'**
+  String get gymComingBody;
+
+  /// No description provided for @gymBrowse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse exercises'**
+  String get gymBrowse;
+
+  /// No description provided for @gymPickExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an exercise'**
+  String get gymPickExercise;
+
+  /// No description provided for @gymSearchExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, muscle or kit'**
+  String get gymSearchExercises;
+
+  /// No description provided for @gymExercisesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises'**
+  String get gymExercisesTitle;
+
+  /// No description provided for @gymProgramsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs'**
+  String get gymProgramsTitle;
+
+  /// No description provided for @gymCatalogueLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the catalogue…'**
+  String get gymCatalogueLoading;
+
+  /// No description provided for @gymCatalogueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, muscle or equipment — the question mid-session is usually what else hits this.'**
+  String get gymCatalogueHint;
+
+  /// No description provided for @gymExerciseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No exercises} =1{1 exercise} other{{count} exercises}}'**
+  String gymExerciseCount(int count);
+
+  /// No description provided for @gymNoExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that'**
+  String get gymNoExercise;
+
+  /// No description provided for @gymNoExerciseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a muscle or a piece of equipment instead of a name.'**
+  String get gymNoExerciseBody;
+
+  /// No description provided for @gymMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get gymMine;
+
+  /// No description provided for @gymHowTo.
+  ///
+  /// In en, this message translates to:
+  /// **'How it goes'**
+  String get gymHowTo;
+
+  /// No description provided for @gymNoInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'No instructions for this one.'**
+  String get gymNoInstructions;
+
+  /// No description provided for @gymMediaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise pictures'**
+  String get gymMediaTitle;
+
+  /// No description provided for @gymMediaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded the first time you open an exercise, then kept. Names and instructions are already in the app and work without a single picture.'**
+  String get gymMediaBody;
+
+  /// No description provided for @gymNeverFetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Never fetch pictures'**
+  String get gymNeverFetch;
+
+  /// No description provided for @gymNeverFetchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym works completely on words alone'**
+  String get gymNeverFetchHint;
+
+  /// No description provided for @gymDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download them all'**
+  String get gymDownloadAll;
+
+  /// No description provided for @gymDownloadAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} animations, roughly {size}. Worth doing on Wi-Fi before a trip.'**
+  String gymDownloadAllBody(int count, String size);
+
+  /// No description provided for @gymDownloadProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String gymDownloadProgress(int done, int total);
+
+  /// No description provided for @gymClearMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get gymClearMedia;
+
+  /// No description provided for @gymClearMediaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The pictures go; nothing else does. They come back the next time you open an exercise.'**
+  String get gymClearMediaBody;
+
+  /// No description provided for @gymMediaAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise images and animations {credit}, fetched from the dataset they are published in.'**
+  String gymMediaAttribution(String credit);
+
+  /// No description provided for @gymNewProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'New program'**
+  String get gymNewProgram;
+
+  /// No description provided for @gymProgramNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'nSuns 5/3/1, Push Pull Legs…'**
+  String get gymProgramNameHint;
+
+  /// No description provided for @gymNoPrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'No programs yet'**
+  String get gymNoPrograms;
+
+  /// No description provided for @gymNoProgramsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A program is a list of days, and a day is a list of exercises. Nothing is generated — you write it.'**
+  String get gymNoProgramsBody;
+
+  /// No description provided for @gymProgramSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{No days yet} =1{1 day} other{{days} days}} · {sets, plural, =0{no sets} =1{1 set} other{{sets} sets}}'**
+  String gymProgramSummary(int days, int sets);
+
+  /// No description provided for @gymProgramGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This program is gone'**
+  String get gymProgramGone;
+
+  /// No description provided for @gymRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get gymRename;
+
+  /// No description provided for @gymDeleteProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String gymDeleteProgram(String name);
+
+  /// No description provided for @gymDeleteProgramBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its days and sets go with it. Sessions you already finished stay.'**
+  String get gymDeleteProgramBody;
+
+  /// No description provided for @gymAddDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a day'**
+  String get gymAddDay;
+
+  /// No description provided for @gymDayNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {n}'**
+  String gymDayNumber(int n);
+
+  /// No description provided for @gymDayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Day 4, Push, Upper A…'**
+  String get gymDayNameHint;
+
+  /// No description provided for @gymNoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No days yet'**
+  String get gymNoDays;
+
+  /// No description provided for @gymNoDaysBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the first one. Duplicating it later is one tap — most days are the last day with two numbers changed.'**
+  String get gymNoDaysBody;
+
+  /// No description provided for @gymDaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{exercises, plural, =0{No exercises} =1{1 exercise} other{{exercises} exercises}} · {sets, plural, =1{1 set} other{{sets} sets}}'**
+  String gymDaySummary(int exercises, int sets);
+
+  /// No description provided for @gymDuplicateDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get gymDuplicateDay;
+
+  /// No description provided for @gymDeleteDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String gymDeleteDay(String name);
+
+  /// No description provided for @gymDeleteDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The exercises and sets in it go too.'**
+  String get gymDeleteDayBody;
+
+  /// No description provided for @gymAccessories.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended accessories'**
+  String get gymAccessories;
+
+  /// No description provided for @gymAccessoriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Back, Abs — a note, not a prescription'**
+  String get gymAccessoriesHint;
+
+  /// No description provided for @gymRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended: {what}'**
+  String gymRecommended(String what);
+
+  /// No description provided for @gymAddExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an exercise'**
+  String get gymAddExercise;
+
+  /// No description provided for @gymRemoveExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this exercise'**
+  String get gymRemoveExercise;
+
+  /// No description provided for @gymUnknownExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown exercise'**
+  String get gymUnknownExercise;
+
+  /// No description provided for @gymNoSetsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No sets yet'**
+  String get gymNoSetsYet;
+
+  /// No description provided for @gymSetsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this asks of you, set by set.'**
+  String get gymSetsSubtitle;
+
+  /// No description provided for @gymAddSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get gymAddSet;
+
+  /// No description provided for @gymAddPercentSet.
+  ///
+  /// In en, this message translates to:
+  /// **'% set'**
+  String get gymAddPercentSet;
+
+  /// No description provided for @gymAddOpenSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Open set'**
+  String get gymAddOpenSet;
+
+  /// No description provided for @gymEditSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the set'**
+  String get gymEditSet;
+
+  /// No description provided for @gymPercentOfMax.
+  ///
+  /// In en, this message translates to:
+  /// **'% of max'**
+  String get gymPercentOfMax;
+
+  /// No description provided for @gymPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent'**
+  String get gymPercent;
+
+  /// No description provided for @gymWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get gymWeight;
+
+  /// No description provided for @gymReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps'**
+  String get gymReps;
+
+  /// No description provided for @gymOpenSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Open set'**
+  String get gymOpenSet;
+
+  /// No description provided for @gymOpenSetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As many as you can — the set that decides whether the weight goes up'**
+  String get gymOpenSetHint;
+
+  /// No description provided for @gymOpenReps.
+  ///
+  /// In en, this message translates to:
+  /// **'{reps}+'**
+  String gymOpenReps(int reps);
+
+  /// No description provided for @gymBarWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'The bar'**
+  String get gymBarWeight;
+
+  /// No description provided for @gymRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest between sets'**
+  String get gymRest;
+
+  /// No description provided for @gymRestSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds'**
+  String gymRestSeconds(int seconds);
+
+  /// No description provided for @gymTrainingMaxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Training maxes'**
+  String get gymTrainingMaxes;
+
+  /// No description provided for @gymTrainingMaxesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The number your percentages are percentages of. Yours to set and yours to bump — the app does not do your programming.'**
+  String get gymTrainingMaxesHint;
+
+  /// No description provided for @gymNoTrainingMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set — percentage sets cannot resolve'**
+  String get gymNoTrainingMax;
+
+  /// No description provided for @gymNoPercentSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in this program is a percentage, so there is nothing to set.'**
+  String get gymNoPercentSets;
+
+  /// No description provided for @gymNeedsTrainingMax.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 exercise needs a training max} other{{count} exercises need a training max}}'**
+  String gymNeedsTrainingMax(int count);
+
+  /// No description provided for @gymNeedsTrainingMaxBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Until then its percentage sets show a percentage rather than a weight.'**
+  String get gymNeedsTrainingMaxBody;
+
+  /// No description provided for @gymStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get gymStart;
+
+  /// No description provided for @gymResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry on'**
+  String get gymResume;
+
+  /// No description provided for @gymRunningSession.
+  ///
+  /// In en, this message translates to:
+  /// **'A session is running'**
+  String get gymRunningSession;
+
+  /// No description provided for @gymRunningSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets done. Finish or drop it before starting another.'**
+  String gymRunningSessionBody(int done, int total);
+
+  /// No description provided for @gymPickDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Which day?'**
+  String get gymPickDay;
+
+  /// No description provided for @gymNoProgramToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'No program to start'**
+  String get gymNoProgramToStart;
+
+  /// No description provided for @gymNoProgramToStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a program first — a session is a day of one, with the weights already filled in.'**
+  String get gymNoProgramToStartBody;
+
+  /// No description provided for @gymSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get gymSession;
+
+  /// No description provided for @gymSessionGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This session is gone'**
+  String get gymSessionGone;
+
+  /// No description provided for @gymSessionProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets'**
+  String gymSessionProgress(int done, int total);
+
+  /// No description provided for @gymSessionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note on the session'**
+  String get gymSessionNote;
+
+  /// No description provided for @gymSessionNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Slept badly, belt on, gym was packed…'**
+  String get gymSessionNoteHint;
+
+  /// No description provided for @gymDiscardSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop this session'**
+  String get gymDiscardSession;
+
+  /// No description provided for @gymDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done, plural, =0{Nothing is logged yet, so nothing is lost.} =1{The one set you logged goes with it.} other{The {done} sets you logged go with it.}}'**
+  String gymDiscardBody(int done);
+
+  /// No description provided for @gymFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get gymFinish;
+
+  /// No description provided for @gymFinishEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish with nothing logged?'**
+  String get gymFinishEmptyTitle;
+
+  /// No description provided for @gymFinishEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It is kept as a session you turned up for, which is worth something, but no set counts towards a record.'**
+  String get gymFinishEmptyBody;
+
+  /// No description provided for @gymInsteadOf.
+  ///
+  /// In en, this message translates to:
+  /// **'instead of {name}'**
+  String gymInsteadOf(String name);
+
+  /// No description provided for @gymLastTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time: {sets}'**
+  String gymLastTime(String sets);
+
+  /// No description provided for @gymSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap it out'**
+  String get gymSwap;
+
+  /// No description provided for @gymSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip it'**
+  String get gymSkip;
+
+  /// No description provided for @gymUnskip.
+  ///
+  /// In en, this message translates to:
+  /// **'Put it back'**
+  String get gymUnskip;
+
+  /// No description provided for @gymNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get gymNote;
+
+  /// No description provided for @gymSetColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get gymSetColumn;
+
+  /// No description provided for @gymTargetColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get gymTargetColumn;
+
+  /// No description provided for @gymRepsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps'**
+  String get gymRepsColumn;
+
+  /// No description provided for @gymTick.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this set'**
+  String get gymTick;
+
+  /// No description provided for @gymUntick.
+  ///
+  /// In en, this message translates to:
+  /// **'Not done after all'**
+  String get gymUntick;
+
+  /// No description provided for @gymRecordHeaviest.
+  ///
+  /// In en, this message translates to:
+  /// **'Heaviest ever: {load}'**
+  String gymRecordHeaviest(String load);
+
+  /// No description provided for @gymRecordEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Best set yet — about {load} for one'**
+  String gymRecordEstimated(String load);
+
+  /// No description provided for @gymRestPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'+{seconds}s'**
+  String gymRestPlus(int seconds);
+
+  /// No description provided for @gymRestSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Done resting'**
+  String get gymRestSkip;
+
+  /// No description provided for @gymPerSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Per side, on a {bar} bar'**
+  String gymPerSide(String bar);
+
+  /// No description provided for @gymJustTheBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Just the bar'**
+  String get gymJustTheBar;
+
+  /// No description provided for @gymPlateShortfall.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.'**
+  String gymPlateShortfall(String total, String short);
+
+  /// No description provided for @sleepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last night'**
+  String get sleepTitle;
+
+  /// No description provided for @sleepSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two times and a feeling. Nothing here was measured by the phone, and none of it is a test.'**
+  String get sleepSubtitle;
+
+  /// No description provided for @sleepSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Write it down'**
+  String get sleepSave;
+
+  /// No description provided for @sleepFellAsleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Fell asleep'**
+  String get sleepFellAsleep;
+
+  /// No description provided for @sleepWoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Woke'**
+  String get sleepWoke;
+
+  /// No description provided for @sleepRested.
+  ///
+  /// In en, this message translates to:
+  /// **'How rested?'**
+  String get sleepRested;
+
+  /// No description provided for @sleepLength.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String sleepLength(int hours, int minutes);
+
+  /// No description provided for @sleepLastNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Last night'**
+  String get sleepLastNight;
+
+  /// No description provided for @sleepNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not written down'**
+  String get sleepNothingYet;
+
+  /// No description provided for @sleepLogIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get sleepLogIt;
+
+  /// No description provided for @sleepAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m on average, over {nights} nights'**
+  String sleepAverage(int hours, int minutes, int nights);
+
+  /// No description provided for @sleepDebtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to yourself'**
+  String get sleepDebtLabel;
+
+  /// No description provided for @sleepDebtBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks of short nights, added up. Long nights pay it back.'**
+  String get sleepDebtBody;
+
+  /// No description provided for @sleepSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get sleepSection;
+
+  /// No description provided for @sleepAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake me'**
+  String get sleepAlarm;
+
+  /// No description provided for @sleepAlarmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings at the wake time your day is already built around.'**
+  String get sleepAlarmBody;
+
+  /// No description provided for @sleepAlarmExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow exact alarms'**
+  String get sleepAlarmExact;
+
+  /// No description provided for @sleepAlarmExactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.'**
+  String get sleepAlarmExactBody;
+
+  /// No description provided for @sleepWindDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Say something before bed'**
+  String get sleepWindDown;
+
+  /// No description provided for @sleepWindDownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Half an hour before the bedtime your day is built around.'**
+  String get sleepWindDownBody;
+
+  /// No description provided for @sleepWindDownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Half an hour to bed'**
+  String get sleepWindDownTitle;
+
+  /// No description provided for @sleepWindDownText.
+  ///
+  /// In en, this message translates to:
+  /// **'Whatever you are in the middle of will still be there tomorrow.'**
+  String get sleepWindDownText;
+
+  /// No description provided for @sleepAlarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get sleepAlarmTitle;
+
+  /// No description provided for @sleepAlarmText.
+  ///
+  /// In en, this message translates to:
+  /// **'Two questions and a feeling, while you still remember it.'**
+  String get sleepAlarmText;
+
+  /// No description provided for @sleepNights.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nights'**
+  String get sleepNights;
+
+  /// No description provided for @sleepNoNights.
+  ///
+  /// In en, this message translates to:
+  /// **'No nights written down yet'**
+  String get sleepNoNights;
+
+  /// No description provided for @sleepNoNightsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write down one morning and the line starts. Two weeks of them and it has a shape.'**
+  String get sleepNoNightsBody;
+
+  /// No description provided for @sleepOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Nights of their own'**
+  String get sleepOverrides;
+
+  /// No description provided for @sleepOverrideCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 weekday of its own} other{{count} weekdays of their own}}'**
+  String sleepOverrideCount(int count);
+
+  /// No description provided for @sleepOverridesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday is not Tuesday. A weekday set here overrides the hours your day is built around.'**
+  String get sleepOverridesBody;
+
+  /// No description provided for @sleepSameAsUsual.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as usual'**
+  String get sleepSameAsUsual;
+
+  /// No description provided for @sleepNightOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String sleepNightOf(String from, String to);
+
+  /// No description provided for @sleepDeleteNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this night?'**
+  String get sleepDeleteNight;
+
+  /// No description provided for @sleepDeleteNightBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the line and the debt is worked out again without it.'**
+  String get sleepDeleteNightBody;
+
+  /// No description provided for @sleepStars.
+  ///
+  /// In en, this message translates to:
+  /// **'{stars, plural, =0{} =1{1 star} other{{stars} stars}}'**
+  String sleepStars(int stars);
+
+  /// No description provided for @gymPlantProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant this on your field'**
+  String get gymPlantProgram;
+
+  /// No description provided for @gymPlantProgramBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It becomes a habit like any other, and finishing a session checks it in.'**
+  String get gymPlantProgramBody;
+
+  /// No description provided for @gymHowOften.
+  ///
+  /// In en, this message translates to:
+  /// **'How often?'**
+  String get gymHowOften;
+
+  /// No description provided for @gymHowOftenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Days a week, not which days — the gym is not always on the day you meant.'**
+  String get gymHowOftenBody;
+
+  /// No description provided for @gymTimesPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{times, plural, =1{Once a week} =2{Twice a week} other{{times}× a week}}'**
+  String gymTimesPerWeek(int times);
+
+  /// No description provided for @gymEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get gymEveryDay;
+
+  /// No description provided for @gymPlantedNoSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule'**
+  String get gymPlantedNoSchedule;
+
+  /// No description provided for @gymUnplant.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from the field'**
+  String get gymUnplant;
+
+  /// No description provided for @gymUnplantBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The program stops checking anything in. The seed and its streak stay where they are — pull it up on the field if that is what you want.'**
+  String get gymUnplantBody;
+
+  /// No description provided for @gymAlbumOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep pictures of it?'**
+  String get gymAlbumOffer;
+
+  /// No description provided for @gymAlbumOfferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An album for this program, so a year of sessions has something to show for itself. It hangs off this habit rather than becoming a second one.'**
+  String get gymAlbumOfferBody;
+
+  /// No description provided for @gymAlbumYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the album'**
+  String get gymAlbumYes;
+
+  /// No description provided for @gymPhotoPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'When to ask for the picture'**
+  String get gymPhotoPrompt;
+
+  /// No description provided for @gymPhotoPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Before is the mirror on the way in; after is the one you actually mean to take and forget.'**
+  String get gymPhotoPromptBody;
+
+  /// No description provided for @gymPromptAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After the session'**
+  String get gymPromptAfter;
+
+  /// No description provided for @gymPromptBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before the session'**
+  String get gymPromptBefore;
+
+  /// No description provided for @gymPromptNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never ask'**
+  String get gymPromptNever;
+
+  /// No description provided for @gymCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in · +{xp} XP'**
+  String gymCheckedIn(int xp);
+
+  /// No description provided for @gymPictureNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture?'**
+  String get gymPictureNow;
+
+  /// No description provided for @gymPictureNowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One for the album, while you are still here.'**
+  String get gymPictureNowBody;
+
+  /// No description provided for @gymPictureYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it'**
+  String get gymPictureYes;
+
+  /// No description provided for @gymHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get gymHistory;
+
+  /// No description provided for @gymSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get gymSeeAll;
+
+  /// No description provided for @gymNoSetsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged'**
+  String get gymNoSetsLogged;
+
+  /// No description provided for @gymNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions yet'**
+  String get gymNoHistory;
+
+  /// No description provided for @gymNoHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a day of your program. What you log here is what the records are made of.'**
+  String get gymNoHistoryBody;
+
+  /// No description provided for @gymSessionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{sets, plural, =1{1 set} other{{sets} sets}} · {volume}'**
+  String gymSessionSummary(int sets, String volume);
+
+  /// No description provided for @gymVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get gymVolume;
+
+  /// No description provided for @gymBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get gymBest;
+
+  /// No description provided for @gymRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal records'**
+  String get gymRecords;
+
+  /// No description provided for @gymNoRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged for this one yet'**
+  String get gymNoRecords;
+
+  /// No description provided for @gymHeaviestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Heaviest set'**
+  String get gymHeaviestLabel;
+
+  /// No description provided for @gymEstimatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best estimated single'**
+  String get gymEstimatedLabel;
+
+  /// No description provided for @gymEstimatedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked out from the weight and the reps, not a single you actually pulled.'**
+  String get gymEstimatedHint;
 }
 
 class _AppLocalizationsDelegate

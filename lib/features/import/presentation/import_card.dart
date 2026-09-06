@@ -112,8 +112,10 @@ class ImportCard extends ConsumerWidget {
     ImportFailed(problem: ArchiveProblem.unreadable) => l10n.importUnreadable,
     ImportFailed(problem: ArchiveProblem.badWorkbook) => l10n.importBadWorkbook,
     ImportFailed() => l10n.importFailed,
-    ImportIdle() || ImportReading() || ImportApplying() || ImportReady() =>
-      null,
+    ImportIdle() ||
+    ImportReading() ||
+    ImportApplying() ||
+    ImportReady() => null,
   };
 }
 

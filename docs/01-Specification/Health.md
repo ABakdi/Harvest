@@ -15,21 +15,42 @@ hit every day. All of it is a line to look at.
 ### Targets & alarm
 - I set a **Target Bedtime** and **Target Wake Time** — fully mine to
   choose, and they can differ per day of the week (weekend lie-ins are
-  legitimate farming).
-- A **gradual-volume alarm** rings at the target wake time (exact alarm
-  scheduling — [[Notifications-and-Background]]).
+  legitimate farming). A weekday with no answer of its own uses the
+  usual hours; Saturday is not Tuesday and a target that pretends
+  otherwise gets ignored.
+- An **exact alarm** rings at the target wake time, over the lock
+  screen, with alarm-grade audio ([[Notifications-and-Background]]).
+  It is off until asked for, and switching it on is where the
+  exact-alarm permission is requested — the only moment the answer
+  means anything.
+- A **wind-down** notification half an hour before the target bedtime,
+  on its own switch. A nudge, never an alarm.
+
+Both belong to the sleep switches rather than the general reminders
+one: an alarm that the reminders toggle can silence is an alarm
+nobody can trust.
 
 These are the same hours the [[Checkpoint-4]] daily cycle already
 knows. Sleep does not get a second set of times: it reads the ones the
 app already bends the day around.
 
 ### Morning retrospective
-Dismissing the alarm opens a full-screen card:
-1. *When did I actually fall asleep?* — slider
-2. *When did I actually wake?* — pre-filled with dismissal time, adjustable
-3. *How rested?* — 1–5 stars
+Three questions, answerable in about eight seconds by someone who is
+not yet awake:
 
-Logging earns +15 XP ([[Gamification]]).
+1. *When did I actually fall asleep?* — a slider
+2. *When did I actually wake?* — a slider
+3. *How rested?* — 1–5 stars, and **not answering is an answer**
+
+Both sliders come pre-filled from the night's target, so the honest
+path for an ordinary night is: open, tap the stars, done. The alarm's
+notification opens the Health screen rather than throwing a full-screen
+card at me — the card is at the top with the morning still unwritten,
+one tap away. A prompt that fights its way in front of somebody at 7 AM
+gets dismissed once and ignored forever.
+
+Logging earns +15 XP, **once** ([[Gamification]]). Going back to fix
+a number corrects the record and pays nothing again.
 
 ### Sleep debt
 
@@ -43,7 +64,25 @@ flowchart TD
 ```
 
 Debt is displayed prominently but framed as soil health to restore,
-never as failure.
+never as failure — a gauge that fills, not a number in red.
+
+Three things the arithmetic settles, and they matter more than the
+formula ([[Business-Rules]] #3):
+
+- **The balance floors at zero.** A twelve-hour Sunday clears what is
+  owed and does not put me in credit. Sleep is not a bank account, and
+  letting one lie-in excuse the week after it would make the gauge a
+  liar.
+- **An unlogged night counts for nothing**, in either direction. It is
+  unknown, not a failure. The one thing this feature must never do is
+  punish me for not filling in a form.
+- **Each night is judged against the target it had at the time**,
+  which is copied into the row when the night is written down. Moving
+  my bedtime in March must not rewrite February.
+
+The window is fourteen nights: long enough for a bad run to show,
+short enough that a bad month in the spring is not still being held
+against me in the summer.
 
 ---
 
@@ -139,5 +178,8 @@ that is a different app and I am not writing it.
 | H3 | Steps are passive: they never check a seed in and never break a streak. |
 | H4 | Weight is stored in grams, integer. Units are a display choice. |
 | H5 | The weight chart shows the trend, not just the dots — and never judges the direction. |
+| H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. |
+| H7 | Sleep is not a seed: it checks nothing in, breaks no streak, and never appears on the field. |
+| H8 | A night is filed under the Harvest Day I **woke up on**, because that is the day it decides. |
 
 Related: [[Gym]] · [[Gallery]] · [[Gamification]] · [[Notifications]] · [[Business-Rules]]

@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/shell.dart';
+import 'package:harvest/features/body/presentation/body_screen.dart';
 import 'package:harvest/features/calendar/presentation/calendar_screen.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/archive_screen.dart';
 import 'package:harvest/features/commitments/presentation/seed_detail_screen.dart';
+import 'package:harvest/features/farmer/presentation/farmer_screen.dart';
 import 'package:harvest/features/field/field_screen.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/gallery/presentation/album_screen.dart';
@@ -12,8 +14,6 @@ import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart'
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_screen.dart';
 import 'package:harvest/features/records/presentation/records_screen.dart';
-import 'package:harvest/features/settings/presentation/settings_screen.dart';
-import 'package:harvest/features/stats/stats_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
@@ -29,8 +29,14 @@ abstract final class AppRoutes {
   /// The seed detail screen; append the seed's uuid.
   static const seed = '/field/seed';
   static const finances = '/finances';
+
+  /// The farmer's own tab: progress and settings, two halves of one
+  /// idea — me, rather than any of the things I track.
   static const stats = '/stats';
   static const settings = '/settings';
+
+  /// Sleep, steps and weight on one side; training on the other.
+  static const body = '/body';
 
   /// Notes and the Gallery, under one roof ([[Checkpoint-5]]). The
   /// branch always exists; the shell decides whether a tab points at
@@ -45,14 +51,19 @@ abstract final class AppRoutes {
   static const gallery = '/records/album';
 }
 
-/// Which branch of the shell each tab is, in the order they are
-/// declared below. The shell shows a subset of these.
+/// Which branch of the shell each tab is.
+///
+/// These are **positions in the branch list below**, not an ordering
+/// of the tabs — the bar arranges itself separately. Add a branch in
+/// the middle and every number after it moves, so they are declared
+/// next to each other and in the order the routes are.
 abstract final class ShellBranch {
   static const field = 0;
   static const finances = 1;
   static const stats = 2;
   static const settings = 3;
-  static const records = 4;
+  static const body = 4;
+  static const records = 5;
 }
 
 /// Re-runs the redirect whenever onboarding completes.
@@ -137,11 +148,14 @@ GoRouter router(Ref ref) {
               ),
             ],
           ),
+          // Progress and settings share the farmer's tab, and each
+          // keeps its own route so a deep link still lands where it
+          // always did.
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: AppRoutes.stats,
-                builder: (context, state) => const StatsScreen(),
+                builder: (context, state) => const FarmerScreen(),
               ),
             ],
           ),
@@ -149,7 +163,16 @@ GoRouter router(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.settings,
-                builder: (context, state) => const SettingsScreen(),
+                builder: (context, state) =>
+                    const FarmerScreen(initial: FarmerTab.settings),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.body,
+                builder: (context, state) => const BodyScreen(),
               ),
             ],
           ),

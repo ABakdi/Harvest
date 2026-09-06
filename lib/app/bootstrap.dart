@@ -119,5 +119,6 @@ Future<void> appBootstrap(Ref ref) async {
 String routeFor(String route) => switch (route) {
   ReminderRoutes.planner => AppRoutes.planner,
   ReminderRoutes.finances => AppRoutes.finances,
+  ReminderRoutes.sleep => AppRoutes.body,
   _ => AppRoutes.field,
 };

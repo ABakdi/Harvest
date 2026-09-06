@@ -73,7 +73,9 @@ erDiagram
 
 XP and coins are a **ledger**, not a counter — balances are sums, history is free, and sync conflicts become trivial merges.
 
-Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
+Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets` (Phase 4); `session_exercises` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
+
+Phase 4 landed at **schema v13**.
 
 **Phase 3 is the first time a row points at a file.** A note's body is
 text in the database, but a memory is a path into the app's own

@@ -6,7 +6,7 @@ These rules are the app's constitution. Any feature that conflicts with them is 
 | :-- | :--- | :--- |
 | 1 | **Harvest Day = 3 AM → 3 AM local** | The day resets at 3:00 AM to accommodate night owls: a log at 1 AM counts for the *previous* day. Every date-keyed record stores its Harvest Day, computed once at write time. |
 | 2 | **Over-log cap: 2×** | A Project cannot receive more than 2× its daily commitment in one Harvest Day. Prevents cheating the streak and binge-burnout. |
-| 3 | **Sleep debt is minute-for-minute** | Owe 1 h, sleep 30 min over target → owe 30 min. No multipliers, no decay tricks. |
+| 3 | **Sleep debt is minute-for-minute** | Owe 1 h, sleep 30 min over target → owe 30 min. No multipliers, no decay tricks. It never goes below zero — a twelve-hour Sunday clears what is owed and does not put me in credit — it looks back fourteen nights, and a night nobody logged counts for **nothing in either direction**: an unlogged night is unknown, not a failure. Each night is judged against the target it had at the time, so changing my hours never rewrites last month. |
 | 4 | **Streak freezes apply automatically** | At the 3 AM reset, a missed Daily Harvest Goal consumes a stored freeze (max 2 stored) before breaking the streak. |
 | 5 | **Local-first, always** | Every feature must be fully functional with no network, forever. Sync ([[Sync-Strategy]]) is additive. |
 | 6 | **Financial privacy** | Expense data stays on-device; if synced later, end-to-end encrypted only. Never shared, never sold. |

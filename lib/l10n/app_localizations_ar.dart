@@ -1870,7 +1870,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsFeaturesHint =>
-      'نصفان من التطبيق يبقيان بعيدين حتى تطلبهما.';
+      'أجزاء من التطبيق تبقى بعيدة حتى تطلبها. وتتزاوج في شريط التنقل، فتشغيلها كلها يبقي خمسة تبويبات.';
 
   @override
   String get featureNotes => 'الملاحظات';
@@ -2180,4 +2180,824 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get galleryFileGone => 'لم يعد هذا الملف على الهاتف.';
+
+  @override
+  String get navBody => 'الجسد';
+
+  @override
+  String get navHealth => 'الصحة';
+
+  @override
+  String get navGym => 'النادي';
+
+  @override
+  String get navFarmer => 'المزارع';
+
+  @override
+  String get navProgress => 'التقدّم';
+
+  @override
+  String get featureHealth => 'الصحة';
+
+  @override
+  String get featureHealthHint =>
+      'الخطوات من حسّاس الهاتف نفسه، والوزن كلما وقفت على الميزان.';
+
+  @override
+  String get featureGym => 'النادي';
+
+  @override
+  String get featureGymHint =>
+      'برامج وجلسات وأرقام قياسية. وعادة النادي تنزل في حقلك كأي بذرة أخرى.';
+
+  @override
+  String get stepsToday => 'خطوات اليوم';
+
+  @override
+  String get stepsWeekAverage => 'متوسط ٧ أيام';
+
+  @override
+  String stepsOfGoal(int steps, int goal) {
+    return '$steps من $goal';
+  }
+
+  @override
+  String get stepsPassive =>
+      'الهاتف هو من يعدّها. لا تسجّل بذرة ولا تكسر سلسلة.';
+
+  @override
+  String get weightTitle => 'الوزن';
+
+  @override
+  String get weightLog => 'سجّل وزنًا';
+
+  @override
+  String get weightEdit => 'تعديل هذا الوزن';
+
+  @override
+  String get weightHint =>
+      'كلما وقفت على الميزان. وأكثر من مرة في اليوم أمر عادي — الصباح والمساء حقيقتان مختلفتان.';
+
+  @override
+  String get weightLabel => 'الوزن';
+
+  @override
+  String get weightNote => 'ملاحظة';
+
+  @override
+  String get weightNoteHint => 'بعد الإنفلونزا، ميزان جديد…';
+
+  @override
+  String get weightEmpty => 'لا أوزان بعد';
+
+  @override
+  String get weightEmptyBody =>
+      'رقم واحد كلما وزنت نفسك. ويبدأ الخط يعني شيئًا من الثالث تقريبًا.';
+
+  @override
+  String get weightHistory => 'كل القراءات';
+
+  @override
+  String get weightWindow => 'خلال';
+
+  @override
+  String weightDays(int days) {
+    return '$days يومًا';
+  }
+
+  @override
+  String get weightNoTrendYet => 'القراءات لا تكفي لاتجاه بعد';
+
+  @override
+  String weightDown(String amount, int days) {
+    return 'نزول $amount خلال $days يومًا';
+  }
+
+  @override
+  String weightUp(String amount, int days) {
+    return 'صعود $amount خلال $days يومًا';
+  }
+
+  @override
+  String weightSteady(int days) {
+    return 'ثابت خلال $days يومًا';
+  }
+
+  @override
+  String weightToTarget(String amount, String target) {
+    return '$amount عن هدفك $target';
+  }
+
+  @override
+  String get weightLegendEntries => 'القراءات';
+
+  @override
+  String get weightLegendTrend => 'متوسط ٧ أيام';
+
+  @override
+  String get weightLegendTarget => 'الهدف';
+
+  @override
+  String get weightDeleteTitle => 'أتحذف هذه القراءة؟';
+
+  @override
+  String get weightDeleteBody => 'ستغادر الرسم. يمكنك التراجع فورًا.';
+
+  @override
+  String get gymComingTitle => 'النادي قادم';
+
+  @override
+  String get gymComingBody =>
+      'البرامج والجلسات والأرقام القياسية قيد البناء. الخطوات والوزن تعمل الآن.';
+
+  @override
+  String get gymBrowse => 'تصفّح التمارين';
+
+  @override
+  String get gymPickExercise => 'اختر تمرينًا';
+
+  @override
+  String get gymSearchExercises => 'ابحث بالاسم أو العضلة أو الأداة';
+
+  @override
+  String get gymExercisesTitle => 'التمارين';
+
+  @override
+  String get gymProgramsTitle => 'البرامج';
+
+  @override
+  String get gymCatalogueLoading => 'أُحمّل الفهرس…';
+
+  @override
+  String get gymCatalogueHint =>
+      'ابحث بالاسم أو العضلة أو الأداة — فالسؤال أثناء الجلسة عادةً: ماذا أيضًا يشتغل على هذه.';
+
+  @override
+  String gymExerciseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تمرينًا',
+      two: 'تمرينان',
+      one: 'تمرين واحد',
+      zero: 'لا تمارين',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNoExercise => 'لا شيء يطابق ذلك';
+
+  @override
+  String get gymNoExerciseBody => 'جرّب عضلة أو أداة بدل الاسم.';
+
+  @override
+  String get gymMine => 'خاص بي';
+
+  @override
+  String get gymHowTo => 'كيف يُؤدّى';
+
+  @override
+  String get gymNoInstructions => 'لا تعليمات لهذا.';
+
+  @override
+  String get gymMediaTitle => 'صور التمارين';
+
+  @override
+  String get gymMediaBody =>
+      'تُنزَّل أول مرة تفتح فيها تمرينًا ثم تُحفظ. أما الأسماء والتعليمات فهي في التطبيق أصلًا وتعمل من دون أي صورة.';
+
+  @override
+  String get gymNeverFetch => 'لا تنزّل الصور أبدًا';
+
+  @override
+  String get gymNeverFetchHint => 'النادي يعمل كاملًا بالكلمات وحدها';
+
+  @override
+  String get gymDownloadAll => 'نزّلها كلها';
+
+  @override
+  String gymDownloadAllBody(int count, String size) {
+    return '$count صورة متحركة، نحو $size. يُستحسن على الواي فاي قبل سفر.';
+  }
+
+  @override
+  String gymDownloadProgress(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get gymClearMedia => 'مسح';
+
+  @override
+  String get gymClearMediaBody =>
+      'تذهب الصور ولا يذهب غيرها. وتعود أول مرة تفتح فيها تمرينًا.';
+
+  @override
+  String gymMediaAttribution(String credit) {
+    return 'صور التمارين ورسومها المتحركة $credit، تُجلب من مجموعة البيانات المنشورة فيها.';
+  }
+
+  @override
+  String get gymNewProgram => 'برنامج جديد';
+
+  @override
+  String get gymProgramNameHint => 'nSuns 5/3/1، دفع سحب أرجل…';
+
+  @override
+  String get gymNoPrograms => 'لا برامج بعد';
+
+  @override
+  String get gymNoProgramsBody =>
+      'البرنامج قائمة أيام، واليوم قائمة تمارين. لا شيء يُولَّد تلقائيًا — أنت من يكتبه.';
+
+  @override
+  String gymProgramSummary(int days, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+      zero: 'لا أيام بعد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+      zero: 'لا مجموعات',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymProgramGone => 'هذا البرنامج اختفى';
+
+  @override
+  String get gymRename => 'إعادة تسمية';
+
+  @override
+  String gymDeleteProgram(String name) {
+    return 'أتحذف $name؟';
+  }
+
+  @override
+  String get gymDeleteProgramBody =>
+      'تذهب أيامه ومجموعاته معه. أما الجلسات التي أنهيتها فتبقى.';
+
+  @override
+  String get gymAddDay => 'أضف يومًا';
+
+  @override
+  String gymDayNumber(int n) {
+    return 'اليوم $n';
+  }
+
+  @override
+  String get gymDayNameHint => 'اليوم ٤، دفع، علوي أ…';
+
+  @override
+  String get gymNoDays => 'لا أيام بعد';
+
+  @override
+  String get gymNoDaysBody =>
+      'أضف الأول. وتكراره لاحقًا لمسة واحدة — فأغلب الأيام هي اليوم السابق برقمين مختلفين.';
+
+  @override
+  String gymDaySummary(int exercises, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      exercises,
+      locale: localeName,
+      other: '$exercises تمارين',
+      two: 'تمرينان',
+      one: 'تمرين واحد',
+      zero: 'لا تمارين',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymDuplicateDay => 'تكرار';
+
+  @override
+  String gymDeleteDay(String name) {
+    return 'أتحذف $name؟';
+  }
+
+  @override
+  String get gymDeleteDayBody => 'تذهب تمارينه ومجموعاته أيضًا.';
+
+  @override
+  String get gymAccessories => 'تمارين مساعدة مقترحة';
+
+  @override
+  String get gymAccessoriesHint => 'ظهر، بطن — اقتراح لا وصفة';
+
+  @override
+  String gymRecommended(String what) {
+    return 'مقترح: $what';
+  }
+
+  @override
+  String get gymAddExercise => 'أضف تمرينًا';
+
+  @override
+  String get gymRemoveExercise => 'احذف هذا التمرين';
+
+  @override
+  String get gymUnknownExercise => 'تمرين غير معروف';
+
+  @override
+  String get gymNoSetsYet => 'لا مجموعات بعد';
+
+  @override
+  String get gymSetsSubtitle => 'ما يطلبه منك، مجموعةً مجموعة.';
+
+  @override
+  String get gymAddSet => 'مجموعة';
+
+  @override
+  String get gymAddPercentSet => 'مجموعة ٪';
+
+  @override
+  String get gymAddOpenSet => 'مجموعة مفتوحة';
+
+  @override
+  String get gymEditSet => 'تعديل المجموعة';
+
+  @override
+  String get gymPercentOfMax => '٪ من الحد';
+
+  @override
+  String get gymPercent => 'النسبة';
+
+  @override
+  String get gymWeight => 'الوزن';
+
+  @override
+  String get gymReps => 'التكرارات';
+
+  @override
+  String get gymOpenSet => 'مجموعة مفتوحة';
+
+  @override
+  String get gymOpenSetHint =>
+      'أكبر عدد تستطيعه — وهي التي تقرّر إن كان الوزن سيرتفع';
+
+  @override
+  String gymOpenReps(int reps) {
+    return '$reps+';
+  }
+
+  @override
+  String get gymBarWeight => 'البار';
+
+  @override
+  String get gymRest => 'الراحة بين المجموعات';
+
+  @override
+  String gymRestSeconds(int seconds) {
+    return '$seconds ثانية';
+  }
+
+  @override
+  String get gymTrainingMaxes => 'الحدود التدريبية';
+
+  @override
+  String get gymTrainingMaxesHint =>
+      'الرقم الذي تُحسب منه نسبك. تضبطه أنت وترفعه أنت — التطبيق لا يضع برنامجك.';
+
+  @override
+  String get gymNoTrainingMax => 'غير مضبوط — مجموعات النسبة لا تتحوّل إلى وزن';
+
+  @override
+  String get gymNoPercentSets =>
+      'لا شيء في هذا البرنامج بالنسبة المئوية، فلا شيء لضبطه.';
+
+  @override
+  String gymNeedsTrainingMax(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تمارين تحتاج حدًّا تدريبيًا',
+      two: 'تمرينان يحتاجان حدًّا تدريبيًا',
+      one: 'تمرين واحد يحتاج حدًّا تدريبيًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNeedsTrainingMaxBody =>
+      'وإلى أن تضبطه تعرض مجموعاته النسبة بدل الوزن.';
+
+  @override
+  String get gymStart => 'ابدأ';
+
+  @override
+  String get gymResume => 'أكمل';
+
+  @override
+  String get gymRunningSession => 'هناك حصة جارية';
+
+  @override
+  String gymRunningSessionBody(int done, int total) {
+    return 'أنجزت $done من $total مجموعة. أنهها أو ألغها قبل بدء غيرها.';
+  }
+
+  @override
+  String get gymPickDay => 'أي يوم؟';
+
+  @override
+  String get gymNoProgramToStart => 'لا برنامج لتبدأ به';
+
+  @override
+  String get gymNoProgramToStartBody =>
+      'اكتب برنامجًا أولًا — الحصة هي يوم من برنامج بأوزانه جاهزة.';
+
+  @override
+  String get gymSession => 'حصة';
+
+  @override
+  String get gymSessionGone => 'هذه الحصة لم تعد موجودة';
+
+  @override
+  String gymSessionProgress(int done, int total) {
+    return '$done من $total مجموعة';
+  }
+
+  @override
+  String get gymSessionNote => 'ملاحظة على الحصة';
+
+  @override
+  String get gymSessionNoteHint => 'نوم سيّئ، بحزام، النادي مزدحم…';
+
+  @override
+  String get gymDiscardSession => 'ألغِ هذه الحصة';
+
+  @override
+  String gymDiscardBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'المجموعات الـ$done التي سجّلتها تذهب معها.',
+      two: 'المجموعتان اللتان سجّلتهما تذهبان معها.',
+      one: 'المجموعة التي سجّلتها تذهب معها.',
+      zero: 'لم تسجّل شيئًا بعد، فلا شيء يضيع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymFinish => 'أنهِ';
+
+  @override
+  String get gymFinishEmptyTitle => 'تنهيها دون تسجيل شيء؟';
+
+  @override
+  String get gymFinishEmptyBody =>
+      'تُحفظ كحصة حضرتَها، وهذا له قيمته، لكن لا مجموعة فيها تُحسب في الأرقام القياسية.';
+
+  @override
+  String gymInsteadOf(String name) {
+    return 'بدل $name';
+  }
+
+  @override
+  String gymLastTime(String sets) {
+    return 'آخر مرة: $sets';
+  }
+
+  @override
+  String get gymSwap => 'استبدله';
+
+  @override
+  String get gymSkip => 'تخطّه';
+
+  @override
+  String get gymUnskip => 'أعده';
+
+  @override
+  String get gymNote => 'ملاحظة';
+
+  @override
+  String get gymSetColumn => 'المجموعة';
+
+  @override
+  String get gymTargetColumn => 'المطلوب';
+
+  @override
+  String get gymRepsColumn => 'التكرار';
+
+  @override
+  String get gymTick => 'سجّل هذه المجموعة';
+
+  @override
+  String get gymUntick => 'لم تُنجز في النهاية';
+
+  @override
+  String gymRecordHeaviest(String load) {
+    return 'أثقل ما رفعت: $load';
+  }
+
+  @override
+  String gymRecordEstimated(String load) {
+    return 'أفضل مجموعة حتى الآن — نحو $load لمرة واحدة';
+  }
+
+  @override
+  String gymRestPlus(int seconds) {
+    return '+$secondsث';
+  }
+
+  @override
+  String get gymRestSkip => 'انتهت الراحة';
+
+  @override
+  String gymPerSide(String bar) {
+    return 'لكل جهة، على بار $bar';
+  }
+
+  @override
+  String get gymJustTheBar => 'البار وحده';
+
+  @override
+  String gymPlateShortfall(String total, String short) {
+    return 'أقرب ما يمكن $total — بنقص $short. البار يُحمّل مثنى مثنى، فلا يبلغ كل رقم.';
+  }
+
+  @override
+  String get sleepTitle => 'ليلة أمس';
+
+  @override
+  String get sleepSubtitle =>
+      'وقتان وشعور. لم يقس الهاتف شيئًا من هذا، وليس شيء منه امتحانًا.';
+
+  @override
+  String get sleepSave => 'دوّنها';
+
+  @override
+  String get sleepFellAsleep => 'غفوت';
+
+  @override
+  String get sleepWoke => 'استيقظت';
+
+  @override
+  String get sleepRested => 'كم ارتحت؟';
+
+  @override
+  String sleepLength(int hours, int minutes) {
+    return '$hoursس $minutesد';
+  }
+
+  @override
+  String get sleepLastNight => 'ليلة أمس';
+
+  @override
+  String get sleepNothingYet => 'غير مدوّنة';
+
+  @override
+  String get sleepLogIt => 'دوّنها';
+
+  @override
+  String sleepAverage(int hours, int minutes, int nights) {
+    return '$hoursس $minutesد في المتوسط، عبر $nights ليلة';
+  }
+
+  @override
+  String get sleepDebtLabel => 'دَين لنفسك';
+
+  @override
+  String get sleepDebtBody =>
+      'أسبوعان من الليالي القصيرة، مجموعة. والليالي الطويلة تسدّده.';
+
+  @override
+  String get sleepSection => 'النوم';
+
+  @override
+  String get sleepAlarm => 'أيقظني';
+
+  @override
+  String get sleepAlarmBody =>
+      'يرنّ في وقت الاستيقاظ الذي بُني عليه يومك أصلًا.';
+
+  @override
+  String get sleepAlarmExact => 'اسمح بالمنبّهات الدقيقة';
+
+  @override
+  String get sleepAlarmExactBody =>
+      'أندرويد يمنح هذا في شاشة إعداداته. بدونه يرنّ المنبّه، لكن ليس بالضرورة في دقيقته.';
+
+  @override
+  String get sleepWindDown => 'قل شيئًا قبل النوم';
+
+  @override
+  String get sleepWindDownBody =>
+      'قبل نصف ساعة من موعد النوم الذي بُني عليه يومك.';
+
+  @override
+  String get sleepWindDownTitle => 'نصف ساعة على النوم';
+
+  @override
+  String get sleepWindDownText => 'ما أنت منشغل به سيبقى غدًا.';
+
+  @override
+  String get sleepAlarmTitle => 'صباح';
+
+  @override
+  String get sleepAlarmText => 'سؤالان وشعور، وأنت ما زلت تذكره.';
+
+  @override
+  String get sleepNights => 'لياليك';
+
+  @override
+  String get sleepNoNights => 'لا ليالٍ مدوّنة بعد';
+
+  @override
+  String get sleepNoNightsBody =>
+      'دوّن صباحًا واحدًا فيبدأ الخط. وأسبوعان منها ويصير له شكل.';
+
+  @override
+  String get sleepOverrides => 'ليالٍ لها وقتها';
+
+  @override
+  String sleepOverrideCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام لها وقتها',
+      two: 'يومان لهما وقتهما',
+      one: 'يوم له وقته',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepOverridesBody =>
+      'السبت ليس الثلاثاء. اليوم المضبوط هنا يتقدّم على ساعات يومك المعتادة.';
+
+  @override
+  String get sleepSameAsUsual => 'كالمعتاد';
+
+  @override
+  String sleepNightOf(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String get sleepDeleteNight => 'تحذف هذه الليلة؟';
+
+  @override
+  String get sleepDeleteNightBody =>
+      'تخرج من الخط ويُحسب الدَّين من جديد بدونها.';
+
+  @override
+  String sleepStars(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: '$stars نجوم',
+      two: 'نجمتان',
+      one: 'نجمة',
+      zero: '',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymPlantProgram => 'ازرعه في حقلك';
+
+  @override
+  String get gymPlantProgramBody =>
+      'يصير عادة كغيره، وإنهاء الحصة يسجّل حضوره.';
+
+  @override
+  String get gymHowOften => 'كم مرة؟';
+
+  @override
+  String get gymHowOftenBody =>
+      'أيام في الأسبوع، لا أي يوم — النادي لا يأتي دائمًا في اليوم الذي نويته.';
+
+  @override
+  String gymTimesPerWeek(int times) {
+    String _temp0 = intl.Intl.pluralLogic(
+      times,
+      locale: localeName,
+      other: '$times مرات في الأسبوع',
+      two: 'مرتان في الأسبوع',
+      one: 'مرة في الأسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymEveryDay => 'كل يوم';
+
+  @override
+  String get gymPlantedNoSchedule => 'بلا جدول';
+
+  @override
+  String get gymUnplant => 'افصله عن الحقل';
+
+  @override
+  String get gymUnplantBody =>
+      'يتوقّف البرنامج عن تسجيل أي حضور. البذرة وسلسلتها تبقيان كما هما — اقتلعها من الحقل إن كان ذلك ما تريد.';
+
+  @override
+  String get gymAlbumOffer => 'تحتفظ بصور له؟';
+
+  @override
+  String get gymAlbumOfferBody =>
+      'ألبوم لهذا البرنامج، ليكون لسنة من الحصص ما تريه. يتبع هذه العادة ولا يصير عادة ثانية.';
+
+  @override
+  String get gymAlbumYes => 'أنشئ الألبوم';
+
+  @override
+  String get gymPhotoPrompt => 'متى تُطلب الصورة';
+
+  @override
+  String get gymPhotoPromptBody =>
+      'قبل: مرآة الدخول. بعد: الصورة التي تنوي أخذها فعلًا ثم تنساها.';
+
+  @override
+  String get gymPromptAfter => 'بعد الحصة';
+
+  @override
+  String get gymPromptBefore => 'قبل الحصة';
+
+  @override
+  String get gymPromptNever => 'لا تسأل';
+
+  @override
+  String gymCheckedIn(int xp) {
+    return 'سُجّل الحضور · +$xp نقطة';
+  }
+
+  @override
+  String get gymPictureNow => 'صورة؟';
+
+  @override
+  String get gymPictureNowBody => 'واحدة للألبوم، وأنت ما زلت هنا.';
+
+  @override
+  String get gymPictureYes => 'خذها';
+
+  @override
+  String get gymHistory => 'السجل';
+
+  @override
+  String get gymSeeAll => 'الكل';
+
+  @override
+  String get gymNoSetsLogged => 'لم يُسجَّل شيء';
+
+  @override
+  String get gymNoHistory => 'لا حصص بعد';
+
+  @override
+  String get gymNoHistoryBody =>
+      'ابدأ يومًا من برنامجك. ما تسجّله هنا هو ما تُصنع منه الأرقام القياسية.';
+
+  @override
+  String gymSessionSummary(int sets, String volume) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0 · $volume';
+  }
+
+  @override
+  String get gymVolume => 'الحجم';
+
+  @override
+  String get gymBest => 'الأفضل';
+
+  @override
+  String get gymRecords => 'الأرقام القياسية';
+
+  @override
+  String get gymNoRecords => 'لا شيء مسجّل لهذا بعد';
+
+  @override
+  String get gymHeaviestLabel => 'أثقل مجموعة';
+
+  @override
+  String get gymEstimatedLabel => 'أفضل مرة واحدة مقدَّرة';
+
+  @override
+  String get gymEstimatedHint =>
+      'محسوبة من الوزن والتكرار، لا رفعة واحدة أدّيتها فعلًا.';
 }
