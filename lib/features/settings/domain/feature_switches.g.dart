@@ -133,3 +133,83 @@ final class GalleryEnabledProvider extends $FunctionalProvider<bool, bool, bool>
 }
 
 String _$galleryEnabledHash() => r'edf95c4221b162a4479cb1886a7169409b79064b';
+
+@ProviderFor(healthEnabled)
+final healthEnabledProvider = HealthEnabledProvider._();
+
+final class HealthEnabledProvider extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  HealthEnabledProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'healthEnabledProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$healthEnabledHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return healthEnabled(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$healthEnabledHash() => r'11bd9d12c7e1cc4807f648ccd913a779191d5f36';
+
+@ProviderFor(gymEnabled)
+final gymEnabledProvider = GymEnabledProvider._();
+
+final class GymEnabledProvider extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  GymEnabledProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'gymEnabledProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$gymEnabledHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return gymEnabled(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$gymEnabledHash() => r'a05238209aa9054a9fd156f6c5aa4b4ba6a4e8f5';

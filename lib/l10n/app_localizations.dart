@@ -3137,7 +3137,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsFeaturesHint.
   ///
   /// In en, this message translates to:
-  /// **'Two halves of the app that stay out of the way until you ask for them.'**
+  /// **'Parts of the app that stay out of the way until you ask for them. They pair up in the navigation bar, so switching them all on still leaves five tabs.'**
   String get settingsFeaturesHint;
 
   /// No description provided for @featureNotes.
@@ -3661,6 +3661,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That file is no longer on the phone.'**
   String get galleryFileGone;
+
+  /// No description provided for @navBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get navBody;
+
+  /// No description provided for @navHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get navHealth;
+
+  /// No description provided for @navGym.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get navGym;
+
+  /// No description provided for @navFarmer.
+  ///
+  /// In en, this message translates to:
+  /// **'Farmer'**
+  String get navFarmer;
+
+  /// No description provided for @navProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get navProgress;
+
+  /// No description provided for @featureHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get featureHealth;
+
+  /// No description provided for @featureHealthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps from the phone\'s own sensor, and a body weight whenever you stand on the scale.'**
+  String get featureHealthHint;
+
+  /// No description provided for @featureGym.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get featureGym;
+
+  /// No description provided for @featureGymHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs, sessions and personal records. A gym habit lands on your field like any other seed.'**
+  String get featureGymHint;
+
+  /// No description provided for @stepsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps today'**
+  String get stepsToday;
+
+  /// No description provided for @stepsWeekAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day average'**
+  String get stepsWeekAverage;
+
+  /// No description provided for @stepsOfGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{steps} of {goal}'**
+  String stepsOfGoal(int steps, int goal);
+
+  /// No description provided for @stepsPassive.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone counts these. They never check a seed in and never break a streak.'**
+  String get stepsPassive;
+
+  /// No description provided for @weightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightTitle;
+
+  /// No description provided for @weightLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a weight'**
+  String get weightLog;
+
+  /// No description provided for @weightEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this weight'**
+  String get weightEdit;
+
+  /// No description provided for @weightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.'**
+  String get weightHint;
+
+  /// No description provided for @weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightLabel;
+
+  /// No description provided for @weightNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get weightNote;
+
+  /// No description provided for @weightNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'After the flu, new scale…'**
+  String get weightNoteHint;
+
+  /// No description provided for @weightEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No weights yet'**
+  String get weightEmpty;
+
+  /// No description provided for @weightEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One number, whenever you weigh yourself. The line gets interesting from about the third one.'**
+  String get weightEmptyBody;
+
+  /// No description provided for @weightHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Every reading'**
+  String get weightHistory;
+
+  /// No description provided for @weightWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get weightWindow;
+
+  /// No description provided for @weightDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String weightDays(int days);
+
+  /// No description provided for @weightNoTrendYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough readings for a trend yet'**
+  String get weightNoTrendYet;
+
+  /// No description provided for @weightDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Down {amount} over {days} days'**
+  String weightDown(String amount, int days);
+
+  /// No description provided for @weightUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up {amount} over {days} days'**
+  String weightUp(String amount, int days);
+
+  /// No description provided for @weightSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Level over {days} days'**
+  String weightSteady(int days);
+
+  /// No description provided for @weightToTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} from your target of {target}'**
+  String weightToTarget(String amount, String target);
+
+  /// No description provided for @weightLegendEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings'**
+  String get weightLegendEntries;
+
+  /// No description provided for @weightLegendTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day average'**
+  String get weightLegendTrend;
+
+  /// No description provided for @weightLegendTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get weightLegendTarget;
+
+  /// No description provided for @weightDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this reading?'**
+  String get weightDeleteTitle;
+
+  /// No description provided for @weightDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the chart. You can undo this straight away.'**
+  String get weightDeleteBody;
+
+  /// No description provided for @gymComingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym is next'**
+  String get gymComingTitle;
+
+  /// No description provided for @gymComingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs, sessions and personal records are being built. Steps and weight work now.'**
+  String get gymComingBody;
 }
 
 class _AppLocalizationsDelegate

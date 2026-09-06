@@ -1870,7 +1870,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsFeaturesHint =>
-      'نصفان من التطبيق يبقيان بعيدين حتى تطلبهما.';
+      'أجزاء من التطبيق تبقى بعيدة حتى تطلبها. وتتزاوج في شريط التنقل، فتشغيلها كلها يبقي خمسة تبويبات.';
 
   @override
   String get featureNotes => 'الملاحظات';
@@ -2180,4 +2180,133 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get galleryFileGone => 'لم يعد هذا الملف على الهاتف.';
+
+  @override
+  String get navBody => 'الجسد';
+
+  @override
+  String get navHealth => 'الصحة';
+
+  @override
+  String get navGym => 'النادي';
+
+  @override
+  String get navFarmer => 'المزارع';
+
+  @override
+  String get navProgress => 'التقدّم';
+
+  @override
+  String get featureHealth => 'الصحة';
+
+  @override
+  String get featureHealthHint =>
+      'الخطوات من حسّاس الهاتف نفسه، والوزن كلما وقفت على الميزان.';
+
+  @override
+  String get featureGym => 'النادي';
+
+  @override
+  String get featureGymHint =>
+      'برامج وجلسات وأرقام قياسية. وعادة النادي تنزل في حقلك كأي بذرة أخرى.';
+
+  @override
+  String get stepsToday => 'خطوات اليوم';
+
+  @override
+  String get stepsWeekAverage => 'متوسط ٧ أيام';
+
+  @override
+  String stepsOfGoal(int steps, int goal) {
+    return '$steps من $goal';
+  }
+
+  @override
+  String get stepsPassive =>
+      'الهاتف هو من يعدّها. لا تسجّل بذرة ولا تكسر سلسلة.';
+
+  @override
+  String get weightTitle => 'الوزن';
+
+  @override
+  String get weightLog => 'سجّل وزنًا';
+
+  @override
+  String get weightEdit => 'تعديل هذا الوزن';
+
+  @override
+  String get weightHint =>
+      'كلما وقفت على الميزان. وأكثر من مرة في اليوم أمر عادي — الصباح والمساء حقيقتان مختلفتان.';
+
+  @override
+  String get weightLabel => 'الوزن';
+
+  @override
+  String get weightNote => 'ملاحظة';
+
+  @override
+  String get weightNoteHint => 'بعد الإنفلونزا، ميزان جديد…';
+
+  @override
+  String get weightEmpty => 'لا أوزان بعد';
+
+  @override
+  String get weightEmptyBody =>
+      'رقم واحد كلما وزنت نفسك. ويبدأ الخط يعني شيئًا من الثالث تقريبًا.';
+
+  @override
+  String get weightHistory => 'كل القراءات';
+
+  @override
+  String get weightWindow => 'خلال';
+
+  @override
+  String weightDays(int days) {
+    return '$days يومًا';
+  }
+
+  @override
+  String get weightNoTrendYet => 'القراءات لا تكفي لاتجاه بعد';
+
+  @override
+  String weightDown(String amount, int days) {
+    return 'نزول $amount خلال $days يومًا';
+  }
+
+  @override
+  String weightUp(String amount, int days) {
+    return 'صعود $amount خلال $days يومًا';
+  }
+
+  @override
+  String weightSteady(int days) {
+    return 'ثابت خلال $days يومًا';
+  }
+
+  @override
+  String weightToTarget(String amount, String target) {
+    return '$amount عن هدفك $target';
+  }
+
+  @override
+  String get weightLegendEntries => 'القراءات';
+
+  @override
+  String get weightLegendTrend => 'متوسط ٧ أيام';
+
+  @override
+  String get weightLegendTarget => 'الهدف';
+
+  @override
+  String get weightDeleteTitle => 'أتحذف هذه القراءة؟';
+
+  @override
+  String get weightDeleteBody => 'ستغادر الرسم. يمكنك التراجع فورًا.';
+
+  @override
+  String get gymComingTitle => 'النادي قادم';
+
+  @override
+  String get gymComingBody =>
+      'البرامج والجلسات والأرقام القياسية قيد البناء. الخطوات والوزن تعمل الآن.';
 }

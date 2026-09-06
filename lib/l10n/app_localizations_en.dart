@@ -1864,7 +1864,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFeaturesHint =>
-      'Two halves of the app that stay out of the way until you ask for them.';
+      'Parts of the app that stay out of the way until you ask for them. They pair up in the navigation bar, so switching them all on still leaves five tabs.';
 
   @override
   String get featureNotes => 'Notes';
@@ -2174,4 +2174,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryFileGone => 'That file is no longer on the phone.';
+
+  @override
+  String get navBody => 'Body';
+
+  @override
+  String get navHealth => 'Health';
+
+  @override
+  String get navGym => 'Gym';
+
+  @override
+  String get navFarmer => 'Farmer';
+
+  @override
+  String get navProgress => 'Progress';
+
+  @override
+  String get featureHealth => 'Health';
+
+  @override
+  String get featureHealthHint =>
+      'Steps from the phone\'s own sensor, and a body weight whenever you stand on the scale.';
+
+  @override
+  String get featureGym => 'Gym';
+
+  @override
+  String get featureGymHint =>
+      'Programs, sessions and personal records. A gym habit lands on your field like any other seed.';
+
+  @override
+  String get stepsToday => 'Steps today';
+
+  @override
+  String get stepsWeekAverage => '7-day average';
+
+  @override
+  String stepsOfGoal(int steps, int goal) {
+    return '$steps of $goal';
+  }
+
+  @override
+  String get stepsPassive =>
+      'The phone counts these. They never check a seed in and never break a streak.';
+
+  @override
+  String get weightTitle => 'Weight';
+
+  @override
+  String get weightLog => 'Log a weight';
+
+  @override
+  String get weightEdit => 'Edit this weight';
+
+  @override
+  String get weightHint =>
+      'Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.';
+
+  @override
+  String get weightLabel => 'Weight';
+
+  @override
+  String get weightNote => 'Note';
+
+  @override
+  String get weightNoteHint => 'After the flu, new scale…';
+
+  @override
+  String get weightEmpty => 'No weights yet';
+
+  @override
+  String get weightEmptyBody =>
+      'One number, whenever you weigh yourself. The line gets interesting from about the third one.';
+
+  @override
+  String get weightHistory => 'Every reading';
+
+  @override
+  String get weightWindow => 'Over';
+
+  @override
+  String weightDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get weightNoTrendYet => 'Not enough readings for a trend yet';
+
+  @override
+  String weightDown(String amount, int days) {
+    return 'Down $amount over $days days';
+  }
+
+  @override
+  String weightUp(String amount, int days) {
+    return 'Up $amount over $days days';
+  }
+
+  @override
+  String weightSteady(int days) {
+    return 'Level over $days days';
+  }
+
+  @override
+  String weightToTarget(String amount, String target) {
+    return '$amount from your target of $target';
+  }
+
+  @override
+  String get weightLegendEntries => 'Readings';
+
+  @override
+  String get weightLegendTrend => '7-day average';
+
+  @override
+  String get weightLegendTarget => 'Target';
+
+  @override
+  String get weightDeleteTitle => 'Delete this reading?';
+
+  @override
+  String get weightDeleteBody =>
+      'It leaves the chart. You can undo this straight away.';
+
+  @override
+  String get gymComingTitle => 'The gym is next';
+
+  @override
+  String get gymComingBody =>
+      'Programs, sessions and personal records are being built. Steps and weight work now.';
 }

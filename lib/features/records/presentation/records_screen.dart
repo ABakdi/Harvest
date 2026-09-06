@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:harvest/core/platform/haptics.dart';
-import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/feature_switcher.dart';
 import 'package:harvest/features/gallery/presentation/gallery_screen.dart';
 import 'package:harvest/features/notes/presentation/editing_focus.dart';
 import 'package:harvest/features/notes/presentation/notes_screen.dart';
@@ -68,70 +67,25 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
       children: [
         Expanded(child: body),
         if (showSwitch)
-          _Switcher(
+          FeatureSwitcher<RecordsTab>(
             current: current,
-            notesLabel: l10n.navNotes,
-            galleryLabel: l10n.navGallery,
-            onChanged: (tab) {
-              HarvestHaptics.tick().ignore();
-              setState(() => _tab = tab);
-            },
+            halves: [
+              (
+                value: RecordsTab.notes,
+                icon: Icons.description_outlined,
+                label: l10n.navNotes,
+              ),
+              (
+                value: RecordsTab.gallery,
+                icon: Icons.photo_library_outlined,
+                label: l10n.navGallery,
+              ),
+            ],
+            onChanged: (tab) => setState(() => _tab = tab),
           )
         else
           const SizedBox.shrink(),
       ],
     );
   }
-}
-
-/// A two-way switch under the screen, above the app's own bar.
-///
-/// It is the app's own segmented button rather than something new:
-/// this is a choice between two things, the app already has a control
-/// for that, and a bespoke one here would read as a different app.
-class _Switcher extends StatelessWidget {
-  const _Switcher({
-    required this.current,
-    required this.notesLabel,
-    required this.galleryLabel,
-    required this.onChanged,
-  });
-
-  final RecordsTab current;
-  final String notesLabel;
-  final String galleryLabel;
-  final ValueChanged<RecordsTab> onChanged;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface,
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(
-        HarvestSpacing.md,
-        HarvestSpacing.xs,
-        HarvestSpacing.md,
-        HarvestSpacing.sm,
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: SegmentedButton<RecordsTab>(
-          segments: [
-            ButtonSegment(
-              value: RecordsTab.notes,
-              icon: const Icon(Icons.description_outlined, size: 18),
-              label: Text(notesLabel),
-            ),
-            ButtonSegment(
-              value: RecordsTab.gallery,
-              icon: const Icon(Icons.photo_library_outlined, size: 18),
-              label: Text(galleryLabel),
-            ),
-          ],
-          selected: {current},
-          showSelectedIcon: false,
-          onSelectionChanged: (selection) => onChanged(selection.first),
-        ),
-      ),
-    ),
-  );
 }

@@ -1,5 +1,37 @@
 # Dashboard, Widgets & Reports
 
+## The navigation bar
+
+Five tabs, and **five is the ceiling** — a sixth is how a bar stops
+being readable at a glance.
+
+| Tab | Holds |
+| :--- | :--- |
+| **Field** | Today's crops, the streak, XP |
+| **Granary** | Money: today, balances, insights |
+| **Records** | [[Notes]] and the [[Gallery]] |
+| **Body** | [[Health]] and the [[Gym]] |
+| **Farmer** | Progress and Settings |
+
+Three of them are always there. **Records** and **Body** appear only
+when something behind them is switched on, so someone who came for a
+streak tracker sees three tabs and nothing they did not ask for.
+
+Two of them hold two features each, and one holds two halves of the
+same idea: progress is the record of the farmer and settings are the
+farmer's preferences, and the app has called the user a farmer since
+the first rank. That merge is what freed the slot the body needed
+([[Checkpoint-5]]).
+
+**Sub-navigation has two shapes, and they are different jobs:**
+
+- **Top tabs** are views of one subject — the Granary's Today,
+  Balances and Insights are all the same money.
+- **A segmented switch at the bottom** is two *separate features*
+  sharing a tab. It sits low because that is where the thumb already is
+  after tapping the tab, and it disappears when only one of the two is
+  switched on, because there is then nothing to switch between.
+
 ## The Field (home screen)
 
 The main screen is **today's field**: every commitment due today as a crop card, ordered by urgency, with the Global Streak flame and XP bar always visible up top.

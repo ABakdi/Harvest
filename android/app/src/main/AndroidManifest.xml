@@ -21,11 +21,17 @@
          through the system photo picker, which needs nothing either.
          That is rule G1 honoured by not needing a prompt at all. -->
     <!-- Money data never leaves the device: no auto backup, no
-         extraction, no device transfer. -->
+         extraction, no device transfer.
+
+         appCategory is productivity because gamified is not the same
+         as a game: without it, some launchers and OEM "game modes"
+         guess from the streaks and the confetti, then throttle the app
+         or offer to mute it mid-session. -->
     <application
         android:label="Harvest"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:appCategory="productivity"
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules">
