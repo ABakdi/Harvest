@@ -35,12 +35,22 @@ knows. Sleep does not get a second set of times: it reads the ones the
 app already bends the day around.
 
 ### Morning retrospective
-Dismissing the alarm opens a full-screen card:
-1. *When did I actually fall asleep?* — slider
-2. *When did I actually wake?* — pre-filled with dismissal time, adjustable
-3. *How rested?* — 1–5 stars
+Three questions, answerable in about eight seconds by someone who is
+not yet awake:
 
-Logging earns +15 XP ([[Gamification]]).
+1. *When did I actually fall asleep?* — a slider
+2. *When did I actually wake?* — a slider
+3. *How rested?* — 1–5 stars, and **not answering is an answer**
+
+Both sliders come pre-filled from the night's target, so the honest
+path for an ordinary night is: open, tap the stars, done. The alarm's
+notification opens the Health screen rather than throwing a full-screen
+card at me — the card is at the top with the morning still unwritten,
+one tap away. A prompt that fights its way in front of somebody at 7 AM
+gets dismissed once and ignored forever.
+
+Logging earns +15 XP, **once** ([[Gamification]]). Going back to fix
+a number corrects the record and pays nothing again.
 
 ### Sleep debt
 
