@@ -11,8 +11,6 @@
 // The media is deliberately **not** downloaded: the images and GIFs are
 // © Gym Visual, redistributed to that repository rather than to us, so
 // Harvest fetches them at runtime and never re-hosts them.
-library;
-
 import 'dart:convert';
 import 'dart:io';
 

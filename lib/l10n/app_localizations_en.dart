@@ -2392,4 +2392,200 @@ class AppLocalizationsEn extends AppLocalizations {
   String gymMediaAttribution(String credit) {
     return 'Exercise images and animations $credit, fetched from the dataset they are published in.';
   }
+
+  @override
+  String get gymNewProgram => 'New program';
+
+  @override
+  String get gymProgramNameHint => 'nSuns 5/3/1, Push Pull Legs…';
+
+  @override
+  String get gymNoPrograms => 'No programs yet';
+
+  @override
+  String get gymNoProgramsBody =>
+      'A program is a list of days, and a day is a list of exercises. Nothing is generated — you write it.';
+
+  @override
+  String gymProgramSummary(int days, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+      zero: 'No days yet',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+      zero: 'no sets',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymProgramGone => 'This program is gone';
+
+  @override
+  String get gymRename => 'Rename';
+
+  @override
+  String gymDeleteProgram(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get gymDeleteProgramBody =>
+      'Its days and sets go with it. Sessions you already finished stay.';
+
+  @override
+  String get gymAddDay => 'Add a day';
+
+  @override
+  String gymDayNumber(int n) {
+    return 'Day $n';
+  }
+
+  @override
+  String get gymDayNameHint => 'Day 4, Push, Upper A…';
+
+  @override
+  String get gymNoDays => 'No days yet';
+
+  @override
+  String get gymNoDaysBody =>
+      'Add the first one. Duplicating it later is one tap — most days are the last day with two numbers changed.';
+
+  @override
+  String gymDaySummary(int exercises, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      exercises,
+      locale: localeName,
+      other: '$exercises exercises',
+      one: '1 exercise',
+      zero: 'No exercises',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymDuplicateDay => 'Duplicate';
+
+  @override
+  String gymDeleteDay(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get gymDeleteDayBody => 'The exercises and sets in it go too.';
+
+  @override
+  String get gymAccessories => 'Recommended accessories';
+
+  @override
+  String get gymAccessoriesHint => 'Back, Abs — a note, not a prescription';
+
+  @override
+  String gymRecommended(String what) {
+    return 'Recommended: $what';
+  }
+
+  @override
+  String get gymAddExercise => 'Add an exercise';
+
+  @override
+  String get gymRemoveExercise => 'Remove this exercise';
+
+  @override
+  String get gymUnknownExercise => 'Unknown exercise';
+
+  @override
+  String get gymNoSetsYet => 'No sets yet';
+
+  @override
+  String get gymSetsSubtitle => 'What this asks of you, set by set.';
+
+  @override
+  String get gymAddSet => 'Set';
+
+  @override
+  String get gymAddPercentSet => '% set';
+
+  @override
+  String get gymAddOpenSet => 'Open set';
+
+  @override
+  String get gymEditSet => 'Edit the set';
+
+  @override
+  String get gymPercentOfMax => '% of max';
+
+  @override
+  String get gymPercent => 'Percent';
+
+  @override
+  String get gymWeight => 'Weight';
+
+  @override
+  String get gymReps => 'Reps';
+
+  @override
+  String get gymOpenSet => 'Open set';
+
+  @override
+  String get gymOpenSetHint =>
+      'As many as you can — the set that decides whether the weight goes up';
+
+  @override
+  String gymOpenReps(int reps) {
+    return '$reps+';
+  }
+
+  @override
+  String get gymBarWeight => 'The bar';
+
+  @override
+  String get gymRest => 'Rest between sets';
+
+  @override
+  String gymRestSeconds(int seconds) {
+    return '$seconds seconds';
+  }
+
+  @override
+  String get gymTrainingMaxes => 'Training maxes';
+
+  @override
+  String get gymTrainingMaxesHint =>
+      'The number your percentages are percentages of. Yours to set and yours to bump — the app does not do your programming.';
+
+  @override
+  String get gymNoTrainingMax => 'Not set — percentage sets cannot resolve';
+
+  @override
+  String get gymNoPercentSets =>
+      'Nothing in this program is a percentage, so there is nothing to set.';
+
+  @override
+  String gymNeedsTrainingMax(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exercises need a training max',
+      one: '1 exercise needs a training max',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNeedsTrainingMaxBody =>
+      'Until then its percentage sets show a percentage rather than a weight.';
 }

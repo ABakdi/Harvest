@@ -56,12 +56,12 @@ without if the phase runs long.
 - [x] Tests: the trim script's output shape, search, cache hit/miss, the never-fetch path
 
 ## M4.4 — Programs
-- [ ] Schema: `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`
-- [ ] Builder: days, exercise slots in order, target sets, per-exercise rest
-- [ ] Three kinds of target set: weight × reps, % of training max, open (`1+` / AMRAP)
-- [ ] Training max per exercise, set and bumped by hand
-- [ ] Duplicate a day, reorder by drag, free-text "recommended accessories"
-- [ ] Tests: percentage resolution against a training max, rounding to the nearest plate
+- [x] Schema: `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`
+- [x] Builder: days, exercise slots in order, target sets, per-exercise rest
+- [x] Three kinds of target set: weight × reps, % of training max, open (`1+` / AMRAP)
+- [x] Training max per exercise, set and bumped by hand
+- [x] Duplicate a day, free-text "recommended accessories" — reordering is still by position only, no drag yet
+- [x] Tests: percentage resolution against a training max, rounding to the nearest plate
 
 ## M4.5 — Sessions, sets and records
 - [ ] Session screen: prefilled targets, one tap to accept a set ([[Gym]])
@@ -130,4 +130,10 @@ when it happens — and the weight line has enough dots to have a shape.
 
 ## Backlog (discovered during the phase)
 
-*(nothing yet)*
+- **A barbell cannot make every 0.25 kg target.** Rounding to a quarter
+  kilo is right for dumbbells and machines, but a bar is loaded in
+  pairs, so its smallest total step is 0.5 kg. The plate calculator
+  reports the shortfall rather than rounding it away; the session
+  screen has to show that.
+- **Reordering exercises** is stored by position but has no drag
+  handle yet.

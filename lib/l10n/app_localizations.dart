@@ -4021,6 +4021,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exercise images and animations {credit}, fetched from the dataset they are published in.'**
   String gymMediaAttribution(String credit);
+
+  /// No description provided for @gymNewProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'New program'**
+  String get gymNewProgram;
+
+  /// No description provided for @gymProgramNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'nSuns 5/3/1, Push Pull Legs…'**
+  String get gymProgramNameHint;
+
+  /// No description provided for @gymNoPrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'No programs yet'**
+  String get gymNoPrograms;
+
+  /// No description provided for @gymNoProgramsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A program is a list of days, and a day is a list of exercises. Nothing is generated — you write it.'**
+  String get gymNoProgramsBody;
+
+  /// No description provided for @gymProgramSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{No days yet} =1{1 day} other{{days} days}} · {sets, plural, =0{no sets} =1{1 set} other{{sets} sets}}'**
+  String gymProgramSummary(int days, int sets);
+
+  /// No description provided for @gymProgramGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This program is gone'**
+  String get gymProgramGone;
+
+  /// No description provided for @gymRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get gymRename;
+
+  /// No description provided for @gymDeleteProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String gymDeleteProgram(String name);
+
+  /// No description provided for @gymDeleteProgramBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its days and sets go with it. Sessions you already finished stay.'**
+  String get gymDeleteProgramBody;
+
+  /// No description provided for @gymAddDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a day'**
+  String get gymAddDay;
+
+  /// No description provided for @gymDayNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {n}'**
+  String gymDayNumber(int n);
+
+  /// No description provided for @gymDayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Day 4, Push, Upper A…'**
+  String get gymDayNameHint;
+
+  /// No description provided for @gymNoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No days yet'**
+  String get gymNoDays;
+
+  /// No description provided for @gymNoDaysBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the first one. Duplicating it later is one tap — most days are the last day with two numbers changed.'**
+  String get gymNoDaysBody;
+
+  /// No description provided for @gymDaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{exercises, plural, =0{No exercises} =1{1 exercise} other{{exercises} exercises}} · {sets, plural, =1{1 set} other{{sets} sets}}'**
+  String gymDaySummary(int exercises, int sets);
+
+  /// No description provided for @gymDuplicateDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get gymDuplicateDay;
+
+  /// No description provided for @gymDeleteDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String gymDeleteDay(String name);
+
+  /// No description provided for @gymDeleteDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The exercises and sets in it go too.'**
+  String get gymDeleteDayBody;
+
+  /// No description provided for @gymAccessories.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended accessories'**
+  String get gymAccessories;
+
+  /// No description provided for @gymAccessoriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Back, Abs — a note, not a prescription'**
+  String get gymAccessoriesHint;
+
+  /// No description provided for @gymRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended: {what}'**
+  String gymRecommended(String what);
+
+  /// No description provided for @gymAddExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an exercise'**
+  String get gymAddExercise;
+
+  /// No description provided for @gymRemoveExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this exercise'**
+  String get gymRemoveExercise;
+
+  /// No description provided for @gymUnknownExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown exercise'**
+  String get gymUnknownExercise;
+
+  /// No description provided for @gymNoSetsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No sets yet'**
+  String get gymNoSetsYet;
+
+  /// No description provided for @gymSetsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this asks of you, set by set.'**
+  String get gymSetsSubtitle;
+
+  /// No description provided for @gymAddSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get gymAddSet;
+
+  /// No description provided for @gymAddPercentSet.
+  ///
+  /// In en, this message translates to:
+  /// **'% set'**
+  String get gymAddPercentSet;
+
+  /// No description provided for @gymAddOpenSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Open set'**
+  String get gymAddOpenSet;
+
+  /// No description provided for @gymEditSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the set'**
+  String get gymEditSet;
+
+  /// No description provided for @gymPercentOfMax.
+  ///
+  /// In en, this message translates to:
+  /// **'% of max'**
+  String get gymPercentOfMax;
+
+  /// No description provided for @gymPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent'**
+  String get gymPercent;
+
+  /// No description provided for @gymWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get gymWeight;
+
+  /// No description provided for @gymReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps'**
+  String get gymReps;
+
+  /// No description provided for @gymOpenSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Open set'**
+  String get gymOpenSet;
+
+  /// No description provided for @gymOpenSetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As many as you can — the set that decides whether the weight goes up'**
+  String get gymOpenSetHint;
+
+  /// No description provided for @gymOpenReps.
+  ///
+  /// In en, this message translates to:
+  /// **'{reps}+'**
+  String gymOpenReps(int reps);
+
+  /// No description provided for @gymBarWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'The bar'**
+  String get gymBarWeight;
+
+  /// No description provided for @gymRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest between sets'**
+  String get gymRest;
+
+  /// No description provided for @gymRestSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds'**
+  String gymRestSeconds(int seconds);
+
+  /// No description provided for @gymTrainingMaxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Training maxes'**
+  String get gymTrainingMaxes;
+
+  /// No description provided for @gymTrainingMaxesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The number your percentages are percentages of. Yours to set and yours to bump — the app does not do your programming.'**
+  String get gymTrainingMaxesHint;
+
+  /// No description provided for @gymNoTrainingMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set — percentage sets cannot resolve'**
+  String get gymNoTrainingMax;
+
+  /// No description provided for @gymNoPercentSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in this program is a percentage, so there is nothing to set.'**
+  String get gymNoPercentSets;
+
+  /// No description provided for @gymNeedsTrainingMax.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 exercise needs a training max} other{{count} exercises need a training max}}'**
+  String gymNeedsTrainingMax(int count);
+
+  /// No description provided for @gymNeedsTrainingMaxBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Until then its percentage sets show a percentage rather than a weight.'**
+  String get gymNeedsTrainingMaxBody;
 }
 
 class _AppLocalizationsDelegate

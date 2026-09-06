@@ -2397,4 +2397,205 @@ class AppLocalizationsAr extends AppLocalizations {
   String gymMediaAttribution(String credit) {
     return 'صور التمارين ورسومها المتحركة $credit، تُجلب من مجموعة البيانات المنشورة فيها.';
   }
+
+  @override
+  String get gymNewProgram => 'برنامج جديد';
+
+  @override
+  String get gymProgramNameHint => 'nSuns 5/3/1، دفع سحب أرجل…';
+
+  @override
+  String get gymNoPrograms => 'لا برامج بعد';
+
+  @override
+  String get gymNoProgramsBody =>
+      'البرنامج قائمة أيام، واليوم قائمة تمارين. لا شيء يُولَّد تلقائيًا — أنت من يكتبه.';
+
+  @override
+  String gymProgramSummary(int days, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+      zero: 'لا أيام بعد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+      zero: 'لا مجموعات',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymProgramGone => 'هذا البرنامج اختفى';
+
+  @override
+  String get gymRename => 'إعادة تسمية';
+
+  @override
+  String gymDeleteProgram(String name) {
+    return 'أتحذف $name؟';
+  }
+
+  @override
+  String get gymDeleteProgramBody =>
+      'تذهب أيامه ومجموعاته معه. أما الجلسات التي أنهيتها فتبقى.';
+
+  @override
+  String get gymAddDay => 'أضف يومًا';
+
+  @override
+  String gymDayNumber(int n) {
+    return 'اليوم $n';
+  }
+
+  @override
+  String get gymDayNameHint => 'اليوم ٤، دفع، علوي أ…';
+
+  @override
+  String get gymNoDays => 'لا أيام بعد';
+
+  @override
+  String get gymNoDaysBody =>
+      'أضف الأول. وتكراره لاحقًا لمسة واحدة — فأغلب الأيام هي اليوم السابق برقمين مختلفين.';
+
+  @override
+  String gymDaySummary(int exercises, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      exercises,
+      locale: localeName,
+      other: '$exercises تمارين',
+      two: 'تمرينان',
+      one: 'تمرين واحد',
+      zero: 'لا تمارين',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymDuplicateDay => 'تكرار';
+
+  @override
+  String gymDeleteDay(String name) {
+    return 'أتحذف $name؟';
+  }
+
+  @override
+  String get gymDeleteDayBody => 'تذهب تمارينه ومجموعاته أيضًا.';
+
+  @override
+  String get gymAccessories => 'تمارين مساعدة مقترحة';
+
+  @override
+  String get gymAccessoriesHint => 'ظهر، بطن — اقتراح لا وصفة';
+
+  @override
+  String gymRecommended(String what) {
+    return 'مقترح: $what';
+  }
+
+  @override
+  String get gymAddExercise => 'أضف تمرينًا';
+
+  @override
+  String get gymRemoveExercise => 'احذف هذا التمرين';
+
+  @override
+  String get gymUnknownExercise => 'تمرين غير معروف';
+
+  @override
+  String get gymNoSetsYet => 'لا مجموعات بعد';
+
+  @override
+  String get gymSetsSubtitle => 'ما يطلبه منك، مجموعةً مجموعة.';
+
+  @override
+  String get gymAddSet => 'مجموعة';
+
+  @override
+  String get gymAddPercentSet => 'مجموعة ٪';
+
+  @override
+  String get gymAddOpenSet => 'مجموعة مفتوحة';
+
+  @override
+  String get gymEditSet => 'تعديل المجموعة';
+
+  @override
+  String get gymPercentOfMax => '٪ من الحد';
+
+  @override
+  String get gymPercent => 'النسبة';
+
+  @override
+  String get gymWeight => 'الوزن';
+
+  @override
+  String get gymReps => 'التكرارات';
+
+  @override
+  String get gymOpenSet => 'مجموعة مفتوحة';
+
+  @override
+  String get gymOpenSetHint =>
+      'أكبر عدد تستطيعه — وهي التي تقرّر إن كان الوزن سيرتفع';
+
+  @override
+  String gymOpenReps(int reps) {
+    return '$reps+';
+  }
+
+  @override
+  String get gymBarWeight => 'البار';
+
+  @override
+  String get gymRest => 'الراحة بين المجموعات';
+
+  @override
+  String gymRestSeconds(int seconds) {
+    return '$seconds ثانية';
+  }
+
+  @override
+  String get gymTrainingMaxes => 'الحدود التدريبية';
+
+  @override
+  String get gymTrainingMaxesHint =>
+      'الرقم الذي تُحسب منه نسبك. تضبطه أنت وترفعه أنت — التطبيق لا يضع برنامجك.';
+
+  @override
+  String get gymNoTrainingMax => 'غير مضبوط — مجموعات النسبة لا تتحوّل إلى وزن';
+
+  @override
+  String get gymNoPercentSets =>
+      'لا شيء في هذا البرنامج بالنسبة المئوية، فلا شيء لضبطه.';
+
+  @override
+  String gymNeedsTrainingMax(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تمارين تحتاج حدًّا تدريبيًا',
+      two: 'تمرينان يحتاجان حدًّا تدريبيًا',
+      one: 'تمرين واحد يحتاج حدًّا تدريبيًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNeedsTrainingMaxBody =>
+      'وإلى أن تضبطه تعرض مجموعاته النسبة بدل الوزن.';
 }
