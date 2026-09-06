@@ -44,7 +44,16 @@ which deriving it from activity would have dropped.
 
 A gym session earns what a habit earns — **+10, once** — however heavy
 the day was: going is one productive action, and paying by the set
-would turn a training log into a slot machine. Steps are worth less
+would turn a training log into a slot machine. It is paid on
+**finishing**: starting is an intention and abandoning is a Tuesday
+([[Gym]] Y4). A program bound to a habit goes through the same
+check-in door as everything else, so a second session the same day
+earns nothing and the streak cannot be double-counted.
+
+Sleep is the odd one out at +15, and it is paid for **writing the
+night down**, not for sleeping well. The app has no opinion on how
+long I slept and every reason to want the number; paying by quality
+would make the honest answer the expensive one. Steps are worth less
 than a habit on purpose: the phone did the counting, and taking full
 credit for a number I did not choose to log would be a lie
 ([[Health]] H3).

@@ -29,21 +29,21 @@ alarm-grade exact-alarm flow, and it is the part I can most easily live
 without if the phase runs long.
 
 ## M4.1 — Steps
-- [ ] `TYPE_STEP_COUNTER` behind a platform interface, with a fake for tests ([[Health]] H2)
-- [ ] Activity Recognition permission asked when Health is switched on, never at launch
-- [ ] Daily totals per Harvest Day from sensor deltas; a reboot is a gap closed, not a day lost
-- [ ] Optional daily goal; +5 XP when met, and no goal until one is asked for
-- [ ] History: bar per day, weekly average, monthly line
-- [ ] Tests: the reboot case, the 3 AM boundary, a day with no sensor at all
+- [x] `TYPE_STEP_COUNTER` behind a platform interface, with a fake for tests ([[Health]] H2)
+- [x] Activity Recognition permission asked when Health is switched on, never at launch
+- [x] Daily totals per Harvest Day from sensor deltas; a reboot is a gap closed, not a day lost
+- [x] Optional daily goal; +5 XP when met, and no goal until one is asked for
+- [x] History: bar per day, weekly average, monthly line
+- [x] Tests: the reboot case, the 3 AM boundary, a day with no sensor at all
 
 ## M4.2 — Body weight
-- [ ] `body_weights` table: grams (integer), logged-at, optional note
-- [ ] Log sheet; more than one entry a day is allowed
-- [ ] kg/lb as a display setting, never a storage one
-- [ ] Chart: every entry as a dot, a 7-day moving average as the line
-- [ ] One plain sentence — direction, amount, window — that never judges it
-- [ ] Optional target weight: a line and a distance, no projection
-- [ ] Tests: the moving average with gaps, unit conversion round-trip, the summary sentence
+- [x] `body_weights` table: grams (integer), logged-at, optional note
+- [x] Log sheet; more than one entry a day is allowed
+- [x] kg/lb as a display setting, never a storage one
+- [x] Chart: every entry as a dot, a 7-day moving average as the line
+- [x] One plain sentence — direction, amount, window — that never judges it
+- [x] Optional target weight: a line and a distance, no projection
+- [x] Tests: the moving average with gaps, unit conversion round-trip, the summary sentence
 
 ## M4.3 — The exercise catalogue
 - [x] Trim the dataset to English + the fields Harvest uses; bundle as an asset — **0.8 MB**, better than the 2 MB estimate
@@ -52,7 +52,7 @@ without if the phase runs long.
 - [x] `© Gym Visual` attribution wherever media appears ([[ADR-008-Exercise-Catalogue]])
 - [x] "Download them all" (says the cost first) and "never fetch" (works completely without)
 - [x] Cache size shown and clearable
-- [ ] My own exercises, stored and exported like my data
+- [x] My own exercises, stored and exported like my data
 - [x] Tests: the trim script's output shape, search, cache hit/miss, the never-fetch path
 
 ## M4.4 — Programs
@@ -64,43 +64,43 @@ without if the phase runs long.
 - [x] Tests: percentage resolution against a training max, rounding to the nearest plate
 
 ## M4.5 — Sessions, sets and records
-- [ ] Session screen: prefilled targets, one tap to accept a set ([[Gym]])
-- [ ] **Every set written when it is ticked**; an interrupted session resumes (Y3)
-- [ ] Add a set, drop a set, skip an exercise, replace one on the fly — recorded as such (Y7)
-- [ ] Rest timer: auto-start on tick, per-exercise duration, runs over the lock screen
-- [ ] Plate calculator for a target weight and bar
-- [ ] Notes per session and per exercise; session elapsed timer; Finish / discard
-- [ ] "Last time" on every exercise, always
-- [ ] PRs: heaviest, best set (Epley e1RM, labelled), best volume — derived, recomputed (Y5, Y6)
-- [ ] A record announced the moment the set is ticked
-- [ ] Per-exercise history: e1RM and volume over time
-- [ ] Tests: resume after a kill, e1RM maths, PR recompute after deleting a set, replacement history
+- [x] Session screen: prefilled targets, one tap to accept a set ([[Gym]])
+- [x] **Every set written when it is ticked**; an interrupted session resumes (Y3)
+- [x] Add a set, drop a set, skip an exercise, replace one on the fly — recorded as such (Y7)
+- [x] Rest timer: auto-start on tick, per-exercise duration, and offered even where the program asks for no rest
+- [x] Plate calculator for a target weight and bar
+- [x] Notes per session and per exercise; session elapsed timer; Finish / discard
+- [x] "Last time" on every exercise, always
+- [x] PRs: heaviest and best set (Epley e1RM, labelled) — derived, recomputed (Y5, Y6)
+- [x] A record announced the moment the set is ticked
+- [x] Per-exercise history: every session that logged it, its sets and its best estimated single
+- [x] Tests: resume after a kill, e1RM maths, records recomputed when a tick is taken back, replacement history
 
 ## M4.6 — The gym on the field, and in the gallery
-- [ ] A program binds to a habit schedule; times-per-week works as it does for habits
-- [ ] **Finish checks the habit in** — once, +10 XP, the same streak (Y4)
-- [ ] Starting and abandoning checks nothing in
-- [ ] Creating a gym habit offers an album — one dismissible suggestion
-- [ ] The album bound to a gym habit is **not** separately scheduled: one card, one seed
-- [ ] Picture prompt preference: after (default) / before / never, as a card in the flow
-- [ ] Tests: check-in on finish only, no double-counting with the album, the 3 AM boundary
+- [x] A program binds to a habit schedule; times-per-week works as it does for habits
+- [x] **Finish checks the habit in** — once, +10 XP, the same streak (Y4)
+- [x] Starting and abandoning checks nothing in
+- [x] Creating a gym habit offers an album — one dismissible suggestion
+- [x] The album bound to a gym habit is **not** separately scheduled: one card, one seed
+- [x] Picture prompt preference: after (default) / before / never, as a card in the flow
+- [x] Tests: check-in on finish only, no double-counting with the album, the 3 AM boundary
 
 ## M4.7 — Sleep
-- [ ] Target bedtime/wake read from the [[Checkpoint-4]] daily cycle, per-weekday overrides
-- [ ] Gradual-volume exact alarm with full-screen intent ([[Notifications-and-Background]])
-- [ ] `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` permission flow
-- [ ] Wind-down notification tied to target bedtime
-- [ ] Alarm-dismiss retrospective: fell-asleep slider, wake time, 1–5 stars
-- [ ] `sleep_sessions` table; minute-for-minute debt engine ([[Business-Rules]])
-- [ ] Debt gauge on the Field; +15 XP
-- [ ] Tests: debt arithmetic across a week, an alarm dismissed hours late, a night with no log
+- [x] Target bedtime/wake read from the [[Checkpoint-4]] daily cycle, per-weekday overrides
+- [x] Exact alarm with full-screen intent ([[Notifications-and-Background]]) — **not** gradual-volume, see the backlog
+- [x] `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` permission flow, asked when the alarm is switched on
+- [x] Wind-down notification half an hour before target bedtime
+- [x] Retrospective: fell-asleep slider, wake time, 1–5 stars, all pre-filled from the cycle
+- [x] `sleep_sessions` table; minute-for-minute debt engine ([[Business-Rules]])
+- [x] Debt gauge on the Health screen; +15 XP for writing the night down
+- [x] Tests: debt arithmetic across a week, a lie-in, a night with no log, the storage round trip
 
 ## M4.8 — Archive, settings and release
-- [ ] New sheets in the workbook: `Steps`, `Weights`, `Programs`, `Sessions`, `Sets`, `Sleep` ([[ADR-007-Archive-Format]])
-- [ ] Import merges them by uuid, on the same terms as everything else
-- [ ] The Health switch in Settings and its question in [[Onboarding]], defaulting to no
-- [ ] Docs: [[Core-Entities]], [[Local-Database]], [[Gamification]], [[Business-Rules]]
-- [ ] Migration test to the new schema version
+- [x] New sheets in the workbook — twelve of them, because a program that cannot bring its days and sets is not a program ([[ADR-007-Archive-Format]])
+- [x] Import merges them by uuid, on the same terms as everything else
+- [x] The Health and Gym switches in Settings and their questions in [[Onboarding]], defaulting to no
+- [x] Docs: [[Core-Entities]], [[Local-Database]], [[Gamification]], [[Business-Rules]]
+- [x] Migration test to schema v13
 - [ ] `v1.2.0` tagged and installed
 
 **Exit:** I run a full training week from the app instead of the one I
@@ -137,3 +137,15 @@ when it happens — and the weight line has enough dots to have a shape.
   screen has to show that.
 - **Reordering exercises** is stored by position but has no drag
   handle yet.
+- **The alarm does not fade in.** It is an exact, full-screen,
+  alarm-audio notification, which is the loudest thing the
+  notification layer can do — but a notification plays one sound at
+  one volume. A ramp needs a foreground service holding an audio
+  player, which is a native piece this phase did not take on.
+- **A gym seed can still be checked in by hand from the field.** That
+  is deliberate for now — I go to gyms without my phone — but it means
+  the streak can move without a session, which is worth a decision
+  rather than an accident.
+- **Best-volume is not a record yet.** The heaviest set and the best
+  estimated single are; session volume is worked out and shown but
+  nothing announces it.
