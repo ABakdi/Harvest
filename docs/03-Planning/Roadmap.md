@@ -20,9 +20,18 @@ flowchart LR
 | [[Phase-2-Finances]] | Expense quick-log, budgets, gauge | A month of spending logged in under 5 s/day |
 | **v1.0** | Four checkpoints on top: calendar, vault, app lock, spreadsheet export, notes on seeds, the archive screen, the comeback ladder, the home-screen widget, the daily cycle | **Shipped 2026-09-05** |
 | [[Phase-3-Notes-and-Gallery]] | Markdown notes with links, photo albums that are seeds, the zip archive **and an importer** | **Shipped 2026-09-06 as v1.1.0** |
-| [[Phase-4-Health-and-Gym]] | Steps, body weight, and a real training log — programs, sessions, personal records — plus the sleep alarm and debt | I run a full training week from it, and the weight line has a shape |
+| [[Phase-4-Health-and-Gym]] | Steps, body weight, and a real training log — programs, sessions, personal records — plus the sleep alarm and debt | **In beta as v2.0.0-beta.1.** Passes when I run a full training week from it, and the weight line has a shape |
 | [[Phase-5-Screen-Time]] | Usage caps, weed-pull interventions (Android) | Caps enforce reliably through a full week |
 | [[Phase-6-Sync-and-Social]] | Accounts, MongoDB sync, rankings, iOS polish | Two devices converge; leaderboard live |
+
+**Phase 4 makes it v2, not v1.2.** The number is a judgement about how
+much the app changed, not about how much code was written. Between
+v1.1.0 and here the navigation bar was rebuilt, a whole second half of
+the app arrived — a training log, three body metrics, an alarm — and
+the archive grew twelve sheets. Somebody upgrading is not getting a
+point release; they are getting a different app that keeps their data.
+Calling that 1.2 would undersell it to the only person it has to be
+honest with.
 
 **Phase 3 jumped the queue.** Notes and the gallery were not on the
 original list at all; they went in front of gym and screen time because

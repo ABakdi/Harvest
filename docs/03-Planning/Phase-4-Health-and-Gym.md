@@ -101,7 +101,8 @@ without if the phase runs long.
 - [x] The Health and Gym switches in Settings and their questions in [[Onboarding]], defaulting to no
 - [x] Docs: [[Core-Entities]], [[Local-Database]], [[Gamification]], [[Business-Rules]]
 - [x] Migration test to schema v13
-- [x] `v1.2.0` tagged, built with the release key, and installed **over v1.1.0** — the seed, its check-in and its XP all survived the v12 → v13 migration
+- [x] `v2.0.0-beta.1` cut from `dev`, built with the release key, and installed **over v1.1.0** — the seed, its check-in and its XP all survived the v12 → v13 migration
+- [ ] `v2.0.0` proper, once the beta has been lived in for a week
 
 **Exit:** I run a full training week from the app instead of the one I
 use now — programme followed, sets logged between sets, a PR announced
