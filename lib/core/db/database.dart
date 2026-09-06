@@ -176,6 +176,248 @@ class Memories extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
+// ---------------------------------------------------------------- health
+
+/// One Harvest Day's step total (phase 4).
+///
+/// The phone's step counter counts since boot and resets to zero when
+/// the phone reboots, so a raw reading is useless on its own. This
+/// stores the day's running total plus the last raw reading it was
+/// computed from: a reading lower than the last one means a reboot
+/// happened, and the day carries on from where it was rather than
+/// starting again or going negative ([[Health]] H2).
+@DataClassName('StepDayRow')
+class StepDays extends Table {
+  TextColumn get harvestDay => text()();
+  IntColumn get steps => integer().withDefault(const Constant(0))();
+
+  /// The sensor's own since-boot count at the last sync. Null before
+  /// the first reading of the day.
+  IntColumn get lastCounter => integer().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {harvestDay};
+}
+
+/// A body weight, in **grams** (phase 4).
+///
+/// Integer, for the reason money is stored in minor units: a weight is
+/// not a float. Kilograms and pounds are a display choice made at the
+/// edge ([[Health]] H4).
+@DataClassName('BodyWeightRow')
+class BodyWeights extends Table {
+  TextColumn get uuid => text()();
+  IntColumn get grams => integer()();
+  TextColumn get harvestDay => text()();
+  TextColumn get note => text().nullable()();
+
+  /// More than one a day is allowed — morning and evening are
+  /// different facts.
+  DateTimeColumn get measuredAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+// ------------------------------------------------------------------ gym
+
+/// An exercise I added myself (phase 4).
+///
+/// The 1,324-exercise catalogue is a bundled asset, not a table
+/// ([[ADR-008-Exercise-Catalogue]]) — it is not my data. These are:
+/// they migrate, they export, they sync.
+@DataClassName('ExerciseRow')
+class Exercises extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get name => text()();
+  TextColumn get bodyPart => text().nullable()();
+  TextColumn get equipment => text().nullable()();
+  TextColumn get target => text().nullable()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// A routine I wrote: nSuns 5/3/1, Push Pull Legs (phase 4).
+@DataClassName('ProgramRow')
+class Programs extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get name => text()();
+  TextColumn get note => text().nullable()();
+
+  /// Null for a program that is just a list of days; a number for one
+  /// that cycles over N weeks.
+  IntColumn get weeks => integer().nullable()();
+
+  /// The habit this program is: finishing a session checks it in
+  /// ([[Gym]] rule Y4). Null until it is bound to one.
+  TextColumn get commitmentUuid => text().nullable()();
+
+  /// The album the pictures go to, if I took the offer.
+  TextColumn get albumUuid => text().nullable()();
+
+  /// `after` | `before` | `never` — when the picture is asked for.
+  TextColumn get photoPrompt => text().withDefault(const Constant('after'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One session's worth of a program: "Week 1 · Day 4", or "Push".
+@DataClassName('ProgramDayRow')
+class ProgramDays extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get programUuid => text().references(Programs, #uuid)();
+  TextColumn get name => text()();
+  IntColumn get position => integer()();
+
+  /// Which week of the cycle, for a program that has them.
+  IntColumn get week => integer().nullable()();
+
+  /// Free text: "Back, Abs". A note, not a prescription.
+  TextColumn get accessories => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One exercise in a day, in order, with what it asks for.
+@DataClassName('ProgramSlotRow')
+class ProgramSlots extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get dayUuid => text().references(ProgramDays, #uuid)();
+
+  /// A catalogue id ("0001") or the uuid of one of my own exercises.
+  TextColumn get exerciseId => text()();
+  IntColumn get position => integer()();
+  IntColumn get restSeconds => integer().nullable()();
+
+  /// What the bar itself weighs. 20 kg unless told otherwise, because
+  /// that is right nearly always ([[Gym]]).
+  IntColumn get barGrams => integer().withDefault(const Constant(20000))();
+  TextColumn get note => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// What I am *meant* to do: reps, and a weight or a percentage.
+@DataClassName('TargetSetRow')
+class TargetSets extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get slotUuid => text().references(ProgramSlots, #uuid)();
+  IntColumn get position => integer()();
+
+  /// Null on an open set — "as many as I can".
+  IntColumn get reps => integer().nullable()();
+
+  /// Exactly one of these two carries the load.
+  IntColumn get weightGrams => integer().nullable()();
+
+  /// Percent of the exercise's training max, ×10 so 82.5% is 825.
+  IntColumn get percentTenths => integer().nullable()();
+
+  /// `1+` / AMRAP — the set that decides whether the weight goes up.
+  BoolColumn get openEnded => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// The number a program's percentages are of, per exercise.
+@DataClassName('TrainingMaxRow')
+class TrainingMaxes extends Table {
+  TextColumn get programUuid => text().references(Programs, #uuid)();
+  TextColumn get exerciseId => text()();
+  IntColumn get grams => integer()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {programUuid, exerciseId};
+}
+
+/// One day of a program, actually done.
+@DataClassName('WorkoutSessionRow')
+class WorkoutSessions extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get programUuid => text().nullable()();
+  TextColumn get dayUuid => text().nullable()();
+
+  /// Kept as text so a session survives its program being deleted.
+  TextColumn get title => text().nullable()();
+  TextColumn get harvestDay => text()();
+  DateTimeColumn get startedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// Null while the session is still running — which is how an
+  /// interrupted workout is found and resumed ([[Gym]] rule Y3).
+  DateTimeColumn get endedAt => dateTime().nullable()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One exercise inside a session, as it actually went.
+///
+/// Separate from the sets because a skip and a swap are facts about
+/// the exercise, not about any set — and history has to be able to say
+/// what the day was *meant* to be ([[Gym]] rule Y7).
+@DataClassName('SessionExerciseRow')
+class SessionExercises extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get sessionUuid => text().references(WorkoutSessions, #uuid)();
+  IntColumn get position => integer()();
+
+  /// What I actually did.
+  TextColumn get exerciseId => text()();
+
+  /// What the program asked for, when that is not the same thing.
+  TextColumn get plannedExerciseId => text().nullable()();
+  TextColumn get slotUuid => text().nullable()();
+  BoolColumn get skipped => boolean().withDefault(const Constant(false))();
+  TextColumn get note => text().nullable()();
+  IntColumn get restSeconds => integer().nullable()();
+  IntColumn get barGrams => integer().withDefault(const Constant(20000))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// The row that matters: weight, reps, ticked.
+///
+/// Written the moment it is ticked, never at the end of the session.
+@DataClassName('WorkoutSetRow')
+class WorkoutSets extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get sessionExerciseUuid =>
+      text().references(SessionExercises, #uuid)();
+  IntColumn get position => integer()();
+  IntColumn get weightGrams => integer().withDefault(const Constant(0))();
+  IntColumn get reps => integer().withDefault(const Constant(0))();
+  BoolColumn get done => boolean().withDefault(const Constant(false))();
+
+  /// What this set was asked to be, kept so "did I hit the target?" is
+  /// answerable a year later without the program still existing.
+  TextColumn get targetLabel => text().nullable()();
+  BoolColumn get openEnded => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
 /// Current and best streaks; derived state, never synced.
 @DataClassName('StreakRow')
 class Streaks extends Table {
@@ -376,6 +618,17 @@ class KvSettings extends Table {
     NoteLinks,
     Albums,
     Memories,
+    StepDays,
+    BodyWeights,
+    Exercises,
+    Programs,
+    ProgramDays,
+    ProgramSlots,
+    TargetSets,
+    TrainingMaxes,
+    WorkoutSessions,
+    SessionExercises,
+    WorkoutSets,
     Streaks,
     Ledger,
     Quests,
@@ -395,7 +648,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -444,6 +697,22 @@ class HarvestDatabase extends _$HarvestDatabase {
       }
       if (from < 11 && !memoriesJustCreated) {
         await m.addColumn(memories, memories.deletedAt);
+      }
+      // Phase 4 lands as one migration rather than five: the tables
+      // are inert until the feature is switched on, and one upgrade is
+      // kinder to a phone than five.
+      if (from < 12) {
+        await m.createTable(stepDays);
+        await m.createTable(bodyWeights);
+        await m.createTable(exercises);
+        await m.createTable(programs);
+        await m.createTable(programDays);
+        await m.createTable(programSlots);
+        await m.createTable(targetSets);
+        await m.createTable(trainingMaxes);
+        await m.createTable(workoutSessions);
+        await m.createTable(sessionExercises);
+        await m.createTable(workoutSets);
       }
     },
   );

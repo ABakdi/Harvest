@@ -107,16 +107,22 @@ without if the phase runs long.
 use now — programme followed, sets logged between sets, a PR announced
 when it happens — and the weight line has enough dots to have a shape.
 
-## Open questions
+## Settled
 
-- **Rounding.** A percentage set resolves to `83.75 kg`, which is not a
-  weight anyone loads. Round to the nearest 2.5 kg by default, with the
-  increment configurable per exercise? Dumbbells jump in 2 kg, plates
-  in 1.25.
-- **Bar weight** is per-exercise, not global: an Olympic bar is 20 kg,
-  the EZ bar is not, and the Smith machine is a fight.
-- **Warm-up sets.** Real programs have them and they should not touch
-  PRs or volume. Mark a set as a warm-up, or infer it from the weight?
+- **Rounding is to 0.25 kg.** A percentage set resolves to whatever it
+  resolves to and is then rounded to the nearest quarter-kilo. Fine
+  enough for micro-plates and dumbbells, coarse enough that nobody is
+  reading `83.7625` off a screen.
+- **The bar is chosen, and defaults to 20 kg.** Per exercise, because
+  an Olympic bar, an EZ bar and a Smith machine are three different
+  numbers — but 20 kg unless told otherwise, which is right nearly
+  always.
+- **Warm-up sets are out of scope for now.** Every set counts as a set.
+  If it becomes annoying it becomes a flag on `workout_sets`, which is
+  an additive change, so nothing here forecloses it.
+
+## Still open
+
 - **Supersets.** Common enough to matter, and every data model that
   ignores them regrets it. Pair slots, or leave it to M4.4 order?
 - **Health Connect** as an optional step source for people with a
