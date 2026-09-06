@@ -72,7 +72,7 @@ flowchart LR
 - [x] Two questions in [[Onboarding]] — notes, gallery — both defaulting to no
 - [x] Both switches in Settings, with what turning off does and does not do said plainly
 - [x] Docs updated: the specs, [[Business-Rules]] #11, [[Core-Entities]], [[Local-Database]]
-- [ ] `v1.1.0` tagged and installed
+- [x] `v1.1.0` tagged and installed
 
 **Exit:** I write in it without reaching for another app, there is a
 month of daily photos I can play as a run, and I have taken an archive
