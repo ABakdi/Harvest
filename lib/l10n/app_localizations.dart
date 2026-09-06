@@ -3883,6 +3883,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Programs, sessions and personal records are being built. Steps and weight work now.'**
   String get gymComingBody;
+
+  /// No description provided for @gymBrowse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse exercises'**
+  String get gymBrowse;
+
+  /// No description provided for @gymPickExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an exercise'**
+  String get gymPickExercise;
+
+  /// No description provided for @gymSearchExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, muscle or kit'**
+  String get gymSearchExercises;
+
+  /// No description provided for @gymExercisesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises'**
+  String get gymExercisesTitle;
+
+  /// No description provided for @gymProgramsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs'**
+  String get gymProgramsTitle;
+
+  /// No description provided for @gymCatalogueLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the catalogue…'**
+  String get gymCatalogueLoading;
+
+  /// No description provided for @gymCatalogueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, muscle or equipment — the question mid-session is usually what else hits this.'**
+  String get gymCatalogueHint;
+
+  /// No description provided for @gymExerciseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No exercises} =1{1 exercise} other{{count} exercises}}'**
+  String gymExerciseCount(int count);
+
+  /// No description provided for @gymNoExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that'**
+  String get gymNoExercise;
+
+  /// No description provided for @gymNoExerciseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a muscle or a piece of equipment instead of a name.'**
+  String get gymNoExerciseBody;
+
+  /// No description provided for @gymMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get gymMine;
+
+  /// No description provided for @gymHowTo.
+  ///
+  /// In en, this message translates to:
+  /// **'How it goes'**
+  String get gymHowTo;
+
+  /// No description provided for @gymNoInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'No instructions for this one.'**
+  String get gymNoInstructions;
+
+  /// No description provided for @gymMediaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise pictures'**
+  String get gymMediaTitle;
+
+  /// No description provided for @gymMediaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded the first time you open an exercise, then kept. Names and instructions are already in the app and work without a single picture.'**
+  String get gymMediaBody;
+
+  /// No description provided for @gymNeverFetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Never fetch pictures'**
+  String get gymNeverFetch;
+
+  /// No description provided for @gymNeverFetchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym works completely on words alone'**
+  String get gymNeverFetchHint;
+
+  /// No description provided for @gymDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download them all'**
+  String get gymDownloadAll;
+
+  /// No description provided for @gymDownloadAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} animations, roughly {size}. Worth doing on Wi-Fi before a trip.'**
+  String gymDownloadAllBody(int count, String size);
+
+  /// No description provided for @gymDownloadProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String gymDownloadProgress(int done, int total);
+
+  /// No description provided for @gymClearMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get gymClearMedia;
+
+  /// No description provided for @gymClearMediaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The pictures go; nothing else does. They come back the next time you open an exercise.'**
+  String get gymClearMediaBody;
+
+  /// No description provided for @gymMediaAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise images and animations {credit}, fetched from the dataset they are published in.'**
+  String gymMediaAttribution(String credit);
 }
 
 class _AppLocalizationsDelegate

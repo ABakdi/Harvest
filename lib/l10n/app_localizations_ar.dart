@@ -2309,4 +2309,92 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gymComingBody =>
       'البرامج والجلسات والأرقام القياسية قيد البناء. الخطوات والوزن تعمل الآن.';
+
+  @override
+  String get gymBrowse => 'تصفّح التمارين';
+
+  @override
+  String get gymPickExercise => 'اختر تمرينًا';
+
+  @override
+  String get gymSearchExercises => 'ابحث بالاسم أو العضلة أو الأداة';
+
+  @override
+  String get gymExercisesTitle => 'التمارين';
+
+  @override
+  String get gymProgramsTitle => 'البرامج';
+
+  @override
+  String get gymCatalogueLoading => 'أُحمّل الفهرس…';
+
+  @override
+  String get gymCatalogueHint =>
+      'ابحث بالاسم أو العضلة أو الأداة — فالسؤال أثناء الجلسة عادةً: ماذا أيضًا يشتغل على هذه.';
+
+  @override
+  String gymExerciseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تمرينًا',
+      two: 'تمرينان',
+      one: 'تمرين واحد',
+      zero: 'لا تمارين',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNoExercise => 'لا شيء يطابق ذلك';
+
+  @override
+  String get gymNoExerciseBody => 'جرّب عضلة أو أداة بدل الاسم.';
+
+  @override
+  String get gymMine => 'خاص بي';
+
+  @override
+  String get gymHowTo => 'كيف يُؤدّى';
+
+  @override
+  String get gymNoInstructions => 'لا تعليمات لهذا.';
+
+  @override
+  String get gymMediaTitle => 'صور التمارين';
+
+  @override
+  String get gymMediaBody =>
+      'تُنزَّل أول مرة تفتح فيها تمرينًا ثم تُحفظ. أما الأسماء والتعليمات فهي في التطبيق أصلًا وتعمل من دون أي صورة.';
+
+  @override
+  String get gymNeverFetch => 'لا تنزّل الصور أبدًا';
+
+  @override
+  String get gymNeverFetchHint => 'النادي يعمل كاملًا بالكلمات وحدها';
+
+  @override
+  String get gymDownloadAll => 'نزّلها كلها';
+
+  @override
+  String gymDownloadAllBody(int count, String size) {
+    return '$count صورة متحركة، نحو $size. يُستحسن على الواي فاي قبل سفر.';
+  }
+
+  @override
+  String gymDownloadProgress(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get gymClearMedia => 'مسح';
+
+  @override
+  String get gymClearMediaBody =>
+      'تذهب الصور ولا يذهب غيرها. وتعود أول مرة تفتح فيها تمرينًا.';
+
+  @override
+  String gymMediaAttribution(String credit) {
+    return 'صور التمارين ورسومها المتحركة $credit، تُجلب من مجموعة البيانات المنشورة فيها.';
+  }
 }

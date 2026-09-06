@@ -59,15 +59,20 @@ actually use:
 
 - **English only.** The dataset has ten languages and Arabic is not one
   of them ([[Localization]]). Carrying nine languages I do not show, to
-  miss the one I do, would be 15 MB of nothing. That drops ~17.4 MB to
-  roughly 2 MB.
+  miss the one I do, would be megabytes of nothing. In the event the
+  trim came out at **0.8 MB** — better than the 2 MB this ADR guessed,
+  because the fields dropped alongside the languages were the bulky
+  ones.
 - Fields kept: `id`, `name`, `body_part`, `equipment`, `target`,
   `secondary_muscles`, `instruction_steps.en`, `media_id`.
 - It is **read-only reference data**: not in the database's migration
   path, not in the outbox, not in the archive. A logged set refers to
   an exercise by its `id` and nothing else ([[Gym]] rule Y2).
-- The dataset is **pinned to a commit**, and updating it is a
-  deliberate act with a release note, not a moving target.
+- The dataset is **pinned to a commit** —
+  `7455efae41b330c265e7cd4b78dfa848e7ce5ebd` — and updating it is a
+  deliberate act with a release note, not a moving target. The trim is
+  `tool/trim_exercises.dart`, so the asset can always be rebuilt from
+  the pin.
 
 ### 2. The media is fetched on demand, never re-hosted
 
@@ -103,7 +108,7 @@ live in the database, sync when there is sync, and export with my data
 ## Consequences
 
 **Good.** The gym has a complete, illustrated exercise list on day one,
-for about 2 MB of APK and no content-writing project. The words work
+for 0.8 MB of APK and no content-writing project. The words work
 with the network off. The licence line is respected rather than argued
 about.
 

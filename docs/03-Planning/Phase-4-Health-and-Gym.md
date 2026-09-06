@@ -46,14 +46,14 @@ without if the phase runs long.
 - [ ] Tests: the moving average with gaps, unit conversion round-trip, the summary sentence
 
 ## M4.3 — The exercise catalogue
-- [ ] Trim the dataset to English + the fields Harvest uses; bundle as an asset (~2 MB)
-- [ ] Load into memory once; search by name, body part, equipment, muscle
-- [ ] Media fetched on demand from the pinned commit, cached in app storage
-- [ ] `© Gym Visual` attribution wherever media appears ([[ADR-008-Exercise-Catalogue]])
-- [ ] "Download them all" (says the cost first) and "never fetch" (works completely without)
-- [ ] Cache size shown and clearable
+- [x] Trim the dataset to English + the fields Harvest uses; bundle as an asset — **0.8 MB**, better than the 2 MB estimate
+- [x] Load into memory once; search by name, body part, equipment, muscle
+- [x] Media fetched on demand from the pinned commit, cached in app storage
+- [x] `© Gym Visual` attribution wherever media appears ([[ADR-008-Exercise-Catalogue]])
+- [x] "Download them all" (says the cost first) and "never fetch" (works completely without)
+- [x] Cache size shown and clearable
 - [ ] My own exercises, stored and exported like my data
-- [ ] Tests: the trim script's output shape, search, cache hit/miss, the never-fetch path
+- [x] Tests: the trim script's output shape, search, cache hit/miss, the never-fetch path
 
 ## M4.4 — Programs
 - [ ] Schema: `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`

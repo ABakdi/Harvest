@@ -2304,4 +2304,92 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gymComingBody =>
       'Programs, sessions and personal records are being built. Steps and weight work now.';
+
+  @override
+  String get gymBrowse => 'Browse exercises';
+
+  @override
+  String get gymPickExercise => 'Choose an exercise';
+
+  @override
+  String get gymSearchExercises => 'Search by name, muscle or kit';
+
+  @override
+  String get gymExercisesTitle => 'Exercises';
+
+  @override
+  String get gymProgramsTitle => 'Programs';
+
+  @override
+  String get gymCatalogueLoading => 'Loading the catalogue…';
+
+  @override
+  String get gymCatalogueHint =>
+      'Search by name, muscle or equipment — the question mid-session is usually what else hits this.';
+
+  @override
+  String gymExerciseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exercises',
+      one: '1 exercise',
+      zero: 'No exercises',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNoExercise => 'Nothing matches that';
+
+  @override
+  String get gymNoExerciseBody =>
+      'Try a muscle or a piece of equipment instead of a name.';
+
+  @override
+  String get gymMine => 'Mine';
+
+  @override
+  String get gymHowTo => 'How it goes';
+
+  @override
+  String get gymNoInstructions => 'No instructions for this one.';
+
+  @override
+  String get gymMediaTitle => 'Exercise pictures';
+
+  @override
+  String get gymMediaBody =>
+      'Downloaded the first time you open an exercise, then kept. Names and instructions are already in the app and work without a single picture.';
+
+  @override
+  String get gymNeverFetch => 'Never fetch pictures';
+
+  @override
+  String get gymNeverFetchHint => 'The gym works completely on words alone';
+
+  @override
+  String get gymDownloadAll => 'Download them all';
+
+  @override
+  String gymDownloadAllBody(int count, String size) {
+    return '$count animations, roughly $size. Worth doing on Wi-Fi before a trip.';
+  }
+
+  @override
+  String gymDownloadProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get gymClearMedia => 'Clear';
+
+  @override
+  String get gymClearMediaBody =>
+      'The pictures go; nothing else does. They come back the next time you open an exercise.';
+
+  @override
+  String gymMediaAttribution(String credit) {
+    return 'Exercise images and animations $credit, fetched from the dataset they are published in.';
+  }
 }

@@ -53,6 +53,12 @@ flutter:
   generate: true
   uses-material-design: true
 
+  assets:
+    # The exercise catalogue, trimmed to English and the fields the app
+    # reads (tool/trim_exercises.dart). Reference data, not my data:
+    # it never migrates, never syncs and never exports.
+    - assets/exercises/exercises.json
+
   fonts:
     - family: Nunito
       fonts:

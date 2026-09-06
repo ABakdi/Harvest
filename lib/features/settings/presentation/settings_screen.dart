@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/app/bootstrap.dart';
@@ -11,10 +10,12 @@ import 'package:harvest/features/export/presentation/export_card.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/category_settings.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/gym/presentation/media_card.dart';
 import 'package:harvest/features/import/presentation/import_card.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/security/presentation/app_lock_card.dart';
+import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/daily_cycle_card.dart';
 import 'package:harvest/features/settings/presentation/features_card.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
@@ -88,6 +89,10 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: l10n.settingsFeaturesHint,
           ),
           const FeaturesCard(),
+          if (ref.watch(gymEnabledProvider)) ...[
+            const SizedBox(height: HarvestSpacing.sm),
+            const ExerciseMediaCard(),
+          ],
           SectionHeader(
             l10n.settingsCycle,
             subtitle: l10n.settingsCycleHint,
