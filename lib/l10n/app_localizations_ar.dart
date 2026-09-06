@@ -2735,6 +2735,85 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get gymPlantProgram => 'ازرعه في حقلك';
+
+  @override
+  String get gymPlantProgramBody =>
+      'يصير عادة كغيره، وإنهاء الحصة يسجّل حضوره.';
+
+  @override
+  String get gymHowOften => 'كم مرة؟';
+
+  @override
+  String get gymHowOftenBody =>
+      'أيام في الأسبوع، لا أي يوم — النادي لا يأتي دائمًا في اليوم الذي نويته.';
+
+  @override
+  String gymTimesPerWeek(int times) {
+    String _temp0 = intl.Intl.pluralLogic(
+      times,
+      locale: localeName,
+      other: '$times مرات في الأسبوع',
+      two: 'مرتان في الأسبوع',
+      one: 'مرة في الأسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymEveryDay => 'كل يوم';
+
+  @override
+  String get gymPlantedNoSchedule => 'بلا جدول';
+
+  @override
+  String get gymUnplant => 'افصله عن الحقل';
+
+  @override
+  String get gymUnplantBody =>
+      'يتوقّف البرنامج عن تسجيل أي حضور. البذرة وسلسلتها تبقيان كما هما — اقتلعها من الحقل إن كان ذلك ما تريد.';
+
+  @override
+  String get gymAlbumOffer => 'تحتفظ بصور له؟';
+
+  @override
+  String get gymAlbumOfferBody =>
+      'ألبوم لهذا البرنامج، ليكون لسنة من الحصص ما تريه. يتبع هذه العادة ولا يصير عادة ثانية.';
+
+  @override
+  String get gymAlbumYes => 'أنشئ الألبوم';
+
+  @override
+  String get gymPhotoPrompt => 'متى تُطلب الصورة';
+
+  @override
+  String get gymPhotoPromptBody =>
+      'قبل: مرآة الدخول. بعد: الصورة التي تنوي أخذها فعلًا ثم تنساها.';
+
+  @override
+  String get gymPromptAfter => 'بعد الحصة';
+
+  @override
+  String get gymPromptBefore => 'قبل الحصة';
+
+  @override
+  String get gymPromptNever => 'لا تسأل';
+
+  @override
+  String gymCheckedIn(int xp) {
+    return 'سُجّل الحضور · +$xp نقطة';
+  }
+
+  @override
+  String get gymPictureNow => 'صورة؟';
+
+  @override
+  String get gymPictureNowBody => 'واحدة للألبوم، وأنت ما زلت هنا.';
+
+  @override
+  String get gymPictureYes => 'خذها';
+
+  @override
   String get gymHistory => 'السجل';
 
   @override

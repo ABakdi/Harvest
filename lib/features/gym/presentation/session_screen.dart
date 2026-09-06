@@ -7,10 +7,13 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
+import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/presentation/capture_sheet.dart';
 import 'package:harvest/features/gym/data/exercises_repository.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/domain/session.dart';
+import 'package:harvest/features/gym/domain/session_finisher.dart';
 import 'package:harvest/features/gym/presentation/exercise_picker.dart';
 import 'package:harvest/features/gym/presentation/plate_sheet.dart';
 import 'package:harvest/features/gym/presentation/rest_timer.dart';
@@ -212,9 +215,47 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       );
       if (!ok) return;
     }
-    await ref.read(sessionsRepositoryProvider).finish(session.uuid);
+    // Finishing is the only thing that checks the habit in: starting
+    // is an intention and abandoning is a Tuesday ([[Gym]] rule Y4).
+    final outcome = await ref.read(sessionFinisherProvider).finish(session);
     await HarvestHaptics.thud();
     navigator.pop();
+
+    if (!mounted) return;
+    if (outcome.xpEarned > 0) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(l10n.gymCheckedIn(outcome.xpEarned))),
+        );
+    }
+    if (outcome.albumUuid != null) {
+      await _offerPicture(outcome.albumUuid!);
+    }
+  }
+
+  /// The picture, asked for once, on the way out.
+  ///
+  /// Offered rather than demanded, and never in the middle of a set:
+  /// the whole reason the preference exists is that a prompt at the
+  /// wrong moment gets dismissed forever.
+  Future<void> _offerPicture(String albumUuid) async {
+    final l10n = AppLocalizations.of(context);
+    final album = await ref
+        .read(galleryRepositoryProvider)
+        .albumOnce(
+          albumUuid,
+        );
+    if (album == null || !mounted) return;
+
+    final ok = await confirm(
+      context,
+      title: l10n.gymPictureNow,
+      body: l10n.gymPictureNowBody,
+      confirmLabel: l10n.gymPictureYes,
+    );
+    if (!ok || !mounted) return;
+    await showCaptureSheet(context, album: album);
   }
 
   Future<void> _discard(WorkoutSession session) async {

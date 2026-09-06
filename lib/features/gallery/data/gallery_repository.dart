@@ -34,6 +34,16 @@ class GalleryRepository {
     return query.watch().map((rows) => rows.map(_toAlbum).toList());
   }
 
+  /// One album, read once — for callers acting on it rather than
+  /// showing it, like the gym offering a picture as a session ends.
+  Future<Album?> albumOnce(String uuid) async {
+    final row =
+        await (_db.select(_db.albums)
+              ..where((a) => a.uuid.equals(uuid) & a.deletedAt.isNull()))
+            .getSingleOrNull();
+    return row == null ? null : _toAlbum(row);
+  }
+
   Stream<Album?> watchAlbum(String uuid) {
     final query = _db.select(_db.albums)
       ..where((a) => a.uuid.equals(uuid) & a.deletedAt.isNull());
@@ -88,7 +98,9 @@ class GalleryRepository {
   Future<List<Memory>> memoriesOnce(String albumUuid) async {
     final rows =
         await (_db.select(_db.memories)
-              ..where((m) => m.albumUuid.equals(albumUuid) & m.deletedAt.isNull())
+              ..where(
+                (m) => m.albumUuid.equals(albumUuid) & m.deletedAt.isNull(),
+              )
               ..orderBy([(m) => OrderingTerm.asc(m.harvestDay)]))
             .get();
     return rows.map(_toMemory).toList();
@@ -216,20 +228,19 @@ class GalleryRepository {
   }
 
   Future<void> updateAlbum(Album album) => _db.transaction(() async {
-    await (_db.update(_db.albums)..where((a) => a.uuid.equals(album.uuid)))
-        .write(
-          AlbumsCompanion(
-            name: Value(album.name),
-            scheduleJson: Value(
-              album.schedule == null
-                  ? null
-                  : jsonEncode(album.schedule!.toJson()),
-            ),
-            remindAt: Value(album.remindAt),
-            note: Value(album.note),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
+    await (_db.update(
+      _db.albums,
+    )..where((a) => a.uuid.equals(album.uuid))).write(
+      AlbumsCompanion(
+        name: Value(album.name),
+        scheduleJson: Value(
+          album.schedule == null ? null : jsonEncode(album.schedule!.toJson()),
+        ),
+        remindAt: Value(album.remindAt),
+        note: Value(album.note),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
     await _outbox('albums', album.uuid, 'update');
   });
 
@@ -262,8 +273,9 @@ class GalleryRepository {
       await _storage.delete(memory.path);
     }
     await _db.transaction(() async {
-      await (_db.delete(_db.memories)..where((m) => m.albumUuid.equals(uuid)))
-          .go();
+      await (_db.delete(
+        _db.memories,
+      )..where((m) => m.albumUuid.equals(uuid))).go();
       await (_db.delete(_db.albums)..where((a) => a.uuid.equals(uuid))).go();
       await _outbox('albums', uuid, 'delete');
     });
@@ -308,17 +320,17 @@ class GalleryRepository {
     return memory;
   }
 
-  Future<void> setMemoryNote(String uuid, String? note) =>
-      _db.transaction(() async {
-        await (_db.update(_db.memories)..where((m) => m.uuid.equals(uuid)))
-            .write(
-              MemoriesCompanion(
-                note: Value(note),
-                updatedAt: Value(DateTime.now()),
-              ),
-            );
-        await _outbox('memories', uuid, 'update');
-      });
+  Future<void> setMemoryNote(String uuid, String? note) => _db.transaction(
+    () async {
+      await (_db.update(_db.memories)..where((m) => m.uuid.equals(uuid))).write(
+        MemoriesCompanion(
+          note: Value(note),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      await _outbox('memories', uuid, 'update');
+    },
+  );
 
   /// Moves a memory to the trash. The file stays where it is until the
   /// trash is emptied — rule G5 revised: gone for good is still the
@@ -346,9 +358,9 @@ class GalleryRepository {
   /// The step that actually deletes: the row goes, and so does the
   /// file. There is nothing behind this one.
   Future<void> purgeMemory(String uuid) async {
-    final row =
-        await (_db.select(_db.memories)..where((m) => m.uuid.equals(uuid)))
-            .getSingleOrNull();
+    final row = await (_db.select(
+      _db.memories,
+    )..where((m) => m.uuid.equals(uuid))).getSingleOrNull();
     if (row == null) return;
     await _storage.delete(row.path);
     await _db.transaction(() async {

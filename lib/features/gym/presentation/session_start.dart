@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/presentation/capture_sheet.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
@@ -61,6 +64,13 @@ Future<void> startSession(BuildContext context, WidgetRef ref) async {
     trainingMaxes: maxes,
   );
   if (!context.mounted) return;
+
+  // The mirror on the way in, for whoever prefers it that way.
+  if (picked.program.photoPrompt == PhotoPrompt.before) {
+    await _offerPicture(context, ref, picked.program.albumUuid);
+    if (!context.mounted) return;
+  }
+
   await navigator.push(
     MaterialPageRoute<void>(
       builder: (_) => SessionScreen(uuid: session.uuid),
@@ -117,4 +127,25 @@ Future<_Pick?> _pickDay(BuildContext context, List<Program> programs) {
       );
     },
   );
+}
+
+/// Offers the album a picture, before the first set.
+Future<void> _offerPicture(
+  BuildContext context,
+  WidgetRef ref,
+  String? albumUuid,
+) async {
+  if (albumUuid == null) return;
+  final l10n = AppLocalizations.of(context);
+  final album = await ref.read(galleryRepositoryProvider).albumOnce(albumUuid);
+  if (album == null || !context.mounted) return;
+
+  final ok = await confirm(
+    context,
+    title: l10n.gymPictureNow,
+    body: l10n.gymPictureNowBody,
+    confirmLabel: l10n.gymPictureYes,
+  );
+  if (!ok || !context.mounted) return;
+  await showCaptureSheet(context, album: album);
 }

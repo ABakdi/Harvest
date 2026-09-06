@@ -4508,6 +4508,132 @@ abstract class AppLocalizations {
   /// **'Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.'**
   String gymPlateShortfall(String total, String short);
 
+  /// No description provided for @gymPlantProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant this on your field'**
+  String get gymPlantProgram;
+
+  /// No description provided for @gymPlantProgramBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It becomes a habit like any other, and finishing a session checks it in.'**
+  String get gymPlantProgramBody;
+
+  /// No description provided for @gymHowOften.
+  ///
+  /// In en, this message translates to:
+  /// **'How often?'**
+  String get gymHowOften;
+
+  /// No description provided for @gymHowOftenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Days a week, not which days — the gym is not always on the day you meant.'**
+  String get gymHowOftenBody;
+
+  /// No description provided for @gymTimesPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{times, plural, =1{Once a week} =2{Twice a week} other{{times}× a week}}'**
+  String gymTimesPerWeek(int times);
+
+  /// No description provided for @gymEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get gymEveryDay;
+
+  /// No description provided for @gymPlantedNoSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule'**
+  String get gymPlantedNoSchedule;
+
+  /// No description provided for @gymUnplant.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from the field'**
+  String get gymUnplant;
+
+  /// No description provided for @gymUnplantBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The program stops checking anything in. The seed and its streak stay where they are — pull it up on the field if that is what you want.'**
+  String get gymUnplantBody;
+
+  /// No description provided for @gymAlbumOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep pictures of it?'**
+  String get gymAlbumOffer;
+
+  /// No description provided for @gymAlbumOfferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An album for this program, so a year of sessions has something to show for itself. It hangs off this habit rather than becoming a second one.'**
+  String get gymAlbumOfferBody;
+
+  /// No description provided for @gymAlbumYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the album'**
+  String get gymAlbumYes;
+
+  /// No description provided for @gymPhotoPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'When to ask for the picture'**
+  String get gymPhotoPrompt;
+
+  /// No description provided for @gymPhotoPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Before is the mirror on the way in; after is the one you actually mean to take and forget.'**
+  String get gymPhotoPromptBody;
+
+  /// No description provided for @gymPromptAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After the session'**
+  String get gymPromptAfter;
+
+  /// No description provided for @gymPromptBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before the session'**
+  String get gymPromptBefore;
+
+  /// No description provided for @gymPromptNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never ask'**
+  String get gymPromptNever;
+
+  /// No description provided for @gymCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in · +{xp} XP'**
+  String gymCheckedIn(int xp);
+
+  /// No description provided for @gymPictureNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture?'**
+  String get gymPictureNow;
+
+  /// No description provided for @gymPictureNowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One for the album, while you are still here.'**
+  String get gymPictureNowBody;
+
+  /// No description provided for @gymPictureYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it'**
+  String get gymPictureYes;
+
   /// No description provided for @gymHistory.
   ///
   /// In en, this message translates to:

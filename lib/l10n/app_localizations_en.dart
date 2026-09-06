@@ -2724,6 +2724,86 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get gymPlantProgram => 'Plant this on your field';
+
+  @override
+  String get gymPlantProgramBody =>
+      'It becomes a habit like any other, and finishing a session checks it in.';
+
+  @override
+  String get gymHowOften => 'How often?';
+
+  @override
+  String get gymHowOftenBody =>
+      'Days a week, not which days — the gym is not always on the day you meant.';
+
+  @override
+  String gymTimesPerWeek(int times) {
+    String _temp0 = intl.Intl.pluralLogic(
+      times,
+      locale: localeName,
+      other: '$times× a week',
+      two: 'Twice a week',
+      one: 'Once a week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymEveryDay => 'Every day';
+
+  @override
+  String get gymPlantedNoSchedule => 'No schedule';
+
+  @override
+  String get gymUnplant => 'Unlink from the field';
+
+  @override
+  String get gymUnplantBody =>
+      'The program stops checking anything in. The seed and its streak stay where they are — pull it up on the field if that is what you want.';
+
+  @override
+  String get gymAlbumOffer => 'Keep pictures of it?';
+
+  @override
+  String get gymAlbumOfferBody =>
+      'An album for this program, so a year of sessions has something to show for itself. It hangs off this habit rather than becoming a second one.';
+
+  @override
+  String get gymAlbumYes => 'Make the album';
+
+  @override
+  String get gymPhotoPrompt => 'When to ask for the picture';
+
+  @override
+  String get gymPhotoPromptBody =>
+      'Before is the mirror on the way in; after is the one you actually mean to take and forget.';
+
+  @override
+  String get gymPromptAfter => 'After the session';
+
+  @override
+  String get gymPromptBefore => 'Before the session';
+
+  @override
+  String get gymPromptNever => 'Never ask';
+
+  @override
+  String gymCheckedIn(int xp) {
+    return 'Checked in · +$xp XP';
+  }
+
+  @override
+  String get gymPictureNow => 'Picture?';
+
+  @override
+  String get gymPictureNowBody =>
+      'One for the album, while you are still here.';
+
+  @override
+  String get gymPictureYes => 'Take it';
+
+  @override
   String get gymHistory => 'History';
 
   @override

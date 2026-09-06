@@ -12,6 +12,7 @@ import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/presentation/exercise_image.dart';
 import 'package:harvest/features/gym/presentation/exercise_picker.dart';
+import 'package:harvest/features/gym/presentation/program_seed_card.dart';
 import 'package:harvest/features/gym/presentation/target_set_sheet.dart';
 import 'package:harvest/features/gym/presentation/training_max_sheet.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
@@ -83,6 +84,7 @@ class ProgramEditor extends ConsumerWidget {
           120,
         ),
         children: [
+          ProgramSeedCard(program: program),
           // A percentage set with no training max cannot resolve into a
           // weight, so the program says so here rather than showing a
           // blank in the session.
@@ -126,9 +128,7 @@ class ProgramEditor extends ConsumerWidget {
       confirmLabel: l10n.gymAddDay,
     );
     if (name == null || name.trim().isEmpty) return;
-    await ref
-        .read(programsRepositoryProvider)
-        .addDay(program.uuid, name: name);
+    await ref.read(programsRepositoryProvider).addDay(program.uuid, name: name);
   }
 
   Future<void> _rename(
@@ -143,10 +143,12 @@ class ProgramEditor extends ConsumerWidget {
       initial: program.name,
     );
     if (name == null || name.trim().isEmpty) return;
-    await ref.read(programsRepositoryProvider).updateProgram(
-      program.uuid,
-      name: name,
-    );
+    await ref
+        .read(programsRepositoryProvider)
+        .updateProgram(
+          program.uuid,
+          name: name,
+        );
   }
 
   Future<void> _delete(
