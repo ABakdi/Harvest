@@ -6,7 +6,7 @@ Decision record: [[ADR-002-Local-Database]]. Drift (SQLite) is the single source
 
 - **Money as integers** (minor units), **times as UTC + timezone name**, **Harvest Day as a date column** computed at write time ([[Business-Rules]]).
 - **Append-only history:** check-ins, expenses, sleep sessions are never hard-deleted; commitments soft-delete via `archivedAt`.
-- **Sync-ready from day one:** every row carries `uuid` (client-generated, the future Mongo `_id`), `updatedAt`, and `deletedAt`; every local write also appends to the `outbox` table ([[Sync-Strategy]]). Cheap now, priceless later.
+- **Sync-ready from day one:** every row carries `uuid` (client-generated, the future Mongo `_id`), `updatedAt`, and `deletedAt`; every local write also appends to the `outbox` table ([[Sync-Strategy]]) — the gym's child rows included, since [[Audit-v2-Beta]] Q2-03. Cheap now, priceless later.
 
 ## Schema v1 (Phase 1)
 
@@ -75,7 +75,7 @@ XP and coins are a **ledger**, not a counter — balances are sums, history is f
 
 Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets` (Phase 4); `session_exercises` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
 
-Phase 4 landed at **schema v13**.
+Phase 4 landed at **schema v13**; [[Checkpoint-6]] took it to **v14**.
 
 **Phase 3 is the first time a row points at a file.** A note's body is
 text in the database, but a memory is a path into the app's own
@@ -99,7 +99,7 @@ can drop the files back under a fresh root and repoint nothing
 
 ## Migrations
 
-Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`; **v11** added `memories.deleted_at`, the gallery's trash ([[Checkpoint-5]]).
+Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`; **v11** added `memories.deleted_at`, the gallery's trash ([[Checkpoint-5]]); **v12** and **v13** added the Phase 4 tables, the body in one step and sleep in the next; **v14** added `workout_sessions.paused_at` and `paused_seconds`, the clock that stops for a phone call ([[Checkpoint-6]]).
 
 A seed's **start day** deliberately has no column: `created_at` already
 says when it was planted, so the rule that nothing is due before then

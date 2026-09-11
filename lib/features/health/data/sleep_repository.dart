@@ -66,58 +66,86 @@ class SleepRepository {
     required int targetMinutes,
     int? restedStars,
     String? note,
-  }) async {
+  }) => _db.transaction(() async {
+    // Read inside the transaction: two saves for the same morning that
+    // overlap must see each other, or the morning ends up with two
+    // nights and the card with an exception ([[Audit-v2-Beta]] B-07).
     final existing = await on(day);
     final uuid = existing?.uuid ?? _uuid.v4();
 
-    await _db.transaction(() async {
+    await _db
+        .into(_db.sleepSessions)
+        .insertOnConflictUpdate(
+          SleepSessionsCompanion.insert(
+            uuid: uuid,
+            harvestDay: day.key,
+            fellAsleepAt: fellAsleepAt,
+            wokeAt: wokeAt,
+            targetMinutes: targetMinutes,
+            restedStars: Value(restedStars),
+            note: Value(note),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+    var paid = false;
+    if (existing == null && await _xpNet(uuid) == 0) {
       await _db
-          .into(_db.sleepSessions)
-          .insertOnConflictUpdate(
-            SleepSessionsCompanion.insert(
-              uuid: uuid,
+          .into(_db.ledger)
+          .insert(
+            LedgerCompanion.insert(
+              uuid: _uuid.v4(),
+              kind: 'xp',
+              delta: sleepXp,
+              reason: 'sleep:$uuid',
               harvestDay: day.key,
-              fellAsleepAt: fellAsleepAt,
-              wokeAt: wokeAt,
-              targetMinutes: targetMinutes,
-              restedStars: Value(restedStars),
-              note: Value(note),
-              updatedAt: Value(DateTime.now()),
             ),
           );
-      if (existing == null) {
-        await _db
-            .into(_db.ledger)
-            .insert(
-              LedgerCompanion.insert(
-                uuid: _uuid.v4(),
-                kind: 'xp',
-                delta: sleepXp,
-                reason: 'sleep:$uuid',
-                harvestDay: day.key,
-              ),
-            );
-      }
-      await _outbox(uuid, existing == null ? 'insert' : 'update');
-    });
-    return existing == null;
-  }
+      paid = true;
+    }
+    await _outbox(uuid, existing == null ? 'insert' : 'update');
+    return paid;
+  });
 
+  /// Removes a night, and takes back what writing it down paid — with
+  /// a mirror row, so the ledger stays a sum of true events
+  /// ([[Audit-v2-Beta]] B-06).
   Future<void> remove(String uuid) => _db.transaction(() async {
+    final row = await (_db.select(
+      _db.sleepSessions,
+    )..where((s) => s.uuid.equals(uuid))).getSingleOrNull();
     await (_db.update(_db.sleepSessions)..where((s) => s.uuid.equals(uuid)))
         .write(SleepSessionsCompanion(deletedAt: Value(DateTime.now())));
+    final net = await _xpNet(uuid);
+    if (row != null && net > 0) {
+      await _db
+          .into(_db.ledger)
+          .insert(
+            LedgerCompanion.insert(
+              uuid: _uuid.v4(),
+              kind: 'xp',
+              delta: -net,
+              reason: 'sleep-undo:$uuid',
+              harvestDay: row.harvestDay,
+            ),
+          );
+    }
     await _outbox(uuid, 'delete');
   });
 
-  Future<void> _outbox(String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: 'sleep_sessions',
-          rowUuid: rowUuid,
-          op: op,
-        ),
+  /// What this night's XP nets to: the payment less any reversal.
+  Future<int> _xpNet(String uuid) async {
+    final sum = _db.ledger.delta.sum();
+    final query = _db.selectOnly(_db.ledger)
+      ..addColumns([sum])
+      ..where(
+        _db.ledger.reason.equals('sleep:$uuid') |
+            _db.ledger.reason.equals('sleep-undo:$uuid'),
       );
+    return (await query.getSingle()).read(sum) ?? 0;
+  }
+
+  Future<void> _outbox(String rowUuid, String op) =>
+      _db.logChange('sleep_sessions', rowUuid, op);
 
   static SleepNight _toNight(SleepSessionRow row) => SleepNight(
     uuid: row.uuid,

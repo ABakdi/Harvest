@@ -54,6 +54,10 @@ class ExerciseMedia {
 
   static const folder = 'exercise-media';
 
+  /// The largest file the cache will take. An animation is a few
+  /// megabytes; twenty is not a picture.
+  static const int maxMediaBytes = 20 * 1024 * 1024;
+
   Future<Directory> root() async {
     if (_root != null) return _root!;
     final documents = await getApplicationDocumentsDirectory();
@@ -67,8 +71,9 @@ class ExerciseMedia {
     '/$datasetRepo/$datasetCommit/${kind.folder}/$stem${kind.extension}',
   );
 
-  Future<File> fileFor(String stem, MediaKind kind) async =>
-      File(p.join((await root()).path, '${kind.folder}-$stem${kind.extension}'));
+  Future<File> fileFor(String stem, MediaKind kind) async => File(
+    p.join((await root()).path, '${kind.folder}-$stem${kind.extension}'),
+  );
 
   Future<bool> get neverFetch async =>
       await _settings.getBool(MediaKeys.neverFetch) ?? false;
@@ -91,6 +96,13 @@ class ExerciseMedia {
           .get(urlFor(stem, kind))
           .timeout(const Duration(seconds: 20));
       if (response.statusCode != 200 || response.bodyBytes.isEmpty) return null;
+      // A picture, of a picture's size — nothing else gets written to
+      // disk, whatever the host decided to serve ([[Audit-v2-Beta]] Q2-08).
+      final type = response.headers['content-type'] ?? '';
+      if (!type.startsWith('image/') ||
+          response.bodyBytes.length > maxMediaBytes) {
+        return null;
+      }
       await file.writeAsBytes(response.bodyBytes);
       return file;
     } on Object catch (error) {

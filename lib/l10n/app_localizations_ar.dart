@@ -428,6 +428,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get amountLabel => 'المبلغ';
 
   @override
+  String amountSum(String value) {
+    return '= $value';
+  }
+
+  @override
+  String get amountSumIncomplete => 'أكمل العملية لتسجيلها';
+
+  @override
+  String get amountKeyBackspace => 'حذف';
+
+  @override
+  String get amountKeyClear => 'مسح';
+
+  @override
   String get noteLabel => 'ملاحظة (اختياري)';
 
   @override
@@ -742,6 +756,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get debtPay => 'سدّد';
+
+  @override
+  String get debtPaymentRemoveTitle => 'إزالة هذه الدفعة؟';
+
+  @override
+  String get debtPaymentRemoveBody =>
+      'ما أُخذ من المحفظة يعود، ويُعاد فتح الدين إن كانت هذه الدفعة قد سدّدته. التراجع في الشريط للحظة بعدها.';
 
   @override
   String get debtSettled => 'سُدّد 🎉';
@@ -1454,6 +1475,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get widgetSectionMoneyBody => 'مصروف اليوم ورصيد محفظتك';
+
+  @override
+  String get widgetSectionMoneyLocked =>
+      'مخفي ما دام قفل التطبيق مفعّلًا — الشاشة الرئيسية ليست خلفه';
 
   @override
   String get widgetSectionTasks => 'حقل اليوم';
@@ -2201,7 +2226,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get featureHealthHint =>
-      'الخطوات من حسّاس الهاتف نفسه، والوزن كلما وقفت على الميزان.';
+      'النوم، والخطوات من مخزن الصحة الخاص بالهاتف، والوزن كلما وقفت على الميزان.';
 
   @override
   String get featureGym => 'النادي';
@@ -2224,6 +2249,79 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get stepsPassive =>
       'الهاتف هو من يعدّها. لا تسجّل بذرة ولا تكسر سلسلة.';
+
+  @override
+  String get stepsSource => 'من أين تأتي الخطوات';
+
+  @override
+  String get stepsFromHealthConnect =>
+      'من Health Connect — مخزن الخطوات الخاص بالهاتف، لذا يطابق تطبيق الصحة لديك.';
+
+  @override
+  String get stepsFromSensor => 'من عدّاد خطوات الهاتف، يُقرأ عند فتح التطبيق.';
+
+  @override
+  String get stepsConnect => 'اربط';
+
+  @override
+  String get stepsConnectTitle => 'اقرأ الخطوات من الهاتف';
+
+  @override
+  String get stepsConnectBody =>
+      'يقرأ Harvest المجموع اليومي من مخزن الصحة الخاص بالهاتف. لا يُرسل شيء إلى أي مكان ولا حساب في الأمر.';
+
+  @override
+  String get stepsConnectSensorBody =>
+      'يقرأ Harvest عدّاد خطوات الهاتف أثناء فتح التطبيق. لا يُرسل شيء إلى أي مكان.';
+
+  @override
+  String get stepsDenied =>
+      'غير مسموح بعد. اضغط اربط للسؤال مجددًا، أو اسمح به من إعدادات Health Connect.';
+
+  @override
+  String get stepsUnavailable => 'لا مكان في هذا الهاتف تُقرأ منه الخطوات.';
+
+  @override
+  String get stepsInstallHealthConnect => 'احصل على Health Connect';
+
+  @override
+  String get stepsOpenHealthConnect => 'إعدادات Health Connect';
+
+  @override
+  String get stepsRefresh => 'حدّث';
+
+  @override
+  String get stepsGoal => 'هدف الخطوات اليومي';
+
+  @override
+  String get stepsGoalHint =>
+      'اختياري. بلوغه يساوي +5 نقطة خبرة — إيماءة لا عادة. اتركه فارغًا بلا هدف.';
+
+  @override
+  String get stepsGoalNone => 'بلا هدف';
+
+  @override
+  String get stepsGoalMet => 'بلغت الهدف';
+
+  @override
+  String get stepsSettings => 'الخطوات';
+
+  @override
+  String get stepsStride => 'طول الخطوة';
+
+  @override
+  String get stepsStrideHint =>
+      'نحو 0.415 × طولك. 75 سم تقدير معقول؛ شريط القياس أفضل.';
+
+  @override
+  String stepsDistanceKm(String value) {
+    return '$value كم';
+  }
+
+  @override
+  String stepsDistanceMi(String value) {
+    return '$value ميل';
+  }
 
   @override
   String get weightTitle => 'الوزن';
@@ -2720,6 +2818,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gymRestSkip => 'انتهت الراحة';
+
+  @override
+  String get gymRestCustom => 'أو اكتبها';
+
+  @override
+  String get gymRestCustomHint => 'ثوانٍ';
+
+  @override
+  String get gymRestNone => 'بلا مؤقّت';
+
+  @override
+  String get gymPause => 'أوقف الساعة';
+
+  @override
+  String get gymResumeClock => 'شغّل الساعة';
+
+  @override
+  String get gymPaused => 'متوقّف';
+
+  @override
+  String get gymUpNext => 'التالي';
+
+  @override
+  String get gymOtherDays => 'أو يوم آخر';
+
+  @override
+  String gymNextDay(String day) {
+    return 'التالي: $day';
+  }
+
+  @override
+  String get gymFinishIncompleteTitle => 'إنهاء ومجموعات متبقية؟';
+
+  @override
+  String gymFinishIncompleteBody(int left, int total) {
+    return '$left من $total مجموعة غير مؤشَّرة. تنتهي الجلسة هنا وتُسجَّل عادة التمرين كمنجزة لليوم.';
+  }
+
+  @override
+  String gymBestLine(String sets) {
+    return 'الأفضل: $sets';
+  }
+
+  @override
+  String gymBestEstimate(String weight) {
+    return 'تقديريًا $weight';
+  }
 
   @override
   String gymPerSide(String bar) {

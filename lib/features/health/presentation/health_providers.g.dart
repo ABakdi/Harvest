@@ -358,3 +358,131 @@ abstract class _$StepGoal extends $StreamNotifier<int> {
     return element.handleCreate(ref, build);
   }
 }
+
+/// How far one step goes, in centimetres — what turns a count into a
+/// distance.
+
+@ProviderFor(StrideSetting)
+final strideSettingProvider = StrideSettingProvider._();
+
+/// How far one step goes, in centimetres — what turns a count into a
+/// distance.
+final class StrideSettingProvider
+    extends $StreamNotifierProvider<StrideSetting, int> {
+  /// How far one step goes, in centimetres — what turns a count into a
+  /// distance.
+  StrideSettingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'strideSettingProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$strideSettingHash();
+
+  @$internal
+  @override
+  StrideSetting create() => StrideSetting();
+}
+
+String _$strideSettingHash() => r'0eb59c0259f5a1a410c180f20fd612c94441341c';
+
+/// How far one step goes, in centimetres — what turns a count into a
+/// distance.
+
+abstract class _$StrideSetting extends $StreamNotifier<int> {
+  Stream<int> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<int>, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<int>, int>,
+              AsyncValue<int>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
+/// The steps, pulled from the phone.
+///
+/// Built once and refreshed on purpose — when the Health screen is
+/// looked at, when the app comes back to the foreground, and after the
+/// permission is granted — rather than watched, because the phone is
+/// not going to push a step at the app and polling a sensor is not
+/// what a passive number deserves.
+
+@ProviderFor(StepsPull)
+final stepsPullProvider = StepsPullProvider._();
+
+/// The steps, pulled from the phone.
+///
+/// Built once and refreshed on purpose — when the Health screen is
+/// looked at, when the app comes back to the foreground, and after the
+/// permission is granted — rather than watched, because the phone is
+/// not going to push a step at the app and polling a sensor is not
+/// what a passive number deserves.
+final class StepsPullProvider
+    extends $AsyncNotifierProvider<StepsPull, StepsState> {
+  /// The steps, pulled from the phone.
+  ///
+  /// Built once and refreshed on purpose — when the Health screen is
+  /// looked at, when the app comes back to the foreground, and after the
+  /// permission is granted — rather than watched, because the phone is
+  /// not going to push a step at the app and polling a sensor is not
+  /// what a passive number deserves.
+  StepsPullProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'stepsPullProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$stepsPullHash();
+
+  @$internal
+  @override
+  StepsPull create() => StepsPull();
+}
+
+String _$stepsPullHash() => r'3a266d67ccd1ddc1164875438f390b8999ea421f';
+
+/// The steps, pulled from the phone.
+///
+/// Built once and refreshed on purpose — when the Health screen is
+/// looked at, when the app comes back to the foreground, and after the
+/// permission is granted — rather than watched, because the phone is
+/// not going to push a step at the app and polling a sensor is not
+/// what a passive number deserves.
+
+abstract class _$StepsPull extends $AsyncNotifier<StepsState> {
+  FutureOr<StepsState> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<StepsState>, StepsState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<StepsState>, StepsState>,
+              AsyncValue<StepsState>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

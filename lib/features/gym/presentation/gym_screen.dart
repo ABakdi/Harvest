@@ -29,7 +29,12 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// here; then starting one; then the programs I would edit between
 /// sessions; then the catalogue, which is a reference book.
 class GymScreen extends ConsumerWidget {
-  const GymScreen({super.key});
+  const GymScreen({this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,7 +48,10 @@ class GymScreen extends ConsumerWidget {
     final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navGym)),
+      appBar: AppBar(
+        title: Text(title ?? l10n.navGym),
+        bottom: tabs,
+      ),
       floatingActionButton: HarvestFab(
         onPressed: () => unawaited(startSession(context, ref)),
         icon: Icons.play_arrow,
@@ -190,12 +198,7 @@ class GymScreen extends ConsumerWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  subtitle: Text(
-                    l10n.gymProgramSummary(
-                      program.days.length,
-                      program.days.fold(0, (sum, d) => sum + d.totalSets),
-                    ),
-                  ),
+                  subtitle: _ProgramSubtitle(program: program),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
@@ -250,5 +253,28 @@ class GymScreen extends ConsumerWidget {
     final exercise = await pickExercise(context);
     if (exercise == null || !context.mounted) return;
     await showExerciseDetail(context, exercise);
+  }
+}
+
+/// Days and sets, and which day is up next — the one number worth
+/// knowing before tapping Start.
+class _ProgramSubtitle extends ConsumerWidget {
+  const _ProgramSubtitle({required this.program});
+
+  final Program program;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final next = ref.watch(nextDayProvider(program.uuid)).value;
+    final summary = l10n.gymProgramSummary(
+      program.days.length,
+      program.days.fold(0, (sum, d) => sum + d.totalSets),
+    );
+    return Text(
+      next == null ? summary : '$summary · ${l10n.gymNextDay(next.name)}',
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }

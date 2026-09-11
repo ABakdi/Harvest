@@ -63,6 +63,7 @@ Stream<SleepDebt> sleepDebtNow(Ref ref) {
           targetMinutes:
               targets?.targetMinutesFor(today) ??
               DailyCycle.fallback.sleep.inMinutes,
+          upTo: today,
         ),
       );
 }

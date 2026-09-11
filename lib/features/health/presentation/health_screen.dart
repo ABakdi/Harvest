@@ -1,22 +1,27 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
+import 'package:harvest/features/health/data/steps_source.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/domain/steps.dart';
+import 'package:harvest/features/health/domain/steps_sync.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/features/health/presentation/sleep_card.dart';
 import 'package:harvest/features/health/presentation/weight_chart.dart';
 import 'package:harvest/features/health/presentation/weight_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 /// Sleep, steps and weight.
 ///
@@ -24,17 +29,39 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// hit every day, and all of them are a line to look at. Sleep is
 /// first because it is the only one of the three I have to write down
 /// myself, and the moment to do it is this morning.
-class HealthScreen extends ConsumerWidget {
-  const HealthScreen({super.key});
+class HealthScreen extends ConsumerStatefulWidget {
+  const HealthScreen({this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HealthScreen> createState() => _HealthScreenState();
+}
+
+class _HealthScreenState extends ConsumerState<HealthScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Looking at the number is the moment to ask the phone for it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(ref.read(stepsPullProvider.notifier).refresh());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final weights =
         ref.watch(bodyWeightsProvider).value ?? const <BodyWeight>[];
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navHealth)),
+      appBar: AppBar(
+        title: Text(widget.title ?? l10n.navHealth),
+        bottom: widget.tabs,
+      ),
       floatingActionButton: HarvestFab(
         onPressed: () => showWeightSheet(context).ignore(),
         icon: Icons.monitor_weight_outlined,
@@ -79,6 +106,10 @@ class HealthScreen extends ConsumerWidget {
 }
 
 /// Today's steps, and the week around them.
+///
+/// Three states, because a zero is three different facts: nothing
+/// counted yet, not allowed to look, or nowhere to look. The card says
+/// which, and offers the one tap that changes it.
 class _StepsCard extends ConsumerWidget {
   const _StepsCard();
 
@@ -90,8 +121,23 @@ class _StepsCard extends ConsumerWidget {
     final today = ref.watch(stepsTodayProvider).value;
     final week = ref.watch(recentStepsProvider(7)).value ?? const <StepDay>[];
     final goal = ref.watch(stepGoalProvider).value ?? 0;
+    final pull = ref.watch(stepsPullProvider).value;
+    final stride = ref.watch(strideSettingProvider).value ?? defaultStrideCm;
+    final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
     final steps = today?.steps ?? 0;
     final average = averageSteps(week);
+    final numbers = NumberFormat.decimalPattern(localeTag(context));
+
+    // Kilometres beside kilograms, miles beside pounds: one choice of
+    // units, made once.
+    String distance(int count) {
+      final metres = stepsToMetres(count, strideCm: stride);
+      final value = unit == WeightUnit.kg ? metres / 1000 : metres / 1609.344;
+      final text = value.toStringAsFixed(1);
+      return unit == WeightUnit.kg
+          ? l10n.stepsDistanceKm(text)
+          : l10n.stepsDistanceMi(text);
+    }
 
     return Card(
       child: Padding(
@@ -116,11 +162,27 @@ class _StepsCard extends ConsumerWidget {
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
-                      Text(
-                        '$steps',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            numbers.format(steps),
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: HarvestSpacing.sm),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Text(
+                              distance(steps),
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: scheme.secondary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -136,17 +198,33 @@ class _StepsCard extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '$average',
+                        numbers.format(average),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
+                      Text(
+                        distance(average),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
+                IconButton(
+                  tooltip: l10n.stepsSettings,
+                  icon: Icon(
+                    goal > 0 ? Icons.flag : Icons.flag_outlined,
+                    size: 20,
+                  ),
+                  onPressed: () => unawaited(
+                    showStepsSettings(context, goal: goal, strideCm: stride),
+                  ),
+                ),
               ],
             ),
             if (goal > 0) ...[
-              const SizedBox(height: HarvestSpacing.md),
+              const SizedBox(height: HarvestSpacing.sm),
               ClipRRect(
                 borderRadius: BorderRadius.circular(999),
                 child: LinearProgressIndicator(
@@ -157,23 +235,208 @@ class _StepsCard extends ConsumerWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                l10n.stepsOfGoal(steps, goal),
+                steps >= goal
+                    ? l10n.stepsGoalMet
+                    : l10n.stepsOfGoal(steps, goal),
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
+                  color: steps >= goal
+                      ? scheme.secondary
+                      : scheme.onSurfaceVariant,
+                  fontWeight: steps >= goal ? FontWeight.w700 : null,
                 ),
               ),
             ],
             const SizedBox(height: HarvestSpacing.sm),
-            Text(
-              l10n.stepsPassive,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
+            _StepsSourceRow(pull: pull),
           ],
         ),
       ),
     );
+  }
+}
+
+/// The goal and the stride: the two numbers that are mine to say.
+Future<void> showStepsSettings(
+  BuildContext context, {
+  required int goal,
+  required int strideCm,
+}) => showHarvestSheet<void>(
+  context,
+  builder: (_) => _StepsSettingsSheet(goal: goal, strideCm: strideCm),
+);
+
+class _StepsSettingsSheet extends ConsumerStatefulWidget {
+  const _StepsSettingsSheet({required this.goal, required this.strideCm});
+
+  final int goal;
+  final int strideCm;
+
+  @override
+  ConsumerState<_StepsSettingsSheet> createState() =>
+      _StepsSettingsSheetState();
+}
+
+class _StepsSettingsSheetState extends ConsumerState<_StepsSettingsSheet> {
+  late final TextEditingController _goal = TextEditingController(
+    text: widget.goal > 0 ? '${widget.goal}' : '',
+  );
+  late final TextEditingController _stride = TextEditingController(
+    text: '${widget.strideCm}',
+  );
+
+  @override
+  void dispose() {
+    _goal.dispose();
+    _stride.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final goal = int.tryParse(_goal.text.trim()) ?? 0;
+    final stride = int.tryParse(_stride.text.trim());
+    await ref.read(stepGoalProvider.notifier).set(goal < 0 ? 0 : goal);
+    if (stride != null && stride > 0) {
+      await ref.read(strideSettingProvider.notifier).set(stride);
+    }
+    // A goal set after the walk still counts for today.
+    await ref.read(stepsPullProvider.notifier).refresh();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return HarvestSheet(
+      title: l10n.stepsSettings,
+      actionLabel: l10n.save,
+      onAction: _save,
+      children: [
+        TextField(
+          controller: _goal,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: InputDecoration(
+            labelText: l10n.stepsGoal,
+            helperText: l10n.stepsGoalHint,
+            helperMaxLines: 3,
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.md),
+        TextField(
+          controller: _stride,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: InputDecoration(
+            labelText: l10n.stepsStride,
+            suffixText: 'cm',
+            helperText: l10n.stepsStrideHint,
+            helperMaxLines: 3,
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+      ],
+    );
+  }
+}
+
+/// The line under the number that says where it came from — or what
+/// stands between the card and a number.
+class _StepsSourceRow extends ConsumerWidget {
+  const _StepsSourceRow({required this.pull});
+
+  final StepsState? pull;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final hint = theme.textTheme.labelSmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+    final pull = this.pull;
+    if (pull == null) return Text(l10n.stepsPassive, style: hint);
+
+    final notifier = ref.read(stepsPullProvider.notifier);
+    final source = ref.read(stepsSourceProvider);
+    final healthConnect = pull.status.backend == StepsBackend.healthConnect;
+
+    switch (pull.outcome) {
+      case StepsSyncOutcome.synced:
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                healthConnect
+                    ? l10n.stepsFromHealthConnect
+                    : l10n.stepsFromSensor,
+                style: hint,
+              ),
+            ),
+            IconButton(
+              tooltip: l10n.stepsRefresh,
+              icon: const Icon(Icons.refresh, size: 18),
+              visualDensity: VisualDensity.compact,
+              onPressed: () => unawaited(notifier.refresh()),
+            ),
+          ],
+        );
+      case StepsSyncOutcome.needsPermission:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              healthConnect
+                  ? l10n.stepsConnectBody
+                  : l10n.stepsConnectSensorBody,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: HarvestSpacing.sm),
+            Wrap(
+              spacing: HarvestSpacing.sm,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: () => unawaited(_connect(context, notifier)),
+                  icon: const Icon(Icons.link, size: 18),
+                  label: Text(l10n.stepsConnect),
+                ),
+                if (healthConnect)
+                  TextButton(
+                    onPressed: () => unawaited(source.openHealthConnect()),
+                    child: Text(l10n.stepsOpenHealthConnect),
+                  ),
+              ],
+            ),
+          ],
+        );
+      case StepsSyncOutcome.unavailable:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.stepsUnavailable, style: hint),
+            if (pull.status.installable) ...[
+              const SizedBox(height: HarvestSpacing.sm),
+              FilledButton.tonalIcon(
+                onPressed: () => unawaited(source.openHealthConnect()),
+                icon: const Icon(Icons.download_outlined, size: 18),
+                label: Text(l10n.stepsInstallHealthConnect),
+              ),
+            ],
+          ],
+        );
+    }
+  }
+
+  Future<void> _connect(BuildContext context, StepsPull notifier) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await notifier.connect();
+    if (ok) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.stepsDenied)));
   }
 }
 

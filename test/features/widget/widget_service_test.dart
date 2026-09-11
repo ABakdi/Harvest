@@ -119,6 +119,23 @@ void main() {
     expect(home.refreshes, 1);
   });
 
+  test('money stays off the launcher while the lock is armed', () async {
+    final settings = SettingsRepository(db);
+    await settings.setBool(WidgetKeys.money, value: true);
+    await service.refresh(today: today);
+    expect(home.data['showMoney'], true);
+
+    // The lock's promise is the whole app; the home screen is not
+    // behind it (Audit 2, S2-03).
+    await settings.setBool(SettingKeys.appLock, value: true);
+    await service.refresh(today: today);
+    expect(home.data['showMoney'], false);
+
+    await settings.setBool(SettingKeys.appLock, value: false);
+    await service.refresh(today: today);
+    expect(home.data['showMoney'], true);
+  });
+
   test('an empty field says so rather than showing 0/0', () async {
     await service.refresh(today: today);
     expect(home.data['progress'], 'Nothing due today');

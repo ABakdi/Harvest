@@ -9,6 +9,13 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Steps (checkpoint 6). Health Connect is the system's own step
+         store and the first choice; the raw step counter is the
+         fallback for a phone without it, and on Android 10+ reading
+         that sensor needs Activity Recognition. Both are asked for
+         when steps are switched on, never at first launch. -->
+    <uses-permission android:name="android.permission.health.READ_STEPS"/>
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
     <!-- The app lock uses the device's own prompt (checkpoint C2-1). -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <!-- Spreadsheet export writes to Downloads. Android 10+ goes
@@ -65,7 +72,24 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Health Connect on Android 13 and below opens the app
+                 here when the user asks why it wants their steps. -->
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"/>
+            </intent-filter>
         </activity>
+        <!-- The same question on Android 14+, which routes it through
+             a permission-usage intent instead. -->
+        <activity-alias
+            android:name=".ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE"/>
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
+            </intent-filter>
+        </activity-alias>
         <!-- The notifications plugin no longer declares its receivers:
              without these, scheduled reminders are enqueued by the alarm
              manager and silently dropped. -->
@@ -117,6 +141,9 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- Health Connect has to be visible to be asked whether it is
+             installed. -->
+        <package android:name="com.google.android.apps.healthdata"/>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

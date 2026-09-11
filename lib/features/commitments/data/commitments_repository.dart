@@ -328,15 +328,8 @@ class CommitmentsRepository {
     });
   }
 
-  Future<void> _appendOutbox(String table, String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: table,
-          rowUuid: rowUuid,
-          op: op,
-        ),
-      );
+  Future<void> _appendOutbox(String table, String rowUuid, String op) =>
+      _db.logChange(table, rowUuid, op);
 
   // -------------------------------------------------------------- mapping
 

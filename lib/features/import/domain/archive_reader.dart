@@ -51,6 +51,32 @@ enum ArchiveProblem {
 
   /// The workbook is there but cannot be parsed.
   badWorkbook,
+
+  /// Bigger than this app will hold in memory — the whole archive,
+  /// one entry, or what the entries add up to.
+  tooLarge,
+}
+
+/// What an archive may weigh before it is refused.
+///
+/// The zip is decoded in memory, every entry copied out, and the app
+/// is on a phone. These are generous for a real archive — five years
+/// of daily pictures is a few hundred megabytes — and a hard stop for
+/// one that was made to be large ([[Audit-v2-Beta]] S2-02).
+abstract final class ArchiveLimits {
+  /// The picked file itself.
+  static const int archiveBytes = 768 * 1024 * 1024;
+
+  /// Any one entry, uncompressed.
+  static const int entryBytes = 64 * 1024 * 1024;
+
+  /// Every entry, uncompressed, added up.
+  static const int expandedBytes = 1024 * 1024 * 1024;
+
+  /// The workbook on its own: a spreadsheet of rows, never pictures.
+  static const int workbookBytes = 64 * 1024 * 1024;
+
+  static const int entries = 100000;
 }
 
 class ArchiveInvalid implements Exception {
@@ -67,11 +93,34 @@ class ArchiveInvalid implements Exception {
 /// Nothing is written anywhere by this: reading is separated from
 /// applying so the preview can be shown and refused (ADR-007 rule 6).
 ArchiveBundle readArchive(Uint8List bytes) {
+  if (bytes.length > ArchiveLimits.archiveBytes) {
+    throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+  }
   final Archive zip;
   try {
     zip = ZipDecoder().decodeBytes(bytes);
   } on Object {
     throw const ArchiveInvalid(ArchiveProblem.unreadable);
+  }
+
+  // The sizes come from the zip's own directory, so they are checked
+  // before a single entry is inflated: a bomb is refused by its label.
+  if (zip.files.length > ArchiveLimits.entries) {
+    throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+  }
+  var expanded = 0;
+  for (final entry in zip.files) {
+    if (!entry.isFile) continue;
+    final limit = entry.name == ArchivePaths.workbook
+        ? ArchiveLimits.workbookBytes
+        : ArchiveLimits.entryBytes;
+    if (entry.size < 0 || entry.size > limit) {
+      throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+    }
+    expanded += entry.size;
+    if (expanded > ArchiveLimits.expandedBytes) {
+      throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+    }
   }
 
   final files = <String, Uint8List>{};
@@ -133,7 +182,18 @@ String? _text(Object? value) => switch (value) {
   IntCellValue(:final value) => '$value',
   DoubleCellValue(:final value) => '$value',
   BoolCellValue(:final value) => '$value',
-  DateTimeCellValue() => value.toString(),
+  // The cell's own date, as ISO text the merge can read — not the
+  // wrapper's `toString`, which read as "now" on every imported row a
+  // spreadsheet had turned into a real date ([[Audit-v2-Beta]] Q2-07).
+  DateTimeCellValue(
+    :final year,
+    :final month,
+    :final day,
+    :final hour,
+    :final minute,
+    :final second,
+  ) =>
+    DateTime(year, month, day, hour, minute, second).toIso8601String(),
   FormulaCellValue() => null,
   _ => value.toString().trim(),
 };

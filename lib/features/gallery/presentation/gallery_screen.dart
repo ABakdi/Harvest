@@ -22,7 +22,12 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// here rather than in a settings screen nobody opens: a feature that
 /// quietly eats a phone should say so while it is eating it (rule G4).
 class GalleryScreen extends ConsumerWidget {
-  const GalleryScreen({super.key});
+  const GalleryScreen({this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +38,8 @@ class GalleryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.galleryTitle),
+        title: Text(title ?? l10n.galleryTitle),
+        bottom: tabs,
         actions: [
           if (total > 0)
             Center(
@@ -84,8 +90,7 @@ class GalleryScreen extends ConsumerWidget {
                 96,
               ),
               children: [
-                for (final summary in summaries)
-                  _AlbumCard(summary: summary),
+                for (final summary in summaries) _AlbumCard(summary: summary),
               ],
             ),
     );
@@ -170,7 +175,10 @@ class _AlbumCard extends StatelessWidget {
                                     color: Colors.white,
                                     fontWeight: FontWeight.w800,
                                     shadows: const [
-                                      Shadow(blurRadius: 8, color: Colors.black54),
+                                      Shadow(
+                                        blurRadius: 8,
+                                        color: Colors.black54,
+                                      ),
                                     ],
                                   ),
                                   maxLines: 1,

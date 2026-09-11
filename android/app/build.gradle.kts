@@ -83,4 +83,9 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // Steps come from the system's own health store (checkpoint 6).
+    // A method channel rather than a plugin: the whole of what is
+    // needed is one aggregate query and one permission prompt.
+    implementation("androidx.health.connect:connect-client:1.1.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
 }

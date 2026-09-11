@@ -16,6 +16,12 @@ class StepDay {
   /// The sensor's own since-boot reading when this total was last
   /// updated. Null before the first reading of the day.
   final int? lastCounter;
+
+  StepDay copyWith({int? steps, int? lastCounter}) => StepDay(
+    day: day,
+    steps: steps ?? this.steps,
+    lastCounter: lastCounter ?? this.lastCounter,
+  );
 }
 
 /// What one sensor reading does to a day's total.
@@ -73,3 +79,17 @@ int? averageSteps(Iterable<StepDay> days) {
   if (counted.isEmpty) return null;
   return counted.fold<int>(0, (sum, day) => sum + day.steps) ~/ counted.length;
 }
+
+/// A stride, when nobody has measured one. About 0.415 × height for an
+/// average adult, which for most people lands near here.
+const defaultStrideCm = 75;
+
+/// Steps as ground covered, in metres.
+///
+/// Steps are the honest number and this is the useful one: nobody
+/// pictures 8,000 steps, everybody pictures six kilometres
+/// ([[Checkpoint-6]]). It is stride × count and nothing cleverer —
+/// the phone does not know how long my legs are, so the stride is a
+/// setting, and the figure is labelled as what it is.
+double stepsToMetres(int steps, {int strideCm = defaultStrideCm}) =>
+    steps * strideCm / 100;

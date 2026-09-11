@@ -100,6 +100,18 @@ void main() {
       expect(sleepDebtMinutes(nights), 240);
     });
 
+    test('the window is calendar nights, not logged ones (Audit 2, B-09)', () {
+      // One night a week, an hour short each time, for ten weeks: only
+      // the two mornings inside the last fourteen days still count.
+      final nights = [
+        for (var week = 0; week < 10; week++)
+          night(monday.addDays(-7 * week), hours: 7),
+      ];
+      expect(sleepDebtMinutes(nights, upTo: monday), 120);
+      // And a quiet fortnight since the last night clears the slate.
+      expect(sleepDebtMinutes(nights, upTo: monday.addDays(14)), 0);
+    });
+
     test('only looks back as far as the window', () {
       final nights = [
         for (var i = 0; i < 20; i++) night(monday.addDays(i), hours: 7),

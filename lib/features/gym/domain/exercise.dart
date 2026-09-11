@@ -58,6 +58,20 @@ class Exercise {
   /// `0001-2gPfomN` — the stem the thumbnail and the animation share.
   String? get mediaStem => mediaId == null ? null : '$id-$mediaId';
 
+  /// Whether there is a bar to load — and therefore a bar weight to
+  /// know and plates to work out. A dumbbell row has neither, and a
+  /// bar weight beside it was a question with no answer
+  /// ([[Checkpoint-6]]).
+  ///
+  /// Five of the catalogue's equipment names are bars; my own
+  /// exercises say so in their equipment or their name.
+  bool get usesBar {
+    final gear = (equipment ?? '').toLowerCase();
+    if (barEquipment.contains(gear)) return true;
+    final words = '$gear ${name.toLowerCase()}';
+    return words.contains('barbell') || words.contains('smith machine');
+  }
+
   /// Everything a search should look at, lowercased once.
   String get haystack => [
     name,
@@ -67,6 +81,15 @@ class Exercise {
     ...secondary,
   ].whereType<String>().join(' ').toLowerCase();
 }
+
+/// The catalogue's equipment names that mean "a bar with plates".
+const barEquipment = {
+  'barbell',
+  'ez barbell',
+  'olympic barbell',
+  'smith machine',
+  'trap bar',
+};
 
 /// What a catalogue search is narrowed by.
 typedef ExerciseFilter = ({String search, String? bodyPart, String? equipment});

@@ -141,9 +141,9 @@ class NotesRepository {
     String? folder,
     String? body,
   }) => _db.transaction(() async {
-    final before =
-        await (_db.select(_db.notes)..where((n) => n.uuid.equals(uuid)))
-            .getSingleOrNull();
+    final before = await (_db.select(
+      _db.notes,
+    )..where((n) => n.uuid.equals(uuid))).getSingleOrNull();
     if (before == null) return;
     final now = DateTime.now();
     await (_db.update(_db.notes)..where((n) => n.uuid.equals(uuid))).write(
@@ -159,8 +159,7 @@ class NotesRepository {
     if (title != null && title != before.title) {
       // Renaming a note re-points what pointed at the old title and
       // picks up whatever was waiting on the new one.
-      await (_db.update(_db.noteLinks)
-            ..where((l) => l.toUuid.equals(uuid)))
+      await (_db.update(_db.noteLinks)..where((l) => l.toUuid.equals(uuid)))
           .write(const NoteLinksCompanion(toUuid: Value(null)));
       await _resolveInbound(_capTitle(title), uuid);
     }
@@ -182,9 +181,9 @@ class NotesRepository {
   });
 
   Future<void> restore(String uuid) => _db.transaction(() async {
-    final row =
-        await (_db.select(_db.notes)..where((n) => n.uuid.equals(uuid)))
-            .getSingleOrNull();
+    final row = await (_db.select(
+      _db.notes,
+    )..where((n) => n.uuid.equals(uuid))).getSingleOrNull();
     if (row == null) return;
     await (_db.update(_db.notes)..where((n) => n.uuid.equals(uuid))).write(
       NotesCompanion(
@@ -201,8 +200,9 @@ class NotesRepository {
 
   /// One note, gone for good, from the trash.
   Future<void> purge(String uuid) => _db.transaction(() async {
-    await (_db.delete(_db.noteLinks)..where((l) => l.fromUuid.equals(uuid)))
-        .go();
+    await (_db.delete(
+      _db.noteLinks,
+    )..where((l) => l.fromUuid.equals(uuid))).go();
     // A link that pointed here becomes unresolved again rather than
     // pointing at a row that is not there.
     await (_db.update(_db.noteLinks)..where((l) => l.toUuid.equals(uuid)))
@@ -215,47 +215,53 @@ class NotesRepository {
   ///
   /// Renaming `Health` to `Body` moves `Health/Sleep` with it, because
   /// a folder is a path and half a path is nothing.
-  Future<void> renameFolder(String from, String to) => _db.transaction(() async {
-    final rows = await (_db.select(_db.notes)
-          ..where((n) => n.folder.equals(from) | n.folder.like('$from/%')))
-        .get();
-    for (final row in rows) {
-      final moved = to.isEmpty
-          ? row.folder.substring(from.length).replaceFirst(RegExp('^/'), '')
-          : to + row.folder.substring(from.length);
-      await (_db.update(_db.notes)..where((n) => n.uuid.equals(row.uuid)))
-          .write(
+  Future<void> renameFolder(String from, String to) =>
+      _db.transaction(() async {
+        final rows = await _under(from);
+        for (final row in rows) {
+          final moved = to.isEmpty
+              ? row.folder.substring(from.length).replaceFirst(RegExp('^/'), '')
+              : to + row.folder.substring(from.length);
+          await (_db.update(
+            _db.notes,
+          )..where((n) => n.uuid.equals(row.uuid))).write(
             NotesCompanion(
               folder: Value(moved),
               updatedAt: Value(DateTime.now()),
             ),
           );
-      await _appendOutbox(row.uuid, 'update');
-    }
-  });
+          await _appendOutbox(row.uuid, 'update');
+        }
+      });
 
   /// Puts every note under [folder] in the trash.
   Future<int> trashFolder(String folder) async {
-    final rows = await (_db.select(_db.notes)
-          ..where(
-            (n) =>
-                (n.folder.equals(folder) | n.folder.like('$folder/%')) &
-                n.deletedAt.isNull(),
-          ))
-        .get();
+    final rows = (await _under(folder))
+        .where((row) => row.deletedAt == null)
+        .toList();
     for (final row in rows) {
       await remove(row.uuid);
     }
     return rows.length;
   }
 
+  /// Every note in [folder] or below it. Matched in Dart rather than
+  /// with `LIKE`, because a folder called `100%` or `q_a` is a folder
+  /// and not a wildcard ([[Audit-v2-Beta]] Q2-05); the vault is small.
+  Future<List<NoteRow>> _under(String folder) async {
+    final rows = await _db.select(_db.notes).get();
+    return [
+      for (final row in rows)
+        if (row.folder == folder || row.folder.startsWith('$folder/')) row,
+    ];
+  }
+
   Future<void> purgeDeleted({required Duration olderThan}) async {
     final cutoff = DateTime.now().subtract(olderThan);
     await _db.transaction(() async {
-      final gone =
-          await (_db.select(_db.notes)
-                ..where((n) => n.deletedAt.isSmallerThanValue(cutoff)))
-              .get();
+      final gone = await (_db.select(
+        _db.notes,
+      )..where((n) => n.deletedAt.isSmallerThanValue(cutoff))).get();
       for (final row in gone) {
         await (_db.delete(
           _db.noteLinks,
@@ -269,8 +275,9 @@ class NotesRepository {
 
   /// Rebuilds the link index for one note from its body.
   Future<void> _reindex(String uuid, String body) async {
-    await (_db.delete(_db.noteLinks)..where((l) => l.fromUuid.equals(uuid)))
-        .go();
+    await (_db.delete(
+      _db.noteLinks,
+    )..where((l) => l.fromUuid.equals(uuid))).go();
     final seen = <String>{};
     for (final link in linksIn(body)) {
       if (!seen.add(link.title.toLowerCase())) continue;
@@ -311,23 +318,14 @@ class NotesRepository {
 
   static String _capTitle(String title) {
     final trimmed = title.trim();
-    return trimmed.length > maxTitle
-        ? trimmed.substring(0, maxTitle)
-        : trimmed;
+    return trimmed.length > maxTitle ? trimmed.substring(0, maxTitle) : trimmed;
   }
 
   static String _capBody(String body) =>
       body.length > maxBody ? body.substring(0, maxBody) : body;
 
-  Future<void> _appendOutbox(String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: 'notes',
-          rowUuid: rowUuid,
-          op: op,
-        ),
-      );
+  Future<void> _appendOutbox(String rowUuid, String op) =>
+      _db.logChange('notes', rowUuid, op);
 
   static Note _toDomain(NoteRow row) => Note(
     uuid: row.uuid,

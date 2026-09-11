@@ -38,7 +38,7 @@ void main() {
   Future<int> xpTotal() async {
     final rows = await db.select(db.ledger).get();
     return rows
-        .where((row) => row.reason.startsWith('sleep:'))
+        .where((row) => row.reason.startsWith('sleep'))
         .fold<int>(0, (sum, row) => sum + row.delta);
   }
 
@@ -94,20 +94,28 @@ void main() {
       expect(await sleep.recentOnce(), isEmpty);
     });
 
-    test('leaves the XP where it is', () async {
+    test('takes the XP back with a mirror row', () async {
       await log(today);
       final night = (await sleep.on(today))!;
       await sleep.remove(night.uuid);
 
-      // Deleting a row is a correction to the record, not a clawback:
-      // the app does not take XP back off anybody.
-      expect(await xpTotal(), sleepXp);
+      // The +15 was paid for a night that is no longer written down.
+      // It comes back off with its own row, the way an undone check-in
+      // does, so the ledger stays a sum of true events (Audit 2, B-06)
+      // — and so log-delete-log cannot farm it.
+      expect(await xpTotal(), 0);
+      final rows = await db.select(db.ledger).get();
+      expect(
+        rows.any((row) => row.reason == 'sleep-undo:${night.uuid}'),
+        isTrue,
+      );
     });
 
-    test('and a night logged again after that earns again', () async {
+    test('and a night logged again after that earns again, once', () async {
       await log(today);
       await sleep.remove((await sleep.on(today))!.uuid);
       expect(await log(today), isTrue);
+      expect(await xpTotal(), sleepXp);
     });
   });
 

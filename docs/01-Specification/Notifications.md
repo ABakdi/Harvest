@@ -34,7 +34,8 @@ flowchart TD
     F -- yes --> G[One urgent nudge — never more]
 ```
 
-- Hard cap: **max 4 scheduled notifications per day** (excluding the alarm and live timers). A comeback nudge takes the morning ritual's place rather than adding to the count.
+- The **four rituals** are the cap — morning review, evening plan, the expense check-in, the streak-risk nudge — and a comeback nudge takes the morning ritual's place rather than adding to them. A time I put on a seed, an album or a debt myself is not a ritual and always fires: I asked for it, by name, at that hour ([[Audit-v2-Beta]] B-11 — the old wording promised a cap the app never counted).
+- **Urgency is one level, and it is alarm-grade.** The escalation above describes the *sequence* — gentle first, then the bedtime mention, then one late nudge — not a change of volume. Since round 5 every reminder rings as an alarm: over the lock screen, on the alarm stream, snoozable. A reminder that can be missed is not a reminder ([[Audit-v2-Beta]] N-07).
 - Every category individually mutable in settings.
 - Copy always uses the farming voice ([[Glossary]]) — warm, short, no shame.
 
@@ -66,6 +67,14 @@ Every other reminder here fires because I asked it to. This one fires
 because I **stopped** asking — and for a streak app that is the one
 case worth getting right, because an app that goes quiet the moment you
 stop opening it has given up on the single thing it does.
+
+**"Stopped" means the app's one definition of activity** — the same
+list the streak engine uses when it asks whether a stretch of days was
+idle ([[Gamification]]): a check-in, a picture in a scheduled album, an
+expense, a night written down, a weight, a finished workout. Steps are
+not on it; the phone counted those. Before [[Audit-v2-Beta]] B-04 the
+ladder counted check-ins and expenses only, and somebody who wrote
+their sleep down every morning was, to it, a week absent.
 
 Six rungs, escalating from warm to plain, one message each. The ladder
 *is* the rotation:

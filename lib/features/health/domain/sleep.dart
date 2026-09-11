@@ -63,17 +63,25 @@ const int debtWindowNights = 14;
 /// not a bank account, and pretending otherwise would let one lie-in
 /// excuse the week after it.
 ///
-/// Nights with nothing logged count for nothing at all. An unlogged
-/// night is unknown, not a failure, and the one thing this feature
-/// must never do is punish me for not filling in a form.
+/// The window is **calendar** nights, ending on [upTo] (today, or the
+/// latest night logged when nobody says): the last fourteen mornings,
+/// whether or not I wrote them down. Nights with nothing logged count
+/// for nothing at all — an unlogged night is unknown, not a failure —
+/// but they do still pass. The first cut took the fourteen most recent
+/// *logged* nights, so a night from March could still weigh on July
+/// for someone who logs once a week ([[Audit-v2-Beta]] B-09, N-06).
 int sleepDebtMinutes(
   Iterable<SleepNight> nights, {
   int window = debtWindowNights,
+  HarvestDay? upTo,
 }) {
-  final recent = nights.toList()..sort((a, b) => a.day.compareTo(b.day));
-  final considered = recent.length > window
-      ? recent.sublist(recent.length - window)
-      : recent;
+  final sorted = nights.toList()..sort((a, b) => a.day.compareTo(b.day));
+  if (sorted.isEmpty) return 0;
+  final end = upTo ?? sorted.last.day;
+  final start = end.addDays(-(window - 1));
+  final considered = sorted.where(
+    (night) => night.day.compareTo(start) >= 0 && night.day.compareTo(end) <= 0,
+  );
 
   var balance = 0;
   for (final night in considered) {
@@ -93,8 +101,9 @@ SleepDebt sleepDebt(
   Iterable<SleepNight> nights, {
   required int targetMinutes,
   int window = debtWindowNights,
+  HarvestDay? upTo,
 }) {
-  final minutes = sleepDebtMinutes(nights, window: window);
+  final minutes = sleepDebtMinutes(nights, window: window, upTo: upTo);
   return (
     minutes: minutes,
     nights: targetMinutes <= 0 ? 0 : minutes / targetMinutes,

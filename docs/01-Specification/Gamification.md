@@ -50,6 +50,11 @@ would turn a training log into a slot machine. It is paid on
 check-in door as everything else, so a second session the same day
 earns nothing and the streak cannot be double-counted.
 
+The weight's +5 and the step goal's +5 are paid through the same
+ledger as everything else, one row per day — and were not paid at all
+until [[Checkpoint-6]], which is the kind of thing a table of numbers
+in a spec cannot tell you.
+
 Sleep is the odd one out at +15, and it is paid for **writing the
 night down**, not for sleeping well. The app has no opinion on how
 long I slept and every reason to want the number; paying by quality
@@ -60,14 +65,30 @@ credit for a number I did not choose to log would be a lie
 
 Every **1,000 XP** raises my Farmer Rank: **Sprout → Seedling → Gardener → Harvester → Master Farmer**. XP is lifetime-cumulative and never lost.
 
+### What counts as activity
+
+One list, asked by everyone ([[Audit-v2-Beta]] B-04): a day is
+**active** when any of these has a row on it — a check-in (habits,
+to-dos, projects, and a finished gym session, which goes through the
+same door), a picture in a **scheduled** album, an expense, a night
+written down, a weight, a finished workout. The streak engine uses it
+to decide whether a stretch of days was idle; the comeback ladder uses
+it to decide whether I have stopped. Steps are not on it: the phone
+did the counting. The Daily Harvest Goal is narrower on purpose —
+check-ins and scheduled-album pictures — because a goal is about
+effort, and writing down what happened is not effort.
+
 ## Harvest Coins
 
-Earned from check-ins, streak milestones (7/30/100 days), and rank-ups. Spent on:
-- **Streak Freezes**
-- Premium **themes**
-- Cosmetic **Scarecrow skins** for the home-screen avatar
+Earned from **streak milestones** (7 / 30 / 100 days) and spent on
+**streak freezes** — that is the whole economy today, and it is the
+whole economy on purpose. Coins for every check-in, coins for a
+rank-up, premium themes and scarecrow skins were in the first draft of
+this page; none of them is built, and the first draft is not a promise
+([[Audit-v2-Beta]] N-02). They come back, if they come back, the way
+quests will: with an idea of what makes them worth having.
 
-Coins can never be bought with money in V1 — they're proof of work, not a wallet.
+Coins can never be bought with money — they're proof of work, not a wallet.
 
 ## Dynamic Daily Quests — parked ⏸
 

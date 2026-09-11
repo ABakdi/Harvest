@@ -9,10 +9,12 @@ import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/platform/reminder_actions.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
+import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/gamification/domain/activity.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/health/domain/sleep.dart';
 import 'package:harvest/features/health/presentation/sleep_providers.dart';
@@ -100,7 +102,8 @@ class NotificationPlanner {
   NotificationPlanner(this._db, this._notifications, this._streaks)
     : _settings = SettingsRepository(_db),
       _commitments = CommitmentsRepository(_db),
-      _gallery = GalleryRepository(_db, GalleryStorage());
+      _gallery = GalleryRepository(_db, GalleryStorage()),
+      _activity = ActivityLog(_db);
 
   final HarvestDatabase _db;
   final NotificationGateway _notifications;
@@ -111,6 +114,9 @@ class NotificationPlanner {
   /// Reminder planning only reads album rows, so the storage handed in
   /// here never has to resolve a directory.
   final GalleryRepository _gallery;
+
+  /// The one definition of "I did something" ([[Audit-v2-Beta]] B-04).
+  final ActivityLog _activity;
 
   /// (Re)schedules today's reminders. Idempotent: cancels the reserved
   /// ids first, then schedules only what still lies ahead.
@@ -330,7 +336,7 @@ class NotificationPlanner {
               ..where((d) => d.settledAt.isNull() & d.deletedAt.isNull())
               ..orderBy([(d) => OrderingTerm.asc(d.createdAt)]))
             .get();
-    final paid = await _paidByDebt();
+    final paid = await VaultRepository(_db).paidByDebt();
 
     final scheduled = <int>[];
     for (final row in rows) {
@@ -519,32 +525,16 @@ class NotificationPlanner {
         ComebackRung.month2 => l10n.comebackMonth2Body,
       };
 
-  /// The last Harvest Day I did anything at all — checked a seed in or
-  /// logged an expense. With nothing on record the ladder starts from
+  /// The last Harvest Day I did anything at all — by the app's one
+  /// definition of activity ([[Audit-v2-Beta]] B-04): a check-in, a
+  /// picture in a scheduled album, an expense, a night, a weight, a
+  /// finished session. With nothing on record the ladder starts from
   /// the day the first seed was planted, so an app installed and then
   /// forgotten still speaks up.
   Future<HarvestDay> _lastActiveDay(DateTime at) async {
     final today = _dayOf(at);
-    final checkIn =
-        await (_db.select(_db.checkIns)
-              ..where((c) => c.deletedAt.isNull())
-              ..orderBy([(c) => OrderingTerm.desc(c.harvestDay)])
-              ..limit(1))
-            .getSingleOrNull();
-    final expense =
-        await (_db.select(_db.expenses)
-              ..where((e) => e.deletedAt.isNull())
-              ..orderBy([(e) => OrderingTerm.desc(e.harvestDay)])
-              ..limit(1))
-            .getSingleOrNull();
-    final days = [
-      HarvestDay.tryParse(checkIn?.harvestDay),
-      HarvestDay.tryParse(expense?.harvestDay),
-    ].nonNulls.toList();
-    if (days.isNotEmpty) {
-      days.sort((a, b) => b.compareTo(a));
-      return days.first.compareTo(today) > 0 ? today : days.first;
-    }
+    final last = await _activity.lastActiveDay(upTo: today);
+    if (last != null) return last;
 
     final firstSeed =
         await (_db.select(_db.commitments)
@@ -556,17 +546,7 @@ class NotificationPlanner {
   }
 
   /// Anything logged on [day]: the comeback ladder's silencer.
-  Future<bool> _activeOn(HarvestDay day) async {
-    final checkIn =
-        await (_db.select(_db.checkIns)
-              ..where(
-                (c) => c.harvestDay.equals(day.key) & c.deletedAt.isNull(),
-              )
-              ..limit(1))
-            .getSingleOrNull();
-    if (checkIn != null) return true;
-    return _expensesLogged(day);
-  }
+  Future<bool> _activeOn(HarvestDay day) => _activity.activeOn(day);
 
   // --------------------------------------------------------------- helpers
 
@@ -585,18 +565,6 @@ class NotificationPlanner {
     final goal = await _streaks.dailyGoal();
     final actions = await _streaks.productiveActions(day);
     return actions >= goal;
-  }
-
-  Future<Map<String, int>> _paidByDebt() async {
-    final sum = _db.debtPayments.amountMinor.sum();
-    final query = _db.selectOnly(_db.debtPayments)
-      ..addColumns([_db.debtPayments.debtUuid, sum])
-      ..where(_db.debtPayments.deletedAt.isNull())
-      ..groupBy([_db.debtPayments.debtUuid]);
-    return {
-      for (final row in await query.get())
-        row.read(_db.debtPayments.debtUuid)!: row.read(sum) ?? 0,
-    };
   }
 
   Future<void> _cancelStored(String key) async {

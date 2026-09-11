@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/features/security/domain/app_lock.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -40,6 +41,7 @@ class WidgetCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final sections =
         ref.watch(widgetSectionsProvider).value ?? WidgetKeys.defaults;
+    final locked = ref.watch(appLockProvider).enabled;
 
     Future<void> toggle(String key, {required bool value}) async {
       await ref.read(settingsRepositoryProvider).setBool(key, value: value);
@@ -77,13 +79,22 @@ class WidgetCard extends ConsumerWidget {
               // than leaving it off the list would.
               onChanged: null,
             ),
+            // Money stays off the launcher while the lock is armed,
+            // whatever the switch says ([[Audit-v2-Beta]] S2-03): the
+            // switch is shown off and disabled so the promise is legible.
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.widgetSectionMoney),
-              subtitle: Text(l10n.widgetSectionMoneyBody),
-              value: sections[WidgetKeys.money] ?? true,
-              onChanged: (value) =>
-                  unawaited(toggle(WidgetKeys.money, value: value)),
+              subtitle: Text(
+                locked
+                    ? l10n.widgetSectionMoneyLocked
+                    : l10n.widgetSectionMoneyBody,
+              ),
+              value: !locked && (sections[WidgetKeys.money] ?? true),
+              onChanged: locked
+                  ? null
+                  : (value) =>
+                        unawaited(toggle(WidgetKeys.money, value: value)),
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

@@ -16,6 +16,7 @@ import 'package:harvest/features/gym/domain/session.dart';
 import 'package:harvest/features/gym/domain/session_finisher.dart';
 import 'package:harvest/features/gym/presentation/exercise_picker.dart';
 import 'package:harvest/features/gym/presentation/plate_sheet.dart';
+import 'package:harvest/features/gym/presentation/rest_field.dart';
 import 'package:harvest/features/gym/presentation/rest_timer.dart';
 import 'package:harvest/features/gym/presentation/set_row.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
@@ -102,14 +103,53 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           ],
         ),
         actions: [
+          // The clock is the pause button: tapping the time stops it,
+          // tapping it again starts it. A queue for the rack or a phone
+          // call is not training time ([[Checkpoint-6]]).
           Center(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(end: 4),
-              child: Text(
-                _clockLabel(elapsed),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                  color: scheme.onSurfaceVariant,
+            child: Tooltip(
+              message: session.paused ? l10n.gymResumeClock : l10n.gymPause,
+              child: Material(
+                color: session.paused
+                    ? scheme.tertiaryContainer
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => unawaited(_togglePause(session)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: HarvestSpacing.sm,
+                      vertical: HarvestSpacing.xs,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          session.paused
+                              ? Icons.play_arrow_rounded
+                              : Icons.pause_rounded,
+                          size: 20,
+                          color: session.paused
+                              ? scheme.onTertiaryContainer
+                              : scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          _clockLabel(elapsed),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontFeatures: const [
+                              FontFeature.tabularFigures(),
+                            ],
+                            fontWeight: session.paused ? FontWeight.w800 : null,
+                            color: session.paused
+                                ? scheme.onTertiaryContainer
+                                : scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -181,6 +221,16 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  Future<void> _togglePause(WorkoutSession session) async {
+    final repository = ref.read(sessionsRepositoryProvider);
+    await HarvestHaptics.tick();
+    if (session.paused) {
+      await repository.resume(session.uuid);
+    } else {
+      await repository.pause(session.uuid);
+    }
+  }
+
   Future<void> _sessionNote(WorkoutSession session) async {
     final l10n = AppLocalizations.of(context);
     final note = await promptForText(
@@ -206,11 +256,27 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   Future<void> _finish(WorkoutSession session) async {
     final l10n = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
+    // Sets on exercises I skipped were never going to happen; the
+    // rest are the ones worth a question.
+    final planned = session.exercises
+        .where((exercise) => !exercise.skipped)
+        .fold(0, (sum, exercise) => sum + exercise.sets.length);
+    final left = planned - session.doneSets;
     if (session.doneSets == 0) {
       final ok = await confirm(
         context,
         title: l10n.gymFinishEmptyTitle,
         body: l10n.gymFinishEmptyBody,
+        confirmLabel: l10n.gymFinish,
+      );
+      if (!ok) return;
+    } else if (left > 0) {
+      // Finishing is what checks the habit in, so leaving sets behind
+      // is a choice to make with the eyes open ([[Checkpoint-6]]).
+      final ok = await confirm(
+        context,
+        title: l10n.gymFinishIncompleteTitle,
+        body: l10n.gymFinishIncompleteBody(left, planned),
         confirmLabel: l10n.gymFinish,
       );
       if (!ok) return;
@@ -299,6 +365,10 @@ class _ExerciseCard extends ConsumerWidget {
         ? ref.watch(exerciseByIdProvider(exercise.plannedExerciseId!)).value
         : null;
     final last = ref.watch(lastTimeProvider(exercise.exerciseId)).value;
+    final records = ref
+        .watch(exerciseRecordsProvider(exercise.exerciseId))
+        .value;
+    final usesBar = named?.usesBar ?? false;
 
     return Card(
       margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
@@ -358,6 +428,19 @@ class _ExerciseCard extends ConsumerWidget {
                           ),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: scheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      // The record to beat, in the place the decision
+                      // is made — announcing a PR after the set is
+                      // only half the loop ([[Checkpoint-6]]).
+                      if (records?.heaviest != null)
+                        Text(
+                          _recordsLine(l10n, records!, unit),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: scheme.secondary,
+                            fontWeight: FontWeight.w700,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -430,13 +513,15 @@ class _ExerciseCard extends ConsumerWidget {
                   unit: unit,
                   onTicked: () =>
                       rest.start(exercise.restSeconds ?? defaultRestSeconds),
-                  onPlates: (grams) => unawaited(
-                    showPlates(
-                      context,
-                      targetGrams: grams,
-                      barGrams: exercise.barGrams,
-                    ),
-                  ),
+                  onPlates: usesBar
+                      ? (grams) => unawaited(
+                          showPlates(
+                            context,
+                            targetGrams: grams,
+                            barGrams: exercise.barGrams,
+                          ),
+                        )
+                      : null,
                 ),
               Align(
                 alignment: AlignmentDirectional.centerStart,
@@ -453,6 +538,26 @@ class _ExerciseCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// `Best: 100 kg×5 · est. 116 kg` — the heaviest set and the best
+  /// estimated single, the estimate labelled as one (rule Y6).
+  static String _recordsLine(
+    AppLocalizations l10n,
+    ExerciseRecords records,
+    WeightUnit unit,
+  ) {
+    final heaviest = records.heaviest!;
+    final parts = [
+      '${formatLoad(heaviest.weightGrams, unit)}×${heaviest.reps}',
+      // Rounded like a load (rule Y8): an estimate to two decimals is
+      // precision it does not have.
+      if (records.bestSetEstimate != null)
+        l10n.gymBestEstimate(
+          formatLoad(roundLoad(records.bestSetEstimate!), unit),
+        ),
+    ];
+    return l10n.gymBestLine(parts.join(' · '));
   }
 
   Future<void> _swap(BuildContext context, WidgetRef ref) async {
@@ -472,17 +577,9 @@ class _ExerciseCard extends ConsumerWidget {
       builder: (sheetContext) => HarvestSheet(
         title: l10n.gymRest,
         children: [
-          Wrap(
-            spacing: HarvestSpacing.sm,
-            runSpacing: HarvestSpacing.sm,
-            children: [
-              for (final seconds in restChoices)
-                ChoiceChip(
-                  label: Text(l10n.gymRestSeconds(seconds)),
-                  selected: seconds == current,
-                  onSelected: (_) => Navigator.of(sheetContext).pop(seconds),
-                ),
-            ],
+          RestField(
+            seconds: current,
+            onChanged: (seconds) => Navigator.of(sheetContext).pop(seconds),
           ),
           const SizedBox(height: HarvestSpacing.sm),
         ],

@@ -385,15 +385,8 @@ class GalleryRepository {
 
   Future<File> fileOf(Memory memory) => _storage.fileOf(memory.path);
 
-  Future<void> _outbox(String table, String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: table,
-          rowUuid: rowUuid,
-          op: op,
-        ),
-      );
+  Future<void> _outbox(String table, String rowUuid, String op) =>
+      _db.logChange(table, rowUuid, op);
 
   static Album _toAlbum(AlbumRow row) {
     Schedule? schedule;

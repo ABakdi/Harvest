@@ -15,15 +15,18 @@ years — but it only covers one narrow slice of a life, and the bar never
 moves. Here the bar is mine to raise, and the streak is fed by whatever
 I decide matters this month.
 
-**Status: v1.1 — notes, a gallery, and an archive that comes back.** The
-productivity core and the finances are in daily use behind an optional
-lock; on top of them sit a markdown vault, photo albums that count
-toward your streak, and — for the first time — an export that imports.
-Grab it from the [releases page](https://github.com/ABakdi/Harvest/releases).
+**Status: v2.0 beta — the body half.** The productivity core, the
+finances, a markdown vault and photo albums are in daily use behind an
+optional lock, and v2 adds a training log — programs, sessions,
+personal records — with sleep, steps and body weight beside it. Grab
+it from the [releases page](https://github.com/ABakdi/Harvest/releases).
 
-Next up is [Phase 4](docs/03-Planning/Phase-4-Health-and-Gym.md): steps,
-body weight, and a real training log — programs, sessions and personal
-records — plus the sleep alarm.
+The beta is being lived in; [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
+is the first week's findings, fixed, and the
+[second audit](docs/06-Audit/Audit-v2-Beta.md) read the whole of the
+new half and fixed what it found — both ship as `v2.0.0-beta.2`. Next
+is `v2.0.0` proper, then
+[Phase 5](docs/03-Planning/Phase-5-Screen-Time.md): screen time.
 
 ## Table of contents
 
@@ -85,6 +88,14 @@ records — plus the sleep alarm.
 - **The lock and the export** — the whole app behind your phone's own
   fingerprint or PIN, and one tap to drop every row into a spreadsheet
   in Downloads with the totals as live formulas.
+- **The Body** — a training log built for one hand between sets:
+  programs with days and target sets (a weight, a % of a training max,
+  or an open `1+`), a session screen where a set that went to plan is
+  one tap, a rest timer you can type, a clock that pauses, the record
+  to beat on every exercise, and days that go round. Beside it, last
+  night written down in eight seconds with a sleep-debt gauge, steps
+  from the phone's own health store, and a weight chart that shows the
+  trend and never judges it.
 - **Five looks, two languages** — Harvest, Sunrise, Ocean, Orchard, and
   Dusk presets, each light and dark, in English and Arabic with full RTL.
 
@@ -165,8 +176,8 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Phase 0 — Foundation](docs/03-Planning/Phase-0-Foundation.md) | Scaffold, design system, l10n, DB ✅ |
 | [Phase 1 — Productivity Core](docs/03-Planning/Phase-1-Productivity-Core.md) | The MVP ✅ |
 | [Phase 2 — Finances](docs/03-Planning/Phase-2-Finances.md) | Expenses, budgets, gauge ✅ |
-| [Phase 3 — Notes, Gallery and the Archive](docs/03-Planning/Phase-3-Notes-and-Gallery.md) | Markdown notes, photo albums, the zip archive and its importer ← **next** |
-| [Phase 4 — Health and Gym](docs/03-Planning/Phase-4-Health-and-Gym.md) | Sleep alarm and debt, workouts |
+| [Phase 3 — Notes, Gallery and the Archive](docs/03-Planning/Phase-3-Notes-and-Gallery.md) | Markdown notes, photo albums, the zip archive and its importer ✅ |
+| [Phase 4 — Health and Gym](docs/03-Planning/Phase-4-Health-and-Gym.md) | Steps, weight, the training log, sleep ← **in beta** |
 | [Phase 5 — Screen Time](docs/03-Planning/Phase-5-Screen-Time.md) | Usage caps, interventions |
 | [Phase 6 — Sync and Social](docs/03-Planning/Phase-6-Sync-and-Social.md) | Accounts, sync, rankings, iOS |
 
@@ -178,6 +189,8 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Checkpoint 2](docs/05-Checkpoints/Checkpoint-2.md) | The app lock and the spreadsheet export |
 | [Checkpoint 3](docs/05-Checkpoints/Checkpoint-3.md) | Eleven things a fortnight of living with it turned up |
 | [Checkpoint 4](docs/05-Checkpoints/Checkpoint-4.md) | Numbers on the charts, filterable money, and a day that keeps my hours |
+| [Checkpoint 5](docs/05-Checkpoints/Checkpoint-5.md) | Records under one tab, and an editor worth writing in |
+| [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md) | Steps that count, one way to split a screen, and a gym that knows what day it is |
 
 ### Audit
 
@@ -187,6 +200,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Security Audit](docs/06-Audit/Security-Audit.md) | Android surface, data at rest, backups, notifications, inputs, signing |
 | [Code Quality Audit](docs/06-Audit/Code-Quality-Audit.md) | Correctness, error handling, state management, duplication, tests |
 | [UX Audit](docs/06-Audit/UX-Audit.md) | Every screen, component by component: keep, simplify, merge, remove |
+| [Audit 2 — the v2 beta](docs/06-Audit/Audit-v2-Beta.md) | Business logic, what the specs never said, code quality and security, read again on the v2 beta |
 
 ### Decisions
 
@@ -295,7 +309,7 @@ test/             unit, migration, and golden tests
 | 2 — Finances | Expense quick-log, budgets, gauge, vault | ✅ |
 | — | Four checkpoints: calendar, app lock, export, seed notes and history, the archive, the comeback ladder, the widget, the daily cycle | ✅ **v1.0** |
 | 3 — Notes, Gallery & the Archive | Markdown notes with links; photo albums that are seeds; the zip archive **and an importer** | ✅ **v1.1** |
-| 4 — Health & the Gym | Steps, body weight, and a training log — programs, sessions, personal records — plus the sleep alarm | next |
+| 4 — Health & the Gym | Steps, body weight, and a training log — programs, sessions, personal records — plus the sleep alarm | **v2.0 beta** |
 | 5 — Screen Time | Usage caps, weed-pull interventions | |
 | 6 — Sync & Social | Accounts, MongoDB sync, rankings, iOS polish | |
 

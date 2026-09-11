@@ -446,3 +446,92 @@ final class ExerciseHistoryFamily extends $Family
   @override
   String toString() => r'exerciseHistoryProvider';
 }
+
+/// The day of a program that is up next — re-derived when the program
+/// changes and whenever a session ends.
+
+@ProviderFor(nextDay)
+final nextDayProvider = NextDayFamily._();
+
+/// The day of a program that is up next — re-derived when the program
+/// changes and whenever a session ends.
+
+final class NextDayProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<ProgramDay?>,
+          ProgramDay?,
+          Stream<ProgramDay?>
+        >
+    with $FutureModifier<ProgramDay?>, $StreamProvider<ProgramDay?> {
+  /// The day of a program that is up next — re-derived when the program
+  /// changes and whenever a session ends.
+  NextDayProvider._({
+    required NextDayFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'nextDayProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$nextDayHash();
+
+  @override
+  String toString() {
+    return r'nextDayProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<ProgramDay?> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<ProgramDay?> create(Ref ref) {
+    final argument = this.argument as String;
+    return nextDay(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is NextDayProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$nextDayHash() => r'2990b1b90e3e9bff2975b1fbbe86a9ea1344081e';
+
+/// The day of a program that is up next — re-derived when the program
+/// changes and whenever a session ends.
+
+final class NextDayFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<ProgramDay?>, String> {
+  NextDayFamily._()
+    : super(
+        retry: null,
+        name: r'nextDayProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The day of a program that is up next — re-derived when the program
+  /// changes and whenever a session ends.
+
+  NextDayProvider call(String programUuid) =>
+      NextDayProvider._(argument: programUuid, from: this);
+
+  @override
+  String toString() => r'nextDayProvider';
+}

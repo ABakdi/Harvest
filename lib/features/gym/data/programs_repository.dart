@@ -244,6 +244,7 @@ class ProgramsRepository {
             accessories: Value(accessories),
           ),
         );
+    await _outbox('program_days', uuid, 'insert');
     return ProgramDay(
       uuid: uuid,
       programUuid: programUuid,
@@ -259,13 +260,18 @@ class ProgramsRepository {
     String? name,
     String? accessories,
     int? week,
-  }) => (_db.update(_db.programDays)..where((d) => d.uuid.equals(uuid))).write(
-    ProgramDaysCompanion(
-      name: name == null ? const Value.absent() : Value(name.trim()),
-      accessories: Value(accessories),
-      week: week == null ? const Value.absent() : Value(week),
-    ),
-  );
+  }) => _db.transaction(() async {
+    await (_db.update(
+      _db.programDays,
+    )..where((d) => d.uuid.equals(uuid))).write(
+      ProgramDaysCompanion(
+        name: name == null ? const Value.absent() : Value(name.trim()),
+        accessories: Value(accessories),
+        week: week == null ? const Value.absent() : Value(week),
+      ),
+    );
+    await _outbox('program_days', uuid, 'update');
+  });
 
   Future<void> removeDay(String uuid) => _db.transaction(() async {
     final slots = await (_db.select(
@@ -280,6 +286,7 @@ class ProgramsRepository {
       _db.programSlots,
     )..where((s) => s.dayUuid.equals(uuid))).go();
     await (_db.delete(_db.programDays)..where((d) => d.uuid.equals(uuid))).go();
+    await _outbox('program_days', uuid, 'delete');
   });
 
   /// Copies a day, sets and all — the fastest way to write a program,
@@ -338,6 +345,7 @@ class ProgramsRepository {
             barGrams: Value(barGrams),
           ),
         );
+    await _outbox('program_slots', uuid, 'insert');
     return ProgramSlot(
       uuid: uuid,
       dayUuid: dayUuid,
@@ -354,14 +362,21 @@ class ProgramsRepository {
     int? restSeconds,
     int? barGrams,
     String? note,
-  }) => (_db.update(_db.programSlots)..where((s) => s.uuid.equals(uuid))).write(
-    ProgramSlotsCompanion(
-      exerciseId: exerciseId == null ? const Value.absent() : Value(exerciseId),
-      restSeconds: Value(restSeconds),
-      barGrams: barGrams == null ? const Value.absent() : Value(barGrams),
-      note: Value(note),
-    ),
-  );
+  }) => _db.transaction(() async {
+    await (_db.update(
+      _db.programSlots,
+    )..where((s) => s.uuid.equals(uuid))).write(
+      ProgramSlotsCompanion(
+        exerciseId: exerciseId == null
+            ? const Value.absent()
+            : Value(exerciseId),
+        restSeconds: Value(restSeconds),
+        barGrams: barGrams == null ? const Value.absent() : Value(barGrams),
+        note: Value(note),
+      ),
+    );
+    await _outbox('program_slots', uuid, 'update');
+  });
 
   Future<void> removeSlot(String uuid) => _db.transaction(() async {
     await (_db.delete(
@@ -370,6 +385,7 @@ class ProgramsRepository {
     await (_db.delete(
       _db.programSlots,
     )..where((s) => s.uuid.equals(uuid))).go();
+    await _outbox('program_slots', uuid, 'delete');
   });
 
   /// Reorders the slots of a day to the given uuids, in that order.
@@ -377,6 +393,7 @@ class ProgramsRepository {
     for (final (index, uuid) in uuids.indexed) {
       await (_db.update(_db.programSlots)..where((s) => s.uuid.equals(uuid)))
           .write(ProgramSlotsCompanion(position: Value(index)));
+      await _outbox('program_slots', uuid, 'update');
     }
   });
 
@@ -411,61 +428,74 @@ class ProgramsRepository {
     bool? openEnded,
     bool clearWeight = false,
     bool clearPercent = false,
-  }) => (_db.update(_db.targetSets)..where((t) => t.uuid.equals(uuid))).write(
-    TargetSetsCompanion(
-      reps: Value(reps),
-      weightGrams: clearWeight
-          ? const Value(null)
-          : weightGrams == null
-          ? const Value.absent()
-          : Value(weightGrams),
-      percentTenths: clearPercent
-          ? const Value(null)
-          : percentTenths == null
-          ? const Value.absent()
-          : Value(percentTenths),
-      openEnded: openEnded == null ? const Value.absent() : Value(openEnded),
-    ),
-  );
+  }) => _db.transaction(() async {
+    await (_db.update(_db.targetSets)..where((t) => t.uuid.equals(uuid))).write(
+      TargetSetsCompanion(
+        reps: Value(reps),
+        weightGrams: clearWeight
+            ? const Value(null)
+            : weightGrams == null
+            ? const Value.absent()
+            : Value(weightGrams),
+        percentTenths: clearPercent
+            ? const Value(null)
+            : percentTenths == null
+            ? const Value.absent()
+            : Value(percentTenths),
+        openEnded: openEnded == null ? const Value.absent() : Value(openEnded),
+      ),
+    );
+    await _outbox('target_sets', uuid, 'update');
+  });
 
-  Future<void> removeTargetSet(String uuid) =>
-      (_db.delete(_db.targetSets)..where((t) => t.uuid.equals(uuid))).go();
+  Future<void> removeTargetSet(String uuid) => _db.transaction(() async {
+    await (_db.delete(_db.targetSets)..where((t) => t.uuid.equals(uuid))).go();
+    await _outbox('target_sets', uuid, 'delete');
+  });
 
   Future<void> setTrainingMax({
     required String programUuid,
     required String exerciseId,
     required int grams,
-  }) => _db
-      .into(_db.trainingMaxes)
-      .insertOnConflictUpdate(
-        TrainingMaxesCompanion.insert(
-          programUuid: programUuid,
-          exerciseId: exerciseId,
-          grams: grams,
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+  }) => _db.transaction(() async {
+    await _db
+        .into(_db.trainingMaxes)
+        .insertOnConflictUpdate(
+          TrainingMaxesCompanion.insert(
+            programUuid: programUuid,
+            exerciseId: exerciseId,
+            grams: grams,
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+    await _outbox('training_maxes', '$programUuid/$exerciseId', 'update');
+  });
 
   /// [uuid] overrides the set's own, which is what a copy needs.
-  Future<void> _insertSet(String slotUuid, TargetSet set, {String? uuid}) => _db
-      .into(_db.targetSets)
-      .insert(
-        TargetSetsCompanion.insert(
-          uuid: uuid ?? set.uuid,
-          slotUuid: slotUuid,
-          position: set.position,
-          reps: Value(set.reps),
-          weightGrams: Value(set.weightGrams),
-          percentTenths: Value(set.percentTenths),
-          openEnded: Value(set.openEnded),
-        ),
-      );
+  Future<void> _insertSet(
+    String slotUuid,
+    TargetSet set, {
+    String? uuid,
+  }) async {
+    final id = uuid ?? set.uuid;
+    await _db
+        .into(_db.targetSets)
+        .insert(
+          TargetSetsCompanion.insert(
+            uuid: id,
+            slotUuid: slotUuid,
+            position: set.position,
+            reps: Value(set.reps),
+            weightGrams: Value(set.weightGrams),
+            percentTenths: Value(set.percentTenths),
+            openEnded: Value(set.openEnded),
+          ),
+        );
+    await _outbox('target_sets', id, 'insert');
+  }
 
-  Future<void> _outbox(String table, String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(targetTable: table, rowUuid: rowUuid, op: op),
-      );
+  Future<void> _outbox(String table, String rowUuid, String op) =>
+      _db.logChange(table, rowUuid, op);
 }
 
 @Riverpod(keepAlive: true)

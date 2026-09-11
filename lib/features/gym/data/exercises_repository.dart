@@ -70,15 +70,8 @@ class ExercisesRepository {
     await _outbox(uuid, 'update');
   });
 
-  Future<void> _outbox(String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: 'exercises',
-          rowUuid: rowUuid,
-          op: op,
-        ),
-      );
+  Future<void> _outbox(String rowUuid, String op) =>
+      _db.logChange('exercises', rowUuid, op);
 
   static Exercise _toDomain(ExerciseRow row) => Exercise(
     id: row.uuid,

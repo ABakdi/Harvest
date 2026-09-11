@@ -95,15 +95,7 @@ class FinancesRepository {
               icon: icon,
             ),
           );
-      await _db
-          .into(_db.outbox)
-          .insert(
-            OutboxCompanion.insert(
-              targetTable: 'expense_categories',
-              rowUuid: uuid,
-              op: 'insert',
-            ),
-          );
+      await _db.logChange('expense_categories', uuid, 'insert');
     });
   }
 
@@ -116,15 +108,7 @@ class FinancesRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
-    await _db
-        .into(_db.outbox)
-        .insert(
-          OutboxCompanion.insert(
-            targetTable: 'expense_categories',
-            rowUuid: uuid,
-            op: 'delete',
-          ),
-        );
+    await _db.logChange('expense_categories', uuid, 'delete');
   });
 
   /// Smart repeats: an (amount, category) pair logged on each of the
@@ -194,26 +178,7 @@ class FinancesRepository {
             ),
           );
       await _appendOutbox(uuid, 'insert');
-
-      final reason = 'expenses:${harvestDay.key}';
-      final existing =
-          await (_db.select(_db.ledger)
-                ..where((l) => l.reason.equals(reason))
-                ..limit(1))
-              .getSingleOrNull();
-      if (existing == null) {
-        await _db
-            .into(_db.ledger)
-            .insert(
-              LedgerCompanion.insert(
-                uuid: _uuid.v4(),
-                kind: 'xp',
-                delta: expenseLogXp,
-                reason: reason,
-                harvestDay: harvestDay.key,
-              ),
-            );
-      }
+      await _payDayIfUnpaid(harvestDay);
     });
     return uuid;
   }
@@ -253,7 +218,15 @@ class FinancesRepository {
   }
 
   /// Same-day correction: soft-deletes the entry (history stays truthful).
+  ///
+  /// The day's +10 was paid for logging *something*; when the last
+  /// expense of the day goes, so does the payment — with a mirror
+  /// row, the way an undone check-in reverses its XP, so the ledger
+  /// stays a sum of true events ([[Audit-v2-Beta]] B-06).
   Future<void> remove(String uuid) => _db.transaction(() async {
+    final row = await (_db.select(
+      _db.expenses,
+    )..where((e) => e.uuid.equals(uuid))).getSingleOrNull();
     await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid))).write(
       ExpensesCompanion(
         deletedAt: Value(DateTime.now()),
@@ -261,10 +234,18 @@ class FinancesRepository {
       ),
     );
     await _appendOutbox(uuid, 'delete');
+    if (row != null) {
+      final day = HarvestDay.tryParse(row.harvestDay);
+      if (day != null && !await _anyLiveOn(day)) await _takeDayBack(day);
+    }
   });
 
-  /// Puts back an entry removed by mistake (the Undo in the snackbar).
+  /// Puts back an entry removed by mistake (the Undo in the snackbar),
+  /// and the day's XP with it if the removal took it.
   Future<void> restore(String uuid) => _db.transaction(() async {
+    final row = await (_db.select(
+      _db.expenses,
+    )..where((e) => e.uuid.equals(uuid))).getSingleOrNull();
     await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid))).write(
       ExpensesCompanion(
         deletedAt: const Value(null),
@@ -272,7 +253,68 @@ class FinancesRepository {
       ),
     );
     await _appendOutbox(uuid, 'update');
+    if (row != null) {
+      final day = HarvestDay.tryParse(row.harvestDay);
+      if (day != null) await _payDayIfUnpaid(day);
+    }
   });
+
+  // -------------------------------------------------------- the day's XP
+
+  /// What the day's expense XP nets to: the payment less any reversal.
+  /// Zero means unpaid — either never, or paid and taken back.
+  Future<int> _dayXpNet(HarvestDay day) async {
+    final sum = _db.ledger.delta.sum();
+    final query = _db.selectOnly(_db.ledger)
+      ..addColumns([sum])
+      ..where(
+        _db.ledger.reason.equals('expenses:${day.key}') |
+            _db.ledger.reason.equals('expenses-undo:${day.key}'),
+      );
+    return (await query.getSingle()).read(sum) ?? 0;
+  }
+
+  Future<void> _payDayIfUnpaid(HarvestDay day) async {
+    if (await _dayXpNet(day) != 0) return;
+    await _db
+        .into(_db.ledger)
+        .insert(
+          LedgerCompanion.insert(
+            uuid: _uuid.v4(),
+            kind: 'xp',
+            delta: expenseLogXp,
+            reason: 'expenses:${day.key}',
+            harvestDay: day.key,
+          ),
+        );
+  }
+
+  Future<void> _takeDayBack(HarvestDay day) async {
+    final net = await _dayXpNet(day);
+    if (net <= 0) return;
+    await _db
+        .into(_db.ledger)
+        .insert(
+          LedgerCompanion.insert(
+            uuid: _uuid.v4(),
+            kind: 'xp',
+            delta: -net,
+            reason: 'expenses-undo:${day.key}',
+            harvestDay: day.key,
+          ),
+        );
+  }
+
+  Future<bool> _anyLiveOn(HarvestDay day) async {
+    final row =
+        await (_db.select(_db.expenses)
+              ..where(
+                (e) => e.harvestDay.equals(day.key) & e.deletedAt.isNull(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
 
   /// One expense by uuid, deleted or not — the undo path needs it.
   Future<Expense?> byUuid(String uuid) async {
@@ -284,22 +326,18 @@ class FinancesRepository {
     return row == null ? null : _toDomain(row);
   }
 
-  Future<void> _appendOutbox(String uuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: 'expenses',
-          rowUuid: uuid,
-          op: op,
-        ),
-      );
+  Future<void> _appendOutbox(String uuid, String op) =>
+      _db.logChange('expenses', uuid, op);
 
   Expense _toDomain(ExpenseRow row) => Expense(
     uuid: row.uuid,
     amountMinor: row.amountMinor,
     currency: Currency.fromCode(row.currency),
     category: row.category,
-    day: HarvestDay.parse(row.harvestDay),
+    // A key nobody can read — an edited archive cell — falls back to the
+    // day the row was logged on, rather than taking the whole stream
+    // down with it ([[Audit-v2-Beta]] Q2-01).
+    day: HarvestDay.tryParse(row.harvestDay) ?? HarvestDay.of(row.loggedAt),
     loggedAt: row.loggedAt,
     note: row.note,
   );

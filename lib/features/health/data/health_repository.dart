@@ -9,6 +9,13 @@ import 'package:uuid/uuid.dart';
 
 part 'health_repository.g.dart';
 
+/// What a logged weight pays, once a day at most ([[Gamification]]).
+const weightXp = 5;
+
+/// What meeting the step goal pays, once a day, and only once a goal
+/// has been asked for ([[Health]]).
+const stepGoalXp = 5;
+
 /// Weights and steps.
 class HealthRepository {
   HealthRepository(this._db);
@@ -51,6 +58,13 @@ class HealthRepository {
             ),
           );
       await _outbox('body_weights', weight.uuid, 'insert');
+      // A second weigh-in the same day is a second fact, not a second
+      // payment.
+      await _payOnce(
+        reason: 'weight:${weight.day.key}',
+        xp: weightXp,
+        day: weight.day,
+      );
     });
     return weight;
   }
@@ -137,35 +151,75 @@ class HealthRepository {
     return row?.lastCounter;
   }
 
-  Future<void> saveStepDay(StepDay day) => _db
-      .into(_db.stepDays)
-      .insertOnConflictUpdate(
-        StepDaysCompanion.insert(
-          harvestDay: day.day.key,
-          steps: Value(day.steps),
-          lastCounter: Value(day.lastCounter),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+  Future<void> saveStepDay(StepDay day) => saveStepDays([day]);
+
+  /// Writes a run of days in one go — a month of Health Connect totals
+  /// arrives as one list and should land as one transaction.
+  Future<void> saveStepDays(Iterable<StepDay> days) =>
+      _db.transaction(() async {
+        for (final day in days) {
+          await _db
+              .into(_db.stepDays)
+              .insertOnConflictUpdate(
+                StepDaysCompanion.insert(
+                  harvestDay: day.day.key,
+                  steps: Value(day.steps),
+                  lastCounter: Value(day.lastCounter),
+                  updatedAt: Value(DateTime.now()),
+                ),
+              );
+        }
+      });
+
+  /// Pays the step goal for [day] if it has been met and not yet paid.
+  /// Returns whether it paid. A goal of zero is no goal, and pays
+  /// nothing: the number is shown before a goal is ever asked for.
+  Future<bool> payStepGoal(HarvestDay day, {required int goal}) async {
+    if (goal <= 0) return false;
+    final steps = await stepsOn(day);
+    if (steps.steps < goal) return false;
+    return _payOnce(reason: 'steps:${day.key}', xp: stepGoalXp, day: day);
+  }
+
+  /// One ledger row per [reason], ever. Returns whether one was added.
+  Future<bool> _payOnce({
+    required String reason,
+    required int xp,
+    required HarvestDay day,
+  }) async {
+    final paid = await (_db.select(
+      _db.ledger,
+    )..where((l) => l.reason.equals(reason))).getSingleOrNull();
+    if (paid != null) return false;
+    await _db
+        .into(_db.ledger)
+        .insert(
+          LedgerCompanion.insert(
+            uuid: _uuid.v4(),
+            kind: 'xp',
+            delta: xp,
+            reason: reason,
+            harvestDay: day.key,
+          ),
+        );
+    return true;
+  }
 
   // ---------------------------------------------------------------------
 
-  Future<void> _outbox(String table, String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(targetTable: table, rowUuid: rowUuid, op: op),
-      );
+  Future<void> _outbox(String table, String rowUuid, String op) =>
+      _db.logChange(table, rowUuid, op);
 
   static BodyWeight _toWeight(BodyWeightRow row) => BodyWeight(
     uuid: row.uuid,
     grams: row.grams,
-    day: HarvestDay.parse(row.harvestDay),
+    day: HarvestDay.tryParse(row.harvestDay) ?? HarvestDay.of(row.measuredAt),
     measuredAt: row.measuredAt,
     note: row.note,
   );
 
   static StepDay _toStepDay(StepDayRow row) => StepDay(
-    day: HarvestDay.parse(row.harvestDay),
+    day: HarvestDay.tryParse(row.harvestDay) ?? HarvestDay.of(row.updatedAt),
     steps: row.steps,
     lastCounter: row.lastCounter,
   );

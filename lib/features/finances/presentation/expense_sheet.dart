@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
@@ -9,10 +10,12 @@ import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
+import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/finance_actions.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
+import 'package:harvest/features/finances/presentation/amount_keypad.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -109,6 +112,10 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   @override
   void initState() {
     super.initState();
+    // The keypad writes to the controller, and a controller set
+    // programmatically never calls the field's onChanged — the same
+    // lesson the note editor's toolbar taught ([[Checkpoint-5]]).
+    _amountController.addListener(_onAmountChanged);
     final existing = widget.existing;
     if (existing != null) {
       _amountController.text = formatMinor(existing.amountMinor);
@@ -146,14 +153,25 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       (_walletChoice ?? _walletCanCover) &&
       (_walletCanCover || _walletChoice == true);
 
+  void _onAmountChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
-    _amountController.dispose();
+    _amountController
+      ..removeListener(_onAmountChanged)
+      ..dispose();
     _noteController.dispose();
     super.dispose();
   }
 
-  int? get _amountMinor => parseToMinor(_amountController.text);
+  /// The amount, or what the sum in the box comes to — a receipt is
+  /// three things and a coffee, and adding it up is the app's job
+  /// ([[Checkpoint-6]]).
+  int? get _amountMinor => evaluateAmountToMinor(_amountController.text);
+
+  bool get _isSum => isAmountExpression(_amountController.text);
 
   /// Logs (or edits) the expense in one transaction, wallet movement
   /// included, and reports a failure instead of pretending it saved.
@@ -263,12 +281,18 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       actionLabel: l10n.log,
       onAction: _amountMinor == null ? null : () => unawaited(_log()),
       children: [
+        // Read-only to the system: the keypad below is the keyboard,
+        // and the phone's own must not slide up over it. The caret
+        // still shows and still moves, so a wrong digit mid-sum is a
+        // tap away.
         TextField(
           controller: _amountController,
           autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-          ),
+          readOnly: true,
+          showCursor: true,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(amountCharacters),
+          ],
           onChanged: (_) => setState(() {}),
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
@@ -276,9 +300,23 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           decoration: InputDecoration(
             labelText: l10n.amountLabel,
             prefixText: '${currency.symbol} ',
+            // What the sum comes to, live, so Log never logs a surprise.
+            helperText: !_isSum
+                ? null
+                : _amountMinor == null
+                ? l10n.amountSumIncomplete
+                : l10n.amountSum(formatAmount(_amountMinor!, currency)),
+            helperStyle: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: _amountMinor == null
+                  ? theme.colorScheme.onSurfaceVariant
+                  : theme.colorScheme.primary,
+            ),
           ),
         ),
         const SizedBox(height: HarvestSpacing.sm),
+        AmountKeypad(controller: _amountController),
+        const SizedBox(height: HarvestSpacing.xs),
         // Per-expense currency (checkpoint P4).
         SegmentedButton<Currency>(
           segments: [

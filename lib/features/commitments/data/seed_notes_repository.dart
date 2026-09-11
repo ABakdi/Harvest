@@ -107,15 +107,8 @@ class SeedNotesRepository {
     await _appendOutbox(uuid, 'delete');
   });
 
-  Future<void> _appendOutbox(String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: 'seed_notes',
-          rowUuid: rowUuid,
-          op: op,
-        ),
-      );
+  Future<void> _appendOutbox(String rowUuid, String op) =>
+      _db.logChange('seed_notes', rowUuid, op);
 
   static SeedNote? _toDomain(SeedNoteRow row) {
     final day = HarvestDay.tryParse(row.harvestDay);

@@ -426,6 +426,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get amountLabel => 'Amount';
 
   @override
+  String amountSum(String value) {
+    return '= $value';
+  }
+
+  @override
+  String get amountSumIncomplete => 'Finish the sum to log it';
+
+  @override
+  String get amountKeyBackspace => 'Delete';
+
+  @override
+  String get amountKeyClear => 'Clear';
+
+  @override
   String get noteLabel => 'Note (optional)';
 
   @override
@@ -741,6 +755,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get debtPay => 'Pay';
+
+  @override
+  String get debtPaymentRemoveTitle => 'Remove this payment?';
+
+  @override
+  String get debtPaymentRemoveBody =>
+      'What it took from the wallet comes back, and the debt reopens if this had settled it. Undo is in the bar for a moment after.';
 
   @override
   String get debtSettled => 'Settled 🎉';
@@ -1448,6 +1469,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetSectionMoneyBody => 'Today\'s spend and your wallet balance';
+
+  @override
+  String get widgetSectionMoneyLocked =>
+      'Hidden while the app lock is on — the home screen is not behind it';
 
   @override
   String get widgetSectionTasks => 'Today\'s field';
@@ -2195,7 +2220,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featureHealthHint =>
-      'Steps from the phone\'s own sensor, and a body weight whenever you stand on the scale.';
+      'Sleep, steps read from the phone\'s own health store, and a body weight whenever you stand on the scale.';
 
   @override
   String get featureGym => 'Gym';
@@ -2218,6 +2243,80 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get stepsPassive =>
       'The phone counts these. They never check a seed in and never break a streak.';
+
+  @override
+  String get stepsSource => 'Where the steps come from';
+
+  @override
+  String get stepsFromHealthConnect =>
+      'From Health Connect — the phone\'s own step store, so this matches your health app.';
+
+  @override
+  String get stepsFromSensor =>
+      'From the phone\'s step counter, read when the app is open.';
+
+  @override
+  String get stepsConnect => 'Connect';
+
+  @override
+  String get stepsConnectTitle => 'Read steps from the phone';
+
+  @override
+  String get stepsConnectBody =>
+      'Harvest reads the daily total from the phone\'s own health store. Nothing is sent anywhere and no account is involved.';
+
+  @override
+  String get stepsConnectSensorBody =>
+      'Harvest reads the phone\'s step counter while the app is open. Nothing is sent anywhere.';
+
+  @override
+  String get stepsDenied =>
+      'Not allowed yet. Tap Connect to ask again, or allow it from Health Connect\'s settings.';
+
+  @override
+  String get stepsUnavailable => 'This phone has nowhere to read steps from.';
+
+  @override
+  String get stepsInstallHealthConnect => 'Get Health Connect';
+
+  @override
+  String get stepsOpenHealthConnect => 'Health Connect settings';
+
+  @override
+  String get stepsRefresh => 'Refresh';
+
+  @override
+  String get stepsGoal => 'Daily step goal';
+
+  @override
+  String get stepsGoalHint =>
+      'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.';
+
+  @override
+  String get stepsGoalNone => 'No goal';
+
+  @override
+  String get stepsGoalMet => 'Goal met';
+
+  @override
+  String get stepsSettings => 'Steps';
+
+  @override
+  String get stepsStride => 'Stride length';
+
+  @override
+  String get stepsStrideHint =>
+      'About 0.415 × your height. 75 cm is a fair guess; a tape measure is better.';
+
+  @override
+  String stepsDistanceKm(String value) {
+    return '$value km';
+  }
+
+  @override
+  String stepsDistanceMi(String value) {
+    return '$value mi';
+  }
 
   @override
   String get weightTitle => 'Weight';
@@ -2709,6 +2808,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gymRestSkip => 'Done resting';
+
+  @override
+  String get gymRestCustom => 'Or type it';
+
+  @override
+  String get gymRestCustomHint => 'seconds';
+
+  @override
+  String get gymRestNone => 'No timer';
+
+  @override
+  String get gymPause => 'Pause the clock';
+
+  @override
+  String get gymResumeClock => 'Start the clock';
+
+  @override
+  String get gymPaused => 'Paused';
+
+  @override
+  String get gymUpNext => 'Up next';
+
+  @override
+  String get gymOtherDays => 'Or another day';
+
+  @override
+  String gymNextDay(String day) {
+    return 'Next: $day';
+  }
+
+  @override
+  String get gymFinishIncompleteTitle => 'Finish with sets left?';
+
+  @override
+  String gymFinishIncompleteBody(int left, int total) {
+    return '$left of $total sets are not ticked. The session ends here and the gym habit is checked in as done for today.';
+  }
+
+  @override
+  String gymBestLine(String sets) {
+    return 'Best: $sets';
+  }
+
+  @override
+  String gymBestEstimate(String weight) {
+    return 'est. $weight';
+  }
 
   @override
   String gymPerSide(String bar) {

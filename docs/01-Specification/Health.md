@@ -80,9 +80,11 @@ formula ([[Business-Rules]] #3):
   which is copied into the row when the night is written down. Moving
   my bedtime in March must not rewrite February.
 
-The window is fourteen nights: long enough for a bad run to show,
-short enough that a bad month in the spring is not still being held
-against me in the summer.
+The window is fourteen **calendar** nights ending today: long enough
+for a bad run to show, short enough that a bad month in the spring is
+not still being held against me in the summer — and a fortnight of
+unlogged nights clears the slate rather than freezing it, because the
+window moves whether or not I write ([[Audit-v2-Beta]] N-06).
 
 ---
 
@@ -93,34 +95,50 @@ already counting.
 
 ### Where the number comes from
 
-Android's own **step counter sensor** (`TYPE_STEP_COUNTER`), read
-directly. Not Google Fit, not Health Connect, not an account:
+The phone's own **health store** first — Health Connect, which is
+where Samsung Health, Fit and the Pixel's own counter all write — and
+the raw **step counter sensor** (`TYPE_STEP_COUNTER`) on a phone that
+has no store ([[Checkpoint-6]] revised this; the first cut read the
+sensor only, and in fact read nothing).
 
-- **No network, no account, no third party.** Reading a sensor keeps
-  steps exactly as private as everything else in this app
-  ([[Business-Rules]] #6).
-- It needs **Activity Recognition** permission, asked when steps are
-  switched on and never at first launch — the same manners the
-  [[Gallery]] has.
+- **No network, no account, no third party.** Health Connect is an
+  on-device store and reading it is a local call; the sensor is a
+  sensor. Either keeps steps exactly as private as everything else in
+  this app ([[Business-Rules]] #6, #13).
+- The store answers *how many steps between these two instants*, so a
+  Harvest Day is one question — 3 AM to 3 AM — and the answer is
+  written as it is. Reboots and watches are the store's problem, and
+  it has solved it.
 - The sensor counts since boot and resets when the phone reboots, so
-  the app stores a **daily total per Harvest Day**, computed from
-  deltas, and a reboot mid-day is a gap it closes rather than a day it
-  loses.
-
-Where Health Connect is present and the user would rather Harvest read
-from it — because a watch is the real source — that is a **later
-option, not the default**. The sensor works with nothing installed.
+  on that path the app stores a **daily total per Harvest Day**
+  computed from deltas, and a reboot mid-day is a gap it closes rather
+  than a day it loses.
+- The permission — Health Connect's read permission, or **Activity
+  Recognition** for the sensor — is asked from the steps card, when I
+  tap Connect, and never at first launch: the same manners the
+  [[Gallery]] has.
+- Reads happen when the app comes to the foreground and when the
+  Health screen is looked at. No background service: a passive number
+  does not get a battery budget.
 
 ### What it does with it
 
 - A **daily step goal** I set, defaulting to nothing: the number is
   shown before a goal is ever asked for.
+- **Distance beside the count** — stride × steps, with the stride a
+  setting next to the goal (75 cm unless I say otherwise). Kilometres
+  when weight is in kilograms, miles when it is in pounds
+  ([[Checkpoint-6]]).
 - Steps are a **passive number, not a seed.** They do not appear on the
   field, they do not check anything in, and a low-step day is not a
   broken streak. The app did the counting; taking credit for it as a
   productive action would be a lie.
 - Once a goal is set, meeting it is worth **+5 XP** — a nod, not a
-  habit's +10, because I did not choose to log it.
+  habit's +10, because I did not choose to log it. It is paid the first
+  time a pull sees the goal met, and it stays paid: Health Connect may
+  revise a day downward when a watch syncs late, and taking five XP
+  back off someone for a number they never touched would be a worse
+  lie than leaving it ([[Audit-v2-Beta]] N-09).
 - History: a bar per day, a weekly average, and a monthly line. Steps
   ride in the archive with everything else.
 
@@ -158,7 +176,10 @@ my goal; the app's job is the arithmetic.
 - An optional **target weight** draws a line, and the summary then adds
   distance to it. No projections, no "you will reach it by" — that is a
   guess dressed as a fact.
-- Logging a weight earns **+5 XP**, once a day at most.
+- Logging a weight earns **+5 XP**, once a day at most. The five
+  belong to the day the weight was *logged on*; editing an entry to
+  another day moves the entry and not the payment, which is the least
+  surprising of the two wrong answers ([[Audit-v2-Beta]] N-10).
 
 ### What is not here
 
@@ -174,7 +195,7 @@ that is a different app and I am not writing it.
 | # | Rule |
 | :-- | :--- |
 | H1 | Health is off until switched on; permissions are asked at that moment, never at first launch. |
-| H2 | Steps come from the phone's own sensor. No account, no network, no third party by default. |
+| H2 | Steps come from the phone's own health store (Health Connect) where there is one, and from the step counter sensor where there is not. No account, no network, no third party ([[Checkpoint-6]]). |
 | H3 | Steps are passive: they never check a seed in and never break a streak. |
 | H4 | Weight is stored in grams, integer. Units are a display choice. |
 | H5 | The weight chart shows the trend, not just the dots — and never judges the direction. |

@@ -157,21 +157,25 @@ abstract final class HarvestTheme {
           iconColor: WidgetStatePropertyAll(scheme.secondary),
         ),
       ),
+      // One look for every row of tabs — the Granary's three and the
+      // paired screens' two: a rounded underline the width of the
+      // label, the selected label in the accent, the rest quiet.
       tabBarTheme: TabBarThemeData(
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.label,
         indicator: UnderlineTabIndicator(
-          borderRadius: BorderRadius.circular(3),
-          borderSide: BorderSide(width: 3, color: scheme.primary),
-          insets: const EdgeInsets.symmetric(horizontal: HarvestSpacing.sm),
+          borderRadius: BorderRadius.circular(4),
+          borderSide: BorderSide(width: 4, color: scheme.primary),
+          insets: const EdgeInsets.symmetric(horizontal: HarvestSpacing.xs),
         ),
-        labelColor: scheme.onSurface,
-        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.5),
+        labelColor: scheme.primary,
+        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.55),
         labelStyle: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
         unselectedLabelStyle: textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w700,
         ),
         overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+        splashFactory: NoSplash.splashFactory,
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: cardColor,

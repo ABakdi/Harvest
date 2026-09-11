@@ -30,7 +30,12 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// then looks. A startup problem, if any, sits at the very bottom so it
 /// is never missed and never in the way.
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,7 +48,10 @@ class SettingsScreen extends ConsumerWidget {
     final startupProblem = ref.watch(bootstrapStatusProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navSettings)),
+      appBar: AppBar(
+        title: Text(title ?? l10n.navSettings),
+        bottom: tabs,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(HarvestSpacing.md),
         children: [

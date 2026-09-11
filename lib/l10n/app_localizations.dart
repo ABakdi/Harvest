@@ -830,6 +830,30 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get amountLabel;
 
+  /// No description provided for @amountSum.
+  ///
+  /// In en, this message translates to:
+  /// **'= {value}'**
+  String amountSum(String value);
+
+  /// No description provided for @amountSumIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish the sum to log it'**
+  String get amountSumIncomplete;
+
+  /// No description provided for @amountKeyBackspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get amountKeyBackspace;
+
+  /// No description provided for @amountKeyClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get amountKeyClear;
+
   /// No description provided for @noteLabel.
   ///
   /// In en, this message translates to:
@@ -1405,6 +1429,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pay'**
   String get debtPay;
+
+  /// No description provided for @debtPaymentRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this payment?'**
+  String get debtPaymentRemoveTitle;
+
+  /// No description provided for @debtPaymentRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What it took from the wallet comes back, and the debt reopens if this had settled it. Undo is in the bar for a moment after.'**
+  String get debtPaymentRemoveBody;
 
   /// No description provided for @debtSettled.
   ///
@@ -2473,6 +2509,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today\'s spend and your wallet balance'**
   String get widgetSectionMoneyBody;
+
+  /// No description provided for @widgetSectionMoneyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden while the app lock is on — the home screen is not behind it'**
+  String get widgetSectionMoneyLocked;
 
   /// No description provided for @widgetSectionTasks.
   ///
@@ -3701,7 +3743,7 @@ abstract class AppLocalizations {
   /// No description provided for @featureHealthHint.
   ///
   /// In en, this message translates to:
-  /// **'Steps from the phone\'s own sensor, and a body weight whenever you stand on the scale.'**
+  /// **'Sleep, steps read from the phone\'s own health store, and a body weight whenever you stand on the scale.'**
   String get featureHealthHint;
 
   /// No description provided for @featureGym.
@@ -3739,6 +3781,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The phone counts these. They never check a seed in and never break a streak.'**
   String get stepsPassive;
+
+  /// No description provided for @stepsSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the steps come from'**
+  String get stepsSource;
+
+  /// No description provided for @stepsFromHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'From Health Connect — the phone\'s own step store, so this matches your health app.'**
+  String get stepsFromHealthConnect;
+
+  /// No description provided for @stepsFromSensor.
+  ///
+  /// In en, this message translates to:
+  /// **'From the phone\'s step counter, read when the app is open.'**
+  String get stepsFromSensor;
+
+  /// No description provided for @stepsConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get stepsConnect;
+
+  /// No description provided for @stepsConnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read steps from the phone'**
+  String get stepsConnectTitle;
+
+  /// No description provided for @stepsConnectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest reads the daily total from the phone\'s own health store. Nothing is sent anywhere and no account is involved.'**
+  String get stepsConnectBody;
+
+  /// No description provided for @stepsConnectSensorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest reads the phone\'s step counter while the app is open. Nothing is sent anywhere.'**
+  String get stepsConnectSensorBody;
+
+  /// No description provided for @stepsDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed yet. Tap Connect to ask again, or allow it from Health Connect\'s settings.'**
+  String get stepsDenied;
+
+  /// No description provided for @stepsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone has nowhere to read steps from.'**
+  String get stepsUnavailable;
+
+  /// No description provided for @stepsInstallHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Health Connect'**
+  String get stepsInstallHealthConnect;
+
+  /// No description provided for @stepsOpenHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect settings'**
+  String get stepsOpenHealthConnect;
+
+  /// No description provided for @stepsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get stepsRefresh;
+
+  /// No description provided for @stepsGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily step goal'**
+  String get stepsGoal;
+
+  /// No description provided for @stepsGoalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.'**
+  String get stepsGoalHint;
+
+  /// No description provided for @stepsGoalNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal'**
+  String get stepsGoalNone;
+
+  /// No description provided for @stepsGoalMet.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal met'**
+  String get stepsGoalMet;
+
+  /// No description provided for @stepsSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get stepsSettings;
+
+  /// No description provided for @stepsStride.
+  ///
+  /// In en, this message translates to:
+  /// **'Stride length'**
+  String get stepsStride;
+
+  /// No description provided for @stepsStrideHint.
+  ///
+  /// In en, this message translates to:
+  /// **'About 0.415 × your height. 75 cm is a fair guess; a tape measure is better.'**
+  String get stepsStrideHint;
+
+  /// No description provided for @stepsDistanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} km'**
+  String stepsDistanceKm(String value);
+
+  /// No description provided for @stepsDistanceMi.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} mi'**
+  String stepsDistanceMi(String value);
 
   /// No description provided for @weightTitle.
   ///
@@ -4489,6 +4657,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done resting'**
   String get gymRestSkip;
+
+  /// No description provided for @gymRestCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type it'**
+  String get gymRestCustom;
+
+  /// No description provided for @gymRestCustomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'seconds'**
+  String get gymRestCustomHint;
+
+  /// No description provided for @gymRestNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No timer'**
+  String get gymRestNone;
+
+  /// No description provided for @gymPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause the clock'**
+  String get gymPause;
+
+  /// No description provided for @gymResumeClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the clock'**
+  String get gymResumeClock;
+
+  /// No description provided for @gymPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get gymPaused;
+
+  /// No description provided for @gymUpNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get gymUpNext;
+
+  /// No description provided for @gymOtherDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Or another day'**
+  String get gymOtherDays;
+
+  /// No description provided for @gymNextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {day}'**
+  String gymNextDay(String day);
+
+  /// No description provided for @gymFinishIncompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish with sets left?'**
+  String get gymFinishIncompleteTitle;
+
+  /// No description provided for @gymFinishIncompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} of {total} sets are not ticked. The session ends here and the gym habit is checked in as done for today.'**
+  String gymFinishIncompleteBody(int left, int total);
+
+  /// No description provided for @gymBestLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {sets}'**
+  String gymBestLine(String sets);
+
+  /// No description provided for @gymBestEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'est. {weight}'**
+  String gymBestEstimate(String weight);
 
   /// No description provided for @gymPerSide.
   ///

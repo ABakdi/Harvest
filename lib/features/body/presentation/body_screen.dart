@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:harvest/core/ui/widgets/feature_switcher.dart';
+import 'package:harvest/core/ui/widgets/paired_screen.dart';
 import 'package:harvest/features/gym/presentation/gym_screen.dart';
 import 'package:harvest/features/health/presentation/health_screen.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
@@ -13,60 +13,37 @@ enum BodyTab { health, gym }
 ///
 /// Both are about the same thing — what the body did — and neither
 /// earns a tab of its own on a bar that already holds four. Same
-/// arrangement as [[Records]], for the same reason.
-class BodyScreen extends ConsumerStatefulWidget {
+/// arrangement as [[Records]], for the same reason, and the same
+/// [PairedScreen] holding the rules ([[Checkpoint-6]]).
+class BodyScreen extends ConsumerWidget {
   const BodyScreen({this.initial, super.key});
 
   final BodyTab? initial;
 
   @override
-  ConsumerState<BodyScreen> createState() => _BodyScreenState();
-}
-
-class _BodyScreenState extends ConsumerState<BodyScreen> {
-  BodyTab? _tab;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final health = ref.watch(healthEnabledProvider);
-    final gym = ref.watch(gymEnabledProvider);
-
-    // The switch follows what is on: turning health off while looking
-    // at it should land on the gym, not on a blank screen.
-    final current = switch ((health, gym)) {
-      (true, false) => BodyTab.health,
-      (false, true) => BodyTab.gym,
-      _ => _tab ?? widget.initial ?? BodyTab.health,
-    };
-
-    final body = current == BodyTab.health
-        ? const HealthScreen()
-        : const GymScreen();
-
-    return Column(
-      children: [
-        Expanded(child: body),
-        if (health && gym)
-          FeatureSwitcher<BodyTab>(
-            current: current,
-            halves: [
-              (
-                value: BodyTab.health,
-                icon: Icons.monitor_heart_outlined,
-                label: l10n.navHealth,
-              ),
-              (
-                value: BodyTab.gym,
-                icon: Icons.fitness_center,
-                label: l10n.navGym,
-              ),
-            ],
-            onChanged: (tab) => setState(() => _tab = tab),
-          )
-        else
-          const SizedBox.shrink(),
+    return PairedScreen<BodyTab>(
+      title: l10n.navBody,
+      initial: initial,
+      halves: [
+        (
+          value: BodyTab.health,
+          icon: Icons.monitor_heart_outlined,
+          label: l10n.navHealth,
+          on: ref.watch(healthEnabledProvider),
+        ),
+        (
+          value: BodyTab.gym,
+          icon: Icons.fitness_center,
+          label: l10n.navGym,
+          on: ref.watch(gymEnabledProvider),
+        ),
       ],
+      builder: (current, title, tabs) => switch (current) {
+        BodyTab.health => HealthScreen(title: title, tabs: tabs),
+        BodyTab.gym => GymScreen(title: title, tabs: tabs),
+      },
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
+import 'package:harvest/features/health/data/steps_source.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/domain/steps.dart';
+import 'package:harvest/features/health/domain/steps_sync.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -12,6 +14,7 @@ abstract final class HealthKeys {
   static const unit = 'health.weightUnit';
   static const targetGrams = 'health.targetWeightGrams';
   static const stepGoal = 'health.stepGoal';
+  static const strideCm = 'health.strideCm';
   static const trendDays = 'health.trendDays';
 }
 
@@ -83,4 +86,64 @@ class StepGoal extends _$StepGoal {
   Future<void> set(int steps) => ref
       .read(settingsRepositoryProvider)
       .setString(HealthKeys.stepGoal, '$steps');
+}
+
+/// How far one step goes, in centimetres — what turns a count into a
+/// distance.
+@riverpod
+class StrideSetting extends _$StrideSetting {
+  @override
+  Stream<int> build() => ref
+      .watch(settingsRepositoryProvider)
+      .watchAll([HealthKeys.strideCm])
+      .map(
+        (values) =>
+            int.tryParse(values[HealthKeys.strideCm] ?? '') ?? defaultStrideCm,
+      );
+
+  Future<void> set(int cm) => ref
+      .read(settingsRepositoryProvider)
+      .setString(HealthKeys.strideCm, '$cm');
+}
+
+/// Where the steps stand: which source the phone has, and what the
+/// last pull came to.
+typedef StepsState = ({StepsStatus status, StepsSyncOutcome outcome});
+
+/// The steps, pulled from the phone.
+///
+/// Built once and refreshed on purpose — when the Health screen is
+/// looked at, when the app comes back to the foreground, and after the
+/// permission is granted — rather than watched, because the phone is
+/// not going to push a step at the app and polling a sensor is not
+/// what a passive number deserves.
+@Riverpod(keepAlive: true)
+class StepsPull extends _$StepsPull {
+  @override
+  Future<StepsState> build() => _pull();
+
+  Future<StepsState> _pull() async {
+    final source = ref.read(stepsSourceProvider);
+    final goal = await ref.read(stepGoalProvider.future);
+    final outcome = await ref
+        .read(stepsSyncProvider)
+        .sync(today: ref.read(currentHarvestDayProvider), goal: goal);
+    var status = await source.status();
+    // Health Connect only says whether it is allowed by being read.
+    if (outcome == StepsSyncOutcome.synced) {
+      status = status.copyWith(granted: true);
+    }
+    return (status: status, outcome: outcome);
+  }
+
+  Future<void> refresh() async {
+    state = AsyncData(await _pull());
+  }
+
+  /// Asks the phone, and pulls straight away if it says yes.
+  Future<bool> connect() async {
+    final ok = await ref.read(stepsSourceProvider).requestPermission();
+    await refresh();
+    return ok;
+  }
 }

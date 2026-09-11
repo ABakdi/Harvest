@@ -87,8 +87,11 @@ fill in, duplicating a day is one tap, and reordering is a drag.
 
 ## Sessions
 
-Starting a day opens the **session screen**, which is the only screen
-in this app designed to be used one-handed, sweating, in a hurry.
+Starting opens the **session screen**, which is the only screen in
+this app designed to be used one-handed, sweating, in a hurry. Which
+day is up is the day after the last one I finished, wrapping round at
+the end (Y11); the start sheet leads with it and lists the rest under
+it for the day I mean to skip.
 
 ```
 ┌──────────────────────────────────────────┐
@@ -132,8 +135,12 @@ What a session can do while it is running:
   and a Smith machine are not. Two taps of arithmetic I should never do
   tired.
 - **Notes** — one for the session, one per exercise.
-- **Finish**, which writes everything, or **discard**, which asks
-  twice.
+- **Pause the clock.** A phone call or a queue for the rack is not
+  training time; tapping the elapsed time stops it and tapping again
+  starts it. Sets can still be ticked while paused.
+- **Finish**, which writes everything — and asks first if un-skipped
+  sets are still unticked, because Finish is the check-in (Y10) — or
+  **discard**, which asks twice.
 
 A session that is interrupted — the app is killed, the phone dies —
 **resumes where it was**. A workout is thirty to ninety minutes of
@@ -163,7 +170,9 @@ deleting a bad entry corrects them.
 
 Per exercise, history shows: what I did last time (always, on the
 session screen), the three PRs, and a chart of estimated 1RM and volume
-over time.
+over time. The session screen also carries the record to beat under
+*last time* — the heaviest set and the best estimated single — because
+the number is wanted while loading the bar, not only after the set.
 
 ## The gym is a seed
 
@@ -178,6 +187,14 @@ A program binds to a **habit schedule** exactly like any other seed:
   belongs to Finish.
 - It obeys every rule an ordinary seed obeys: the 3 AM day boundary,
   nothing due before it was planted, undo on the same day.
+- **It can still be ticked by hand from the field**, and that is a
+  decision, not an oversight ([[Audit-v2-Beta]] N-08): I train in gyms
+  where the phone stays in the locker. A hand tick checks the habit in
+  like any habit and logs no session, so it earns the day and moves
+  the streak but leaves no sets, no records and no *Next* — the
+  program's pointer follows finished sessions only. If that turns out
+  to be a hole I fall through, the fix is a bare "went, no numbers"
+  session behind the tick, not taking the tick away.
 
 **A times-per-week gym habit works the way a flexible habit already
 does** — four sessions a week, on whichever days I manage them, and it
@@ -220,5 +237,8 @@ skipping it costs nothing.
 | Y6 | Estimated 1RM is labelled as an estimate wherever it appears, with the formula named. |
 | Y7 | A replaced or skipped exercise is recorded as such. History must be able to say what the day was meant to be. |
 | Y8 | Weights round to 0.25 kg. A number nobody can load onto a bar is a bug. |
+| Y9 | The bar weight and the plate calculator belong to exercises that have a bar. A dumbbell asks no such question ([[Checkpoint-6]]). |
+| Y10 | Finish asks before leaving un-skipped sets behind, because Finish is what checks the habit in ([[Checkpoint-6]]). |
+| Y11 | A program's days go round: the day after the last one finished is up next, wrapping at the end, and any other day is one deliberate tap further ([[Checkpoint-6]]). |
 
 Related: [[Health]] · [[Gallery]] · [[Gamification]] · [[Productivity-Engine]] · [[ADR-008-Exercise-Catalogue]]

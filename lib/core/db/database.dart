@@ -362,6 +362,13 @@ class WorkoutSessions extends Table {
   /// interrupted workout is found and resumed ([[Gym]] rule Y3).
   DateTimeColumn get endedAt => dateTime().nullable()();
   TextColumn get note => text().nullable()();
+
+  /// Set while the clock is stopped — a phone call, a queue for the
+  /// rack. The elapsed time is what was not paused ([[Checkpoint-6]]).
+  DateTimeColumn get pausedAt => dateTime().nullable()();
+
+  /// Every pause that has already ended, added up.
+  IntColumn get pausedSeconds => integer().withDefault(const Constant(0))();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
@@ -680,7 +687,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -690,6 +697,7 @@ class HarvestDatabase extends _$HarvestDatabase {
       final expensesJustCreated = from < 2;
       final moneyTxnsJustCreated = from < 6;
       final memoriesJustCreated = from < 10;
+      final sessionsJustCreated = from < 12;
       if (from < 2) {
         await m.createTable(expenses);
       }
@@ -749,8 +757,22 @@ class HarvestDatabase extends _$HarvestDatabase {
       if (from < 13) {
         await m.createTable(sleepSessions);
       }
+      if (from < 14 && !sessionsJustCreated) {
+        await m.addColumn(workoutSessions, workoutSessions.pausedAt);
+        await m.addColumn(workoutSessions, workoutSessions.pausedSeconds);
+      }
     },
   );
 
   static QueryExecutor _openConnection() => driftDatabase(name: 'harvest');
+
+  /// Appends one change-log row for the future sync client
+  /// ([[Sync-Strategy]]). Every repository used to carry its own copy
+  /// of this insert; now they call this ([[Audit-v2-Beta]] Q2-06).
+  Future<void> logChange(String table, String rowUuid, String op) =>
+      into(
+        outbox,
+      ).insert(
+        OutboxCompanion.insert(targetTable: table, rowUuid: rowUuid, op: op),
+      );
 }

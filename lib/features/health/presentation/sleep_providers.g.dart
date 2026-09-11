@@ -90,7 +90,7 @@ final class SleepTargetsProvider
   }
 }
 
-String _$sleepTargetsHash() => r'129eaa770ab2fde11131aea7cae87a5c4b5710e2';
+String _$sleepTargetsHash() => r'6b63149c272ac05cbec72b6e39ae6419916f028a';
 
 /// What is owed, over the last two weeks.
 

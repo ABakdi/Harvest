@@ -173,15 +173,8 @@ class CheckInService {
     return row.read(quantity) ?? 0;
   }
 
-  Future<void> _outbox(String uuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: 'check_ins',
-          rowUuid: uuid,
-          op: op,
-        ),
-      );
+  Future<void> _outbox(String uuid, String op) =>
+      _db.logChange('check_ins', uuid, op);
 }
 
 @Riverpod(keepAlive: true)

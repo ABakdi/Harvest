@@ -7,6 +7,7 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gym/data/exercises_repository.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
+import 'package:harvest/features/gym/presentation/rest_field.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
@@ -99,26 +100,30 @@ class _TargetSetSheet extends ConsumerWidget {
         ),
         const Divider(height: HarvestSpacing.lg),
         // The bar, because an EZ bar and a Smith machine are not 20 kg
-        // and the plate calculator has to know.
+        // and the plate calculator has to know — and only where there
+        // is a bar: a dumbbell row asked the question with no answer
+        // ([[Checkpoint-6]]).
         //
         // Label above, chips below: a row of four chips beside a title
         // leaves the title one letter wide.
-        _ChipField(
-          icon: Icons.straighten,
-          label: l10n.gymBarWeight,
-          value: formatLoad(slot.barGrams, unit),
-          children: [
-            for (final grams in [10000, 15000, 20000, 25000])
-              ChoiceChip(
-                label: Text(formatLoad(grams, unit)),
-                selected: slot.barGrams == grams,
-                onSelected: (_) => unawaited(
-                  repository.updateSlot(slot.uuid, barGrams: grams),
+        if (exercise?.usesBar ?? false) ...[
+          _ChipField(
+            icon: Icons.straighten,
+            label: l10n.gymBarWeight,
+            value: formatLoad(slot.barGrams, unit),
+            children: [
+              for (final grams in [10000, 15000, 20000, 25000])
+                ChoiceChip(
+                  label: Text(formatLoad(grams, unit)),
+                  selected: slot.barGrams == grams,
+                  onSelected: (_) => unawaited(
+                    repository.updateSlot(slot.uuid, barGrams: grams),
+                  ),
                 ),
-              ),
-          ],
-        ),
-        const SizedBox(height: HarvestSpacing.sm),
+            ],
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+        ],
         _ChipField(
           icon: Icons.timer_outlined,
           label: l10n.gymRest,
@@ -126,14 +131,12 @@ class _TargetSetSheet extends ConsumerWidget {
               ? l10n.notSet
               : l10n.gymRestSeconds(slot.restSeconds!),
           children: [
-            for (final seconds in restChoices)
-              ChoiceChip(
-                label: Text(l10n.gymRestSeconds(seconds)),
-                selected: slot.restSeconds == seconds,
-                onSelected: (_) => unawaited(
-                  repository.updateSlot(slot.uuid, restSeconds: seconds),
-                ),
+            RestField(
+              seconds: slot.restSeconds,
+              onChanged: (seconds) => unawaited(
+                repository.updateSlot(slot.uuid, restSeconds: seconds),
               ),
+            ),
           ],
         ),
         const Divider(height: HarvestSpacing.lg),

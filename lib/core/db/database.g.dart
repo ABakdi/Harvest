@@ -7524,6 +7524,29 @@ class $WorkoutSessionsTable extends WorkoutSessions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _pausedAtMeta = const VerificationMeta(
+    'pausedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> pausedAt = GeneratedColumn<DateTime>(
+    'paused_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pausedSecondsMeta = const VerificationMeta(
+    'pausedSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> pausedSeconds = GeneratedColumn<int>(
+    'paused_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -7557,6 +7580,8 @@ class $WorkoutSessionsTable extends WorkoutSessions
     startedAt,
     endedAt,
     note,
+    pausedAt,
+    pausedSeconds,
     updatedAt,
     deletedAt,
   ];
@@ -7627,6 +7652,21 @@ class $WorkoutSessionsTable extends WorkoutSessions
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('paused_at')) {
+      context.handle(
+        _pausedAtMeta,
+        pausedAt.isAcceptableOrUnknown(data['paused_at']!, _pausedAtMeta),
+      );
+    }
+    if (data.containsKey('paused_seconds')) {
+      context.handle(
+        _pausedSecondsMeta,
+        pausedSeconds.isAcceptableOrUnknown(
+          data['paused_seconds']!,
+          _pausedSecondsMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -7680,6 +7720,14 @@ class $WorkoutSessionsTable extends WorkoutSessions
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      pausedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paused_at'],
+      ),
+      pausedSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}paused_seconds'],
+      )!,
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -7712,6 +7760,13 @@ class WorkoutSessionRow extends DataClass
   /// interrupted workout is found and resumed ([[Gym]] rule Y3).
   final DateTime? endedAt;
   final String? note;
+
+  /// Set while the clock is stopped — a phone call, a queue for the
+  /// rack. The elapsed time is what was not paused ([[Checkpoint-6]]).
+  final DateTime? pausedAt;
+
+  /// Every pause that has already ended, added up.
+  final int pausedSeconds;
   final DateTime updatedAt;
   final DateTime? deletedAt;
   const WorkoutSessionRow({
@@ -7723,6 +7778,8 @@ class WorkoutSessionRow extends DataClass
     required this.startedAt,
     this.endedAt,
     this.note,
+    this.pausedAt,
+    required this.pausedSeconds,
     required this.updatedAt,
     this.deletedAt,
   });
@@ -7747,6 +7804,10 @@ class WorkoutSessionRow extends DataClass
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    if (!nullToAbsent || pausedAt != null) {
+      map['paused_at'] = Variable<DateTime>(pausedAt);
+    }
+    map['paused_seconds'] = Variable<int>(pausedSeconds);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -7772,6 +7833,10 @@ class WorkoutSessionRow extends DataClass
           ? const Value.absent()
           : Value(endedAt),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      pausedAt: pausedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pausedAt),
+      pausedSeconds: Value(pausedSeconds),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -7793,6 +7858,8 @@ class WorkoutSessionRow extends DataClass
       startedAt: serializer.fromJson<DateTime>(json['startedAt']),
       endedAt: serializer.fromJson<DateTime?>(json['endedAt']),
       note: serializer.fromJson<String?>(json['note']),
+      pausedAt: serializer.fromJson<DateTime?>(json['pausedAt']),
+      pausedSeconds: serializer.fromJson<int>(json['pausedSeconds']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
@@ -7809,6 +7876,8 @@ class WorkoutSessionRow extends DataClass
       'startedAt': serializer.toJson<DateTime>(startedAt),
       'endedAt': serializer.toJson<DateTime?>(endedAt),
       'note': serializer.toJson<String?>(note),
+      'pausedAt': serializer.toJson<DateTime?>(pausedAt),
+      'pausedSeconds': serializer.toJson<int>(pausedSeconds),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
@@ -7823,6 +7892,8 @@ class WorkoutSessionRow extends DataClass
     DateTime? startedAt,
     Value<DateTime?> endedAt = const Value.absent(),
     Value<String?> note = const Value.absent(),
+    Value<DateTime?> pausedAt = const Value.absent(),
+    int? pausedSeconds,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => WorkoutSessionRow(
@@ -7834,6 +7905,8 @@ class WorkoutSessionRow extends DataClass
     startedAt: startedAt ?? this.startedAt,
     endedAt: endedAt.present ? endedAt.value : this.endedAt,
     note: note.present ? note.value : this.note,
+    pausedAt: pausedAt.present ? pausedAt.value : this.pausedAt,
+    pausedSeconds: pausedSeconds ?? this.pausedSeconds,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
@@ -7851,6 +7924,10 @@ class WorkoutSessionRow extends DataClass
       startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
       endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
       note: data.note.present ? data.note.value : this.note,
+      pausedAt: data.pausedAt.present ? data.pausedAt.value : this.pausedAt,
+      pausedSeconds: data.pausedSeconds.present
+          ? data.pausedSeconds.value
+          : this.pausedSeconds,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
@@ -7867,6 +7944,8 @@ class WorkoutSessionRow extends DataClass
           ..write('startedAt: $startedAt, ')
           ..write('endedAt: $endedAt, ')
           ..write('note: $note, ')
+          ..write('pausedAt: $pausedAt, ')
+          ..write('pausedSeconds: $pausedSeconds, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
           ..write(')'))
@@ -7883,6 +7962,8 @@ class WorkoutSessionRow extends DataClass
     startedAt,
     endedAt,
     note,
+    pausedAt,
+    pausedSeconds,
     updatedAt,
     deletedAt,
   );
@@ -7898,6 +7979,8 @@ class WorkoutSessionRow extends DataClass
           other.startedAt == this.startedAt &&
           other.endedAt == this.endedAt &&
           other.note == this.note &&
+          other.pausedAt == this.pausedAt &&
+          other.pausedSeconds == this.pausedSeconds &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
 }
@@ -7911,6 +7994,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
   final Value<DateTime> startedAt;
   final Value<DateTime?> endedAt;
   final Value<String?> note;
+  final Value<DateTime?> pausedAt;
+  final Value<int> pausedSeconds;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
   final Value<int> rowid;
@@ -7923,6 +8008,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
     this.startedAt = const Value.absent(),
     this.endedAt = const Value.absent(),
     this.note = const Value.absent(),
+    this.pausedAt = const Value.absent(),
+    this.pausedSeconds = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -7936,6 +8023,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
     this.startedAt = const Value.absent(),
     this.endedAt = const Value.absent(),
     this.note = const Value.absent(),
+    this.pausedAt = const Value.absent(),
+    this.pausedSeconds = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -7950,6 +8039,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
     Expression<DateTime>? startedAt,
     Expression<DateTime>? endedAt,
     Expression<String>? note,
+    Expression<DateTime>? pausedAt,
+    Expression<int>? pausedSeconds,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
@@ -7963,6 +8054,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
       if (startedAt != null) 'started_at': startedAt,
       if (endedAt != null) 'ended_at': endedAt,
       if (note != null) 'note': note,
+      if (pausedAt != null) 'paused_at': pausedAt,
+      if (pausedSeconds != null) 'paused_seconds': pausedSeconds,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
@@ -7978,6 +8071,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
     Value<DateTime>? startedAt,
     Value<DateTime?>? endedAt,
     Value<String?>? note,
+    Value<DateTime?>? pausedAt,
+    Value<int>? pausedSeconds,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
     Value<int>? rowid,
@@ -7991,6 +8086,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
       startedAt: startedAt ?? this.startedAt,
       endedAt: endedAt ?? this.endedAt,
       note: note ?? this.note,
+      pausedAt: pausedAt ?? this.pausedAt,
+      pausedSeconds: pausedSeconds ?? this.pausedSeconds,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
@@ -8024,6 +8121,12 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (pausedAt.present) {
+      map['paused_at'] = Variable<DateTime>(pausedAt.value);
+    }
+    if (pausedSeconds.present) {
+      map['paused_seconds'] = Variable<int>(pausedSeconds.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -8047,6 +8150,8 @@ class WorkoutSessionsCompanion extends UpdateCompanion<WorkoutSessionRow> {
           ..write('startedAt: $startedAt, ')
           ..write('endedAt: $endedAt, ')
           ..write('note: $note, ')
+          ..write('pausedAt: $pausedAt, ')
+          ..write('pausedSeconds: $pausedSeconds, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
@@ -20491,6 +20596,8 @@ typedef $$WorkoutSessionsTableCreateCompanionBuilder =
       Value<DateTime> startedAt,
       Value<DateTime?> endedAt,
       Value<String?> note,
+      Value<DateTime?> pausedAt,
+      Value<int> pausedSeconds,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -20505,6 +20612,8 @@ typedef $$WorkoutSessionsTableUpdateCompanionBuilder =
       Value<DateTime> startedAt,
       Value<DateTime?> endedAt,
       Value<String?> note,
+      Value<DateTime?> pausedAt,
+      Value<int> pausedSeconds,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -20594,6 +20703,16 @@ class $$WorkoutSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get pausedAt => $composableBuilder(
+    column: $table.pausedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pausedSeconds => $composableBuilder(
+    column: $table.pausedSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
@@ -20679,6 +20798,16 @@ class $$WorkoutSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get pausedAt => $composableBuilder(
+    column: $table.pausedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pausedSeconds => $composableBuilder(
+    column: $table.pausedSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -20726,6 +20855,14 @@ class $$WorkoutSessionsTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get pausedAt =>
+      $composableBuilder(column: $table.pausedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get pausedSeconds => $composableBuilder(
+    column: $table.pausedSeconds,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -20797,6 +20934,8 @@ class $$WorkoutSessionsTableTableManager
                 Value<DateTime> startedAt = const Value.absent(),
                 Value<DateTime?> endedAt = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<DateTime?> pausedAt = const Value.absent(),
+                Value<int> pausedSeconds = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -20809,6 +20948,8 @@ class $$WorkoutSessionsTableTableManager
                 startedAt: startedAt,
                 endedAt: endedAt,
                 note: note,
+                pausedAt: pausedAt,
+                pausedSeconds: pausedSeconds,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
@@ -20823,6 +20964,8 @@ class $$WorkoutSessionsTableTableManager
                 Value<DateTime> startedAt = const Value.absent(),
                 Value<DateTime?> endedAt = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<DateTime?> pausedAt = const Value.absent(),
+                Value<int> pausedSeconds = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -20835,6 +20978,8 @@ class $$WorkoutSessionsTableTableManager
                 startedAt: startedAt,
                 endedAt: endedAt,
                 note: note,
+                pausedAt: pausedAt,
+                pausedSeconds: pausedSeconds,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,

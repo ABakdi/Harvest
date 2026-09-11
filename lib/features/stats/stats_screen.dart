@@ -20,7 +20,12 @@ import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 class StatsScreen extends ConsumerWidget {
-  const StatsScreen({super.key});
+  const StatsScreen({this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +50,10 @@ class StatsScreen extends ConsumerWidget {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navStats)),
+      appBar: AppBar(
+        title: Text(title ?? l10n.navStats),
+        bottom: tabs,
+      ),
       body: checkIns == 0
           ? _Empty(l10n: l10n, theme: theme)
           : ListView(

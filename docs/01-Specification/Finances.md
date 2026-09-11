@@ -59,7 +59,10 @@ shows a hero card with its per-currency balances and its actions, then
   its remaining amount, a paid progress bar, and its **payments** on
   demand; the payment sheet carries the same wallet switch. A payment
   must be positive and no larger than what is still owed, and a settled
-  debt refuses further payments. Unsettled
+  debt refuses further payments. A payment logged by mistake is
+  **removed the way an expense is** — long-press it, confirm, undo from
+  the snackbar — and removing it takes its wallet movement with it and
+  reopens a debt it had settled ([[Audit-v2-Beta]] N-01). Unsettled
   debts nag **daily** (19:00 default) until fully paid; partial
   payments accumulate and full payment settles with a small celebration.
   Settled debts fold into a quiet list underneath.
@@ -75,7 +78,7 @@ the **custom categories** live together under Settings › Money.
 ## Quick-log
 
 The whole point is a **sub-5-second log**:
-- **Amount** (numeric pad first)
+- **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]])
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 

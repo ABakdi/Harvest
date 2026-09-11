@@ -10,9 +10,11 @@ import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/security/domain/app_lock.dart';
 import 'package:harvest/features/security/presentation/lock_gate.dart';
+import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -80,6 +82,10 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
       await ref.read(streakServiceProvider).reconcile();
       await ref.read(notificationPlannerProvider).planToday();
       await ref.read(widgetServiceProvider).refresh();
+      // The phone counted while the app was away; ask it what it saw.
+      if (ref.read(healthEnabledProvider)) {
+        await ref.read(stepsPullProvider.notifier).refresh();
+      }
     } on Object catch (error) {
       ref.read(bootstrapStatusProvider.notifier).report('resume', error);
     }

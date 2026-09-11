@@ -28,7 +28,12 @@ import 'package:printing/printing.dart';
 /// is a phone — but it is the same idea, and the middle of the screen
 /// never becomes a file list.
 class NotesScreen extends ConsumerStatefulWidget {
-  const NotesScreen({this.initialUuid, super.key});
+  const NotesScreen({this.initialUuid, this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   /// Opened from a deep link, or from a `[[link]]` followed elsewhere.
   final String? initialUuid;
@@ -160,7 +165,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
       appBar: AppBar(
         title: Text(
           note == null
-              ? l10n.notesTitle
+              ? widget.title ?? l10n.notesTitle
               : note.title.isEmpty
               ? l10n.notesUntitled
               : note.title,
@@ -210,7 +215,11 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               ],
             ),
         ],
-        bottom: note == null || note.folder.isEmpty
+        // The list shows the Records tabs; an open note shows its
+        // folder instead, and the back arrow brings the tabs back.
+        bottom: note == null
+            ? widget.tabs
+            : note.folder.isEmpty
             ? null
             : PreferredSize(
                 preferredSize: const Size.fromHeight(22),

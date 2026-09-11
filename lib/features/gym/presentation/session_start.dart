@@ -51,7 +51,14 @@ Future<void> startSession(BuildContext context, WidgetRef ref) async {
     return;
   }
 
-  final picked = await _pickDay(context, withDays);
+  // Each program's next day, so the sheet can lead with it.
+  final next = <String, ProgramDay?>{
+    for (final program in withDays)
+      program.uuid: await repository.nextDay(program),
+  };
+  if (!context.mounted) return;
+
+  final picked = await _pickDay(context, withDays, next);
   if (picked == null || !context.mounted) return;
 
   final maxes = await ref
@@ -80,14 +87,20 @@ Future<void> startSession(BuildContext context, WidgetRef ref) async {
 
 typedef _Pick = ({Program program, ProgramDay day});
 
-/// Every day of every program, flat. Scrolling past three programs is
-/// cheaper than choosing a program and then choosing a day.
-Future<_Pick?> _pickDay(BuildContext context, List<Program> programs) {
+/// Every day of every program, flat — with the day that is up next
+/// leading each program, so the ordinary case is one tap and skipping
+/// a day is a deliberate second look ([[Checkpoint-6]]).
+Future<_Pick?> _pickDay(
+  BuildContext context,
+  List<Program> programs,
+  Map<String, ProgramDay?> next,
+) {
   final l10n = AppLocalizations.of(context);
   return showHarvestSheet<_Pick>(
     context,
     builder: (sheetContext) {
       final theme = Theme.of(sheetContext);
+      final scheme = theme.colorScheme;
       return HarvestSheet(
         title: l10n.gymPickDay,
         children: [
@@ -100,27 +113,65 @@ Future<_Pick?> _pickDay(BuildContext context, List<Program> programs) {
               child: Text(
                 program.name,
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
             ),
-            for (final day in program.days)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  day.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+            if (next[program.uuid] case final up?)
+              Card(
+                color: scheme.secondaryContainer,
+                margin: const EdgeInsets.only(bottom: HarvestSpacing.xs),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.play_circle_fill,
+                    color: scheme.onSecondaryContainer,
+                  ),
+                  title: Text(
+                    up.name,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onSecondaryContainer,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${l10n.gymUpNext} · '
+                    '${l10n.gymDaySummary(up.slots.length, up.totalSets)}',
+                    style: TextStyle(color: scheme.onSecondaryContainer),
+                  ),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop((program: program, day: up)),
+                ),
+              ),
+            if (program.days.length > 1)
+              Padding(
+                padding: const EdgeInsets.only(top: HarvestSpacing.xs),
+                child: Text(
+                  l10n.gymOtherDays,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
-                subtitle: Text(
-                  l10n.gymDaySummary(day.slots.length, day.totalSets),
-                ),
-                trailing: const Icon(Icons.play_arrow),
-                onTap: () => Navigator.of(
-                  sheetContext,
-                ).pop((program: program, day: day)),
               ),
+            for (final day in program.days)
+              if (day.uuid != next[program.uuid]?.uuid)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: Text(
+                    day.name,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  subtitle: Text(
+                    l10n.gymDaySummary(day.slots.length, day.totalSets),
+                  ),
+                  trailing: const Icon(Icons.play_arrow, size: 20),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop((program: program, day: day)),
+                ),
           ],
           const SizedBox(height: HarvestSpacing.sm),
         ],

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/domain/session.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -85,7 +86,7 @@ class SessionsRepository {
               ])
               ..limit(limit))
             .get();
-    return [for (final row in rows) await _hydrate(row)];
+    return _hydrateMany(rows);
   }
 
   Future<WorkoutSession?> once(String uuid) async {
@@ -95,48 +96,113 @@ class SessionsRepository {
     return row == null ? null : _hydrate(row);
   }
 
-  Future<WorkoutSession> _hydrate(WorkoutSessionRow row) async {
-    final exercises =
+  Future<WorkoutSession> _hydrate(WorkoutSessionRow row) async =>
+      (await _hydrateMany([row])).single;
+
+  /// Builds sessions from their rows in three queries, however many
+  /// sessions there are.
+  ///
+  /// The first cut ran one query per exercise and one per set, which
+  /// was fine for one session and was fifty sessions' worth — a few
+  /// hundred queries — every time the history list redrew, and it
+  /// redrew on every set ticked ([[Audit-v2-Beta]] Q2-02). Now the
+  /// exercises of every session come in one query, their sets in one
+  /// more, and the tree is assembled in Dart.
+  Future<List<WorkoutSession>> _hydrateMany(
+    List<WorkoutSessionRow> rows,
+  ) async {
+    if (rows.isEmpty) return const [];
+    final sessionUuids = [for (final row in rows) row.uuid];
+
+    final exerciseRows =
         await (_db.select(_db.sessionExercises)
-              ..where((e) => e.sessionUuid.equals(row.uuid))
+              ..where((e) => e.sessionUuid.isIn(sessionUuids))
               ..orderBy([(e) => OrderingTerm.asc(e.position)]))
             .get();
-
-    final built = <SessionExercise>[];
-    for (final exercise in exercises) {
-      final sets =
-          await (_db.select(_db.workoutSets)
-                ..where((s) => s.sessionExerciseUuid.equals(exercise.uuid))
+    final exerciseUuids = [for (final row in exerciseRows) row.uuid];
+    final setRows = exerciseUuids.isEmpty
+        ? const <WorkoutSetRow>[]
+        : await (_db.select(_db.workoutSets)
+                ..where((s) => s.sessionExerciseUuid.isIn(exerciseUuids))
                 ..orderBy([(s) => OrderingTerm.asc(s.position)]))
               .get();
-      built.add(
-        SessionExercise(
-          uuid: exercise.uuid,
-          sessionUuid: exercise.sessionUuid,
-          position: exercise.position,
-          exerciseId: exercise.exerciseId,
-          plannedExerciseId: exercise.plannedExerciseId,
-          slotUuid: exercise.slotUuid,
-          skipped: exercise.skipped,
-          note: exercise.note,
-          restSeconds: exercise.restSeconds,
-          barGrams: exercise.barGrams,
-          sets: [for (final set in sets) _toSet(set)],
-        ),
-      );
+
+    final setsByExercise = <String, List<WorkoutSet>>{};
+    for (final row in setRows) {
+      setsByExercise
+          .putIfAbsent(row.sessionExerciseUuid, () => [])
+          .add(_toSet(row));
+    }
+    final exercisesBySession = <String, List<SessionExercise>>{};
+    for (final exercise in exerciseRows) {
+      exercisesBySession
+          .putIfAbsent(exercise.sessionUuid, () => [])
+          .add(
+            SessionExercise(
+              uuid: exercise.uuid,
+              sessionUuid: exercise.sessionUuid,
+              position: exercise.position,
+              exerciseId: exercise.exerciseId,
+              plannedExerciseId: exercise.plannedExerciseId,
+              slotUuid: exercise.slotUuid,
+              skipped: exercise.skipped,
+              note: exercise.note,
+              restSeconds: exercise.restSeconds,
+              barGrams: exercise.barGrams,
+              sets: setsByExercise[exercise.uuid] ?? const [],
+            ),
+          );
     }
 
-    return WorkoutSession(
-      uuid: row.uuid,
-      programUuid: row.programUuid,
-      dayUuid: row.dayUuid,
-      title: row.title,
-      day: HarvestDay.parse(row.harvestDay),
-      startedAt: row.startedAt,
-      endedAt: row.endedAt,
-      note: row.note,
-      exercises: built,
-    );
+    return [
+      for (final row in rows)
+        WorkoutSession(
+          uuid: row.uuid,
+          programUuid: row.programUuid,
+          dayUuid: row.dayUuid,
+          title: row.title,
+          day:
+              HarvestDay.tryParse(row.harvestDay) ??
+              HarvestDay.of(row.startedAt),
+          startedAt: row.startedAt,
+          endedAt: row.endedAt,
+          note: row.note,
+          pausedAt: row.pausedAt,
+          pausedSeconds: row.pausedSeconds,
+          exercises: exercisesBySession[row.uuid] ?? const [],
+        ),
+    ];
+  }
+
+  /// The day of [program] that comes after the last one finished.
+  ///
+  /// Days go round in a loop: finish day 1 and day 2 is up, finish the
+  /// last and it is day 1 again ([[Checkpoint-6]]). Derived from the
+  /// log rather than stored, so a session I discard, or a day I skip by
+  /// picking another, moves the pointer exactly as far as it should.
+  /// A program with nothing finished yet — or whose last day was since
+  /// deleted — starts at the top.
+  Future<ProgramDay?> nextDay(Program program) async {
+    if (program.days.isEmpty) return null;
+    final last =
+        await (_db.select(_db.workoutSessions)
+              ..where(
+                (s) =>
+                    s.programUuid.equals(program.uuid) &
+                    s.endedAt.isNotNull() &
+                    s.deletedAt.isNull(),
+              )
+              ..orderBy([
+                (s) => OrderingTerm.desc(s.startedAt),
+                (s) => OrderingTerm.desc(s.rowId),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
+    final days = [...program.days]
+      ..sort((a, b) => a.position.compareTo(b.position));
+    final index = days.indexWhere((day) => day.uuid == last?.dayUuid);
+    if (index < 0) return days.first;
+    return days[(index + 1) % days.length];
   }
 
   /// What I did last time on this exercise — always on the session
@@ -315,17 +381,19 @@ class SessionsRepository {
                 barGrams: Value(slot.barGrams),
               ),
             );
+        await _outbox(exerciseUuid, 'insert', table: 'session_exercises');
 
         final resolved = resolveSlot(
           slot,
           trainingMaxGrams: trainingMaxes[slot.exerciseId],
         );
         for (final entry in resolved) {
+          final setUuid = _uuid.v4();
           await _db
               .into(_db.workoutSets)
               .insert(
                 WorkoutSetsCompanion.insert(
-                  uuid: _uuid.v4(),
+                  uuid: setUuid,
                   sessionExerciseUuid: exerciseUuid,
                   position: entry.target.position,
                   // Prefilled with the target, so a set that went to
@@ -336,6 +404,7 @@ class SessionsRepository {
                   targetLabel: Value(_labelFor(entry)),
                 ),
               );
+          await _outbox(setUuid, 'insert', table: 'workout_sets');
         }
       }
       await _outbox(uuid, 'insert');
@@ -376,6 +445,7 @@ class SessionsRepository {
         loggedAt: Value(DateTime.now()),
       ),
     );
+    await _outbox(uuid, 'update', table: 'workout_sets');
     await _touch(uuid);
   });
 
@@ -387,11 +457,12 @@ class SessionsRepository {
     final existing = await (_db.select(
       _db.workoutSets,
     )..where((s) => s.sessionExerciseUuid.equals(sessionExerciseUuid))).get();
+    final uuid = _uuid.v4();
     await _db
         .into(_db.workoutSets)
         .insert(
           WorkoutSetsCompanion.insert(
-            uuid: _uuid.v4(),
+            uuid: uuid,
             sessionExerciseUuid: sessionExerciseUuid,
             position: existing.length,
             weightGrams: Value(
@@ -400,22 +471,35 @@ class SessionsRepository {
             reps: Value(existing.isEmpty ? 0 : existing.last.reps),
           ),
         );
+    await _outbox(uuid, 'insert', table: 'workout_sets');
   }
 
-  Future<void> removeSet(String uuid) =>
-      (_db.delete(_db.workoutSets)..where((s) => s.uuid.equals(uuid))).go();
+  Future<void> removeSet(String uuid) => _db.transaction(() async {
+    await (_db.delete(_db.workoutSets)..where((s) => s.uuid.equals(uuid))).go();
+    await _outbox(uuid, 'delete', table: 'workout_sets');
+  });
 
   Future<void> skipExercise(String uuid, {required bool skipped}) =>
-      (_db.update(_db.sessionExercises)..where((e) => e.uuid.equals(uuid)))
-          .write(SessionExercisesCompanion(skipped: Value(skipped)));
+      _exerciseWrite(uuid, SessionExercisesCompanion(skipped: Value(skipped)));
+
+  /// One exercise row changed, and the outbox told.
+  Future<void> _exerciseWrite(String uuid, SessionExercisesCompanion change) =>
+      _db.transaction(() async {
+        await (_db.update(
+          _db.sessionExercises,
+        )..where((e) => e.uuid.equals(uuid))).write(change);
+        await _outbox(uuid, 'update', table: 'session_exercises');
+      });
 
   /// Swaps an exercise for another mid-session.
   ///
   /// The planned exercise is left alone, so history can still say what
   /// the day was meant to be (rule Y7).
   Future<void> replaceExercise(String uuid, {required String exerciseId}) =>
-      (_db.update(_db.sessionExercises)..where((e) => e.uuid.equals(uuid)))
-          .write(SessionExercisesCompanion(exerciseId: Value(exerciseId)));
+      _exerciseWrite(
+        uuid,
+        SessionExercisesCompanion(exerciseId: Value(exerciseId)),
+      );
 
   Future<void> addExercise(
     String sessionUuid, {
@@ -437,6 +521,7 @@ class SessionsRepository {
             restSeconds: Value(restSeconds),
           ),
         );
+    await _outbox(uuid, 'insert', table: 'session_exercises');
     await addSet(uuid);
   }
 
@@ -445,35 +530,85 @@ class SessionsRepository {
   /// Changing it mid-workout does not rewrite the program: today the
   /// gym is busy and the rest is longer, and that is a fact about
   /// today, not about the program.
-  Future<void> setExerciseRest(String uuid, int? seconds) =>
-      (_db.update(_db.sessionExercises)..where((e) => e.uuid.equals(uuid)))
-          .write(SessionExercisesCompanion(restSeconds: Value(seconds)));
+  Future<void> setExerciseRest(String uuid, int? seconds) => _exerciseWrite(
+    uuid,
+    SessionExercisesCompanion(restSeconds: Value(seconds)),
+  );
 
   Future<void> setExerciseNote(String uuid, String? note) =>
-      (_db.update(_db.sessionExercises)..where((e) => e.uuid.equals(uuid)))
-          .write(SessionExercisesCompanion(note: Value(note)));
+      _exerciseWrite(uuid, SessionExercisesCompanion(note: Value(note)));
 
   Future<void> setSessionNote(String uuid, String? note) =>
-      (_db.update(
-        _db.workoutSessions,
-      )..where((s) => s.uuid.equals(uuid))).write(
-        WorkoutSessionsCompanion(
-          note: Value(note),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+      _db.transaction(() async {
+        await (_db.update(
+          _db.workoutSessions,
+        )..where((s) => s.uuid.equals(uuid))).write(
+          WorkoutSessionsCompanion(
+            note: Value(note),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        await _outbox(uuid, 'update');
+      });
 
-  Future<void> finish(String uuid) => _db.transaction(() async {
+  /// Stops the clock. Nothing else changes: sets can still be ticked,
+  /// because a pause is about the time, not about the lifting.
+  Future<void> pause(String uuid) async {
+    final row = await _row(uuid);
+    if (row == null || row.endedAt != null || row.pausedAt != null) return;
     await (_db.update(
       _db.workoutSessions,
     )..where((s) => s.uuid.equals(uuid))).write(
       WorkoutSessionsCompanion(
-        endedAt: Value(DateTime.now()),
+        pausedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// Starts the clock again, banking the pause that just ended.
+  Future<void> resume(String uuid) async {
+    final row = await _row(uuid);
+    final pausedAt = row?.pausedAt;
+    if (row == null || pausedAt == null) return;
+    await (_db.update(
+      _db.workoutSessions,
+    )..where((s) => s.uuid.equals(uuid))).write(
+      WorkoutSessionsCompanion(
+        pausedAt: const Value(null),
+        pausedSeconds: Value(
+          row.pausedSeconds + _secondsSince(pausedAt),
+        ),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> finish(String uuid) => _db.transaction(() async {
+    // A session finished while paused ends at the pause: the minutes
+    // between were not training.
+    final row = await _row(uuid);
+    final pausedAt = row?.pausedAt;
+    await (_db.update(
+      _db.workoutSessions,
+    )..where((s) => s.uuid.equals(uuid))).write(
+      WorkoutSessionsCompanion(
+        endedAt: Value(pausedAt ?? DateTime.now()),
+        pausedAt: const Value(null),
         updatedAt: Value(DateTime.now()),
       ),
     );
     await _outbox(uuid, 'update');
   });
+
+  Future<WorkoutSessionRow?> _row(String uuid) => (_db.select(
+    _db.workoutSessions,
+  )..where((s) => s.uuid.equals(uuid))).getSingleOrNull();
+
+  static int _secondsSince(DateTime moment) {
+    final seconds = DateTime.now().difference(moment).inSeconds;
+    return seconds < 0 ? 0 : seconds;
+  }
 
   /// Throws the session away. The UI asks twice.
   Future<void> discard(String uuid) => _db.transaction(() async {
@@ -491,6 +626,7 @@ class SessionsRepository {
     await (_db.delete(
       _db.workoutSessions,
     )..where((s) => s.uuid.equals(uuid))).go();
+    await _outbox(uuid, 'delete');
   });
 
   Future<void> _touch(String setUuid) async {
@@ -507,15 +643,15 @@ class SessionsRepository {
         .write(WorkoutSessionsCompanion(updatedAt: Value(DateTime.now())));
   }
 
-  Future<void> _outbox(String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: 'workout_sessions',
-          rowUuid: rowUuid,
-          op: op,
-        ),
-      );
+  /// Every write lands in the outbox — the parent row and, since
+  /// [[Audit-v2-Beta]] Q2-03, every exercise and set beneath it, so a
+  /// swap, a skip or a dropped set is something the sync client can
+  /// replay rather than a silent local edit.
+  Future<void> _outbox(
+    String rowUuid,
+    String op, {
+    String table = 'workout_sessions',
+  }) => _db.logChange(table, rowUuid, op);
 
   static String? _labelFor(ResolvedSet entry) {
     final reps = entry.target.openEnded
@@ -572,3 +708,15 @@ Future<List<WorkoutSet>> lastTime(Ref ref, String exerciseId) =>
 @riverpod
 Future<List<ExerciseOuting>> exerciseHistory(Ref ref, String exerciseId) =>
     ref.watch(sessionsRepositoryProvider).history(exerciseId);
+
+/// The day of a program that is up next — re-derived when the program
+/// changes and whenever a session ends.
+@riverpod
+Stream<ProgramDay?> nextDay(Ref ref, String programUuid) {
+  final program = ref.watch(programProvider(programUuid)).value;
+  final sessions = ref.watch(sessionsRepositoryProvider);
+  if (program == null) return Stream.value(null);
+  return sessions
+      .watchFinished(limit: 1)
+      .asyncMap((_) => sessions.nextDay(program));
+}

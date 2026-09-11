@@ -145,6 +145,12 @@ class FinanceActions {
     note: note,
   );
 
+  /// Takes a payment back, wallet movement and settlement included.
+  Future<void> removePayment(String uuid) => _vault.removePayment(uuid);
+
+  /// The snackbar's Undo for [removePayment].
+  Future<void> restorePayment(String uuid) => _vault.restorePayment(uuid);
+
   /// Pays a debt, optionally out of the wallet.
   Future<void> payDebt({
     required String debtUuid,

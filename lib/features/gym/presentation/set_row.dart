@@ -35,7 +35,10 @@ class SetRow extends ConsumerStatefulWidget {
 
   /// Fired after a set is ticked, so the rest timer can start itself.
   final VoidCallback onTicked;
-  final void Function(int grams) onPlates;
+
+  /// Opens the plate calculator for the entered weight. Null where
+  /// there is no bar to load, and then the target is just a label.
+  final void Function(int grams)? onPlates;
 
   @override
   ConsumerState<SetRow> createState() => _SetRowState();
@@ -188,8 +191,8 @@ class _SetRowState extends ConsumerState<SetRow> {
             child: GestureDetector(
               // Tapping the target opens the plates for it: the number
               // on the left is exactly the number I have to load.
-              onTap: _enteredGrams > 0
-                  ? () => widget.onPlates(_enteredGrams)
+              onTap: _enteredGrams > 0 && widget.onPlates != null
+                  ? () => widget.onPlates!(_enteredGrams)
                   : null,
               child: Text(
                 set.targetLabel == null
@@ -235,13 +238,16 @@ class _SetRowState extends ConsumerState<SetRow> {
     );
   }
 
-  /// `83.25×5` from the stored label, in whatever unit is on screen.
+  /// `83.25×5` from the stored label, in whatever unit is on screen —
+  /// and without the `.00` the label is stored with, which is a
+  /// spreadsheet's idea of a weight.
   static String _prettyTarget(String label, WeightUnit unit) {
-    if (unit == WeightUnit.kg || !label.contains('×')) return label;
+    if (!label.contains('×')) return label;
     final parts = label.split('×');
     final kg = double.tryParse(parts.first);
     if (kg == null) return label;
-    return '${formatLoad((kg * 1000).round(), unit)}×${parts.last}';
+    final load = formatLoad((kg * 1000).round(), unit);
+    return '${load.substring(0, load.length - unit.suffix.length).trim()}×${parts.last}';
   }
 }
 

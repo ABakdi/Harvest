@@ -107,6 +107,8 @@ class WorkoutSession {
     this.title,
     this.endedAt,
     this.note,
+    this.pausedAt,
+    this.pausedSeconds = 0,
     this.exercises = const [],
   });
 
@@ -123,11 +125,29 @@ class WorkoutSession {
   /// workout is found and resumed ([[Gym]] rule Y3).
   final DateTime? endedAt;
   final String? note;
+
+  /// Set while the clock is stopped. A paused session is still the
+  /// running one — it just is not counting.
+  final DateTime? pausedAt;
+
+  /// The pauses that have already ended, added up.
+  final int pausedSeconds;
   final List<SessionExercise> exercises;
 
   bool get running => endedAt == null;
+  bool get paused => running && pausedAt != null;
 
-  Duration get elapsed => (endedAt ?? DateTime.now()).difference(startedAt);
+  /// Time on the clock: from the start to now (or the end, or the
+  /// pause), less every pause that finished. A workout that stopped
+  /// for a twenty-minute phone call was not twenty minutes longer.
+  Duration elapsedAt(DateTime now) {
+    final until = endedAt ?? pausedAt ?? now;
+    final gross = until.difference(startedAt);
+    final net = gross - Duration(seconds: pausedSeconds);
+    return net.isNegative ? Duration.zero : net;
+  }
+
+  Duration get elapsed => elapsedAt(DateTime.now());
 
   int get doneSets =>
       exercises.fold(0, (sum, exercise) => sum + exercise.doneSets);

@@ -132,7 +132,7 @@ void main() {
         harvestSheets(
           data(
             expenses: const [
-              ['e1', '2026-09-01', 'food', 'DZD', 1250, null, null, null],
+              ['e1', '2026-09-01', 'food', 'DZD', 1250, null, null, null, null],
             ],
           ),
         ),
@@ -176,7 +176,7 @@ void main() {
       final summary = harvestSheets(
         data(
           expenses: const [
-            ['e1', '2026-09-01', 'food', 'DZD', 1250, null, null, null],
+            ['e1', '2026-09-01', 'food', 'DZD', 1250, null, null, null, null],
           ],
           money: const [
             [
@@ -191,6 +191,7 @@ void main() {
               null,
               null,
               null,
+              null,
             ],
           ],
         ),
@@ -201,13 +202,13 @@ void main() {
         row[1],
         const Formula(
           r'=SUMIFS(Money!G:G,Money!F:F,$A{row},Money!C:C,"wallet",'
-          'Money!K:K,"")/100',
+          'Money!L:L,"")/100',
         ),
       );
       expect(
         row[3],
         const Formula(
-          r'=SUMIFS(Expenses!E:E,Expenses!D:D,$A{row},Expenses!H:H,"")/100',
+          r'=SUMIFS(Expenses!E:E,Expenses!D:D,$A{row},Expenses!I:I,"")/100',
         ),
       );
     });
@@ -216,9 +217,9 @@ void main() {
       final summary = harvestSheets(
         data(
           expenses: const [
-            ['e1', '2026-09-01', 'transport', 'USD', 1, null, null, null],
-            ['e2', '2026-09-01', 'food', 'DZD', 1, null, null, null],
-            ['e3', '2026-09-01', 'food', 'EUR', 1, null, null, null],
+            ['e1', '2026-09-01', 'transport', 'USD', 1, null, null, null, null],
+            ['e2', '2026-09-01', 'food', 'DZD', 1, null, null, null, null],
+            ['e3', '2026-09-01', 'food', 'EUR', 1, null, null, null, null],
           ],
         ),
       ).first;
@@ -233,8 +234,8 @@ void main() {
       final summary = harvestSheets(
         data(
           expenses: const [
-            ['e1', '2026-08-31', 'food', 'DZD', 1, null, null, null],
-            ['e2', '2026-09-01', 'food', 'DZD', 1, null, null, null],
+            ['e1', '2026-08-31', 'food', 'DZD', 1, null, null, null, null],
+            ['e2', '2026-09-01', 'food', 'DZD', 1, null, null, null, null],
           ],
         ),
       ).first;
@@ -264,7 +265,7 @@ void main() {
         harvestSheets(
           data(
             expenses: const [
-              ['e1', '2026-09-01', 'food', 'DZD', 1250, null, null, null],
+              ['e1', '2026-09-01', 'food', 'DZD', 1250, null, null, null, null],
             ],
             ledger: const [
               ['l1', 'xp', 20, 'checkIn', '2026-09-01', null],
@@ -279,7 +280,7 @@ void main() {
 
       // The derived money column is an equation, not a baked number.
       final expenses = reopened.tables[SheetNames.expenses]!;
-      final amount = expenses.rows[1][8]!.value;
+      final amount = expenses.rows[1][9]!.value;
       expect(amount, isA<FormulaCellValue>());
       expect((amount! as FormulaCellValue).formula, '=E2/100');
 
