@@ -65,3 +65,6 @@ docs/.obsidian/workspace.json
 # file — every expense, every debt, every balance. This repo is public.
 harvest-*.xlsx
 *.xlsx
+
+# Kotlin daemon session files the Android build writes and deletes
+/android/.kotlin/
