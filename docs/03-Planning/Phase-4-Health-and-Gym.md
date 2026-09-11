@@ -29,10 +29,10 @@ alarm-grade exact-alarm flow, and it is the part I can most easily live
 without if the phase runs long.
 
 ## M4.1 — Steps
-- [x] `TYPE_STEP_COUNTER` behind a platform interface, with a fake for tests ([[Health]] H2)
-- [x] Activity Recognition permission asked when Health is switched on, never at launch
+- [x] ~~`TYPE_STEP_COUNTER` behind a platform interface, with a fake for tests~~ — ticked in error: the arithmetic and the table shipped, the interface did not. Written in [[Checkpoint-6]], reading Health Connect first and the sensor as fallback ([[Health]] H2)
+- [x] The read permission asked from the steps card, never at launch ([[Checkpoint-6]])
 - [x] Daily totals per Harvest Day from sensor deltas; a reboot is a gap closed, not a day lost
-- [x] Optional daily goal; +5 XP when met, and no goal until one is asked for
+- [x] Optional daily goal; +5 XP when met, and no goal until one is asked for — the goal had no setter and the XP was never paid until [[Checkpoint-6]]
 - [x] History: bar per day, weekly average, monthly line
 - [x] Tests: the reboot case, the 3 AM boundary, a day with no sensor at all
 
@@ -102,7 +102,8 @@ without if the phase runs long.
 - [x] Docs: [[Core-Entities]], [[Local-Database]], [[Gamification]], [[Business-Rules]]
 - [x] Migration test to schema v13
 - [x] `v2.0.0-beta.1` cut from `dev`, built with the release key, and installed **over v1.1.0** — the seed, its check-in and its XP all survived the v12 → v13 migration
-- [ ] `v2.0.0` proper, once the beta has been lived in for a week
+- [x] `v2.0.0-beta.2`: [[Checkpoint-6]]'s ten fixes and the second audit's remediation ([[Audit-v2-Beta]]), cut from `dev` on 2026-09-11 and installed **over beta.1** — the v13 → v14 migration carried the seeds, the sessions and the streak across
+- [ ] `v2.0.0` proper, once beta.2 has been lived in for a week
 
 **Exit:** I run a full training week from the app instead of the one I
 use now — programme followed, sets logged between sets, a PR announced
@@ -126,8 +127,10 @@ when it happens — and the weight line has enough dots to have a shape.
 
 - **Supersets.** Common enough to matter, and every data model that
   ignores them regrets it. Pair slots, or leave it to M4.4 order?
-- **Health Connect** as an optional step source for people with a
-  watch — later, and never the default ([[Health]] H2).
+- ~~**Health Connect** as an optional step source for people with a
+  watch — later, and never the default.~~ Settled the other way in
+  [[Checkpoint-6]]: it is the first source, because it is the phone's
+  own, and the sensor is the fallback ([[Health]] H2).
 
 ## Backlog (discovered during the phase)
 
@@ -135,7 +138,8 @@ when it happens — and the weight line has enough dots to have a shape.
   kilo is right for dumbbells and machines, but a bar is loaded in
   pairs, so its smallest total step is 0.5 kg. The plate calculator
   reports the shortfall rather than rounding it away; the session
-  screen has to show that.
+  screen has to show that. (The calculator now only appears where
+  there is a bar — [[Checkpoint-6]] — which is where the shortfall is.)
 - **Reordering exercises** is stored by position but has no drag
   handle yet.
 - **The alarm does not fade in.** It is an exact, full-screen,
