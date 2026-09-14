@@ -116,6 +116,8 @@ startup problem, if any, still sits at the foot of the list.
 | [[Gym]] | Y12: a gym seed is checked in by a session and nothing else; the hand tick is a bare session. |
 | [[Phase-4-Health-and-Gym]] | The drag handle and the hand tick leave the backlog. |
 
-Tests: 566 → 573. Nothing in the schema moved.
+Tests: 566 → 573. Nothing in the schema moved. Shipped as
+`v2.0.0-beta.3` on 2026-09-14, installed over beta.2 on the emulator
+first: same key, same schema, the data untouched.
 
 Related: [[Checkpoint-6]] · [[Phase-4-Health-and-Gym]] · [[Gym]] · [[Health]]

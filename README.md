@@ -24,9 +24,10 @@ it from the [releases page](https://github.com/ABakdi/Harvest/releases).
 The beta is being lived in; [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
 is the first week's findings, fixed, and the
 [second audit](docs/06-Audit/Audit-v2-Beta.md) read the whole of the
-new half and fixed what it found — both ship as `v2.0.0-beta.2`.
+new half and fixed what it found — both shipped as `v2.0.0-beta.2`.
 [Checkpoint 7](docs/05-Checkpoints/Checkpoint-7.md) is the ten things
-the next days asked for. Next is `v2.0.0` proper, then
+the next days asked for, and ships as `v2.0.0-beta.3`. Next is
+`v2.0.0` proper, then
 [Phase 5](docs/03-Planning/Phase-5-Screen-Time.md): screen time.
 
 ## Table of contents
