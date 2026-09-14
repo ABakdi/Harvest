@@ -83,6 +83,8 @@ if it was the last one, and pays the new day if it had none.
 | [[Finances]] | An expense is logged on a chosen Harvest Day; the day's XP follows the day. |
 | [[Notes]] | The Records tabs stay while a note is open; the folder moves under the title. |
 
-Tests: 573 → 580. Nothing in the schema moved.
+Tests: 573 → 580. Nothing in the schema moved. Shipped as
+`v2.0.0-beta.4` on 2026-09-15, installed over beta.3 on the emulator
+first.
 
 Related: [[Checkpoint-7]] · [[Health]] · [[Finances]] · [[Notes]]

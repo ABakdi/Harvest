@@ -104,8 +104,8 @@ without if the phase runs long.
 - [x] `v2.0.0-beta.1` cut from `dev`, built with the release key, and installed **over v1.1.0** — the seed, its check-in and its XP all survived the v12 → v13 migration
 - [x] `v2.0.0-beta.2`: [[Checkpoint-6]]'s ten fixes and the second audit's remediation ([[Audit-v2-Beta]]), cut from `dev` on 2026-09-11 and installed **over beta.1** — the v13 → v14 migration carried the seeds, the sessions and the streak across
 - [x] `v2.0.0-beta.3`: [[Checkpoint-7]]'s ten things — Finish at the bottom, the record's moment, and settings as a place — cut from `dev` on 2026-09-14 and installed **over beta.2**; the schema did not move, and the seeds, the sessions and the streak came across
-- [x] [[Checkpoint-8]]: the Records tabs back, the day's steps closed at 3 AM by the day-reset job (the steps channel became `packages/harvest_steps`, a plugin), a steps history beside the nights, an expense on the day it belongs to
-- [ ] `v2.0.0` proper, once beta.3 has been lived in for a week
+- [x] `v2.0.0-beta.4`: [[Checkpoint-8]] — the Records tabs back, the day's steps closed at 3 AM by the day-reset job (the steps channel became `packages/harvest_steps`, a plugin), a steps history beside the nights, an expense on the day it belongs to — cut from `dev` on 2026-09-15 and installed **over beta.3**; no schema change
+- [ ] `v2.0.0` proper, once beta.4 has been lived in for a week
 
 **Exit:** I run a full training week from the app instead of the one I
 use now — programme followed, sets logged between sets, a PR announced
