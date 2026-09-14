@@ -37,10 +37,12 @@ enum StepsSyncOutcome {
 ///   day's total. Only ever the current day: the sensor has no memory
 ///   of yesterday.
 ///
-/// Reading is foreground-only and on purpose: the app asks when it is
-/// opened and when the Health screen is looked at, and never runs a
-/// service to watch the sensor. Steps are a passive number
-/// ([[Health]] H3) and passive things do not deserve a battery budget.
+/// Reads happen when the app is opened, when the Health screen is
+/// looked at — and once at 3 AM, from the day-reset job, so a day
+/// closes with its final count whether or not the app was opened that
+/// evening ([[Checkpoint-8]]). No service watches the sensor: steps
+/// are a passive number ([[Health]] H3) and passive things do not
+/// deserve a battery budget.
 class StepsSync {
   const StepsSync(this._repository, this._source);
 
@@ -60,8 +62,61 @@ class StepsSync {
     };
     if (outcome == StepsSyncOutcome.synced) {
       await _repository.payStepGoal(today, goal: goal);
+      // Yesterday's goal may have been met after the last pull; the
+      // ledger takes it once and never again, so asking is free.
+      await _repository.payStepGoal(today.previous, goal: goal);
     }
     return outcome;
+  }
+
+  /// The 3 AM pull: closes [ended], the day that just finished, and
+  /// pays its goal.
+  ///
+  /// Health Connect keeps its own history, so for it this is the
+  /// ordinary pull a day later. The sensor has no memory: the steps
+  /// since its last reading belong to the day that ended, and the new
+  /// day starts anchored where this reading leaves the counter.
+  Future<StepsSyncOutcome> closeDay({
+    required HarvestDay ended,
+    required int goal,
+    int days = stepsSyncDays,
+  }) async {
+    final status = await _source.status();
+    final outcome = switch (status.backend) {
+      StepsBackend.healthConnect => await _fromHealthConnect(ended.next, days),
+      StepsBackend.sensor => await _sensorAtDayEnd(status, ended),
+      StepsBackend.none => StepsSyncOutcome.unavailable,
+    };
+    if (outcome == StepsSyncOutcome.synced) {
+      await _repository.payStepGoal(ended, goal: goal);
+    }
+    return outcome;
+  }
+
+  Future<StepsSyncOutcome> _sensorAtDayEnd(
+    StepsStatus status,
+    HarvestDay ended,
+  ) async {
+    if (!status.granted) return StepsSyncOutcome.needsPermission;
+    final counter = await _source.counter();
+    if (counter == null) return StepsSyncOutcome.synced;
+
+    var day = await _repository.stepsOn(ended);
+    if (day.lastCounter == null) {
+      day = startOfDay(
+        ended,
+        counter: await _repository.lastCounterBefore(ended),
+      );
+    }
+    final closed = applyReading(day, counter);
+    final next = await _repository.stepsOn(ended.next);
+    await _repository.saveStepDays([
+      closed,
+      // Only anchor a day nothing has written yet: a pull that beat
+      // the job to it already knows where the counter stands.
+      if (next.lastCounter == null) startOfDay(ended.next, counter: counter),
+    ]);
+    return StepsSyncOutcome.synced;
   }
 
   Future<StepsSyncOutcome> _fromHealthConnect(

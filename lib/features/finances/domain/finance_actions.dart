@@ -62,6 +62,7 @@ class FinanceActions {
     required Currency currency,
     required bool fromWallet,
     String? note,
+    HarvestDay? day,
   }) => _db.transaction(() async {
     await _finances.updateExpense(
       uuid: uuid,
@@ -69,6 +70,7 @@ class FinanceActions {
       category: category,
       currency: currency,
       note: note,
+      day: day,
     );
     final linked = await _vault.linkedTxn(uuid);
     if (fromWallet) {

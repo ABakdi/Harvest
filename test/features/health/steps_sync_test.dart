@@ -139,17 +139,80 @@ void main() {
       await sync.sync(today: today, goal: 0);
       expect(await stepXp(), 0, reason: 'no goal, no payment');
 
+      // Today and yesterday: a pull pays the day that ended too, so an
+      // evening walk with the app shut is not an unpaid goal
+      // ([[Checkpoint-8]]).
       await sync.sync(today: today, goal: 8000);
-      expect(await stepXp(), stepGoalXp);
+      expect(await stepXp(), 2 * stepGoalXp);
 
       await sync.sync(today: today, goal: 8000);
-      expect(await stepXp(), stepGoalXp, reason: 'once a day');
+      expect(await stepXp(), 2 * stepGoalXp, reason: 'once a day');
     });
 
     test('pays nothing while short of it', () async {
       source.perWindow = [for (var i = 0; i < 30; i++) 7999];
       await sync.sync(today: today, goal: 8000);
       expect(await stepXp(), 0);
+    });
+  });
+
+  group('the day-end pull', () {
+    final yesterday = today.previous;
+
+    test('closes yesterday on the sensor and anchors today', () async {
+      source
+        ..backend = StepsBackend.sensor
+        ..sinceBoot = 1000;
+      await sync.sync(today: yesterday, goal: 0);
+      source.sinceBoot = 4500;
+      await sync.sync(today: yesterday, goal: 0);
+      expect(await stepsOn(yesterday.key), 3500);
+
+      // 3 AM: the evening walk happened with the app shut.
+      source.sinceBoot = 6000;
+      final outcome = await sync.closeDay(ended: yesterday, goal: 0);
+      expect(outcome, StepsSyncOutcome.synced);
+      expect(await stepsOn(yesterday.key), 5000, reason: 'the day closed');
+      final started = await repository.stepsOn(today);
+      expect(started.steps, 0);
+      expect(started.lastCounter, 6000, reason: 'today starts where it left');
+
+      // The morning pull measures from the anchor, not from zero.
+      source.sinceBoot = 6800;
+      await sync.sync(today: today, goal: 0);
+      expect(await stepsOn(today.key), 800);
+      expect(await stepsOn(yesterday.key), 5000, reason: 'unchanged');
+    });
+
+    test('does not re-anchor a day a pull already started', () async {
+      source
+        ..backend = StepsBackend.sensor
+        ..sinceBoot = 1000;
+      await sync.sync(today: yesterday, goal: 0);
+      source.sinceBoot = 1200;
+      await sync.sync(today: today, goal: 0);
+      source.sinceBoot = 1500;
+      await sync.closeDay(ended: yesterday, goal: 0);
+      final started = await repository.stepsOn(today);
+      expect(started.lastCounter, 1200);
+    });
+
+    test('pays the goal of the day that ended', () async {
+      source.perWindow = [for (var i = 0; i < 30; i++) 8000];
+      await sync.closeDay(ended: yesterday, goal: 6000);
+      final rows = await db.select(db.ledger).get();
+      expect(
+        rows.map((row) => row.reason),
+        contains('steps:${yesterday.key}'),
+      );
+      expect(await stepXp(), 5, reason: 'yesterday only, not the month');
+    });
+
+    test('an ordinary pull pays yesterday too, once', () async {
+      source.perWindow = [for (var i = 0; i < 30; i++) 8000];
+      await sync.sync(today: today, goal: 6000);
+      await sync.sync(today: today, goal: 6000);
+      expect(await stepXp(), 10, reason: 'today and yesterday, each once');
     });
   });
 }

@@ -1,6 +1,7 @@
-package com.harvest.app
+package com.harvest.steps
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,18 +13,23 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import androidx.activity.result.ActivityResultLauncher
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.lifecycle.lifecycleScope
-import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.PluginRegistry
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -44,68 +50,99 @@ import java.time.Instant
  *
  * Neither involves an account or a network: Health Connect is an
  * on-device store, and the sensor is a sensor.
+ *
+ * A plugin rather than a channel on the activity, because the 3 AM
+ * day-reset job reads steps from a background engine that has no
+ * activity at all. Reading needs only a context; the two permission
+ * prompts need the activity, and say so when there is none.
  */
-class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMessenger) {
+class HarvestStepsPlugin :
+    FlutterPlugin,
+    ActivityAware,
+    PluginRegistry.ActivityResultListener,
+    PluginRegistry.RequestPermissionsResultListener {
 
-    private val channel = MethodChannel(messenger, CHANNEL)
+    private lateinit var context: Context
+    private var channel: MethodChannel? = null
+    private var activity: Activity? = null
+    private var binding: ActivityPluginBinding? = null
     private var permissionResult: MethodChannel.Result? = null
-    private val healthPermissions = setOf(HealthPermission.getReadPermission(StepsRecord::class))
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val healthContract = PermissionController.createRequestPermissionResultContract()
+    private val stepsPermission = HealthPermission.getReadPermission(StepsRecord::class)
 
-    /**
-     * Registered up front because the activity result API demands it
-     * before the activity starts; the result it hands back is whatever
-     * Flutter call was waiting for it.
-     */
-    private val healthLauncher: ActivityResultLauncher<Set<String>> =
-        activity.registerForActivityResult(
-            PermissionController.createRequestPermissionResultContract(),
-        ) { granted ->
-            val result = permissionResult
-            permissionResult = null
-            result?.success(granted.containsAll(healthPermissions))
-        }
+    // ----------------------------------------------------------- lifecycle
 
-    init {
-        channel.setMethodCallHandler { call, result ->
-            when (call.method) {
-                "status" -> result.success(status())
-                "requestPermission" -> requestPermission(result)
-                "readTotals" -> readTotals(call.arguments(), result)
-                "readCounter" -> readCounter(result)
-                "openHealthConnect" -> {
-                    openHealthConnect()
-                    result.success(null)
+    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        context = binding.applicationContext
+        channel = MethodChannel(binding.binaryMessenger, CHANNEL).also {
+            it.setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "status" -> result.success(status())
+                    "requestPermission" -> requestPermission(result)
+                    "readTotals" -> readTotals(call.arguments(), result)
+                    "readCounter" -> readCounter(result)
+                    "openHealthConnect" -> {
+                        openHealthConnect()
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
                 }
-                else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel?.setMethodCallHandler(null)
+        channel = null
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) = attach(binding)
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) = attach(binding)
+
+    override fun onDetachedFromActivityForConfigChanges() = detach()
+
+    override fun onDetachedFromActivity() = detach()
+
+    private fun attach(binding: ActivityPluginBinding) {
+        this.binding = binding
+        activity = binding.activity
+        binding.addActivityResultListener(this)
+        binding.addRequestPermissionsResultListener(this)
+    }
+
+    private fun detach() {
+        binding?.removeActivityResultListener(this)
+        binding?.removeRequestPermissionsResultListener(this)
+        binding = null
+        activity = null
     }
 
     // --------------------------------------------------------------- status
 
     private fun healthConnectAvailable(): Boolean =
-        HealthConnectClient.getSdkStatus(activity) == HealthConnectClient.SDK_AVAILABLE
+        HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
 
     /** Health Connect exists but needs installing or updating. */
     private fun healthConnectInstallable(): Boolean =
-        HealthConnectClient.getSdkStatus(activity) ==
+        HealthConnectClient.getSdkStatus(context) ==
             HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED
 
     private fun sensorAvailable(): Boolean {
-        val manager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val manager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         return manager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null
     }
 
     private fun sensorGranted(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
-            ContextCompat.checkSelfPermission(activity, Manifest.permission.ACTIVITY_RECOGNITION) ==
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) ==
             PackageManager.PERMISSION_GRANTED
 
     /**
      * One answer for the Dart side: which source this phone has, and
      * whether it may be read yet. Health Connect's grant is a suspend
-     * call, so the status is delivered through the same map rather
-     * than returned.
+     * call, so it is learnt by [readTotals] instead.
      */
     private fun status(): Map<String, Any> {
         val backend = when {
@@ -116,16 +153,37 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
         return mapOf(
             "backend" to backend,
             "installable" to healthConnectInstallable(),
-            // For the sensor the answer is known now; for Health
-            // Connect it is looked up by [readTotals], which reports
-            // "denied" instead of numbers.
             "granted" to (backend == "sensor" && sensorGranted()),
         )
     }
 
     // ----------------------------------------------------------- permission
 
+    /**
+     * The read permission, plus background reading where this phone's
+     * Health Connect offers it — that is what lets the 3 AM job close
+     * the day. Only the read permission decides the answer: a phone
+     * without background reads still counts steps whenever the app is
+     * opened.
+     */
+    private fun healthPermissions(): Set<String> {
+        val client = HealthConnectClient.getOrCreate(context)
+        val background = client.features.getFeatureStatus(
+            HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_IN_BACKGROUND,
+        ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+        return if (background) {
+            setOf(stepsPermission, HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND)
+        } else {
+            setOf(stepsPermission)
+        }
+    }
+
     private fun requestPermission(result: MethodChannel.Result) {
+        val activity = this.activity
+        if (activity == null) {
+            result.error("noActivity", "a permission prompt needs the app on screen", null)
+            return
+        }
         if (permissionResult != null) {
             result.error("busy", "a permission request is already showing", null)
             return
@@ -133,7 +191,15 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
         when {
             healthConnectAvailable() -> {
                 permissionResult = result
-                healthLauncher.launch(healthPermissions)
+                try {
+                    activity.startActivityForResult(
+                        healthContract.createIntent(activity, healthPermissions()),
+                        REQUEST_HEALTH,
+                    )
+                } catch (error: Exception) {
+                    permissionResult = null
+                    result.error("prompt", error.message, null)
+                }
             }
             sensorAvailable() -> {
                 if (sensorGranted()) {
@@ -141,7 +207,8 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
                     return
                 }
                 permissionResult = result
-                activity.requestPermissions(
+                ActivityCompat.requestPermissions(
+                    activity,
                     arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
                     REQUEST_ACTIVITY,
                 )
@@ -150,8 +217,20 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
         }
     }
 
-    /** Called by the activity for the sensor permission's answer. */
-    fun onRequestPermissionsResult(requestCode: Int, grantResults: IntArray): Boolean {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode != REQUEST_HEALTH) return false
+        val result = permissionResult
+        permissionResult = null
+        val granted = healthContract.parseResult(resultCode, data)
+        result?.success(granted.contains(stepsPermission))
+        return true
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ): Boolean {
         if (requestCode != REQUEST_ACTIVITY) return false
         val result = permissionResult
         permissionResult = null
@@ -166,7 +245,8 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
      *
      * Returns a list of longs, or the string "denied" when the read
      * permission is not held — so the caller can ask for it rather than
-     * mistaking a refusal for a quiet day.
+     * mistaking a refusal for a quiet day. A background read without
+     * the background permission is refused the same way.
      */
     private fun readTotals(windows: List<List<Long>>?, result: MethodChannel.Result) {
         if (windows == null) {
@@ -177,11 +257,11 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
             result.success("unavailable")
             return
         }
-        val client = HealthConnectClient.getOrCreate(activity)
-        activity.lifecycleScope.launch {
+        val client = HealthConnectClient.getOrCreate(context)
+        scope.launch {
             try {
                 val granted = client.permissionController.getGrantedPermissions()
-                if (!granted.containsAll(healthPermissions)) {
+                if (!granted.contains(stepsPermission)) {
                     result.success("denied")
                     return@launch
                 }
@@ -214,13 +294,15 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
                 )
                 setPackage("com.android.vending")
                 putExtra("overlay", true)
-                putExtra("callerId", activity.packageName)
+                putExtra("callerId", context.packageName)
             }
         } else {
             Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
         }
         try {
-            activity.startActivity(intent)
+            (activity ?: context).startActivity(
+                intent.apply { if (activity == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) },
+            )
         } catch (_: Exception) {
             // No store and no settings screen: nothing to open.
         }
@@ -240,7 +322,7 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
             result.success(null)
             return
         }
-        val manager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val manager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val sensor = manager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         val handler = Handler(Looper.getMainLooper())
         var answered = false
@@ -267,6 +349,7 @@ class StepsChannel(private val activity: FragmentActivity, messenger: BinaryMess
         const val CHANNEL = "harvest/steps"
         const val HEALTH_CONNECT_PACKAGE = "com.google.android.apps.healthdata"
         private const val REQUEST_ACTIVITY = 4101
+        private const val REQUEST_HEALTH = 4102
         private const val SENSOR_TIMEOUT_MS = 3000L
     }
 }

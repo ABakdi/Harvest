@@ -20,6 +20,7 @@ import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/features/health/presentation/sleep_card.dart';
 import 'package:harvest/features/health/presentation/sleep_providers.dart';
 import 'package:harvest/features/health/presentation/sleep_sheet.dart';
+import 'package:harvest/features/health/presentation/steps_history.dart';
 import 'package:harvest/features/health/presentation/weight_chart.dart';
 import 'package:harvest/features/health/presentation/weight_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -108,6 +109,11 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             for (final weight in weights.reversed.take(20))
               _WeightRow(weight: weight),
           ],
+          // The days, beside the nights and the readings: the count
+          // the phone kept, closed at 3 AM by the day-reset job
+          // ([[Checkpoint-8]]).
+          SectionHeader(l10n.stepsHistory),
+          const StepsHistory(),
           SectionHeader(l10n.sleepNights),
           const SleepNightsList(),
         ],

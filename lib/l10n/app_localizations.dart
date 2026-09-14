@@ -908,6 +908,12 @@ abstract class AppLocalizations {
   /// **'Note (optional)'**
   String get noteLabel;
 
+  /// No description provided for @expenseDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged on'**
+  String get expenseDayLabel;
+
   /// No description provided for @catFood.
   ///
   /// In en, this message translates to:
@@ -3955,6 +3961,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value} mi'**
   String stepsDistanceMi(String value);
+
+  /// No description provided for @stepsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Your steps'**
+  String get stepsHistory;
+
+  /// No description provided for @stepsNoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No steps counted yet'**
+  String get stepsNoDays;
+
+  /// No description provided for @stepsNoDaysBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Connect on the steps card.'**
+  String get stepsNoDaysBody;
+
+  /// No description provided for @stepsLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days'**
+  String stepsLastDays(int days);
+
+  /// No description provided for @stepsBestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Best day'**
+  String get stepsBestDay;
+
+  /// No description provided for @stepsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{steps} steps'**
+  String stepsCount(String steps);
 
   /// No description provided for @weightTitle.
   ///

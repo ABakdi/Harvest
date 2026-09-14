@@ -182,13 +182,28 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         onOpenTrash: _openTrash,
       ),
       appBar: AppBar(
-        title: Text(
-          note == null
-              ? widget.title ?? l10n.notesTitle
-              : note.title.isEmpty
-              ? l10n.notesUntitled
-              : note.title,
-          overflow: TextOverflow.ellipsis,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              note == null
+                  ? widget.title ?? l10n.notesTitle
+                  : note.title.isEmpty
+                  ? l10n.notesUntitled
+                  : note.title,
+              overflow: TextOverflow.ellipsis,
+            ),
+            // With the Records tabs under the title, the folder has to
+            // live up here instead ([[Checkpoint-8]]).
+            if (note != null && note.folder.isNotEmpty && widget.tabs != null)
+              Text(
+                note.folder,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
         ),
         actions: [
           IconButton(
@@ -234,32 +249,34 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               ],
             ),
         ],
-        // The list shows the Records tabs; an open note shows its
-        // folder instead, and the back arrow brings the tabs back.
-        bottom: note == null
-            ? widget.tabs
-            : note.folder.isEmpty
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(22),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      HarvestSpacing.md,
-                      0,
-                      HarvestSpacing.md,
-                      6,
-                    ),
-                    child: Text(
-                      note.folder,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+        // The Records tabs stay whether a note is open or not: hiding
+        // them behind an open note made the gallery unreachable to
+        // anyone who did not know to close the note first
+        // ([[Checkpoint-8]]). Alone, Notes shows the folder here.
+        bottom:
+            widget.tabs ??
+            (note == null || note.folder.isEmpty
+                ? null
+                : PreferredSize(
+                    preferredSize: const Size.fromHeight(22),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          HarvestSpacing.md,
+                          0,
+                          HarvestSpacing.md,
+                          6,
+                        ),
+                        child: Text(
+                          note.folder,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
+                  )),
       ),
       bottomNavigationBar: writing && note != null
           ? MarkdownToolbar(controller: _body)

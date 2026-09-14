@@ -467,6 +467,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noteLabel => 'Note (optional)';
 
   @override
+  String get expenseDayLabel => 'Logged on';
+
+  @override
   String get catFood => 'Food';
 
   @override
@@ -2337,6 +2340,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String stepsDistanceMi(String value) {
     return '$value mi';
+  }
+
+  @override
+  String get stepsHistory => 'Your steps';
+
+  @override
+  String get stepsNoDays => 'No steps counted yet';
+
+  @override
+  String get stepsNoDaysBody => 'Tap Connect on the steps card.';
+
+  @override
+  String stepsLastDays(int days) {
+    return 'Last $days days';
+  }
+
+  @override
+  String get stepsBestDay => 'Best day';
+
+  @override
+  String stepsCount(String steps) {
+    return '$steps steps';
   }
 
   @override

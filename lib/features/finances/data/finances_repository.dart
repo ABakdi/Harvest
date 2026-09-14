@@ -183,24 +183,39 @@ class FinancesRepository {
     return uuid;
   }
 
-  /// Same-day correction: edits an entry in place.
+  /// Edits an entry in place. With a [day], the expense moves to that
+  /// Harvest Day, and the day's XP follows the way it does for a
+  /// removal and a log: the old day gives its +10 back if this was
+  /// its last expense, the new day is paid if it had none
+  /// ([[Checkpoint-8]]).
   Future<void> updateExpense({
     required String uuid,
     required int amountMinor,
     required String category,
     Currency currency = Currency.dzd,
     String? note,
+    HarvestDay? day,
   }) => _db.transaction(() async {
+    final before = await (_db.select(
+      _db.expenses,
+    )..where((e) => e.uuid.equals(uuid))).getSingleOrNull();
+    final oldDay = HarvestDay.tryParse(before?.harvestDay);
+    final moved = day != null && oldDay != null && day != oldDay;
     await (_db.update(_db.expenses)..where((e) => e.uuid.equals(uuid))).write(
       ExpensesCompanion(
         amountMinor: Value(amountMinor),
         currency: Value(currency.code),
         category: Value(category),
         note: Value(note),
+        harvestDay: moved ? Value(day.key) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
       ),
     );
     await _appendOutbox(uuid, 'update');
+    if (moved) {
+      if (!await _anyLiveOn(oldDay)) await _takeDayBack(oldDay);
+      await _payDayIfUnpaid(day);
+    }
   });
 
   /// Hard-deletes expenses and categories soft-deleted longer than

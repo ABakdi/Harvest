@@ -33,6 +33,7 @@ class SleepCard extends ConsumerWidget {
     final last = nights.isEmpty ? null : nights.first;
 
     return Card(
+      margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
       child: InkWell(
         borderRadius: BorderRadius.circular(HarvestRadii.card),
         onTap: () => unawaited(showSleepSheet(context)),

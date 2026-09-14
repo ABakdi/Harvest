@@ -16,13 +16,10 @@ import java.io.File
  */
 class MainActivity : FlutterFragmentActivity() {
 
-    private var steps: StepsChannel? = null
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        // Registered here rather than lazily: the activity-result API
-        // it uses must be set up before the activity starts.
-        steps = StepsChannel(this, flutterEngine.dartExecutor.binaryMessenger)
+        // Steps are a plugin (packages/harvest_steps) so the day-reset
+        // job's background engine has them too ([[Checkpoint-8]]).
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DOWNLOADS_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -40,15 +37,6 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
-        if (steps?.onRequestPermissionsResult(requestCode, grantResults) == true) return
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     /**

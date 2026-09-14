@@ -22,6 +22,8 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^3.4.2
   go_router: ^18.0.0
+  harvest_steps:
+    path: packages/harvest_steps
   home_widget: ^0.9.4
   http: ^1.6.0
   image_picker: ^1.2.3

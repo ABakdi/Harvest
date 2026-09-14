@@ -573,6 +573,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  harvest_steps:
+    dependency: "direct main"
+    description:
+      path: "packages/harvest_steps"
+      relative: true
+    source: path
+    version: "1.0.0"
   home_widget:
     dependency: "direct main"
     description:

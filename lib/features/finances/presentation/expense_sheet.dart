@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
@@ -105,6 +107,11 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   String _category = ExpenseCategory.food.name;
   Currency? _currency;
 
+  /// The Harvest Day the expense belongs to: today unless I say
+  /// otherwise — a receipt found in a pocket is still Tuesday's
+  /// ([[Checkpoint-8]]).
+  HarvestDay _day = HarvestDay.today();
+
   /// null until the user decides: the toggle follows the wallet balance
   /// on a new expense, and the existing movement when editing one.
   bool? _walletChoice;
@@ -122,6 +129,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       _noteController.text = existing.note ?? '';
       _category = existing.category;
       _currency = existing.currency;
+      _day = existing.day;
       // Whether this expense already came out of the wallet.
       unawaited(
         ref.read(vaultRepositoryProvider).linkedTxn(existing.uuid).then((txn) {
@@ -207,6 +215,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           currency: currency,
           fromWallet: _fromWallet,
           note: note.isEmpty ? null : note,
+          day: _day,
         );
       } else {
         await actions.logExpense(
@@ -215,6 +224,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           currency: currency,
           fromWallet: _fromWallet,
           note: note.isEmpty ? null : note,
+          day: _day,
         );
       }
       await HarvestHaptics.thud();
@@ -255,6 +265,21 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
         ),
       ),
     );
+  }
+
+  /// Any day within a year either side: forgotten receipts look back,
+  /// a bill I know is coming looks forward.
+  Future<void> _pickDay() async {
+    final today = HarvestDay.today();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _day.toDateTime(),
+      firstDate: today.addDays(-365).toDateTime(),
+      lastDate: today.addDays(365).toDateTime(),
+    );
+    if (picked == null || !mounted) return;
+    unawaited(HarvestHaptics.tick());
+    setState(() => _day = HarvestDay.fromDate(picked));
   }
 
   Future<void> _createCategory(BuildContext context) async {
@@ -361,6 +386,26 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           ],
         ),
         const SizedBox(height: HarvestSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.expenseDayLabel,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.event_outlined, size: 18),
+              label: Text(
+                _day == HarvestDay.today()
+                    ? l10n.dueToday
+                    : formatDay(context, _day, weekday: true),
+              ),
+              onPressed: () => unawaited(_pickDay()),
+            ),
+          ],
+        ),
+        const SizedBox(height: HarvestSpacing.xs),
         // Where the money comes from, answered here instead of in a
         // second sheet after the fact.
         SwitchListTile(

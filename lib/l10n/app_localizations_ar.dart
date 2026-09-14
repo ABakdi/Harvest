@@ -469,6 +469,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noteLabel => 'ملاحظة (اختياري)';
 
   @override
+  String get expenseDayLabel => 'بتاريخ';
+
+  @override
   String get catFood => 'طعام';
 
   @override
@@ -2342,6 +2345,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String stepsDistanceMi(String value) {
     return '$value ميل';
+  }
+
+  @override
+  String get stepsHistory => 'خطواتك';
+
+  @override
+  String get stepsNoDays => 'لم تُعدّ خطوات بعد';
+
+  @override
+  String get stepsNoDaysBody => 'اضغط اتصال في بطاقة الخطوات.';
+
+  @override
+  String stepsLastDays(int days) {
+    return 'آخر $days يومًا';
+  }
+
+  @override
+  String get stepsBestDay => 'أفضل يوم';
+
+  @override
+  String stepsCount(String steps) {
+    return '$steps خطوة';
   }
 
   @override

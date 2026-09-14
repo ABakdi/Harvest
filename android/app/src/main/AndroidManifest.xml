@@ -15,6 +15,10 @@
          that sensor needs Activity Recognition. Both are asked for
          when steps are switched on, never at first launch. -->
     <uses-permission android:name="android.permission.health.READ_STEPS"/>
+    <!-- So the 3 AM day-reset job can close the day's count without
+         the app on screen. Asked with the read permission, on phones
+         whose Health Connect offers it. -->
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
     <!-- The app lock uses the device's own prompt (checkpoint C2-1). -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
