@@ -79,6 +79,7 @@ the **custom categories** live together under Settings › Money.
 
 The whole point is a **sub-5-second log**:
 - **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]])
+- **Logged on** — today unless I say otherwise; a chip takes any day a year either side, for the receipt found in a pocket or the bill I know is coming. The day's +10 follows the day the expense lands on ([[Checkpoint-8]])
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 

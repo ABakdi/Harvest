@@ -194,6 +194,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Checkpoint 5](docs/05-Checkpoints/Checkpoint-5.md) | Records under one tab, and an editor worth writing in |
 | [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md) | Steps that count, one way to split a screen, and a gym that knows what day it is |
 | [Checkpoint 7](docs/05-Checkpoints/Checkpoint-7.md) | Finish where the thumb is, a record's moment, and settings as a place |
+| [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md) | The day's steps written down at 3 AM, and an expense on the day it belongs to |
 
 ### Audit
 

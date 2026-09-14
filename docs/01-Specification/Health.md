@@ -117,8 +117,12 @@ sensor only, and in fact read nothing).
   Recognition** for the sensor — is asked from the steps card, when I
   tap Connect, and never at first launch: the same manners the
   [[Gallery]] has.
-- Reads happen when the app comes to the foreground and when the
-  Health screen is looked at. No background service: a passive number
+- Reads happen when the app comes to the foreground, when the Health
+  screen is looked at, and **once at 3 AM** from the day-reset job,
+  which closes the day that ended with its final count
+  ([[Checkpoint-8]]). Health Connect asks its own permission for that
+  last one, on phones that offer it; without it the day closes on the
+  next open instead. No service watches the sensor: a passive number
   does not get a battery budget.
 
 ### What it does with it
@@ -139,8 +143,11 @@ sensor only, and in fact read nothing).
   revise a day downward when a watch syncs late, and taking five XP
   back off someone for a number they never touched would be a worse
   lie than leaving it ([[Audit-v2-Beta]] N-09).
-- History: a bar per day, a weekly average, and a monthly line. Steps
-  ride in the archive with everything else.
+- History: **Your steps** on the Health screen, beside the readings
+  and the nights — the last thirty days as a total and a distance,
+  the average and the best day, and a bar a day for a fortnight with
+  the goal across them ([[Checkpoint-8]]). Steps ride in the archive
+  with everything else.
 
 **Off by default**, with the rest of Health.
 
@@ -202,5 +209,6 @@ that is a different app and I am not writing it.
 | H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. |
 | H7 | Sleep is not a seed: it checks nothing in, breaks no streak, and never appears on the field. |
 | H8 | A night is filed under the Harvest Day I **woke up on**, because that is the day it decides. |
+| H9 | The day that ended gets its step goal paid by whichever pull sees it first — the 3 AM job or the next open — and once only ([[Checkpoint-8]]). |
 
 Related: [[Gym]] · [[Gallery]] · [[Gamification]] · [[Notifications]] · [[Business-Rules]]

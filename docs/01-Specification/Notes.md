@@ -112,6 +112,7 @@ that the export does not already give it.
 | N3 | A note exports as a `.md` file at its folder path, with the title as the filename. What comes out opens in any editor. |
 | N4 | No feature may require Harvest to read the note back. If it cannot survive being edited in a text editor, it does not belong. |
 | N5 | The editor draws markdown by styling it, never by rewriting it. What is rendered and what is stored are the same string, character for character. |
+| N6 | Under the Records tab the tab row stays whether a note is open or not; an open note shows its folder under the title ([[Checkpoint-8]]). |
 
 A note also goes out as a **PDF**, rendered rather than dumped, through
 the system share sheet.
