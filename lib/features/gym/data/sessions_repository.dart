@@ -413,8 +413,15 @@ class SessionsRepository {
     return (await once(uuid))!;
   }
 
-  /// An empty session, for a day I am making up as I go.
-  Future<WorkoutSession> startFreeform({String? title, HarvestDay? on}) async {
+  /// An empty session, for a day I am making up as I go — or, with a
+  /// [programUuid], the bare "went, no numbers" a hand tick on the
+  /// field becomes, so finishing it still goes through the program's
+  /// door ([[Gym]] rule Y12).
+  Future<WorkoutSession> startFreeform({
+    String? title,
+    HarvestDay? on,
+    String? programUuid,
+  }) async {
     final uuid = _uuid.v4();
     await _db
         .into(_db.workoutSessions)
@@ -422,9 +429,11 @@ class SessionsRepository {
           WorkoutSessionsCompanion.insert(
             uuid: uuid,
             title: Value(title),
+            programUuid: Value(programUuid),
             harvestDay: (on ?? HarvestDay.today()).key,
           ),
         );
+    await _outbox(uuid, 'insert');
     return (await once(uuid))!;
   }
 

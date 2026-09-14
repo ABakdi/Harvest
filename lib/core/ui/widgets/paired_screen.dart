@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/widgets/harvest_tabs.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 
 /// One half of a paired screen: what it is, how it is drawn in the
 /// tab row, and whether it is switched on at all.
@@ -22,12 +26,13 @@ typedef PairedBuilder<T> = Widget Function(
 /// there are not, and a switched-off half never left on screen. Now
 /// the rule lives here once and the three screens are a list of halves
 /// and a builder.
-class PairedScreen<T extends Enum> extends StatefulWidget {
+class PairedScreen<T extends Enum> extends ConsumerStatefulWidget {
   const PairedScreen({
     required this.title,
     required this.halves,
     required this.builder,
     this.initial,
+    this.rememberKey,
     super.key,
   });
 
@@ -39,14 +44,19 @@ class PairedScreen<T extends Enum> extends StatefulWidget {
 
   final PairedBuilder<T> builder;
 
-  /// Which half to open on; the first otherwise.
+  /// Which half to open on; the remembered one, or the first, otherwise.
   final T? initial;
 
+  /// A setting key to remember the half under, so the tab opens where
+  /// it was last left rather than always on its first half
+  /// ([[Checkpoint-7]]). An explicit [initial] still wins.
+  final String? rememberKey;
+
   @override
-  State<PairedScreen<T>> createState() => _PairedScreenState<T>();
+  ConsumerState<PairedScreen<T>> createState() => _PairedScreenState<T>();
 }
 
-class _PairedScreenState<T extends Enum> extends State<PairedScreen<T>>
+class _PairedScreenState<T extends Enum> extends ConsumerState<PairedScreen<T>>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(
     length: widget.halves.length,
@@ -54,7 +64,38 @@ class _PairedScreenState<T extends Enum> extends State<PairedScreen<T>>
         ? 0
         : widget.halves.indexWhere((half) => half.value == widget.initial),
     vsync: this,
-  )..addListener(() => setState(() {}));
+  )..addListener(_onTab);
+
+  /// Set once the user has picked a half themselves; the remembered one
+  /// arriving late must not then pull the tab out from under them.
+  bool _touched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final key = widget.rememberKey;
+    if (key != null && widget.initial == null) unawaited(_recall(key));
+  }
+
+  Future<void> _recall(String key) async {
+    final name = await ref.read(settingsRepositoryProvider).getString(key);
+    if (!mounted || _touched || name == null) return;
+    final index = widget.halves.indexWhere((half) => half.value.name == name);
+    if (index >= 0 && index != _tabs.index) _tabs.index = index;
+  }
+
+  void _onTab() {
+    setState(() {});
+    if (_tabs.indexIsChanging) return;
+    final key = widget.rememberKey;
+    if (key == null) return;
+    _touched = true;
+    unawaited(
+      ref
+          .read(settingsRepositoryProvider)
+          .setString(key, widget.halves[_tabs.index].value.name),
+    );
+  }
 
   @override
   void dispose() {

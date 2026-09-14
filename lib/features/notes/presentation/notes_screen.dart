@@ -19,6 +19,7 @@ import 'package:harvest/features/notes/presentation/note_editor.dart';
 import 'package:harvest/features/notes/presentation/note_trash_screen.dart';
 import 'package:harvest/features/notes/presentation/notes_providers.dart';
 import 'package:harvest/features/notes/presentation/notes_sidebar.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:printing/printing.dart';
 
@@ -51,6 +52,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   void initState() {
     super.initState();
     _open = widget.initialUuid;
+    if (_open != null) _remember(_open);
     // Open whatever I was last writing rather than an empty page.
     if (_open == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _openLatest());
@@ -63,14 +65,30 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     super.dispose();
   }
 
+  /// The note I was last in, if it is still there; the latest otherwise.
   Future<void> _openLatest() async {
+    final settings = ref.read(settingsRepositoryProvider);
+    final remembered = await settings.getString(SettingKeys.recordsNote);
     final notes = await ref.read(notesRepositoryProvider).watchAll().first;
     if (!mounted || notes.isEmpty || _open != null) return;
-    setState(() => _open = notes.first.uuid);
+    final last = notes.where((note) => note.uuid == remembered).firstOrNull;
+    setState(() => _open = (last ?? notes.first).uuid);
+  }
+
+  /// Written on every change, so a cold start lands on the same note
+  /// ([[Checkpoint-7]]).
+  void _remember(String? uuid) {
+    final settings = ref.read(settingsRepositoryProvider);
+    unawaited(
+      uuid == null
+          ? settings.remove(SettingKeys.recordsNote)
+          : settings.setString(SettingKeys.recordsNote, uuid),
+    );
   }
 
   void _show(String? uuid) {
     setState(() => _open = uuid);
+    _remember(uuid);
     if (_scaffold.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
@@ -124,6 +142,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     await repository.remove(note.uuid);
     if (!mounted) return;
     setState(() => _open = null);
+    _remember(null);
     _openLatest().ignore();
     messenger
       ..hideCurrentSnackBar()

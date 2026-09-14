@@ -71,9 +71,13 @@ class RestTimerController extends ChangeNotifier {
 
 /// The bar that appears while resting, and nothing at all when not.
 class RestTimerBar extends StatelessWidget {
-  const RestTimerBar({required this.controller, super.key});
+  const RestTimerBar({required this.controller, this.safe = true, super.key});
 
   final RestTimerController controller;
+
+  /// Whether the bar clears the gesture area itself. False when
+  /// something else sits under it and does.
+  final bool safe;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -93,6 +97,7 @@ class RestTimerBar extends StatelessWidget {
         // and a mistap there leaves the workout.
         child: SafeArea(
           top: false,
+          bottom: safe,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
               HarvestSpacing.md,

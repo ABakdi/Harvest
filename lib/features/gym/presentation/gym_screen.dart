@@ -26,8 +26,9 @@ import 'package:harvest/l10n/app_localizations.dart';
 ///
 /// Ordered by how often I open the tab for each: the running session
 /// first, because if one is running that is the only reason I am
-/// here; then starting one; then the programs I would edit between
-/// sessions; then the catalogue, which is a reference book.
+/// here; then the programs I actually use and the sessions they made;
+/// and the catalogue last, because it is a reference book and a
+/// reference book does not go ahead of the training ([[Checkpoint-7]]).
 class GymScreen extends ConsumerWidget {
   const GymScreen({this.title, this.tabs, super.key});
 
@@ -119,47 +120,6 @@ class GymScreen extends ConsumerWidget {
                 ),
               ),
             ),
-          SectionHeader(l10n.gymExercisesTitle),
-          Card(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(HarvestRadii.card),
-              onTap: () => unawaited(_browse(context)),
-              child: Padding(
-                padding: const EdgeInsets.all(HarvestSpacing.md),
-                child: Row(
-                  children: [
-                    IconBadge(
-                      Icons.menu_book_outlined,
-                      color: scheme.secondary,
-                    ),
-                    const SizedBox(width: HarvestSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            catalogue == null
-                                ? l10n.gymCatalogueLoading
-                                : l10n.gymExerciseCount(catalogue.all.length),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          Text(
-                            l10n.gymCatalogueHint,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-                  ],
-                ),
-              ),
-            ),
-          ),
           SectionHeader(
             l10n.gymProgramsTitle,
             trailing: IconButton(
@@ -222,6 +182,47 @@ class GymScreen extends ConsumerWidget {
             for (final session in finished.take(3))
               SessionTile(session: session, unit: unit),
           ],
+          SectionHeader(l10n.gymExercisesTitle),
+          Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(HarvestRadii.card),
+              onTap: () => unawaited(_browse(context)),
+              child: Padding(
+                padding: const EdgeInsets.all(HarvestSpacing.md),
+                child: Row(
+                  children: [
+                    IconBadge(
+                      Icons.menu_book_outlined,
+                      color: scheme.secondary,
+                    ),
+                    const SizedBox(width: HarvestSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            catalogue == null
+                                ? l10n.gymCatalogueLoading
+                                : l10n.gymExerciseCount(catalogue.all.length),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            l10n.gymCatalogueHint,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

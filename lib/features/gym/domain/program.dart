@@ -210,3 +210,13 @@ List<ResolvedSet> resolveSlot(ProgramSlot slot, {int? trainingMaxGrams}) => [
   for (final set in slot.sets)
     (target: set, grams: set.resolve(trainingMaxGrams: trainingMaxGrams)),
 ];
+
+/// The slot order after dragging the item at [from] to [to], where
+/// [to] is its index in the list *after* the move — what
+/// `ReorderableListView.onReorderItem` reports.
+List<String> reorderedUuids(List<String> uuids, int from, int to) {
+  final next = [...uuids];
+  final moved = next.removeAt(from);
+  next.insert(to, moved);
+  return next;
+}

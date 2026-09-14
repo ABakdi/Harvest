@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Your harvest numbers will grow here as you log your days.'**
+  /// **'Check in once and the numbers start.'**
   String get statsEmptyBody;
 
   /// No description provided for @settingsAppearance.
@@ -151,6 +151,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Appearance'**
   String get settingsAppearance;
+
+  /// No description provided for @settingsSectionHarvestHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The daily goal, the day\'s hours and sleep'**
+  String get settingsSectionHarvestHint;
+
+  /// No description provided for @settingsSectionFeaturesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Which parts of the app are on'**
+  String get settingsSectionFeaturesHint;
+
+  /// No description provided for @settingsSectionRemindersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When the app speaks up'**
+  String get settingsSectionRemindersHint;
+
+  /// No description provided for @settingsSectionPomodoroHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus and break lengths'**
+  String get settingsSectionPomodoroHint;
+
+  /// No description provided for @settingsSectionMoneyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency, categories and rates'**
+  String get settingsSectionMoneyHint;
+
+  /// No description provided for @settingsSectionPrivacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The lock on the app'**
+  String get settingsSectionPrivacyHint;
+
+  /// No description provided for @settingsSectionDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Export, import and the widget'**
+  String get settingsSectionDataHint;
+
+  /// No description provided for @settingsSectionAppearanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, colours and language'**
+  String get settingsSectionAppearanceHint;
 
   /// No description provided for @settingsTheme.
   ///
@@ -2135,7 +2183,7 @@ abstract class AppLocalizations {
   /// No description provided for @archiveEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Seeds you archive land here, with the note that says why.'**
+  /// **'Archived seeds land here, with the note that says why.'**
   String get archiveEmptyBody;
 
   /// No description provided for @archiveSheetBody.
@@ -2855,7 +2903,7 @@ abstract class AppLocalizations {
   /// No description provided for @notesEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'The app knows what you did. This is where you keep what you thought about it.'**
+  /// **'Tap + to keep what you thought about the day.'**
   String get notesEmptyBody;
 
   /// No description provided for @notesNoMatch.
@@ -3005,7 +3053,7 @@ abstract class AppLocalizations {
   /// No description provided for @galleryEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'One picture a day, kept in order, playable as a run. Start with the thing you want to see change.'**
+  /// **'Tap + for an album: one picture a day, playable as a run.'**
   String get galleryEmptyBody;
 
   /// No description provided for @galleryAlbumEmpty.
@@ -3455,13 +3503,13 @@ abstract class AppLocalizations {
   /// No description provided for @trashNotesEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Deleted notes wait here so a wrong tap is not the end of one.'**
+  /// **'Deleted notes wait here.'**
   String get trashNotesEmptyBody;
 
   /// No description provided for @trashGalleryEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Deleted pictures and albums wait here. Their files stay on the phone until you empty it.'**
+  /// **'Deleted pictures and albums wait here.'**
   String get trashGalleryEmptyBody;
 
   /// No description provided for @trashKeeps.
@@ -3959,7 +4007,7 @@ abstract class AppLocalizations {
   /// No description provided for @weightEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'One number, whenever you weigh yourself. The line gets interesting from about the third one.'**
+  /// **'Tap Log a weight. The line has a shape from the third one.'**
   String get weightEmptyBody;
 
   /// No description provided for @weightHistory.
@@ -4211,7 +4259,7 @@ abstract class AppLocalizations {
   /// No description provided for @gymNoProgramsBody.
   ///
   /// In en, this message translates to:
-  /// **'A program is a list of days, and a day is a list of exercises. Nothing is generated — you write it.'**
+  /// **'Tap + and write the first day.'**
   String get gymNoProgramsBody;
 
   /// No description provided for @gymProgramSummary.
@@ -4271,7 +4319,7 @@ abstract class AppLocalizations {
   /// No description provided for @gymNoDaysBody.
   ///
   /// In en, this message translates to:
-  /// **'Add the first one. Duplicating it later is one tap — most days are the last day with two numbers changed.'**
+  /// **'Tap Add a day. Duplicating it later is one tap.'**
   String get gymNoDaysBody;
 
   /// No description provided for @gymDaySummary.
@@ -4694,6 +4742,42 @@ abstract class AppLocalizations {
   /// **'Paused'**
   String get gymPaused;
 
+  /// No description provided for @healthLogNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Log last night'**
+  String get healthLogNight;
+
+  /// No description provided for @gymSeedStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the session'**
+  String get gymSeedStart;
+
+  /// No description provided for @gymSeedStartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The program\'s day, sets and all'**
+  String get gymSeedStartHint;
+
+  /// No description provided for @gymSeedBare.
+  ///
+  /// In en, this message translates to:
+  /// **'Went, no numbers'**
+  String get gymSeedBare;
+
+  /// No description provided for @gymSeedBareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in as a session with nothing logged'**
+  String get gymSeedBareHint;
+
+  /// No description provided for @gymReorderHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get gymReorderHandle;
+
   /// No description provided for @gymUpNext.
   ///
   /// In en, this message translates to:
@@ -4913,7 +4997,7 @@ abstract class AppLocalizations {
   /// No description provided for @sleepNoNightsBody.
   ///
   /// In en, this message translates to:
-  /// **'Write down one morning and the line starts. Two weeks of them and it has a shape.'**
+  /// **'Tap Log it one morning and the line starts.'**
   String get sleepNoNightsBody;
 
   /// No description provided for @sleepOverrides.
@@ -5117,7 +5201,7 @@ abstract class AppLocalizations {
   /// No description provided for @gymNoHistoryBody.
   ///
   /// In en, this message translates to:
-  /// **'Start a day of your program. What you log here is what the records are made of.'**
+  /// **'Tap Start. The records are made of what you log here.'**
   String get gymNoHistoryBody;
 
   /// No description provided for @gymSessionSummary.

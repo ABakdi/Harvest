@@ -129,7 +129,7 @@ final class SleepDebtNowProvider
   }
 }
 
-String _$sleepDebtNowHash() => r'015f39781989879f61d80f5d4469f722f92c97e6';
+String _$sleepDebtNowHash() => r'c095fe3d5e97901e1ba8f8b39934bc2ad781adff';
 
 /// Whether last night is still waiting to be written down.
 

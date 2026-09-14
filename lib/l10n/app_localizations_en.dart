@@ -32,11 +32,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsEmptyTitle => 'Nothing to count yet';
 
   @override
-  String get statsEmptyBody =>
-      'Your harvest numbers will grow here as you log your days.';
+  String get statsEmptyBody => 'Check in once and the numbers start.';
 
   @override
   String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsSectionHarvestHint =>
+      'The daily goal, the day\'s hours and sleep';
+
+  @override
+  String get settingsSectionFeaturesHint => 'Which parts of the app are on';
+
+  @override
+  String get settingsSectionRemindersHint => 'When the app speaks up';
+
+  @override
+  String get settingsSectionPomodoroHint => 'Focus and break lengths';
+
+  @override
+  String get settingsSectionMoneyHint => 'Currency, categories and rates';
+
+  @override
+  String get settingsSectionPrivacyHint => 'The lock on the app';
+
+  @override
+  String get settingsSectionDataHint => 'Export, import and the widget';
+
+  @override
+  String get settingsSectionAppearanceHint => 'Theme, colours and language';
 
   @override
   String get settingsTheme => 'Theme';
@@ -1222,7 +1246,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get archiveEmptyBody =>
-      'Seeds you archive land here, with the note that says why.';
+      'Archived seeds land here, with the note that says why.';
 
   @override
   String archiveSheetBody(String title) {
@@ -1690,8 +1714,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesEmpty => 'No notes yet';
 
   @override
-  String get notesEmptyBody =>
-      'The app knows what you did. This is where you keep what you thought about it.';
+  String get notesEmptyBody => 'Tap + to keep what you thought about the day.';
 
   @override
   String get notesNoMatch => 'Nothing matches that';
@@ -1781,7 +1804,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryEmptyBody =>
-      'One picture a day, kept in order, playable as a run. Start with the thing you want to see change.';
+      'Tap + for an album: one picture a day, playable as a run.';
 
   @override
   String get galleryAlbumEmpty => 'Nothing in here yet';
@@ -2053,12 +2076,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trashEmptyTitle => 'The trash is empty';
 
   @override
-  String get trashNotesEmptyBody =>
-      'Deleted notes wait here so a wrong tap is not the end of one.';
+  String get trashNotesEmptyBody => 'Deleted notes wait here.';
 
   @override
-  String get trashGalleryEmptyBody =>
-      'Deleted pictures and albums wait here. Their files stay on the phone until you empty it.';
+  String get trashGalleryEmptyBody => 'Deleted pictures and albums wait here.';
 
   @override
   String get trashKeeps =>
@@ -2345,7 +2366,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weightEmptyBody =>
-      'One number, whenever you weigh yourself. The line gets interesting from about the third one.';
+      'Tap Log a weight. The line has a shape from the third one.';
 
   @override
   String get weightHistory => 'Every reading';
@@ -2502,8 +2523,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gymNoPrograms => 'No programs yet';
 
   @override
-  String get gymNoProgramsBody =>
-      'A program is a list of days, and a day is a list of exercises. Nothing is generated — you write it.';
+  String get gymNoProgramsBody => 'Tap + and write the first day.';
 
   @override
   String gymProgramSummary(int days, int sets) {
@@ -2554,8 +2574,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gymNoDays => 'No days yet';
 
   @override
-  String get gymNoDaysBody =>
-      'Add the first one. Duplicating it later is one tap — most days are the last day with two numbers changed.';
+  String get gymNoDaysBody => 'Tap Add a day. Duplicating it later is one tap.';
 
   @override
   String gymDaySummary(int exercises, int sets) {
@@ -2828,6 +2847,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gymPaused => 'Paused';
 
   @override
+  String get healthLogNight => 'Log last night';
+
+  @override
+  String get gymSeedStart => 'Start the session';
+
+  @override
+  String get gymSeedStartHint => 'The program\'s day, sets and all';
+
+  @override
+  String get gymSeedBare => 'Went, no numbers';
+
+  @override
+  String get gymSeedBareHint => 'Checked in as a session with nothing logged';
+
+  @override
+  String get gymReorderHandle => 'Drag to reorder';
+
+  @override
   String get gymUpNext => 'Up next';
 
   @override
@@ -2959,8 +2996,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepNoNights => 'No nights written down yet';
 
   @override
-  String get sleepNoNightsBody =>
-      'Write down one morning and the line starts. Two weeks of them and it has a shape.';
+  String get sleepNoNightsBody => 'Tap Log it one morning and the line starts.';
 
   @override
   String get sleepOverrides => 'Nights of their own';
@@ -3101,7 +3137,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gymNoHistoryBody =>
-      'Start a day of your program. What you log here is what the records are made of.';
+      'Tap Start. The records are made of what you log here.';
 
   @override
   String gymSessionSummary(int sets, String volume) {

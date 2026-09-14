@@ -254,8 +254,25 @@ class _DayCard extends ConsumerWidget {
                 ),
               ),
             const Divider(),
-            for (final slot in day.slots)
-              _SlotRow(slot: slot, trainingMaxGrams: maxes[slot.exerciseId]),
+            // The position column always existed; this is the gesture
+            // for it. The handle is the only drag start, so a swipe
+            // through the list still scrolls ([[Checkpoint-7]]).
+            ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              itemCount: day.slots.length,
+              onReorderItem: (from, to) => unawaited(_reorder(ref, from, to)),
+              itemBuilder: (context, index) {
+                final slot = day.slots[index];
+                return _SlotRow(
+                  key: ValueKey(slot.uuid),
+                  slot: slot,
+                  index: index,
+                  trainingMaxGrams: maxes[slot.exerciseId],
+                );
+              },
+            ),
             TextButton.icon(
               onPressed: () => unawaited(_addSlot(context, ref)),
               icon: const Icon(Icons.add, size: 18),
@@ -265,6 +282,13 @@ class _DayCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _reorder(WidgetRef ref, int from, int to) async {
+    final before = [for (final slot in day.slots) slot.uuid];
+    final after = reorderedUuids(before, from, to);
+    if (after.join() == before.join()) return;
+    await ref.read(programsRepositoryProvider).reorderSlots(after);
   }
 
   Future<void> _addSlot(BuildContext context, WidgetRef ref) async {
@@ -315,9 +339,15 @@ class _DayCard extends ConsumerWidget {
 }
 
 class _SlotRow extends ConsumerWidget {
-  const _SlotRow({required this.slot, this.trainingMaxGrams});
+  const _SlotRow({
+    required this.slot,
+    required this.index,
+    this.trainingMaxGrams,
+    super.key,
+  });
 
   final ProgramSlot slot;
+  final int index;
   final int? trainingMaxGrams;
 
   @override
@@ -387,6 +417,23 @@ class _SlotRow extends ConsumerWidget {
               ),
             ),
             Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
+            ReorderableDragStartListener(
+              index: index,
+              child: Tooltip(
+                message: l10n.gymReorderHandle,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: HarvestSpacing.xs,
+                    vertical: HarvestSpacing.sm,
+                  ),
+                  child: Icon(
+                    Icons.drag_handle_rounded,
+                    size: 20,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -166,6 +166,77 @@ final class ProgramFamily extends $Family
   String toString() => r'programProvider';
 }
 
+@ProviderFor(programForCommitment)
+final programForCommitmentProvider = ProgramForCommitmentFamily._();
+
+final class ProgramForCommitmentProvider
+    extends
+        $FunctionalProvider<AsyncValue<Program?>, Program?, Stream<Program?>>
+    with $FutureModifier<Program?>, $StreamProvider<Program?> {
+  ProgramForCommitmentProvider._({
+    required ProgramForCommitmentFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'programForCommitmentProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$programForCommitmentHash();
+
+  @override
+  String toString() {
+    return r'programForCommitmentProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<Program?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Program?> create(Ref ref) {
+    final argument = this.argument as String;
+    return programForCommitment(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProgramForCommitmentProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$programForCommitmentHash() =>
+    r'99a4ccb0f36bb3f6df183b2ba422e4b19c8cb5c1';
+
+final class ProgramForCommitmentFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<Program?>, String> {
+  ProgramForCommitmentFamily._()
+    : super(
+        retry: null,
+        name: r'programForCommitmentProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ProgramForCommitmentProvider call(String commitmentUuid) =>
+      ProgramForCommitmentProvider._(argument: commitmentUuid, from: this);
+
+  @override
+  String toString() => r'programForCommitmentProvider';
+}
+
 @ProviderFor(trainingMaxes)
 final trainingMaxesProvider = TrainingMaxesFamily._();
 

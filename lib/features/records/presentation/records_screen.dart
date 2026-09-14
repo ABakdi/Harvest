@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/widgets/paired_screen.dart';
 import 'package:harvest/features/gallery/presentation/gallery_screen.dart';
 import 'package:harvest/features/notes/presentation/notes_screen.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -31,6 +32,9 @@ class RecordsScreen extends ConsumerWidget {
     return PairedScreen<RecordsTab>(
       title: l10n.navRecords,
       initial: initial,
+      // Where I was last — a note or the albums — is the more useful
+      // place to land than the notes list, always ([[Checkpoint-7]]).
+      rememberKey: SettingKeys.recordsTab,
       halves: [
         (
           value: RecordsTab.notes,

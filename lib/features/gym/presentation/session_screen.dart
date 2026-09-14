@@ -103,57 +103,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           ],
         ),
         actions: [
-          // The clock is the pause button: tapping the time stops it,
-          // tapping it again starts it. A queue for the rack or a phone
-          // call is not training time ([[Checkpoint-6]]).
-          Center(
-            child: Tooltip(
-              message: session.paused ? l10n.gymResumeClock : l10n.gymPause,
-              child: Material(
-                color: session.paused
-                    ? scheme.tertiaryContainer
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(999),
-                  onTap: () => unawaited(_togglePause(session)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: HarvestSpacing.sm,
-                      vertical: HarvestSpacing.xs,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          session.paused
-                              ? Icons.play_arrow_rounded
-                              : Icons.pause_rounded,
-                          size: 20,
-                          color: session.paused
-                              ? scheme.onTertiaryContainer
-                              : scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          _clockLabel(elapsed),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontFeatures: const [
-                              FontFeature.tabularFigures(),
-                            ],
-                            fontWeight: session.paused ? FontWeight.w800 : null,
-                            color: session.paused
-                                ? scheme.onTertiaryContainer
-                                : scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
           PopupMenuButton<String>(
             onSelected: (value) => switch (value) {
               'note' => unawaited(_sessionNote(session)),
@@ -169,16 +118,24 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
               ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(end: HarvestSpacing.sm),
-            child: FilledButton(
-              onPressed: () => unawaited(_finish(session)),
-              child: Text(l10n.gymFinish),
-            ),
+        ],
+      ),
+      // The three things I touch mid-session — the rest, the clock and
+      // Finish — in the one place a thumb is between sets: the bottom.
+      // Finish is the most consequential button on the screen and had
+      // sat beside an overflow menu at the top ([[Checkpoint-7]]).
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RestTimerBar(controller: _rest, safe: false),
+          _SessionBar(
+            session: session,
+            clock: _clockLabel(elapsed),
+            onPause: () => unawaited(_togglePause(session)),
+            onFinish: () => unawaited(_finish(session)),
           ),
         ],
       ),
-      bottomNavigationBar: RestTimerBar(controller: _rest),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           HarvestSpacing.sm,
@@ -337,6 +294,117 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     if (!ok) return;
     await ref.read(sessionsRepositoryProvider).discard(session.uuid);
     navigator.pop();
+  }
+}
+
+/// The session's bottom bar: the clock, which is also the pause button,
+/// and Finish.
+class _SessionBar extends StatelessWidget {
+  const _SessionBar({
+    required this.session,
+    required this.clock,
+    required this.onPause,
+    required this.onFinish,
+  });
+
+  final WorkoutSession session;
+  final String clock;
+  final VoidCallback onPause;
+  final VoidCallback onFinish;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final paused = session.paused;
+
+    return Material(
+      color: scheme.surfaceContainer,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            HarvestSpacing.sm,
+            HarvestSpacing.sm,
+            HarvestSpacing.md,
+            HarvestSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              // Tapping the time stops the clock; tapping it again
+              // starts it. A queue for the rack or a phone call is not
+              // training time ([[Checkpoint-6]]).
+              Expanded(
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Tooltip(
+                    message: paused ? l10n.gymResumeClock : l10n.gymPause,
+                    child: Material(
+                      color: paused
+                          ? scheme.tertiaryContainer
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(999),
+                        onTap: onPause,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: HarvestSpacing.sm,
+                            vertical: HarvestSpacing.xs,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                paused
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.pause_rounded,
+                                color: paused
+                                    ? scheme.onTertiaryContainer
+                                    : scheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: HarvestSpacing.xs),
+                              Text(
+                                clock,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                  fontWeight: FontWeight.w800,
+                                  color: paused
+                                      ? scheme.onTertiaryContainer
+                                      : scheme.onSurface,
+                                ),
+                              ),
+                              if (paused) ...[
+                                const SizedBox(width: HarvestSpacing.sm),
+                                Text(
+                                  l10n.gymPaused,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: scheme.onTertiaryContainer,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: onFinish,
+                icon: const Icon(Icons.flag_rounded, size: 18),
+                label: Text(l10n.gymFinish),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

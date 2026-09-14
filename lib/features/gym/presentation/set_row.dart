@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/domain/session.dart';
@@ -53,6 +54,7 @@ class _SetRowState extends ConsumerState<SetRow> {
   );
   String? _lastWeight;
   String? _lastReps;
+  final GlobalKey _tick = GlobalKey();
 
   String _weightText() => widget.set.weightGrams == 0
       ? ''
@@ -128,13 +130,30 @@ class _SetRowState extends ConsumerState<SetRow> {
     );
     if (beaten.isEmpty || !mounted) return;
 
+    // A record is the moment the feature exists for, so it borrows the
+    // Field's check-in burst — from the tick, where the thumb is — and
+    // the words stay up long enough to be read between sets
+    // ([[Checkpoint-7]]).
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final box = _tick.currentContext?.findRenderObject() as RenderBox?;
+    if (box != null) {
+      showCheckInBurst(
+        context,
+        box.localToGlobal(box.size.center(Offset.zero)),
+        icon: Icons.emoji_events_rounded,
+        color: scheme.tertiary,
+        particles: 12,
+      );
+    }
+    unawaited(HarvestHaptics.thud());
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).colorScheme.secondary,
+          backgroundColor: scheme.secondary,
+          duration: const Duration(seconds: 6),
           content: Text(
             beaten.contains(RecordKind.heaviest)
                 ? l10n.gymRecordHeaviest(
@@ -176,9 +195,11 @@ class _SetRowState extends ConsumerState<SetRow> {
                   : Colors.transparent,
               child: Text(
                 // The open set is the one that decides whether the
-                // weight goes up, so it gets a letter, not a number.
-                set.openEnded ? 'P' : '${set.position + 1}',
+                // weight goes up, so it gets a badge, not a number —
+                // and the badge says what the set asks ([[Checkpoint-7]]).
+                set.openEnded ? '1+' : '${set.position + 1}',
                 style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: set.openEnded ? 10 : null,
                   fontWeight: FontWeight.w800,
                   color: set.openEnded
                       ? scheme.onSecondary
@@ -225,6 +246,7 @@ class _SetRowState extends ConsumerState<SetRow> {
           SizedBox(
             width: 44,
             child: IconButton(
+              key: _tick,
               tooltip: done ? l10n.gymUntick : l10n.gymTick,
               onPressed: () => unawaited(_toggle()),
               icon: Icon(

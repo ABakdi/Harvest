@@ -48,6 +48,18 @@ class ProgramsRepository {
     }
   }
 
+  /// The program a habit is bound to, if any — the field asks, so a
+  /// gym seed can send me to its session rather than take a bare tick
+  /// ([[Gym]] rule Y12).
+  Stream<Program?> watchForCommitment(String commitmentUuid) => watchAll().map(
+    (programs) {
+      for (final program in programs) {
+        if (program.commitmentUuid == commitmentUuid) return program;
+      }
+      return null;
+    },
+  );
+
   Future<List<Program>> allOnce() async {
     final rows =
         await (_db.select(_db.programs)
@@ -509,6 +521,10 @@ Stream<List<Program>> programs(Ref ref) =>
 @riverpod
 Stream<Program?> program(Ref ref, String uuid) =>
     ref.watch(programsRepositoryProvider).watchOne(uuid);
+
+@riverpod
+Stream<Program?> programForCommitment(Ref ref, String commitmentUuid) =>
+    ref.watch(programsRepositoryProvider).watchForCommitment(commitmentUuid);
 
 @riverpod
 Stream<Map<String, int>> trainingMaxes(Ref ref, String programUuid) =>

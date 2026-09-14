@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
@@ -29,6 +30,7 @@ import 'package:harvest/features/commitments/presentation/schedule_label.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/presentation/budget_colors.dart';
+import 'package:harvest/features/finances/presentation/choice_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
@@ -37,6 +39,11 @@ import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
+import 'package:harvest/features/gym/data/programs_repository.dart';
+import 'package:harvest/features/gym/data/sessions_repository.dart';
+import 'package:harvest/features/gym/domain/program.dart';
+import 'package:harvest/features/gym/domain/session_finisher.dart';
+import 'package:harvest/features/gym/presentation/session_start.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -252,10 +259,15 @@ class _CropTile extends ConsumerWidget {
     final overdue = _overdue(today);
     final dayNote = ref.watch(todayNotesProvider).value?[commitment.uuid];
     final remindAt = SettingsRepository.parseTime(commitment.remindAt);
+    // A habit a program is bound to is the program's to check in: the
+    // card says so, and a tap leads to the session ([[Gym]] rule Y12).
+    final program = commitment.type == CommitmentType.habit
+        ? ref.watch(programForCommitmentProvider(commitment.uuid)).value
+        : null;
 
     return CropCard(
       title: commitment.title,
-      subtitle: _subtitle(context, l10n, today, overdue),
+      subtitle: _subtitle(context, l10n, today, overdue, program),
       urgent: overdue,
       note: commitment.note,
       dayNote: dayNote,
@@ -270,6 +282,7 @@ class _CropTile extends ConsumerWidget {
           ? DeadlineCountdown(deadline: commitment.deadline!)
           : null,
       icon: switch (commitment.type) {
+        CommitmentType.habit when program != null => Icons.fitness_center,
         CommitmentType.habit => Icons.repeat,
         CommitmentType.project => Icons.flag,
         CommitmentType.todo => Icons.check_circle_outline,
@@ -279,7 +292,7 @@ class _CropTile extends ConsumerWidget {
       progress: commitment.type == CommitmentType.project
           ? item.projectProgress
           : null,
-      onTap: () => unawaited(_onTap(context, ref)),
+      onTap: () => unawaited(_onTap(context, ref, program)),
       onOptions: () => unawaited(showCropOptions(context, commitment)),
     );
   }
@@ -300,6 +313,7 @@ class _CropTile extends ConsumerWidget {
     AppLocalizations l10n,
     HarvestDay today,
     bool overdue,
+    Program? program,
   ) {
     final commitment = item.commitment;
     switch (commitment.type) {
@@ -316,7 +330,11 @@ class _CropTile extends ConsumerWidget {
         return '$base · ${overdue ? l10n.overdueBy(when) : l10n.dueOn(when)}';
       case CommitmentType.habit:
         if (commitment.isPaused) return l10n.pausedLabel;
-        return scheduleLabel(context, l10n, commitment.schedule);
+        final schedule = scheduleLabel(context, l10n, commitment.schedule);
+        // The program's name, unless the seed already carries it.
+        return program == null || program.name == commitment.title
+            ? schedule
+            : '$schedule · ${program.name}';
       case CommitmentType.todo:
         final due = commitment.dueDay;
         if (overdue && due != null) {
@@ -328,7 +346,11 @@ class _CropTile extends ConsumerWidget {
     }
   }
 
-  Future<void> _onTap(BuildContext context, WidgetRef ref) async {
+  Future<void> _onTap(
+    BuildContext context,
+    WidgetRef ref,
+    Program? program,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(checkInControllerProvider.notifier);
@@ -369,6 +391,14 @@ class _CropTile extends ConsumerWidget {
       return;
     }
 
+    // A gym seed is checked in by a session, never by a bare tick: the
+    // streak must not move without the log knowing why ([[Gym]] Y12).
+    if (program != null) {
+      if (!context.mounted) return;
+      await _gymSeed(context, ref, program);
+      return;
+    }
+
     final result = await controller.checkIn(commitment);
     _reportError(ref, messenger, l10n);
     if (result is CheckInSuccess) {
@@ -388,6 +418,65 @@ class _CropTile extends ConsumerWidget {
         ),
       );
     }
+  }
+
+  /// The two honest ways to tick a gym seed: start the session, or say
+  /// I went and logged nothing — which is still a session, finished on
+  /// the spot, so history and the streak agree ([[Checkpoint-7]]).
+  Future<void> _gymSeed(
+    BuildContext context,
+    WidgetRef ref,
+    Program program,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final messenger = ScaffoldMessenger.of(context);
+    final start = await showChoiceSheet<bool>(
+      context,
+      title: item.commitment.title,
+      options: [
+        ChoiceOption(
+          value: true,
+          label: l10n.gymSeedStart,
+          hint: l10n.gymSeedStartHint,
+          icon: Icons.play_arrow_rounded,
+        ),
+        ChoiceOption(
+          value: false,
+          label: l10n.gymSeedBare,
+          hint: l10n.gymSeedBareHint,
+          icon: Icons.check_rounded,
+          color: scheme.secondary,
+        ),
+      ],
+    );
+    if (start == null || !context.mounted) return;
+    if (start) {
+      await startSession(context, ref);
+      return;
+    }
+
+    final session = await ref
+        .read(sessionsRepositoryProvider)
+        .startFreeform(title: l10n.gymSeedBare, programUuid: program.uuid);
+    final outcome = await ref.read(sessionFinisherProvider).finish(session);
+    unawaited(HarvestHaptics.thud());
+    if (outcome.xpEarned == 0) return;
+    if (context.mounted) {
+      final box = context.findRenderObject() as RenderBox?;
+      if (box != null) {
+        showCheckInBurst(
+          context,
+          box.localToGlobal(box.size.center(Offset.zero)),
+        );
+      }
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.xpEarned(outcome.xpEarned)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   void _reportError(

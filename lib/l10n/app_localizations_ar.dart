@@ -32,10 +32,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statsEmptyTitle => 'لا شيء لنحصيه بعد';
 
   @override
-  String get statsEmptyBody => 'ستنمو أرقام حصادك هنا كلما سجّلت أيامك.';
+  String get statsEmptyBody => 'سجّل مرة واحدة فتبدأ الأرقام.';
 
   @override
   String get settingsAppearance => 'المظهر';
+
+  @override
+  String get settingsSectionHarvestHint => 'الهدف اليومي، وساعات اليوم، والنوم';
+
+  @override
+  String get settingsSectionFeaturesHint => 'أي أجزاء التطبيق مفعّلة';
+
+  @override
+  String get settingsSectionRemindersHint => 'متى يتكلم التطبيق';
+
+  @override
+  String get settingsSectionPomodoroHint => 'أطوال التركيز والاستراحة';
+
+  @override
+  String get settingsSectionMoneyHint => 'العملة والفئات والأسعار';
+
+  @override
+  String get settingsSectionPrivacyHint => 'قفل التطبيق';
+
+  @override
+  String get settingsSectionDataHint => 'التصدير والاستيراد والودجت';
+
+  @override
+  String get settingsSectionAppearanceHint => 'السمة والألوان واللغة';
 
   @override
   String get settingsTheme => 'السمة';
@@ -1226,7 +1250,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get archiveEmptyBody =>
-      'البذور التي تؤرشفها تصل إلى هنا، ومعها الملاحظة التي تشرح السبب.';
+      'البذور المؤرشفة تصل إلى هنا، ومعها ملاحظة السبب.';
 
   @override
   String archiveSheetBody(String title) {
@@ -1698,7 +1722,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesEmpty => 'لا ملاحظات بعد';
 
   @override
-  String get notesEmptyBody => 'التطبيق يعرف ما فعلته. هنا تحفظ ما فكّرت فيه.';
+  String get notesEmptyBody => 'اضغط + لتحفظ ما فكّرت فيه عن اليوم.';
 
   @override
   String get notesNoMatch => 'لا شيء يطابق ذلك';
@@ -1787,8 +1811,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get galleryEmpty => 'لا ألبومات بعد';
 
   @override
-  String get galleryEmptyBody =>
-      'صورة كل يوم، محفوظة بالترتيب، تُعرض كشريط. ابدأ بما تريد أن تراه يتغيّر.';
+  String get galleryEmptyBody => 'اضغط + لألبوم: صورة كل يوم، تُعرض كشريط.';
 
   @override
   String get galleryAlbumEmpty => 'لا شيء هنا بعد';
@@ -2057,12 +2080,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trashEmptyTitle => 'المهملات فارغة';
 
   @override
-  String get trashNotesEmptyBody =>
-      'الملاحظات المحذوفة تنتظر هنا حتى لا تكون لمسة خاطئة نهايتها.';
+  String get trashNotesEmptyBody => 'الملاحظات المحذوفة تنتظر هنا.';
 
   @override
-  String get trashGalleryEmptyBody =>
-      'الصور والألبومات المحذوفة تنتظر هنا. وتبقى ملفاتها على الهاتف حتى تُفرغها.';
+  String get trashGalleryEmptyBody => 'الصور والألبومات المحذوفة تنتظر هنا.';
 
   @override
   String get trashKeeps =>
@@ -2349,8 +2370,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weightEmpty => 'لا أوزان بعد';
 
   @override
-  String get weightEmptyBody =>
-      'رقم واحد كلما وزنت نفسك. ويبدأ الخط يعني شيئًا من الثالث تقريبًا.';
+  String get weightEmptyBody => 'اضغط سجّل وزنًا. يصير للخط شكل من الثالث.';
 
   @override
   String get weightHistory => 'كل القراءات';
@@ -2506,8 +2526,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gymNoPrograms => 'لا برامج بعد';
 
   @override
-  String get gymNoProgramsBody =>
-      'البرنامج قائمة أيام، واليوم قائمة تمارين. لا شيء يُولَّد تلقائيًا — أنت من يكتبه.';
+  String get gymNoProgramsBody => 'اضغط + واكتب اليوم الأول.';
 
   @override
   String gymProgramSummary(int days, int sets) {
@@ -2560,8 +2579,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gymNoDays => 'لا أيام بعد';
 
   @override
-  String get gymNoDaysBody =>
-      'أضف الأول. وتكراره لاحقًا لمسة واحدة — فأغلب الأيام هي اليوم السابق برقمين مختلفين.';
+  String get gymNoDaysBody => 'اضغط أضف يومًا. وتكراره لاحقًا لمسة واحدة.';
 
   @override
   String gymDaySummary(int exercises, int sets) {
@@ -2838,6 +2856,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gymPaused => 'متوقّف';
 
   @override
+  String get healthLogNight => 'سجّل ليلة أمس';
+
+  @override
+  String get gymSeedStart => 'ابدأ الجلسة';
+
+  @override
+  String get gymSeedStartHint => 'يوم البرنامج، بمجموعاته كلها';
+
+  @override
+  String get gymSeedBare => 'ذهبت، بلا أرقام';
+
+  @override
+  String get gymSeedBareHint => 'تُسجَّل كجلسة لم يُدوَّن فيها شيء';
+
+  @override
+  String get gymReorderHandle => 'اسحب لإعادة الترتيب';
+
+  @override
   String get gymUpNext => 'التالي';
 
   @override
@@ -2967,8 +3003,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sleepNoNights => 'لا ليالٍ مدوّنة بعد';
 
   @override
-  String get sleepNoNightsBody =>
-      'دوّن صباحًا واحدًا فيبدأ الخط. وأسبوعان منها ويصير له شكل.';
+  String get sleepNoNightsBody => 'اضغط سجّلها صباحًا واحدًا فيبدأ الخط.';
 
   @override
   String get sleepOverrides => 'ليالٍ لها وقتها';
@@ -3110,7 +3145,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gymNoHistoryBody =>
-      'ابدأ يومًا من برنامجك. ما تسجّله هنا هو ما تُصنع منه الأرقام القياسية.';
+      'اضغط ابدأ. الأرقام القياسية تُصنع مما تسجّله هنا.';
 
   @override
   String gymSessionSummary(int sets, String volume) {

@@ -10,6 +10,7 @@ void showCheckInBurst(
   Offset globalPosition, {
   IconData icon = Icons.eco,
   Color? color,
+  int particles = 7,
 }) {
   final overlay = Overlay.maybeOf(context, rootOverlay: true);
   if (overlay == null) return;
@@ -20,6 +21,7 @@ void showCheckInBurst(
       origin: globalPosition,
       icon: icon,
       color: color,
+      particles: particles,
       onDone: () => entry.remove(),
     ),
   );
@@ -31,12 +33,14 @@ class _Burst extends StatefulWidget {
     required this.origin,
     required this.onDone,
     required this.icon,
+    required this.particles,
     this.color,
   });
 
   final Offset origin;
   final VoidCallback onDone;
   final IconData icon;
+  final int particles;
   final Color? color;
 
   @override
@@ -54,7 +58,7 @@ class _BurstState extends State<_Burst> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     final random = Random();
-    _particles = List.generate(7, (i) {
+    _particles = List.generate(widget.particles, (i) {
       final angle = -pi / 2 + (random.nextDouble() - 0.5) * pi * 0.9;
       return _Particle(
         angle: angle,

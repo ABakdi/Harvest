@@ -18,6 +18,8 @@ import 'package:harvest/features/health/domain/steps.dart';
 import 'package:harvest/features/health/domain/steps_sync.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/features/health/presentation/sleep_card.dart';
+import 'package:harvest/features/health/presentation/sleep_providers.dart';
+import 'package:harvest/features/health/presentation/sleep_sheet.dart';
 import 'package:harvest/features/health/presentation/weight_chart.dart';
 import 'package:harvest/features/health/presentation/weight_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -56,17 +58,26 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     final l10n = AppLocalizations.of(context);
     final weights =
         ref.watch(bodyWeightsProvider).value ?? const <BodyWeight>[];
+    // The one thing this morning needs: last night, until it is
+    // written down, then the weight ([[Checkpoint-7]]).
+    final nightUnlogged = ref.watch(sleepUnloggedProvider).value ?? false;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title ?? l10n.navHealth),
         bottom: widget.tabs,
       ),
-      floatingActionButton: HarvestFab(
-        onPressed: () => showWeightSheet(context).ignore(),
-        icon: Icons.monitor_weight_outlined,
-        label: l10n.weightLog,
-      ),
+      floatingActionButton: nightUnlogged
+          ? HarvestFab(
+              onPressed: () => showSleepSheet(context).ignore(),
+              icon: Icons.bedtime_outlined,
+              label: l10n.healthLogNight,
+            )
+          : HarvestFab(
+              onPressed: () => showWeightSheet(context).ignore(),
+              icon: Icons.monitor_weight_outlined,
+              label: l10n.weightLog,
+            ),
       body: ListView(
         // Clearance for the floating action *and* the switch under
         // the screen, which the tab adds below this list.
