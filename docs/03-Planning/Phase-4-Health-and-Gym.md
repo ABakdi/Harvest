@@ -103,6 +103,7 @@ without if the phase runs long.
 - [x] Migration test to schema v13
 - [x] `v2.0.0-beta.1` cut from `dev`, built with the release key, and installed **over v1.1.0** — the seed, its check-in and its XP all survived the v12 → v13 migration
 - [x] `v2.0.0-beta.2`: [[Checkpoint-6]]'s ten fixes and the second audit's remediation ([[Audit-v2-Beta]]), cut from `dev` on 2026-09-11 and installed **over beta.1** — the v13 → v14 migration carried the seeds, the sessions and the streak across
+- [x] [[Checkpoint-7]]: the ten things beta.2's first days asked for — Finish at the bottom, the record's moment, and settings as a place
 - [ ] `v2.0.0` proper, once beta.2 has been lived in for a week
 
 **Exit:** I run a full training week from the app instead of the one I
@@ -140,17 +141,16 @@ when it happens — and the weight line has enough dots to have a shape.
   reports the shortfall rather than rounding it away; the session
   screen has to show that. (The calculator now only appears where
   there is a bar — [[Checkpoint-6]] — which is where the shortfall is.)
-- **Reordering exercises** is stored by position but has no drag
-  handle yet.
+- ~~**Reordering exercises** is stored by position but has no drag
+  handle yet.~~ A drag handle, since [[Checkpoint-7]].
 - **The alarm does not fade in.** It is an exact, full-screen,
   alarm-audio notification, which is the loudest thing the
   notification layer can do — but a notification plays one sound at
   one volume. A ramp needs a foreground service holding an audio
   player, which is a native piece this phase did not take on.
-- **A gym seed can still be checked in by hand from the field.** That
-  is deliberate for now — I go to gyms without my phone — but it means
-  the streak can move without a session, which is worth a decision
-  rather than an accident.
+- ~~**A gym seed can still be checked in by hand from the field.**~~
+  Decided in [[Checkpoint-7]]: the tick is a bare session ([[Gym]]
+  Y12).
 - **Best-volume is not a record yet.** The heaviest set and the best
   estimated single are; session volume is worked out and shown but
   nothing announces it.

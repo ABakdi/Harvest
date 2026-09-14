@@ -53,6 +53,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-4]] — numbers on the charts, and a day that keeps my hours
 - [[Checkpoint-5]] — Records under one tab, and an editor worth writing in
 - [[Checkpoint-6]] — steps that count, and a gym that knows what day it is
+- [[Checkpoint-7]] — Finish where the thumb is, and settings as a place
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board

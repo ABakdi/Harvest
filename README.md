@@ -24,8 +24,9 @@ it from the [releases page](https://github.com/ABakdi/Harvest/releases).
 The beta is being lived in; [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
 is the first week's findings, fixed, and the
 [second audit](docs/06-Audit/Audit-v2-Beta.md) read the whole of the
-new half and fixed what it found — both ship as `v2.0.0-beta.2`. Next
-is `v2.0.0` proper, then
+new half and fixed what it found — both ship as `v2.0.0-beta.2`.
+[Checkpoint 7](docs/05-Checkpoints/Checkpoint-7.md) is the ten things
+the next days asked for. Next is `v2.0.0` proper, then
 [Phase 5](docs/03-Planning/Phase-5-Screen-Time.md): screen time.
 
 ## Table of contents
@@ -191,6 +192,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Checkpoint 4](docs/05-Checkpoints/Checkpoint-4.md) | Numbers on the charts, filterable money, and a day that keeps my hours |
 | [Checkpoint 5](docs/05-Checkpoints/Checkpoint-5.md) | Records under one tab, and an editor worth writing in |
 | [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md) | Steps that count, one way to split a screen, and a gym that knows what day it is |
+| [Checkpoint 7](docs/05-Checkpoints/Checkpoint-7.md) | Finish where the thumb is, a record's moment, and settings as a place |
 
 ### Audit
 

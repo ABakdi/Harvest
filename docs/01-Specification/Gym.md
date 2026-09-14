@@ -187,14 +187,15 @@ A program binds to a **habit schedule** exactly like any other seed:
   belongs to Finish.
 - It obeys every rule an ordinary seed obeys: the 3 AM day boundary,
   nothing due before it was planted, undo on the same day.
-- **It can still be ticked by hand from the field**, and that is a
-  decision, not an oversight ([[Audit-v2-Beta]] N-08): I train in gyms
-  where the phone stays in the locker. A hand tick checks the habit in
-  like any habit and logs no session, so it earns the day and moves
-  the streak but leaves no sets, no records and no *Next* — the
-  program's pointer follows finished sessions only. If that turns out
-  to be a hole I fall through, the fix is a bare "went, no numbers"
-  session behind the tick, not taking the tick away.
+- **A tap on the field is a session, never a bare tick** (Y12). I
+  train in gyms where the phone stays in the locker, so the hand tick
+  stays — but it asks which of two things happened: *Start the
+  session*, or *Went, no numbers*, which writes a session with nothing
+  in it and finishes it on the spot. Both go through Finish (Y4), so
+  the habit is checked in once, history has a row for the day, and
+  *Next* still follows finished sessions only. I had left the bare
+  tick in on purpose ([[Audit-v2-Beta]] N-08) with exactly this as the
+  fix if it turned out to be a hole; [[Checkpoint-7]] is where it did.
 
 **A times-per-week gym habit works the way a flexible habit already
 does** — four sessions a week, on whichever days I manage them, and it
@@ -240,5 +241,6 @@ skipping it costs nothing.
 | Y9 | The bar weight and the plate calculator belong to exercises that have a bar. A dumbbell asks no such question ([[Checkpoint-6]]). |
 | Y10 | Finish asks before leaving un-skipped sets behind, because Finish is what checks the habit in ([[Checkpoint-6]]). |
 | Y11 | A program's days go round: the day after the last one finished is up next, wrapping at the end, and any other day is one deliberate tap further ([[Checkpoint-6]]). |
+| Y12 | A gym seed is checked in by a session and nothing else. The hand tick from the field is a bare session — *went, no numbers* — so the streak and the log always agree ([[Checkpoint-7]]). |
 
 Related: [[Health]] · [[Gallery]] · [[Gamification]] · [[Productivity-Engine]] · [[ADR-008-Exercise-Catalogue]]

@@ -95,7 +95,7 @@ that is the only one a widget has: `RemoteViews` refuses to inflate a
 `HorizontalScrollView`, and `ListView` and `GridView` are its only
 scrolling collections ([[Checkpoint-3]]).
 
-The switches live in Settings → My data. Everything is computed **from
+The switches live in Settings → My data (a page of its own since [[Checkpoint-7]]). Everything is computed **from
 the database** with the same `isDueOn` rule the field uses, so it is
 right when no screen exists — refreshed at startup, after every
 check-in and seed edit, on resume, and by the 3 AM job. The service
