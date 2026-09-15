@@ -41,6 +41,7 @@ If I planned nothing the night before, the morning reminder carries the setup fl
 | Project | Tap → quantity sheet | Units done (pages, minutes, reps) |
 
 - Check-ins can be undone the same Harvest Day (mis-taps happen).
+- **A flexible habit — *n* times a week — is judged when its week closes.** Weeks run **Monday to Sunday** everywhere, in every language, because a week that moves with the locale would move a streak with it. On Sunday night the week either met its quota or it did not; no day before that can break it, and a quiet weekend is not a miss if Monday to Thursday already did the work ([[Audit-v2-Beta]] B-03, N-05).
 - Project logging is capped at 2× the daily commitment ([[Business-Rules]]).
 - A check-in triggers the signature micro-interaction: haptic "thud" + sprite animation ([[Theming-and-Design-System]]).
 - Long or focused tasks (reading, studying) can be started as a [[Pomodoro]] session instead; completing the session logs the check-in.

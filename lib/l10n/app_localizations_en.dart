@@ -32,11 +32,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsEmptyTitle => 'Nothing to count yet';
 
   @override
-  String get statsEmptyBody =>
-      'Your harvest numbers will grow here as you log your days.';
+  String get statsEmptyBody => 'Check in once and the numbers start.';
 
   @override
   String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsSectionHarvestHint =>
+      'The daily goal, the day\'s hours and sleep';
+
+  @override
+  String get settingsSectionFeaturesHint => 'Which parts of the app are on';
+
+  @override
+  String get settingsSectionRemindersHint => 'When the app speaks up';
+
+  @override
+  String get settingsSectionPomodoroHint => 'Focus and break lengths';
+
+  @override
+  String get settingsSectionMoneyHint => 'Currency, categories and rates';
+
+  @override
+  String get settingsSectionPrivacyHint => 'The lock on the app';
+
+  @override
+  String get settingsSectionDataHint => 'Export, import and the widget';
+
+  @override
+  String get settingsSectionAppearanceHint => 'Theme, colours and language';
 
   @override
   String get settingsTheme => 'Theme';
@@ -426,7 +450,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get amountLabel => 'Amount';
 
   @override
+  String amountSum(String value) {
+    return '= $value';
+  }
+
+  @override
+  String get amountSumIncomplete => 'Finish the sum to log it';
+
+  @override
+  String get amountKeyBackspace => 'Delete';
+
+  @override
+  String get amountKeyClear => 'Clear';
+
+  @override
   String get noteLabel => 'Note (optional)';
+
+  @override
+  String get expenseDayLabel => 'Logged on';
 
   @override
   String get catFood => 'Food';
@@ -741,6 +782,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get debtPay => 'Pay';
+
+  @override
+  String get debtPaymentRemoveTitle => 'Remove this payment?';
+
+  @override
+  String get debtPaymentRemoveBody =>
+      'What it took from the wallet comes back, and the debt reopens if this had settled it. Undo is in the bar for a moment after.';
 
   @override
   String get debtSettled => 'Settled 🎉';
@@ -1201,7 +1249,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get archiveEmptyBody =>
-      'Seeds you archive land here, with the note that says why.';
+      'Archived seeds land here, with the note that says why.';
 
   @override
   String archiveSheetBody(String title) {
@@ -1450,6 +1498,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetSectionMoneyBody => 'Today\'s spend and your wallet balance';
 
   @override
+  String get widgetSectionMoneyLocked =>
+      'Hidden while the app lock is on — the home screen is not behind it';
+
+  @override
   String get widgetSectionTasks => 'Today\'s field';
 
   @override
@@ -1665,8 +1717,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesEmpty => 'No notes yet';
 
   @override
-  String get notesEmptyBody =>
-      'The app knows what you did. This is where you keep what you thought about it.';
+  String get notesEmptyBody => 'Tap + to keep what you thought about the day.';
 
   @override
   String get notesNoMatch => 'Nothing matches that';
@@ -1756,7 +1807,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryEmptyBody =>
-      'One picture a day, kept in order, playable as a run. Start with the thing you want to see change.';
+      'Tap + for an album: one picture a day, playable as a run.';
 
   @override
   String get galleryAlbumEmpty => 'Nothing in here yet';
@@ -1864,7 +1915,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFeaturesHint =>
-      'Two halves of the app that stay out of the way until you ask for them.';
+      'Parts of the app that stay out of the way until you ask for them. They pair up in the navigation bar, so switching them all on still leaves five tabs.';
 
   @override
   String get featureNotes => 'Notes';
@@ -2028,12 +2079,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trashEmptyTitle => 'The trash is empty';
 
   @override
-  String get trashNotesEmptyBody =>
-      'Deleted notes wait here so a wrong tap is not the end of one.';
+  String get trashNotesEmptyBody => 'Deleted notes wait here.';
 
   @override
-  String get trashGalleryEmptyBody =>
-      'Deleted pictures and albums wait here. Their files stay on the phone until you empty it.';
+  String get trashGalleryEmptyBody => 'Deleted pictures and albums wait here.';
 
   @override
   String get trashKeeps =>
@@ -2174,4 +2223,977 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryFileGone => 'That file is no longer on the phone.';
+
+  @override
+  String get navBody => 'Body';
+
+  @override
+  String get navHealth => 'Health';
+
+  @override
+  String get navGym => 'Gym';
+
+  @override
+  String get navFarmer => 'Farmer';
+
+  @override
+  String get navProgress => 'Progress';
+
+  @override
+  String get featureHealth => 'Health';
+
+  @override
+  String get featureHealthHint =>
+      'Sleep, steps read from the phone\'s own health store, and a body weight whenever you stand on the scale.';
+
+  @override
+  String get featureGym => 'Gym';
+
+  @override
+  String get featureGymHint =>
+      'Programs, sessions and personal records. A gym habit lands on your field like any other seed.';
+
+  @override
+  String get stepsToday => 'Steps today';
+
+  @override
+  String get stepsWeekAverage => '7-day average';
+
+  @override
+  String stepsOfGoal(int steps, int goal) {
+    return '$steps of $goal';
+  }
+
+  @override
+  String get stepsPassive =>
+      'The phone counts these. They never check a seed in and never break a streak.';
+
+  @override
+  String get stepsSource => 'Where the steps come from';
+
+  @override
+  String get stepsFromHealthConnect =>
+      'From Health Connect — the phone\'s own step store, so this matches your health app.';
+
+  @override
+  String get stepsFromSensor =>
+      'From the phone\'s step counter, read when the app is open.';
+
+  @override
+  String get stepsConnect => 'Connect';
+
+  @override
+  String get stepsConnectTitle => 'Read steps from the phone';
+
+  @override
+  String get stepsConnectBody =>
+      'Harvest reads the daily total from the phone\'s own health store. Nothing is sent anywhere and no account is involved.';
+
+  @override
+  String get stepsConnectSensorBody =>
+      'Harvest reads the phone\'s step counter while the app is open. Nothing is sent anywhere.';
+
+  @override
+  String get stepsDenied =>
+      'Not allowed yet. Tap Connect to ask again, or allow it from Health Connect\'s settings.';
+
+  @override
+  String get stepsUnavailable => 'This phone has nowhere to read steps from.';
+
+  @override
+  String get stepsInstallHealthConnect => 'Get Health Connect';
+
+  @override
+  String get stepsOpenHealthConnect => 'Health Connect settings';
+
+  @override
+  String get stepsRefresh => 'Refresh';
+
+  @override
+  String get stepsGoal => 'Daily step goal';
+
+  @override
+  String get stepsGoalHint =>
+      'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.';
+
+  @override
+  String get stepsGoalNone => 'No goal';
+
+  @override
+  String get stepsGoalMet => 'Goal met';
+
+  @override
+  String get stepsSettings => 'Steps';
+
+  @override
+  String get stepsStride => 'Stride length';
+
+  @override
+  String get stepsStrideHint =>
+      'About 0.415 × your height. 75 cm is a fair guess; a tape measure is better.';
+
+  @override
+  String stepsDistanceKm(String value) {
+    return '$value km';
+  }
+
+  @override
+  String stepsDistanceMi(String value) {
+    return '$value mi';
+  }
+
+  @override
+  String get stepsHistory => 'Your steps';
+
+  @override
+  String get stepsNoDays => 'No steps counted yet';
+
+  @override
+  String get stepsNoDaysBody => 'Tap Connect on the steps card.';
+
+  @override
+  String stepsLastDays(int days) {
+    return 'Last $days days';
+  }
+
+  @override
+  String get stepsBestDay => 'Best day';
+
+  @override
+  String stepsCount(String steps) {
+    return '$steps steps';
+  }
+
+  @override
+  String get weightTitle => 'Weight';
+
+  @override
+  String get weightLog => 'Log a weight';
+
+  @override
+  String get weightEdit => 'Edit this weight';
+
+  @override
+  String get weightHint =>
+      'Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.';
+
+  @override
+  String get weightLabel => 'Weight';
+
+  @override
+  String get weightNote => 'Note';
+
+  @override
+  String get weightNoteHint => 'After the flu, new scale…';
+
+  @override
+  String get weightEmpty => 'No weights yet';
+
+  @override
+  String get weightEmptyBody =>
+      'Tap Log a weight. The line has a shape from the third one.';
+
+  @override
+  String get weightHistory => 'Every reading';
+
+  @override
+  String get weightWindow => 'Over';
+
+  @override
+  String weightDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get weightNoTrendYet => 'Not enough readings for a trend yet';
+
+  @override
+  String weightDown(String amount, int days) {
+    return 'Down $amount over $days days';
+  }
+
+  @override
+  String weightUp(String amount, int days) {
+    return 'Up $amount over $days days';
+  }
+
+  @override
+  String weightSteady(int days) {
+    return 'Level over $days days';
+  }
+
+  @override
+  String weightToTarget(String amount, String target) {
+    return '$amount from your target of $target';
+  }
+
+  @override
+  String get weightLegendEntries => 'Readings';
+
+  @override
+  String get weightLegendTrend => '7-day average';
+
+  @override
+  String get weightLegendTarget => 'Target';
+
+  @override
+  String get weightDeleteTitle => 'Delete this reading?';
+
+  @override
+  String get weightDeleteBody =>
+      'It leaves the chart. You can undo this straight away.';
+
+  @override
+  String get gymComingTitle => 'The gym is next';
+
+  @override
+  String get gymComingBody =>
+      'Programs, sessions and personal records are being built. Steps and weight work now.';
+
+  @override
+  String get gymBrowse => 'Browse exercises';
+
+  @override
+  String get gymPickExercise => 'Choose an exercise';
+
+  @override
+  String get gymSearchExercises => 'Search by name, muscle or kit';
+
+  @override
+  String get gymExercisesTitle => 'Exercises';
+
+  @override
+  String get gymProgramsTitle => 'Programs';
+
+  @override
+  String get gymCatalogueLoading => 'Loading the catalogue…';
+
+  @override
+  String get gymCatalogueHint =>
+      'Search by name, muscle or equipment — the question mid-session is usually what else hits this.';
+
+  @override
+  String gymExerciseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exercises',
+      one: '1 exercise',
+      zero: 'No exercises',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNoExercise => 'Nothing matches that';
+
+  @override
+  String get gymNoExerciseBody =>
+      'Try a muscle or a piece of equipment instead of a name.';
+
+  @override
+  String get gymMine => 'Mine';
+
+  @override
+  String get gymHowTo => 'How it goes';
+
+  @override
+  String get gymNoInstructions => 'No instructions for this one.';
+
+  @override
+  String get gymMediaTitle => 'Exercise pictures';
+
+  @override
+  String get gymMediaBody =>
+      'Downloaded the first time you open an exercise, then kept. Names and instructions are already in the app and work without a single picture.';
+
+  @override
+  String get gymNeverFetch => 'Never fetch pictures';
+
+  @override
+  String get gymNeverFetchHint => 'The gym works completely on words alone';
+
+  @override
+  String get gymDownloadAll => 'Download them all';
+
+  @override
+  String gymDownloadAllBody(int count, String size) {
+    return '$count animations, roughly $size. Worth doing on Wi-Fi before a trip.';
+  }
+
+  @override
+  String gymDownloadProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get gymClearMedia => 'Clear';
+
+  @override
+  String get gymClearMediaBody =>
+      'The pictures go; nothing else does. They come back the next time you open an exercise.';
+
+  @override
+  String gymMediaAttribution(String credit) {
+    return 'Exercise images and animations $credit, fetched from the dataset they are published in.';
+  }
+
+  @override
+  String get gymNewProgram => 'New program';
+
+  @override
+  String get gymProgramNameHint => 'nSuns 5/3/1, Push Pull Legs…';
+
+  @override
+  String get gymNoPrograms => 'No programs yet';
+
+  @override
+  String get gymNoProgramsBody => 'Tap + and write the first day.';
+
+  @override
+  String gymProgramSummary(int days, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+      zero: 'No days yet',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+      zero: 'no sets',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymProgramGone => 'This program is gone';
+
+  @override
+  String get gymRename => 'Rename';
+
+  @override
+  String gymDeleteProgram(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get gymDeleteProgramBody =>
+      'Its days and sets go with it. Sessions you already finished stay.';
+
+  @override
+  String get gymAddDay => 'Add a day';
+
+  @override
+  String gymDayNumber(int n) {
+    return 'Day $n';
+  }
+
+  @override
+  String get gymDayNameHint => 'Day 4, Push, Upper A…';
+
+  @override
+  String get gymNoDays => 'No days yet';
+
+  @override
+  String get gymNoDaysBody => 'Tap Add a day. Duplicating it later is one tap.';
+
+  @override
+  String gymDaySummary(int exercises, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      exercises,
+      locale: localeName,
+      other: '$exercises exercises',
+      one: '1 exercise',
+      zero: 'No exercises',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymDuplicateDay => 'Duplicate';
+
+  @override
+  String gymDeleteDay(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get gymDeleteDayBody => 'The exercises and sets in it go too.';
+
+  @override
+  String get gymAccessories => 'Recommended accessories';
+
+  @override
+  String get gymAccessoriesHint => 'Back, Abs — a note, not a prescription';
+
+  @override
+  String gymRecommended(String what) {
+    return 'Recommended: $what';
+  }
+
+  @override
+  String get gymAddExercise => 'Add an exercise';
+
+  @override
+  String get gymRemoveExercise => 'Remove this exercise';
+
+  @override
+  String get gymUnknownExercise => 'Unknown exercise';
+
+  @override
+  String get gymNoSetsYet => 'No sets yet';
+
+  @override
+  String get gymSetsSubtitle => 'What this asks of you, set by set.';
+
+  @override
+  String get gymAddSet => 'Set';
+
+  @override
+  String get gymAddPercentSet => '% set';
+
+  @override
+  String get gymAddOpenSet => 'Open set';
+
+  @override
+  String get gymEditSet => 'Edit the set';
+
+  @override
+  String get gymPercentOfMax => '% of max';
+
+  @override
+  String get gymPercent => 'Percent';
+
+  @override
+  String get gymWeight => 'Weight';
+
+  @override
+  String get gymReps => 'Reps';
+
+  @override
+  String get gymOpenSet => 'Open set';
+
+  @override
+  String get gymOpenSetHint =>
+      'As many as you can — the set that decides whether the weight goes up';
+
+  @override
+  String gymOpenReps(int reps) {
+    return '$reps+';
+  }
+
+  @override
+  String get gymBarWeight => 'The bar';
+
+  @override
+  String get gymRest => 'Rest between sets';
+
+  @override
+  String gymRestSeconds(int seconds) {
+    return '$seconds seconds';
+  }
+
+  @override
+  String get gymTrainingMaxes => 'Training maxes';
+
+  @override
+  String get gymTrainingMaxesHint =>
+      'The number your percentages are percentages of. Yours to set and yours to bump — the app does not do your programming.';
+
+  @override
+  String get gymNoTrainingMax => 'Not set — percentage sets cannot resolve';
+
+  @override
+  String get gymNoPercentSets =>
+      'Nothing in this program is a percentage, so there is nothing to set.';
+
+  @override
+  String gymNeedsTrainingMax(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exercises need a training max',
+      one: '1 exercise needs a training max',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNeedsTrainingMaxBody =>
+      'Until then its percentage sets show a percentage rather than a weight.';
+
+  @override
+  String get gymStart => 'Start';
+
+  @override
+  String get gymResume => 'Carry on';
+
+  @override
+  String get gymRunningSession => 'A session is running';
+
+  @override
+  String gymRunningSessionBody(int done, int total) {
+    return '$done of $total sets done. Finish or drop it before starting another.';
+  }
+
+  @override
+  String get gymPickDay => 'Which day?';
+
+  @override
+  String get gymNoProgramToStart => 'No program to start';
+
+  @override
+  String get gymNoProgramToStartBody =>
+      'Write a program first — a session is a day of one, with the weights already filled in.';
+
+  @override
+  String get gymSession => 'Session';
+
+  @override
+  String get gymSessionGone => 'This session is gone';
+
+  @override
+  String gymSessionProgress(int done, int total) {
+    return '$done of $total sets';
+  }
+
+  @override
+  String get gymSessionNote => 'Note on the session';
+
+  @override
+  String get gymSessionNoteHint => 'Slept badly, belt on, gym was packed…';
+
+  @override
+  String get gymDiscardSession => 'Drop this session';
+
+  @override
+  String gymDiscardBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'The $done sets you logged go with it.',
+      one: 'The one set you logged goes with it.',
+      zero: 'Nothing is logged yet, so nothing is lost.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymFinish => 'Finish';
+
+  @override
+  String get gymFinishEmptyTitle => 'Finish with nothing logged?';
+
+  @override
+  String get gymFinishEmptyBody =>
+      'It is kept as a session you turned up for, which is worth something, but no set counts towards a record.';
+
+  @override
+  String gymInsteadOf(String name) {
+    return 'instead of $name';
+  }
+
+  @override
+  String gymLastTime(String sets) {
+    return 'Last time: $sets';
+  }
+
+  @override
+  String get gymSwap => 'Swap it out';
+
+  @override
+  String get gymSkip => 'Skip it';
+
+  @override
+  String get gymUnskip => 'Put it back';
+
+  @override
+  String get gymNote => 'Note';
+
+  @override
+  String get gymSetColumn => 'Set';
+
+  @override
+  String get gymTargetColumn => 'Target';
+
+  @override
+  String get gymRepsColumn => 'Reps';
+
+  @override
+  String get gymTick => 'Log this set';
+
+  @override
+  String get gymUntick => 'Not done after all';
+
+  @override
+  String gymRecordHeaviest(String load) {
+    return 'Heaviest ever: $load';
+  }
+
+  @override
+  String gymRecordEstimated(String load) {
+    return 'Best set yet — about $load for one';
+  }
+
+  @override
+  String gymRestPlus(int seconds) {
+    return '+${seconds}s';
+  }
+
+  @override
+  String get gymRestSkip => 'Done resting';
+
+  @override
+  String get gymRestCustom => 'Or type it';
+
+  @override
+  String get gymRestCustomHint => 'seconds';
+
+  @override
+  String get gymRestNone => 'No timer';
+
+  @override
+  String get gymPause => 'Pause the clock';
+
+  @override
+  String get gymResumeClock => 'Start the clock';
+
+  @override
+  String get gymPaused => 'Paused';
+
+  @override
+  String get healthLogNight => 'Log last night';
+
+  @override
+  String get gymSeedStart => 'Start the session';
+
+  @override
+  String get gymSeedStartHint => 'The program\'s day, sets and all';
+
+  @override
+  String get gymSeedBare => 'Went, no numbers';
+
+  @override
+  String get gymSeedBareHint => 'Checked in as a session with nothing logged';
+
+  @override
+  String get gymReorderHandle => 'Drag to reorder';
+
+  @override
+  String get gymUpNext => 'Up next';
+
+  @override
+  String get gymOtherDays => 'Or another day';
+
+  @override
+  String gymNextDay(String day) {
+    return 'Next: $day';
+  }
+
+  @override
+  String get gymFinishIncompleteTitle => 'Finish with sets left?';
+
+  @override
+  String gymFinishIncompleteBody(int left, int total) {
+    return '$left of $total sets are not ticked. The session ends here and the gym habit is checked in as done for today.';
+  }
+
+  @override
+  String gymBestLine(String sets) {
+    return 'Best: $sets';
+  }
+
+  @override
+  String gymBestEstimate(String weight) {
+    return 'est. $weight';
+  }
+
+  @override
+  String gymPerSide(String bar) {
+    return 'Per side, on a $bar bar';
+  }
+
+  @override
+  String get gymJustTheBar => 'Just the bar';
+
+  @override
+  String gymPlateShortfall(String total, String short) {
+    return 'Closest is $total — $short short. A bar loads in pairs, so it cannot make every number.';
+  }
+
+  @override
+  String get sleepTitle => 'Last night';
+
+  @override
+  String get sleepSubtitle =>
+      'Two times and a feeling. Nothing here was measured by the phone, and none of it is a test.';
+
+  @override
+  String get sleepSave => 'Write it down';
+
+  @override
+  String get sleepFellAsleep => 'Fell asleep';
+
+  @override
+  String get sleepWoke => 'Woke';
+
+  @override
+  String get sleepRested => 'How rested?';
+
+  @override
+  String sleepLength(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get sleepLastNight => 'Last night';
+
+  @override
+  String get sleepNothingYet => 'Not written down';
+
+  @override
+  String get sleepLogIt => 'Log it';
+
+  @override
+  String sleepAverage(int hours, int minutes, int nights) {
+    return '${hours}h ${minutes}m on average, over $nights nights';
+  }
+
+  @override
+  String get sleepDebtLabel => 'Owed to yourself';
+
+  @override
+  String get sleepDebtBody =>
+      'Two weeks of short nights, added up. Long nights pay it back.';
+
+  @override
+  String get sleepSection => 'Sleep';
+
+  @override
+  String get sleepAlarm => 'Wake me';
+
+  @override
+  String get sleepAlarmBody =>
+      'Rings at the wake time your day is already built around.';
+
+  @override
+  String get sleepAlarmExact => 'Allow exact alarms';
+
+  @override
+  String get sleepAlarmExactBody =>
+      'Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.';
+
+  @override
+  String get sleepWindDown => 'Say something before bed';
+
+  @override
+  String get sleepWindDownBody =>
+      'Half an hour before the bedtime your day is built around.';
+
+  @override
+  String get sleepWindDownTitle => 'Half an hour to bed';
+
+  @override
+  String get sleepWindDownText =>
+      'Whatever you are in the middle of will still be there tomorrow.';
+
+  @override
+  String get sleepAlarmTitle => 'Morning';
+
+  @override
+  String get sleepAlarmText =>
+      'Two questions and a feeling, while you still remember it.';
+
+  @override
+  String get sleepNights => 'Your nights';
+
+  @override
+  String get sleepNoNights => 'No nights written down yet';
+
+  @override
+  String get sleepNoNightsBody => 'Tap Log it one morning and the line starts.';
+
+  @override
+  String get sleepOverrides => 'Nights of their own';
+
+  @override
+  String sleepOverrideCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weekdays of their own',
+      one: '1 weekday of its own',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepOverridesBody =>
+      'Saturday is not Tuesday. A weekday set here overrides the hours your day is built around.';
+
+  @override
+  String get sleepSameAsUsual => 'Same as usual';
+
+  @override
+  String sleepNightOf(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get sleepDeleteNight => 'Delete this night?';
+
+  @override
+  String get sleepDeleteNightBody =>
+      'It leaves the line and the debt is worked out again without it.';
+
+  @override
+  String sleepStars(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: '$stars stars',
+      one: '1 star',
+      zero: '',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymPlantProgram => 'Plant this on your field';
+
+  @override
+  String get gymPlantProgramBody =>
+      'It becomes a habit like any other, and finishing a session checks it in.';
+
+  @override
+  String get gymHowOften => 'How often?';
+
+  @override
+  String get gymHowOftenBody =>
+      'Days a week, not which days — the gym is not always on the day you meant.';
+
+  @override
+  String gymTimesPerWeek(int times) {
+    String _temp0 = intl.Intl.pluralLogic(
+      times,
+      locale: localeName,
+      other: '$times× a week',
+      two: 'Twice a week',
+      one: 'Once a week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymEveryDay => 'Every day';
+
+  @override
+  String get gymPlantedNoSchedule => 'No schedule';
+
+  @override
+  String get gymUnplant => 'Unlink from the field';
+
+  @override
+  String get gymUnplantBody =>
+      'The program stops checking anything in. The seed and its streak stay where they are — pull it up on the field if that is what you want.';
+
+  @override
+  String get gymAlbumOffer => 'Keep pictures of it?';
+
+  @override
+  String get gymAlbumOfferBody =>
+      'An album for this program, so a year of sessions has something to show for itself. It hangs off this habit rather than becoming a second one.';
+
+  @override
+  String get gymAlbumYes => 'Make the album';
+
+  @override
+  String get gymPhotoPrompt => 'When to ask for the picture';
+
+  @override
+  String get gymPhotoPromptBody =>
+      'Before is the mirror on the way in; after is the one you actually mean to take and forget.';
+
+  @override
+  String get gymPromptAfter => 'After the session';
+
+  @override
+  String get gymPromptBefore => 'Before the session';
+
+  @override
+  String get gymPromptNever => 'Never ask';
+
+  @override
+  String gymCheckedIn(int xp) {
+    return 'Checked in · +$xp XP';
+  }
+
+  @override
+  String get gymPictureNow => 'Picture?';
+
+  @override
+  String get gymPictureNowBody =>
+      'One for the album, while you are still here.';
+
+  @override
+  String get gymPictureYes => 'Take it';
+
+  @override
+  String get gymHistory => 'History';
+
+  @override
+  String get gymSeeAll => 'See all';
+
+  @override
+  String get gymNoSetsLogged => 'Nothing logged';
+
+  @override
+  String get gymNoHistory => 'No sessions yet';
+
+  @override
+  String get gymNoHistoryBody =>
+      'Tap Start. The records are made of what you log here.';
+
+  @override
+  String gymSessionSummary(int sets, String volume) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+    );
+    return '$_temp0 · $volume';
+  }
+
+  @override
+  String get gymVolume => 'Volume';
+
+  @override
+  String get gymBest => 'Best';
+
+  @override
+  String get gymRecords => 'Personal records';
+
+  @override
+  String get gymNoRecords => 'Nothing logged for this one yet';
+
+  @override
+  String get gymHeaviestLabel => 'Heaviest set';
+
+  @override
+  String get gymEstimatedLabel => 'Best estimated single';
+
+  @override
+  String get gymEstimatedHint =>
+      'Worked out from the weight and the reps, not a single you actually pulled.';
 }

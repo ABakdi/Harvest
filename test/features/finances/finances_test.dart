@@ -146,6 +146,47 @@ void main() {
       expect(await xpTotal(), 2 * expenseLogXp);
     });
 
+    test(
+      'deleting the last expense of a day takes its XP back; undo pays it again',
+      () async {
+        final uuid = await repo.log(
+          amountMinor: 500,
+          category: ExpenseCategory.food.name,
+          day: day,
+        );
+        expect(await xpTotal(), expenseLogXp);
+
+        await repo.remove(uuid);
+        expect(await xpTotal(), 0, reason: 'nothing logged, nothing paid');
+
+        await repo.restore(uuid);
+        expect(await xpTotal(), expenseLogXp);
+
+        // Logging again after a restore does not pay twice.
+        await repo.log(
+          amountMinor: 200,
+          category: ExpenseCategory.food.name,
+          day: day,
+        );
+        expect(await xpTotal(), expenseLogXp);
+      },
+    );
+
+    test('deleting one of two expenses keeps the day paid', () async {
+      final first = await repo.log(
+        amountMinor: 500,
+        category: ExpenseCategory.food.name,
+        day: day,
+      );
+      await repo.log(
+        amountMinor: 700,
+        category: ExpenseCategory.food.name,
+        day: day,
+      );
+      await repo.remove(first);
+      expect(await xpTotal(), expenseLogXp);
+    });
+
     test('writes land in the outbox', () async {
       await repo.log(
         amountMinor: 500,

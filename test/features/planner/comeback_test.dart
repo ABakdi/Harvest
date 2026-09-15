@@ -167,6 +167,82 @@ void main() {
       );
     });
 
+    test('a night written down counts as showing up (Audit 2, B-04)', () async {
+      await seedCommitment();
+      await db
+          .into(db.sleepSessions)
+          .insert(
+            SleepSessionsCompanion.insert(
+              uuid: 'n1',
+              harvestDay: HarvestDay.of(noon).key,
+              fellAsleepAt: noon.subtract(const Duration(hours: 11)),
+              wokeAt: noon.subtract(const Duration(hours: 3)),
+              targetMinutes: 480,
+            ),
+          );
+      await planner.planToday(now: noon);
+      expect(
+        gateway.scheduled[ReminderIds.comebackBase]!.when,
+        DateTime(2026, 9, 12, 7),
+      );
+    });
+
+    test(
+      'a picture in a scheduled album counts; one in a scrapbook does not',
+      () async {
+        await seedCommitment();
+        await db
+            .into(db.albums)
+            .insert(
+              AlbumsCompanion.insert(
+                uuid: 'scrap',
+                name: 'Scrapbook',
+                createdAt: Value(DateTime(2026)),
+              ),
+            );
+        await db
+            .into(db.memories)
+            .insert(
+              MemoriesCompanion.insert(
+                uuid: 'm0',
+                albumUuid: 'scrap',
+                harvestDay: HarvestDay.of(noon).key,
+                path: 'x.jpg',
+              ),
+            );
+        await planner.planToday(now: noon);
+        // The first seed was planted at New Year and nothing counts since:
+        // the ladder is long past its rungs, on the monthly heartbeat.
+        expect(gateway.scheduled[ReminderIds.comebackBase], isNull);
+
+        await db
+            .into(db.albums)
+            .insert(
+              AlbumsCompanion.insert(
+                uuid: 'face',
+                name: 'Face',
+                scheduleJson: const Value('{"type":"daily"}'),
+                createdAt: Value(DateTime(2026)),
+              ),
+            );
+        await db
+            .into(db.memories)
+            .insert(
+              MemoriesCompanion.insert(
+                uuid: 'm1',
+                albumUuid: 'face',
+                harvestDay: HarvestDay.of(noon).key,
+                path: 'y.jpg',
+              ),
+            );
+        await planner.planToday(now: noon);
+        expect(
+          gateway.scheduled[ReminderIds.comebackBase]!.when,
+          DateTime(2026, 9, 12, 7),
+        );
+      },
+    );
+
     test('an app installed and never used still speaks up', () async {
       // No check-ins at all: the ladder counts from the first seed,
       // planted in January — every rung is long past, so what is left

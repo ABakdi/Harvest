@@ -83,4 +83,6 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // Steps live in packages/harvest_steps, a plugin, so the 3 AM job's
+    // background engine can read them too (checkpoint 8).
 }

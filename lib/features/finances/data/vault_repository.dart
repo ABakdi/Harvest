@@ -81,7 +81,7 @@ class VaultRepository {
     account: MoneyAccount.values.byName(row.account),
     deltaMinor: row.deltaMinor,
     currency: Currency.fromCode(row.currency),
-    day: HarvestDay.parse(row.harvestDay),
+    day: HarvestDay.tryParse(row.harvestDay) ?? HarvestDay.of(row.loggedAt),
     loggedAt: row.loggedAt,
     kind: TxnKind.fromName(row.kind),
     reference: row.reference,
@@ -286,12 +286,18 @@ class VaultRepository {
                     uuid: row.uuid,
                     debtUuid: row.debtUuid,
                     amountMinor: row.amountMinor,
-                    day: HarvestDay.parse(row.harvestDay),
+                    day:
+                        HarvestDay.tryParse(row.harvestDay) ??
+                        HarvestDay.of(row.loggedAt),
                     loggedAt: row.loggedAt,
                   ),
                 )
                 .toList(),
           );
+
+  /// What has been paid on each debt, by uuid — the one place that
+  /// adds payments up, for the vault and the planner alike.
+  Future<Map<String, int>> paidByDebt() => _paidByDebt();
 
   Future<Map<String, int>> _paidByDebt() async {
     final sum = _db.debtPayments.amountMinor.sum();
@@ -421,6 +427,60 @@ class VaultRepository {
     });
   }
 
+  /// Removes a payment logged by mistake: the payment goes to the
+  /// trash, the wallet movement it made goes with it, and a debt it
+  /// had settled reopens ([[Audit-v2-Beta]] N-01). The mirror of
+  /// [payDebt], the way an expense's remove mirrors its log.
+  Future<void> removePayment(String uuid) => _db.transaction(() async {
+    final payment =
+        await (_db.select(
+              _db.debtPayments,
+            )..where((p) => p.uuid.equals(uuid) & p.deletedAt.isNull()))
+            .getSingleOrNull();
+    if (payment == null) return;
+    await (_db.update(_db.debtPayments)..where((p) => p.uuid.equals(uuid)))
+        .write(DebtPaymentsCompanion(deletedAt: Value(DateTime.now())));
+    await _outbox('debt_payments', uuid, 'delete');
+
+    final linked = await linkedTxn(uuid);
+    if (linked != null) await removeTxn(linked.uuid);
+    await _settleIfPaid(payment.debtUuid);
+  });
+
+  /// Puts a removed payment back, wallet movement and settlement too.
+  Future<void> restorePayment(String uuid) => _db.transaction(() async {
+    final payment = await (_db.select(
+      _db.debtPayments,
+    )..where((p) => p.uuid.equals(uuid))).getSingleOrNull();
+    if (payment == null) return;
+    await (_db.update(_db.debtPayments)..where((p) => p.uuid.equals(uuid)))
+        .write(const DebtPaymentsCompanion(deletedAt: Value(null)));
+    await _outbox('debt_payments', uuid, 'update');
+
+    final linked = await linkedTxn(uuid, includeDeleted: true);
+    if (linked != null) await restoreTxn(linked.uuid);
+    await _settleIfPaid(payment.debtUuid);
+  });
+
+  /// Settles a debt that is now fully paid, and reopens one that is
+  /// not — whichever the payments add up to.
+  Future<void> _settleIfPaid(String debtUuid) async {
+    final debt = await (_db.select(
+      _db.debts,
+    )..where((d) => d.uuid.equals(debtUuid))).getSingleOrNull();
+    if (debt == null) return;
+    final paid = (await _paidByDebt())[debtUuid] ?? 0;
+    final settled = paid >= debt.amountMinor;
+    if (settled == (debt.settledAt != null)) return;
+    await (_db.update(_db.debts)..where((d) => d.uuid.equals(debtUuid))).write(
+      DebtsCompanion(
+        settledAt: Value(settled ? DateTime.now() : null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('debts', debtUuid, 'update');
+  }
+
   /// Hard-deletes movements, debts and payments soft-deleted longer
   /// than [olderThan] ago.
   Future<void> purgeDeleted({required Duration olderThan}) async {
@@ -438,15 +498,8 @@ class VaultRepository {
     });
   }
 
-  Future<void> _outbox(String table, String uuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: table,
-          rowUuid: uuid,
-          op: op,
-        ),
-      );
+  Future<void> _outbox(String table, String uuid, String op) =>
+      _db.logChange(table, uuid, op);
 }
 
 @Riverpod(keepAlive: true)

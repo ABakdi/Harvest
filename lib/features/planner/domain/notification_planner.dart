@@ -9,13 +9,19 @@ import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/platform/reminder_actions.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
+import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/gamification/domain/activity.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/health/domain/sleep.dart';
+import 'package:harvest/features/health/presentation/sleep_providers.dart';
 import 'package:harvest/features/planner/domain/comeback.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/settings/domain/daily_cycle.dart';
+import 'package:harvest/features/settings/domain/daily_cycle_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -30,7 +36,16 @@ abstract final class ReminderIds {
   static const streakRisk = 104;
   static const expenses = 105;
 
+  /// The two that belong to sleep. Deliberately **not** rituals: they
+  /// answer to the sleep switches rather than the reminders one,
+  /// because an alarm that the general reminders toggle can silence is
+  /// an alarm nobody can trust.
+  static const sleepAlarm = 106;
+  static const windDown = 107;
+
   static const List<int> rituals = [morning, eveningPlan, streakRisk, expenses];
+
+  static const List<int> sleep = [sleepAlarm, windDown];
 
   static const taskBase = 2100;
   static const debtBase = 3100;
@@ -87,7 +102,8 @@ class NotificationPlanner {
   NotificationPlanner(this._db, this._notifications, this._streaks)
     : _settings = SettingsRepository(_db),
       _commitments = CommitmentsRepository(_db),
-      _gallery = GalleryRepository(_db, GalleryStorage());
+      _gallery = GalleryRepository(_db, GalleryStorage()),
+      _activity = ActivityLog(_db);
 
   final HarvestDatabase _db;
   final NotificationGateway _notifications;
@@ -99,11 +115,14 @@ class NotificationPlanner {
   /// here never has to resolve a directory.
   final GalleryRepository _gallery;
 
+  /// The one definition of "I did something" ([[Audit-v2-Beta]] B-04).
+  final ActivityLog _activity;
+
   /// (Re)schedules today's reminders. Idempotent: cancels the reserved
   /// ids first, then schedules only what still lies ahead.
   Future<void> planToday({DateTime? now}) async {
     final at = now ?? DateTime.now();
-    for (final id in ReminderIds.rituals) {
+    for (final id in [...ReminderIds.rituals, ...ReminderIds.sleep]) {
       await _notifications.cancel(id);
     }
     final l10n = await _l10n();
@@ -122,6 +141,7 @@ class NotificationPlanner {
     if (await _settings.getBool(ReminderKeys.enabled) ?? false) {
       await _planRituals(at, l10n, skipMorning: comebackToday);
     }
+    await _planSleep(at, l10n);
     await _planComebacks(at, l10n, lastActive);
     await _planTaskReminders(at, l10n);
     await _planAlbumReminders(at, l10n);
@@ -144,6 +164,84 @@ class NotificationPlanner {
     await _planTaskReminders(at, l10n);
     await _planAlbumReminders(at, l10n);
     await _planComebacks(at, l10n, await _lastActiveDay(at));
+  }
+
+  /// The alarm and the wind-down.
+  ///
+  /// Both are worked out from the hours the day is already built
+  /// around ([[Health]]): sleep does not get a second set of times.
+  /// The alarm is scheduled for the *next* wake time, which after
+  /// breakfast means tomorrow morning — an alarm you set at nine in
+  /// the morning is for the following day and everybody knows it.
+  Future<void> _planSleep(DateTime at, AppLocalizations l10n) async {
+    final targets = await _sleepTargets();
+
+    if (await _settings.getBool(SleepKeys.alarmOn) ?? false) {
+      final when = _nextAlarm(at, targets);
+      await _notifications.schedule(
+        id: ReminderIds.sleepAlarm,
+        channelId: NotificationChannels.reminders,
+        title: l10n.sleepAlarmTitle,
+        body: l10n.sleepAlarmText,
+        when: when,
+        route: ReminderRoutes.sleep,
+      );
+    }
+
+    if (await _settings.getBool(SleepKeys.windDownOn) ?? false) {
+      final when = _nextWindDown(at, targets);
+      await _notifications.schedule(
+        id: ReminderIds.windDown,
+        channelId: NotificationChannels.reminders,
+        title: l10n.sleepWindDownTitle,
+        body: l10n.sleepWindDownText,
+        when: when,
+        // A nudge, not an alarm: nothing about going to bed needs to
+        // ring over the lock screen.
+        alarm: false,
+        route: ReminderRoutes.sleep,
+      );
+    }
+  }
+
+  /// The daily cycle, plus whichever weekdays have a night of their own.
+  Future<SleepTargets> _sleepTargets() async {
+    final cycle = DailyCycle(
+      bedTime:
+          await _settings.getTime(CycleKeys.bedTime) ??
+          DailyCycle.fallback.bedTime,
+      wakeTime:
+          await _settings.getTime(CycleKeys.wakeTime) ??
+          DailyCycle.fallback.wakeTime,
+    );
+    final overrides = <int, DailyCycle>{};
+    for (var weekday = 1; weekday <= 7; weekday++) {
+      final stored = await _settings.getString(SleepKeys.night(weekday));
+      final night = decodeCycle(stored);
+      if (night != null) overrides[weekday] = night;
+    }
+    return SleepTargets(cycle: cycle, overrides: overrides);
+  }
+
+  /// The next time that alarm rings — today's if it is still ahead,
+  /// otherwise tomorrow's, which may be a different weekday and so a
+  /// different time.
+  static DateTime _nextAlarm(DateTime at, SleepTargets targets) {
+    final today = HarvestDay.of(at);
+    final candidate = alarmFor(today, targets);
+    if (candidate.isAfter(at)) return candidate;
+    return alarmFor(today.next, targets);
+  }
+
+  static DateTime _nextWindDown(DateTime at, SleepTargets targets) {
+    // The wind-down belongs to the night that ends tomorrow morning,
+    // so it is worked out from tomorrow's alarm.
+    final today = HarvestDay.of(at);
+    for (final day in [today, today.next, today.next.next]) {
+      final candidate = windDownFor(day, targets);
+      if (candidate.isAfter(at)) return candidate;
+    }
+    return windDownFor(today.next.next, targets);
   }
 
   /// The localized "remind me in…" actions every reminder carries.
@@ -238,7 +336,7 @@ class NotificationPlanner {
               ..where((d) => d.settledAt.isNull() & d.deletedAt.isNull())
               ..orderBy([(d) => OrderingTerm.asc(d.createdAt)]))
             .get();
-    final paid = await _paidByDebt();
+    final paid = await VaultRepository(_db).paidByDebt();
 
     final scheduled = <int>[];
     for (final row in rows) {
@@ -427,32 +525,16 @@ class NotificationPlanner {
         ComebackRung.month2 => l10n.comebackMonth2Body,
       };
 
-  /// The last Harvest Day I did anything at all — checked a seed in or
-  /// logged an expense. With nothing on record the ladder starts from
+  /// The last Harvest Day I did anything at all — by the app's one
+  /// definition of activity ([[Audit-v2-Beta]] B-04): a check-in, a
+  /// picture in a scheduled album, an expense, a night, a weight, a
+  /// finished session. With nothing on record the ladder starts from
   /// the day the first seed was planted, so an app installed and then
   /// forgotten still speaks up.
   Future<HarvestDay> _lastActiveDay(DateTime at) async {
     final today = _dayOf(at);
-    final checkIn =
-        await (_db.select(_db.checkIns)
-              ..where((c) => c.deletedAt.isNull())
-              ..orderBy([(c) => OrderingTerm.desc(c.harvestDay)])
-              ..limit(1))
-            .getSingleOrNull();
-    final expense =
-        await (_db.select(_db.expenses)
-              ..where((e) => e.deletedAt.isNull())
-              ..orderBy([(e) => OrderingTerm.desc(e.harvestDay)])
-              ..limit(1))
-            .getSingleOrNull();
-    final days = [
-      HarvestDay.tryParse(checkIn?.harvestDay),
-      HarvestDay.tryParse(expense?.harvestDay),
-    ].nonNulls.toList();
-    if (days.isNotEmpty) {
-      days.sort((a, b) => b.compareTo(a));
-      return days.first.compareTo(today) > 0 ? today : days.first;
-    }
+    final last = await _activity.lastActiveDay(upTo: today);
+    if (last != null) return last;
 
     final firstSeed =
         await (_db.select(_db.commitments)
@@ -464,17 +546,7 @@ class NotificationPlanner {
   }
 
   /// Anything logged on [day]: the comeback ladder's silencer.
-  Future<bool> _activeOn(HarvestDay day) async {
-    final checkIn =
-        await (_db.select(_db.checkIns)
-              ..where(
-                (c) => c.harvestDay.equals(day.key) & c.deletedAt.isNull(),
-              )
-              ..limit(1))
-            .getSingleOrNull();
-    if (checkIn != null) return true;
-    return _expensesLogged(day);
-  }
+  Future<bool> _activeOn(HarvestDay day) => _activity.activeOn(day);
 
   // --------------------------------------------------------------- helpers
 
@@ -493,18 +565,6 @@ class NotificationPlanner {
     final goal = await _streaks.dailyGoal();
     final actions = await _streaks.productiveActions(day);
     return actions >= goal;
-  }
-
-  Future<Map<String, int>> _paidByDebt() async {
-    final sum = _db.debtPayments.amountMinor.sum();
-    final query = _db.selectOnly(_db.debtPayments)
-      ..addColumns([_db.debtPayments.debtUuid, sum])
-      ..where(_db.debtPayments.deletedAt.isNull())
-      ..groupBy([_db.debtPayments.debtUuid]);
-    return {
-      for (final row in await query.get())
-        row.read(_db.debtPayments.debtUuid)!: row.read(sum) ?? 0,
-    };
   }
 
   Future<void> _cancelStored(String key) async {

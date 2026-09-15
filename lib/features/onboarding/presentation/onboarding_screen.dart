@@ -68,6 +68,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   var _remindersOn = true;
   var _notesOn = false;
   var _galleryOn = false;
+  var _healthOn = false;
+  var _gymOn = false;
   var _finishing = false;
 
   static const _pages = 5;
@@ -139,6 +141,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final settings = ref.read(settingsRepositoryProvider);
     await settings.setBool(FeatureKeys.notes, value: _notesOn);
     await settings.setBool(FeatureKeys.gallery, value: _galleryOn);
+    await settings.setBool(FeatureKeys.health, value: _healthOn);
+    await settings.setBool(FeatureKeys.gym, value: _gymOn);
     await _markDone();
   }
 
@@ -186,8 +190,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     l10n: l10n,
                     notes: _notesOn,
                     gallery: _galleryOn,
+                    health: _healthOn,
+                    gym: _gymOn,
                     onNotes: (on) => setState(() => _notesOn = on),
                     onGallery: (on) => setState(() => _galleryOn = on),
+                    onHealth: (on) => setState(() => _healthOn = on),
+                    onGym: (on) => setState(() => _gymOn = on),
                   ),
                 ],
               ),
@@ -437,26 +445,34 @@ class _RemindersPage extends StatelessWidget {
   }
 }
 
-/// The last question: the two halves of the app that stay hidden
-/// unless asked for.
+/// The last question: the parts of the app that stay hidden unless
+/// asked for.
 ///
-/// Both are off under the switch, and saying no here costs nothing —
-/// Settings has them forever after. Someone who came for a streak
+/// All four are off under the switch, and saying no here costs nothing
+/// — Settings has them forever after. Someone who came for a streak
 /// tracker leaves this page with exactly the app they came for.
 class _ExtrasPage extends StatelessWidget {
   const _ExtrasPage({
     required this.l10n,
     required this.notes,
     required this.gallery,
+    required this.health,
+    required this.gym,
     required this.onNotes,
     required this.onGallery,
+    required this.onHealth,
+    required this.onGym,
   });
 
   final AppLocalizations l10n;
   final bool notes;
   final bool gallery;
+  final bool health;
+  final bool gym;
   final ValueChanged<bool> onNotes;
   final ValueChanged<bool> onGallery;
+  final ValueChanged<bool> onHealth;
+  final ValueChanged<bool> onGym;
 
   @override
   Widget build(BuildContext context) {
@@ -503,6 +519,22 @@ class _ExtrasPage extends StatelessWidget {
                   subtitle: Text(l10n.featureGalleryHint),
                   value: gallery,
                   onChanged: onGallery,
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.monitor_heart_outlined),
+                  title: Text(l10n.featureHealth),
+                  subtitle: Text(l10n.featureHealthHint),
+                  value: health,
+                  onChanged: onHealth,
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.fitness_center),
+                  title: Text(l10n.featureGym),
+                  subtitle: Text(l10n.featureGymHint),
+                  value: gym,
+                  onChanged: onGym,
                 ),
               ],
             ),

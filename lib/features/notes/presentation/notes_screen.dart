@@ -19,6 +19,7 @@ import 'package:harvest/features/notes/presentation/note_editor.dart';
 import 'package:harvest/features/notes/presentation/note_trash_screen.dart';
 import 'package:harvest/features/notes/presentation/notes_providers.dart';
 import 'package:harvest/features/notes/presentation/notes_sidebar.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:printing/printing.dart';
 
@@ -28,7 +29,12 @@ import 'package:printing/printing.dart';
 /// is a phone — but it is the same idea, and the middle of the screen
 /// never becomes a file list.
 class NotesScreen extends ConsumerStatefulWidget {
-  const NotesScreen({this.initialUuid, super.key});
+  const NotesScreen({this.initialUuid, this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   /// Opened from a deep link, or from a `[[link]]` followed elsewhere.
   final String? initialUuid;
@@ -46,6 +52,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   void initState() {
     super.initState();
     _open = widget.initialUuid;
+    if (_open != null) _remember(_open);
     // Open whatever I was last writing rather than an empty page.
     if (_open == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _openLatest());
@@ -58,14 +65,30 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     super.dispose();
   }
 
+  /// The note I was last in, if it is still there; the latest otherwise.
   Future<void> _openLatest() async {
+    final settings = ref.read(settingsRepositoryProvider);
+    final remembered = await settings.getString(SettingKeys.recordsNote);
     final notes = await ref.read(notesRepositoryProvider).watchAll().first;
     if (!mounted || notes.isEmpty || _open != null) return;
-    setState(() => _open = notes.first.uuid);
+    final last = notes.where((note) => note.uuid == remembered).firstOrNull;
+    setState(() => _open = (last ?? notes.first).uuid);
+  }
+
+  /// Written on every change, so a cold start lands on the same note
+  /// ([[Checkpoint-7]]).
+  void _remember(String? uuid) {
+    final settings = ref.read(settingsRepositoryProvider);
+    unawaited(
+      uuid == null
+          ? settings.remove(SettingKeys.recordsNote)
+          : settings.setString(SettingKeys.recordsNote, uuid),
+    );
   }
 
   void _show(String? uuid) {
     setState(() => _open = uuid);
+    _remember(uuid);
     if (_scaffold.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
@@ -119,6 +142,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     await repository.remove(note.uuid);
     if (!mounted) return;
     setState(() => _open = null);
+    _remember(null);
     _openLatest().ignore();
     messenger
       ..hideCurrentSnackBar()
@@ -158,13 +182,28 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         onOpenTrash: _openTrash,
       ),
       appBar: AppBar(
-        title: Text(
-          note == null
-              ? l10n.notesTitle
-              : note.title.isEmpty
-              ? l10n.notesUntitled
-              : note.title,
-          overflow: TextOverflow.ellipsis,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              note == null
+                  ? widget.title ?? l10n.notesTitle
+                  : note.title.isEmpty
+                  ? l10n.notesUntitled
+                  : note.title,
+              overflow: TextOverflow.ellipsis,
+            ),
+            // With the Records tabs under the title, the folder has to
+            // live up here instead ([[Checkpoint-8]]).
+            if (note != null && note.folder.isNotEmpty && widget.tabs != null)
+              Text(
+                note.folder,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
         ),
         actions: [
           IconButton(
@@ -210,28 +249,34 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               ],
             ),
         ],
-        bottom: note == null || note.folder.isEmpty
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(22),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      HarvestSpacing.md,
-                      0,
-                      HarvestSpacing.md,
-                      6,
-                    ),
-                    child: Text(
-                      note.folder,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+        // The Records tabs stay whether a note is open or not: hiding
+        // them behind an open note made the gallery unreachable to
+        // anyone who did not know to close the note first
+        // ([[Checkpoint-8]]). Alone, Notes shows the folder here.
+        bottom:
+            widget.tabs ??
+            (note == null || note.folder.isEmpty
+                ? null
+                : PreferredSize(
+                    preferredSize: const Size.fromHeight(22),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          HarvestSpacing.md,
+                          0,
+                          HarvestSpacing.md,
+                          6,
+                        ),
+                        child: Text(
+                          note.folder,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
+                  )),
       ),
       bottomNavigationBar: writing && note != null
           ? MarkdownToolbar(controller: _body)

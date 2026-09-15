@@ -6,15 +6,19 @@ import 'package:harvest/app/bootstrap.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/features/export/presentation/export_card.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/category_settings.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/gym/presentation/media_card.dart';
+import 'package:harvest/features/health/presentation/sleep_settings_card.dart';
 import 'package:harvest/features/import/presentation/import_card.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/security/presentation/app_lock_card.dart';
+import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/daily_cycle_card.dart';
 import 'package:harvest/features/settings/presentation/features_card.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
@@ -22,157 +26,308 @@ import 'package:harvest/features/settings/presentation/settings_controllers.dart
 import 'package:harvest/features/widget/presentation/widget_card.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
-/// Settings, in the order they matter: the goal, the reminders, the
-/// focus timer, money, who may open the app, getting the data out,
-/// then looks. A startup problem, if any, sits at the very bottom so it
-/// is never missed and never in the way.
+/// The sections of the farmer's settings, in the order they matter:
+/// the day, what is switched on, when the app speaks, the focus timer,
+/// money, who may open the app, getting the data out, then looks.
+enum SettingsSection {
+  harvest,
+  extras,
+  reminders,
+  pomodoro,
+  money,
+  privacy,
+  data,
+  appearance,
+}
+
+extension on SettingsSection {
+  IconData get icon => switch (this) {
+    SettingsSection.harvest => Icons.wb_sunny_outlined,
+    SettingsSection.extras => Icons.extension_outlined,
+    SettingsSection.reminders => Icons.notifications_outlined,
+    SettingsSection.pomodoro => Icons.timer_outlined,
+    SettingsSection.money => Icons.payments_outlined,
+    SettingsSection.privacy => Icons.lock_outline,
+    SettingsSection.data => Icons.folder_outlined,
+    SettingsSection.appearance => Icons.palette_outlined,
+  };
+
+  String title(AppLocalizations l10n) => switch (this) {
+    SettingsSection.harvest => l10n.settingsHarvest,
+    SettingsSection.extras => l10n.settingsFeatures,
+    SettingsSection.reminders => l10n.settingsReminders,
+    SettingsSection.pomodoro => l10n.settingsPomodoro,
+    SettingsSection.money => l10n.settingsMoney,
+    SettingsSection.privacy => l10n.settingsPrivacy,
+    SettingsSection.data => l10n.settingsData,
+    SettingsSection.appearance => l10n.settingsAppearance,
+  };
+
+  String hint(AppLocalizations l10n) => switch (this) {
+    SettingsSection.harvest => l10n.settingsSectionHarvestHint,
+    SettingsSection.extras => l10n.settingsSectionFeaturesHint,
+    SettingsSection.reminders => l10n.settingsSectionRemindersHint,
+    SettingsSection.pomodoro => l10n.settingsSectionPomodoroHint,
+    SettingsSection.money => l10n.settingsSectionMoneyHint,
+    SettingsSection.privacy => l10n.settingsSectionPrivacyHint,
+    SettingsSection.data => l10n.settingsSectionDataHint,
+    SettingsSection.appearance => l10n.settingsSectionAppearanceHint,
+  };
+}
+
+/// Settings: a short list of sections, each a page of its own.
+///
+/// It was one long scroll, five sections deep, and read like a config
+/// file. A page per section makes the farmer's tab a place: the list
+/// says what there is, and each page holds only what it is about
+/// ([[Checkpoint-7]]). A startup problem, if any, sits at the foot of
+/// the list so it is never missed and never in the way.
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({this.title, this.tabs, super.key});
+
+  /// The title and tabs of the paired screen this is half of, when it
+  /// is one ([[Checkpoint-6]]); on its own it names itself.
+  final String? title;
+  final PreferredSizeWidget? tabs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
-    final pomodoro =
-        ref.watch(pomodoroConfigSettingProvider).value ??
-        const PomodoroConfig();
+    final scheme = theme.colorScheme;
     final startupProblem = ref.watch(bootstrapStatusProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navSettings)),
+      appBar: AppBar(
+        title: Text(title ?? l10n.navSettings),
+        bottom: tabs,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(HarvestSpacing.md),
         children: [
-          SectionHeader(
-            l10n.settingsHarvest,
-            padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-          ),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(HarvestSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.settingsGoalTitle),
-                  const SizedBox(height: HarvestSpacing.xs),
-                  Text(l10n.settingsGoalBody, style: theme.textTheme.bodySmall),
-                  const SizedBox(height: HarvestSpacing.sm),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.goalActions(goal),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      _Stepper(
-                        value: goal,
-                        min: 1,
-                        max: 10,
-                        onChanged: (value) => unawaited(
-                          ref
-                              .read(dailyGoalSettingProvider.notifier)
-                              .set(value),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SectionHeader(
-            l10n.settingsFeatures,
-            subtitle: l10n.settingsFeaturesHint,
-          ),
-          const FeaturesCard(),
-          SectionHeader(
-            l10n.settingsCycle,
-            subtitle: l10n.settingsCycleHint,
-          ),
-          const DailyCycleCard(),
-          SectionHeader(l10n.settingsReminders),
-          const _RemindersCard(),
-          SectionHeader(l10n.settingsPomodoro),
           Card(
             child: Column(
               children: [
-                _PomodoroRow(
-                  label: l10n.pomodoroFocusLen,
-                  value: l10n.minutesValue(pomodoro.focusMinutes),
-                  settingKey: PomodoroKeys.focus,
-                  current: pomodoro.focusMinutes,
-                  min: 10,
-                  max: 90,
-                  step: 5,
-                ),
-                _PomodoroRow(
-                  label: l10n.pomodoroShortLen,
-                  value: l10n.minutesValue(pomodoro.shortBreakMinutes),
-                  settingKey: PomodoroKeys.shortBreak,
-                  current: pomodoro.shortBreakMinutes,
-                  min: 1,
-                  max: 20,
-                  step: 1,
-                ),
-                _PomodoroRow(
-                  label: l10n.pomodoroLongLen,
-                  value: l10n.minutesValue(pomodoro.longBreakMinutes),
-                  settingKey: PomodoroKeys.longBreak,
-                  current: pomodoro.longBreakMinutes,
-                  min: 5,
-                  max: 45,
-                  step: 5,
-                ),
-                _PomodoroRow(
-                  label: l10n.pomodoroBlocks,
-                  value: '${pomodoro.blocksPerLongBreak}',
-                  settingKey: PomodoroKeys.blocksPerLong,
-                  current: pomodoro.blocksPerLongBreak,
-                  min: 2,
-                  max: 8,
-                  step: 1,
-                ),
+                for (final (index, section) in SettingsSection.values.indexed)
+                  ListTile(
+                    leading: IconBadge(section.icon, color: scheme.secondary),
+                    title: Text(
+                      section.title(l10n),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    subtitle: Text(section.hint(l10n)),
+                    trailing: const Icon(Icons.chevron_right),
+                    shape: index == 0
+                        ? const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(HarvestRadii.card),
+                            ),
+                          )
+                        : null,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => SettingsSectionScreen(section),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-          SectionHeader(l10n.settingsMoney),
-          const _DefaultCurrencyCard(),
-          const SizedBox(height: HarvestSpacing.sm),
-          const CategorySettingsCard(),
-          const SizedBox(height: HarvestSpacing.sm),
-          const RatesCard(),
-          SectionHeader(l10n.settingsPrivacy),
-          const AppLockCard(),
-          SectionHeader(l10n.settingsData),
-          const ExportCard(),
-          const SizedBox(height: HarvestSpacing.sm),
-          const ImportCard(),
-          const SizedBox(height: HarvestSpacing.sm),
-          const WidgetCard(),
-          SectionHeader(l10n.settingsAppearance),
-          const _AppearanceCard(),
           if (startupProblem != null) ...[
             const SizedBox(height: HarvestSpacing.lg),
             Card(
-              color: theme.colorScheme.errorContainer,
+              color: scheme.errorContainer,
               child: ListTile(
                 leading: Icon(
                   Icons.warning_amber_rounded,
-                  color: theme.colorScheme.onErrorContainer,
+                  color: scheme.onErrorContainer,
                 ),
                 title: Text(
                   l10n.startupProblem(startupProblem),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onErrorContainer,
+                    color: scheme.onErrorContainer,
                   ),
                 ),
               ),
             ),
           ],
           const SizedBox(height: HarvestSpacing.xl),
+        ],
+      ),
+    );
+  }
+}
+
+/// One section of the settings, on a page of its own.
+class SettingsSectionScreen extends ConsumerWidget {
+  const SettingsSectionScreen(this.section, {super.key});
+
+  final SettingsSection section;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(section.title(l10n))),
+      body: ListView(
+        padding: const EdgeInsets.all(HarvestSpacing.md),
+        children: [
+          ..._body(context, ref, l10n),
+          const SizedBox(height: HarvestSpacing.xl),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _body(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) => switch (section) {
+    SettingsSection.harvest => [
+      const _GoalCard(),
+      SectionHeader(l10n.settingsCycle, subtitle: l10n.settingsCycleHint),
+      const DailyCycleCard(),
+      // Sleep sits directly under the cycle because it is the same
+      // two times, put to work.
+      if (ref.watch(healthEnabledProvider)) ...[
+        SectionHeader(l10n.sleepSection),
+        const SleepSettingsCard(),
+      ],
+    ],
+    SettingsSection.extras => [
+      Padding(
+        padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+        child: Text(
+          l10n.settingsFeaturesHint,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      const FeaturesCard(),
+      if (ref.watch(gymEnabledProvider)) ...[
+        const SizedBox(height: HarvestSpacing.sm),
+        const ExerciseMediaCard(),
+      ],
+    ],
+    SettingsSection.reminders => const [_RemindersCard()],
+    SettingsSection.pomodoro => const [_PomodoroCard()],
+    SettingsSection.money => const [
+      _DefaultCurrencyCard(),
+      SizedBox(height: HarvestSpacing.sm),
+      CategorySettingsCard(),
+      SizedBox(height: HarvestSpacing.sm),
+      RatesCard(),
+    ],
+    SettingsSection.privacy => const [AppLockCard()],
+    SettingsSection.data => const [
+      ExportCard(),
+      SizedBox(height: HarvestSpacing.sm),
+      ImportCard(),
+      SizedBox(height: HarvestSpacing.sm),
+      WidgetCard(),
+    ],
+    SettingsSection.appearance => const [_AppearanceCard()],
+  };
+}
+
+/// How many check-ins make a day.
+class _GoalCard extends ConsumerWidget {
+  const _GoalCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(HarvestSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.settingsGoalTitle),
+            const SizedBox(height: HarvestSpacing.xs),
+            Text(l10n.settingsGoalBody, style: theme.textTheme.bodySmall),
+            const SizedBox(height: HarvestSpacing.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.goalActions(goal),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                _Stepper(
+                  value: goal,
+                  min: 1,
+                  max: 10,
+                  onChanged: (value) => unawaited(
+                    ref.read(dailyGoalSettingProvider.notifier).set(value),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The four numbers of the focus timer.
+class _PomodoroCard extends ConsumerWidget {
+  const _PomodoroCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final pomodoro =
+        ref.watch(pomodoroConfigSettingProvider).value ??
+        const PomodoroConfig();
+    return Card(
+      child: Column(
+        children: [
+          _PomodoroRow(
+            label: l10n.pomodoroFocusLen,
+            value: l10n.minutesValue(pomodoro.focusMinutes),
+            settingKey: PomodoroKeys.focus,
+            current: pomodoro.focusMinutes,
+            min: 10,
+            max: 90,
+            step: 5,
+          ),
+          _PomodoroRow(
+            label: l10n.pomodoroShortLen,
+            value: l10n.minutesValue(pomodoro.shortBreakMinutes),
+            settingKey: PomodoroKeys.shortBreak,
+            current: pomodoro.shortBreakMinutes,
+            min: 1,
+            max: 20,
+            step: 1,
+          ),
+          _PomodoroRow(
+            label: l10n.pomodoroLongLen,
+            value: l10n.minutesValue(pomodoro.longBreakMinutes),
+            settingKey: PomodoroKeys.longBreak,
+            current: pomodoro.longBreakMinutes,
+            min: 5,
+            max: 45,
+            step: 5,
+          ),
+          _PomodoroRow(
+            label: l10n.pomodoroBlocks,
+            value: '${pomodoro.blocksPerLongBreak}',
+            settingKey: PomodoroKeys.blocksPerLong,
+            current: pomodoro.blocksPerLongBreak,
+            min: 2,
+            max: 8,
+            step: 1,
+          ),
         ],
       ),
     );

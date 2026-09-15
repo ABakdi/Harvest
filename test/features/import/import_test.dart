@@ -13,6 +13,11 @@ import 'package:harvest/features/export/domain/archive_service.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/gym/data/programs_repository.dart';
+import 'package:harvest/features/gym/data/sessions_repository.dart';
+import 'package:harvest/features/gym/domain/program.dart';
+import 'package:harvest/features/health/data/health_repository.dart';
+import 'package:harvest/features/health/data/sleep_repository.dart';
 import 'package:harvest/features/import/domain/archive_reader.dart';
 import 'package:harvest/features/import/domain/import_service.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
@@ -174,13 +179,13 @@ void main() {
       // second-resolution clock, so "newer" has to be genuinely later
       // rather than a few microseconds along.
       await notes.update(note.uuid, body: 'new');
-      await (source.update(source.notes)
-            ..where((n) => n.uuid.equals(note.uuid)))
-          .write(
-            NotesCompanion(
-              updatedAt: Value(DateTime.now().add(const Duration(days: 1))),
-            ),
-          );
+      await (source.update(
+        source.notes,
+      )..where((n) => n.uuid.equals(note.uuid))).write(
+        NotesCompanion(
+          updatedAt: Value(DateTime.now().add(const Duration(days: 1))),
+        ),
+      );
       final result = await importer.apply(await bundle());
 
       expect(result.tables[SheetNames.notes]!.updated, 1);
@@ -260,24 +265,27 @@ void main() {
       expect(await restored.readAsBytes(), [7, 7, 7]);
     });
 
-    test('the album comes first, so the row has something to hang on', () async {
-      final gallery = GalleryRepository(source, sourceStorage);
-      final gym = await gallery.createAlbum(
-        name: 'Gym',
-        schedule: const DailySchedule(),
-      );
-      await (await sourceStorage.fileOf('a.jpg')).writeAsBytes([1]);
-      await gallery.addMemory(albumUuid: gym.uuid, path: 'a.jpg', day: day);
+    test(
+      'the album comes first, so the row has something to hang on',
+      () async {
+        final gallery = GalleryRepository(source, sourceStorage);
+        final gym = await gallery.createAlbum(
+          name: 'Gym',
+          schedule: const DailySchedule(),
+        );
+        await (await sourceStorage.fileOf('a.jpg')).writeAsBytes([1]);
+        await gallery.addMemory(albumUuid: gym.uuid, path: 'a.jpg', day: day);
 
-      await importer.apply(await bundle());
+        await importer.apply(await bundle());
 
-      final album = (await GalleryRepository(
-        target,
-        targetStorage,
-      ).albumsOnce()).single;
-      expect(album.name, 'Gym');
-      expect(album.isScheduled, isTrue);
-    });
+        final album = (await GalleryRepository(
+          target,
+          targetStorage,
+        ).albumsOnce()).single;
+        expect(album.name, 'Gym');
+        expect(album.isScheduled, isTrue);
+      },
+    );
 
     test('a second import of the same archive adds nothing', () async {
       final gallery = GalleryRepository(source, sourceStorage);
@@ -291,6 +299,141 @@ void main() {
 
       expect(second.tables[SheetNames.memories]!.added, 0);
       expect((await target.select(target.memories).get()).length, 1);
+    });
+  });
+
+  group('the body', () {
+    /// A program, a session and a night, put into the source database
+    /// the way the app puts them there.
+    Future<void> seedBody() async {
+      final programs = ProgramsRepository(source);
+      final sessions = SessionsRepository(source);
+      final program = await programs.createProgram(name: 'nSuns');
+      final programDay = await programs.addDay(program.uuid, name: 'Day 1');
+      final slot = await programs.addSlot(
+        programDay.uuid,
+        exerciseId: '0025',
+        restSeconds: 180,
+      );
+      await programs.addTargetSet(
+        slot.uuid,
+        reps: 5,
+        weightGrams: 100 * gramsPerKg,
+      );
+      await programs.setTrainingMax(
+        programUuid: program.uuid,
+        exerciseId: '0025',
+        grams: 120 * gramsPerKg,
+      );
+
+      final fresh = (await programs.once(program.uuid))!;
+      final session = await sessions.start(
+        day: fresh.days.single,
+        programUuid: program.uuid,
+        title: 'Day 1',
+        on: day,
+      );
+      await sessions.logSet(
+        session.exercises.single.sets.single.uuid,
+        weightGrams: 102500,
+        reps: 4,
+      );
+      await sessions.finish(session.uuid);
+
+      await HealthRepository(source).logWeight(
+        grams: 81100,
+        measuredAt: DateTime(2026, 9, 5, 8),
+      );
+      await SleepRepository(source).log(
+        day: day,
+        fellAsleepAt: DateTime(2026, 9, 4, 23),
+        wokeAt: DateTime(2026, 9, 5, 7),
+        targetMinutes: 480,
+        restedStars: 4,
+      );
+    }
+
+    test('a whole program comes across, days and sets and all', () async {
+      await seedBody();
+      await importer.apply(await bundle());
+
+      final program = (await ProgramsRepository(target).allOnce()).single;
+      expect(program.name, 'nSuns');
+      final imported = program.days.single;
+      expect(imported.slots.single.exerciseId, '0025');
+      expect(imported.slots.single.restSeconds, 180);
+      expect(imported.slots.single.sets.single.reps, 5);
+      expect(
+        await ProgramsRepository(target).trainingMaxesOnce(program.uuid),
+        {'0025': 120 * gramsPerKg},
+      );
+    });
+
+    test('a finished session keeps every set it logged', () async {
+      await seedBody();
+      await importer.apply(await bundle());
+
+      final sessions = SessionsRepository(target);
+      final imported = (await sessions.finishedOnce()).single;
+      expect(imported.day, day);
+      final set = imported.exercises.single.sets.single;
+      expect(set.weightGrams, 102500);
+      expect(set.reps, 4);
+      expect(set.done, isTrue);
+      // And so the records come across with it, because they are read
+      // off the sets rather than stored.
+      expect((await sessions.records('0025')).heaviest?.weightGrams, 102500);
+    });
+
+    test('weights and nights come across', () async {
+      await seedBody();
+      await importer.apply(await bundle());
+
+      expect(
+        (await HealthRepository(target).watchWeights().first).single.grams,
+        81100,
+      );
+      final night = (await SleepRepository(target).on(day))!;
+      expect(night.sleptMinutes, 8 * 60);
+      expect(night.restedStars, 4);
+    });
+
+    test('a second import of the same archive adds nothing', () async {
+      await seedBody();
+      final archive = await bundle();
+
+      await importer.apply(archive);
+      final second = await importer.apply(archive);
+
+      for (final sheet in [
+        SheetNames.programs,
+        SheetNames.programDays,
+        SheetNames.programSlots,
+        SheetNames.targetSets,
+        SheetNames.sessions,
+        SheetNames.sets,
+        SheetNames.weights,
+        SheetNames.sleep,
+      ]) {
+        expect(second.tables[sheet]!.added, 0, reason: sheet);
+        expect(second.tables[sheet]!.updated, 0, reason: sheet);
+      }
+    });
+
+    test('nothing local is deleted for being missing from it', () async {
+      // The target has a night the archive has never heard of.
+      final mine = day.previous;
+      await SleepRepository(target).log(
+        day: mine,
+        fellAsleepAt: DateTime(2026, 9, 3, 23),
+        wokeAt: DateTime(2026, 9, 4, 6),
+        targetMinutes: 480,
+      );
+      await seedBody();
+      await importer.apply(await bundle());
+
+      expect(await SleepRepository(target).on(mine), isNotNull);
+      expect(await SleepRepository(target).recentOnce(), hasLength(2));
     });
   });
 

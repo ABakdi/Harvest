@@ -62,6 +62,7 @@ class FinanceActions {
     required Currency currency,
     required bool fromWallet,
     String? note,
+    HarvestDay? day,
   }) => _db.transaction(() async {
     await _finances.updateExpense(
       uuid: uuid,
@@ -69,6 +70,7 @@ class FinanceActions {
       category: category,
       currency: currency,
       note: note,
+      day: day,
     );
     final linked = await _vault.linkedTxn(uuid);
     if (fromWallet) {
@@ -144,6 +146,12 @@ class FinanceActions {
     currency: currency,
     note: note,
   );
+
+  /// Takes a payment back, wallet movement and settlement included.
+  Future<void> removePayment(String uuid) => _vault.removePayment(uuid);
+
+  /// The snackbar's Undo for [removePayment].
+  Future<void> restorePayment(String uuid) => _vault.restorePayment(uuid);
 
   /// Pays a debt, optionally out of the wallet.
   Future<void> payDebt({

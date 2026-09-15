@@ -17,11 +17,16 @@ typedef _Tab = ({int branch, IconData icon, IconData active, String label});
 /// App shell: bottom navigation hosting the main tabs, and the place a
 /// quick action tapped on the home-screen widget lands.
 ///
-/// Records has a branch whether or not it is on; what the switches
-/// change is whether a tab points at it. That keeps the route valid for
-/// a deep link or a reminder payload written while the feature was
-/// enabled, and keeps the bar down to four for someone who only came
-/// for a streak — five with the extras, never six.
+/// Records and the Body have branches whether or not they are on; what
+/// the switches change is whether a tab points at one. That keeps the
+/// route valid for a deep link or a reminder payload written while the
+/// feature was enabled, and keeps the bar down to three for someone who
+/// only came for a streak — five with everything, never six.
+///
+/// Settings does not have a tab of its own any more. It lives in the
+/// farmer's tab beside progress, which is where it belonged: both are
+/// about me rather than about anything I track, and merging them is
+/// what freed the slot the body needed.
 ///
 /// The bar hides itself while the keyboard is up: on a note that is the
 /// difference between a toolbar sitting on the keyboard and a toolbar
@@ -66,6 +71,10 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
       if (next != null) unawaited(_drain());
     });
 
+    // Five, and five is the ceiling. Four optional features fit under
+    // two tabs: notes and pictures share Records, sleep and training
+    // share the Body — and progress and settings were always one idea
+    // wearing two labels.
     final tabs = <_Tab>[
       (
         branch: ShellBranch.field,
@@ -73,8 +82,12 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
         active: Icons.grass,
         label: l10n.navField,
       ),
-      // Notes and the Gallery share one tab: they are the same
-      // instinct kept two ways, and five tabs is already the ceiling.
+      (
+        branch: ShellBranch.finances,
+        icon: Icons.account_balance_wallet_outlined,
+        active: Icons.account_balance_wallet,
+        label: l10n.navGranary,
+      ),
       if (ref.watch(notesEnabledProvider) || ref.watch(galleryEnabledProvider))
         (
           branch: ShellBranch.records,
@@ -82,32 +95,31 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
           active: Icons.auto_stories,
           label: l10n.navRecords,
         ),
-      (
-        branch: ShellBranch.finances,
-        icon: Icons.account_balance_wallet_outlined,
-        active: Icons.account_balance_wallet,
-        label: l10n.navGranary,
-      ),
+      if (ref.watch(healthEnabledProvider) || ref.watch(gymEnabledProvider))
+        (
+          branch: ShellBranch.body,
+          icon: Icons.monitor_heart_outlined,
+          active: Icons.monitor_heart,
+          label: l10n.navBody,
+        ),
       (
         branch: ShellBranch.stats,
-        icon: Icons.insights_outlined,
-        active: Icons.insights,
-        label: l10n.navStats,
-      ),
-      (
-        branch: ShellBranch.settings,
-        icon: Icons.settings_outlined,
-        active: Icons.settings,
-        label: l10n.navSettings,
+        icon: Icons.person_outline,
+        active: Icons.person,
+        label: l10n.navFarmer,
       ),
     ];
+
+    // Settings shares the farmer's tab but keeps its own branch, so a
+    // deep link to it must still light that tab up.
+    final branch = widget.navigationShell.currentIndex == ShellBranch.settings
+        ? ShellBranch.stats
+        : widget.navigationShell.currentIndex;
 
     // A branch with no tab — a note opened from a link after the switch
     // was turned off — leaves nothing selected rather than lighting up
     // the wrong icon.
-    final current = tabs.indexWhere(
-      (tab) => tab.branch == widget.navigationShell.currentIndex,
-    );
+    final current = tabs.indexWhere((tab) => tab.branch == branch);
 
     // With the keyboard up the bar goes — but the Scaffold stays, or
     // the whole subtree remounts, the field loses focus and the

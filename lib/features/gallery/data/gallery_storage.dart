@@ -33,6 +33,26 @@ class GalleryStorage {
   Future<File> fileOf(String relative) async =>
       File(p.join((await root()).path, relative));
 
+  /// Whether [relative] is a path this storage will write to: relative,
+  /// normalised, and staying inside the gallery directory.
+  ///
+  /// The importer hands over paths an archive named, and an archive is
+  /// data, not instructions ([[Audit-v2-Beta]] S2-01). `..` walks out;
+  /// an absolute path makes `join` discard the root entirely; a drive
+  /// letter or a scheme is not a path at all. None of them is a place
+  /// for a picture.
+  static bool isSafeRelative(String relative) {
+    if (relative.isEmpty || relative.length > 512) return false;
+    if (relative.contains(r'\') || relative.contains(':')) return false;
+    if (p.posix.isAbsolute(relative)) return false;
+    final normalized = p.posix.normalize(relative);
+    if (normalized == '.' || normalized == '..') return false;
+    if (normalized.startsWith('../') || normalized.startsWith('/')) {
+      return false;
+    }
+    return normalized == relative;
+  }
+
   /// A relative path for a new memory: one folder per album, named by
   /// the day, so the tree is already the shape the export wants.
   String pathFor({

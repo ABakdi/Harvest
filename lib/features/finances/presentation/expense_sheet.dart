@@ -1,18 +1,23 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
+import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/finance_actions.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
+import 'package:harvest/features/finances/presentation/amount_keypad.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -102,6 +107,11 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   String _category = ExpenseCategory.food.name;
   Currency? _currency;
 
+  /// The Harvest Day the expense belongs to: today unless I say
+  /// otherwise — a receipt found in a pocket is still Tuesday's
+  /// ([[Checkpoint-8]]).
+  HarvestDay _day = HarvestDay.today();
+
   /// null until the user decides: the toggle follows the wallet balance
   /// on a new expense, and the existing movement when editing one.
   bool? _walletChoice;
@@ -109,12 +119,17 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   @override
   void initState() {
     super.initState();
+    // The keypad writes to the controller, and a controller set
+    // programmatically never calls the field's onChanged — the same
+    // lesson the note editor's toolbar taught ([[Checkpoint-5]]).
+    _amountController.addListener(_onAmountChanged);
     final existing = widget.existing;
     if (existing != null) {
       _amountController.text = formatMinor(existing.amountMinor);
       _noteController.text = existing.note ?? '';
       _category = existing.category;
       _currency = existing.currency;
+      _day = existing.day;
       // Whether this expense already came out of the wallet.
       unawaited(
         ref.read(vaultRepositoryProvider).linkedTxn(existing.uuid).then((txn) {
@@ -146,14 +161,25 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       (_walletChoice ?? _walletCanCover) &&
       (_walletCanCover || _walletChoice == true);
 
+  void _onAmountChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
-    _amountController.dispose();
+    _amountController
+      ..removeListener(_onAmountChanged)
+      ..dispose();
     _noteController.dispose();
     super.dispose();
   }
 
-  int? get _amountMinor => parseToMinor(_amountController.text);
+  /// The amount, or what the sum in the box comes to — a receipt is
+  /// three things and a coffee, and adding it up is the app's job
+  /// ([[Checkpoint-6]]).
+  int? get _amountMinor => evaluateAmountToMinor(_amountController.text);
+
+  bool get _isSum => isAmountExpression(_amountController.text);
 
   /// Logs (or edits) the expense in one transaction, wallet movement
   /// included, and reports a failure instead of pretending it saved.
@@ -189,6 +215,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           currency: currency,
           fromWallet: _fromWallet,
           note: note.isEmpty ? null : note,
+          day: _day,
         );
       } else {
         await actions.logExpense(
@@ -197,6 +224,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           currency: currency,
           fromWallet: _fromWallet,
           note: note.isEmpty ? null : note,
+          day: _day,
         );
       }
       await HarvestHaptics.thud();
@@ -239,6 +267,21 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     );
   }
 
+  /// Any day within a year either side: forgotten receipts look back,
+  /// a bill I know is coming looks forward.
+  Future<void> _pickDay() async {
+    final today = HarvestDay.today();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _day.toDateTime(),
+      firstDate: today.addDays(-365).toDateTime(),
+      lastDate: today.addDays(365).toDateTime(),
+    );
+    if (picked == null || !mounted) return;
+    unawaited(HarvestHaptics.tick());
+    setState(() => _day = HarvestDay.fromDate(picked));
+  }
+
   Future<void> _createCategory(BuildContext context) async {
     final created = await showCategoryCreator(context, ref);
     if (created != null) setState(() => _category = created);
@@ -263,12 +306,18 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       actionLabel: l10n.log,
       onAction: _amountMinor == null ? null : () => unawaited(_log()),
       children: [
+        // Read-only to the system: the keypad below is the keyboard,
+        // and the phone's own must not slide up over it. The caret
+        // still shows and still moves, so a wrong digit mid-sum is a
+        // tap away.
         TextField(
           controller: _amountController,
           autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-          ),
+          readOnly: true,
+          showCursor: true,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(amountCharacters),
+          ],
           onChanged: (_) => setState(() {}),
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
@@ -276,9 +325,23 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           decoration: InputDecoration(
             labelText: l10n.amountLabel,
             prefixText: '${currency.symbol} ',
+            // What the sum comes to, live, so Log never logs a surprise.
+            helperText: !_isSum
+                ? null
+                : _amountMinor == null
+                ? l10n.amountSumIncomplete
+                : l10n.amountSum(formatAmount(_amountMinor!, currency)),
+            helperStyle: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: _amountMinor == null
+                  ? theme.colorScheme.onSurfaceVariant
+                  : theme.colorScheme.primary,
+            ),
           ),
         ),
         const SizedBox(height: HarvestSpacing.sm),
+        AmountKeypad(controller: _amountController),
+        const SizedBox(height: HarvestSpacing.xs),
         // Per-expense currency (checkpoint P4).
         SegmentedButton<Currency>(
           segments: [
@@ -323,6 +386,26 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           ],
         ),
         const SizedBox(height: HarvestSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.expenseDayLabel,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.event_outlined, size: 18),
+              label: Text(
+                _day == HarvestDay.today()
+                    ? l10n.dueToday
+                    : formatDay(context, _day, weekday: true),
+              ),
+              onPressed: () => unawaited(_pickDay()),
+            ),
+          ],
+        ),
+        const SizedBox(height: HarvestSpacing.xs),
         // Where the money comes from, answered here instead of in a
         // second sheet after the fact.
         SwitchListTile(

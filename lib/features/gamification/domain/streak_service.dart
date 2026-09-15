@@ -7,6 +7,8 @@ import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
+import 'package:harvest/features/gallery/domain/gallery.dart';
+import 'package:harvest/features/gamification/domain/activity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,9 +29,10 @@ const maxFreezesStored = 2;
 ///   every completed day exactly once — consuming stored freezes before
 ///   breaking the global streak. It is idempotent per Harvest Day.
 class StreakService {
-  StreakService(this._db);
+  StreakService(this._db) : _activity = ActivityLog(_db);
 
   final HarvestDatabase _db;
+  final ActivityLog _activity;
   static const _uuid = Uuid();
 
   static const globalScope = 'global';
@@ -60,9 +63,9 @@ class StreakService {
   /// the Daily Harvest Goal exactly like a habit does. Unscheduled
   /// albums do not: adding to a scrapbook is not a commitment kept.
   Future<int> albumActions(HarvestDay day) async {
-    final scheduled = await (_db.select(_db.albums)
-          ..where((a) => a.deletedAt.isNull() & a.scheduleJson.isNotNull()))
-        .get();
+    final scheduled = await (_db.select(
+      _db.albums,
+    )..where((a) => a.deletedAt.isNull() & a.scheduleJson.isNotNull())).get();
     if (scheduled.isEmpty) return 0;
     final uuids = scheduled.map((a) => a.uuid).toList();
     final query = _db.selectOnly(_db.memories, distinct: true)
@@ -270,30 +273,46 @@ class StreakService {
       return;
     }
 
-    final lastJudged = HarvestDay.tryParse(
-      jsonDecode(lastJudgedRow.valueJson) as String?,
-    );
+    // Tolerant of a hand-edited archive cell that lost its quotes: a
+    // value that will not decode is a value that was never set, not a
+    // reason to stop judging days for good ([[Audit-v2-Beta]] B-08).
+    final lastJudged = HarvestDay.tryParse(_asText(lastJudgedRow.valueJson));
     var day = (lastJudged ?? yesterday.previous).next;
     if (day.compareTo(today) >= 0) return;
 
     // A long absence with no effort at all is one verdict, not one per
     // day: every live streak breaks (freezes first), and we jump ahead.
-    if (!await _anyCheckInBetween(day, yesterday)) {
+    // "No effort at all" is the app's one definition of activity
+    // ([[Audit-v2-Beta]] B-04), not check-ins alone.
+    if (!await _activity.anyBetween(day, yesterday)) {
       await _breakEverythingIdle(day, yesterday);
       await _setLastJudged(yesterday);
       return;
     }
 
     final habits = await _habits();
+    final albums = await _scheduledAlbums();
     while (day.compareTo(today) < 0) {
       await _judgeGlobal(day);
       for (final habit in habits) {
         if (!_wasActiveOn(habit, day)) continue;
         await _judgeHabit(habit, day);
       }
+      for (final album in albums) {
+        await _judgeAlbum(album, day);
+      }
       day = day.next;
     }
     await _setLastJudged(yesterday);
+  }
+
+  /// A stored JSON string as text, or the raw text when it is not JSON.
+  static String? _asText(String valueJson) {
+    try {
+      return jsonDecode(valueJson)?.toString();
+    } on FormatException {
+      return valueJson;
+    }
   }
 
   /// Vacation mode and archiving only excuse the days after they were
@@ -309,22 +328,11 @@ class StreakService {
     return !pausedBefore && !archivedBefore;
   }
 
-  Future<bool> _anyCheckInBetween(HarvestDay from, HarvestDay to) async {
-    final row =
-        await (_db.select(_db.checkIns)
-              ..where(
-                (c) =>
-                    c.harvestDay.isBiggerOrEqualValue(from.key) &
-                    c.harvestDay.isSmallerOrEqualValue(to.key) &
-                    c.deletedAt.isNull(),
-              )
-              ..limit(1))
-            .getSingleOrNull();
-    return row != null;
-  }
-
   /// Idle days from [from] to [to]: the global streak spends its freezes
-  /// one per day, then breaks; every habit due at least once breaks.
+  /// one per day, then breaks; every habit due at least once breaks —
+  /// except a flexible one, which is only ever judged when its week
+  /// closes, idle or not ([[Audit-v2-Beta]] B-03). A quiet weekend is
+  /// not a missed quota if Monday to Thursday met it.
   Future<void> _breakEverythingIdle(HarvestDay from, HarvestDay to) async {
     var day = from;
     while (day.compareTo(to) <= 0) {
@@ -334,6 +342,14 @@ class StreakService {
     for (final habit in await _habits()) {
       final schedule = _scheduleOf(habit);
       if (schedule == null) continue;
+      if (schedule is TimesPerWeekSchedule) {
+        var d = from;
+        while (d.compareTo(to) <= 0) {
+          if (_wasActiveOn(habit, d)) await _judgeHabit(habit, d);
+          d = d.next;
+        }
+        continue;
+      }
       var d = from;
       while (d.compareTo(to) <= 0) {
         if (_wasActiveOn(habit, d) && schedule.isDueOn(d)) {
@@ -341,6 +357,13 @@ class StreakService {
           if (streak.current > 0) await _breakStreak(habit.uuid, streak);
           break;
         }
+        d = d.next;
+      }
+    }
+    for (final album in await _scheduledAlbums()) {
+      var d = from;
+      while (d.compareTo(to) <= 0) {
+        await _judgeAlbum(album, d);
         d = d.next;
       }
     }
@@ -418,6 +441,88 @@ class StreakService {
         !await _checkedOn(habit.uuid, day)) {
       await _breakStreak(habit.uuid, streak);
     }
+  }
+
+  /// A scheduled album is a seed (Gallery rule G3) and is judged like
+  /// a habit: a due day with no picture breaks its streak, and a
+  /// flexible schedule is judged when its week closes. Until
+  /// [[Audit-v2-Beta]] B-01 nothing judged albums at all, so an
+  /// album's streak only ever went up.
+  Future<void> _judgeAlbum(Album album, HarvestDay day) async {
+    final schedule = album.schedule;
+    if (schedule == null || day.compareTo(album.startDay) < 0) return;
+    final streak = await _row(album.uuid);
+    final earned =
+        streak.lastEarnedDay != null &&
+        HarvestDay.parse(streak.lastEarnedDay!).compareTo(day) >= 0;
+
+    if (schedule is TimesPerWeekSchedule) {
+      if (day.weekday != DateTime.sunday || streak.current == 0) return;
+      final done = await _memoryDaysInWeek(album.uuid, day.weekStart);
+      if (done < schedule.times) await _breakStreak(album.uuid, streak);
+      return;
+    }
+
+    if (!earned &&
+        streak.current > 0 &&
+        schedule.isDueOn(day) &&
+        !await _pictureOn(album.uuid, day)) {
+      await _breakStreak(album.uuid, streak);
+    }
+  }
+
+  Future<List<Album>> _scheduledAlbums() async {
+    final rows =
+        await (_db.select(_db.albums)..where(
+              (a) => a.deletedAt.isNull() & a.scheduleJson.isNotNull(),
+            ))
+            .get();
+    final albums = <Album>[];
+    for (final row in rows) {
+      Schedule? schedule;
+      try {
+        schedule = Schedule.fromJson(
+          jsonDecode(row.scheduleJson!) as Map<String, dynamic>,
+        );
+      } on Object {
+        continue; // an unreadable schedule is never judged
+      }
+      albums.add(
+        Album(
+          uuid: row.uuid,
+          name: row.name,
+          createdAt: row.createdAt,
+          schedule: schedule,
+        ),
+      );
+    }
+    return albums;
+  }
+
+  Future<bool> _pictureOn(String albumUuid, HarvestDay day) async {
+    final row =
+        await (_db.select(_db.memories)
+              ..where(
+                (m) =>
+                    m.albumUuid.equals(albumUuid) &
+                    m.harvestDay.equals(day.key) &
+                    m.deletedAt.isNull(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
+  Future<int> _memoryDaysInWeek(String albumUuid, HarvestDay weekStart) async {
+    final days = weekStart.weekDays.map((d) => d.key).toList();
+    final query = _db.selectOnly(_db.memories, distinct: true)
+      ..addColumns([_db.memories.harvestDay])
+      ..where(
+        _db.memories.albumUuid.equals(albumUuid) &
+            _db.memories.harvestDay.isIn(days) &
+            _db.memories.deletedAt.isNull(),
+      );
+    return (await query.get()).length;
   }
 
   // --------------------------------------------------------- internals

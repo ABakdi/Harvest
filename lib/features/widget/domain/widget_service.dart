@@ -136,6 +136,12 @@ class WidgetService {
     Future<bool> section(String key) async =>
         await _settings.getBool(key) ?? WidgetKeys.defaults[key]!;
 
+    // The lock's promise is the whole app behind the phone's own
+    // credential, and the launcher is not behind anything: while the
+    // lock is armed the widget shows no money, whatever the section
+    // switch says ([[Audit-v2-Beta]] S2-03).
+    final locked = await _settings.getBool(SettingKeys.appLock) ?? false;
+
     // Everything crosses as a string: the channel decides on its own
     // whether a Dart int arrives as an Integer or a Long, and guessing
     // wrong is a ClassCastException inside a broadcast receiver.
@@ -160,7 +166,7 @@ class WidgetService {
     await _widget.put('actionTask', l10n.widgetActionTask);
     await _widget.put('emptyTasks', l10n.widgetAllDone);
 
-    await _widget.put('showMoney', await section(WidgetKeys.money));
+    await _widget.put('showMoney', !locked && await section(WidgetKeys.money));
     await _widget.put('showTasks', await section(WidgetKeys.tasks));
     await _widget.put('showActions', await section(WidgetKeys.actions));
 

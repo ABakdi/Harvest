@@ -42,6 +42,35 @@ IDs refer to the reports.
 | Code quality, part 2 | F-01 live debts · F-02 linked expenses · F-03 no ref after pop · F-04 day-keyed providers · F-05 wallet caps · F-06 payment validation · F-07 zero-limit budget · F-08 money parsing and formatting · F-09 rate sanity · F-14 guarded writes · F-19/F-20/F-23 shared providers and helpers · F-24 one sheet body · F-30…F-35 dead code and strings · F-39 delete with undo · F-41 semantics · F-45 the missing tests | **F-25/F-26/F-29 widget extraction** and **F-36 file splits** — the flows moved behind a service, which was the point; splitting the remaining files is cosmetic and can ride along with the next feature |
 | UX | U-01 wallet toggle instead of four question sheets · U-02 withdrawals land in the wallet · U-03 dead setting gone · U-04 Money section in Settings · U-05 Stats duplicates gone · U-06 simplified budget card · U-07 every reminder visible and named · U-08 coins labelled with an earn hint · U-09 tooltips and an overflow button · U-10 deadlines for projects only · U-11 undo · U-12 pomodoro flows · U-13 calendar · U-14 onboarding skip · U-15 renames | ~~Barn wording is now Archive everywhere, but there is still no screen listing archived seeds~~ — the Archive screen shipped in [[Checkpoint-3]], with the note that says why each seed was put away |
 
+## Audit 2 — the v2 beta (2026-09-11)
+
+Half the app is newer than the three reports above, so I read the
+whole domain and data layer again on the [[Checkpoint-6]] tree, with a
+fourth question added to the three: where is the spec *silent* and
+the code deciding? The report is [[Audit-v2-Beta]].
+
+| Section | High | Medium | Low | Info |
+| :--- | :---: | :---: | :---: | :---: |
+| Business logic (B-01 … B-11) | 2 | 4 | 5 | – |
+| Underspecified (N-01 … N-10) | – | – | – | 10 |
+| Code quality (Q2-01 … Q2-10) | – | 2 | 8 | – |
+| Security (S2-01 … S2-09) | 1 | 3 | 3 | 2 |
+
+The two that mattered most: the archive importer wrote pictures to
+whatever path the archive named (S2-01), and a restored archive came
+back with its streaks at zero (B-02). Both were in the importer.
+
+**Remediated the same day**, in six waves — the importer's trust, the
+importer's memory, one definition of activity, the ledger and the
+launcher, the ten missing rules, the debts — with the analyzer clean
+and the suite at 566, each finding landing with the test that would
+have caught it. What was deferred, and why, is in the report's
+status table. Three things are worth knowing without opening it: an
+archive is now *data, never instructions* ([[ADR-007-Archive-Format]]
+rule 7); there is one list of what counts as activity
+([[Gamification]]), and everything asks it; and the ledger now takes
+back what a deleted night or a day's last expense paid.
+
 ## Leak check on the public repo (2026-09-04)
 
 The repo is public, and v0.9.5 added both a signing key and a feature

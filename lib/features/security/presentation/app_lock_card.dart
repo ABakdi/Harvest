@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/features/security/domain/app_lock.dart';
+import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// The Privacy switch: hand the front door to whatever the device
@@ -25,6 +28,9 @@ class AppLockCard extends ConsumerWidget {
           final took = await ref
               .read(appLockProvider.notifier)
               .setEnabled(value: value);
+          // The widget shows money only while the lock is off
+          // ([[Audit-v2-Beta]] S2-03), so the launcher follows the switch.
+          unawaited(ref.read(widgetServiceProvider).refresh());
           // A lock that cannot lock is worse than no lock: say why
           // rather than leaving a switch that silently sprang back.
           if (!took) {

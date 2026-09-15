@@ -183,6 +183,159 @@ void main() {
     });
   });
 
+  group('scheduled albums (Audit 2, B-01)', () {
+    Future<void> album(String id, {String schedule = '{"type":"daily"}'}) => db
+        .into(db.albums)
+        .insertOnConflictUpdate(
+          AlbumsCompanion.insert(
+            uuid: id,
+            name: id,
+            scheduleJson: Value(schedule),
+            createdAt: Value(DateTime(2026)),
+          ),
+        );
+
+    Future<void> picture(String albumId, HarvestDay on) => db
+        .into(db.memories)
+        .insert(
+          MemoriesCompanion.insert(
+            uuid: '$albumId-${on.key}',
+            albumUuid: albumId,
+            harvestDay: on.key,
+            path: 'x.jpg',
+          ),
+        );
+
+    test('a missed due day breaks the album streak', () async {
+      await album('gym');
+      await picture('gym', HarvestDay.parse('2026-09-01'));
+      await streaks.onAlbumMemory('gym', HarvestDay.parse('2026-09-01'));
+      expect((await row('gym'))!.current, 1);
+
+      await setLastJudged('2026-09-01');
+      // A check-in elsewhere keeps the day from being "idle"; the album
+      // itself got nothing on the 2nd.
+      await checkIns.checkIn(
+        await habit('a'),
+        day: HarvestDay.parse('2026-09-02'),
+      );
+      await streaks.reconcile(now: HarvestDay.parse('2026-09-03').startsAt);
+
+      final streak = await row('gym');
+      expect(streak!.current, 0);
+      expect(streak.best, 1);
+    });
+
+    test('an idle stretch breaks it too', () async {
+      await album('gym');
+      await streaks.onAlbumMemory('gym', HarvestDay.parse('2026-09-01'));
+      await setLastJudged('2026-09-01');
+      await streaks.reconcile(now: HarvestDay.parse('2026-09-05').startsAt);
+      expect((await row('gym'))!.current, 0);
+    });
+
+    test('a picture on the due day keeps it', () async {
+      await album('gym');
+      await picture('gym', HarvestDay.parse('2026-09-01'));
+      await streaks.onAlbumMemory('gym', HarvestDay.parse('2026-09-01'));
+      await picture('gym', HarvestDay.parse('2026-09-02'));
+      await streaks.onAlbumMemory('gym', HarvestDay.parse('2026-09-02'));
+      await setLastJudged('2026-09-01');
+      await streaks.reconcile(now: HarvestDay.parse('2026-09-03').startsAt);
+      expect((await row('gym'))!.current, 2);
+    });
+  });
+
+  group('a flexible habit through an idle stretch (Audit 2, B-03)', () {
+    Future<Commitment> flexible(String id, int times) async {
+      await db
+          .into(db.commitments)
+          .insertOnConflictUpdate(
+            CommitmentsCompanion.insert(
+              uuid: id,
+              type: 'habit',
+              title: id,
+              scheduleJson: Value('{"type":"timesPerWeek","times":$times}'),
+              createdAt: Value(DateTime(2026)),
+            ),
+          );
+      return Commitment(
+        uuid: id,
+        type: CommitmentType.habit,
+        title: id,
+        createdAt: DateTime(2026),
+        schedule: TimesPerWeekSchedule(times: times),
+      );
+    }
+
+    // 2026-08-31 is a Monday; the 6th a Sunday.
+    test('a quiet weekend does not break a quota the week met', () async {
+      final gym = await flexible('gym', 3);
+      for (final d in ['2026-08-31', '2026-09-01', '2026-09-02']) {
+        await checkIns.checkIn(gym, day: HarvestDay.parse(d));
+      }
+      expect((await row('gym'))!.current, 3);
+      await setLastJudged('2026-09-02');
+
+      // Thursday to Sunday: nothing at all.
+      await streaks.reconcile(now: HarvestDay.parse('2026-09-07').startsAt);
+      expect((await row('gym'))!.current, 3, reason: 'the week was met');
+    });
+
+    test('a week that fell short still breaks when it closes', () async {
+      final gym = await flexible('gym', 3);
+      await checkIns.checkIn(gym, day: HarvestDay.parse('2026-08-31'));
+      await setLastJudged('2026-08-31');
+      await streaks.reconcile(now: HarvestDay.parse('2026-09-07').startsAt);
+      expect((await row('gym'))!.current, 0);
+    });
+  });
+
+  group('what counts as activity (Audit 2, B-04)', () {
+    test('a night written down keeps the stretch from being idle', () async {
+      // A daily habit checked on the 1st, then only sleep logged on the
+      // 2nd: the fast path must not run, and the habit is judged
+      // day by day — it still breaks, for its own missed day, but the
+      // global streak is not thrown away wholesale.
+      final a = await habit('a');
+      await checkIns.checkIn(a, day: HarvestDay.parse('2026-09-01'));
+      await seedGlobal(current: 4, lastEarnedDay: '2026-09-01', freezes: 1);
+      await setLastJudged('2026-09-01');
+      await db
+          .into(db.sleepSessions)
+          .insert(
+            SleepSessionsCompanion.insert(
+              uuid: 'n1',
+              harvestDay: '2026-09-02',
+              fellAsleepAt: DateTime(2026, 9, 1, 23),
+              wokeAt: DateTime(2026, 9, 2, 7),
+              targetMinutes: 480,
+            ),
+          );
+      await streaks.reconcile(now: HarvestDay.parse('2026-09-03').startsAt);
+      // One missed day, one freeze: spent, streak kept.
+      final global = await row('global');
+      expect(global!.current, 4);
+      expect(global.freezesStored, 0);
+    });
+  });
+
+  group('the last-judged setting (Audit 2, B-08)', () {
+    test('a value that lost its quotes still reads', () async {
+      await seedGlobal(current: 5, lastEarnedDay: '2026-09-01');
+      await db
+          .into(db.kvSettings)
+          .insertOnConflictUpdate(
+            KvSettingsCompanion.insert(
+              key: 'streak.lastJudgedDay',
+              valueJson: '2026-09-01',
+            ),
+          );
+      await streaks.reconcile(now: HarvestDay.parse('2026-09-03').startsAt);
+      expect((await row('global'))!.current, 0, reason: 'the 2nd was judged');
+    });
+  });
+
   group('milestones', () {
     test('reaching 7 days grants coins', () async {
       await seedGlobal(current: 6, lastEarnedDay: '2026-09-01');

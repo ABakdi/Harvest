@@ -48,11 +48,11 @@ erDiagram
     }
     SLEEP_SESSION {
         string id
-        datetime targetBed
-        datetime targetWake
-        datetime actualSleep
-        datetime actualWake
-        int restfulness "1-5"
+        date harvestDay "the morning it ends on"
+        datetime fellAsleepAt
+        datetime wokeAt
+        int targetMinutes "frozen at logging time"
+        int restfulness "1-5, nullable"
     }
     SCREEN_GOAL {
         string id
@@ -108,7 +108,15 @@ Spec: [[Gallery]].
 
 ## Sleep Session (Phase 4)
 
-Planned vs. actual sleep window plus a 1–5 restfulness rating; feeds the sleep-debt gauge. Spec: [[Health]].
+One night, as I reported it the morning after: when I fell asleep,
+when I woke, and how rested out of five. Filed under the Harvest Day I
+**woke up on**, because that is the day the night decides.
+
+The target is **copied into the row**, not looked up later — for the
+same reason a workout set keeps the target it was given. Moving my
+bedtime in March must not rewrite February's debt. Nothing here is
+measured by the phone, and an unlogged night is unknown rather than a
+failure: it counts for nothing in either direction. Spec: [[Health]].
 
 ## Step Day (Phase 4)
 

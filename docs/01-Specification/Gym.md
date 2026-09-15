@@ -63,6 +63,7 @@ A **program** is what I follow: *nSuns 5/3/1*, *Push Pull Legs*,
 | **Day** | One session's worth: *Week 1 · Day 4*, or just *Push* |
 | **Slot** | One exercise in a day, in order, with its targets and rest |
 | **Target set** | What I am *meant* to do: reps, and a weight or a % |
+| **Bar** | What the bar itself weighs — per exercise, 20 kg unless changed |
 
 A target set says one of three things:
 
@@ -71,6 +72,10 @@ A target set says one of three things:
   when the session starts. This is what makes a percentage program like
   5/3/1 usable at all, and it is why a program carries a **training
   max per exercise** that I set and bump.
+
+  Resolved weights are **rounded to the nearest 0.25 kg**. `75%` of a
+  111 kg training max is `83.25`, not `83.25000000000001`, and not a
+  number nobody can load.
 - **An open set** — `1+`, `AMRAP`: as many as I can. The screenshot
   case, marked so it is obvious which set is the one that matters.
 
@@ -82,8 +87,11 @@ fill in, duplicating a day is one tap, and reordering is a drag.
 
 ## Sessions
 
-Starting a day opens the **session screen**, which is the only screen
-in this app designed to be used one-handed, sweating, in a hurry.
+Starting opens the **session screen**, which is the only screen in
+this app designed to be used one-handed, sweating, in a hurry. Which
+day is up is the day after the last one I finished, wrapping round at
+the end (Y11); the start sheet leads with it and lists the rest under
+it for the day I mean to skip.
 
 ```
 ┌──────────────────────────────────────────┐
@@ -122,10 +130,17 @@ What a session can do while it is running:
   through the lock screen. Silence-able for one session without
   changing the program.
 - **Plate calculator.** Given a target weight and a bar, what goes on
-  each side. Two taps of arithmetic I should never do tired.
+  each side. The bar is the exercise's own — **20 kg by default**,
+  because that is right nearly always, and changeable because an EZ bar
+  and a Smith machine are not. Two taps of arithmetic I should never do
+  tired.
 - **Notes** — one for the session, one per exercise.
-- **Finish**, which writes everything, or **discard**, which asks
-  twice.
+- **Pause the clock.** A phone call or a queue for the rack is not
+  training time; tapping the elapsed time stops it and tapping again
+  starts it. Sets can still be ticked while paused.
+- **Finish**, which writes everything — and asks first if un-skipped
+  sets are still unticked, because Finish is the check-in (Y10) — or
+  **discard**, which asks twice.
 
 A session that is interrupted — the app is killed, the phone dies —
 **resumes where it was**. A workout is thirty to ninety minutes of
@@ -155,7 +170,9 @@ deleting a bad entry corrects them.
 
 Per exercise, history shows: what I did last time (always, on the
 session screen), the three PRs, and a chart of estimated 1RM and volume
-over time.
+over time. The session screen also carries the record to beat under
+*last time* — the heaviest set and the best estimated single — because
+the number is wanted while loading the bar, not only after the set.
 
 ## The gym is a seed
 
@@ -170,6 +187,15 @@ A program binds to a **habit schedule** exactly like any other seed:
   belongs to Finish.
 - It obeys every rule an ordinary seed obeys: the 3 AM day boundary,
   nothing due before it was planted, undo on the same day.
+- **A tap on the field is a session, never a bare tick** (Y12). I
+  train in gyms where the phone stays in the locker, so the hand tick
+  stays — but it asks which of two things happened: *Start the
+  session*, or *Went, no numbers*, which writes a session with nothing
+  in it and finishes it on the spot. Both go through Finish (Y4), so
+  the habit is checked in once, history has a row for the day, and
+  *Next* still follows finished sessions only. I had left the bare
+  tick in on purpose ([[Audit-v2-Beta]] N-08) with exactly this as the
+  fix if it turned out to be a hole; [[Checkpoint-7]] is where it did.
 
 **A times-per-week gym habit works the way a flexible habit already
 does** — four sessions a week, on whichever days I manage them, and it
@@ -211,5 +237,10 @@ skipping it costs nothing.
 | Y5 | Records are derived from the log and recomputed, never the only copy of a number. |
 | Y6 | Estimated 1RM is labelled as an estimate wherever it appears, with the formula named. |
 | Y7 | A replaced or skipped exercise is recorded as such. History must be able to say what the day was meant to be. |
+| Y8 | Weights round to 0.25 kg. A number nobody can load onto a bar is a bug. |
+| Y9 | The bar weight and the plate calculator belong to exercises that have a bar. A dumbbell asks no such question ([[Checkpoint-6]]). |
+| Y10 | Finish asks before leaving un-skipped sets behind, because Finish is what checks the habit in ([[Checkpoint-6]]). |
+| Y11 | A program's days go round: the day after the last one finished is up next, wrapping at the end, and any other day is one deliberate tap further ([[Checkpoint-6]]). |
+| Y12 | A gym seed is checked in by a session and nothing else. The hand tick from the field is a bare session — *went, no numbers* — so the streak and the log always agree ([[Checkpoint-7]]). |
 
 Related: [[Health]] · [[Gallery]] · [[Gamification]] · [[Productivity-Engine]] · [[ADR-008-Exercise-Catalogue]]

@@ -28,6 +28,7 @@ abstract final class ReminderRoutes {
   static const field = 'field';
   static const planner = 'planner';
   static const finances = 'finances';
+  static const sleep = 'sleep';
 }
 
 /// Snooze actions carried by every reminder: `snooze:<minutes>`.

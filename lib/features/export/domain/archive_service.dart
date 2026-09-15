@@ -108,8 +108,7 @@ class ArchiveService {
     return Uint8List.fromList(encoded);
   }
 
-  static Uint8List _utf8(String text) =>
-      Uint8List.fromList(utf8.encode(text));
+  static Uint8List _utf8(String text) => Uint8List.fromList(utf8.encode(text));
 }
 
 @Riverpod(keepAlive: true)

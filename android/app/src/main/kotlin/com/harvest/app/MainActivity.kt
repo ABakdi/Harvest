@@ -18,6 +18,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // Steps are a plugin (packages/harvest_steps) so the day-reset
+        // job's background engine has them too ([[Checkpoint-8]]).
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DOWNLOADS_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {

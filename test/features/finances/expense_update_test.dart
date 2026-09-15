@@ -67,4 +67,74 @@ void main() {
     );
     expect(totals[ExpenseCategory.food.name], 300);
   });
+
+  group('moving an expense to another day', () {
+    Future<int> xpOn(HarvestDay on) async {
+      final rows = await db.select(db.ledger).get();
+      return rows
+          .where((row) => row.harvestDay == on.key)
+          .fold<int>(0, (sum, row) => sum + row.delta);
+    }
+
+    test("takes the old day's XP back and pays the new day", () async {
+      final tuesday = HarvestDay.parse('2026-09-01');
+      await repo.log(
+        amountMinor: 500,
+        category: ExpenseCategory.food.name,
+        day: day,
+      );
+      final logged = (await repo.watchDay(day).first).single;
+      expect(await xpOn(day), expenseLogXp);
+
+      await repo.updateExpense(
+        uuid: logged.uuid,
+        amountMinor: 500,
+        category: ExpenseCategory.food.name,
+        day: tuesday,
+      );
+      expect(await repo.watchDay(day).first, isEmpty);
+      expect((await repo.watchDay(tuesday).first).single.day, tuesday);
+      expect(await xpOn(day), 0, reason: 'its last expense left');
+      expect(await xpOn(tuesday), expenseLogXp);
+    });
+
+    test('leaves the old day paid while it still has an expense', () async {
+      final tuesday = HarvestDay.parse('2026-09-01');
+      await repo.log(
+        amountMinor: 500,
+        category: ExpenseCategory.food.name,
+        day: day,
+      );
+      await repo.log(
+        amountMinor: 200,
+        category: ExpenseCategory.food.name,
+        day: day,
+      );
+      final first = (await repo.watchDay(day).first).last;
+      await repo.updateExpense(
+        uuid: first.uuid,
+        amountMinor: 500,
+        category: ExpenseCategory.food.name,
+        day: tuesday,
+      );
+      expect(await xpOn(day), expenseLogXp);
+      expect(await xpOn(tuesday), expenseLogXp);
+    });
+
+    test('the same day is not a move', () async {
+      await repo.log(
+        amountMinor: 500,
+        category: ExpenseCategory.food.name,
+        day: day,
+      );
+      final logged = (await repo.watchDay(day).first).single;
+      await repo.updateExpense(
+        uuid: logged.uuid,
+        amountMinor: 600,
+        category: ExpenseCategory.food.name,
+        day: day,
+      );
+      expect(await xpOn(day), expenseLogXp);
+    });
+  });
 }

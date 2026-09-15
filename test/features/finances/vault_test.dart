@@ -182,6 +182,72 @@ void main() {
     });
   });
 
+  group('a payment removed by mistake (Audit 2, N-01)', () {
+    Future<String> owe(int amount) async {
+      await vault.createDebt(
+        person: 'Sami',
+        amountMinor: amount,
+        currency: Currency.dzd,
+      );
+      return (await vault.watchDebts().first).single.uuid;
+    }
+
+    Future<Debt> debt(String uuid) async =>
+        (await vault.watchDebts().first).firstWhere((d) => d.uuid == uuid);
+
+    test('comes off the debt, out of the trash and back again', () async {
+      final uuid = await owe(1000);
+      await vault.payDebt(uuid, 400, day: day);
+      final payment = (await vault.watchDebtPayments().first).single;
+      expect((await debt(uuid)).paidMinor, 400);
+
+      await vault.removePayment(payment.uuid);
+      expect((await debt(uuid)).paidMinor, 0);
+      expect(await vault.watchDebtPayments().first, isEmpty);
+
+      await vault.restorePayment(payment.uuid);
+      expect((await debt(uuid)).paidMinor, 400);
+    });
+
+    test('takes its wallet movement with it, and brings it back', () async {
+      final uuid = await owe(1000);
+      await vault.move(
+        account: MoneyAccount.wallet,
+        deltaMinor: 5000,
+        currency: Currency.dzd,
+      );
+      await vault.payDebt(uuid, 400, fromWallet: true, day: day);
+      int wallet() => 0;
+      Future<int> balance() async =>
+          (await vault.watchBalances().first)[(
+            MoneyAccount.wallet,
+            Currency.dzd,
+          )] ??
+          wallet();
+      expect(await balance(), 4600);
+
+      final payment = (await vault.watchDebtPayments().first).single;
+      await vault.removePayment(payment.uuid);
+      expect(await balance(), 5000);
+
+      await vault.restorePayment(payment.uuid);
+      expect(await balance(), 4600);
+    });
+
+    test('reopens a debt it had settled', () async {
+      final uuid = await owe(1000);
+      await vault.payDebt(uuid, 1000, day: day);
+      expect((await debt(uuid)).isSettled, isTrue);
+
+      final payment = (await vault.watchDebtPayments().first).single;
+      await vault.removePayment(payment.uuid);
+      expect((await debt(uuid)).isSettled, isFalse);
+      // And the reopened debt takes payments again.
+      await vault.payDebt(uuid, 1000, day: day);
+      expect((await debt(uuid)).isSettled, isTrue);
+    });
+  });
+
   group('debt payments are validated', () {
     Future<Debt> seedDebt({int amount = 10000}) async {
       await vault.createDebt(

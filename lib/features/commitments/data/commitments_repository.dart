@@ -53,6 +53,16 @@ class CommitmentsRepository {
   }
 
   /// One seed by uuid, archived or not; null when it is gone.
+  /// One seed, read once. For the callers that act on a seed rather
+  /// than display it — the gym checking a habit in when a session ends.
+  Future<Commitment?> once(String uuid) async {
+    final row =
+        await (_db.select(_db.commitments)
+              ..where((c) => c.uuid.equals(uuid) & c.deletedAt.isNull()))
+            .getSingleOrNull();
+    return row == null ? null : toDomain(row);
+  }
+
   Stream<Commitment?> watchOne(String uuid) {
     final query = _db.select(_db.commitments)
       ..where((c) => c.uuid.equals(uuid) & c.deletedAt.isNull());
@@ -318,15 +328,8 @@ class CommitmentsRepository {
     });
   }
 
-  Future<void> _appendOutbox(String table, String rowUuid, String op) => _db
-      .into(_db.outbox)
-      .insert(
-        OutboxCompanion.insert(
-          targetTable: table,
-          rowUuid: rowUuid,
-          op: op,
-        ),
-      );
+  Future<void> _appendOutbox(String table, String rowUuid, String op) =>
+      _db.logChange(table, rowUuid, op);
 
   // -------------------------------------------------------------- mapping
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/hero_card.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
@@ -584,6 +585,8 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
                   if (!_expanded.remove(debt.uuid)) _expanded.add(debt.uuid);
                 }),
                 onPay: () => unawaited(_pay(context, debt)),
+                onRemovePayment: (payment) =>
+                    unawaited(_removePayment(context, payment)),
               ),
             ),
         ],
@@ -613,6 +616,34 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
         ],
       ],
     );
+  }
+
+  /// A payment logged by mistake goes the way an expense does: ask,
+  /// remove, offer Undo ([[Audit-v2-Beta]] N-01).
+  Future<void> _removePayment(BuildContext context, DebtPayment payment) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final actions = ref.read(financeActionsProvider);
+    final ok = await confirm(
+      context,
+      title: l10n.debtPaymentRemoveTitle,
+      body: l10n.debtPaymentRemoveBody,
+      confirmLabel: l10n.deleteAction,
+      destructive: true,
+    );
+    if (!ok) return;
+    await actions.removePayment(payment.uuid);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.deleted),
+          action: SnackBarAction(
+            label: l10n.undoAction,
+            onPressed: () => actions.restorePayment(payment.uuid).ignore(),
+          ),
+        ),
+      );
   }
 
   Future<void> _pay(BuildContext context, Debt debt) async {
@@ -651,6 +682,7 @@ class _DebtCard extends StatelessWidget {
     required this.expanded,
     required this.onToggle,
     required this.onPay,
+    required this.onRemovePayment,
   });
 
   final Debt debt;
@@ -658,6 +690,9 @@ class _DebtCard extends StatelessWidget {
   final bool expanded;
   final VoidCallback onToggle;
   final VoidCallback onPay;
+
+  /// Long-press on a payment: the way an expense is removed.
+  final ValueChanged<DebtPayment> onRemovePayment;
 
   @override
   Widget build(BuildContext context) {
@@ -770,6 +805,7 @@ class _DebtCard extends StatelessWidget {
                   title: dayLabel(context, payment.day),
                   subtitle: DateFormat.jm(locale).format(payment.loggedAt),
                   amount: formatSigned(-payment.amountMinor, debt.currency),
+                  onLongPress: () => onRemovePayment(payment),
                 ),
             ],
           ],

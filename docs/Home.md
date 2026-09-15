@@ -41,9 +41,9 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-0-Foundation]]
 - [[Phase-1-Productivity-Core]] ← **the MVP**
 - [[Phase-2-Finances]]
-- [[Phase-3-Notes-and-Gallery]] ← **next**
+- [[Phase-3-Notes-and-Gallery]]
 - [[Phase-4-Health-and-Gym]]
-- [[Phase-5-Screen-Time]]
+- [[Phase-5-Screen-Time]] ← **next**
 - [[Phase-6-Sync-and-Social]]
 
 ### 🏁 Checkpoints
@@ -52,10 +52,14 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-3]] — eleven things a fortnight of using it turned up
 - [[Checkpoint-4]] — numbers on the charts, and a day that keeps my hours
 - [[Checkpoint-5]] — Records under one tab, and an editor worth writing in
+- [[Checkpoint-6]] — steps that count, and a gym that knows what day it is
+- [[Checkpoint-7]] — Finish where the thumb is, and settings as a place
+- [[Checkpoint-8]] — the day closes on its own
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board
 - [[Security-Audit]] · [[Code-Quality-Audit]] · [[UX-Audit]]
+- [[Audit-v2-Beta]] — the second audit: business logic, what the spec never said, code quality and security on the v2 beta
 
 ### ⚖️ Decisions (ADRs)
 - [[ADR-001-State-Management]] — Riverpod over Bloc

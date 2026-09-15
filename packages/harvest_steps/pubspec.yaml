@@ -1,0 +1,19 @@
+name: harvest_steps
+description: Where Harvest's step count comes from on Android - Health Connect first, the step counter sensor as fallback.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.harvest.steps
+        pluginClass: HarvestStepsPlugin

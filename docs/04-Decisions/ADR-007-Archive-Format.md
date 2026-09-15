@@ -72,6 +72,20 @@ The rules that make it an archive rather than a dump:
 6. **Import is previewed.** Before anything is written I am told what
    is about to happen — how many seeds, check-ins, notes and files, how
    many are new and how many are updates — and I can stop.
+7. **An archive is data, never instructions** ([[Audit-v2-Beta]]). It
+   does not choose where a file lands: a picture's destination is the
+   row's own path only when that path is plain and relative and stays
+   inside the gallery, and is regenerated from the row otherwise. It
+   does not choose how much memory it may have: the file, any entry and
+   the sum of the entries each have a stated ceiling, checked from the
+   zip's directory before anything is inflated. And it does not carry
+   the app's bookkeeping: of the settings sheet only my *preferences*
+   come across — never the lock switch, the scheduled notification ids,
+   a running pomodoro, or the day the streak engine last judged.
+8. **Newer wins by `updated_at`**, wherever a table has one — a
+   deletion is an update, and an archive that carries one must be able
+   to win it. And the **streaks come back**: they are derived state,
+   but derived from history the new phone may not have.
 
 ## Consequences
 

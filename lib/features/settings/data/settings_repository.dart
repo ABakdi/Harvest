@@ -15,6 +15,11 @@ abstract final class SettingKeys {
   /// Whether the device's own unlock prompt guards the app
   /// (checkpoint C2-1).
   static const appLock = 'security.appLock';
+
+  /// Where the Records tab was last left: which half, and which note
+  /// ([[Checkpoint-7]]). Bookkeeping, never exported.
+  static const recordsTab = 'records.tab';
+  static const recordsNote = 'records.note';
 }
 
 /// Reactive key-value settings on top of the local database.
