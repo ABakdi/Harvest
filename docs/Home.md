@@ -42,8 +42,8 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-1-Productivity-Core]] ← **the MVP**
 - [[Phase-2-Finances]]
 - [[Phase-3-Notes-and-Gallery]]
-- [[Phase-4-Health-and-Gym]] ← **in beta**
-- [[Phase-5-Screen-Time]]
+- [[Phase-4-Health-and-Gym]]
+- [[Phase-5-Screen-Time]] ← **next**
 - [[Phase-6-Sync-and-Social]]
 
 ### 🏁 Checkpoints

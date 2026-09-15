@@ -15,21 +15,19 @@ years — but it only covers one narrow slice of a life, and the bar never
 moves. Here the bar is mine to raise, and the streak is fed by whatever
 I decide matters this month.
 
-**Status: v2.0 beta — the body half.** The productivity core, the
+**Status: v2.0 — the body half, shipped.** The productivity core, the
 finances, a markdown vault and photo albums are in daily use behind an
 optional lock, and v2 adds a training log — programs, sessions,
 personal records — with sleep, steps and body weight beside it. Grab
 it from the [releases page](https://github.com/ABakdi/Harvest/releases).
 
-The beta is being lived in; [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
+It went through four betas first: [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
 is the first week's findings, fixed, and the
 [second audit](docs/06-Audit/Audit-v2-Beta.md) read the whole of the
-new half and fixed what it found — both shipped as `v2.0.0-beta.2`.
+new half and fixed what it found;
 [Checkpoint 7](docs/05-Checkpoints/Checkpoint-7.md) is the ten things
-the next days asked for, and shipped as `v2.0.0-beta.3`;
-[Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md) closes the day's
-steps on its own and ships as `v2.0.0-beta.4`. Next is `v2.0.0`
-proper, then
+the next days asked for; [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md)
+closes the day's steps on its own. Next is
 [Phase 5](docs/03-Planning/Phase-5-Screen-Time.md): screen time.
 
 ## Table of contents
@@ -181,7 +179,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Phase 1 — Productivity Core](docs/03-Planning/Phase-1-Productivity-Core.md) | The MVP ✅ |
 | [Phase 2 — Finances](docs/03-Planning/Phase-2-Finances.md) | Expenses, budgets, gauge ✅ |
 | [Phase 3 — Notes, Gallery and the Archive](docs/03-Planning/Phase-3-Notes-and-Gallery.md) | Markdown notes, photo albums, the zip archive and its importer ✅ |
-| [Phase 4 — Health and Gym](docs/03-Planning/Phase-4-Health-and-Gym.md) | Steps, weight, the training log, sleep ← **in beta** |
+| [Phase 4 — Health and Gym](docs/03-Planning/Phase-4-Health-and-Gym.md) | Steps, weight, the training log, sleep |
 | [Phase 5 — Screen Time](docs/03-Planning/Phase-5-Screen-Time.md) | Usage caps, interventions |
 | [Phase 6 — Sync and Social](docs/03-Planning/Phase-6-Sync-and-Social.md) | Accounts, sync, rankings, iOS |
 
@@ -315,39 +313,21 @@ test/             unit, migration, and golden tests
 | 2 — Finances | Expense quick-log, budgets, gauge, vault | ✅ |
 | — | Four checkpoints: calendar, app lock, export, seed notes and history, the archive, the comeback ladder, the widget, the daily cycle | ✅ **v1.0** |
 | 3 — Notes, Gallery & the Archive | Markdown notes with links; photo albums that are seeds; the zip archive **and an importer** | ✅ **v1.1** |
-| 4 — Health & the Gym | Steps, body weight, and a training log — programs, sessions, personal records — plus the sleep alarm | **v2.0 beta** |
+| 4 — Health & the Gym | Steps, body weight, and a training log — programs, sessions, personal records — plus the sleep alarm | ✅ **v2.0** |
 | 5 — Screen Time | Usage caps, weed-pull interventions | |
 | 6 — Sync & Social | Accounts, MongoDB sync, rankings, iOS polish | |
 
-### What's coming in Phase 4
+### What's coming in Phase 5
 
-The body half. Three numbers that need no logging effort, and one
-genuinely large feature.
-
-- **[The gym](docs/01-Specification/Gym.md)** — the one seed a tick
-  can't hold. *Did I go* is table stakes; *what did I lift, and did it
-  beat last time* is the point. Programs with days, exercise slots and
-  target sets — a weight, a percentage of a training max, or an open
-  `1+`. Then a session screen built for one hand and cold fingers,
-  where a set that went to plan is **one tap** because the target is
-  already in the box. Rest timer, plate calculator, skip an exercise,
-  swap one on the fly. Every set is written the moment it's ticked, so
-  a killed app resumes instead of losing an hour — and a personal
-  record is announced at the moment you beat it.
-- **The gym is a seed, and an album.** Finishing a session checks the
-  gym habit in — once, the same streak as everything else. Creating one
-  offers a [gallery](docs/01-Specification/Gallery.md) album to go with
-  it, and prompts for the picture before or after the session, your
-  choice.
-- **[Steps and body weight](docs/01-Specification/Health.md)** — steps
-  from the phone's own sensor, no account and no fitness platform, and
-  deliberately passive: they never check a seed in and never break a
-  streak, because the phone did the counting. Weight logged whenever
-  you stand on the scale, charted as a 7-day average over the raw dots,
-  with one plain sentence saying the direction — and never whether
-  that's good.
-- **Sleep** — the gradual-volume alarm, the morning retrospective, and
-  the sleep-debt gauge.
+[Screen time](docs/01-Specification/Screen-Time.md): the attention
+half. Usage caps on the apps I name, a warning at half the cap and a
+weed-pull overlay at the end of it, a live countdown on the capped
+apps, and under-cap days that count — the same +XP door as everything
+else. Android first, because that is the platform that lets an app
+enforce a cap at all; iOS enforcement waits for Phase 6. Scheduled
+late on purpose: it is the hardest platform work in the app, and it
+only makes sense once the habit loop it feeds is proven, which four
+releases have now done.
 
 The exercise catalogue is 1,324 exercises from an
 [open dataset](https://github.com/hasaneyldrm/exercises-dataset). The
