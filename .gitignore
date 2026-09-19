@@ -30,12 +30,12 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
-/coverage/
+build/
+coverage/
 
 # Symbolication related
 app.*.symbols
-/build/symbols/
+**/build/symbols/
 
 # Signing material never enters the repo
 key.properties
@@ -45,15 +45,15 @@ key.properties
 .env
 
 # Golden failure artifacts
-test/**/failures/
+apps/mobile/test/**/failures/
 
 # Obfuscation related
 app.*.map.json
 
 # Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+apps/mobile/android/app/debug
+apps/mobile/android/app/profile
+apps/mobile/android/app/release
 
 # Widget Preview related
 .widget_preview/
@@ -67,4 +67,14 @@ harvest-*.xlsx
 *.xlsx
 
 # Kotlin daemon session files the Android build writes and deletes
-/android/.kotlin/
+apps/mobile/android/.kotlin/
+
+# JavaScript workspaces (apps/web, apps/server, packages/*)
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+.vite/
+coverage/
+.env.*
+!.env.example
