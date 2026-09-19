@@ -117,16 +117,17 @@ typing is impossible or slow. So a note can hold **recordings**:
   recording, the bar shows the time and a level, and a second tap
   stops.
 - **What is written into the body** is an embed on its own line, in
-  Obsidian's own syntax: `![[Voice 2026-09-19 14-32.m4a]]`. The editor
-  draws it as a player (play/pause, a scrubber, the length). In any
-  other editor it is a line of text naming a file that sits beside the
-  note in the export.
+  Obsidian's own syntax: `![[Voice 2026-09-19 14-32.m4a]]`. The line
+  stays text (N5); under the note, each recording the body embeds is a
+  player (play/pause, a scrubber, the length), in the order the body
+  names them. In any other editor it is a line of text naming a file
+  that sits beside the note in the export.
 - **The file** is AAC in an `.m4a` container, mono, 64 kbps: about
   half a megabyte a minute. It lives under the app's own storage and is
   a row in `note_attachments` (note, file name, kind, length, size).
-- **A voice note from the FAB.** *New voice note* on the Notes list
-  creates a note titled with the time, starts recording at once, and
-  stops on a tap. It is the three-second path.
+- **A voice note in one tap.** *New voice note* (the microphone in the
+  Notes app bar) creates a note titled with the time, starts recording
+  at once, and stops on a tap. It is the three-second path.
 - **Dictation** is separate from recording. The toolbar's second mic
   mode turns speech into text at the caret, live, using the phone's own
   on-device recogniser. No audio is kept.

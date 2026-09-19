@@ -7,6 +7,7 @@ import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
+import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
@@ -70,6 +71,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   var _galleryOn = false;
   var _healthOn = false;
   var _gymOn = false;
+  var _placesOn = false;
   var _finishing = false;
 
   static const _pages = 5;
@@ -143,6 +145,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await settings.setBool(FeatureKeys.gallery, value: _galleryOn);
     await settings.setBool(FeatureKeys.health, value: _healthOn);
     await settings.setBool(FeatureKeys.gym, value: _gymOn);
+    // Places asks the phone for location first ([[Places]] PL1), so it
+    // goes through its controller; a no is still written down.
+    if (_placesOn) {
+      await ref.read(placesControllerProvider.notifier).enable();
+    } else {
+      await settings.setBool(FeatureKeys.places, value: false);
+    }
     await _markDone();
   }
 
@@ -192,10 +201,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     gallery: _galleryOn,
                     health: _healthOn,
                     gym: _gymOn,
+                    places: _placesOn,
                     onNotes: (on) => setState(() => _notesOn = on),
                     onGallery: (on) => setState(() => _galleryOn = on),
                     onHealth: (on) => setState(() => _healthOn = on),
                     onGym: (on) => setState(() => _gymOn = on),
+                    onPlaces: (on) => setState(() => _placesOn = on),
                   ),
                 ],
               ),
@@ -458,10 +469,12 @@ class _ExtrasPage extends StatelessWidget {
     required this.gallery,
     required this.health,
     required this.gym,
+    required this.places,
     required this.onNotes,
     required this.onGallery,
     required this.onHealth,
     required this.onGym,
+    required this.onPlaces,
   });
 
   final AppLocalizations l10n;
@@ -469,10 +482,12 @@ class _ExtrasPage extends StatelessWidget {
   final bool gallery;
   final bool health;
   final bool gym;
+  final bool places;
   final ValueChanged<bool> onNotes;
   final ValueChanged<bool> onGallery;
   final ValueChanged<bool> onHealth;
   final ValueChanged<bool> onGym;
+  final ValueChanged<bool> onPlaces;
 
   @override
   Widget build(BuildContext context) {
@@ -535,6 +550,14 @@ class _ExtrasPage extends StatelessWidget {
                   subtitle: Text(l10n.featureGymHint),
                   value: gym,
                   onChanged: onGym,
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.map_outlined),
+                  title: Text(l10n.featurePlaces),
+                  subtitle: Text(l10n.featurePlacesHint),
+                  value: places,
+                  onChanged: onPlaces,
                 ),
               ],
             ),

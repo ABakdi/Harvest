@@ -5,6 +5,7 @@ import 'package:harvest/features/export/data/export_repository.dart';
 import 'package:harvest/features/export/domain/archive_service.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/export/domain/workbook.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'export_service.g.dart';
@@ -27,6 +28,10 @@ String exportFileName(DateTime at) {
 /// notes as a vault and the gallery as folders of files. The workbook
 /// alone is still built the same way, and still exactly as ADR-006
 /// specified it — it is now one entry inside the archive.
+/// Whether an export carries my location history ([[Places]] PL6). A
+/// choice about this phone's exports, so it never leaves it.
+const exportIncludesPlacesKey = 'export.includePlaces';
+
 class ExportService {
   ExportService(this._repository, this._downloads, this._archive);
 
@@ -39,12 +44,14 @@ class ExportService {
     DateTime? now,
     void Function(ArchiveProgress)? onProgress,
     bool Function()? cancelled,
+    bool includePlaces = true,
   }) async {
     final at = now ?? DateTime.now();
     final bytes = await _archive.build(
       now: at,
       onProgress: onProgress,
       cancelled: cancelled,
+      includePlaces: includePlaces,
     );
     return _downloads.save(
       fileName: archiveFileName(at),
@@ -135,9 +142,15 @@ class ExportController extends _$ExportController {
     _cancelled = false;
     state = const ExportRunning();
     try {
+      final includePlaces =
+          await ref
+              .read(settingsRepositoryProvider)
+              .getString(exportIncludesPlacesKey) !=
+          'false';
       final path = await ref
           .read(exportServiceProvider)
           .exportArchive(
+            includePlaces: includePlaces,
             onProgress: (progress) {
               if (state is ExportRunning) state = ExportRunning(progress);
             },

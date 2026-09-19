@@ -3859,4 +3859,32 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passphraseWrong =>
       'This passphrase does not open what your other devices sent. Enter the one you used there.';
+
+  @override
+  String get exportIncludePlaces => 'Include my location history';
+
+  @override
+  String get exportIncludePlacesHint =>
+      'The trail, the geotags and the named places. Off leaves them out of this export.';
+
+  @override
+  String get sheetGoals => 'Goals';
+
+  @override
+  String get sheetGoalItems => 'Goal items';
+
+  @override
+  String get sheetCategories => 'Categories';
+
+  @override
+  String get sheetRecordings => 'Recordings';
+
+  @override
+  String get sheetSavedPlaces => 'Named places';
+
+  @override
+  String get sheetTrail => 'Trail';
+
+  @override
+  String get sheetGeotags => 'Geotags';
 }

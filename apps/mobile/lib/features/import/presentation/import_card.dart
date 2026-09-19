@@ -225,6 +225,13 @@ class _Preview extends StatelessWidget {
     SheetNames.notes => l10n.sheetNotes,
     SheetNames.albums => l10n.sheetAlbums,
     SheetNames.memories => l10n.sheetMemories,
+    SheetNames.goals => l10n.sheetGoals,
+    SheetNames.goalItems => l10n.sheetGoalItems,
+    SheetNames.categories => l10n.sheetCategories,
+    SheetNames.noteAttachments => l10n.sheetRecordings,
+    SheetNames.savedPlaces => l10n.sheetSavedPlaces,
+    SheetNames.locationPoints => l10n.sheetTrail,
+    SheetNames.geotags => l10n.sheetGeotags,
     _ => sheet,
   };
 }

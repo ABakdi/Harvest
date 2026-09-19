@@ -55,9 +55,13 @@ class ArchiveService {
     DateTime? now,
     void Function(ArchiveProgress)? onProgress,
     bool Function()? cancelled,
+    bool includePlaces = true,
   }) async {
     final at = now ?? DateTime.now();
-    final contents = await _repository.readArchive(generatedAt: at);
+    final contents = await _repository.readArchive(
+      generatedAt: at,
+      includePlaces: includePlaces,
+    );
     final archive = Archive();
 
     // The workbook, plus one entry per file. The count is known before

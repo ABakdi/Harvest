@@ -86,6 +86,17 @@ The rules that make it an archive rather than a dump:
    deletion is an update, and an archive that carries one must be able
    to win it. And the **streaks come back**: they are derived state,
    but derived from history the new phone may not have.
+9. **Phase 5 brought four more kinds of thing, and all of them come
+   back** ([[Phase-5-Goals-Places-and-Voice]]). The sheets are `Goals`
+   and `GoalItems` (with `GoalUuid` on `Seeds`), `Categories` (custom
+   expense categories, missing until [[Audit-v2]] Q3-02), `NoteAttachments`,
+   and `SavedPlaces`, `LocationPoints` and `Geotags`. A recording is a
+   file beside its note's `.md`, under the name the note embeds, so the
+   pair opens in Obsidian as it is ([[Notes]] N7); on import it goes back
+   to `<note uuid>/<file name>` in the app's own storage, never where the
+   archive says. Location is in every export unless I switch it off for
+   that export ([[Places]] PL6). The settings sheet carries only the
+   preferences an import would accept ([[Audit-v2]] S3-05).
 
 ## Consequences
 

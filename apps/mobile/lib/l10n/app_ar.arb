@@ -1094,5 +1094,14 @@
   "passphraseMismatch": "العبارتان غير متطابقتين.",
   "passphraseShort": "اثنا عشر حرفًا على الأقل.",
   "passphraseWorking": "يصنع المفتاح…",
-  "passphraseWrong": "هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك."
+  "passphraseWrong": "هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك.",
+  "exportIncludePlaces": "أدرج سجل مواقعي",
+  "exportIncludePlacesHint": "المسار والوسوم الجغرافية والأماكن المسمّاة. الإطفاء يستبعدها من هذا التصدير.",
+  "sheetGoals": "الأهداف",
+  "sheetGoalItems": "بنود الأهداف",
+  "sheetCategories": "الفئات",
+  "sheetRecordings": "التسجيلات",
+  "sheetSavedPlaces": "الأماكن المسمّاة",
+  "sheetTrail": "المسار",
+  "sheetGeotags": "الوسوم الجغرافية"
 }

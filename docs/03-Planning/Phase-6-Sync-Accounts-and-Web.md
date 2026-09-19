@@ -32,48 +32,49 @@ flowchart LR
 ```
 
 ## M6.1 — Contracts and core
-- [ ] `packages/contracts`:
+- [x] `packages/contracts`:
   - error shape, auth bodies and account DTOs;
   - the `SyncRecord` envelope, the table registry (name → plaintext or
     private tier → `data` schema), push and pull bodies.
-- [ ] `packages/contracts/fixtures`: one JSON record per table, parsed
+- [x] `packages/contracts/fixtures`: one JSON record per table, parsed
   by the TypeScript tests *and* by a Dart test in `apps/mobile`.
-- [ ] `packages/core`: `HarvestDay` (3 AM, calendar-safe), `isDueOn`
+- [x] `packages/core`: `HarvestDay` (3 AM, calendar-safe), `isDueOn`
   with the start-day rule (#12), XP amounts, the over-log cap, goal
   progress, and fixtures shared with Dart for each.
 
 ## M6.2 — Server: accounts
-- [ ] Express 5 app factory with helmet, CORS allow-list, body caps,
+- [x] Express 5 app factory with helmet, CORS allow-list, body caps,
   pino, the error middleware and zod-validated routes.
-- [ ] Mongo repositories (users, sessions, verification and reset
+- [x] Mongo repositories (users, sessions, verification and reset
   tokens), with indexes created at boot.
-- [ ] Register, verify, login, refresh with rotation and family reuse
+- [x] Register, verify, login, refresh with rotation and family reuse
   detection, logout, forgot/reset, `me`, sessions, delete account
   ([[Accounts]] AC1–AC6).
-- [ ] Rate limits on auth; the `Mailer` interface (SMTP / log).
-- [ ] Tests on mongodb-memory-server: every flow, and every negative
+- [x] Rate limits on auth; the `Mailer` interface (SMTP / log).
+- [x] Tests on mongodb-memory-server: every flow, and every negative
   (reuse, expiry, wrong password, unverified sync, a cross-user read).
 
 ## M6.3 — Server: sync
-- [ ] `records` collection keyed `(userId, table, uuid)`; the per-user
+- [x] `records` collection keyed `(userId, table, uuid)`; the per-user
   sequence.
-- [ ] Push (LWW by `updatedAt`, `stale` on a tie, invalid records
+- [x] Push (LWW by `updatedAt`, `stale` on a tie, invalid records
   isolated) and pull (by sequence, paged).
-- [ ] Private-tier envelope checks; purged tombstones.
-- [ ] `GET /v1/releases/latest`, cached from GitHub.
-- [ ] Tests: two simulated devices converging; stale edits losing;
+- [x] Private-tier envelope checks; purged tombstones.
+- [x] `GET /v1/releases/latest`, cached from GitHub.
+- [x] Tests: two simulated devices converging; stale edits losing;
   tombstones propagating; one user never seeing another's records.
 
 ## M6.4 — Phone: account and sync
-- [ ] Settings → Account ([[Accounts]]): sign up, sign in, verify
+- [x] Settings → Account ([[Accounts]]): sign up, sign in, verify
   state, devices, sign out, delete.
-- [ ] `ApiClient` with refresh-on-401, and tokens in secure storage.
-- [ ] `SyncService`: pull → push → pull, row serialisers per table
+- [x] `ApiClient` with refresh-on-401, and tokens in secure storage.
+- [x] `SyncService`: pull → push → pull, row serialisers per table
   (checked against the contract fixtures), merge without echoing into
   the outbox, derived state recomputed.
-- [ ] Triggers: resume, a debounce after writes, every 15 minutes while
-  open, the 3 AM job.
-- [ ] Tests against a fake API: a round trip per table, conflict
+- [x] Triggers: resume, a debounce after writes, every 15 minutes while
+  open. The 3 AM job does not sync yet: it runs in its own isolate,
+  and the account's tokens would have to follow it there.
+- [x] Tests against a fake API: a round trip per table, conflict
   ordering, the cursor, purge.
 
 ## M6.5 — Web: the site, the install, the shell
@@ -105,9 +106,11 @@ flowchart LR
 - [ ] Places: the map, day and range views.
 
 ## M6.8 — The private tier, and files
-- [ ] Sync passphrase: PBKDF2-SHA256 → AES-256-GCM, identical in Dart
-  (`cryptography`) and WebCrypto, pinned by a shared fixture.
-- [ ] Finance and location tables sync encrypted ([[Sync-API]]).
+- [x] Sync passphrase: PBKDF2-SHA256 → AES-256-GCM, identical in Dart
+  (`cryptography`) and WebCrypto, pinned by `fixtures/crypto.json`, with
+  the table and key as additional data so a sealed row cannot be moved.
+- [x] Finance and location tables sync encrypted ([[Sync-API]]), checked
+  end to end against the real server (`test/e2e`).
 - [ ] Content-addressed file sync for pictures and recordings,
   encrypted, with size caps.
 - [ ] Microsecond clocks on the phone (dates stored as text, one

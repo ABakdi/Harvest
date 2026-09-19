@@ -840,3 +840,16 @@ The job itself is still a periodic WorkManager task, and it still
 drifts. With the window guard, drift can no longer corrupt a day: at
 worst the close is skipped, and the evening's steps are written down
 on the next open.
+
+## Status — Q3-01, Q3-02 and S3-05, 2026-09-19
+
+Taken on the way into [[Phase-5-Goals-Places-and-Voice]], because sync
+reads the outbox and the archive had to carry the new tables anyway.
+
+| Finding | What landed |
+| :--- | :--- |
+| Q3-01 · the outbox | Every ledger row goes through `HarvestDatabase.insertLedger`, which logs it. Step days, focus sessions (their blocks and endings too), preference settings, streaks and every row the importer writes now log a change. The outbox keeps its newest 50,000 rows (`capOutbox`), which is safe because a device's first sync sends a full snapshot. |
+| Q3-02 · categories | A `Categories` sheet, exported and imported by key. |
+| S3-05 · the settings sheet | Exports only what an import would accept. The allow-list moved to `core/db/portable_settings.dart` and is shared by the importer, the export and sync. |
+
+Still open: the rest of waves 3–8. The report's order stands.

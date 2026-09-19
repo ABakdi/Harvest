@@ -53,7 +53,7 @@ While tracking is on, a **foreground service** records my position:
 - **Sampling:** a point when I have moved 50 m and at least 60 seconds
   have passed. The balanced power mode is the default, and high
   accuracy is a setting. Standing still records nothing.
-- **Pause** is one switch on the Places screen, which also has
+- **Pause** is in the Places screen's menu, beside the trail switch:
   "pause for 1 hour" and "pause until tomorrow". A pause stops the
   service; it does not merely drop points.
 - **After a reboot**, tracking resumes by itself if it was on.
@@ -97,20 +97,21 @@ row as in [[Notes]] N6).
 
 - **Day view** (the default): a date strip across the top, the map, and
   a sheet with the day's timeline. The trail is drawn as one line in
-  the theme's primary colour. Each geotagged action is a pin with its
-  feature's icon: a coin for an expense, a camera for a memory, a leaf
-  for a check-in, a dumbbell for a session, a pen for a note. Tapping a
-  pin opens the action, and tapping a timeline row flies the map to its
-  pin.
+  the theme's primary colour. Each geotagged action is a pin coloured
+  by its feature, and its timeline row carries the feature's icon: a
+  coin for an expense, a camera for a memory, a leaf for a check-in, a
+  dumbbell for a session, a pen for a note. Tapping a pin marks it;
+  tapping a timeline row flies the map to its pin and opens the action
+  where it has a screen of its own (a note, a seed, a goal).
 - **Stays**: stretches of ten minutes or more within 100 m of one spot.
   They are drawn as circles and listed in the timeline as
   *"08:10–17:45 · 9 h 35 min"*. I can name a stay ("Home", "Office",
   "Gym"). The name is kept as a **saved place** with a radius, and
   every later stay inside that radius takes the name.
-- **Range view**: a week, a month or a trip (any span of days) with
-  the trails together and the pins clustered. This is the travel view.
-- **Filters**: pins by feature, so the day's expenses can be shown on
-  their own.
+- **Range view**: a week or a month with the trails together. This is
+  the travel view; any span of days and clustered pins come later.
+- **Filters** (later): pins by feature, so the day's expenses can be
+  shown on their own.
 
 Tiles need a connection. Without one, the map is blank but the
 timeline and stays still list everything, because they are local.

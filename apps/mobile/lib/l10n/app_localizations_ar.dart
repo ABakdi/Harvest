@@ -3868,4 +3868,32 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get passphraseWrong =>
       'هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك.';
+
+  @override
+  String get exportIncludePlaces => 'أدرج سجل مواقعي';
+
+  @override
+  String get exportIncludePlacesHint =>
+      'المسار والوسوم الجغرافية والأماكن المسمّاة. الإطفاء يستبعدها من هذا التصدير.';
+
+  @override
+  String get sheetGoals => 'الأهداف';
+
+  @override
+  String get sheetGoalItems => 'بنود الأهداف';
+
+  @override
+  String get sheetCategories => 'الفئات';
+
+  @override
+  String get sheetRecordings => 'التسجيلات';
+
+  @override
+  String get sheetSavedPlaces => 'الأماكن المسمّاة';
+
+  @override
+  String get sheetTrail => 'المسار';
+
+  @override
+  String get sheetGeotags => 'الوسوم الجغرافية';
 }

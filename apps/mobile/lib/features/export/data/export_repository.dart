@@ -23,15 +23,26 @@ class ExportRepository {
   static String? _at(DateTime? value) => value?.toIso8601String();
 
   /// The workbook rows alone — the file tree is [readArchive].
-  Future<ExportData> read({DateTime? generatedAt}) async =>
-      (await readArchive(generatedAt: generatedAt)).data;
+  Future<ExportData> read({
+    DateTime? generatedAt,
+    bool includePlaces = true,
+  }) async => (await readArchive(
+    generatedAt: generatedAt,
+    includePlaces: includePlaces,
+  )).data;
 
   /// Everything the archive is written from, in one pass.
   ///
   /// The rows and the files have to be computed together: the sheet
   /// says where each file went, and the names are only unique once
   /// the collisions have been resolved (ADR-007 rule 4).
-  Future<ArchiveContents> readArchive({DateTime? generatedAt}) async {
+  ///
+  /// [includePlaces] false leaves the location sheets empty: location is
+  /// exported only with my say-so, per export ([[Places]] PL6).
+  Future<ArchiveContents> readArchive({
+    DateTime? generatedAt,
+    bool includePlaces = true,
+  }) async {
     final seeds = await _db.select(_db.commitments).get();
     final checkIns = await _db.select(_db.checkIns).get();
     final seedNotes = await _db.select(_db.seedNotes).get();
@@ -62,9 +73,15 @@ class ExportRepository {
     final goalItemRows = await _db.select(_db.goalItems).get();
     final categoryRows = await _db.select(_db.expenseCategories).get();
     final attachmentRows = await _db.select(_db.noteAttachments).get();
-    final placeRows = await _db.select(_db.savedPlaces).get();
-    final pointRows = await _db.select(_db.locationPoints).get();
-    final geotagRows = await _db.select(_db.geotags).get();
+    final placeRows = includePlaces
+        ? await _db.select(_db.savedPlaces).get()
+        : const <SavedPlaceRow>[];
+    final pointRows = includePlaces
+        ? await _db.select(_db.locationPoints).get()
+        : const <LocationPointRow>[];
+    final geotagRows = includePlaces
+        ? await _db.select(_db.geotags).get()
+        : const <GeotagRow>[];
 
     final taken = <String>{};
     final noteFiles = <({String path, String body})>[];

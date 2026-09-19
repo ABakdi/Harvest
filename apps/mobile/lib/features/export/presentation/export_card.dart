@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/export/domain/export_service.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// "My data": one button that drops the whole database in Downloads as
@@ -38,6 +40,22 @@ class ExportCard extends ConsumerWidget {
             ),
             const SizedBox(height: HarvestSpacing.xs),
             Text(l10n.exportBody, style: theme.textTheme.bodySmall),
+            if (ref.watch(placesEnabledProvider)) ...[
+              const SizedBox(height: HarvestSpacing.xs),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.exportIncludePlaces),
+                subtitle: Text(l10n.exportIncludePlacesHint),
+                value: ref.watch(_includePlacesProvider).value != 'false',
+                onChanged: running
+                    ? null
+                    : (on) => unawaited(
+                        ref
+                            .read(settingsRepositoryProvider)
+                            .setBool(exportIncludesPlacesKey, value: on),
+                      ),
+              ),
+            ],
             const SizedBox(height: HarvestSpacing.md),
             FilledButton.icon(
               onPressed: running
@@ -108,3 +126,11 @@ class ExportCard extends ConsumerWidget {
         ExportIdle() || ExportRunning() => null,
       };
 }
+
+final StreamProvider<String?> _includePlacesProvider =
+    StreamProvider.autoDispose(
+      (ref) => ref
+          .watch(settingsRepositoryProvider)
+          .watchAll([exportIncludesPlacesKey])
+          .map((values) => values[exportIncludesPlacesKey]),
+    );

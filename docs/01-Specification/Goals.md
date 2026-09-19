@@ -50,15 +50,15 @@ The field gains a top tab row, **Today · Goals**. The Goals tab is a
 board: one card per active goal, in my order, each showing:
 - the title and the target day, with the days left when there is one;
 - progress: a ring filled by ticked items over all items;
-- the seeds it planted, as small chips with their streaks;
+- the seeds it planted, as small chips (an archived one says so);
 - the next unticked step, so the card answers *what now?*
 
 Below the active goals, collapsed, are **Achieved** and **Dropped**.
 
 Opening a goal shows the whole of it: the *why* at the top, then
 **What it takes** (the needs), then **Steps**, then **Seeds**. Every
-item can be ticked, edited in place, dragged, swiped away with undo,
-or **planted**.
+item can be ticked, edited, dragged, removed with undo, or
+**planted**.
 
 ## Planting from a goal
 

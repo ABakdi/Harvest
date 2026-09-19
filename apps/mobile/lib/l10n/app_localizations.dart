@@ -6487,6 +6487,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This passphrase does not open what your other devices sent. Enter the one you used there.'**
   String get passphraseWrong;
+
+  /// No description provided for @exportIncludePlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Include my location history'**
+  String get exportIncludePlaces;
+
+  /// No description provided for @exportIncludePlacesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The trail, the geotags and the named places. Off leaves them out of this export.'**
+  String get exportIncludePlacesHint;
+
+  /// No description provided for @sheetGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get sheetGoals;
+
+  /// No description provided for @sheetGoalItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal items'**
+  String get sheetGoalItems;
+
+  /// No description provided for @sheetCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get sheetCategories;
+
+  /// No description provided for @sheetRecordings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recordings'**
+  String get sheetRecordings;
+
+  /// No description provided for @sheetSavedPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Named places'**
+  String get sheetSavedPlaces;
+
+  /// No description provided for @sheetTrail.
+  ///
+  /// In en, this message translates to:
+  /// **'Trail'**
+  String get sheetTrail;
+
+  /// No description provided for @sheetGeotags.
+  ///
+  /// In en, this message translates to:
+  /// **'Geotags'**
+  String get sheetGeotags;
 }
 
 class _AppLocalizationsDelegate

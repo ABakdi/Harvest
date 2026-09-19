@@ -1654,5 +1654,14 @@
   "passphraseMismatch": "The two do not match.",
   "passphraseShort": "At least 12 characters.",
   "passphraseWorking": "Making the key…",
-  "passphraseWrong": "This passphrase does not open what your other devices sent. Enter the one you used there."
+  "passphraseWrong": "This passphrase does not open what your other devices sent. Enter the one you used there.",
+  "exportIncludePlaces": "Include my location history",
+  "exportIncludePlacesHint": "The trail, the geotags and the named places. Off leaves them out of this export.",
+  "sheetGoals": "Goals",
+  "sheetGoalItems": "Goal items",
+  "sheetCategories": "Categories",
+  "sheetRecordings": "Recordings",
+  "sheetSavedPlaces": "Named places",
+  "sheetTrail": "Trail",
+  "sheetGeotags": "Geotags"
 }
