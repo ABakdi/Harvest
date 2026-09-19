@@ -3910,4 +3910,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryVideo => 'Video';
+
+  @override
+  String get healthWhyTitle => 'Why Harvest reads your steps';
+
+  @override
+  String get healthWhyLead =>
+      'Harvest asks Health Connect for one thing: the number of steps you have taken, day by day.';
+
+  @override
+  String get healthWhyUse =>
+      'That number fills the steps card, pays the daily step goal once a day, and is drawn on the thirty-day chart. Nothing else reads it. Steps never check a seed in and never break a streak.';
+
+  @override
+  String get healthWhyStays =>
+      'The number stays on this phone. Harvest has no account of its own, sends nothing to anyone, and has no third party to send it to. If you turn on syncing to a server of your own, steps travel there and nowhere else.';
+
+  @override
+  String get healthWhyOff =>
+      'You can withdraw the permission in Health Connect at any time, or turn Health off in Harvest. Either one stops the reading; neither deletes a day already counted.';
 }

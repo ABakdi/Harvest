@@ -1,6 +1,7 @@
 package com.harvest.app
 
 import android.content.ContentValues
+import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -16,6 +17,32 @@ import java.io.File
  */
 class MainActivity : FlutterFragmentActivity() {
 
+    /**
+     * Health Connect sent the user here to ask why Harvest wants their
+     * steps.
+     *
+     * The intent filters were declared but nothing read them, so the
+     * question opened the field ([[Audit-v2]] S3-02). The flag is kept
+     * here rather than pushed at Flutter, because the engine may not
+     * exist yet when the intent arrives; Dart takes it once it is up
+     * and again whenever the app comes back to the front.
+     */
+    private var rationaleAsked = false
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        readRationale(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        readRationale(intent)
+    }
+
+    private fun readRationale(intent: Intent?) {
+        if (intent?.action in RATIONALE_ACTIONS) rationaleAsked = true
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         // Steps are a plugin (packages/harvest_steps) so the day-reset
@@ -24,6 +51,16 @@ class MainActivity : FlutterFragmentActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "saveToDownloads" -> saveToDownloads(call.arguments(), result)
+                    else -> result.notImplemented()
+                }
+            }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, HEALTH_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "takeRationaleRequest" -> {
+                        result.success(rationaleAsked)
+                        rationaleAsked = false
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -132,5 +169,12 @@ class MainActivity : FlutterFragmentActivity() {
     private companion object {
         const val DOWNLOADS_CHANNEL = "harvest/downloads"
         const val SECURITY_CHANNEL = "harvest/security"
+        const val HEALTH_CHANNEL = "harvest/health"
+
+        /** Android 13 and below, then Android 14+. */
+        val RATIONALE_ACTIONS = setOf(
+            "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE",
+            Intent.ACTION_VIEW_PERMISSION_USAGE,
+        )
     }
 }

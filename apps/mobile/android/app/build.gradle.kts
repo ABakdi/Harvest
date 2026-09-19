@@ -11,13 +11,35 @@ plugins {
 //   storePassword=…
 //   keyAlias=harvest
 //   keyPassword=…
-// Without it the build falls back to the debug key with a warning so
-// `flutter run --release` still works on a dev machine.
+// Without it a release build fails. The first four releases went out
+// signed with the debug key, which is a key anyone has — a warning in
+// a log I do not read is not a guard ([[Audit-v2]] S3-08). On a dev
+// machine, -PallowDebugSigning=true says so out loud and lets
+// `flutter run --release` through.
 val keystoreProperties = Properties().apply {
     val file = rootProject.file("key.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
 val hasReleaseKey = keystoreProperties.getProperty("storeFile") != null
+val allowDebugSigning = project.findProperty("allowDebugSigning") == "true"
+
+// Checked when the build is about to run rather than while it is being
+// configured, so a debug build is not held to a release's rules.
+gradle.taskGraph.whenReady {
+    val releasing = allTasks.any { task ->
+        task.name.contains("Release") &&
+            (task.name.startsWith("assemble") ||
+                task.name.startsWith("bundle") ||
+                task.name.startsWith("package"))
+    }
+    if (releasing && !hasReleaseKey && !allowDebugSigning) {
+        throw GradleException(
+            "No android/key.properties: a release build would be signed " +
+                "with the debug key. Add the upload key, or pass " +
+                "-PallowDebugSigning=true for a local release run.",
+        )
+    }
+}
 
 android {
     namespace = "com.harvest.app"
@@ -58,7 +80,7 @@ android {
             if (hasReleaseKey) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                logger.warn("key.properties not found: signing the release build with the debug key")
+                logger.warn("key.properties not found: this build is signed with the debug key")
                 signingConfig = signingConfigs.getByName("debug")
             }
             isMinifyEnabled = true

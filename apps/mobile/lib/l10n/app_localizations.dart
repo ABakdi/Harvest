@@ -6583,6 +6583,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Video'**
   String get galleryVideo;
+
+  /// No description provided for @healthWhyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why Harvest reads your steps'**
+  String get healthWhyTitle;
+
+  /// No description provided for @healthWhyLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest asks Health Connect for one thing: the number of steps you have taken, day by day.'**
+  String get healthWhyLead;
+
+  /// No description provided for @healthWhyUse.
+  ///
+  /// In en, this message translates to:
+  /// **'That number fills the steps card, pays the daily step goal once a day, and is drawn on the thirty-day chart. Nothing else reads it. Steps never check a seed in and never break a streak.'**
+  String get healthWhyUse;
+
+  /// No description provided for @healthWhyStays.
+  ///
+  /// In en, this message translates to:
+  /// **'The number stays on this phone. Harvest has no account of its own, sends nothing to anyone, and has no third party to send it to. If you turn on syncing to a server of your own, steps travel there and nowhere else.'**
+  String get healthWhyStays;
+
+  /// No description provided for @healthWhyOff.
+  ///
+  /// In en, this message translates to:
+  /// **'You can withdraw the permission in Health Connect at any time, or turn Health off in Harvest. Either one stops the reading; neither deletes a day already counted.'**
+  String get healthWhyOff;
 }
 
 class _AppLocalizationsDelegate

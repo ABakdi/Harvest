@@ -11,6 +11,7 @@ import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
+import 'package:harvest/features/health/presentation/health_rationale_screen.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/security/domain/app_lock.dart';
@@ -67,6 +68,11 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
     // Coming back to the foreground may mean a new Harvest Day: refresh
     // the clock, judge what was missed, and replan today's reminders.
     // Leaving it may mean the lock's grace window has started.
+    // The question may be what started the app, in which case it is
+    // already on the intent before the first frame.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_answerHealthConnect()),
+    );
     _lifecycle = AppLifecycleListener(
       onResume: _onResume,
       onHide: () => ref.read(appLockProvider.notifier).onHidden(),
@@ -77,6 +83,15 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
   void _onResume() {
     ref.read(currentHarvestDayProvider.notifier).refresh();
     unawaited(_catchUp());
+    unawaited(_answerHealthConnect());
+  }
+
+  /// Health Connect can send someone here mid-question, either on the
+  /// way in or while the app is already open ([[Audit-v2]] S3-02).
+  Future<void> _answerHealthConnect() async {
+    if (!await HealthRationaleScreen.wasAsked()) return;
+    if (!mounted) return;
+    unawaited(ref.read(routerProvider).push(AppRoutes.healthWhy));
   }
 
   Future<void> _catchUp() async {

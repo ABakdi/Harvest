@@ -3919,4 +3919,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get galleryVideo => 'مقطع';
+
+  @override
+  String get healthWhyTitle => 'لماذا يقرأ Harvest خطواتك';
+
+  @override
+  String get healthWhyLead =>
+      'يطلب Harvest من Health Connect شيئًا واحدًا: عدد الخطوات التي مشيتها، يومًا بيوم.';
+
+  @override
+  String get healthWhyUse =>
+      'هذا الرقم يملأ بطاقة الخطوات، ويدفع هدف الخطوات اليومي مرة واحدة في اليوم، ويُرسم على مخطط الثلاثين يومًا. لا شيء آخر يقرأه. الخطوات لا تسجّل بذرة ولا تكسر سلسلة.';
+
+  @override
+  String get healthWhyStays =>
+      'الرقم يبقى على هذا الهاتف. ليس لـ Harvest حساب خاص به، ولا يرسل شيئًا إلى أحد، وليس لديه طرف ثالث يرسله إليه. وإذا شغّلت المزامنة مع خادم تملكه، تذهب الخطوات إليه وحده.';
+
+  @override
+  String get healthWhyOff =>
+      'يمكنك سحب الإذن من Health Connect في أي وقت، أو إطفاء الصحة داخل Harvest. كلاهما يوقف القراءة، ولا يحذف أي يوم سبق عدّه.';
 }

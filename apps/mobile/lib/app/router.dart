@@ -11,6 +11,7 @@ import 'package:harvest/features/field/field_screen.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/gallery/presentation/album_screen.dart';
 import 'package:harvest/features/goals/presentation/goal_screen.dart';
+import 'package:harvest/features/health/presentation/health_rationale_screen.dart';
 import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_screen.dart';
@@ -41,6 +42,10 @@ abstract final class AppRoutes {
 
   /// Sleep, steps and weight on one side; training on the other.
   static const body = '/body';
+
+  /// What Health Connect asks the app to show when someone taps
+  /// *Why does Harvest need this?* ([[Audit-v2]] S3-02).
+  static const healthWhy = '/body/why-steps';
 
   /// Notes and the Gallery, under one roof ([[Checkpoint-5]]). The
   /// branch always exists; the shell decides whether a tab points at
@@ -183,6 +188,12 @@ GoRouter router(Ref ref) {
               GoRoute(
                 path: AppRoutes.body,
                 builder: (context, state) => const BodyScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'why-steps',
+                    builder: (context, state) => const HealthRationaleScreen(),
+                  ),
+                ],
               ),
             ],
           ),
