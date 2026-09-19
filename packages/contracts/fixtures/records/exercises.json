@@ -1,0 +1,17 @@
+{
+  "table": "exercises",
+  "uuid": "3f8b2d6a-9c4e-4b7f-a1d5-5e9c3b8f2a16",
+  "updatedAt": "2026-09-03T19:00:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "3f8b2d6a-9c4e-4b7f-a1d5-5e9c3b8f2a16",
+    "name": "Landmine press",
+    "bodyPart": "shoulders",
+    "equipment": "barbell",
+    "target": "delts",
+    "note": "Half-kneeling",
+    "createdAt": "2026-09-03T19:00:00.000Z",
+    "updatedAt": "2026-09-03T19:00:00.000Z",
+    "deletedAt": null
+  }
+}

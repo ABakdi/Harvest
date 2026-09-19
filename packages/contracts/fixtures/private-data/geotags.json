@@ -1,0 +1,13 @@
+{
+  "uuid": "1e8c5b9f-3a7d-4f2e-9c4b-7d1a5e8c3f27",
+  "targetTable": "check_ins",
+  "targetUuid": "b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
+  "harvestDay": "2026-09-18",
+  "at": "2026-09-18T22:41:05.000Z",
+  "latitude": 36.7538,
+  "longitude": 3.0588,
+  "accuracyM": 18,
+  "state": "fixed",
+  "updatedAt": "2026-09-18T22:41:40.000Z",
+  "deletedAt": null
+}

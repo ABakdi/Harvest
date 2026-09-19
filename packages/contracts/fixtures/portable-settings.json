@@ -1,0 +1,28 @@
+{
+  "about": "The kv_settings keys that may sync: a key syncs when it starts with one of these prefixes. The phone reads the same list as importableSettingPrefixes (portable_settings.dart).",
+  "prefixes": [
+    "themeMode",
+    "locale",
+    "dailyHarvestGoal",
+    "cycle.",
+    "features.",
+    "finance.",
+    "gym.",
+    "health.",
+    "notes.",
+    "places.",
+    "onboarding.done",
+    "pomodoro.focusMinutes",
+    "pomodoro.shortBreakMinutes",
+    "pomodoro.longBreakMinutes",
+    "pomodoro.blocksPerLongBreak",
+    "rate.",
+    "reminders.enabled",
+    "reminders.morningTime",
+    "reminders.eveningTime",
+    "reminders.expenseTime",
+    "reminders.streakNudge",
+    "sleep.",
+    "widget."
+  ]
+}

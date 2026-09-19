@@ -1,0 +1,19 @@
+{
+  "table": "goals",
+  "uuid": "4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38",
+  "updatedAt": "2026-09-15T19:20:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38",
+    "title": "Half marathon",
+    "why": "Because I said I would, in 2024.",
+    "targetDay": "2026-10-25",
+    "status": "active",
+    "statusNote": null,
+    "achievedAt": null,
+    "position": 0,
+    "createdAt": "2026-09-01T07:00:00.000Z",
+    "updatedAt": "2026-09-15T19:20:00.000Z",
+    "deletedAt": null
+  }
+}

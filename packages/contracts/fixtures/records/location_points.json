@@ -1,0 +1,11 @@
+{
+  "table": "location_points",
+  "uuid": "8f3a6d2b-9e1c-4b5a-b8d7-6c3f9a2e5d41",
+  "updatedAt": "2026-09-18T17:45:12.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAG",
+    "ct": "MiRxnYHN0vgpeew2FknKGcDal0XenDhmRS0pgo2zUl35BEuo9jUtvBmllvLoS38D/V6UxQBYMGWoYQ1g6rmlnyOuYnDdkLU/thmta9RBzbtMcOROeMPv+r3C4Vo6pbLiWMzbIJDIeW2i8UgPuJMNzDny25F5QSu6IJPyLzAtozhhb4LXsO2Y7kOXEAwH9LRpNWeke2nxTjLsHleLDmq0jO8fm2BE+nVoO7z4N4oxEqfUBp+zoXtnvOKp3N1sGGz7dpSBrU+N3ubMQVKPU+pIhWaGT95CrUXL7p3HiPfldVnrV1xmoHTXMCuQglm5ntv+mPcqz803dN2kqrdxXGyqnk5bmht5jB3uhh0tVJadxQ=="
+  }
+}

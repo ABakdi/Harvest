@@ -1,0 +1,15 @@
+# Only the TypeScript workspaces the server image is built from.
+**/node_modules
+**/dist
+**/.turbo
+**/coverage
+**/*.tsbuildinfo
+apps/mobile
+apps/web
+docs
+.git
+.idea
+.github
+**/.env
+**/.env.*
+!**/.env.example

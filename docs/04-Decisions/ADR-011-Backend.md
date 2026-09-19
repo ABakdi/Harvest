@@ -54,6 +54,10 @@ state, and each client derives them from history.
 - There are two implementations of password rules and email checks,
   the zod schema and the Dart form, held together by the contract
   fixtures ([[ADR-009-Monorepo]]).
+- An access token is checked against its live session on every
+  request — one indexed read — so signing out, a password reset and a
+  deleted account take effect at once rather than up to fifteen
+  minutes later.
 - MongoDB needs a replica set for transactions. The sync push does not
   use transactions: each record is an idempotent upsert keyed by
   `(userId, table, uuid)`, and the cursor is a per-user counter

@@ -1,0 +1,14 @@
+{
+  "uuid": "f9a2d6c3-8e4b-4f1a-b7c5-2d8e6a4f1c73",
+  "account": "wallet",
+  "deltaMinor": -45000,
+  "currency": "DZD",
+  "note": null,
+  "kind": "expense",
+  "reference": "Food",
+  "linkUuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+  "harvestDay": "2026-09-18",
+  "loggedAt": "2026-09-18T13:10:00.000Z",
+  "deletedAt": null,
+  "updatedAt": "2026-09-18T13:10:00.000Z"
+}

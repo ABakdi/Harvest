@@ -1,0 +1,12 @@
+{
+  "table": "training_maxes",
+  "uuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82/0025",
+  "updatedAt": "2026-09-10T08:00:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "programUuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
+    "exerciseId": "0025",
+    "grams": 92500,
+    "updatedAt": "2026-09-10T08:00:00.000Z"
+  }
+}

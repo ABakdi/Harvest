@@ -26,6 +26,7 @@ Every failure has one shape:
 | `conflict` | 409 | The email is taken (sign-up only) |
 | `payload_too_large` | 413 | Over the body cap |
 | `rate_limited` | 429 | Slow down; `Retry-After` says for how long |
+| `unavailable` | 503 | A dependency is down: the database for health, GitHub with nothing cached for releases |
 | `internal` | 500 | The server's fault, with no details |
 
 ## Records
@@ -43,9 +44,21 @@ A synced row travels as a **record**:
 ```
 
 - `table` is one of the synced table names (the Drift table names,
-  snake_case). `data` holds the row's columns in camelCase, with every
-  timestamp as ISO-8601 UTC and money in minor units, as in the export
-  ([[ADR-006-Export-Format]]).
+  snake_case). `data` holds **every** column of the row in camelCase,
+  its key and clocks included, with every timestamp as ISO-8601 UTC
+  ending in `Z` and money in minor units, as in the export
+  ([[ADR-006-Export-Format]]). A column missing, a column unknown, or a
+  `uuid`/`updatedAt`/`deletedAt` that disagrees with the row's own
+  makes the record invalid — so the server ships before any phone
+  schema change, never after.
+- **Keys that are not uuids** travel in the `uuid` field all the same:
+  `step_days` by its day, `streaks` by its scope, `kv_settings` by its
+  key (and only an allow-listed one), `training_maxes` as
+  `<programUuid>/<exerciseId>`.
+- **Rows with no clock of their own** (`debt_payments`, the program and
+  session children) send the moment the change was queued — the
+  outbox's `queuedAt` — as `updatedAt`, or an edit would lose to the
+  row's older self.
 - `updatedAt` is the row's own clock, the one the conflict rule
   compares. Append-only tables with no `updatedAt` column (the ledger)
   send their `createdAt`.
@@ -87,7 +100,10 @@ For each record, keyed by `(user, table, uuid)`:
   back.
 
 Every stored write takes the next value of the user's **sequence**, a
-per-user counter incremented atomically. The answer:
+per-user counter incremented atomically. Pushes for one account are
+applied one at a time, so a pull can never step over a sequence number
+still being written; the lock lives in the server process, which is
+right for one instance and must move into MongoDB before there are two. The answer:
 
 ```json
 { "results": [ { "table": "…", "uuid": "…", "status": "applied" | "stale" | "invalid", "issues": [ … ] } ], "cursor": 1834 }

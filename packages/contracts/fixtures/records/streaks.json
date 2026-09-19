@@ -1,0 +1,14 @@
+{
+  "table": "streaks",
+  "uuid": "global",
+  "updatedAt": "2026-09-19T03:00:04.000Z",
+  "deletedAt": null,
+  "data": {
+    "scope": "global",
+    "current": 23,
+    "best": 41,
+    "lastEarnedDay": "2026-09-18",
+    "freezesStored": 1,
+    "updatedAt": "2026-09-19T03:00:04.000Z"
+  }
+}

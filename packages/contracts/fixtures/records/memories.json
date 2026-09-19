@@ -1,0 +1,17 @@
+{
+  "table": "memories",
+  "uuid": "1b6f9c3e-7a2d-4e8b-b5c1-4d7a9f3e6b28",
+  "updatedAt": "2026-09-13T18:32:10.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "1b6f9c3e-7a2d-4e8b-b5c1-4d7a9f3e6b28",
+    "albumUuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
+    "harvestDay": "2026-09-13",
+    "path": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67/2026-09-13-1.jpg",
+    "kind": "photo",
+    "note": null,
+    "capturedAt": "2026-09-13T18:32:10.000Z",
+    "updatedAt": "2026-09-13T18:32:10.000Z",
+    "deletedAt": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "why": "a step day travels under its Harvest Day, not a uuid",
+  "path": "uuid",
+  "record": {
+    "table": "step_days",
+    "uuid": "b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
+    "updatedAt": "2026-09-18T21:58:00.000Z",
+    "deletedAt": null,
+    "data": {
+      "harvestDay": "2026-09-18",
+      "steps": 11482,
+      "lastCounter": 58213,
+      "updatedAt": "2026-09-18T21:58:00.000Z"
+    }
+  }
+}

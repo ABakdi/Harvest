@@ -1,0 +1,18 @@
+{
+  "table": "note_attachments",
+  "uuid": "5c8e2b7a-1d4f-4e9c-a6b3-8f2d5c1e7a93",
+  "updatedAt": "2026-09-12T09:14:02.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "5c8e2b7a-1d4f-4e9c-a6b3-8f2d5c1e7a93",
+    "noteUuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
+    "kind": "audio",
+    "fileName": "memo-2026-09-12.m4a",
+    "storedPath": "attachments/memo-2026-09-12.m4a",
+    "durationMs": 48230,
+    "sizeBytes": 389120,
+    "createdAt": "2026-09-12T09:14:02.000Z",
+    "updatedAt": "2026-09-12T09:14:02.000Z",
+    "deletedAt": null
+  }
+}

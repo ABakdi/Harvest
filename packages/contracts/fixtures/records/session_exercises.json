@@ -1,0 +1,18 @@
+{
+  "table": "session_exercises",
+  "uuid": "9c3e7a1f-2d8b-4b6c-a4e9-1f7c5b3d9a24",
+  "updatedAt": "2026-09-17T17:02:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "9c3e7a1f-2d8b-4b6c-a4e9-1f7c5b3d9a24",
+    "sessionUuid": "0e5a9c3d-6b2f-4d8a-8c1e-5b9f3d7a2c86",
+    "position": 0,
+    "exerciseId": "3f8b2d6a-9c4e-4b7f-a1d5-5e9c3b8f2a16",
+    "plannedExerciseId": "0025",
+    "slotUuid": "6b9d3f1a-8e5c-4f2b-9d7a-3a6c8e4b1f59",
+    "skipped": false,
+    "note": "Shoulder felt off, swapped",
+    "restSeconds": 150,
+    "barGrams": 20000
+  }
+}

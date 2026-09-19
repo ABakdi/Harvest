@@ -1,0 +1,15 @@
+{
+  "table": "target_sets",
+  "uuid": "d8f4b2e6-4a9c-4e1d-a5b3-7f2d6c9a8e13",
+  "updatedAt": "2026-09-04T20:13:40.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "d8f4b2e6-4a9c-4e1d-a5b3-7f2d6c9a8e13",
+    "slotUuid": "6b9d3f1a-8e5c-4f2b-9d7a-3a6c8e4b1f59",
+    "position": 2,
+    "reps": 1,
+    "weightGrams": null,
+    "percentTenths": 950,
+    "openEnded": true
+  }
+}

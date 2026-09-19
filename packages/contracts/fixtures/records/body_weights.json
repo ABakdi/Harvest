@@ -1,0 +1,15 @@
+{
+  "table": "body_weights",
+  "uuid": "8d2a5f7c-3e9b-4a1d-8f6e-7c3b1a9d5e42",
+  "updatedAt": "2026-09-19T07:05:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "8d2a5f7c-3e9b-4a1d-8f6e-7c3b1a9d5e42",
+    "grams": 78350,
+    "harvestDay": "2026-09-19",
+    "note": "After a run",
+    "measuredAt": "2026-09-19T07:05:00.000Z",
+    "updatedAt": "2026-09-19T07:05:00.000Z",
+    "deletedAt": null
+  }
+}

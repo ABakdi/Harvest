@@ -1,0 +1,16 @@
+{
+  "about": "A check-in against the over-log cap (Business Rules #2), as CheckInService.checkIn decides it: what is logged, what it pays, and whether the cap refused some of it.",
+  "cases": [
+    { "type": "habit", "loggedToday": 0, "quantity": 1, "quantityLogged": 1, "xpEarned": 10, "capped": false },
+    { "type": "habit", "loggedToday": 1, "quantity": 1, "quantityLogged": 0, "xpEarned": 0, "capped": true, "why": "a second tap on a done habit" },
+    { "type": "habit", "loggedToday": 0, "quantity": 3, "quantityLogged": 1, "xpEarned": 10, "capped": false, "why": "a habit is once a day, whatever was asked" },
+    { "type": "todo", "loggedToday": 0, "quantity": 1, "quantityLogged": 1, "xpEarned": 10, "capped": false },
+    { "type": "todo", "loggedToday": 1, "quantity": 1, "quantityLogged": 0, "xpEarned": 0, "capped": true },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 0, "quantity": 10, "quantityLogged": 10, "xpEarned": 20, "capped": false },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 0, "quantity": 20, "quantityLogged": 20, "xpEarned": 40, "capped": false, "why": "exactly twice the commitment is allowed" },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 0, "quantity": 25, "quantityLogged": 20, "xpEarned": 40, "capped": true },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 15, "quantity": 10, "quantityLogged": 5, "xpEarned": 10, "capped": true },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 20, "quantity": 1, "quantityLogged": 0, "xpEarned": 0, "capped": true },
+    { "type": "project", "dailyCommitment": 5, "loggedToday": 3, "quantity": 7, "quantityLogged": 7, "xpEarned": 14, "capped": false }
+  ]
+}

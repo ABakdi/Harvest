@@ -1,0 +1,11 @@
+{
+  "table": "saved_places",
+  "uuid": "6a2d9f5c-1b8e-4d4a-a7c3-5f9e2b6d8a14",
+  "updatedAt": "2026-09-10T20:00:00.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAI",
+    "ct": "BhSI23T0yb9P5ECAshGkkK2hWAKAtT1eDzb0HyLR5NYPXBpH00VA+CjV39DcAxt2CEsKt1uz3zYZyrmdiMI7BqweFPizKvNPG+a+0ZLWEVsIomidAhSzrwXPqMIj+uCwmy3XqlmXsmdR+qKlrpZPQMeqxEY/ThRy4ma/lYyQQjaWxpcY5pl/RctFE0ODvdBAxML7wAY1lSA3aHey/Mf+cCEUbNyezZuaEDmuivSRzRHC+hddTjcPOibPXunDJG7Sh1hvuXYnhOgdeMZwmdVK1vir87BYrwfLNX0R2S4aeMI="
+  }
+}

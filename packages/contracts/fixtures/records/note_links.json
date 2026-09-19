@@ -1,0 +1,12 @@
+{
+  "table": "note_links",
+  "uuid": "9a3f7e2c-5b8d-4d1a-b7e6-3c9f2a5d8e14",
+  "updatedAt": "2026-09-12T09:15:22.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "9a3f7e2c-5b8d-4d1a-b7e6-3c9f2a5d8e14",
+    "fromUuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
+    "toTitle": "Shoes",
+    "toUuid": "e4b7c1d8-2f6a-4b9e-8c3d-5a7f1e9b2c46"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "about": "Goal progress (Goals GL2): ticked items over all live items, needs and steps alike; a goal with no items has no progress. The phone has no goal code yet, so only the TypeScript suite reads this.",
+  "cases": [
+    { "items": [], "progress": null },
+    { "items": [{ "doneAt": null }], "progress": { "done": 0, "total": 1, "ratio": 0, "complete": false } },
+    {
+      "items": [
+        { "kind": "need", "doneAt": "2026-09-01T10:00:00Z" },
+        { "kind": "step", "doneAt": null },
+        { "kind": "step", "doneAt": "2026-09-02T10:00:00Z" },
+        { "kind": "step", "doneAt": null }
+      ],
+      "progress": { "done": 2, "total": 4, "ratio": 0.5, "complete": false }
+    },
+    {
+      "why": "a deleted item leaves both sides of the fraction",
+      "items": [
+        { "doneAt": "2026-09-01T10:00:00Z" },
+        { "doneAt": null, "deletedAt": "2026-09-03T10:00:00Z" }
+      ],
+      "progress": { "done": 1, "total": 1, "ratio": 1, "complete": true }
+    },
+    {
+      "why": "only deleted items is the same as none",
+      "items": [{ "doneAt": null, "deletedAt": "2026-09-03T10:00:00Z" }],
+      "progress": null
+    }
+  ]
+}
