@@ -3196,4 +3196,153 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gymEstimatedHint =>
       'Worked out from the weight and the reps, not a single you actually pulled.';
+
+  @override
+  String get fieldTabToday => 'Today';
+
+  @override
+  String get fieldTabGoals => 'Goals';
+
+  @override
+  String get goalsEmptyTitle => 'No goals yet';
+
+  @override
+  String get goalsEmptyBody =>
+      'Tap + to write down something a streak cannot hold.';
+
+  @override
+  String get goalNew => 'New goal';
+
+  @override
+  String get goalEdit => 'Edit goal';
+
+  @override
+  String get goalTitleLabel => 'What I\'m working toward';
+
+  @override
+  String get goalTitleHint => 'Run a half marathon';
+
+  @override
+  String get goalWhyLabel => 'Why';
+
+  @override
+  String get goalWhyHint => 'Because…';
+
+  @override
+  String get goalTargetDay => 'Target day';
+
+  @override
+  String get goalNoTargetDay => 'No target day';
+
+  @override
+  String goalDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+      zero: 'Today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String goalDaysPast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days past',
+      one: '1 day past',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get goalNeeds => 'What it takes';
+
+  @override
+  String get goalSteps => 'Steps';
+
+  @override
+  String get goalSeeds => 'Seeds';
+
+  @override
+  String get goalAddNeed => 'Add something it takes';
+
+  @override
+  String get goalAddStep => 'Add a step';
+
+  @override
+  String get goalAddWhatItTakes => 'Add what it takes';
+
+  @override
+  String goalNext(String step) {
+    return 'Next: $step';
+  }
+
+  @override
+  String get goalMarkAchieved => 'Mark achieved';
+
+  @override
+  String goalAchievedToast(int xp) {
+    return 'Achieved. +$xp XP';
+  }
+
+  @override
+  String get goalReopen => 'Reopen';
+
+  @override
+  String get goalDrop => 'Drop';
+
+  @override
+  String get goalDropTitle => 'Drop this goal?';
+
+  @override
+  String get goalDropBody =>
+      'Its seeds keep going. A line on why, if you like.';
+
+  @override
+  String get goalDropNoteHint => 'Not now, because…';
+
+  @override
+  String get goalDelete => 'Delete goal';
+
+  @override
+  String get goalDeleted => 'Goal deleted';
+
+  @override
+  String get goalItemRemoved => 'Removed';
+
+  @override
+  String get goalPlant => 'Plant as a seed';
+
+  @override
+  String get goalPlanted => 'Planted';
+
+  @override
+  String get goalAchievedSection => 'Achieved';
+
+  @override
+  String get goalDroppedSection => 'Dropped';
+
+  @override
+  String get goalEditItem => 'Edit';
+
+  @override
+  String get goalServes => 'Serves';
+
+  @override
+  String get goalServesNone => 'No goal';
+
+  @override
+  String get goalSeedArchived => 'archived';
+
+  @override
+  String get goalComplete => 'Every item is ticked.';
+
+  @override
+  String get goalOptions => 'Goal options';
+
+  @override
+  String get goalItemOptions => 'Item options';
 }

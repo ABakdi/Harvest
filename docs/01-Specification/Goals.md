@@ -76,8 +76,9 @@ When the seed is saved, the item and the seed are linked.
 - **A seed can also be linked to a goal from the seed editor**, without
   an item: *"Serves: Half marathon"*. It then shows on the goal's card
   under Seeds.
-- **Archiving or deleting a seed never touches the goal.** The link is
-  cleared, and the item keeps its text and its tick.
+- **Archiving or deleting a seed never touches the goal.** The item
+  keeps its text, its tick and its link, and shows the seed as archived
+  or gone.
 
 ## Achieving
 

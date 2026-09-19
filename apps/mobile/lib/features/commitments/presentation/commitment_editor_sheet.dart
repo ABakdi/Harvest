@@ -8,16 +8,31 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
+import 'package:harvest/features/goals/data/goals_repository.dart';
+import 'package:harvest/features/goals/domain/goal.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-Future<void> showCommitmentEditor(
+/// Plants a seed, or edits [existing]. Returns the seed it planted.
+///
+/// A goal plants through here too ([[Goals]]): [initialTitle] and
+/// [initialType] prefill the sheet from the item, and [goalUuid] sets
+/// what the seed serves.
+Future<Commitment?> showCommitmentEditor(
   BuildContext context, {
   Commitment? existing,
-}) => showHarvestSheet<void>(
+  String? initialTitle,
+  CommitmentType? initialType,
+  String? goalUuid,
+}) => showHarvestSheet<Commitment>(
   context,
-  builder: (_) => _EditorSheet(existing: existing),
+  builder: (_) => _EditorSheet(
+    existing: existing,
+    initialTitle: initialTitle,
+    initialType: initialType,
+    goalUuid: goalUuid,
+  ),
 );
 
 /// How far ahead a date picker lets a seed be planted.
@@ -26,11 +41,20 @@ const planningHorizon = Duration(days: 365 * 3);
 enum _ScheduleKind { daily, weekly, interval, timesPerWeek }
 
 class _EditorSheet extends ConsumerStatefulWidget {
-  const _EditorSheet({this.existing});
+  const _EditorSheet({
+    this.existing,
+    this.initialTitle,
+    this.initialType,
+    this.goalUuid,
+  });
 
   /// Non-null puts the sheet in edit mode: type is fixed, fields are
   /// prefilled, and saving updates instead of creating.
   final Commitment? existing;
+
+  final String? initialTitle;
+  final CommitmentType? initialType;
+  final String? goalUuid;
 
   @override
   ConsumerState<_EditorSheet> createState() => _EditorSheetState();
@@ -54,13 +78,23 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
   HarvestDay? _deadline;
   HarvestDay? _customDueDay;
 
+  /// The goal this seed serves, and the goals it could.
+  String? _goalUuid;
+  List<Goal> _goals = const [];
+
   bool get _editing => widget.existing != null;
 
   @override
   void initState() {
     super.initState();
+    _goalUuid = widget.existing?.goalUuid ?? widget.goalUuid;
+    unawaited(_loadGoals());
     final existing = widget.existing;
-    if (existing == null) return;
+    if (existing == null) {
+      _titleController.text = widget.initialTitle ?? '';
+      _type = widget.initialType ?? _type;
+      return;
+    }
     _type = existing.type;
     _titleController.text = existing.title;
     _noteController.text = existing.note ?? '';
@@ -109,6 +143,11 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     super.dispose();
   }
 
+  Future<void> _loadGoals() async {
+    final goals = await ref.read(goalsRepositoryProvider).activeOnce();
+    if (mounted) setState(() => _goals = goals);
+  }
+
   String? get _remindAtString => _remindAt == null
       ? null
       : SettingsRepository.formatTime(_remindAt!.hour, _remindAt!.minute);
@@ -144,8 +183,8 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
     try {
-      await _persist(editor, title);
-      navigator.pop();
+      final created = await _persist(editor, title);
+      navigator.pop(created);
     } on Object {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -153,10 +192,10 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     }
   }
 
-  Future<void> _persist(CommitmentEditor editor, String title) async {
+  Future<Commitment?> _persist(CommitmentEditor editor, String title) async {
     if (_editing) {
       await _saveEdit(editor, title);
-      return;
+      return null;
     }
 
     switch (_type) {
@@ -172,27 +211,30 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
             times: _timesPerWeek,
           ),
         };
-        await editor.createHabit(
+        return editor.createHabit(
           title: title,
           schedule: schedule,
           note: _noteOrNull,
           remindAt: _remindAtString,
+          goalUuid: _goalUuid,
         );
       case CommitmentType.project:
-        await editor.createProject(
+        return editor.createProject(
           title: title,
           totalTarget: int.parse(_totalController.text),
           dailyCommitment: int.parse(_dailyController.text),
           note: _noteOrNull,
           remindAt: _remindAtString,
           deadline: _deadline,
+          goalUuid: _goalUuid,
         );
       case CommitmentType.todo:
-        await editor.createTodo(
+        return editor.createTodo(
           title: title,
           dueDay: _todoDueDay,
           note: _noteOrNull,
           remindAt: _remindAtString,
+          goalUuid: _goalUuid,
         );
     }
   }
@@ -225,6 +267,8 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
         clearRemindAt: _remindAtString == null,
         clearDeadline:
             existing.type != CommitmentType.project || _deadline == null,
+        goalUuid: _goalUuid,
+        clearGoal: _goalUuid == null,
       ),
     );
   }
@@ -282,6 +326,10 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           CommitmentType.project => _projectFields(l10n),
           CommitmentType.todo => _todoFields(l10n),
         },
+        if (_goals.isNotEmpty || _goalUuid != null) ...[
+          const SizedBox(height: HarvestSpacing.sm),
+          _goalPicker(l10n),
+        ],
         const SizedBox(height: HarvestSpacing.sm),
         _advancedSection(l10n),
       ],
@@ -381,6 +429,28 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
       ),
     ),
   ];
+
+  /// "Serves: Half marathon" — the goal this seed is for ([[Goals]]).
+  Widget _goalPicker(AppLocalizations l10n) {
+    final known = {for (final goal in _goals) goal.uuid};
+    return DropdownButtonFormField<String?>(
+      // A goal no longer active (achieved, dropped) still shows as the
+      // current value rather than vanishing from under the seed.
+      initialValue: _goalUuid,
+      decoration: InputDecoration(
+        labelText: l10n.goalServes,
+        prefixIcon: const Icon(Icons.flag_outlined),
+      ),
+      items: [
+        DropdownMenuItem<String?>(child: Text(l10n.goalServesNone)),
+        for (final goal in _goals)
+          DropdownMenuItem(value: goal.uuid, child: Text(goal.title)),
+        if (_goalUuid != null && !known.contains(_goalUuid))
+          DropdownMenuItem(value: _goalUuid, child: Text(l10n.goalServes)),
+      ],
+      onChanged: (value) => setState(() => _goalUuid = value),
+    );
+  }
 
   Widget _advancedSection(AppLocalizations l10n) {
     final locale = Localizations.localeOf(context).toString();

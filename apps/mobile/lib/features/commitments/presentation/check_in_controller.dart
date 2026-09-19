@@ -90,63 +90,81 @@ class CommitmentEditor extends _$CommitmentEditor {
     }
   }
 
-  Future<void> createHabit({
+  Future<Commitment?> createHabit({
     required String title,
     required Schedule schedule,
     String? note,
     String? remindAt,
-  }) => _write(() async {
-    await ref
-        .read(commitmentsRepositoryProvider)
-        .create(
-          type: CommitmentType.habit,
-          title: title,
-          schedule: schedule,
-          note: note,
-          remindAt: remindAt,
-        );
-    await _afterWrite(remindAt: remindAt);
-  });
+    String? goalUuid,
+  }) async {
+    Commitment? created;
+    await _write(() async {
+      created = await ref
+          .read(commitmentsRepositoryProvider)
+          .create(
+            type: CommitmentType.habit,
+            title: title,
+            schedule: schedule,
+            note: note,
+            remindAt: remindAt,
+            goalUuid: goalUuid,
+          );
+      await _afterWrite(remindAt: remindAt);
+    });
+    return created;
+  }
 
-  Future<void> createProject({
+  Future<Commitment?> createProject({
     required String title,
     required int totalTarget,
     required int dailyCommitment,
     String? note,
     String? remindAt,
+    String? goalUuid,
     HarvestDay? deadline,
-  }) => _write(() async {
-    await ref
-        .read(commitmentsRepositoryProvider)
-        .create(
-          type: CommitmentType.project,
-          title: title,
-          totalTarget: totalTarget,
-          dailyCommitment: dailyCommitment,
-          note: note,
-          remindAt: remindAt,
-          deadline: deadline,
-        );
-    await _afterWrite(remindAt: remindAt);
-  });
+  }) async {
+    Commitment? created;
+    await _write(() async {
+      created = await ref
+          .read(commitmentsRepositoryProvider)
+          .create(
+            type: CommitmentType.project,
+            title: title,
+            totalTarget: totalTarget,
+            dailyCommitment: dailyCommitment,
+            note: note,
+            remindAt: remindAt,
+            goalUuid: goalUuid,
+            deadline: deadline,
+          );
+      await _afterWrite(remindAt: remindAt);
+    });
+    return created;
+  }
 
-  Future<void> createTodo({
+  Future<Commitment?> createTodo({
     required String title,
     required HarvestDay dueDay,
     String? note,
     String? remindAt,
-  }) => _write(() async {
-    await ref
-        .read(commitmentsRepositoryProvider)
-        .create(
-          type: CommitmentType.todo,
-          title: title,
-          dueDay: dueDay,
-          note: note,
-          remindAt: remindAt,
-        );
-    await _afterWrite(remindAt: remindAt);
-  });
+    String? goalUuid,
+  }) async {
+    Commitment? created;
+    await _write(() async {
+      created = await ref
+          .read(commitmentsRepositoryProvider)
+          .create(
+            type: CommitmentType.todo,
+            title: title,
+            dueDay: dueDay,
+            note: note,
+            remindAt: remindAt,
+            goalUuid: goalUuid,
+          );
+      await _afterWrite(remindAt: remindAt);
+    });
+    return created;
+  }
 
   Future<void> archive(String uuid, {String? note}) => _write(() async {
     await ref.read(commitmentsRepositoryProvider).archive(uuid, note: note);

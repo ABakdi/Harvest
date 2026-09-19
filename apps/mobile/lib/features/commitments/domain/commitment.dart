@@ -22,6 +22,7 @@ class Commitment {
     this.pausedAt,
     this.archivedAt,
     this.archiveNote,
+    this.goalUuid,
   }) : assert(
          type != CommitmentType.habit || schedule != null,
          'habits need a schedule',
@@ -65,6 +66,9 @@ class Commitment {
   /// Why it was archived, written at the moment it was put away.
   final String? archiveNote;
 
+  /// The goal this seed serves ([[Goals]]); a link, never an owner.
+  final String? goalUuid;
+
   bool get isArchived => archivedAt != null;
   bool get isPaused => pausedAt != null;
 
@@ -92,6 +96,8 @@ class Commitment {
     bool clearRemindAt = false,
     bool clearDeadline = false,
     bool clearDueDay = false,
+    String? goalUuid,
+    bool clearGoal = false,
   }) => Commitment(
     uuid: uuid,
     type: type,
@@ -107,6 +113,7 @@ class Commitment {
     pausedAt: pausedAt,
     archivedAt: archivedAt ?? this.archivedAt,
     archiveNote: archiveNote ?? this.archiveNote,
+    goalUuid: clearGoal ? null : goalUuid ?? this.goalUuid,
   );
 }
 

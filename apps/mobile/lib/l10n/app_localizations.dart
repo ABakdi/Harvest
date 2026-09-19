@@ -5293,6 +5293,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Worked out from the weight and the reps, not a single you actually pulled.'**
   String get gymEstimatedHint;
+
+  /// No description provided for @fieldTabToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get fieldTabToday;
+
+  /// No description provided for @fieldTabGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get fieldTabGoals;
+
+  /// No description provided for @goalsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No goals yet'**
+  String get goalsEmptyTitle;
+
+  /// No description provided for @goalsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to write down something a streak cannot hold.'**
+  String get goalsEmptyBody;
+
+  /// No description provided for @goalNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get goalNew;
+
+  /// No description provided for @goalEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit goal'**
+  String get goalEdit;
+
+  /// No description provided for @goalTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What I\'m working toward'**
+  String get goalTitleLabel;
+
+  /// No description provided for @goalTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Run a half marathon'**
+  String get goalTitleHint;
+
+  /// No description provided for @goalWhyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why'**
+  String get goalWhyLabel;
+
+  /// No description provided for @goalWhyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Because…'**
+  String get goalWhyHint;
+
+  /// No description provided for @goalTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Target day'**
+  String get goalTargetDay;
+
+  /// No description provided for @goalNoTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No target day'**
+  String get goalNoTargetDay;
+
+  /// No description provided for @goalDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Today} =1{1 day left} other{{count} days left}}'**
+  String goalDaysLeft(int count);
+
+  /// No description provided for @goalDaysPast.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day past} other{{count} days past}}'**
+  String goalDaysPast(int count);
+
+  /// No description provided for @goalNeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'What it takes'**
+  String get goalNeeds;
+
+  /// No description provided for @goalSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get goalSteps;
+
+  /// No description provided for @goalSeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeds'**
+  String get goalSeeds;
+
+  /// No description provided for @goalAddNeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Add something it takes'**
+  String get goalAddNeed;
+
+  /// No description provided for @goalAddStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a step'**
+  String get goalAddStep;
+
+  /// No description provided for @goalAddWhatItTakes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what it takes'**
+  String get goalAddWhatItTakes;
+
+  /// No description provided for @goalNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {step}'**
+  String goalNext(String step);
+
+  /// No description provided for @goalMarkAchieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark achieved'**
+  String get goalMarkAchieved;
+
+  /// No description provided for @goalAchievedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved. +{xp} XP'**
+  String goalAchievedToast(int xp);
+
+  /// No description provided for @goalReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get goalReopen;
+
+  /// No description provided for @goalDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop'**
+  String get goalDrop;
+
+  /// No description provided for @goalDropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop this goal?'**
+  String get goalDropTitle;
+
+  /// No description provided for @goalDropBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its seeds keep going. A line on why, if you like.'**
+  String get goalDropBody;
+
+  /// No description provided for @goalDropNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now, because…'**
+  String get goalDropNoteHint;
+
+  /// No description provided for @goalDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete goal'**
+  String get goalDelete;
+
+  /// No description provided for @goalDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal deleted'**
+  String get goalDeleted;
+
+  /// No description provided for @goalItemRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get goalItemRemoved;
+
+  /// No description provided for @goalPlant.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant as a seed'**
+  String get goalPlant;
+
+  /// No description provided for @goalPlanted.
+  ///
+  /// In en, this message translates to:
+  /// **'Planted'**
+  String get goalPlanted;
+
+  /// No description provided for @goalAchievedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved'**
+  String get goalAchievedSection;
+
+  /// No description provided for @goalDroppedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropped'**
+  String get goalDroppedSection;
+
+  /// No description provided for @goalEditItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get goalEditItem;
+
+  /// No description provided for @goalServes.
+  ///
+  /// In en, this message translates to:
+  /// **'Serves'**
+  String get goalServes;
+
+  /// No description provided for @goalServesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal'**
+  String get goalServesNone;
+
+  /// No description provided for @goalSeedArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'archived'**
+  String get goalSeedArchived;
+
+  /// No description provided for @goalComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Every item is ticked.'**
+  String get goalComplete;
+
+  /// No description provided for @goalOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal options'**
+  String get goalOptions;
+
+  /// No description provided for @goalItemOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Item options'**
+  String get goalItemOptions;
 }
 
 class _AppLocalizationsDelegate

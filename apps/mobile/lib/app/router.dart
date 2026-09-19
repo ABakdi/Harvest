@@ -10,6 +10,7 @@ import 'package:harvest/features/farmer/presentation/farmer_screen.dart';
 import 'package:harvest/features/field/field_screen.dart';
 import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/gallery/presentation/album_screen.dart';
+import 'package:harvest/features/goals/presentation/goal_screen.dart';
 import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_screen.dart';
@@ -28,6 +29,9 @@ abstract final class AppRoutes {
 
   /// The seed detail screen; append the seed's uuid.
   static const seed = '/field/seed';
+
+  /// A goal's own screen ([[Goals]]); append the goal's uuid.
+  static const goal = '/field/goal';
   static const finances = '/finances';
 
   /// The farmer's own tab: progress and settings, two halves of one
@@ -133,6 +137,12 @@ GoRouter router(Ref ref) {
                   GoRoute(
                     path: 'seed/:uuid',
                     builder: (context, state) => SeedDetailScreen(
+                      uuid: state.pathParameters['uuid']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'goal/:uuid',
+                    builder: (context, state) => GoalScreen(
                       uuid: state.pathParameters['uuid']!,
                     ),
                   ),

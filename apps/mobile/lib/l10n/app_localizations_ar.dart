@@ -3205,4 +3205,155 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gymEstimatedHint =>
       'محسوبة من الوزن والتكرار، لا رفعة واحدة أدّيتها فعلًا.';
+
+  @override
+  String get fieldTabToday => 'اليوم';
+
+  @override
+  String get fieldTabGoals => 'الأهداف';
+
+  @override
+  String get goalsEmptyTitle => 'لا أهداف بعد';
+
+  @override
+  String get goalsEmptyBody => 'اضغط + لتكتب شيئًا لا تحمله سلسلة الأيام.';
+
+  @override
+  String get goalNew => 'هدف جديد';
+
+  @override
+  String get goalEdit => 'تعديل الهدف';
+
+  @override
+  String get goalTitleLabel => 'ما أعمل من أجله';
+
+  @override
+  String get goalTitleHint => 'أركض نصف ماراثون';
+
+  @override
+  String get goalWhyLabel => 'لماذا';
+
+  @override
+  String get goalWhyHint => 'لأن…';
+
+  @override
+  String get goalTargetDay => 'يوم الهدف';
+
+  @override
+  String get goalNoTargetDay => 'بلا يوم محدد';
+
+  @override
+  String goalDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بقي $count يومًا',
+      few: 'بقيت $count أيام',
+      two: 'بقي يومان',
+      one: 'بقي يوم واحد',
+      zero: 'اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String goalDaysPast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مضى $count يومًا',
+      few: 'مضت $count أيام',
+      two: 'مضى يومان',
+      one: 'مضى يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get goalNeeds => 'ما يتطلبه';
+
+  @override
+  String get goalSteps => 'الخطوات';
+
+  @override
+  String get goalSeeds => 'البذور';
+
+  @override
+  String get goalAddNeed => 'أضف شيئًا يتطلبه';
+
+  @override
+  String get goalAddStep => 'أضف خطوة';
+
+  @override
+  String get goalAddWhatItTakes => 'أضف ما يتطلبه';
+
+  @override
+  String goalNext(String step) {
+    return 'التالي: $step';
+  }
+
+  @override
+  String get goalMarkAchieved => 'تحقّق';
+
+  @override
+  String goalAchievedToast(int xp) {
+    return 'تحقّق. +$xp نقطة خبرة';
+  }
+
+  @override
+  String get goalReopen => 'إعادة فتح';
+
+  @override
+  String get goalDrop => 'تخلٍّ';
+
+  @override
+  String get goalDropTitle => 'التخلي عن هذا الهدف؟';
+
+  @override
+  String get goalDropBody => 'بذوره تستمر. سطر عن السبب، إن شئت.';
+
+  @override
+  String get goalDropNoteHint => 'ليس الآن، لأن…';
+
+  @override
+  String get goalDelete => 'حذف الهدف';
+
+  @override
+  String get goalDeleted => 'حُذف الهدف';
+
+  @override
+  String get goalItemRemoved => 'أُزيل';
+
+  @override
+  String get goalPlant => 'ازرعه بذرة';
+
+  @override
+  String get goalPlanted => 'مزروع';
+
+  @override
+  String get goalAchievedSection => 'المتحققة';
+
+  @override
+  String get goalDroppedSection => 'المتروكة';
+
+  @override
+  String get goalEditItem => 'تعديل';
+
+  @override
+  String get goalServes => 'يخدم';
+
+  @override
+  String get goalServesNone => 'بلا هدف';
+
+  @override
+  String get goalSeedArchived => 'مؤرشفة';
+
+  @override
+  String get goalComplete => 'كل البنود مُنجزة.';
+
+  @override
+  String get goalOptions => 'خيارات الهدف';
+
+  @override
+  String get goalItemOptions => 'خيارات البند';
 }

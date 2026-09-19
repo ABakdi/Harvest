@@ -99,6 +99,9 @@ class CheckInService {
         ),
       );
       await _outbox(checkInUuid, 'insert');
+      if (commitment.type == CommitmentType.todo) {
+        await _tickGoalItems(commitment.uuid, done: true);
+      }
       return capped
           ? CheckInCapped(quantityLogged: toLog, xpEarned: xp)
           : CheckInSuccess(quantityLogged: toLog, xpEarned: xp);
@@ -152,6 +155,9 @@ class CheckInService {
         }
         await _outbox(row.uuid, 'update');
       }
+      if (rows.isNotEmpty && commitment.type == CommitmentType.todo) {
+        await _tickGoalItems(commitment.uuid, done: false);
+      }
     });
     await _streaks.onUndo(commitment, harvestDay);
   }
@@ -167,6 +173,36 @@ class CheckInService {
       );
     final row = await query.getSingle();
     return row.read(quantity) ?? 0;
+  }
+
+  /// A to-do planted from a goal ticks the item it came from, and an
+  /// undone check-in un-ticks it ([[Goals]] GL3). The only thing that
+  /// ever changes an item without my hand, and it runs inside the
+  /// check-in's own transaction so the two cannot disagree.
+  Future<void> _tickGoalItems(
+    String commitmentUuid, {
+    required bool done,
+  }) async {
+    final items =
+        await (_db.select(_db.goalItems)..where(
+              (i) =>
+                  i.commitmentUuid.equals(commitmentUuid) &
+                  i.deletedAt.isNull(),
+            ))
+            .get();
+    final now = DateTime.now();
+    for (final item in items) {
+      if ((item.doneAt != null) == done) continue;
+      await (_db.update(
+        _db.goalItems,
+      )..where((i) => i.uuid.equals(item.uuid))).write(
+        GoalItemsCompanion(
+          doneAt: Value(done ? now : null),
+          updatedAt: Value(now),
+        ),
+      );
+      await _db.logChange('goal_items', item.uuid, 'update');
+    }
   }
 
   Future<void> _outbox(String uuid, String op) =>

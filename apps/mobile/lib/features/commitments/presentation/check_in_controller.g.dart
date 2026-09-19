@@ -109,7 +109,7 @@ final class CommitmentEditorProvider
   }
 }
 
-String _$commitmentEditorHash() => r'5f046424eb3a127fceaac8cd81a9e95ad2c69adb';
+String _$commitmentEditorHash() => r'a71cc42a1e7938b33a87b1d5e41e7e0f48ebbf45';
 
 /// Creates, edits, pauses and archives seeds. Every write replans the
 /// reminders; a newly set reminder time asks the OS once for permission.

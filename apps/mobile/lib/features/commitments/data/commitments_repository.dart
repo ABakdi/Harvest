@@ -45,6 +45,15 @@ class CommitmentsRepository {
   }
 
   /// Archived seeds, most recently put away first — the archive screen.
+  /// Every seed that serves [goalUuid], archived ones included — the
+  /// goal shows them as archived rather than forgetting them (GL5).
+  Stream<List<Commitment>> watchForGoal(String goalUuid) {
+    final query = _db.select(_db.commitments)
+      ..where((c) => c.goalUuid.equals(goalUuid) & c.deletedAt.isNull())
+      ..orderBy([(c) => OrderingTerm.asc(c.createdAt)]);
+    return query.watch().map(_toDomainList);
+  }
+
   Stream<List<Commitment>> watchArchived() {
     final query = _db.select(_db.commitments)
       ..where((c) => c.archivedAt.isNotNull() & c.deletedAt.isNull())
@@ -193,6 +202,7 @@ class CommitmentsRepository {
     String? remindAt,
     HarvestDay? deadline,
     DateTime? createdAt,
+    String? goalUuid,
   }) async {
     final commitment = Commitment(
       uuid: _uuid.v4(),
@@ -208,6 +218,7 @@ class CommitmentsRepository {
       note: note,
       remindAt: remindAt,
       deadline: deadline,
+      goalUuid: goalUuid,
     );
     await _db.transaction(() async {
       await _db.into(_db.commitments).insert(_toRow(commitment));
@@ -377,6 +388,7 @@ class CommitmentsRepository {
       pausedAt: row.pausedAt,
       archivedAt: row.archivedAt,
       archiveNote: row.archiveNote,
+      goalUuid: row.goalUuid,
     );
   }
 
@@ -397,6 +409,7 @@ class CommitmentsRepository {
     pausedAt: Value(c.pausedAt),
     archivedAt: Value(c.archivedAt),
     archiveNote: Value(c.archiveNote),
+    goalUuid: Value(c.goalUuid),
   );
 }
 

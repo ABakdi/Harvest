@@ -14,6 +14,7 @@ import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
 import 'package:harvest/core/ui/widgets/deadline_countdown.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
+import 'package:harvest/core/ui/widgets/harvest_tabs.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/reminder_countdown.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
@@ -39,6 +40,8 @@ import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
+import 'package:harvest/features/goals/presentation/goal_editor_sheet.dart';
+import 'package:harvest/features/goals/presentation/goals_board.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
@@ -53,21 +56,41 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// Clearance under the list so the floating action never covers a crop.
 const _fabClearance = 96.0;
 
-class FieldScreen extends ConsumerWidget {
+class FieldScreen extends ConsumerStatefulWidget {
   const FieldScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FieldScreen> createState() => _FieldScreenState();
+}
+
+/// Today and Goals ([[Goals]]): the field where I act, and the board
+/// where I plan. One screen, because the board is where the field's
+/// seeds come from.
+class _FieldScreenState extends ConsumerState<FieldScreen>
+    with SingleTickerProviderStateMixin {
+  late final _tabs = TabController(length: 2, vsync: this);
+
+  @override
+  void initState() {
+    super.initState();
+    // The floating button follows the tab: a seed on Today, a goal on
+    // the board.
+    _tabs.addListener(() {
+      if (!_tabs.indexIsChanging) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final items = ref.watch(todayFieldProvider);
-    // Scheduled albums are seeds too (rule G3) — but only when the
-    // gallery is on, and only then is anything even queried.
-    final albums = ref.watch(galleryEnabledProvider)
-        ? ref.watch(albumsDueTodayProvider)
-        : const <({Album album, bool done})>[];
-    final xp = ref.watch(xpTotalProvider).value ?? 0;
     final streak = ref.watch(globalStreakProvider).value;
-    final budget = ref.watch(budgetSnapshotProvider);
+    final onGoals = _tabs.index == 1;
 
     return Scaffold(
       appBar: AppBar(
@@ -106,59 +129,94 @@ class FieldScreen extends ConsumerWidget {
             ),
           ),
         ],
+        bottom: HarvestTabs(
+          controller: _tabs,
+          tabs: [
+            (icon: Icons.grass_outlined, label: l10n.fieldTabToday),
+            (icon: Icons.flag_outlined, label: l10n.fieldTabGoals),
+          ],
+        ),
       ),
       floatingActionButton: HarvestFab(
-        onPressed: () => unawaited(showCommitmentEditor(context)),
-        label: l10n.addCommitment,
+        onPressed: () => unawaited(
+          onGoals ? showGoalEditor(context) : showCommitmentEditor(context),
+        ),
+        label: onGoals ? l10n.goalNew : l10n.addCommitment,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: HarvestSpacing.md),
-            child: _FieldHeader(
-              xp: xp,
-              rankLabel: _rankLabel(l10n, FarmerRank.forXp(xp)),
-              budget: budget,
-            ),
-          ),
-          const SizedBox(height: HarvestSpacing.sm),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                HarvestSpacing.md,
-                HarvestSpacing.sm,
-                HarvestSpacing.md,
-                _fabClearance,
-              ),
-              children: [
-                if (items.isEmpty && albums.isEmpty)
-                  const _EmptyField()
-                else ...[
-                  for (final item in items)
-                    _CropTile(key: ValueKey(item.commitment.uuid), item: item)
-                        // Keyed on the wrapper too: done crops sort
-                        // down, and an unkeyed Animate would rebuild the
-                        // tile mid-check-in ([[Audit-v2]] U3-09).
-                        .animate(key: ValueKey('anim:${item.commitment.uuid}'))
-                        .fadeIn(duration: 220.ms)
-                        .slideY(begin: 0.05, curve: Curves.easeOut),
-                  for (final entry in albums)
-                    AlbumCropTile(
-                          key: ValueKey('album:${entry.album.uuid}'),
-                          album: entry.album,
-                          done: entry.done,
-                        )
-                        .animate()
-                        .fadeIn(duration: 220.ms)
-                        .slideY(begin: 0.05, curve: Curves.easeOut),
-                ],
-                const SizedBox(height: HarvestSpacing.sm),
-                const _TomorrowCard(),
-              ],
-            ),
-          ),
+      body: TabBarView(
+        controller: _tabs,
+        children: const [
+          _TodayTab(),
+          GoalsBoard(),
         ],
       ),
+    );
+  }
+}
+
+/// The day's crops under the rank, XP and budget header.
+class _TodayTab extends ConsumerWidget {
+  const _TodayTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final items = ref.watch(todayFieldProvider);
+    // Scheduled albums are seeds too (rule G3) — but only when the
+    // gallery is on, and only then is anything even queried.
+    final albums = ref.watch(galleryEnabledProvider)
+        ? ref.watch(albumsDueTodayProvider)
+        : const <({Album album, bool done})>[];
+    final xp = ref.watch(xpTotalProvider).value ?? 0;
+    final budget = ref.watch(budgetSnapshotProvider);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: HarvestSpacing.md),
+          child: _FieldHeader(
+            xp: xp,
+            rankLabel: _rankLabel(l10n, FarmerRank.forXp(xp)),
+            budget: budget,
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              HarvestSpacing.md,
+              HarvestSpacing.sm,
+              HarvestSpacing.md,
+              _fabClearance,
+            ),
+            children: [
+              if (items.isEmpty && albums.isEmpty)
+                const _EmptyField()
+              else ...[
+                for (final item in items)
+                  _CropTile(key: ValueKey(item.commitment.uuid), item: item)
+                      // Keyed on the wrapper too: done crops sort
+                      // down, and an unkeyed Animate would rebuild the
+                      // tile mid-check-in ([[Audit-v2]] U3-09).
+                      .animate(key: ValueKey('anim:${item.commitment.uuid}'))
+                      .fadeIn(duration: 220.ms)
+                      .slideY(begin: 0.05, curve: Curves.easeOut),
+                for (final entry in albums)
+                  AlbumCropTile(
+                        key: ValueKey('album:${entry.album.uuid}'),
+                        album: entry.album,
+                        done: entry.done,
+                      )
+                      .animate()
+                      .fadeIn(duration: 220.ms)
+                      .slideY(begin: 0.05, curve: Curves.easeOut),
+              ],
+              const SizedBox(height: HarvestSpacing.sm),
+              const _TomorrowCard(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
