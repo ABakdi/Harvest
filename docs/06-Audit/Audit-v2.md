@@ -771,7 +771,7 @@ does another. Every row was checked against the code.
 | D3-12 | [[Core-Entities]] | "Six entities"; steps summed from the sensor | Vault entities missing; Health Connect first (H2) |
 | D3-13 | [[Architecture-Overview]] | `health/ # Phase 3`, `screentime/ # Phase 4`, a `GamificationService`, the quest generator | Eight feature folders missing from the tree; no `screentime/`; `StreakService`; quests parked |
 | D3-14 | Sync is "Phase 5" | [[Sync-Strategy]], [[ADR-002-Local-Database]], [[ADR-005-Local-First-Sync]], [[ADR-006-Export-Format]], [[Architecture-Overview]], README | Phase 6 since screen time moved ahead; [[Sync-Strategy]] still calls the export one `.xlsx` |
-| D3-15 | Old phase numbers and parked quests | [[Screen-Time]] "Phase 4 module", [[Pomodoro]], [[Notifications]], [[Productivity-Engine]], [[Phase-5-Screen-Time]] ("screen-time quests"), [[Home]] ("coins, quests"), [[Product-Requirements]] ("next comes notes") | Screen time is Phase 5; quests are parked; v1.1 and v2.0 shipped |
+| D3-15 | Old phase numbers and parked quests | [[Screen-Time]] "Phase 4 module", [[Pomodoro]], [[Notifications]], [[Productivity-Engine]], [[Phase-7-Screen-Time]] ("screen-time quests"), [[Home]] ("coins, quests"), [[Product-Requirements]] ("next comes notes") | Screen time is Phase 5; quests are parked; v1.1 and v2.0 shipped |
 | D3-16 | README | Project layout without `body`, `farmer`, `gallery`, `gym`, `health`, `import`, `notes`, `records`; `drift_schemas` "v1 … v9"; Phase 4 row unticked | Eight more features; v14; shipped |
 
 **Written nowhere:** the coin amounts. Milestones pay

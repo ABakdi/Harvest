@@ -1,6 +1,6 @@
 # Sync Strategy — Local-First, Server Later
 
-The rule ([[Business-Rules]] #5): the app is complete without a network. Sync, arriving in [[Phase-6-Sync-and-Social]], adds cross-device convenience and rankings — it never becomes a dependency.
+The rule ([[Business-Rules]] #5): the app is complete without a network. Sync, arriving in [[Phase-6-Sync-Accounts-and-Web]], adds a second device — the web app ([[Web]]) — and later rankings; it never becomes a dependency. The wire contract is [[Sync-API]].
 
 ## Why this shape
 
@@ -8,7 +8,7 @@ The server will run **MongoDB**. That does *not* require a document database on 
 
 ## The outbox pattern
 
-Every local write appends an `outbox` row from day one. Phase 5 just adds the drain:
+Every local write appends an `outbox` row from day one. Phase 6 just adds the drain:
 
 ```mermaid
 sequenceDiagram
@@ -45,7 +45,9 @@ Rankings/leaderboards consume only the gamification aggregates — total XP, str
 ## Privacy tiers (audit S-10)
 
 The finance tables — `expenses`, `money_txns`, `debts`, `debt_payments`,
-`expense_categories` — sync **end-to-end encrypted or not at all**, my
+`expense_categories` — and, from [[Phase-5-Goals-Places-and-Voice]], the
+location tables — `location_points`, `geotags`, `saved_places`
+([[Places]] PL6) — sync **end-to-end encrypted or not at all**, my
 choice, and `debts` holds third-party names, so it never leaves the
 device in plaintext under any setting. Everything else (commitments,
 check-ins, streaks, the ledger) syncs under the ordinary account
@@ -53,10 +55,10 @@ encryption.
 
 ## The spreadsheet is the first half of sync ([[Checkpoint-2]])
 
-Phase 5 is a long way off and until it lands the data has exactly one
-home. The **workbook export** is the stopgap that is also the first
-step: one `.xlsx` holding every table, which Google Sheets imports with
-its formulas live.
+Until sync lands the data has exactly one home. The **workbook export** is the stopgap that is also the first
+step: first one `.xlsx` holding every table, and since Phase 3 a zip
+archive that carries that workbook beside the notes and pictures
+([[ADR-007-Archive-Format]]).
 
 The shape is deliberately a contract, not a dump — fixed English sheet
 names and headers, money in minor units, ISO-8601 timestamps,

@@ -107,6 +107,6 @@ privacy ([[Business-Rules]] #6) still applies to what leaves the device
 automatically — which is nothing.
 
 **Deliberately not done.** No cloud, no sync, no account. That is
-[[Phase-6-Sync-and-Social]], and the whole point of getting the archive
+[[Phase-8-Social-and-Reach]], and the whole point of getting the archive
 right first is that Phase 6 then has a shape to write into rather than
 one to invent.

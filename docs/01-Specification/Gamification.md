@@ -41,6 +41,7 @@ which deriving it from activity would have dropped.
 | Screen time kept under cap | +20 |
 | Daily expenses logged | +10 |
 | Pomodoro session completed | +5 |
+| Goal achieved ([[Goals]] GL4) | +50 |
 
 A gym session earns what a habit earns — **+10, once** — however heavy
 the day was: going is one productive action, and paying by the set

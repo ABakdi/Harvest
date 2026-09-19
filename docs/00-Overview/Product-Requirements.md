@@ -62,7 +62,7 @@ health, screen time, and sync. Details and milestones in the
 
 ## 7. Later (post-V1)
 
-- **Server sync + rankings** on MongoDB — [[Phase-6-Sync-and-Social]]
+- **Server sync + rankings** on MongoDB — [[Phase-8-Social-and-Reach]]
 - **Social guilds:** 2–5 person accountability groups with anonymous streak visibility
 - **Soundscapes:** unlockable ambient nature audio for focus sessions
 - **Insights coach:** weekly personalized summaries correlating sleep, screen and spending data

@@ -67,7 +67,7 @@ A shareable summary card:
 
 ## Home-screen widget ✅ ([[Checkpoint-3]])
 
-Shipped early, out of [[Phase-6-Sync-and-Social]]: nothing about a
+Shipped early, out of [[Phase-8-Social-and-Reach]]: nothing about a
 widget needs a sync server.
 
 A **bar, not a tile** — four cells wide, one header row, resizable both
@@ -114,6 +114,6 @@ painter with no assets, and it never causes the wait — the screen leaves
 when the tree has grown *and* startup has landed, and with reduce-motion
 on the tree is simply there.
 
-## Web dashboard (later, with [[Phase-6-Sync-and-Social]])
+## Web dashboard (later, with [[Phase-8-Social-and-Reach]])
 
 "The Field" as a bird's-eye grid, with keyboard-shortcut quick-log for desk time.

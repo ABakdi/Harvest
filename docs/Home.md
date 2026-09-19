@@ -22,6 +22,10 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Finances]] — expense logging and budgets
 - [[Health]] — sleep, steps and body weight
 - [[Gym]] — programs, sessions, sets and personal records
+- [[Goals]] — the board on the field: what it takes, and the seeds that get me there
+- [[Places]] — the trail, a geotag on every action, and the map
+- [[Accounts]] — the optional account, and what it holds
+- [[Web]] — the home page, the PWA, and the app in a browser
 - [[Screen-Time]] — usage caps and interventions
 - [[Onboarding]] — first-run experience
 - [[Dashboard-and-Widgets]] — home screen, reports, widgets
@@ -32,6 +36,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[State-Management]] — Riverpod conventions
 - [[Local-Database]] — Drift schema and repositories
 - [[Sync-Strategy]] — local-first now, MongoDB sync later
+- [[Sync-API]] — the wire contract: records, push, pull, errors
 - [[Theming-and-Design-System]] — colors, type, motion, dark/light
 - [[Localization]] — English + Arabic, RTL
 - [[Notifications-and-Background]] — scheduling, 3 AM reset, alarms
@@ -43,8 +48,10 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-2-Finances]]
 - [[Phase-3-Notes-and-Gallery]]
 - [[Phase-4-Health-and-Gym]]
-- [[Phase-5-Screen-Time]] ← **next**
-- [[Phase-6-Sync-and-Social]]
+- [[Phase-5-Goals-Places-and-Voice]] ← **next**
+- [[Phase-6-Sync-Accounts-and-Web]]
+- [[Phase-7-Screen-Time]]
+- [[Phase-8-Social-and-Reach]]
 
 ### 🏁 Checkpoints
 - [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list
@@ -71,6 +78,11 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[ADR-006-Export-Format]] — the workbook is the backup format
 - [[ADR-007-Archive-Format]] — the archive is a zip, and it comes back
 - [[ADR-008-Exercise-Catalogue]] — the exercise list is borrowed, the animations are fetched
+- [[ADR-009-Monorepo]] — one repository for the phone, the web and the server
+- [[ADR-010-Maps]] — MapLibre on OpenFreeMap, never Google
+- [[ADR-011-Backend]] — Express 5, TypeScript, zod, MongoDB
+- [[ADR-012-Web-Client]] — the web is local-first too
+- [[ADR-013-Assist-Providers]] — one interface, my own key first
 
 ## The big picture
 
