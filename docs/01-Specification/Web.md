@@ -64,9 +64,9 @@ wide screen:
 
 | Milestone | Screens |
 | :--- | :--- |
-| M6.4 | Public site, install, accounts, the app shell, settings, sync status |
-| M6.5 | Field (today, check-ins, undo), seeds (plant, edit, archive), Goals board, Notes (editor, folders, links, search), expenses (log, edit, the month) |
-| M6.6 | Vault, budgets, calendar, stats, farmer and streak details, Gallery (view; upload once files sync), Body (sleep, weight, steps view), Gym (programs, history; sessions stay phone-first), Places (the map, day and range views) |
+| M6.5 | Public site, install, accounts, the app shell, settings, sync status |
+| M6.6 | Field (today, check-ins, undo), seeds (plant, edit, archive), Goals board, Notes (editor, folders, links, search), expenses (log, edit, the month) |
+| M6.7 | Vault, budgets, calendar, stats, farmer and streak details, Gallery (view; upload once files sync), Body (sleep, weight, steps view), Gym (programs, history; sessions stay phone-first), Places (the map, day and range views) |
 
 Some things stay **phone-only by nature**: the alarms, the steps
 source, the trail recorder, the camera flow, the home-screen widget
