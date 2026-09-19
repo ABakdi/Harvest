@@ -20,6 +20,7 @@ import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/data/sleep_repository.dart';
 import 'package:harvest/features/import/domain/archive_reader.dart';
 import 'package:harvest/features/import/domain/import_service.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 
 import '../../support/temp_gallery_storage.dart';
@@ -49,7 +50,11 @@ void main() {
     targetRoot = await Directory.systemTemp.createTemp('harvest-import-dst');
     sourceStorage = TempGalleryStorage(sourceRoot);
     targetStorage = TempGalleryStorage(targetRoot);
-    importer = ImportService(target, targetStorage);
+    importer = ImportService(
+      target,
+      targetStorage,
+      AttachmentStorage(documents: () async => targetRoot),
+    );
   });
 
   tearDown(() async {
@@ -65,6 +70,7 @@ void main() {
     final bytes = await ArchiveService(
       ExportRepository(source),
       sourceStorage,
+      AttachmentStorage(documents: () async => sourceRoot),
     ).build();
     return readArchive(bytes);
   }

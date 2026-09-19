@@ -48,4 +48,4 @@ final class ArchiveServiceProvider
   }
 }
 
-String _$archiveServiceHash() => r'33082ef18fe31fe2044ea87f09de0cc15db67446';
+String _$archiveServiceHash() => r'3cc53ad8dde5460092acb71adb274b0e86d407d5';

@@ -10,7 +10,10 @@ typedef ExportData = ({
   List<List<Object?>> seeds,
   List<List<Object?>> checkIns,
   List<List<Object?>> seedNotes,
+  List<List<Object?>> goals,
+  List<List<Object?>> goalItems,
   List<List<Object?>> expenses,
+  List<List<Object?>> categories,
   List<List<Object?>> money,
   List<List<Object?>> debts,
   List<List<Object?>> debtPayments,
@@ -19,6 +22,7 @@ typedef ExportData = ({
   List<List<Object?>> streaks,
   List<List<Object?>> settings,
   List<List<Object?>> notes,
+  List<List<Object?>> noteAttachments,
   List<List<Object?>> albums,
   List<List<Object?>> memories,
   List<List<Object?>> steps,
@@ -33,6 +37,9 @@ typedef ExportData = ({
   List<List<Object?>> sessions,
   List<List<Object?>> sessionExercises,
   List<List<Object?>> sets,
+  List<List<Object?>> savedPlaces,
+  List<List<Object?>> locationPoints,
+  List<List<Object?>> geotags,
 });
 
 /// Everything the zip is written from: the rows, and the files the
@@ -46,6 +53,10 @@ typedef ArchiveContents = ({
   /// One picture or clip, at the path its row names, read back out of
   /// the gallery directory by [storedPath].
   List<({String path, String storedPath})> memories,
+
+  /// One recording, beside its note's `.md`, read back out of the
+  /// attachments directory by [storedPath] ([[Notes]] N7).
+  List<({String path, String storedPath})> attachments,
 });
 
 /// Sheet names are part of the file's contract with a future sync, so
@@ -55,7 +66,13 @@ abstract final class SheetNames {
   static const seeds = 'Seeds';
   static const checkIns = 'CheckIns';
   static const seedNotes = 'SeedNotes';
+  static const goals = 'Goals';
+  static const goalItems = 'GoalItems';
   static const expenses = 'Expenses';
+
+  /// The categories I made myself (`expense_categories`); the presets
+  /// ship with the app and are not mine to carry.
+  static const categories = 'Categories';
   static const money = 'Money';
   static const debts = 'Debts';
   static const debtPayments = 'DebtPayments';
@@ -64,6 +81,7 @@ abstract final class SheetNames {
   static const streaks = 'Streaks';
   static const settings = 'Settings';
   static const notes = 'Notes';
+  static const noteAttachments = 'NoteAttachments';
   static const albums = 'Albums';
   static const memories = 'Memories';
   static const steps = 'Steps';
@@ -81,6 +99,12 @@ abstract final class SheetNames {
   static const sessions = 'Sessions';
   static const sessionExercises = 'SessionExercises';
   static const sets = 'Sets';
+
+  // Places: private-tier ([[Places]] PL6), and in the archive all the
+  // same, because a backup that leaves out a table is not a backup.
+  static const savedPlaces = 'SavedPlaces';
+  static const locationPoints = 'LocationPoints';
+  static const geotags = 'Geotags';
 }
 
 /// Minor units to major, as a live formula rather than a Dart division
@@ -99,6 +123,16 @@ const _albumName =
     '=IFERROR(VLOOKUP({AlbumUuid}{row},'
     '${SheetNames.albums}!\$A:\$B,2,FALSE),"")';
 
+/// A goal's title from its uuid, for the items sheet.
+const _goalTitle =
+    '=IFERROR(VLOOKUP({GoalUuid}{row},'
+    '${SheetNames.goals}!\$A:\$B,2,FALSE),"")';
+
+/// A note's title from its uuid, so a recording reads as whose it is.
+const _noteTitle =
+    '=IFERROR(VLOOKUP({NoteUuid}{row},'
+    '${SheetNames.notes}!\$A:\$B,2,FALSE),"")';
+
 /// Lays out the whole workbook: one sheet per table, plus a Summary
 /// whose every number is a formula over the others.
 List<ExportSheet> harvestSheets(ExportData data) {
@@ -115,6 +149,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'Note',
       'RemindAt',
       'Deadline',
+      'GoalUuid',
       'PausedAt',
       'ArchivedAt',
       'ArchiveNote',
@@ -155,6 +190,43 @@ List<ExportSheet> harvestSheets(ExportData data) {
     derived: const [(header: 'Seed', template: _seedTitle)],
   );
 
+  final goals = ExportSheet(
+    name: SheetNames.goals,
+    headers: const [
+      'Uuid',
+      'Title',
+      'Why',
+      'TargetDay',
+      'Status',
+      'StatusNote',
+      'AchievedAt',
+      'Position',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.goals,
+  );
+
+  final goalItems = ExportSheet(
+    name: SheetNames.goalItems,
+    headers: const [
+      'Uuid',
+      'GoalUuid',
+      'Kind',
+      'Body',
+      'Note',
+      'DoneAt',
+      'Position',
+      'CommitmentUuid',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.goalItems,
+    derived: const [(header: 'Goal', template: _goalTitle)],
+  );
+
   final expenses = ExportSheet(
     name: SheetNames.expenses,
     headers: const [
@@ -170,6 +242,12 @@ List<ExportSheet> harvestSheets(ExportData data) {
     ],
     rows: data.expenses,
     derived: [(header: 'Amount', template: _major('AmountMinor'))],
+  );
+
+  final categories = ExportSheet(
+    name: SheetNames.categories,
+    headers: const ['Uuid', 'Name', 'Icon', 'UpdatedAt', 'DeletedAt'],
+    rows: data.categories,
   );
 
   final money = ExportSheet(
@@ -304,6 +382,28 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'DeletedAt',
     ],
     rows: data.notes,
+  );
+
+  // A recording is a file beside its note ([[Notes]] N7): `File` is
+  // where it sits in the zip, next to the `.md` that embeds it, and
+  // `FileName` is the name the body's `![[...]]` line uses.
+  final noteAttachments = ExportSheet(
+    name: SheetNames.noteAttachments,
+    headers: const [
+      'Uuid',
+      'NoteUuid',
+      'Kind',
+      'FileName',
+      'File',
+      'StoredPath',
+      'DurationMs',
+      'SizeBytes',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.noteAttachments,
+    derived: const [(header: 'Note', template: _noteTitle)],
   );
 
   final albums = ExportSheet(
@@ -530,11 +630,69 @@ List<ExportSheet> harvestSheets(ExportData data) {
     ],
   );
 
+  // ---------------------------------------------------------- places
+  //
+  // Coordinates are plain decimal degrees and metres, exactly as the
+  // database holds them.
+
+  final savedPlaces = ExportSheet(
+    name: SheetNames.savedPlaces,
+    headers: const [
+      'Uuid',
+      'Name',
+      'Latitude',
+      'Longitude',
+      'RadiusM',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.savedPlaces,
+  );
+
+  final locationPoints = ExportSheet(
+    name: SheetNames.locationPoints,
+    headers: const [
+      'Uuid',
+      'HarvestDay',
+      'RecordedAt',
+      'Latitude',
+      'Longitude',
+      'AccuracyM',
+      'SpeedMps',
+      'AltitudeM',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.locationPoints,
+  );
+
+  final geotags = ExportSheet(
+    name: SheetNames.geotags,
+    headers: const [
+      'Uuid',
+      'TargetTable',
+      'TargetUuid',
+      'HarvestDay',
+      'At',
+      'Latitude',
+      'Longitude',
+      'AccuracyM',
+      'State',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.geotags,
+  );
+
   final sheets = [
     seeds,
     checkIns,
     seedNotes,
+    goals,
+    goalItems,
     expenses,
+    categories,
     money,
     debts,
     debtPayments,
@@ -543,6 +701,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
     streaks,
     settings,
     notes,
+    noteAttachments,
     albums,
     memories,
     steps,
@@ -557,6 +716,9 @@ List<ExportSheet> harvestSheets(ExportData data) {
     sessions,
     sessionExercises,
     sets,
+    savedPlaces,
+    locationPoints,
+    geotags,
   ];
 
   return [

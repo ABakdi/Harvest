@@ -11,6 +11,7 @@ import 'package:harvest/features/export/domain/archive_layout.dart';
 import 'package:harvest/features/export/domain/archive_service.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 
 import '../../support/temp_gallery_storage.dart';
@@ -35,7 +36,11 @@ void main() {
     storage = TempGalleryStorage(root);
     gallery = GalleryRepository(db, storage);
     notes = NotesRepository(db);
-    archive = ArchiveService(ExportRepository(db), storage);
+    archive = ArchiveService(
+      ExportRepository(db),
+      storage,
+      AttachmentStorage(documents: () async => root),
+    );
   });
 
   tearDown(() async {

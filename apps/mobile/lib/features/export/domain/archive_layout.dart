@@ -39,6 +39,33 @@ String notePath({
   return candidate;
 }
 
+/// `notes/Health/2026-09-18 0712.m4a` — a recording sits in the same
+/// folder as its note's `.md`, under the name the body embeds, so
+/// `![[fileName]]` resolves when the vault is opened in Obsidian
+/// ([[Notes]] N7).
+///
+/// The name is only changed when it has to be: made safe, and numbered
+/// when something in the archive already answers to it. A renamed file
+/// no longer resolves from the embed, but it is still in the archive,
+/// and the sheet still says which recording it is.
+String attachmentPath({
+  required String notePath,
+  required String fileName,
+  required Set<String> taken,
+}) {
+  final directory = p.posix.dirname(notePath);
+  final name = safeFileName(fileName);
+  final extension = p.posix.extension(name);
+  final stem = p.posix.basenameWithoutExtension(name);
+  var candidate = p.posix.join(directory, name);
+  var suffix = 2;
+  while (!taken.add(candidate)) {
+    candidate = p.posix.join(directory, '$stem ($suffix)$extension');
+    suffix++;
+  }
+  return candidate;
+}
+
 /// `gallery/Gym/2026-09-01.jpg` — one folder per album, files named by
 /// their day, numbered when a day holds more than one.
 String memoryPath({

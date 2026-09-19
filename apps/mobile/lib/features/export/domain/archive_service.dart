@@ -7,6 +7,7 @@ import 'package:harvest/features/export/domain/archive_layout.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/export/domain/workbook.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'archive_service.g.dart';
@@ -35,16 +36,18 @@ class ArchiveCancelled implements Exception {
   String toString() => 'ArchiveCancelled';
 }
 
-/// Builds the zip: the workbook, the vault, and the pictures.
+/// Builds the zip: the workbook, the vault with its recordings, and the
+/// pictures.
 ///
 /// It is deliberately not streamed to disk as it goes. A half-written
 /// archive that looks finished is worse than no archive, and the whole
 /// thing is assembled and then handed over in one piece (ADR-007).
 class ArchiveService {
-  ArchiveService(this._repository, this._storage);
+  ArchiveService(this._repository, this._storage, this._attachments);
 
   final ExportRepository _repository;
   final GalleryStorage _storage;
+  final AttachmentStorage _attachments;
 
   /// [onProgress] is called for every entry; returning `false` from
   /// [cancelled] between entries stops the build.
@@ -59,7 +62,11 @@ class ArchiveService {
 
     // The workbook, plus one entry per file. The count is known before
     // the slow part starts, which is the point of reporting at all.
-    final total = 1 + contents.notes.length + contents.memories.length;
+    final total =
+        1 +
+        contents.notes.length +
+        contents.attachments.length +
+        contents.memories.length;
     var done = 0;
 
     void step(String? label) {
@@ -86,6 +93,22 @@ class ArchiveService {
       final bytes = _utf8(note.body);
       archive.addFile(ArchiveFile(note.path, bytes.length, bytes));
       step(note.path);
+    }
+
+    for (final attachment in contents.attachments) {
+      check();
+      // The stored path is my own, but it is still only read from when
+      // it stays inside the attachments directory.
+      final file = GalleryStorage.isSafeRelative(attachment.storedPath)
+          ? await _attachments.fileOf(attachment.storedPath)
+          : null;
+      if (file == null || !file.existsSync()) {
+        step(attachment.path);
+        continue;
+      }
+      final bytes = await file.readAsBytes();
+      archive.addFile(ArchiveFile(attachment.path, bytes.length, bytes));
+      step(attachment.path);
     }
 
     for (final memory in contents.memories) {
@@ -115,4 +138,5 @@ class ArchiveService {
 ArchiveService archiveService(Ref ref) => ArchiveService(
   ref.watch(exportRepositoryProvider),
   ref.watch(galleryStorageProvider),
+  ref.watch(attachmentStorageProvider),
 );

@@ -18,6 +18,7 @@ import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/import/domain/archive_reader.dart';
 import 'package:harvest/features/import/domain/import_service.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:path/path.dart' as p;
 
 import '../../support/temp_gallery_storage.dart';
@@ -43,7 +44,11 @@ void main() {
     targetRoot = await Directory.systemTemp.createTemp('harvest-trust-dst');
     sourceStorage = TempGalleryStorage(sourceRoot);
     targetStorage = TempGalleryStorage(targetRoot);
-    importer = ImportService(target, targetStorage);
+    importer = ImportService(
+      target,
+      targetStorage,
+      AttachmentStorage(documents: () async => targetRoot),
+    );
   });
 
   tearDown(() async {
@@ -57,6 +62,7 @@ void main() {
   Future<Uint8List> archiveBytes() => ArchiveService(
     ExportRepository(source),
     sourceStorage,
+    AttachmentStorage(documents: () async => sourceRoot),
   ).build();
 
   /// A zip holding a workbook with exactly the sheets given, one

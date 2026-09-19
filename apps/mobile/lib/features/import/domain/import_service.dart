@@ -6,7 +6,9 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/import/domain/archive_reader.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
+import 'package:harvest/features/notes/domain/note.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -42,7 +44,10 @@ const Map<String, String> _syncedTables = {
   SheetNames.seeds: 'commitments',
   SheetNames.checkIns: 'check_ins',
   SheetNames.seedNotes: 'seed_notes',
+  SheetNames.goals: 'goals',
+  SheetNames.goalItems: 'goal_items',
   SheetNames.expenses: 'expenses',
+  SheetNames.categories: 'expense_categories',
   SheetNames.money: 'money_txns',
   SheetNames.debts: 'debts',
   SheetNames.debtPayments: 'debt_payments',
@@ -50,6 +55,7 @@ const Map<String, String> _syncedTables = {
   SheetNames.ledger: 'ledger',
   SheetNames.streaks: 'streaks',
   SheetNames.notes: 'notes',
+  SheetNames.noteAttachments: 'note_attachments',
   SheetNames.albums: 'albums',
   SheetNames.steps: 'step_days',
   SheetNames.weights: 'body_weights',
@@ -64,6 +70,9 @@ const Map<String, String> _syncedTables = {
   SheetNames.sessionExercises: 'session_exercises',
   SheetNames.sets: 'workout_sets',
   SheetNames.settings: 'kv_settings',
+  SheetNames.savedPlaces: 'saved_places',
+  SheetNames.locationPoints: 'location_points',
+  SheetNames.geotags: 'geotags',
 };
 
 /// One row of a sheet, keyed by header.
@@ -121,10 +130,11 @@ class _Table {
 /// instructions.** It does not choose where a file goes, which
 /// bookkeeping the app believes, or how much memory it may have.
 class ImportService {
-  ImportService(this._db, this._storage);
+  ImportService(this._db, this._storage, this._attachments);
 
   final HarvestDatabase _db;
   final GalleryStorage _storage;
+  final AttachmentStorage _attachments;
 
   /// What [bundle] would change, without changing it.
   Future<ImportPreview> preview(ArchiveBundle bundle) =>
@@ -150,13 +160,13 @@ class ImportService {
     // Parents before children: an album before its memories, a seed
     // before its check-ins, or a foreign key refuses the row. The list
     // is in that order.
+    final int newFiles;
     try {
-      await _mergeAll(bundle, tables, write: write);
+      newFiles = await _mergeAll(bundle, tables, write: write);
     } finally {
       _bodies = const {};
     }
 
-    final newFiles = tables.remove('_newFiles')?.added ?? 0;
     return (tables: tables, files: bundle.files.length, newFiles: newFiles);
   }
 
@@ -172,30 +182,37 @@ class ImportService {
     return bodies;
   }
 
-  Future<void> _mergeAll(
+  /// Every sheet, in order. Returns how many files are new to this
+  /// phone, for the preview.
+  Future<int> _mergeAll(
     ArchiveBundle bundle,
     Map<String, ImportCount> tables, {
     required bool write,
   }) async {
+    var newFiles = 0;
     for (final table in _tables) {
       tables[table.sheet] = await _mergeRows(
         table,
         bundle.sheet(table.sheet),
         write: write,
       );
+      if (table.sheet == SheetNames.notes) {
+        // Recordings carry a file each, so, like memories, they are
+        // merged by hand, right after the notes they belong to.
+        final attachments = await _mergeAttachments(bundle, write: write);
+        tables[SheetNames.noteAttachments] = attachments.count;
+        newFiles += attachments.newFiles;
+      }
       if (table.sheet == SheetNames.albums) {
         // Memories carry a file each, so they are merged by hand: the
         // picture has to land in storage before the row can point at
         // it. They sit here, right after their albums.
         final memories = await _mergeMemories(bundle, write: write);
         tables[SheetNames.memories] = memories.count;
-        tables['_newFiles'] = (
-          added: memories.newFiles,
-          updated: 0,
-          unchanged: 0,
-        );
+        newFiles += memories.newFiles;
       }
     }
+    return newFiles;
   }
 
   /// Merge one sheet. Counts what it would do whether or not [write].
@@ -328,6 +345,122 @@ class ImportService {
     );
   }
 
+  /// Recordings, and the files behind them ([[Notes]] N7).
+  ///
+  /// The archive's `File` column is only ever a key into the zip; where
+  /// the file lands is decided here, from the note's uuid and the name
+  /// the body embeds, both made safe first. `StoredPath` is not read at
+  /// all: every recording lives at `<noteUuid>/<fileName>`, so there is
+  /// nothing an archive could usefully say about it.
+  Future<({ImportCount count, int newFiles})> _mergeAttachments(
+    ArchiveBundle bundle, {
+    required bool write,
+  }) async {
+    final rows = await _db.select(_db.noteAttachments).get();
+    final local = {for (final row in rows) row.uuid: row.updatedAt};
+    // The file name is unique, because it is how an embed finds its
+    // file. A name already answering for another recording stays with
+    // the one this phone has; the incoming one is left out rather than
+    // made to break the constraint and take the whole table with it.
+    final owners = {for (final row in rows) row.fileName: row.uuid};
+
+    var added = 0;
+    var updated = 0;
+    var unchanged = 0;
+    var newFiles = 0;
+    final pending = <({_Row row, String name, Uint8List? bytes})>[];
+
+    for (final row in bundle.sheet(SheetNames.noteAttachments)) {
+      final uuid = row['Uuid'];
+      final note = row['NoteUuid'];
+      if (uuid == null || uuid.isEmpty || note == null || note.isEmpty) {
+        continue;
+      }
+      final name = _attachmentName(row);
+      final owner = owners[name];
+      if (owner != null && owner != uuid) {
+        unchanged++;
+        continue;
+      }
+      var bytes = bundle.files[row['File'] ?? ''];
+      if (bytes != null && bytes.length > ArchiveLimits.entryBytes) {
+        bytes = null;
+      }
+      final at = local[uuid];
+      if (at == null) {
+        added++;
+        if (bytes != null) newFiles++;
+        owners[name] = uuid;
+        pending.add((row: row, name: name, bytes: bytes));
+        continue;
+      }
+      final incoming = _time(row['UpdatedAt']);
+      if (incoming != null && incoming.isAfter(at)) {
+        updated++;
+        owners[name] = uuid;
+        pending.add((row: row, name: name, bytes: bytes));
+      } else {
+        unchanged++;
+      }
+    }
+
+    if (write) {
+      // Files first, then the rows, for the same reason as memories: an
+      // orphaned file costs space, a row pointing at nothing costs the
+      // recording.
+      final written = <({_Row row, String name, String path, int? size})>[];
+      for (final (:row, :name, :bytes) in pending) {
+        final folder = _safeSegment(row['NoteUuid']!);
+        final path = p.posix.join(folder, name);
+        if (bytes != null && GalleryStorage.isSafeRelative(path)) {
+          final reserved = await _attachments.reserve(folder, name);
+          await reserved.file.writeAsBytes(bytes);
+        }
+        written.add((row: row, name: name, path: path, size: bytes?.length));
+      }
+      await _db.transaction(() async {
+        for (final (:row, :name, :path, :size) in written) {
+          await _db
+              .into(_db.noteAttachments)
+              .insertOnConflictUpdate(
+                NoteAttachmentsCompanion.insert(
+                  uuid: row['Uuid']!,
+                  noteUuid: row['NoteUuid']!,
+                  kind: Value(row['Kind'] ?? 'audio'),
+                  fileName: name,
+                  storedPath: path,
+                  durationMs: Value(_int(row['DurationMs'])),
+                  sizeBytes: Value(size ?? _int(row['SizeBytes']) ?? 0),
+                  createdAt: Value(_time(row['CreatedAt']) ?? _now()),
+                  updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+                  deletedAt: Value(_time(row['DeletedAt'])),
+                ),
+              );
+          await _db.logChange('note_attachments', row['Uuid']!, 'update');
+        }
+      });
+    }
+
+    return (
+      count: (added: added, updated: updated, unchanged: unchanged),
+      newFiles: newFiles,
+    );
+  }
+
+  /// The name a recording is kept under: the one its row gives, when
+  /// that is a plain file name, and made into one when it is not. A
+  /// name with a slash or a `..` in it is a path, and an archive does
+  /// not get to name a path on this phone.
+  static String _attachmentName(_Row row) {
+    final given = row['FileName']?.trim() ?? '';
+    final name = given.isEmpty ? '' : safeFileName(given);
+    if (name.isNotEmpty && name != 'untitled' && !name.startsWith('.')) {
+      return name;
+    }
+    return '${_safeSegment(row['Uuid'] ?? 'recording')}'
+        '${_extensionOf(row['File'] ?? '', fallback: '.m4a')}';
+  }
+
   /// Where a memory's file lands on this phone.
   ///
   /// The row's own `StoredPath` is honoured when it is a plain relative
@@ -357,16 +490,21 @@ class ImportService {
     return cleaned.isEmpty ? 'x' : cleaned;
   }
 
-  static String _extensionOf(String path) {
+  static String _extensionOf(String path, {String fallback = '.jpg'}) {
     final extension = p.extension(path).toLowerCase();
     final plain = RegExp(r'^\.[a-z0-9]{1,4}$').hasMatch(extension);
-    return plain ? extension : '.jpg';
+    return plain ? extension : fallback;
   }
 
   // ------------------------------------------------------------ helpers
 
   static DateTime? _time(String? value) =>
       value == null || value.isEmpty ? null : DateTime.tryParse(value);
+
+  static double? _double(String? value) {
+    if (value == null || value.isEmpty) return null;
+    return double.tryParse(value);
+  }
 
   static int? _int(String? value) {
     if (value == null || value.isEmpty) return null;
@@ -427,12 +565,61 @@ class ImportService {
               note: Value(row['Note']),
               remindAt: Value(row['RemindAt']),
               deadline: Value(row['Deadline']),
+              goalUuid: Value(row['GoalUuid']),
               pausedAt: Value(_time(row['PausedAt'])),
               archivedAt: Value(_time(row['ArchivedAt'])),
               archiveNote: Value(row['ArchiveNote']),
               deletedAt: Value(_time(row['DeletedAt'])),
               createdAt: Value(_time(row['CreatedAt']) ?? _now()),
               updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+            ),
+          ),
+    ),
+    _Table(
+      sheet: SheetNames.goals,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) =>
+          _stamps(db, db.goals, (r) => r.uuid, (r) => r.updatedAt),
+      insert: (db, row) => db
+          .into(db.goals)
+          .insertOnConflictUpdate(
+            GoalsCompanion.insert(
+              uuid: row['Uuid']!,
+              title: row['Title'] ?? '',
+              why: Value(row['Why'] ?? ''),
+              targetDay: Value(row['TargetDay']),
+              status: Value(row['Status'] ?? 'active'),
+              statusNote: Value(row['StatusNote']),
+              achievedAt: Value(_time(row['AchievedAt'])),
+              position: Value(_int(row['Position']) ?? 0),
+              createdAt: Value(_time(row['CreatedAt']) ?? _now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    ),
+    _Table(
+      sheet: SheetNames.goalItems,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) =>
+          _stamps(db, db.goalItems, (r) => r.uuid, (r) => r.updatedAt),
+      insert: (db, row) => db
+          .into(db.goalItems)
+          .insertOnConflictUpdate(
+            GoalItemsCompanion.insert(
+              uuid: row['Uuid']!,
+              goalUuid: row['GoalUuid'] ?? '',
+              kind: Value(row['Kind'] ?? 'step'),
+              body: row['Body'] ?? '',
+              note: Value(row['Note']),
+              doneAt: Value(_time(row['DoneAt'])),
+              position: Value(_int(row['Position']) ?? 0),
+              commitmentUuid: Value(row['CommitmentUuid']),
+              createdAt: Value(_time(row['CreatedAt']) ?? _now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
             ),
           ),
     ),
@@ -502,6 +689,30 @@ class ImportService {
               updatedAt: Value(
                 _time(row['UpdatedAt']) ?? _time(row['LoggedAt']) ?? _now(),
               ),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    ),
+    // The categories I made, so a restored phone has a name and an icon
+    // for every key its expenses use ([[Audit-v2]] Q3-02).
+    _Table(
+      sheet: SheetNames.categories,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) => _stamps(
+        db,
+        db.expenseCategories,
+        (r) => r.uuid,
+        (r) => r.updatedAt,
+      ),
+      insert: (db, row) => db
+          .into(db.expenseCategories)
+          .insertOnConflictUpdate(
+            ExpenseCategoriesCompanion.insert(
+              uuid: row['Uuid']!,
+              name: row['Name'] ?? '',
+              icon: row['Icon'] ?? '',
+              updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
               deletedAt: Value(_time(row['DeletedAt'])),
             ),
           ),
@@ -680,7 +891,8 @@ class ImportService {
             ),
           ),
     ),
-    // (Memories are merged by hand right after the albums: see _run.)
+    // (Recordings are merged by hand right after the notes, and
+    // memories right after the albums: see _mergeAll.)
     _Table(
       sheet: SheetNames.steps,
       keyOf: (row) => row['HarvestDay'],
@@ -954,6 +1166,79 @@ class ImportService {
             ),
           ),
     ),
+    // Places. A point without both coordinates is not a point, so a
+    // blank cell reads as 0,0 rather than failing the table; the
+    // archive I wrote never has one.
+    _Table(
+      sheet: SheetNames.savedPlaces,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) =>
+          _stamps(db, db.savedPlaces, (r) => r.uuid, (r) => r.updatedAt),
+      insert: (db, row) => db
+          .into(db.savedPlaces)
+          .insertOnConflictUpdate(
+            SavedPlacesCompanion.insert(
+              uuid: row['Uuid']!,
+              name: row['Name'] ?? '',
+              latitude: _double(row['Latitude']) ?? 0,
+              longitude: _double(row['Longitude']) ?? 0,
+              radiusM: Value(_double(row['RadiusM']) ?? 100),
+              createdAt: Value(_time(row['CreatedAt']) ?? _now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    ),
+    _Table(
+      sheet: SheetNames.locationPoints,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) =>
+          _stamps(db, db.locationPoints, (r) => r.uuid, (r) => r.updatedAt),
+      insert: (db, row) => db
+          .into(db.locationPoints)
+          .insertOnConflictUpdate(
+            LocationPointsCompanion.insert(
+              uuid: row['Uuid']!,
+              harvestDay: row['HarvestDay'] ?? '',
+              recordedAt: _time(row['RecordedAt']) ?? _now(),
+              latitude: _double(row['Latitude']) ?? 0,
+              longitude: _double(row['Longitude']) ?? 0,
+              accuracyM: Value(_double(row['AccuracyM'])),
+              speedMps: Value(_double(row['SpeedMps'])),
+              altitudeM: Value(_double(row['AltitudeM'])),
+              updatedAt: Value(
+                _time(row['UpdatedAt']) ?? _time(row['RecordedAt']) ?? _now(),
+              ),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    ),
+    _Table(
+      sheet: SheetNames.geotags,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) =>
+          _stamps(db, db.geotags, (r) => r.uuid, (r) => r.updatedAt),
+      insert: (db, row) => db
+          .into(db.geotags)
+          .insertOnConflictUpdate(
+            GeotagsCompanion.insert(
+              uuid: row['Uuid']!,
+              targetTable: row['TargetTable'] ?? '',
+              targetUuid: row['TargetUuid'] ?? '',
+              harvestDay: row['HarvestDay'] ?? '',
+              at: _time(row['At']) ?? _now(),
+              latitude: Value(_double(row['Latitude'])),
+              longitude: Value(_double(row['Longitude'])),
+              accuracyM: Value(_double(row['AccuracyM'])),
+              state: Value(row['State'] ?? 'pending'),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    ),
   ];
 
   /// The note bodies of the archive being merged, by path — filled in
@@ -966,4 +1251,5 @@ class ImportService {
 ImportService importService(Ref ref) => ImportService(
   ref.watch(databaseProvider),
   ref.watch(galleryStorageProvider),
+  ref.watch(attachmentStorageProvider),
 );

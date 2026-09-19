@@ -1,5 +1,6 @@
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/core/db/portable_settings.dart';
 import 'package:harvest/features/export/domain/archive_layout.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -57,10 +58,18 @@ class ExportRepository {
     final sessionRows = await _db.select(_db.workoutSessions).get();
     final sessionExerciseRows = await _db.select(_db.sessionExercises).get();
     final setRows = await _db.select(_db.workoutSets).get();
+    final goalRows = await _db.select(_db.goals).get();
+    final goalItemRows = await _db.select(_db.goalItems).get();
+    final categoryRows = await _db.select(_db.expenseCategories).get();
+    final attachmentRows = await _db.select(_db.noteAttachments).get();
+    final placeRows = await _db.select(_db.savedPlaces).get();
+    final pointRows = await _db.select(_db.locationPoints).get();
+    final geotagRows = await _db.select(_db.geotags).get();
 
     final taken = <String>{};
     final noteFiles = <({String path, String body})>[];
     final noteRowsOut = <List<Object?>>[];
+    final livePaths = <String, String>{};
     for (final row in noteRows) {
       final path = notePath(
         title: row.title,
@@ -71,6 +80,7 @@ class ExportRepository {
       // does not get a file — the vault is what I still have.
       if (row.deletedAt == null) {
         noteFiles.add((path: path, body: row.body));
+        livePaths[row.uuid] = path;
       }
       noteRowsOut.add([
         row.uuid,
@@ -78,6 +88,38 @@ class ExportRepository {
         row.folder,
         if (row.deletedAt == null) path else null,
         row.body,
+        _at(row.createdAt),
+        _at(row.updatedAt),
+        _at(row.deletedAt),
+      ]);
+    }
+
+    // A recording goes in beside its note's `.md`, under the name the
+    // body embeds, so the pair opens anywhere ([[Notes]] N7). One in
+    // the trash, or on a note that is itself in the trash, keeps its
+    // row and leaves no file — the same rule as the note.
+    final attachmentFiles = <({String path, String storedPath})>[];
+    final attachmentRowsOut = <List<Object?>>[];
+    for (final row in attachmentRows) {
+      final notePath = livePaths[row.noteUuid];
+      String? path;
+      if (row.deletedAt == null && notePath != null) {
+        path = attachmentPath(
+          notePath: notePath,
+          fileName: row.fileName,
+          taken: taken,
+        );
+        attachmentFiles.add((path: path, storedPath: row.storedPath));
+      }
+      attachmentRowsOut.add([
+        row.uuid,
+        row.noteUuid,
+        row.kind,
+        row.fileName,
+        path,
+        row.storedPath,
+        row.durationMs,
+        row.sizeBytes,
         _at(row.createdAt),
         _at(row.updatedAt),
         _at(row.deletedAt),
@@ -127,6 +169,7 @@ class ExportRepository {
             row.note,
             row.remindAt,
             row.deadline,
+            row.goalUuid,
             _at(row.pausedAt),
             _at(row.archivedAt),
             row.archiveNote,
@@ -159,6 +202,38 @@ class ExportRepository {
             _at(row.deletedAt),
           ],
       ],
+      goals: [
+        for (final row in goalRows)
+          [
+            row.uuid,
+            row.title,
+            row.why,
+            row.targetDay,
+            row.status,
+            row.statusNote,
+            _at(row.achievedAt),
+            row.position,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      goalItems: [
+        for (final row in goalItemRows)
+          [
+            row.uuid,
+            row.goalUuid,
+            row.kind,
+            row.body,
+            row.note,
+            _at(row.doneAt),
+            row.position,
+            row.commitmentUuid,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
       expenses: [
         for (final row in expenses)
           [
@@ -169,6 +244,16 @@ class ExportRepository {
             row.amountMinor,
             row.note,
             _at(row.loggedAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      categories: [
+        for (final row in categoryRows)
+          [
+            row.uuid,
+            row.name,
+            row.icon,
             _at(row.updatedAt),
             _at(row.deletedAt),
           ],
@@ -250,11 +335,17 @@ class ExportRepository {
             _at(row.updatedAt),
           ],
       ],
+      // Only my preferences: the lock switch, the scheduled
+      // notification ids and the day the streaks were last judged mean
+      // nothing on another phone, and the importer would refuse them
+      // anyway ([[Audit-v2]] S3-05).
       settings: [
         for (final row in settings)
-          [row.key, row.valueJson, _at(row.updatedAt)],
+          if (isImportableSetting(row.key))
+            [row.key, row.valueJson, _at(row.updatedAt)],
       ],
       notes: noteRowsOut,
+      noteAttachments: attachmentRowsOut,
       albums: [
         for (final row in albumRows)
           [
@@ -418,9 +509,58 @@ class ExportRepository {
             _at(row.loggedAt),
           ],
       ],
+      savedPlaces: [
+        for (final row in placeRows)
+          [
+            row.uuid,
+            row.name,
+            row.latitude,
+            row.longitude,
+            row.radiusM,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      locationPoints: [
+        for (final row in pointRows)
+          [
+            row.uuid,
+            row.harvestDay,
+            _at(row.recordedAt),
+            row.latitude,
+            row.longitude,
+            row.accuracyM,
+            row.speedMps,
+            row.altitudeM,
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      geotags: [
+        for (final row in geotagRows)
+          [
+            row.uuid,
+            row.targetTable,
+            row.targetUuid,
+            row.harvestDay,
+            _at(row.at),
+            row.latitude,
+            row.longitude,
+            row.accuracyM,
+            row.state,
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
     );
 
-    return (data: data, notes: noteFiles, memories: memoryFiles);
+    return (
+      data: data,
+      notes: noteFiles,
+      memories: memoryFiles,
+      attachments: attachmentFiles,
+    );
   }
 }
 

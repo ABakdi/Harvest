@@ -28,7 +28,10 @@ void main() {
     seeds: seeds,
     checkIns: checkIns,
     seedNotes: seedNotes,
+    goals: const <List<Object?>>[],
+    goalItems: const <List<Object?>>[],
     expenses: expenses,
+    categories: const <List<Object?>>[],
     money: money,
     debts: debts,
     debtPayments: debtPayments,
@@ -37,6 +40,7 @@ void main() {
     streaks: const <List<Object?>>[],
     settings: const <List<Object?>>[],
     notes: notes,
+    noteAttachments: const <List<Object?>>[],
     albums: albums,
     memories: memories,
     steps: const <List<Object?>>[],
@@ -51,6 +55,9 @@ void main() {
     sessions: const <List<Object?>>[],
     sessionExercises: const <List<Object?>>[],
     sets: sets,
+    savedPlaces: const <List<Object?>>[],
+    locationPoints: const <List<Object?>>[],
+    geotags: const <List<Object?>>[],
   );
 
   ExportSheet sheetNamed(List<ExportSheet> sheets, String name) =>
@@ -101,7 +108,10 @@ void main() {
         SheetNames.seeds,
         SheetNames.checkIns,
         SheetNames.seedNotes,
+        SheetNames.goals,
+        SheetNames.goalItems,
         SheetNames.expenses,
+        SheetNames.categories,
         SheetNames.money,
         SheetNames.debts,
         SheetNames.debtPayments,
@@ -110,6 +120,7 @@ void main() {
         SheetNames.streaks,
         SheetNames.settings,
         SheetNames.notes,
+        SheetNames.noteAttachments,
         SheetNames.albums,
         SheetNames.memories,
         SheetNames.steps,
@@ -124,6 +135,9 @@ void main() {
         SheetNames.sessions,
         SheetNames.sessionExercises,
         SheetNames.sets,
+        SheetNames.savedPlaces,
+        SheetNames.locationPoints,
+        SheetNames.geotags,
       ]);
     });
 
