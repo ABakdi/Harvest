@@ -85,6 +85,23 @@ from.
 - **Accessible by default**: Radix primitives underneath, visible focus,
   labelled icon buttons, and AA contrast in both themes.
 
+## Decisions made while building it
+
+- **Closed days are judged on the phone only.** The web updates
+  streaks live on check-in and undo, and the Farmer screen says that
+  the 3 AM judging (freezes, breaks) happens on the phone.
+- **Links are computed from note bodies**, as on the phone; `note_links`
+  rows are merged when pulled but never relied on or written.
+- **No hard delete of a seed on the web**: archive is how a seed retires
+  there, because a hard delete's children would not follow it in sync.
+- **Theme, preset and language live in the browser** (`localStorage`),
+  because the public pages read them and must not open IndexedDB (W3).
+  Preferences with meaning beyond the look — the daily goal, the default
+  currency, note folders — are synced settings.
+- **Token refreshes are serialised across tabs** with the Web Locks API:
+  a refresh token used twice revokes the session everywhere
+  ([[Accounts]] AC4).
+
 ## Rules
 
 | # | Rule |

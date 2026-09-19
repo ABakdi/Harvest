@@ -78,26 +78,29 @@ flowchart LR
   ordering, the cursor, purge.
 
 ## M6.5 — Web: the site, the install, the shell
-- [ ] Vite + React 19 + TypeScript, Tailwind 4 + shadcn/ui themed with
+- [x] Vite + React 19 + TypeScript, Tailwind 4 + shadcn/ui themed with
   the Harvest tokens, React Router 7, i18next en/ar with RTL.
-- [ ] Home, download, privacy; the PWA manifest and service worker;
+- [x] Home, download, privacy; the PWA manifest and service worker;
   the install button (and the iOS steps).
-- [ ] Login, register, forgot, reset, verify; session in memory with
+- [x] Login, register, forgot, reset, verify; session in memory with
   the refresh cookie.
-- [ ] `/app` shell: the rail, the Dexie store, the sync engine (the
+- [x] `/app` shell: the rail, the Dexie store, the sync engine (the
   same protocol as the phone), the sync status, settings.
-- [ ] Tests: vitest + Testing Library for the flows; the sync engine
+- [x] Tests: vitest + Testing Library for the flows; the sync engine
   against a fake server.
 
 ## M6.6 — Web: field, goals, notes, money
-- [ ] Field: today's seeds, check-in and undo, the over-log cap, the
-  day's XP and the streak (`packages/core`).
-- [ ] Seeds: plant, edit, pause, archive.
-- [ ] Goals board and goal screen ([[Goals]]).
-- [ ] Notes: folders, the editor (markdown styled in place), links and
+- [x] Field: today's seeds, check-in and undo, the over-log cap, the
+  day's XP and the streak (`packages/core`). The web keeps the streak
+  rows up to date on check-in and undo; judging closed days — freezes,
+  breaks — stays with the phone, because two devices judging the same
+  day would count it twice.
+- [x] Seeds: plant, edit, pause, archive.
+- [x] Goals board and goal screen ([[Goals]]).
+- [x] Notes: folders, the editor (markdown styled in place), links and
   backlinks, search.
-- [ ] Expenses: log, edit, move a day, the month and the budget.
-- [ ] Keyboard shortcuts ([[Web]]).
+- [x] Expenses: log, edit, move a day, the month and the budget.
+- [x] Keyboard shortcuts ([[Web]]).
 
 ## M6.7 — Web: the rest
 - [ ] Vault, calendar, stats, farmer and streak details.
