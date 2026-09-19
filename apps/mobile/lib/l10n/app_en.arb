@@ -1666,5 +1666,8 @@
   "sheetGeotags": "Geotags",
   "stepsDailyAverage": "Daily average",
   "notesDeleteFolderBody": "Every note in {folder} goes to the trash. You can put them back from there, or undo this.",
-  "@notesDeleteFolderBody": { "placeholders": { "folder": { "type": "String" } } }
+  "@notesDeleteFolderBody": { "placeholders": { "folder": { "type": "String" } } },
+  "unitKg": "kg",
+  "unitLb": "lb",
+  "unitCm": "cm"
 }

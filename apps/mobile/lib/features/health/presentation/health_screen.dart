@@ -25,6 +25,7 @@ import 'package:harvest/features/health/presentation/weight_chart.dart';
 import 'package:harvest/features/health/presentation/weight_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:harvest/features/gym/presentation/weight_text.dart';
 
 /// Sleep, steps and weight.
 ///
@@ -354,7 +355,7 @@ class _StepsSettingsSheetState extends ConsumerState<_StepsSettingsSheet> {
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
             labelText: l10n.stepsStride,
-            suffixText: 'cm',
+            suffixText: l10n.unitCm,
             helperText: l10n.stepsStrideHint,
             helperMaxLines: 3,
           ),
@@ -486,7 +487,8 @@ class _WeightCard extends ConsumerWidget {
     final trend = weightTrend(weights, days: days);
 
     String amount(int grams) =>
-        '${unit.from(grams.abs()).toStringAsFixed(1)} ${unit.suffix}';
+        '${formatNumber(context, unit.from(grams.abs()))} '
+        '${unitLabel(context, unit)}';
 
     return Card(
       child: Padding(
@@ -507,7 +509,7 @@ class _WeightCard extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Text(
-                    unit.suffix,
+                    unitLabel(context, unit),
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -543,7 +545,8 @@ class _WeightCard extends ConsumerWidget {
               Text(
                 l10n.weightToTarget(
                   amount(latest.grams - target),
-                  '${unit.from(target).toStringAsFixed(1)} ${unit.suffix}',
+                  '${formatNumber(context, unit.from(target))} '
+                  '${unitLabel(context, unit)}',
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
@@ -609,7 +612,8 @@ class _WeightRow extends ConsumerWidget {
       child: ListTile(
         dense: true,
         title: Text(
-          '${unit.from(weight.grams).toStringAsFixed(1)} ${unit.suffix}',
+          '${formatNumber(context, unit.from(weight.grams))} '
+          '${unitLabel(context, unit)}',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
           ),

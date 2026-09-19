@@ -158,7 +158,7 @@ class _Records extends ConsumerWidget {
                 child: _Stat(
                   label: l10n.gymHeaviestLabel,
                   value:
-                      '${formatLoad(heaviest.weightGrams, unit)}'
+                      '${formatLoad(context, heaviest.weightGrams, unit)}'
                       '×${heaviest.reps}',
                 ),
               ),
@@ -166,7 +166,7 @@ class _Records extends ConsumerWidget {
               Expanded(
                 child: _Stat(
                   label: l10n.gymEstimatedLabel,
-                  value: formatLoad(estimate, unit),
+                  value: formatLoad(context, estimate, unit),
                   hint: l10n.gymEstimatedHint,
                 ),
               ),
@@ -199,7 +199,7 @@ class _Records extends ConsumerWidget {
                   child: Text(
                     [
                       for (final set in outing.sets)
-                        '${formatLoad(set.weightGrams, unit)}×${set.reps}',
+                        '${formatLoad(context, set.weightGrams, unit)}×${set.reps}',
                     ].join('  '),
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontFeatures: const [FontFeature.tabularFigures()],
@@ -208,7 +208,7 @@ class _Records extends ConsumerWidget {
                 ),
                 if (outing.bestEstimate != null)
                   Text(
-                    formatLoad(outing.bestEstimate!, unit),
+                    formatLoad(context, outing.bestEstimate!, unit),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.secondary,
                       fontWeight: FontWeight.w700,

@@ -3895,4 +3895,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String notesDeleteFolderBody(String folder) {
     return 'Every note in $folder goes to the trash. You can put them back from there, or undo this.';
   }
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitLb => 'lb';
+
+  @override
+  String get unitCm => 'cm';
 }

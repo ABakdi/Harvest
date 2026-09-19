@@ -6553,6 +6553,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every note in {folder} goes to the trash. You can put them back from there, or undo this.'**
   String notesDeleteFolderBody(String folder);
+
+  /// No description provided for @unitKg.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
+
+  /// No description provided for @unitLb.
+  ///
+  /// In en, this message translates to:
+  /// **'lb'**
+  String get unitLb;
+
+  /// No description provided for @unitCm.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get unitCm;
 }
 
 class _AppLocalizationsDelegate

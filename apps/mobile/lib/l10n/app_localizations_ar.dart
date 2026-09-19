@@ -3904,4 +3904,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String notesDeleteFolderBody(String folder) {
     return 'كل ملاحظة في $folder تذهب إلى المهملات. يمكنك إعادتها من هناك، أو التراجع عن هذا.';
   }
+
+  @override
+  String get unitKg => 'كغ';
+
+  @override
+  String get unitLb => 'رطل';
+
+  @override
+  String get unitCm => 'سم';
 }

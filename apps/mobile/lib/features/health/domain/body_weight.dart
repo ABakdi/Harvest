@@ -21,8 +21,6 @@ enum WeightUnit {
       ? (value * 1000).round()
       : (value * gramsPerPound).round();
 
-  String get suffix => this == WeightUnit.kg ? 'kg' : 'lb';
-
   static WeightUnit fromName(String? name) => WeightUnit.values.firstWhere(
     (unit) => unit.name == name,
     orElse: () => WeightUnit.kg,

@@ -4,6 +4,8 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:intl/intl.dart';
+import 'package:harvest/features/gym/presentation/weight_text.dart';
+import 'package:harvest/core/ui/format.dart';
 
 /// Every entry as a dot, the seven-day average as the line.
 ///
@@ -126,7 +128,7 @@ class WeightChart extends StatelessWidget {
                 for (final spot in spots)
                   if (spot.barIndex == 0)
                     LineTooltipItem(
-                      '${spot.y.toStringAsFixed(1)} ${unit.suffix}',
+                      '${formatNumber(context, spot.y)} ${unitLabel(context, unit)}',
                       theme.textTheme.labelMedium!.copyWith(
                         color: scheme.onInverseSurface,
                         fontWeight: FontWeight.w800,

@@ -92,7 +92,7 @@ class _MaxRow extends ConsumerWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(exercise?.name ?? l10n.gymUnknownExercise),
       subtitle: Text(
-        grams == null ? l10n.gymNoTrainingMax : formatLoad(grams!, unit),
+        grams == null ? l10n.gymNoTrainingMax : formatLoad(context, grams!, unit),
         style: theme.textTheme.bodyMedium?.copyWith(
           fontWeight: FontWeight.w700,
           color: grams == null
@@ -114,8 +114,8 @@ class _MaxRow extends ConsumerWidget {
     final entered = await promptForText(
       context,
       title: name ?? l10n.gymTrainingMaxes,
-      initial: grams == null ? '' : unit.from(grams!).toString(),
-      hint: unit.suffix,
+      initial: grams == null ? '' : loadFieldValue(grams!, unit),
+      hint: unitLabel(context, unit),
     );
     if (entered == null) return;
     final value = double.tryParse(entered.trim().replaceAll(',', '.'));

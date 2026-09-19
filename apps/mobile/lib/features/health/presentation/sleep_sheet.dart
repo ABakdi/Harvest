@@ -218,7 +218,7 @@ class _TimeSlider extends StatelessWidget {
               ),
             ),
             Text(
-              clockLabel(value.round()),
+              clockLabel(context, value.round()),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -240,12 +240,17 @@ class _TimeSlider extends StatelessWidget {
   }
 }
 
-/// `23:15` from minutes past midnight, wrapping either way.
-String clockLabel(int minutes) {
+/// `23:15` or `11:15 PM` from minutes past midnight, wrapping either
+/// way.
+///
+/// Written the way the phone writes a time, because sleep settings
+/// already did and one screen cannot keep two clocks ([[Audit-v2]]
+/// U3-18).
+String clockLabel(BuildContext context, int minutes) {
   final wrapped = minutes % (24 * 60);
   final positive = wrapped < 0 ? wrapped + 24 * 60 : wrapped;
-  final hour = positive ~/ 60;
-  final minute = positive % 60;
-  return '${hour.toString().padLeft(2, '0')}:'
-      '${minute.toString().padLeft(2, '0')}';
+  return TimeOfDay(
+    hour: positive ~/ 60,
+    minute: positive % 60,
+  ).format(context);
 }

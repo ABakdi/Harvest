@@ -110,11 +110,11 @@ class _TargetSetSheet extends ConsumerWidget {
           _ChipField(
             icon: Icons.straighten,
             label: l10n.gymBarWeight,
-            value: formatLoad(slot.barGrams, unit),
+            value: formatLoad(context, slot.barGrams, unit),
             children: [
               for (final grams in [10000, 15000, 20000, 25000])
                 ChoiceChip(
-                  label: Text(formatLoad(grams, unit)),
+                  label: Text(formatLoad(context, grams, unit)),
                   selected: slot.barGrams == grams,
                   onSelected: (_) => unawaited(
                     repository.updateSlot(slot.uuid, barGrams: grams),
@@ -249,9 +249,12 @@ class _SetRow extends StatelessWidget {
             : scheme.surfaceContainerHighest,
         child: Text(
           // The open set is the one that decides whether the weight
-          // goes up, so it gets a letter rather than a number.
-          set.openEnded ? 'P' : '${set.position + 1}',
+          // goes up, so it is marked rather than numbered — with the
+          // same mark the session uses, because the program and the
+          // workout should call it one thing ([[Audit-v2]] U3-18).
+          set.openEnded ? '1+' : '${set.position + 1}',
           style: theme.textTheme.labelSmall?.copyWith(
+            fontSize: set.openEnded ? 10 : null,
             fontWeight: FontWeight.w800,
             color: set.openEnded ? scheme.onSecondary : scheme.onSurface,
           ),
@@ -291,7 +294,7 @@ class _EditSetState extends ConsumerState<_EditSet> {
     if (set.percentTenths != null) return (set.percentTenths! / 10).toString();
     if (set.weightGrams != null) {
       final unit = ref.read(weightUnitSettingProvider).value ?? WeightUnit.kg;
-      return unit.from(set.weightGrams!).toString();
+      return loadFieldValue(set.weightGrams!, unit);
     }
     return '';
   }
@@ -336,7 +339,7 @@ class _EditSetState extends ConsumerState<_EditSet> {
       children: [
         SegmentedButton<bool>(
           segments: [
-            ButtonSegment(value: false, label: Text(unit.suffix)),
+            ButtonSegment(value: false, label: Text(unitLabel(context, unit))),
             ButtonSegment(value: true, label: Text(l10n.gymPercentOfMax)),
           ],
           selected: {_percentage},
@@ -354,7 +357,7 @@ class _EditSetState extends ConsumerState<_EditSet> {
                 ),
                 decoration: InputDecoration(
                   labelText: _percentage ? l10n.gymPercent : l10n.gymWeight,
-                  suffixText: _percentage ? '%' : unit.suffix,
+                  suffixText: _percentage ? '%' : unitLabel(context, unit),
                 ),
               ),
             ),

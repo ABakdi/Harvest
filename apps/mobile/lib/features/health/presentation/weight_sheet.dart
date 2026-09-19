@@ -6,6 +6,7 @@ import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
+import 'package:harvest/features/gym/presentation/weight_text.dart';
 
 /// One number off the scale.
 Future<void> showWeightSheet(
@@ -31,6 +32,10 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
   var _saving = false;
   var _loaded = false;
 
+  /// What the field was filled with, to tell a note-only edit apart
+  /// from a new number.
+  var _prefilled = '';
+
   @override
   void dispose() {
     _value.dispose();
@@ -45,21 +50,37 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
     final entered = _entered;
     if (entered == null || entered <= 0 || _saving) return;
     setState(() => _saving = true);
+    final l10n = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final repository = ref.read(healthRepositoryProvider);
     final note = _note.text.trim();
     final existing = widget.existing;
-    if (existing == null) {
-      await repository.logWeight(
-        grams: unit.toGrams(entered),
-        note: note.isEmpty ? null : note,
-      );
-    } else {
-      await repository.updateWeight(
-        existing.uuid,
-        grams: unit.toGrams(entered),
-        note: note.isEmpty ? null : note,
-      );
+    // A number the field only showed me is not a number I typed: coming
+    // back to add a note used to re-save the weight through the field's
+    // own rounding, so 82.46 kg became 82.5 ([[Audit-v2]] U3-19). The
+    // stored grams stand unless the text changed.
+    final grams = existing != null && _value.text.trim() == _prefilled
+        ? existing.grams
+        : unit.toGrams(entered);
+    try {
+      if (existing == null) {
+        await repository.logWeight(
+          grams: grams,
+          note: note.isEmpty ? null : note,
+        );
+      } else {
+        await repository.updateWeight(
+          existing.uuid,
+          grams: grams,
+          note: note.isEmpty ? null : note,
+        );
+      }
+    } on Object {
+      // Without this the button spun for the rest of the sheet's life.
+      if (mounted) setState(() => _saving = false);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
+      return;
     }
     navigator.pop();
   }
@@ -74,7 +95,8 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
     // the field is labelled with.
     if (!_loaded && existing != null) {
       _loaded = true;
-      _value.text = unit.from(existing.grams).toStringAsFixed(1);
+      _prefilled = loadFieldValue(existing.grams, unit);
+      _value.text = _prefilled;
       _note.text = existing.note ?? '';
     }
 
@@ -99,15 +121,15 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
                 style: Theme.of(context).textTheme.headlineSmall,
                 decoration: InputDecoration(
                   labelText: l10n.weightLabel,
-                  suffixText: unit.suffix,
+                  suffixText: unitLabel(context, unit),
                 ),
               ),
             ),
             const SizedBox(width: HarvestSpacing.sm),
             SegmentedButton<WeightUnit>(
-              segments: const [
-                ButtonSegment(value: WeightUnit.kg, label: Text('kg')),
-                ButtonSegment(value: WeightUnit.lb, label: Text('lb')),
+              segments: [
+                ButtonSegment(value: WeightUnit.kg, label: Text(l10n.unitKg)),
+                ButtonSegment(value: WeightUnit.lb, label: Text(l10n.unitLb)),
               ],
               selected: {unit},
               showSelectedIcon: false,

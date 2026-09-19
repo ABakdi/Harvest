@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
@@ -169,10 +170,11 @@ class _SetRowState extends ConsumerState<SetRow> {
           content: Text(
             beaten.contains(RecordKind.heaviest)
                 ? l10n.gymRecordHeaviest(
-                    formatLoad(_enteredGrams, widget.unit),
+                    formatLoad(context, _enteredGrams, widget.unit),
                   )
                 : l10n.gymRecordEstimated(
                     formatLoad(
+                      context,
                       estimatedOneRepMax(
                             weightGrams: _enteredGrams,
                             reps: _enteredReps,
@@ -230,7 +232,7 @@ class _SetRowState extends ConsumerState<SetRow> {
               child: Text(
                 set.targetLabel == null
                     ? '—'
-                    : _prettyTarget(set.targetLabel!, widget.unit),
+                    : _prettyTarget(context, set.targetLabel!, widget.unit),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -275,13 +277,23 @@ class _SetRowState extends ConsumerState<SetRow> {
   /// `83.25×5` from the stored label, in whatever unit is on screen —
   /// and without the `.00` the label is stored with, which is a
   /// spreadsheet's idea of a weight.
-  static String _prettyTarget(String label, WeightUnit unit) {
+  static String _prettyTarget(
+    BuildContext context,
+    String label,
+    WeightUnit unit,
+  ) {
     if (!label.contains('×')) return label;
     final parts = label.split('×');
     final kg = double.tryParse(parts.first);
     if (kg == null) return label;
-    final load = formatLoad((kg * 1000).round(), unit);
-    return '${load.substring(0, load.length - unit.suffix.length).trim()}×${parts.last}';
+    // The load without its unit: `83.25×5` reads as one thing, and the
+    // unit is already on the row above it.
+    final load = formatNumber(
+      context,
+      unit.from((kg * 1000).round()),
+      decimals: 2,
+    );
+    return '$load×${parts.last}';
   }
 }
 

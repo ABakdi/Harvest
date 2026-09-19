@@ -72,7 +72,7 @@ class SessionTile extends StatelessWidget {
         ),
         subtitle: Text(
           '${formatDay(context, session.day)} · '
-          '${l10n.gymSessionSummary(session.doneSets, formatLoad(session.volumeGrams, unit))}',
+          '${l10n.gymSessionSummary(session.doneSets, formatLoad(context, session.volumeGrams, unit))}',
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => Navigator.of(context).push(
@@ -113,7 +113,7 @@ class SessionDetailScreen extends ConsumerWidget {
         children: [
           Text(
             '${formatDay(context, session.day)} · '
-            '${l10n.gymSessionSummary(session.doneSets, formatLoad(session.volumeGrams, unit))}',
+            '${l10n.gymSessionSummary(session.doneSets, formatLoad(context, session.volumeGrams, unit))}',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -185,7 +185,7 @@ class _DoneExercise extends ConsumerWidget {
                   children: [
                     for (final set in done)
                       Text(
-                        '${formatLoad(set.weightGrams, unit)}×${set.reps}',
+                        '${formatLoad(context, set.weightGrams, unit)}×${set.reps}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),

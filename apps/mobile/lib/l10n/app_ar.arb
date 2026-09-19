@@ -1105,5 +1105,8 @@
   "sheetTrail": "المسار",
   "sheetGeotags": "الوسوم الجغرافية",
   "stepsDailyAverage": "المتوسط اليومي",
-  "notesDeleteFolderBody": "كل ملاحظة في {folder} تذهب إلى المهملات. يمكنك إعادتها من هناك، أو التراجع عن هذا."
+  "notesDeleteFolderBody": "كل ملاحظة في {folder} تذهب إلى المهملات. يمكنك إعادتها من هناك، أو التراجع عن هذا.",
+  "unitKg": "كغ",
+  "unitLb": "رطل",
+  "unitCm": "سم"
 }

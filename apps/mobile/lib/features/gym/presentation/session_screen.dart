@@ -524,7 +524,7 @@ class _ExerciseCard extends ConsumerWidget {
                             last
                                 .map(
                                   (set) =>
-                                      '${formatLoad(set.weightGrams, unit)}×${set.reps}',
+                                      '${formatLoad(context, set.weightGrams, unit)}×${set.reps}',
                                 )
                                 .join('  '),
                           ),
@@ -539,7 +539,7 @@ class _ExerciseCard extends ConsumerWidget {
                       // only half the loop ([[Checkpoint-6]]).
                       if (records?.heaviest != null)
                         Text(
-                          _recordsLine(l10n, records!, unit),
+                          _recordsLine(context, l10n, records!, unit),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: scheme.secondary,
                             fontWeight: FontWeight.w700,
@@ -645,18 +645,19 @@ class _ExerciseCard extends ConsumerWidget {
   /// `Best: 100 kg×5 · est. 116 kg` — the heaviest set and the best
   /// estimated single, the estimate labelled as one (rule Y6).
   static String _recordsLine(
+    BuildContext context,
     AppLocalizations l10n,
     ExerciseRecords records,
     WeightUnit unit,
   ) {
     final heaviest = records.heaviest!;
     final parts = [
-      '${formatLoad(heaviest.weightGrams, unit)}×${heaviest.reps}',
+      '${formatLoad(context, heaviest.weightGrams, unit)}×${heaviest.reps}',
       // Rounded like a load (rule Y8): an estimate to two decimals is
       // precision it does not have.
       if (records.bestSetEstimate != null)
         l10n.gymBestEstimate(
-          formatLoad(roundLoad(records.bestSetEstimate!), unit),
+          formatLoad(context, roundLoad(records.bestSetEstimate!), unit),
         ),
     ];
     return l10n.gymBestLine(parts.join(' · '));
@@ -740,7 +741,7 @@ class _SetHeader extends StatelessWidget {
           SizedBox(
             width: 72,
             child: Text(
-              unit.suffix,
+              unitLabel(context, unit),
               style: style,
               textAlign: TextAlign.center,
             ),

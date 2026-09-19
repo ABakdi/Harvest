@@ -38,8 +38,8 @@ class _PlateSheet extends ConsumerWidget {
     final plan = platesFor(targetGrams, barGrams: barGrams);
 
     return HarvestSheet(
-      title: formatLoad(targetGrams, unit),
-      subtitle: l10n.gymPerSide(formatLoad(barGrams, unit)),
+      title: formatLoad(context, targetGrams, unit),
+      subtitle: l10n.gymPerSide(formatLoad(context, barGrams, unit)),
       children: [
         if (plan.stacks.isEmpty)
           Padding(
@@ -65,7 +65,7 @@ class _PlateSheet extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(HarvestRadii.chip),
                   ),
                   child: Text(
-                    '${stack.perSide} × ${formatLoad(stack.grams, unit)}',
+                    '${stack.perSide} × ${formatLoad(context, stack.grams, unit)}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: scheme.onSecondaryContainer,
@@ -83,8 +83,8 @@ class _PlateSheet extends ConsumerWidget {
               Expanded(
                 child: Text(
                   l10n.gymPlateShortfall(
-                    formatLoad(plan.totalGrams, unit),
-                    formatLoad(plan.shortfallGrams, unit),
+                    formatLoad(context, plan.totalGrams, unit),
+                    formatLoad(context, plan.shortfallGrams, unit),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.error,
