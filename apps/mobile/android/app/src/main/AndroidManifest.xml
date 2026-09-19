@@ -30,6 +30,9 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <!-- Voice notes and dictation (phase 5): asked the first time I
+         record, never at launch. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- Spreadsheet export writes to Downloads. Android 10+ goes
          through MediaStore and needs nothing; only 8.0-9.0 needs this,
          so it stops at API 28 (checkpoint rule X6). -->
@@ -162,6 +165,14 @@
         <!-- Health Connect has to be visible to be asked whether it is
              installed. -->
         <package android:name="com.google.android.apps.healthdata"/>
+        <!-- The phone's own speech recogniser and voice, for dictation
+             and read aloud (Notes N10). -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

@@ -22,6 +22,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^3.4.2
+  flutter_tts: ^4.2.5
   geolocator: ^14.0.3
   go_router: ^18.0.0
   harvest_steps:
@@ -30,6 +31,7 @@ dependencies:
   http: ^1.6.0
   image_picker: ^1.2.3
   intl: ^0.20.3
+  just_audio: ^0.10.6
   local_auth: ^3.0.2
   maplibre_gl: ^0.25.0
   meta: ^1.19.0
@@ -37,8 +39,10 @@ dependencies:
   path_provider: ^2.1.6
   pdf: ^3.12.0
   printing: ^5.14.3
+  record: ^7.1.1
   riverpod_annotation: ^4.0.6
   share_plus: ^13.3.0
+  speech_to_text: ^7.5.0
   table_calendar: ^3.2.1
   timezone: ^0.11.1
   uuid: ^4.6.0

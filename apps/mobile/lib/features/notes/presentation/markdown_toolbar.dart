@@ -14,9 +14,22 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// control that is always visible is noise for the ninety per cent of
 /// a note that is prose.
 class MarkdownToolbar extends StatelessWidget {
-  const MarkdownToolbar({required this.controller, super.key});
+  const MarkdownToolbar({
+    required this.controller,
+    this.onRecord,
+    this.onDictate,
+    this.dictating = false,
+    super.key,
+  });
 
   final TextEditingController controller;
+
+  /// Records a voice note into this note ([[Notes]] N7).
+  final VoidCallback? onRecord;
+
+  /// Turns speech into text at the caret (N10).
+  final VoidCallback? onDictate;
+  final bool dictating;
 
   Edit get _at {
     final selection = controller.selection;
@@ -132,12 +145,32 @@ class MarkdownToolbar extends StatelessWidget {
                   onTap: () => _apply(addTableColumn(_at)),
                 ),
               ],
+              if (onRecord != null || onDictate != null) ...[
+                const _Separator(),
+                if (onRecord != null)
+                  _Action(
+                    icon: Icons.mic_none,
+                    tooltip: l10n.voiceRecord,
+                    onTap: onRecord!,
+                  ),
+                if (onDictate != null)
+                  _Action(
+                    icon: dictating
+                        ? Icons.graphic_eq
+                        : Icons.keyboard_voice_outlined,
+                    tooltip: dictating
+                        ? l10n.voiceListening
+                        : l10n.voiceDictate,
+                    onTap: onDictate!,
+                  ),
+              ],
               const _Separator(),
               _Action(
                 icon: Icons.keyboard_hide_outlined,
                 tooltip: l10n.mdHideKeyboard,
-                onTap: () =>
-                    SystemChannels.textInput.invokeMethod<void>('TextInput.hide'),
+                onTap: () => SystemChannels.textInput.invokeMethod<void>(
+                  'TextInput.hide',
+                ),
               ),
             ],
           ),

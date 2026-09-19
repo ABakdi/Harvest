@@ -3508,4 +3508,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get geoAlbum => 'Album';
+
+  @override
+  String get voiceNew => 'New voice note';
+
+  @override
+  String get voiceRecord => 'Record';
+
+  @override
+  String get voiceRecording => 'Recording…';
+
+  @override
+  String get voiceStop => 'Stop and keep';
+
+  @override
+  String get voiceDiscard => 'Discard';
+
+  @override
+  String get voiceNoMic => 'Harvest needs the microphone to record.';
+
+  @override
+  String get voiceDictate => 'Dictate';
+
+  @override
+  String get voiceListening => 'Listening…';
+
+  @override
+  String get voiceNoDictation =>
+      'Speech recognition is not available on this phone.';
+
+  @override
+  String get voicePlay => 'Play';
+
+  @override
+  String get voicePause => 'Pause';
+
+  @override
+  String get voiceRecordings => 'Recordings';
+
+  @override
+  String get voiceMissing => 'The file is not on this phone.';
+
+  @override
+  String get voiceTranscribe => 'Transcribe';
+
+  @override
+  String get readAloud => 'Read aloud';
+
+  @override
+  String get readAloudStop => 'Stop';
+
+  @override
+  String get readAloudNext => 'Next paragraph';
+
+  @override
+  String get readAloudSpeed => 'Speed';
+
+  @override
+  String get readAloudEmpty => 'Nothing to read yet.';
+
+  @override
+  String readAloudParagraph(int index, int count) {
+    return 'Paragraph $index of $count';
+  }
 }

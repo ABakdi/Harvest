@@ -19,7 +19,8 @@ List<String> audioEmbedsIn(String body) => [
 
 bool _isAudio(String name) {
   final dot = name.lastIndexOf('.');
-  return dot > 0 && audioExtensions.contains(name.substring(dot + 1).toLowerCase());
+  return dot > 0 &&
+      audioExtensions.contains(name.substring(dot + 1).toLowerCase());
 }
 
 /// The embed line for [fileName].
@@ -66,7 +67,10 @@ List<String> speechParagraphs(String markdown) {
         .replaceAll(RegExp(r'^\s{0,3}#{1,6}\s+'), '')
         .replaceAll(RegExp(r'^\s*>\s?'), '')
         .replaceAll(RegExp(r'^\s*([-*+]|\d+[.)])\s+(\[[ xX]\]\s+)?'), '')
-        .replaceAllMapped(RegExp(r'\[\[([^\]|]+)(\|([^\]]+))?\]\]'), (m) => m.group(3) ?? m.group(1)!)
+        .replaceAllMapped(
+          RegExp(r'\[\[([^\]|]+)(\|([^\]]+))?\]\]'),
+          (m) => m.group(3) ?? m.group(1)!,
+        )
         .replaceAllMapped(RegExp(r'\[([^\]]+)\]\([^)]*\)'), (m) => m.group(1)!)
         .replaceAll(RegExp(r'(\*\*|__|\*|_|~~|`|==)'), '')
         .replaceAll(RegExp(r'^\s*([-*_]\s*){3,}$'), '')
@@ -76,7 +80,9 @@ List<String> speechParagraphs(String markdown) {
       text = text
           .split('|')
           .map((cell) => cell.trim())
-          .where((cell) => cell.isNotEmpty && !RegExp(r'^:?-+:?$').hasMatch(cell))
+          .where(
+            (cell) => cell.isNotEmpty && !RegExp(r'^:?-+:?$').hasMatch(cell),
+          )
           .join(', ');
     }
     lines.add(text);

@@ -176,8 +176,7 @@ class NoteAttachmentsRepository {
     var purged = 0;
     for (final row in rows) {
       final orphan = !notes.contains(row.noteUuid);
-      final expired =
-          row.deletedAt != null && row.deletedAt!.isBefore(cutoff);
+      final expired = row.deletedAt != null && row.deletedAt!.isBefore(cutoff);
       if (!orphan && !expired) continue;
       await _storage.delete(row.storedPath);
       await (_db.delete(

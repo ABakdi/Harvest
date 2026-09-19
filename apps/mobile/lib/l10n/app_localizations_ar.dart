@@ -3519,4 +3519,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get geoAlbum => 'ألبوم';
+
+  @override
+  String get voiceNew => 'ملاحظة صوتية جديدة';
+
+  @override
+  String get voiceRecord => 'سجّل';
+
+  @override
+  String get voiceRecording => 'يسجّل…';
+
+  @override
+  String get voiceStop => 'أوقف واحتفظ';
+
+  @override
+  String get voiceDiscard => 'تجاهل';
+
+  @override
+  String get voiceNoMic => 'يحتاج Harvest الميكروفون للتسجيل.';
+
+  @override
+  String get voiceDictate => 'إملاء';
+
+  @override
+  String get voiceListening => 'يستمع…';
+
+  @override
+  String get voiceNoDictation => 'التعرّف على الكلام غير متاح على هذا الهاتف.';
+
+  @override
+  String get voicePlay => 'تشغيل';
+
+  @override
+  String get voicePause => 'إيقاف مؤقت';
+
+  @override
+  String get voiceRecordings => 'التسجيلات';
+
+  @override
+  String get voiceMissing => 'الملف غير موجود على هذا الهاتف.';
+
+  @override
+  String get voiceTranscribe => 'تفريغ نصي';
+
+  @override
+  String get readAloud => 'اقرأ بصوت عالٍ';
+
+  @override
+  String get readAloudStop => 'إيقاف';
+
+  @override
+  String get readAloudNext => 'الفقرة التالية';
+
+  @override
+  String get readAloudSpeed => 'السرعة';
+
+  @override
+  String get readAloudEmpty => 'لا شيء لقراءته بعد.';
+
+  @override
+  String readAloudParagraph(int index, int count) {
+    return 'الفقرة $index من $count';
+  }
 }

@@ -10,8 +10,10 @@ import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/notes/data/note_folders.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
+import 'package:harvest/features/notes/data/voice_gateways.dart';
 import 'package:harvest/features/notes/domain/note.dart';
 import 'package:harvest/features/notes/domain/note_pdf.dart';
+import 'package:harvest/features/notes/domain/voice.dart';
 import 'package:harvest/features/notes/presentation/editing_focus.dart';
 import 'package:harvest/features/notes/presentation/live_markdown_controller.dart';
 import 'package:harvest/features/notes/presentation/markdown_toolbar.dart';
@@ -19,6 +21,7 @@ import 'package:harvest/features/notes/presentation/note_editor.dart';
 import 'package:harvest/features/notes/presentation/note_trash_screen.dart';
 import 'package:harvest/features/notes/presentation/notes_providers.dart';
 import 'package:harvest/features/notes/presentation/notes_sidebar.dart';
+import 'package:harvest/features/notes/presentation/voice_widgets.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:printing/printing.dart';
@@ -100,6 +103,82 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         .create(folder: normalizeFolder(folder));
     if (!mounted) return;
     _show(note.uuid);
+  }
+
+  /// The three-second path: a note named by the minute, recording at
+  /// once ([[Notes]] — voice notes).
+  Future<void> _newVoiceNote(String folder) async {
+    final note = await ref
+        .read(notesRepositoryProvider)
+        .create(
+          title: voiceNoteTitle(DateTime.now()),
+          folder: normalizeFolder(folder),
+        );
+    if (!mounted) return;
+    _show(note.uuid);
+    // After the editor for the new note has taken the controller.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    await _record(note.uuid);
+  }
+
+  /// Records into the open note and drops its embed at the caret.
+  Future<void> _record(String noteUuid) async {
+    final attachment = await showRecordingSheet(context, noteUuid: noteUuid);
+    if (attachment == null || !mounted) return;
+    _insertAtCaret(audioEmbed(attachment.fileName), ownLine: true);
+  }
+
+  /// Dictation: the phone's recogniser, words at the caret (N10).
+  Future<void> _dictate() async {
+    final dictation = ref.read(dictationProvider);
+    if (_dictating) {
+      await dictation.stop();
+      setState(() => _dictating = false);
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    if (!await dictation.available()) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.voiceNoDictation)));
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _dictating = true);
+    await dictation.listen(
+      localeId: Localizations.localeOf(context).toLanguageTag(),
+      onWords: (words, {required done}) {
+        if (!done || !mounted) return;
+        if (words.trim().isNotEmpty) _insertAtCaret(words.trim());
+        setState(() => _dictating = false);
+      },
+    );
+  }
+
+  var _dictating = false;
+
+  /// Types [text] at the caret, as a line of its own when asked.
+  void _insertAtCaret(String text, {bool ownLine = false}) {
+    final value = _body.value;
+    final at = value.selection.isValid
+        ? value.selection.end.clamp(0, value.text.length)
+        : value.text.length;
+    final before = value.text.substring(0, at);
+    final after = value.text.substring(at);
+    final lead = ownLine && before.isNotEmpty && !before.endsWith('\n')
+        ? '\n'
+        : (!ownLine &&
+                  before.isNotEmpty &&
+                  !before.endsWith(' ') &&
+                  !before.endsWith('\n')
+              ? ' '
+              : '');
+    final tail = ownLine && !after.startsWith('\n') ? '\n' : '';
+    final inserted = '$lead$text$tail';
+    _body.value = TextEditingValue(
+      text: '$before$inserted$after',
+      selection: TextSelection.collapsed(offset: at + inserted.length),
+    );
   }
 
   Future<void> _moveToFolder(Note note) async {
@@ -207,6 +286,11 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: l10n.voiceNew,
+            icon: const Icon(Icons.mic_none),
+            onPressed: () => unawaited(_newVoiceNote(note?.folder ?? '')),
+          ),
+          IconButton(
             tooltip: l10n.notesNew,
             icon: const Icon(Icons.add),
             onPressed: () => unawaited(_newNote(note?.folder ?? '')),
@@ -216,9 +300,31 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               onSelected: (value) => switch (value) {
                 'folder' => unawaited(_moveToFolder(note)),
                 'pdf' => unawaited(_sharePdf(note)),
+                'record' => unawaited(_record(note.uuid)),
+                'read' => unawaited(
+                  showReadAloudSheet(context, markdown: _body.text),
+                ),
                 _ => unawaited(_delete(note)),
               },
               itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'record',
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.mic_none),
+                    title: Text(l10n.voiceRecord),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'read',
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.record_voice_over_outlined),
+                    title: Text(l10n.readAloud),
+                  ),
+                ),
                 PopupMenuItem(
                   value: 'folder',
                   child: ListTile(
@@ -279,7 +385,12 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   )),
       ),
       bottomNavigationBar: writing && note != null
-          ? MarkdownToolbar(controller: _body)
+          ? MarkdownToolbar(
+              controller: _body,
+              onRecord: () => unawaited(_record(note.uuid)),
+              onDictate: () => unawaited(_dictate()),
+              dictating: _dictating,
+            )
           : null,
       body: note == null
           ? EmptyState(

@@ -9,6 +9,7 @@ import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
@@ -105,6 +106,10 @@ Future<void> appBootstrap(Ref ref) async {
           .read(vaultRepositoryProvider)
           .purgeDeleted(olderThan: purgeAfter);
       await ref.read(databaseProvider).capOutbox();
+      // Recordings trashed a month ago, and any whose note is gone.
+      await ref
+          .read(noteAttachmentsRepositoryProvider)
+          .purge(olderThan: purgeAfter);
     }),
   );
   unawaited(

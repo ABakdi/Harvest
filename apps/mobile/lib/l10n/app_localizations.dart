@@ -5845,6 +5845,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Album'**
   String get geoAlbum;
+
+  /// No description provided for @voiceNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New voice note'**
+  String get voiceNew;
+
+  /// No description provided for @voiceRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get voiceRecord;
+
+  /// No description provided for @voiceRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording…'**
+  String get voiceRecording;
+
+  /// No description provided for @voiceStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop and keep'**
+  String get voiceStop;
+
+  /// No description provided for @voiceDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get voiceDiscard;
+
+  /// No description provided for @voiceNoMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest needs the microphone to record.'**
+  String get voiceNoMic;
+
+  /// No description provided for @voiceDictate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate'**
+  String get voiceDictate;
+
+  /// No description provided for @voiceListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get voiceListening;
+
+  /// No description provided for @voiceNoDictation.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition is not available on this phone.'**
+  String get voiceNoDictation;
+
+  /// No description provided for @voicePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get voicePlay;
+
+  /// No description provided for @voicePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get voicePause;
+
+  /// No description provided for @voiceRecordings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recordings'**
+  String get voiceRecordings;
+
+  /// No description provided for @voiceMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is not on this phone.'**
+  String get voiceMissing;
+
+  /// No description provided for @voiceTranscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribe'**
+  String get voiceTranscribe;
+
+  /// No description provided for @readAloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Read aloud'**
+  String get readAloud;
+
+  /// No description provided for @readAloudStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get readAloudStop;
+
+  /// No description provided for @readAloudNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next paragraph'**
+  String get readAloudNext;
+
+  /// No description provided for @readAloudSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get readAloudSpeed;
+
+  /// No description provided for @readAloudEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to read yet.'**
+  String get readAloudEmpty;
+
+  /// No description provided for @readAloudParagraph.
+  ///
+  /// In en, this message translates to:
+  /// **'Paragraph {index} of {count}'**
+  String readAloudParagraph(int index, int count);
 }
 
 class _AppLocalizationsDelegate

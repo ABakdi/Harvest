@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 import 'package:harvest/features/notes/domain/note.dart';
+import 'package:harvest/features/notes/domain/voice.dart';
 import 'package:harvest/features/notes/presentation/editing_focus.dart';
 import 'package:harvest/features/notes/presentation/live_markdown_controller.dart';
 import 'package:harvest/features/notes/presentation/notes_providers.dart';
+import 'package:harvest/features/notes/presentation/voice_widgets.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// One note, written and read in the same place.
@@ -22,6 +25,7 @@ class NoteEditor extends ConsumerStatefulWidget {
     required this.uuid,
     required this.onOpen,
     required this.controller,
+    this.onTranscribe,
     super.key,
   });
 
@@ -29,6 +33,9 @@ class NoteEditor extends ConsumerStatefulWidget {
 
   /// Following a `[[link]]` opens another note in the same place.
   final void Function(String uuid) onOpen;
+
+  /// Offered on each recording when the assist can transcribe.
+  final void Function(NoteAttachment recording)? onTranscribe;
 
   /// Owned by the screen, so the toolbar above the keyboard and the
   /// text field are talking about the same caret.
@@ -49,12 +56,14 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
   // is unmounted, and by then `ref` refuses every call ([[Audit-v2]]
   // U3-01). What the last save and the toolbar need is kept here.
   late final NotesRepository _repository;
+  late final NoteAttachmentsRepository _attachments;
   late final WritingNote _writing;
 
   @override
   void initState() {
     super.initState();
     _repository = ref.read(notesRepositoryProvider);
+    _attachments = ref.read(noteAttachmentsRepositoryProvider);
     _writing = ref.read(writingNoteProvider.notifier);
     // Redraws on every caret move: which line shows its syntax is a
     // function of the selection, so the selection has to repaint.
@@ -73,8 +82,12 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
     // the last half-second of typing.
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
+      final uuid = widget.uuid;
+      final body = _lastBody;
+      final attachments = _attachments;
       _repository
-          .update(widget.uuid, title: _title.text, body: _lastBody)
+          .update(uuid, title: _title.text, body: body)
+          .then((_) => attachments.reconcile(uuid, body))
           .ignore();
     }
     _title.dispose();
@@ -110,11 +123,11 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
 
   Future<void> _save() async {
     if (!mounted) return;
-    await _repository.update(
-      widget.uuid,
-      title: _title.text,
-      body: widget.controller.text,
-    );
+    final body = widget.controller.text;
+    await _repository.update(widget.uuid, title: _title.text, body: body);
+    // A recording whose line was deleted goes to the trash with this
+    // save; one pasted back comes out of it.
+    await _attachments.reconcile(widget.uuid, body);
   }
 
   /// Tapping a `[[link]]`: go there, or offer to write it.
@@ -191,6 +204,18 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
     }
 
     final links = _linksOnLine(widget.controller.text);
+    // Recordings show in the order the body embeds them, and only while
+    // it does: the embed line is the truth (N7).
+    final embedded = audioEmbedsIn(widget.controller.text);
+    final stored = {
+      for (final attachment
+          in ref.watch(noteAttachmentsProvider(widget.uuid)).value ??
+              const <NoteAttachment>[])
+        attachment.fileName.toLowerCase(): attachment,
+    };
+    final recordings = [
+      for (final name in embedded) ?stored[name.toLowerCase()],
+    ];
 
     return Column(
       children: [
@@ -237,6 +262,17 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
                   hintText: l10n.notesBodyHint,
                 ),
               ),
+              if (recordings.isNotEmpty) ...[
+                const SizedBox(height: HarvestSpacing.md),
+                for (final recording in recordings)
+                  RecordingPlayer(
+                    key: ValueKey(recording.uuid),
+                    attachment: recording,
+                    onTranscribe: widget.onTranscribe == null
+                        ? null
+                        : () => widget.onTranscribe!(recording),
+                  ),
+              ],
               if (links.isNotEmpty) ...[
                 const SizedBox(height: HarvestSpacing.sm),
                 Wrap(
