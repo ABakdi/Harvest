@@ -6547,6 +6547,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily average'**
   String get stepsDailyAverage;
+
+  /// No description provided for @notesDeleteFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every note in {folder} goes to the trash. You can put them back from there, or undo this.'**
+  String notesDeleteFolderBody(String folder);
 }
 
 class _AppLocalizationsDelegate

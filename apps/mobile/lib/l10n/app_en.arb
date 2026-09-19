@@ -1664,5 +1664,7 @@
   "sheetSavedPlaces": "Named places",
   "sheetTrail": "Trail",
   "sheetGeotags": "Geotags",
-  "stepsDailyAverage": "Daily average"
+  "stepsDailyAverage": "Daily average",
+  "notesDeleteFolderBody": "Every note in {folder} goes to the trash. You can put them back from there, or undo this.",
+  "@notesDeleteFolderBody": { "placeholders": { "folder": { "type": "String" } } }
 }

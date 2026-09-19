@@ -9,6 +9,7 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/domain/gallery_service.dart';
+import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
 import 'package:harvest/features/gallery/presentation/memory_view.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
@@ -24,6 +25,10 @@ class MemoryViewer extends ConsumerStatefulWidget {
   });
 
   final Album album;
+  /// The album's memories as the caller had them. They are only the
+  /// opening order and the first frame: the viewer watches the album
+  /// itself, so a note saved here shows at once rather than the copy
+  /// this list was made from ([[Audit-v2]] U3-08).
   final List<Memory> memories;
   final int initial;
 
@@ -43,7 +48,14 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
     super.dispose();
   }
 
-  Memory get _current => widget.memories[_index];
+  /// The album as it is now, falling back to what the caller passed
+  /// until the first read arrives.
+  List<Memory> get _memories {
+    final live = ref.read(albumMemoriesProvider(widget.album.uuid)).value;
+    return live == null || live.isEmpty ? widget.memories : live;
+  }
+
+  Memory get _current => _memories[_index.clamp(0, _memories.length - 1)];
 
   Future<void> _editNote() async {
     final memory = _current;
@@ -103,7 +115,8 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final memories = widget.memories;
+    final live = ref.watch(albumMemoriesProvider(widget.album.uuid)).value;
+    final memories = live == null || live.isEmpty ? widget.memories : live;
     if (memories.isEmpty) return const SizedBox.shrink();
     final current = memories[_index.clamp(0, memories.length - 1)];
 

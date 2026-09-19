@@ -368,6 +368,7 @@ class _SlotRow extends ConsumerWidget {
           children: [
             if (exercise != null)
               ExerciseImage(
+                fetch: false,
                 exercise: exercise,
                 size: 40,
                 borderRadius: BorderRadius.circular(HarvestRadii.chip),

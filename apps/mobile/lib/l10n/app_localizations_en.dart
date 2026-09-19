@@ -3890,4 +3890,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stepsDailyAverage => 'Daily average';
+
+  @override
+  String notesDeleteFolderBody(String folder) {
+    return 'Every note in $folder goes to the trash. You can put them back from there, or undo this.';
+  }
 }

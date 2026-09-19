@@ -3899,4 +3899,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stepsDailyAverage => 'المتوسط اليومي';
+
+  @override
+  String notesDeleteFolderBody(String folder) {
+    return 'كل ملاحظة في $folder تذهب إلى المهملات. يمكنك إعادتها من هناك، أو التراجع عن هذا.';
+  }
 }

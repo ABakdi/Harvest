@@ -216,6 +216,7 @@ class _ExerciseTile extends StatelessWidget {
           child: Row(
             children: [
               ExerciseImage(
+                fetch: false,
                 exercise: exercise,
                 size: 52,
                 borderRadius: BorderRadius.circular(HarvestRadii.chip),
@@ -251,7 +252,8 @@ class _ExerciseTile extends StatelessWidget {
               IconButton(
                 tooltip: l10n.gymHowTo,
                 icon: const Icon(Icons.info_outline, size: 20),
-                onPressed: () => unawaited(showExerciseDetail(context, exercise)),
+                onPressed: () =>
+                    unawaited(showExerciseDetail(context, exercise)),
               ),
             ],
           ),

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
 import 'package:harvest/features/notes/data/note_folders.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
@@ -84,15 +86,35 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
     await folders.rename(folder, to);
   }
 
+  /// Trashing a folder takes every note in it, so it asks first and
+  /// can be taken back ([[Audit-v2]] U3-11).
   Future<void> _deleteFolder(String folder) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final repository = ref.read(notesRepositoryProvider);
     final folders = ref.read(declaredFoldersProvider.notifier);
-    final moved = await repository.trashFolder(folder);
+    final ok = await confirm(
+      context,
+      title: l10n.notesDeleteFolder,
+      body: l10n.notesDeleteFolderBody(folder),
+      confirmLabel: l10n.deleteAction,
+    );
+    if (!ok) return;
+    final trashed = await repository.trashFolder(folder);
     await folders.forget(folder);
     messenger.showSnackBar(
-      SnackBar(content: Text(l10n.notesFolderTrashed(folder, moved))),
+      SnackBar(
+        content: Text(l10n.notesFolderTrashed(folder, trashed.length)),
+        action: SnackBarAction(
+          label: l10n.undo,
+          onPressed: () => unawaited(() async {
+            for (final uuid in trashed) {
+              await repository.restore(uuid);
+            }
+            await folders.add(folder);
+          }()),
+        ),
+      ),
     );
   }
 
@@ -118,7 +140,7 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding: const EdgeInsetsDirectional.fromSTEB(
                 HarvestSpacing.md,
                 HarvestSpacing.md,
                 HarvestSpacing.sm,
@@ -284,7 +306,10 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
         }),
         onLongPress: () => unawaited(_folderMenu(folder)),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(
+          // The indent is the leading edge: in Arabic the tree nests
+          // from the right, and fromLTRB would read it backwards
+          // ([[Audit-v2]] U3-10).
+          padding: EdgeInsetsDirectional.fromSTEB(
             HarvestSpacing.md + depth * 14,
             8,
             HarvestSpacing.sm,
@@ -346,35 +371,37 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
 
   Future<void> _folderMenu(String folder) async {
     final l10n = AppLocalizations.of(context);
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.note_add_outlined),
-              title: Text(l10n.notesNewHere),
-              onTap: () => Navigator.of(context).pop('note'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.create_new_folder_outlined),
-              title: Text(l10n.notesNewSubfolder),
-              onTap: () => Navigator.of(context).pop('folder'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.drive_file_rename_outline),
-              title: Text(l10n.notesRenameFolder),
-              onTap: () => Navigator.of(context).pop('rename'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: Text(l10n.notesDeleteFolder),
-              subtitle: Text(l10n.notesDeleteFolderHint),
-              onTap: () => Navigator.of(context).pop('delete'),
-            ),
-          ],
-        ),
+    final choice = await showHarvestSheet<String>(
+      context,
+      builder: (context) => HarvestSheet(
+        title: folder,
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.note_add_outlined),
+            title: Text(l10n.notesNewHere),
+            onTap: () => Navigator.of(context).pop('note'),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.create_new_folder_outlined),
+            title: Text(l10n.notesNewSubfolder),
+            onTap: () => Navigator.of(context).pop('folder'),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.drive_file_rename_outline),
+            title: Text(l10n.notesRenameFolder),
+            onTap: () => Navigator.of(context).pop('rename'),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.delete_outline),
+            title: Text(l10n.notesDeleteFolder),
+            subtitle: Text(l10n.notesDeleteFolderHint),
+            onTap: () => Navigator.of(context).pop('delete'),
+          ),
+        ],
       ),
     );
     if (!mounted) return;
@@ -405,7 +432,7 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
         color: selected
             ? scheme.secondaryContainer.withValues(alpha: 0.6)
             : null,
-        padding: EdgeInsets.fromLTRB(
+        padding: EdgeInsetsDirectional.fromSTEB(
           HarvestSpacing.md + depth * 14,
           8,
           HarvestSpacing.md,
@@ -454,7 +481,7 @@ class _NewHere extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(
+        padding: EdgeInsetsDirectional.fromSTEB(
           HarvestSpacing.md + depth * 14,
           8,
           HarvestSpacing.md,

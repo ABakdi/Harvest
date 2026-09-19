@@ -234,15 +234,16 @@ class NotesRepository {
         }
       });
 
-  /// Puts every note under [folder] in the trash.
-  Future<int> trashFolder(String folder) async {
+  /// Puts every note under [folder] in the trash, and says which ones
+  /// so the undo can bring exactly those back ([[Audit-v2]] U3-11).
+  Future<List<String>> trashFolder(String folder) async {
     final rows = (await _under(folder))
         .where((row) => row.deletedAt == null)
         .toList();
     for (final row in rows) {
       await remove(row.uuid);
     }
-    return rows.length;
+    return [for (final row in rows) row.uuid];
   }
 
   /// Every note in [folder] or below it. Matched in Dart rather than
