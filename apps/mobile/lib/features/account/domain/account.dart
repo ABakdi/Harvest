@@ -6,6 +6,7 @@ import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/secret_store.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -112,7 +113,49 @@ class ApiRemote implements SyncRemote {
 SyncService syncService(Ref ref) => SyncService(
   ref.watch(databaseProvider),
   ApiRemote(ref.watch(apiClientProvider)),
+  cipher: () async {
+    final stored = await ref
+        .read(secretStoreProvider)
+        .read(SyncPassphrase.keyName);
+    return stored == null ? null : SyncCipher(base64Decode(stored));
+  },
 );
+
+/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
+/// derived from it is kept, in the keystore; the passphrase itself is
+/// gone the moment the key exists.
+@Riverpod(keepAlive: true)
+class SyncPassphrase extends _$SyncPassphrase {
+  static const keyName = 'sync.privateKey';
+
+  @override
+  Future<bool> build() async =>
+      await ref.read(secretStoreProvider).read(keyName) != null;
+
+  /// Derives the key (seconds of work, off the UI thread) and opens the
+  /// private tier: the history is pulled again so the rows that waited
+  /// for it can be read.
+  Future<void> set(String passphrase) async {
+    final me = (await ref.read(accountControllerProvider.future)).me;
+    if (me == null) return;
+    final key = await compute(
+      _derive,
+      (passphrase: passphrase, salt: me.syncSalt),
+    );
+    await ref.read(secretStoreProvider).write(keyName, base64Encode(key));
+    await ref.read(syncServiceProvider).privateTierOpened();
+    state = const AsyncData(true);
+  }
+
+  /// Forgets the key on this device; money and places stay home again.
+  Future<void> forget() async {
+    await ref.read(secretStoreProvider).write(keyName, null);
+    state = const AsyncData(false);
+  }
+}
+
+Future<Uint8List> _derive(({String passphrase, String salt}) input) =>
+    SyncCipher.deriveKey(input.passphrase, input.salt);
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.
@@ -220,6 +263,7 @@ class AccountController extends _$AccountController {
   /// sync's place in the server's history.
   Future<void> forget() async {
     await ref.read(tokenStoreProvider).clear();
+    await ref.read(syncPassphraseProvider.notifier).forget();
     await ref.read(settingsRepositoryProvider).remove(AccountKeys.me);
     await ref.read(syncServiceProvider).reset();
     ref.invalidateSelf();

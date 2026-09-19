@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:cryptography/cryptography.dart'
+    show SecretBoxAuthenticationError;
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/features/sync/domain/row_codec.dart';
+import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:uuid/uuid.dart';
 
 /// The server, as sync needs it: two verbs ([[Sync-API]]). The real one
@@ -51,6 +54,17 @@ abstract final class SyncKeys {
   static const snapshotDone = 'sync.snapshotDone';
   static const lastSyncedAt = 'sync.lastSyncedAt';
   static const invalid = 'sync.invalid';
+
+  /// Whether the private tables' rows have been sent once, sealed. Set
+  /// false when a passphrase is first given, so the history that waited
+  /// for it goes up.
+  static const privateSnapshotDone = 'sync.privateSnapshotDone';
+}
+
+/// A private row the key cannot open: the passphrase on this device is
+/// not the one the others used. Sync stops rather than skip the row.
+class SyncPassphraseMismatch implements Exception {
+  const SyncPassphraseMismatch();
 }
 
 /// Drains the outbox and merges the server's rows ([[Sync-API]]).
@@ -59,12 +73,22 @@ abstract final class SyncKeys {
 /// a newer remote one before it is even sent; push; pull again for what
 /// landed meanwhile. Only one sync runs at a time.
 class SyncService {
-  SyncService(this._db, this._remote, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+  SyncService(
+    this._db,
+    this._remote, {
+    DateTime Function()? clock,
+    Future<SyncCipher?> Function()? cipher,
+  }) : _clock = clock ?? DateTime.now,
+       _cipherOf = cipher ?? (() async => null);
 
   final HarvestDatabase _db;
   final SyncRemote _remote;
   final DateTime Function() _clock;
+  final Future<SyncCipher?> Function() _cipherOf;
+
+  /// The private tier's key for this run; null until a passphrase is set,
+  /// and then money and places stay home ([[Sync-API]]).
+  SyncCipher? _cipher;
   late final Map<String, TableCodec> _codecs = codecsOf(_db);
 
   static const batch = 500;
@@ -76,9 +100,16 @@ class SyncService {
   );
 
   Future<SyncReport> _run() async {
+    _cipher = await _cipherOf();
     var pulled = await _pullAll();
     if (await _setting(SyncKeys.snapshotDone) != 'true') {
-      await _snapshot();
+      await _snapshot(private: false);
+      await _set(SyncKeys.snapshotDone, 'true');
+    }
+    if (_cipher != null &&
+        await _setting(SyncKeys.privateSnapshotDone) != 'true') {
+      await _snapshot(private: true);
+      await _set(SyncKeys.privateSnapshotDone, 'true');
     }
     final pushed = await _pushOutbox();
     pulled += await _pullAll();
@@ -123,8 +154,19 @@ class SyncService {
       await codec.purge(_db, key);
       return true;
     }
-    final data = record['data'];
-    // Ciphertext waits for the passphrase ([[Sync-API]]: private tier).
+    var data = record['data'];
+    final envelope = record['enc'];
+    if (envelope is Map<String, Object?>) {
+      // Ciphertext waits for the passphrase ([[Sync-API]]: private tier);
+      // setting it re-pulls everything, so nothing waiting is lost.
+      final cipher = _cipher;
+      if (cipher == null) return false;
+      try {
+        data = await cipher.open(codec.name, key, envelope);
+      } on SecretBoxAuthenticationError {
+        throw const SyncPassphraseMismatch();
+      }
+    }
     if (data is! Map<String, Object?>) return false;
     if (!codec.mayLeave(key)) return false;
 
@@ -145,16 +187,16 @@ class SyncService {
   /// A device's first sync sends every row it has: the outbox is an
   /// increment, and rows written before any account existed may have
   /// been capped out of it ([[ADR-005-Local-First-Sync]]).
-  Future<void> _snapshot() async {
+  Future<void> _snapshot({required bool private}) async {
     final now = _clock();
     for (final codec in _codecs.values) {
-      if (codec.private) continue;
+      if (codec.private != private) continue;
       final rows = await codec.readAll(_db);
       final records = <Map<String, Object?>>[];
       for (final row in rows) {
         final key = codec.keyOf(row);
         if (!codec.mayLeave(key)) continue;
-        records.add(_record(codec, key, row, now));
+        records.add(await _record(codec, key, row, now));
       }
       for (var i = 0; i < records.length; i += batch) {
         final page = records.sublist(
@@ -164,7 +206,6 @@ class SyncService {
         await _remote.push(await deviceId(), page);
       }
     }
-    await _set(SyncKeys.snapshotDone, 'true');
   }
 
   Future<({int pushed, int invalid, int heldBack})> _pushOutbox() async {
@@ -199,7 +240,7 @@ class SyncService {
           );
           continue;
         }
-        if (codec.private) {
+        if (codec.private && _cipher == null) {
           heldBack++;
           continue;
         }
@@ -209,7 +250,7 @@ class SyncService {
               // A delete is a new event: stamped now, to the microsecond,
               // so it can never tie with the write it undoes.
               ? _tombstone(table, key, _clock())
-              : _record(codec, key, row, entry.value.queuedAt),
+              : await _record(codec, key, row, entry.value.queuedAt),
         );
         sent[entry.key] = [
           for (final r in rows)
@@ -242,20 +283,34 @@ class SyncService {
           ))
           .go();
 
-  Map<String, Object?> _record(
+  Future<Map<String, Object?>> _record(
     TableCodec codec,
     String key,
     Map<String, Object?> row,
     DateTime queuedAt,
-  ) {
+  ) async {
     final data = codec.toData(row);
+    final cipher = _cipher;
     return {
       'table': codec.name,
       'uuid': key,
       'updatedAt': isoUtc(codec.clockOf(row, queuedAt)),
       'deletedAt': data['deletedAt'],
-      'data': data,
+      // The clocks stay in the clear, because the server's conflict rule
+      // needs them; everything else of a private row is sealed.
+      if (codec.private && cipher != null)
+        'enc': await cipher.seal(codec.name, key, data)
+      else
+        'data': data,
     };
+  }
+
+  /// A passphrase was just given: pull the whole history again, to open
+  /// the private rows the earlier pulls had to leave, and send this
+  /// phone's own private rows once.
+  Future<void> privateTierOpened() async {
+    await _set(SyncKeys.cursor, '0');
+    await _set(SyncKeys.privateSnapshotDone, 'false');
   }
 
   /// A row the outbox names and the database no longer has: it was
@@ -286,6 +341,7 @@ class SyncService {
       SyncKeys.snapshotDone,
       SyncKeys.lastSyncedAt,
       SyncKeys.invalid,
+      SyncKeys.privateSnapshotDone,
     ]) {
       await (_db.delete(_db.kvSettings)..where((s) => s.key.equals(key))).go();
     }

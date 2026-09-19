@@ -96,6 +96,11 @@ class SyncController extends _$SyncController {
       state = state.copyWith(running: false, last: report, clearError: true);
     } on ApiException catch (error) {
       state = state.copyWith(running: false, error: error.code);
+    } on SyncPassphraseMismatch {
+      // The key cannot open what the other devices sealed: forget it,
+      // and ask again, rather than sync around the rows it cannot read.
+      await ref.read(syncPassphraseProvider.notifier).forget();
+      state = state.copyWith(running: false, error: 'passphrase');
     } on Object catch (error) {
       debugPrint('[sync] failed: ${error.runtimeType}');
       state = state.copyWith(running: false, error: 'internal');

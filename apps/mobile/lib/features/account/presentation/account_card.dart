@@ -34,6 +34,7 @@ String accountError(AppLocalizations l10n, Object error) => switch (error) {
   ApiException(code: 'rate_limited') => l10n.accountErrorRateLimited,
   ApiException(code: 'validation_failed', :final message) =>
     l10n.accountErrorInvalid(message ?? ''),
+  ApiException(code: 'passphrase') => l10n.passphraseWrong,
   ApiException(:final code) => l10n.accountErrorOther(code),
   _ => l10n.accountErrorOther(error.runtimeType.toString()),
 };
@@ -281,6 +282,7 @@ class _SignedIn extends ConsumerWidget {
               ),
             ],
             const Divider(height: HarvestSpacing.lg),
+            const _Passphrase(),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.devices_outlined),
@@ -399,6 +401,112 @@ class _Devices extends ConsumerWidget {
             );
           },
         ),
+      ],
+    );
+  }
+}
+
+/// The private tier's passphrase: set once per device, never sent.
+class _Passphrase extends ConsumerWidget {
+  const _Passphrase();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final set = ref.watch(syncPassphraseProvider).value ?? false;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(set ? Icons.lock_outline : Icons.lock_open_outlined),
+      title: Text(l10n.passphraseTitle),
+      subtitle: Text(set ? l10n.passphraseSet : l10n.passphraseUnset),
+      trailing: set
+          ? TextButton(
+              onPressed: () => unawaited(
+                ref.read(syncPassphraseProvider.notifier).forget(),
+              ),
+              child: Text(l10n.passphraseForget),
+            )
+          : null,
+      onTap: set
+          ? null
+          : () => unawaited(
+              showHarvestSheet<void>(
+                context,
+                builder: (_) => const _PassphraseSheet(),
+              ),
+            ),
+    );
+  }
+}
+
+class _PassphraseSheet extends ConsumerStatefulWidget {
+  const _PassphraseSheet();
+
+  @override
+  ConsumerState<_PassphraseSheet> createState() => _PassphraseSheetState();
+}
+
+class _PassphraseSheetState extends ConsumerState<_PassphraseSheet> {
+  final _first = TextEditingController();
+  final _second = TextEditingController();
+  var _working = false;
+
+  @override
+  void dispose() {
+    _first.dispose();
+    _second.dispose();
+    super.dispose();
+  }
+
+  String? _problem(AppLocalizations l10n) {
+    if (_first.text.length < 12) return l10n.passphraseShort;
+    if (_first.text != _second.text) return l10n.passphraseMismatch;
+    return null;
+  }
+
+  Future<void> _save() async {
+    setState(() => _working = true);
+    final navigator = Navigator.of(context);
+    await ref.read(syncPassphraseProvider.notifier).set(_first.text);
+    navigator.pop();
+    unawaited(ref.read(syncControllerProvider.notifier).syncNow());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final problem = _problem(l10n);
+    return HarvestSheet(
+      title: l10n.passphraseTitle,
+      actionLabel: _working ? l10n.passphraseWorking : l10n.passphraseSetAction,
+      onAction: problem != null || _working ? null : () => unawaited(_save()),
+      children: [
+        Text(l10n.passphraseBody),
+        const SizedBox(height: HarvestSpacing.md),
+        TextField(
+          controller: _first,
+          obscureText: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(labelText: l10n.passphraseField),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        TextField(
+          controller: _second,
+          obscureText: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            labelText: l10n.passphraseRepeat,
+            errorText: _second.text.isEmpty ? null : problem,
+          ),
+        ),
+        if (_working) ...[
+          const SizedBox(height: HarvestSpacing.md),
+          const LinearProgressIndicator(),
+        ],
       ],
     );
   }

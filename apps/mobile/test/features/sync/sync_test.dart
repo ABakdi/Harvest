@@ -11,6 +11,7 @@ import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/goals/data/goals_repository.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 
 import '../../support/fake_remote.dart';
@@ -140,5 +141,75 @@ void main() {
     await syncA.run();
     await syncB.run();
     expect(await b.select(b.notes).get(), hasLength(1));
+  });
+
+  group('the private tier', () {
+    final key = List<int>.generate(32, (i) => i);
+    final other = List<int>.generate(32, (i) => 255 - i);
+
+    Future<void> logExpense(HarvestDatabase db) => FinancesRepository(db).log(
+      amountMinor: 1250,
+      category: 'food',
+      note: 'bread',
+      day: HarvestDay.today(),
+    );
+
+    test('money travels sealed, and the server never sees a column', () async {
+      final sealedA = SyncService(
+        a,
+        remote,
+        cipher: () async => SyncCipher(key),
+      );
+      final sealedB = SyncService(
+        b,
+        remote,
+        cipher: () async => SyncCipher(key),
+      );
+      await logExpense(a);
+      await sealedA.run();
+
+      final uuid = (await a.select(a.expenses).getSingle()).uuid;
+      final stored = remote.row('expenses', uuid)!;
+      expect(stored.containsKey('data'), isFalse);
+      expect(stored['enc'], isA<Map<String, Object?>>());
+      expect('${stored['enc']}', isNot(contains('bread')));
+
+      await sealedB.run();
+      final row = await b.select(b.expenses).getSingle();
+      expect(row.amountMinor, 1250);
+      expect(row.note, 'bread');
+    });
+
+    test('a device that gets the passphrase late reads what waited', () async {
+      final sealedA = SyncService(
+        a,
+        remote,
+        cipher: () async => SyncCipher(key),
+      );
+      await logExpense(a);
+      await sealedA.run();
+
+      SyncCipher? later;
+      final plainB = SyncService(b, remote, cipher: () async => later);
+      await plainB.run();
+      expect(await b.select(b.expenses).get(), isEmpty);
+
+      later = SyncCipher(key);
+      await plainB.privateTierOpened();
+      await plainB.run();
+      expect(await b.select(b.expenses).get(), hasLength(1));
+    });
+
+    test('the wrong passphrase stops sync instead of skipping rows', () async {
+      await logExpense(a);
+      await SyncService(a, remote, cipher: () async => SyncCipher(key)).run();
+      final wrong = SyncService(
+        b,
+        remote,
+        cipher: () async => SyncCipher(other),
+      );
+      await expectLater(wrong.run(), throwsA(isA<SyncPassphraseMismatch>()));
+      expect(await b.select(b.expenses).get(), isEmpty);
+    });
   });
 }

@@ -130,7 +130,65 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'9db8fa47a01c7b72f5b4210d95b204c8121b6b9c';
+String _$syncServiceHash() => r'2833ec746be5951149015c8bd6a862d7fbcfadd7';
+
+/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
+/// derived from it is kept, in the keystore; the passphrase itself is
+/// gone the moment the key exists.
+
+@ProviderFor(SyncPassphrase)
+final syncPassphraseProvider = SyncPassphraseProvider._();
+
+/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
+/// derived from it is kept, in the keystore; the passphrase itself is
+/// gone the moment the key exists.
+final class SyncPassphraseProvider
+    extends $AsyncNotifierProvider<SyncPassphrase, bool> {
+  /// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
+  /// derived from it is kept, in the keystore; the passphrase itself is
+  /// gone the moment the key exists.
+  SyncPassphraseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncPassphraseProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncPassphraseHash();
+
+  @$internal
+  @override
+  SyncPassphrase create() => SyncPassphrase();
+}
+
+String _$syncPassphraseHash() => r'd75b779c72b95f0fe897bf2f1e89cfcbb4528303';
+
+/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
+/// derived from it is kept, in the keystore; the passphrase itself is
+/// gone the moment the key exists.
+
+abstract class _$SyncPassphrase extends $AsyncNotifier<bool> {
+  FutureOr<bool> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<bool>, bool>,
+              AsyncValue<bool>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.
@@ -163,7 +221,7 @@ final class AccountControllerProvider
   AccountController create() => AccountController();
 }
 
-String _$accountControllerHash() => r'0218756dd73af27aa3ee31d6dbb0c4b6dc67ba27';
+String _$accountControllerHash() => r'ce5bebf53f1abc7a1c65bc4274a1d862b34bee4a';
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.

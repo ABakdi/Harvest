@@ -11,12 +11,14 @@ import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
+import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/goals/data/goals_repository.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/domain/steps.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 
 class _Secrets implements SecretStore {
@@ -84,10 +86,26 @@ void main() {
         StepDay(day: HarvestDay.today(), steps: 8123, lastCounter: 400),
       );
       await SettingsRepository(a).setString('themeMode', 'dark');
+      await FinancesRepository(a).log(
+        amountMinor: 1250,
+        category: 'food',
+        note: 'bread',
+        day: HarvestDay.today(),
+      );
+      final key = List<int>.generate(32, (i) => i * 7 % 256);
+      Future<SyncCipher?> cipher() async => SyncCipher(key);
 
-      final reportA = await SyncService(a, ApiRemote(apiA)).run();
+      final reportA = await SyncService(
+        a,
+        ApiRemote(apiA),
+        cipher: cipher,
+      ).run();
       expect(reportA.invalid, 0, reason: 'the server refused a phone row');
-      final reportB = await SyncService(b, ApiRemote(apiB)).run();
+      final reportB = await SyncService(
+        b,
+        ApiRemote(apiB),
+        cipher: cipher,
+      ).run();
       expect(reportB.invalid, 0);
 
       expect(
@@ -109,6 +127,7 @@ void main() {
         8123,
       );
       expect(await SettingsRepository(b).getString('themeMode'), 'dark');
+      expect((await b.select(b.expenses).getSingle()).note, 'bread');
     },
     skip: url == null ? 'set HARVEST_E2E_URL to run against a server' : false,
   );

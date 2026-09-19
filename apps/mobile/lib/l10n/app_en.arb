@@ -1642,5 +1642,17 @@
   "@accountErrorInvalid": { "placeholders": { "detail": { "type": "String" } } },
   "accountErrorRateLimited": "Too many tries. Wait a few minutes.",
   "accountErrorOther": "Something went wrong ({code}).",
-  "@accountErrorOther": { "placeholders": { "code": { "type": "String" } } }
+  "@accountErrorOther": { "placeholders": { "code": { "type": "String" } } },
+  "passphraseTitle": "Sync passphrase",
+  "passphraseUnset": "Not set: money and places stay on this phone.",
+  "passphraseSet": "Set: money and places sync end-to-end encrypted.",
+  "passphraseSetAction": "Set the passphrase",
+  "passphraseForget": "Forget it on this device",
+  "passphraseBody": "Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.",
+  "passphraseField": "Passphrase",
+  "passphraseRepeat": "The same, again",
+  "passphraseMismatch": "The two do not match.",
+  "passphraseShort": "At least 12 characters.",
+  "passphraseWorking": "Making the key…",
+  "passphraseWrong": "This passphrase does not open what your other devices sent. Enter the one you used there."
 }

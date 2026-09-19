@@ -3828,4 +3828,44 @@ class AppLocalizationsAr extends AppLocalizations {
   String accountErrorOther(String code) {
     return 'حدث خطأ ($code).';
   }
+
+  @override
+  String get passphraseTitle => 'عبارة مرور المزامنة';
+
+  @override
+  String get passphraseUnset =>
+      'غير مضبوطة: المال والأماكن تبقى على هذا الهاتف.';
+
+  @override
+  String get passphraseSet =>
+      'مضبوطة: المال والأماكن تُزامَن مشفّرة من طرف إلى طرف.';
+
+  @override
+  String get passphraseSetAction => 'اضبط العبارة';
+
+  @override
+  String get passphraseForget => 'انسها على هذا الجهاز';
+
+  @override
+  String get passphraseBody =>
+      'يُشفَّر المال والأماكن على هذا الهاتف بمفتاح مصنوع من هذه العبارة. لا يراها الخادم أبدًا. استخدم العبارة نفسها على كل جهاز. إن فقدتها فلا يمكن قراءة الصفوف المشفّرة على جهاز جديد — بل إرسالها مجددًا من جهاز لا يزال يحملها.';
+
+  @override
+  String get passphraseField => 'العبارة';
+
+  @override
+  String get passphraseRepeat => 'العبارة نفسها مرة أخرى';
+
+  @override
+  String get passphraseMismatch => 'العبارتان غير متطابقتين.';
+
+  @override
+  String get passphraseShort => 'اثنا عشر حرفًا على الأقل.';
+
+  @override
+  String get passphraseWorking => 'يصنع المفتاح…';
+
+  @override
+  String get passphraseWrong =>
+      'هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك.';
 }

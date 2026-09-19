@@ -3820,4 +3820,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String accountErrorOther(String code) {
     return 'Something went wrong ($code).';
   }
+
+  @override
+  String get passphraseTitle => 'Sync passphrase';
+
+  @override
+  String get passphraseUnset => 'Not set: money and places stay on this phone.';
+
+  @override
+  String get passphraseSet =>
+      'Set: money and places sync end-to-end encrypted.';
+
+  @override
+  String get passphraseSetAction => 'Set the passphrase';
+
+  @override
+  String get passphraseForget => 'Forget it on this device';
+
+  @override
+  String get passphraseBody =>
+      'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.';
+
+  @override
+  String get passphraseField => 'Passphrase';
+
+  @override
+  String get passphraseRepeat => 'The same, again';
+
+  @override
+  String get passphraseMismatch => 'The two do not match.';
+
+  @override
+  String get passphraseShort => 'At least 12 characters.';
+
+  @override
+  String get passphraseWorking => 'Making the key…';
+
+  @override
+  String get passphraseWrong =>
+      'This passphrase does not open what your other devices sent. Enter the one you used there.';
 }

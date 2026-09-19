@@ -1082,5 +1082,17 @@
   "accountErrorTaken": "لهذا البريد حساب بالفعل.",
   "accountErrorInvalid": "تحقّق من الحقول: {detail}",
   "accountErrorRateLimited": "محاولات كثيرة. انتظر بضع دقائق.",
-  "accountErrorOther": "حدث خطأ ({code})."
+  "accountErrorOther": "حدث خطأ ({code}).",
+  "passphraseTitle": "عبارة مرور المزامنة",
+  "passphraseUnset": "غير مضبوطة: المال والأماكن تبقى على هذا الهاتف.",
+  "passphraseSet": "مضبوطة: المال والأماكن تُزامَن مشفّرة من طرف إلى طرف.",
+  "passphraseSetAction": "اضبط العبارة",
+  "passphraseForget": "انسها على هذا الجهاز",
+  "passphraseBody": "يُشفَّر المال والأماكن على هذا الهاتف بمفتاح مصنوع من هذه العبارة. لا يراها الخادم أبدًا. استخدم العبارة نفسها على كل جهاز. إن فقدتها فلا يمكن قراءة الصفوف المشفّرة على جهاز جديد — بل إرسالها مجددًا من جهاز لا يزال يحملها.",
+  "passphraseField": "العبارة",
+  "passphraseRepeat": "العبارة نفسها مرة أخرى",
+  "passphraseMismatch": "العبارتان غير متطابقتين.",
+  "passphraseShort": "اثنا عشر حرفًا على الأقل.",
+  "passphraseWorking": "يصنع المفتاح…",
+  "passphraseWrong": "هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك."
 }

@@ -1,0 +1,49 @@
+{
+  "about": "The private tier (Sync-API). key = PBKDF2-HMAC-SHA256(utf8(passphrase), salt = utf8(account syncSalt), iterations, 32 bytes). Envelope: AES-256-GCM, 12-byte IV, 128-bit tag appended to ct, additional data = utf8(\"<table>/<record uuid>\"), plaintext = the JSON of the row data. ct and iv are standard base64. The records/ fixtures of the private tables are encrypted with this key.",
+  "passphrase": "correct horse battery staple",
+  "syncSalt": "k3Qv9xY2mN8pR4tW6zB1cD5fH7jL0sA",
+  "iterations": 600000,
+  "keyHex": "b84f8d9af4aff64c6c8c6a0cc3320ad162767c94c8c8f87398e1ed7dd7838a55",
+  "cases": [
+    {
+      "table": "debt_payments",
+      "uuid": "b4f7a1e8-6c3d-4e9b-a5f2-8c1d4b7e3f16",
+      "plaintext": "{\"uuid\":\"b4f7a1e8-6c3d-4e9b-a5f2-8c1d4b7e3f16\",\"debtUuid\":\"5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89\",\"amountMinor\":250000,\"harvestDay\":\"2026-09-12\",\"loggedAt\":\"2026-09-12T16:00:00.000Z\",\"deletedAt\":null}"
+    },
+    {
+      "table": "debts",
+      "uuid": "5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89",
+      "plaintext": "{\"uuid\":\"5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89\",\"person\":\"Karim\",\"amountMinor\":1000000,\"currency\":\"DZD\",\"payOffBy\":\"2026-12-31\",\"remindAt\":\"20:00\",\"note\":\"For the laptop\",\"settledAt\":null,\"createdAt\":\"2026-09-05T16:00:00.000Z\",\"deletedAt\":null,\"updatedAt\":\"2026-09-12T16:00:00.000Z\"}"
+    },
+    {
+      "table": "expense_categories",
+      "uuid": "3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58",
+      "plaintext": "{\"uuid\":\"3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58\",\"name\":\"Books\",\"icon\":\"book\",\"deletedAt\":null,\"updatedAt\":\"2026-09-02T10:00:00.000Z\"}"
+    },
+    {
+      "table": "expenses",
+      "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+      "plaintext": "{\"uuid\":\"e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26\",\"amountMinor\":45000,\"currency\":\"DZD\",\"category\":\"Food\",\"note\":\"Couscous, Friday\",\"harvestDay\":\"2026-09-18\",\"loggedAt\":\"2026-09-18T13:10:00.000Z\",\"deletedAt\":null,\"updatedAt\":\"2026-09-18T13:10:00.000Z\"}"
+    },
+    {
+      "table": "geotags",
+      "uuid": "1e8c5b9f-3a7d-4f2e-9c4b-7d1a5e8c3f27",
+      "plaintext": "{\"uuid\":\"1e8c5b9f-3a7d-4f2e-9c4b-7d1a5e8c3f27\",\"targetTable\":\"check_ins\",\"targetUuid\":\"b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64\",\"harvestDay\":\"2026-09-18\",\"at\":\"2026-09-18T22:41:05.000Z\",\"latitude\":36.7538,\"longitude\":3.0588,\"accuracyM\":18,\"state\":\"fixed\",\"updatedAt\":\"2026-09-18T22:41:40.000Z\",\"deletedAt\":null}"
+    },
+    {
+      "table": "location_points",
+      "uuid": "8f3a6d2b-9e1c-4b5a-b8d7-6c3f9a2e5d41",
+      "plaintext": "{\"uuid\":\"8f3a6d2b-9e1c-4b5a-b8d7-6c3f9a2e5d41\",\"harvestDay\":\"2026-09-18\",\"recordedAt\":\"2026-09-18T17:45:12.000Z\",\"latitude\":36.7538,\"longitude\":3.0588,\"accuracyM\":12.5,\"speedMps\":1.4,\"altitudeM\":212,\"updatedAt\":\"2026-09-18T17:45:12.000Z\",\"deletedAt\":null}"
+    },
+    {
+      "table": "money_txns",
+      "uuid": "f9a2d6c3-8e4b-4f1a-b7c5-2d8e6a4f1c73",
+      "plaintext": "{\"uuid\":\"f9a2d6c3-8e4b-4f1a-b7c5-2d8e6a4f1c73\",\"account\":\"wallet\",\"deltaMinor\":-45000,\"currency\":\"DZD\",\"note\":null,\"kind\":\"expense\",\"reference\":\"Food\",\"linkUuid\":\"e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26\",\"harvestDay\":\"2026-09-18\",\"loggedAt\":\"2026-09-18T13:10:00.000Z\",\"deletedAt\":null,\"updatedAt\":\"2026-09-18T13:10:00.000Z\"}"
+    },
+    {
+      "table": "saved_places",
+      "uuid": "6a2d9f5c-1b8e-4d4a-a7c3-5f9e2b6d8a14",
+      "plaintext": "{\"uuid\":\"6a2d9f5c-1b8e-4d4a-a7c3-5f9e2b6d8a14\",\"name\":\"Home\",\"latitude\":36.7538,\"longitude\":3.0588,\"radiusM\":100,\"createdAt\":\"2026-09-10T20:00:00.000Z\",\"updatedAt\":\"2026-09-10T20:00:00.000Z\",\"deletedAt\":null}"
+    }
+  ]
+}

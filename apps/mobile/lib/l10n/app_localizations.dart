@@ -6415,6 +6415,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong ({code}).'**
   String accountErrorOther(String code);
+
+  /// No description provided for @passphraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync passphrase'**
+  String get passphraseTitle;
+
+  /// No description provided for @passphraseUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set: money and places stay on this phone.'**
+  String get passphraseUnset;
+
+  /// No description provided for @passphraseSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set: money and places sync end-to-end encrypted.'**
+  String get passphraseSet;
+
+  /// No description provided for @passphraseSetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the passphrase'**
+  String get passphraseSetAction;
+
+  /// No description provided for @passphraseForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget it on this device'**
+  String get passphraseForget;
+
+  /// No description provided for @passphraseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.'**
+  String get passphraseBody;
+
+  /// No description provided for @passphraseField.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get passphraseField;
+
+  /// No description provided for @passphraseRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'The same, again'**
+  String get passphraseRepeat;
+
+  /// No description provided for @passphraseMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two do not match.'**
+  String get passphraseMismatch;
+
+  /// No description provided for @passphraseShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 12 characters.'**
+  String get passphraseShort;
+
+  /// No description provided for @passphraseWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the key…'**
+  String get passphraseWorking;
+
+  /// No description provided for @passphraseWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'This passphrase does not open what your other devices sent. Enter the one you used there.'**
+  String get passphraseWrong;
 }
 
 class _AppLocalizationsDelegate
