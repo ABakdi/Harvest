@@ -853,3 +853,18 @@ reads the outbox and the archive had to carry the new tables anyway.
 | S3-05 · the settings sheet | Exports only what an import would accept. The allow-list moved to `core/db/portable_settings.dart` and is shared by the importer, the export and sync. |
 
 Still open: the rest of waves 3–8. The report's order stands.
+
+## Status — waves 3 to 6 remediated 2026-09-20
+
+| Wave | Findings | What landed |
+| :--- | :--- | :--- |
+| 3 · the gym and the money seams | B3-03 · B3-04 · B3-05 · B3-07 · B3-10 · U3-14 · U3-15 | A bare session on the day up next moves *Up next* on; undoing a hand tick takes back only the session it created, and only while it is empty; a moved expense takes its wallet movement with it; a second **Start** resumes the session already running instead of beginning another. Tests: `audit3_wave3_test.dart`. |
+| 4 · the importer and the archive | S3-01 · S3-06 | An archive is weighed as it opens — the file before it is read, then each entry's inflated size and the total — and a stride is clamped to a leg's length (30–150 cm) wherever it is set. |
+| 5 · pictures and performance | U3-04 · U3-05 · U3-06 · U3-07 · U3-08 | **A picture is decoded at the size it is drawn**, from the layout rather than the caller, so a grid of thumbnails no longer walks past the image cache. **An exercise picture** resolves its file once per stem and kind instead of on every build, and the pickers no longer fetch. **The album viewer** watches its album, so a deletion inside it is seen. **The session clock** is its own widget with the only timer on the screen; ticking it no longer rebuilds every exercise card and set row. **The timelapse** resolves the album's files once, decodes three frames ahead and draws them through one gapless image, instead of building a view per frame that resolved, checked and decoded from scratch. |
+| 6 · Arabic, layout, accessibility | U3-10 … U3-13 · U3-16 … U3-19 · U3-20 (the rest) | **The sidebar and the session bar** pad by start and end, and so do the rest timer and the album footer. **Deleting a folder** asks first and offers to undo, restoring the exact notes it trashed. **The steps card** wraps its count and distance rather than overflowing a 360 dp phone by 232 px, and its average says it is a daily one and leaves today out. **Units** come from the strings — kg, lb, cm, and their Arabic — and every number beside them goes through one formatter that groups thousands and drops the zero the scale never showed. **Fields** get a rounded number they can be parsed back from; a note added to an old weight no longer re-rounds it, and a save that fails says so. **The open set** is called 1+ in the program as it is in the session, and the sleep sheet follows the phone's clock. **Icon buttons** say what they do, memory tiles read as a photo or a video with their day, and the set tick, the clock chip, the compare thumbnails and the folder menu are 48 dp. |
+
+Tests: 836 on the phone, with `weight_text_test.dart` and
+`steps_card_test.dart` added against the old behaviour.
+
+Still open: wave 7 (the docs) and wave 8 (S3-08, S3-02; Q3-01 is
+already done).
