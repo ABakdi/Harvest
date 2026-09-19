@@ -80,6 +80,16 @@ int? averageSteps(Iterable<StepDay> days) {
   return counted.fold<int>(0, (sum, day) => sum + day.steps) ~/ counted.length;
 }
 
+/// The shortest and longest stride a person walks with. A number from
+/// outside — an imported archive, a synced row — is clamped to them
+/// rather than turned into nonsense kilometres ([[Audit-v2]] S3-06).
+const minStrideCm = 30;
+const maxStrideCm = 150;
+
+/// The stride as it may be used: within reach of a human leg.
+int clampStride(int? cm) =>
+    cm == null ? defaultStrideCm : cm.clamp(minStrideCm, maxStrideCm);
+
 /// A stride, when nobody has measured one. About 0.415 × height for an
 /// average adult, which for most people lands near here.
 const defaultStrideCm = 75;

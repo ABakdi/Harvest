@@ -23,6 +23,22 @@ class MemoryView extends ConsumerWidget {
   final BoxFit fit;
   final BorderRadius? borderRadius;
 
+  /// How wide to decode a picture drawn into [width] logical pixels.
+  ///
+  /// A phone camera's 1600 px frame costs about 7.7 MB decoded whether
+  /// it fills the screen or a 44 dp thumbnail, and a three-column grid
+  /// of those walks straight past the 100 MB image cache and re-decodes
+  /// as it scrolls ([[Audit-v2]] U3-05). Decoding at the size actually
+  /// drawn — device pixels, so it is still sharp — is the whole fix.
+  ///
+  /// Null when the width is unbounded or nonsense: better a full-size
+  /// decode than a one-pixel one.
+  static int? decodeWidth(BuildContext context, double width) {
+    if (!width.isFinite || width <= 0) return null;
+    final pixels = width * MediaQuery.devicePixelRatioOf(context);
+    return pixels.isFinite && pixels >= 1 ? pixels.ceil() : null;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
@@ -54,11 +70,18 @@ class MemoryView extends ConsumerWidget {
             ],
           );
         }
-        return Image.file(
-          file,
-          fit: fit,
-          gaplessPlayback: true,
-          errorBuilder: (context, error, stack) => placeholder,
+        // The width comes from the layout rather than the caller, so
+        // every place that draws a memory — the grid, the compare
+        // strip, the album covers — gets the right decode without
+        // having to know its own size.
+        return LayoutBuilder(
+          builder: (context, constraints) => Image.file(
+            file,
+            fit: fit,
+            gaplessPlayback: true,
+            cacheWidth: decodeWidth(context, constraints.maxWidth),
+            errorBuilder: (context, error, stack) => placeholder,
+          ),
         );
       },
     );

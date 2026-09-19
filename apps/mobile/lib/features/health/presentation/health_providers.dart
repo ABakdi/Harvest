@@ -99,12 +99,12 @@ class StrideSetting extends _$StrideSetting {
       .watchAll([HealthKeys.strideCm])
       .map(
         (values) =>
-            int.tryParse(values[HealthKeys.strideCm] ?? '') ?? defaultStrideCm,
+            clampStride(int.tryParse(values[HealthKeys.strideCm] ?? '')),
       );
 
   Future<void> set(int cm) => ref
       .read(settingsRepositoryProvider)
-      .setString(HealthKeys.strideCm, '$cm');
+      .setString(HealthKeys.strideCm, '${clampStride(cm)}');
 }
 
 /// Where the steps stand: which source the phone has, and what the

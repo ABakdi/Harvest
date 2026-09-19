@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:harvest/features/import/domain/archive_reader.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'archive_picker.g.dart';
@@ -28,6 +29,13 @@ class FilePickerArchive implements ArchivePicker {
       // reader a moment later anyway.
       final picked = await FilePicker.pickFile();
       if (picked == null) return null;
+      // Weighed before it is read: the whole file goes into memory a
+      // line later, and a phone has less of it than a laptop
+      // ([[Audit-v2]] S3-01).
+      final length = await picked.xFile.length();
+      if (length > ArchiveLimits.archiveBytes) {
+        throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+      }
       return (name: picked.name, bytes: await picked.readAsBytes());
     } on PlatformException catch (error) {
       debugPrint('[import] picker unavailable: ${error.code}');

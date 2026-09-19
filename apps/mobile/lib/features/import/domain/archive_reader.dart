@@ -105,6 +105,9 @@ ArchiveBundle readArchive(Uint8List bytes) {
 
   // The sizes come from the zip's own directory, so they are checked
   // before a single entry is inflated: a bomb is refused by its label.
+  // The label is the archive's own word, though, and a crafted zip can
+  // declare a kilobyte and inflate to gigabytes — so what comes out is
+  // weighed again below ([[Audit-v2]] S3-01).
   if (zip.files.length > ArchiveLimits.entries) {
     throw const ArchiveInvalid(ArchiveProblem.tooLarge);
   }
@@ -125,12 +128,24 @@ ArchiveBundle readArchive(Uint8List bytes) {
 
   final files = <String, Uint8List>{};
   Uint8List? workbook;
+  var inflated = 0;
   for (final entry in zip.files) {
     if (!entry.isFile) continue;
     final content = entry.content;
     if (content is! List<int>) continue;
+    final isWorkbook = entry.name == ArchivePaths.workbook;
+    final limit = isWorkbook
+        ? ArchiveLimits.workbookBytes
+        : ArchiveLimits.entryBytes;
+    // What the entry actually weighed, now that it is here: a zip that
+    // lied about its directory is refused at the first entry that
+    // proves it, and the rest is never inflated.
+    inflated += content.length;
+    if (content.length > limit || inflated > ArchiveLimits.expandedBytes) {
+      throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+    }
     final data = Uint8List.fromList(content);
-    if (entry.name == ArchivePaths.workbook) {
+    if (isWorkbook) {
       workbook = data;
     } else {
       files[entry.name] = data;
