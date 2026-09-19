@@ -14,6 +14,7 @@ export const portableSettingPrefixes = [
   'themeMode',
   'locale',
   'dailyHarvestGoal',
+  'assist.',
   'cycle.',
   'features.',
   'finance.',

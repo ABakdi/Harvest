@@ -16,6 +16,8 @@ const importableSettingPrefixes = [
   'themeMode',
   'locale',
   'dailyHarvestGoal',
+  // The assist's provider and model; its key lives in the keystore.
+  'assist.',
   'cycle.',
   'features.',
   'finance.',

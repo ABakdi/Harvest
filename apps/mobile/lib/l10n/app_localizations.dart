@@ -5965,6 +5965,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Paragraph {index} of {count}'**
   String readAloudParagraph(int index, int count);
+
+  /// No description provided for @assistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assist'**
+  String get assistTitle;
+
+  /// No description provided for @assistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.'**
+  String get assistHint;
+
+  /// No description provided for @assistProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider'**
+  String get assistProvider;
+
+  /// No description provided for @assistGemini.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini'**
+  String get assistGemini;
+
+  /// No description provided for @assistOpenAi.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenAI-compatible'**
+  String get assistOpenAi;
+
+  /// No description provided for @assistModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get assistModel;
+
+  /// No description provided for @assistBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get assistBaseUrl;
+
+  /// No description provided for @assistKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get assistKey;
+
+  /// No description provided for @assistKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept in the phone\'s keystore, never exported or synced.'**
+  String get assistKeyHint;
+
+  /// No description provided for @assistSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get assistSave;
+
+  /// No description provided for @assistTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test'**
+  String get assistTest;
+
+  /// No description provided for @assistTestOk.
+  ///
+  /// In en, this message translates to:
+  /// **'It answered.'**
+  String get assistTestOk;
+
+  /// No description provided for @assistSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get assistSaved;
+
+  /// No description provided for @assistNeedsSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'The assist needs a provider and a key. Set it up in Settings → Extras.'**
+  String get assistNeedsSetup;
+
+  /// No description provided for @assistOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get assistOpenSettings;
+
+  /// No description provided for @assistSummarise.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarise'**
+  String get assistSummarise;
+
+  /// No description provided for @assistRewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite clearer'**
+  String get assistRewrite;
+
+  /// No description provided for @assistContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue writing'**
+  String get assistContinue;
+
+  /// No description provided for @assistFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix spelling and grammar'**
+  String get assistFix;
+
+  /// No description provided for @assistTranslate.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get assistTranslate;
+
+  /// No description provided for @assistAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about this note'**
+  String get assistAsk;
+
+  /// No description provided for @assistQuestionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to know?'**
+  String get assistQuestionHint;
+
+  /// No description provided for @assistSends.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends {what} to {provider}.'**
+  String assistSends(String what, String provider);
+
+  /// No description provided for @assistSendsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'this note'**
+  String get assistSendsNote;
+
+  /// No description provided for @assistSendsSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'the selected text'**
+  String get assistSendsSelection;
+
+  /// No description provided for @assistSendsUpToCaret.
+  ///
+  /// In en, this message translates to:
+  /// **'the note up to the cursor'**
+  String get assistSendsUpToCaret;
+
+  /// No description provided for @assistSendsRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'this recording'**
+  String get assistSendsRecording;
+
+  /// No description provided for @assistGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get assistGo;
+
+  /// No description provided for @assistInsert.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert'**
+  String get assistInsert;
+
+  /// No description provided for @assistReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get assistReplace;
+
+  /// No description provided for @assistCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get assistCopy;
+
+  /// No description provided for @assistCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get assistCopied;
+
+  /// No description provided for @assistBadKey.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider refused the key.'**
+  String get assistBadKey;
+
+  /// No description provided for @assistQuota.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests, or the quota is spent. Try again later.'**
+  String get assistQuota;
+
+  /// No description provided for @assistOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection.'**
+  String get assistOffline;
+
+  /// No description provided for @assistUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This provider cannot take recordings.'**
+  String get assistUnsupported;
+
+  /// No description provided for @assistFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'It did not answer: {detail}'**
+  String assistFailed(String detail);
 }
 
 class _AppLocalizationsDelegate

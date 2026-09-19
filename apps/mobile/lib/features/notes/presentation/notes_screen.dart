@@ -8,6 +8,10 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/assist/domain/assist.dart';
+import 'package:harvest/features/assist/domain/prompts.dart';
+import 'package:harvest/features/assist/presentation/assist_sheet.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/note_folders.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 import 'package:harvest/features/notes/data/voice_gateways.dart';
@@ -181,6 +185,81 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     );
   }
 
+  /// Assist on this note: pick an action, see what is sent, then
+  /// Insert, Replace or Copy ([[Notes]] N8, N9).
+  Future<void> _assist() async {
+    final value = _body.value;
+    final selection = value.selection;
+    final hasSelection = selection.isValid && !selection.isCollapsed;
+    final action = await pickAssistAction(context, hasSelection: hasSelection);
+    if (action == null || !mounted) return;
+    final fromSelection = hasSelection && actsOnSelection(action);
+    final text = fromSelection ? selection.textInside(value.text) : value.text;
+    final caret = selection.isValid
+        ? selection.end.clamp(0, value.text.length)
+        : value.text.length;
+    final outcome = await showAssistSheet(
+      context,
+      action: action,
+      text: text,
+      upToCaret: value.text.substring(0, caret),
+      fromSelection: fromSelection,
+    );
+    if (outcome == null || !mounted) return;
+    if (outcome.replace && fromSelection) {
+      final replaced =
+          selection.textBefore(value.text) +
+          outcome.text +
+          selection.textAfter(value.text);
+      _body.value = TextEditingValue(
+        text: replaced,
+        selection: TextSelection.collapsed(
+          offset: selection.start + outcome.text.length,
+        ),
+      );
+    } else if (action == AssistAction.summarise) {
+      // A summary goes on top, where it will be read first.
+      _body.value = TextEditingValue(
+        text: '> ${outcome.text.replaceAll('\n', '\n> ')}\n\n${value.text}',
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+    } else {
+      _insertAtCaret(outcome.text, ownLine: true);
+    }
+  }
+
+  /// Sends one recording to the assist and puts its words under it, as
+  /// a quote, the recording kept (N10).
+  Future<void> _transcribe(NoteAttachment recording) async {
+    final file = await ref
+        .read(attachmentStorageProvider)
+        .fileOf(recording.storedPath);
+    if (!file.existsSync() || !mounted) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    final outcome = await showAssistSheet(
+      context,
+      action: AssistAction.transcribe,
+      text: '',
+      audio: AssistAudio(bytes: bytes, mimeType: 'audio/mp4'),
+    );
+    if (outcome == null || !mounted) return;
+    final text = _body.text;
+    final embed = audioEmbed(recording.fileName);
+    final at = text.indexOf(embed);
+    final quote = '> ${outcome.text.replaceAll('\n', '\n> ')}';
+    if (at < 0) {
+      _insertAtCaret(quote, ownLine: true);
+      return;
+    }
+    final end = at + embed.length;
+    final next = '${text.substring(0, end)}\n$quote${text.substring(end)}';
+    _body.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: end + 1 + quote.length),
+    );
+  }
+
   Future<void> _moveToFolder(Note note) async {
     final known = ref.read(noteFolderTreeProvider);
     final folder = await showHarvestSheet<String>(
@@ -301,12 +380,22 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                 'folder' => unawaited(_moveToFolder(note)),
                 'pdf' => unawaited(_sharePdf(note)),
                 'record' => unawaited(_record(note.uuid)),
+                'assist' => unawaited(_assist()),
                 'read' => unawaited(
                   showReadAloudSheet(context, markdown: _body.text),
                 ),
                 _ => unawaited(_delete(note)),
               },
               itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'assist',
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.auto_awesome_outlined),
+                    title: Text(l10n.assistTitle),
+                  ),
+                ),
                 PopupMenuItem(
                   value: 'record',
                   child: ListTile(
@@ -409,6 +498,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               uuid: note.uuid,
               controller: _body,
               onOpen: _show,
+              onTranscribe: (recording) => unawaited(_transcribe(recording)),
             ),
     );
   }

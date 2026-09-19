@@ -8,6 +8,7 @@ import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/features/assist/presentation/assist_settings_card.dart';
 import 'package:harvest/features/export/presentation/export_card.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/category_settings.dart';
@@ -208,6 +209,10 @@ class SettingsSectionScreen extends ConsumerWidget {
         ),
       ),
       const FeaturesCard(),
+      if (ref.watch(notesEnabledProvider)) ...[
+        const SizedBox(height: HarvestSpacing.sm),
+        const AssistSettingsCard(),
+      ],
       if (ref.watch(gymEnabledProvider)) ...[
         const SizedBox(height: HarvestSpacing.sm),
         const ExerciseMediaCard(),

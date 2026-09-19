@@ -3581,4 +3581,122 @@ class AppLocalizationsAr extends AppLocalizations {
   String readAloudParagraph(int index, int count) {
     return 'الفقرة $index من $count';
   }
+
+  @override
+  String get assistTitle => 'المساعد';
+
+  @override
+  String get assistHint =>
+      'تلخيص ملاحظة أو إعادة صياغتها أو ترجمتها أو تفريغها، فقط حين تطلب. بمفتاحك الخاص.';
+
+  @override
+  String get assistProvider => 'المزوّد';
+
+  @override
+  String get assistGemini => 'Gemini';
+
+  @override
+  String get assistOpenAi => 'متوافق مع OpenAI';
+
+  @override
+  String get assistModel => 'النموذج';
+
+  @override
+  String get assistBaseUrl => 'العنوان الأساسي';
+
+  @override
+  String get assistKey => 'مفتاح API';
+
+  @override
+  String get assistKeyHint =>
+      'محفوظ في مخزن مفاتيح الهاتف، لا يُصدَّر ولا يُزامَن.';
+
+  @override
+  String get assistSave => 'حفظ';
+
+  @override
+  String get assistTest => 'اختبار';
+
+  @override
+  String get assistTestOk => 'أجاب.';
+
+  @override
+  String get assistSaved => 'حُفظ';
+
+  @override
+  String get assistNeedsSetup =>
+      'يحتاج المساعد مزوّدًا ومفتاحًا. اضبطه من الإعدادات ← الإضافات.';
+
+  @override
+  String get assistOpenSettings => 'الإعدادات';
+
+  @override
+  String get assistSummarise => 'لخّص';
+
+  @override
+  String get assistRewrite => 'أعد الصياغة بوضوح';
+
+  @override
+  String get assistContinue => 'أكمل الكتابة';
+
+  @override
+  String get assistFix => 'صحّح الإملاء والنحو';
+
+  @override
+  String get assistTranslate => 'ترجم';
+
+  @override
+  String get assistAsk => 'اسأل عن هذه الملاحظة';
+
+  @override
+  String get assistQuestionHint => 'ماذا تريد أن تعرف؟';
+
+  @override
+  String assistSends(String what, String provider) {
+    return 'يرسل $what إلى $provider.';
+  }
+
+  @override
+  String get assistSendsNote => 'هذه الملاحظة';
+
+  @override
+  String get assistSendsSelection => 'النص المحدد';
+
+  @override
+  String get assistSendsUpToCaret => 'الملاحظة حتى المؤشر';
+
+  @override
+  String get assistSendsRecording => 'هذا التسجيل';
+
+  @override
+  String get assistGo => 'أرسل';
+
+  @override
+  String get assistInsert => 'أدرج';
+
+  @override
+  String get assistReplace => 'استبدل';
+
+  @override
+  String get assistCopy => 'انسخ';
+
+  @override
+  String get assistCopied => 'نُسخ';
+
+  @override
+  String get assistBadKey => 'رفض المزوّد المفتاح.';
+
+  @override
+  String get assistQuota => 'طلبات كثيرة، أو نفدت الحصة. حاول لاحقًا.';
+
+  @override
+  String get assistOffline => 'لا اتصال.';
+
+  @override
+  String get assistUnsupported => 'هذا المزوّد لا يقبل التسجيلات.';
+
+  @override
+  String assistFailed(String detail) {
+    return 'لم يُجب: $detail';
+  }
 }

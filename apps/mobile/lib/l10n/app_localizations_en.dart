@@ -3571,4 +3571,123 @@ class AppLocalizationsEn extends AppLocalizations {
   String readAloudParagraph(int index, int count) {
     return 'Paragraph $index of $count';
   }
+
+  @override
+  String get assistTitle => 'Assist';
+
+  @override
+  String get assistHint =>
+      'Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.';
+
+  @override
+  String get assistProvider => 'Provider';
+
+  @override
+  String get assistGemini => 'Gemini';
+
+  @override
+  String get assistOpenAi => 'OpenAI-compatible';
+
+  @override
+  String get assistModel => 'Model';
+
+  @override
+  String get assistBaseUrl => 'Base URL';
+
+  @override
+  String get assistKey => 'API key';
+
+  @override
+  String get assistKeyHint =>
+      'Kept in the phone\'s keystore, never exported or synced.';
+
+  @override
+  String get assistSave => 'Save';
+
+  @override
+  String get assistTest => 'Test';
+
+  @override
+  String get assistTestOk => 'It answered.';
+
+  @override
+  String get assistSaved => 'Saved';
+
+  @override
+  String get assistNeedsSetup =>
+      'The assist needs a provider and a key. Set it up in Settings → Extras.';
+
+  @override
+  String get assistOpenSettings => 'Settings';
+
+  @override
+  String get assistSummarise => 'Summarise';
+
+  @override
+  String get assistRewrite => 'Rewrite clearer';
+
+  @override
+  String get assistContinue => 'Continue writing';
+
+  @override
+  String get assistFix => 'Fix spelling and grammar';
+
+  @override
+  String get assistTranslate => 'Translate';
+
+  @override
+  String get assistAsk => 'Ask about this note';
+
+  @override
+  String get assistQuestionHint => 'What do you want to know?';
+
+  @override
+  String assistSends(String what, String provider) {
+    return 'Sends $what to $provider.';
+  }
+
+  @override
+  String get assistSendsNote => 'this note';
+
+  @override
+  String get assistSendsSelection => 'the selected text';
+
+  @override
+  String get assistSendsUpToCaret => 'the note up to the cursor';
+
+  @override
+  String get assistSendsRecording => 'this recording';
+
+  @override
+  String get assistGo => 'Send';
+
+  @override
+  String get assistInsert => 'Insert';
+
+  @override
+  String get assistReplace => 'Replace';
+
+  @override
+  String get assistCopy => 'Copy';
+
+  @override
+  String get assistCopied => 'Copied';
+
+  @override
+  String get assistBadKey => 'The provider refused the key.';
+
+  @override
+  String get assistQuota =>
+      'Too many requests, or the quota is spent. Try again later.';
+
+  @override
+  String get assistOffline => 'No connection.';
+
+  @override
+  String get assistUnsupported => 'This provider cannot take recordings.';
+
+  @override
+  String assistFailed(String detail) {
+    return 'It did not answer: $detail';
+  }
 }
