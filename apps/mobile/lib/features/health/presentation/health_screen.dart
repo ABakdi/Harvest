@@ -90,7 +90,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         ),
         children: [
           const SleepCard(),
-          const _StepsCard(),
+          const StepsCard(),
           SectionHeader(l10n.weightTitle),
           if (weights.isEmpty)
             Card(
@@ -127,8 +127,12 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 /// Three states, because a zero is three different facts: nothing
 /// counted yet, not allowed to look, or nowhere to look. The card says
 /// which, and offers the one tap that changes it.
-class _StepsCard extends ConsumerWidget {
-  const _StepsCard();
+/// Today's steps, their distance, and how they sit against the goal.
+///
+/// Public so a test can put it on a 360 dp phone by itself
+/// ([[Audit-v2]] U3-12).
+class StepsCard extends ConsumerWidget {
+  const StepsCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -179,8 +183,13 @@ class _StepsCard extends ConsumerWidget {
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      // The count and the distance share what is left of a
+                      // 360 dp row after the badge, the average and the
+                      // settings button. They wrap rather than overflow it
+                      // by 232 px ([[Audit-v2]] U3-12).
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.end,
+                        spacing: HarvestSpacing.sm,
                         children: [
                           Text(
                             numbers.format(steps),
@@ -188,7 +197,6 @@ class _StepsCard extends ConsumerWidget {
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                          const SizedBox(width: HarvestSpacing.sm),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 6),
                             child: Text(
@@ -206,6 +214,7 @@ class _StepsCard extends ConsumerWidget {
                 ),
                 if (average != null)
                   Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(

@@ -6541,6 +6541,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Geotags'**
   String get sheetGeotags;
+
+  /// No description provided for @stepsDailyAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily average'**
+  String get stepsDailyAverage;
 }
 
 class _AppLocalizationsDelegate

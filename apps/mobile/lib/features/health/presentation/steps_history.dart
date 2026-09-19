@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
@@ -33,7 +34,12 @@ class StepsHistory extends ConsumerWidget {
     final goal = ref.watch(stepGoalProvider).value ?? 0;
     final stride = ref.watch(strideSettingProvider).value ?? defaultStrideCm;
     final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
-    final counted = days.where((day) => day.steps > 0).toList();
+    final today = ref.watch(currentHarvestDayProvider);
+    // Today is not over: averaging it in with the finished days would
+    // drag the number down all morning ([[Audit-v2]] U3-13).
+    final counted = days
+        .where((day) => day.steps > 0 && day.day != today)
+        .toList();
 
     if (counted.isEmpty) {
       return Card(
@@ -84,7 +90,7 @@ class StepsHistory extends ConsumerWidget {
                 ),
                 _Figure(
                   value: numbers.format(average),
-                  label: l10n.stepsWeekAverage.replaceFirst('7-day', ''),
+                  label: l10n.stepsDailyAverage,
                   quiet: true,
                 ),
                 _Figure(

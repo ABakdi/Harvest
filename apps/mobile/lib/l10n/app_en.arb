@@ -1663,5 +1663,6 @@
   "sheetRecordings": "Recordings",
   "sheetSavedPlaces": "Named places",
   "sheetTrail": "Trail",
-  "sheetGeotags": "Geotags"
+  "sheetGeotags": "Geotags",
+  "stepsDailyAverage": "Daily average"
 }

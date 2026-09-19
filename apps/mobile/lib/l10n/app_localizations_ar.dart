@@ -3896,4 +3896,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sheetGeotags => 'الوسوم الجغرافية';
+
+  @override
+  String get stepsDailyAverage => 'المتوسط اليومي';
 }

@@ -3887,4 +3887,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sheetGeotags => 'Geotags';
+
+  @override
+  String get stepsDailyAverage => 'Daily average';
 }
