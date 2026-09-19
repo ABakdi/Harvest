@@ -1,0 +1,152 @@
+{
+  "about": "Rates.toDefault (currency.dart) and BudgetSnapshot (expense.dart) with the budgetSnapshot provider's split of a month's day totals (finance_providers.dart). Amounts are minor units.",
+  "conversions": [
+    {
+      "why": "the default currency converts to itself",
+      "rates": { "defaultCurrency": "DZD", "dzdPerUsd": 135.0 },
+      "minor": 45000,
+      "from": "DZD",
+      "result": 45000
+    },
+    {
+      "why": "USD into DZD at the hand-typed leg",
+      "rates": { "defaultCurrency": "DZD", "dzdPerUsd": 135.0 },
+      "minor": 1000,
+      "from": "USD",
+      "result": 135000
+    },
+    {
+      "why": "DZD into USD is the same leg the other way",
+      "rates": { "defaultCurrency": "USD", "dzdPerUsd": 135.0 },
+      "minor": 13500,
+      "from": "DZD",
+      "result": 100
+    },
+    {
+      "why": "EUR into USD uses the fetched rate directly",
+      "rates": { "defaultCurrency": "USD", "usdPerEur": 1.1 },
+      "minor": 1000,
+      "from": "EUR",
+      "result": 1100
+    },
+    {
+      "why": "and USD into EUR is its inverse, rounded",
+      "rates": { "defaultCurrency": "EUR", "usdPerEur": 1.1 },
+      "minor": 1000,
+      "from": "USD",
+      "result": 909
+    },
+    {
+      "why": "a missing rate converts to nothing at all",
+      "rates": { "defaultCurrency": "DZD" },
+      "minor": 1000,
+      "from": "USD",
+      "result": null
+    },
+    {
+      "why": "a rate of zero is not a rate",
+      "rates": { "defaultCurrency": "DZD", "dzdPerUsd": 0 },
+      "minor": 1000,
+      "from": "USD",
+      "result": null
+    },
+    {
+      "why": "EUR into DZD via the DZD leg",
+      "rates": { "defaultCurrency": "DZD", "dzdPerEur": 150.0 },
+      "minor": 2000,
+      "from": "EUR",
+      "result": 300000
+    }
+  ],
+  "budgets": [
+    {
+      "why": "a tenth of the way into a 30-day month, and today is close to its share",
+      "monthlyBudget": 100000,
+      "spentBeforeToday": 27000,
+      "spentToday": 3000,
+      "day": "2026-09-10",
+      "snapshot": { "spentThisMonth": 30000, "floatingDailyLimit": 3476 },
+      "status": "close"
+    },
+    {
+      "why": "the same day, a little more spent, is over the day's share",
+      "monthlyBudget": 100000,
+      "spentBeforeToday": 27000,
+      "spentToday": 4000,
+      "day": "2026-09-10",
+      "snapshot": { "spentThisMonth": 31000, "floatingDailyLimit": 3476 },
+      "status": "over"
+    },
+    {
+      "why": "and well under it is under",
+      "monthlyBudget": 100000,
+      "spentBeforeToday": 27000,
+      "spentToday": 500,
+      "day": "2026-09-10",
+      "snapshot": { "spentThisMonth": 27500, "floatingDailyLimit": 3476 },
+      "status": "under"
+    },
+    {
+      "why": "the budget already spent leaves no share, and the month says over",
+      "monthlyBudget": 50000,
+      "spentBeforeToday": 60000,
+      "spentToday": 0,
+      "day": "2026-09-10",
+      "snapshot": { "spentThisMonth": 60000, "floatingDailyLimit": 0 },
+      "status": "over"
+    },
+    {
+      "why": "spent to the penny on the last day is not over",
+      "monthlyBudget": 3000,
+      "spentBeforeToday": 3000,
+      "spentToday": 0,
+      "day": "2026-01-31",
+      "snapshot": { "spentThisMonth": 3000, "floatingDailyLimit": 0 },
+      "status": "under"
+    },
+    {
+      "why": "the last day of February gets the whole remainder",
+      "monthlyBudget": 60000,
+      "spentBeforeToday": 20000,
+      "spentToday": 0,
+      "day": "2026-02-28",
+      "snapshot": { "spentThisMonth": 20000, "floatingDailyLimit": 40000 },
+      "status": "under"
+    },
+    {
+      "why": "a leap February has one more day to spread across",
+      "monthlyBudget": 58000,
+      "spentBeforeToday": 0,
+      "spentToday": 0,
+      "day": "2028-02-01",
+      "snapshot": { "spentThisMonth": 0, "floatingDailyLimit": 2000 },
+      "status": "under"
+    }
+  ],
+  "snapshotFromTotals": [
+    {
+      "why": "today is today's own spending; earlier days are behind it; later days are ignored",
+      "monthlyBudget": 100000,
+      "today": "2026-09-10",
+      "totalsByDay": { "2026-09-01": 12000, "2026-09-09": 15000, "2026-09-10": 3000, "2026-09-12": 9000 },
+      "snapshot": { "spentThisMonth": 30000, "spentToday": 3000, "floatingDailyLimit": 3476 },
+      "status": "close"
+    },
+    {
+      "why": "no budget, no picture",
+      "monthlyBudget": null,
+      "today": "2026-09-10",
+      "totalsByDay": { "2026-09-10": 3000 },
+      "snapshot": null,
+      "status": null
+    },
+    {
+      "why": "a budget of nothing is no budget",
+      "monthlyBudget": 0,
+      "today": "2026-09-10",
+      "totalsByDay": { "2026-09-10": 3000 },
+      "snapshot": null,
+      "status": null
+    }
+  ]
+}

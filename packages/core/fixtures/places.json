@@ -1,0 +1,129 @@
+{
+  "about": "place.dart: the haversine, a trail's length and staysIn (Places PL5). Distances in metres, to within a metre; a stay is a run of points inside 100 m spanning at least ten minutes.",
+  "distances": [
+    {
+      "why": "a hundredth of a degree of latitude is about 1.11 km anywhere",
+      "from": { "latitude": 36.75, "longitude": 3.06 },
+      "to": { "latitude": 36.76, "longitude": 3.06 },
+      "metres": 1111.9
+    },
+    {
+      "why": "the same point is no distance at all",
+      "from": { "latitude": 36.75, "longitude": 3.06 },
+      "to": { "latitude": 36.75, "longitude": 3.06 },
+      "metres": 0
+    },
+    {
+      "why": "a thousandth of a degree is about 111 m",
+      "from": { "latitude": 36.75, "longitude": 3.06 },
+      "to": { "latitude": 36.751, "longitude": 3.06 },
+      "metres": 111.2
+    }
+  ],
+  "trail": {
+    "why": "the length is the legs added up, not the crow's flight",
+    "points": [
+      { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T08:00:00" },
+      { "latitude": 36.751, "longitude": 3.06, "at": "2026-09-19T08:05:00" },
+      { "latitude": 36.752, "longitude": 3.06, "at": "2026-09-19T08:10:00" }
+    ],
+    "metres": 222.4
+  },
+  "stays": [
+    {
+      "why": "three points within 100 m spanning fifteen minutes are one stay",
+      "points": [
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T08:00:00" },
+        { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-19T08:07:00" },
+        { "latitude": 36.7502, "longitude": 3.06, "at": "2026-09-19T08:15:00" }
+      ],
+      "places": [],
+      "result": [
+        {
+          "latitude": 36.7501,
+          "longitude": 3.06,
+          "from": "2026-09-19T08:00:00",
+          "to": "2026-09-19T08:15:00",
+          "minutes": 15,
+          "place": null
+        }
+      ]
+    },
+    {
+      "why": "the same spot for five minutes is passing through, not staying",
+      "points": [
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T08:00:00" },
+        { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-19T08:05:00" }
+      ],
+      "places": [],
+      "result": []
+    },
+    {
+      "why": "a point a kilometre away ends the run, and the next spot is a stay of its own",
+      "points": [
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T08:00:00" },
+        { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-19T08:20:00" },
+        { "latitude": 36.78, "longitude": 3.06, "at": "2026-09-19T08:40:00" },
+        { "latitude": 36.7801, "longitude": 3.06, "at": "2026-09-19T09:10:00" }
+      ],
+      "places": [],
+      "result": [
+        {
+          "latitude": 36.75005,
+          "longitude": 3.06,
+          "from": "2026-09-19T08:00:00",
+          "to": "2026-09-19T08:20:00",
+          "minutes": 20,
+          "place": null
+        },
+        {
+          "latitude": 36.78005,
+          "longitude": 3.06,
+          "from": "2026-09-19T08:40:00",
+          "to": "2026-09-19T09:10:00",
+          "minutes": 30,
+          "place": null
+        }
+      ]
+    },
+    {
+      "why": "a stay inside a saved place takes its name",
+      "points": [
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T08:00:00" },
+        { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-19T08:30:00" }
+      ],
+      "places": [
+        { "uuid": "p1", "name": "Home", "latitude": 36.7501, "longitude": 3.0601, "radiusM": 100 },
+        { "uuid": "p2", "name": "Work", "latitude": 36.79, "longitude": 3.06, "radiusM": 100 }
+      ],
+      "result": [
+        {
+          "latitude": 36.75005,
+          "longitude": 3.06,
+          "from": "2026-09-19T08:00:00",
+          "to": "2026-09-19T08:30:00",
+          "minutes": 30,
+          "place": "Home"
+        }
+      ]
+    },
+    {
+      "why": "points out of order are sorted before anything is decided",
+      "points": [
+        { "latitude": 36.7502, "longitude": 3.06, "at": "2026-09-19T08:15:00" },
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T08:00:00" }
+      ],
+      "places": [],
+      "result": [
+        {
+          "latitude": 36.7501,
+          "longitude": 3.06,
+          "from": "2026-09-19T08:00:00",
+          "to": "2026-09-19T08:15:00",
+          "minutes": 15,
+          "place": null
+        }
+      ]
+    }
+  ]
+}

@@ -4,3 +4,7 @@ export * from './due.js';
 export * from './xp.js';
 export * from './goals.js';
 export * from './streak.js';
+export * from './sleep.js';
+export * from './money.js';
+export * from './places.js';
+export * from './body.js';

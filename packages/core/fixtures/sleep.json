@@ -1,0 +1,148 @@
+{
+  "about": "sleep.dart: how long a night was, and the fourteen-night debt (Business Rules #3). Times are wall-clock, as in harvest-day.json; a night is filed under the morning it ended.",
+  "lengths": [
+    {
+      "why": "half eleven to five past seven is seven hours and five minutes",
+      "night": {
+        "harvestDay": "2026-09-19",
+        "fellAsleepAt": "2026-09-18T23:30:00",
+        "wokeAt": "2026-09-19T07:05:00",
+        "targetMinutes": 480
+      },
+      "sleptMinutes": 455,
+      "shortfallMinutes": 25
+    },
+    {
+      "why": "a long night is a surplus, not a shortfall",
+      "night": {
+        "harvestDay": "2026-09-20",
+        "fellAsleepAt": "2026-09-19T22:00:00",
+        "wokeAt": "2026-09-20T08:00:00",
+        "targetMinutes": 480
+      },
+      "sleptMinutes": 600,
+      "shortfallMinutes": -120
+    },
+    {
+      "why": "seconds do not make a minute",
+      "night": {
+        "harvestDay": "2026-09-21",
+        "fellAsleepAt": "2026-09-20T23:00:00",
+        "wokeAt": "2026-09-21T06:59:30",
+        "targetMinutes": 480
+      },
+      "sleptMinutes": 479,
+      "shortfallMinutes": 1
+    }
+  ],
+  "debts": [
+    {
+      "why": "nothing logged is nothing owed",
+      "nights": [],
+      "upTo": "2026-09-19",
+      "minutes": 0
+    },
+    {
+      "why": "two short nights add up, minute for minute",
+      "nights": [
+        { "day": "2026-09-17", "sleptMinutes": 420, "targetMinutes": 480 },
+        { "day": "2026-09-18", "sleptMinutes": 450, "targetMinutes": 480 }
+      ],
+      "upTo": "2026-09-19",
+      "minutes": 90
+    },
+    {
+      "why": "a long night pays the debt down",
+      "nights": [
+        { "day": "2026-09-17", "sleptMinutes": 420, "targetMinutes": 480 },
+        { "day": "2026-09-18", "sleptMinutes": 510, "targetMinutes": 480 }
+      ],
+      "upTo": "2026-09-19",
+      "minutes": 30
+    },
+    {
+      "why": "but never into credit: a twelve-hour Sunday clears what is owed and no more",
+      "nights": [
+        { "day": "2026-09-17", "sleptMinutes": 420, "targetMinutes": 480 },
+        { "day": "2026-09-18", "sleptMinutes": 720, "targetMinutes": 480 },
+        { "day": "2026-09-19", "sleptMinutes": 450, "targetMinutes": 480 }
+      ],
+      "upTo": "2026-09-19",
+      "minutes": 30
+    },
+    {
+      "why": "the window is fourteen calendar nights ending today, so an older night is out of it",
+      "nights": [
+        { "day": "2026-09-05", "sleptMinutes": 300, "targetMinutes": 480 },
+        { "day": "2026-09-06", "sleptMinutes": 420, "targetMinutes": 480 }
+      ],
+      "upTo": "2026-09-19",
+      "minutes": 60
+    },
+    {
+      "why": "a night after today is not counted either",
+      "nights": [
+        { "day": "2026-09-19", "sleptMinutes": 420, "targetMinutes": 480 },
+        { "day": "2026-09-20", "sleptMinutes": 300, "targetMinutes": 480 }
+      ],
+      "upTo": "2026-09-19",
+      "minutes": 60
+    },
+    {
+      "why": "each night is judged against the target it had at the time",
+      "nights": [
+        { "day": "2026-09-18", "sleptMinutes": 420, "targetMinutes": 420 },
+        { "day": "2026-09-19", "sleptMinutes": 420, "targetMinutes": 480 }
+      ],
+      "upTo": "2026-09-19",
+      "minutes": 60
+    },
+    {
+      "why": "with nobody saying when the window ends, it ends on the latest night logged",
+      "nights": [
+        { "day": "2026-08-01", "sleptMinutes": 300, "targetMinutes": 480 },
+        { "day": "2026-09-18", "sleptMinutes": 420, "targetMinutes": 480 }
+      ],
+      "upTo": null,
+      "minutes": 60
+    }
+  ],
+  "average": {
+    "why": "the mean of what was actually slept, over the logged nights only",
+    "nights": [
+      { "day": "2026-09-17", "sleptMinutes": 420, "targetMinutes": 480 },
+      { "day": "2026-09-18", "sleptMinutes": 455, "targetMinutes": 480 }
+    ],
+    "averageMinutes": 437
+  },
+  "cycles": [
+    { "why": "eleven to seven is eight hours", "cycle": "23:00-07:00", "minutes": 480 },
+    { "why": "half eleven to seven is seven and a half", "cycle": "23:30-07:00", "minutes": 450 },
+    { "why": "a night that does not wrap midnight is still a night", "cycle": "01:00-09:00", "minutes": 480 },
+    { "why": "the same minute either end is a whole day asleep, not none", "cycle": "07:00-07:00", "minutes": 1440 },
+    { "why": "nonsense decodes to nothing", "cycle": "25:00-07:00", "minutes": null }
+  ],
+  "targets": [
+    {
+      "why": "without an override the daily cycle decides",
+      "day": "2026-09-19",
+      "cycle": "23:00-07:00",
+      "overrides": {},
+      "minutes": 480
+    },
+    {
+      "why": "Saturday's own night wins on a Saturday",
+      "day": "2026-09-19",
+      "cycle": "23:00-07:00",
+      "overrides": { "6": "23:00-09:00" },
+      "minutes": 600
+    },
+    {
+      "why": "and leaves the other days alone",
+      "day": "2026-09-18",
+      "cycle": "23:00-07:00",
+      "overrides": { "6": "23:00-09:00" },
+      "minutes": 480
+    }
+  ]
+}
