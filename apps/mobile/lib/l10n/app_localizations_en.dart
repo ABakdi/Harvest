@@ -3345,4 +3345,167 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalItemOptions => 'Item options';
+
+  @override
+  String get navPlaces => 'Places';
+
+  @override
+  String get featurePlaces => 'Places';
+
+  @override
+  String get featurePlacesHint =>
+      'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.';
+
+  @override
+  String get placesDay => 'Day';
+
+  @override
+  String get placesWeek => 'Week';
+
+  @override
+  String get placesMonth => 'Month';
+
+  @override
+  String get placesPrevious => 'Previous';
+
+  @override
+  String get placesNext => 'Next';
+
+  @override
+  String get placesPickDay => 'Pick a day';
+
+  @override
+  String get placesTrailOn => 'Record my trail';
+
+  @override
+  String get placesTrailHint =>
+      'Keeps a point every 50 m while you move, with a notification on screen the whole time.';
+
+  @override
+  String get placesTrailRefused =>
+      'The trail needs location “all the time”. Geotags still work without it.';
+
+  @override
+  String get placesOpenSettings => 'Open settings';
+
+  @override
+  String get placesPause1h => 'Pause for an hour';
+
+  @override
+  String get placesPauseTomorrow => 'Pause until tomorrow';
+
+  @override
+  String get placesResume => 'Resume the trail';
+
+  @override
+  String placesPausedUntil(String time) {
+    return 'Paused until $time';
+  }
+
+  @override
+  String placesRecording(int count) {
+    return 'Recording · $count points today';
+  }
+
+  @override
+  String get placesHighAccuracy => 'High accuracy';
+
+  @override
+  String get placesHighAccuracyHint => 'Sharper trail, more battery.';
+
+  @override
+  String get placesDeleteDay => 'Delete this day\'s trail';
+
+  @override
+  String get placesDayDeleted => 'Trail deleted';
+
+  @override
+  String get placesDeleteAll => 'Delete all location history';
+
+  @override
+  String get placesDeleteAllBody =>
+      'Every point, every geotag and every named place, gone for good. This cannot be undone.';
+
+  @override
+  String get placesNothing => 'Nothing here on this day';
+
+  @override
+  String get placesNothingBody =>
+      'Turn on the trail, or do something with Places on, and it shows up here.';
+
+  @override
+  String placesStay(String duration) {
+    return 'Stayed $duration';
+  }
+
+  @override
+  String get placesNameStay => 'Name this place';
+
+  @override
+  String get placesNameHint => 'Home, Office, Gym…';
+
+  @override
+  String get placesOptions => 'Places options';
+
+  @override
+  String get placesNotificationTitle => 'Harvest';
+
+  @override
+  String get placesNotificationText => 'Recording your trail';
+
+  @override
+  String get placesServiceOff => 'Location is switched off on this phone.';
+
+  @override
+  String placesDistance(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get geoExpense => 'Expense';
+
+  @override
+  String get geoCheckIn => 'Check-in';
+
+  @override
+  String get geoPicture => 'Picture';
+
+  @override
+  String get geoNote => 'Note';
+
+  @override
+  String get geoVoice => 'Voice note';
+
+  @override
+  String get geoSeed => 'Planted a seed';
+
+  @override
+  String get geoSeedNote => 'Seed note';
+
+  @override
+  String get geoMoney => 'Money';
+
+  @override
+  String get geoDebt => 'Debt';
+
+  @override
+  String get geoDebtPayment => 'Debt payment';
+
+  @override
+  String get geoWeight => 'Weight';
+
+  @override
+  String get geoNight => 'Night';
+
+  @override
+  String get geoSession => 'Gym session';
+
+  @override
+  String get geoGoal => 'Goal';
+
+  @override
+  String get geoGoalItem => 'Goal step';
+
+  @override
+  String get geoAlbum => 'Album';
 }

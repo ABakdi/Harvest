@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:harvest/features/places/domain/place.dart';
-import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'location_gateway.g.dart';
@@ -63,7 +62,10 @@ class GeolocatorGateway implements LocationGateway {
   @override
   Future<LocationAccess> requestWhileInUse() async {
     try {
-      await ph.Permission.locationWhenInUse.request();
+      final current = await Geolocator.checkPermission();
+      if (current == LocationPermission.denied) {
+        await Geolocator.requestPermission();
+      }
     } on PlatformException {
       return LocationAccess.none;
     }
@@ -74,7 +76,14 @@ class GeolocatorGateway implements LocationGateway {
   Future<LocationAccess> requestAlways() async {
     try {
       if (await access() == LocationAccess.none) await requestWhileInUse();
-      await ph.Permission.locationAlways.request();
+      // Android 10 offers "all the time" in the dialog itself. From 11
+      // it lives only in the settings page, so a second ask that comes
+      // back "while in use" goes there, and the next resume reads the
+      // answer ([[Places]] PL1).
+      if (await Geolocator.requestPermission() ==
+          LocationPermission.whileInUse) {
+        await Geolocator.openAppSettings();
+      }
     } on PlatformException {
       return LocationAccess.none;
     }
@@ -106,7 +115,7 @@ class GeolocatorGateway implements LocationGateway {
 
   @override
   Future<void> openSettings() async {
-    await ph.openAppSettings();
+    await Geolocator.openAppSettings();
   }
 }
 

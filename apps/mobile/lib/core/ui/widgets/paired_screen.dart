@@ -17,7 +17,7 @@ typedef PairedBuilder<T> = Widget Function(
   PreferredSizeWidget? tabs,
 );
 
-/// Two features sharing one tab of the bottom bar.
+/// Two or more features sharing one tab of the bottom bar.
 ///
 /// Body, Records and the farmer's tab are all this shape, and until
 /// [[Audit-v2-Beta]] Q2-09 each carried its own copy of the rule:
@@ -57,18 +57,30 @@ class PairedScreen<T extends Enum> extends ConsumerStatefulWidget {
 }
 
 class _PairedScreenState<T extends Enum> extends ConsumerState<PairedScreen<T>>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(
-    length: widget.halves.length,
-    initialIndex: widget.initial == null
-        ? 0
-        : widget.halves.indexWhere((half) => half.value == widget.initial),
-    vsync: this,
-  )..addListener(_onTab);
+    with TickerProviderStateMixin {
+  /// The halves that are on, in tab order; the tab row is exactly these.
+  late List<PairedHalf<T>> _on = _enabled();
+
+  late TabController _tabs = _controllerFor(
+    _on,
+    widget.initial ?? _on.firstOrNull?.value,
+  );
 
   /// Set once the user has picked a half themselves; the remembered one
   /// arriving late must not then pull the tab out from under them.
   bool _touched = false;
+
+  List<PairedHalf<T>> _enabled() =>
+      widget.halves.where((half) => half.on).toList();
+
+  TabController _controllerFor(List<PairedHalf<T>> on, T? current) {
+    final index = on.indexWhere((half) => half.value == current);
+    return TabController(
+      length: on.isEmpty ? 1 : on.length,
+      initialIndex: index < 0 ? 0 : index,
+      vsync: this,
+    )..addListener(_onTab);
+  }
 
   @override
   void initState() {
@@ -77,10 +89,31 @@ class _PairedScreenState<T extends Enum> extends ConsumerState<PairedScreen<T>>
     if (key != null && widget.initial == null) unawaited(_recall(key));
   }
 
+  @override
+  void didUpdateWidget(PairedScreen<T> old) {
+    super.didUpdateWidget(old);
+    final on = _enabled();
+    if (on.map((h) => h.value).join() == _on.map((h) => h.value).join()) {
+      _on = on;
+      return;
+    }
+    // A half was switched on or off: rebuild the tab row around what is
+    // on, staying on the half I was looking at when it survives.
+    final current = _current;
+    final old_ = _tabs;
+    _on = on;
+    _tabs = _controllerFor(on, current);
+    WidgetsBinding.instance.addPostFrameCallback((_) => old_.dispose());
+  }
+
+  T? get _current => _on.isEmpty
+      ? null
+      : _on[_tabs.index.clamp(0, _on.length - 1)].value;
+
   Future<void> _recall(String key) async {
     final name = await ref.read(settingsRepositoryProvider).getString(key);
     if (!mounted || _touched || name == null) return;
-    final index = widget.halves.indexWhere((half) => half.value.name == name);
+    final index = _on.indexWhere((half) => half.value.name == name);
     if (index >= 0 && index != _tabs.index) _tabs.index = index;
   }
 
@@ -88,12 +121,11 @@ class _PairedScreenState<T extends Enum> extends ConsumerState<PairedScreen<T>>
     setState(() {});
     if (_tabs.indexIsChanging) return;
     final key = widget.rememberKey;
-    if (key == null) return;
+    final current = _current;
+    if (key == null || current == null) return;
     _touched = true;
     unawaited(
-      ref
-          .read(settingsRepositoryProvider)
-          .setString(key, widget.halves[_tabs.index].value.name),
+      ref.read(settingsRepositoryProvider).setString(key, current.name),
     );
   }
 
@@ -105,22 +137,15 @@ class _PairedScreenState<T extends Enum> extends ConsumerState<PairedScreen<T>>
 
   @override
   Widget build(BuildContext context) {
-    final on = widget.halves.where((half) => half.on).toList();
-
-    // The tabs follow what is on: turning one half off while looking
-    // at it lands on the other, not on a blank screen.
-    final current = switch (on.length) {
-      1 => on.single.value,
-      _ => widget.halves[_tabs.index].value,
-    };
+    final on = _on;
+    // Nothing on at all: the shell hides the tab, but a stale route can
+    // still land here; show the first half rather than nothing.
+    final current = _current ?? widget.halves.first.value;
 
     final tabs = on.length > 1
         ? HarvestTabs(
             controller: _tabs,
-            tabs: [
-              for (final half in widget.halves)
-                (icon: half.icon, label: half.label),
-            ],
+            tabs: [for (final half in on) (icon: half.icon, label: half.label)],
           )
         : null;
 

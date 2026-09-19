@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/widgets/paired_screen.dart';
 import 'package:harvest/features/gallery/presentation/gallery_screen.dart';
 import 'package:harvest/features/notes/presentation/notes_screen.dart';
+import 'package:harvest/features/places/presentation/places_screen.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Which half of the record I am looking at.
-enum RecordsTab { notes, gallery }
+enum RecordsTab { notes, gallery, places }
 
 /// Notes and the Gallery, in one place.
 ///
@@ -48,6 +49,12 @@ class RecordsScreen extends ConsumerWidget {
           label: l10n.navGallery,
           on: ref.watch(galleryEnabledProvider),
         ),
+        (
+          value: RecordsTab.places,
+          icon: Icons.map_outlined,
+          label: l10n.navPlaces,
+          on: ref.watch(placesEnabledProvider),
+        ),
       ],
       builder: (current, title, tabs) => switch (current) {
         RecordsTab.notes => NotesScreen(
@@ -56,6 +63,7 @@ class RecordsScreen extends ConsumerWidget {
           tabs: tabs,
         ),
         RecordsTab.gallery => GalleryScreen(title: title, tabs: tabs),
+        RecordsTab.places => PlacesScreen(title: title, tabs: tabs),
       },
     );
   }

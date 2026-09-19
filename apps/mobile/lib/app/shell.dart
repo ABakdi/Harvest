@@ -88,7 +88,9 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
         active: Icons.account_balance_wallet,
         label: l10n.navGranary,
       ),
-      if (ref.watch(notesEnabledProvider) || ref.watch(galleryEnabledProvider))
+      if (ref.watch(notesEnabledProvider) ||
+          ref.watch(galleryEnabledProvider) ||
+          ref.watch(placesEnabledProvider))
         (
           branch: ShellBranch.records,
           icon: Icons.auto_stories_outlined,

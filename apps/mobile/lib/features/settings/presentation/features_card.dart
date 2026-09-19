@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
+import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
-/// The two halves of the app that stay out of the way until asked for.
+/// The parts of the app that stay out of the way until asked for.
 ///
 /// Turning one off hides its tab and stops its prompts. It never
 /// deletes a note or a picture, and the switch says so — otherwise
@@ -22,6 +23,7 @@ class FeaturesCard extends ConsumerWidget {
     final gallery = ref.watch(galleryEnabledProvider);
     final health = ref.watch(healthEnabledProvider);
     final gym = ref.watch(gymEnabledProvider);
+    final places = ref.watch(placesEnabledProvider);
 
     Future<void> set(String key, {required bool on}) async {
       await HarvestHaptics.tick();
@@ -62,6 +64,20 @@ class FeaturesCard extends ConsumerWidget {
             subtitle: Text(l10n.featureGymHint),
             value: gym,
             onChanged: (on) => set(FeatureKeys.gym, on: on),
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            secondary: const Icon(Icons.map_outlined),
+            title: Text(l10n.featurePlaces),
+            subtitle: Text(l10n.featurePlacesHint),
+            value: places,
+            // Places asks the phone first ([[Places]] PL1), so it goes
+            // through its controller rather than the plain setting.
+            onChanged: (on) async {
+              await HarvestHaptics.tick();
+              final controller = ref.read(placesControllerProvider.notifier);
+              await (on ? controller.enable() : controller.disable());
+            },
           ),
         ],
       ),

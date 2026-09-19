@@ -171,6 +171,12 @@ class PlacesController extends _$PlacesController {
     await sync();
   }
 
+  /// Stops and starts the recorder so it picks up a changed setting.
+  Future<void> restart() async {
+    await ref.read(trailServiceProvider).stop();
+    await sync();
+  }
+
   Future<void> resume() async {
     await ref.read(settingsRepositoryProvider).remove(PlacesKeys.pausedUntil);
     await sync();
@@ -219,3 +225,21 @@ Stream<List<SavedPlace>> savedPlaces(Ref ref) =>
 @riverpod
 Stream<int> pointsOn(Ref ref, HarvestDay day) =>
     ref.watch(placesRepositoryProvider).watchCountOn(day);
+
+/// The map style ([[ADR-010-Maps]]).
+@riverpod
+Stream<String> placesStyleUrl(Ref ref) => ref
+    .watch(settingsRepositoryProvider)
+    .watchAll([PlacesKeys.styleUrl])
+    .map((values) => values[PlacesKeys.styleUrl] ?? PlacesKeys.defaultStyleUrl);
+
+@riverpod
+Stream<bool> placesHighAccuracy(Ref ref) => ref
+    .watch(settingsRepositoryProvider)
+    .watchAll([PlacesKeys.highAccuracy])
+    .map((values) => values[PlacesKeys.highAccuracy] == 'true');
+
+/// A few words on what a pin is: a note's title, an expense's amount.
+@riverpod
+Future<String?> geotagDetail(Ref ref, ({String table, String uuid}) target) =>
+    ref.watch(placesRepositoryProvider).detailFor(target.table, target.uuid);

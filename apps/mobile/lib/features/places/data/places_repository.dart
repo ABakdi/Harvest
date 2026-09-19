@@ -182,6 +182,66 @@ class PlacesRepository {
     await _db.logChange('geotags', uuid, 'update');
   });
 
+  /// A few words about what a geotag points at, for the timeline: a
+  /// note's title, a seed's name, an expense's note or category. Null
+  /// when the row is gone or has nothing to say.
+  Future<String?> detailFor(String table, String uuid) async {
+    switch (table) {
+      case 'expenses':
+        final row = await (_db.select(
+          _db.expenses,
+        )..where((e) => e.uuid.equals(uuid))).getSingleOrNull();
+        if (row == null) return null;
+        final amount =
+            '${(row.amountMinor / 100).toStringAsFixed(2)} ${row.currency}';
+        return row.note == null || row.note!.isEmpty
+            ? '$amount · ${row.category}'
+            : '$amount · ${row.note}';
+      case 'notes':
+        return (await (_db.select(
+          _db.notes,
+        )..where((n) => n.uuid.equals(uuid))).getSingleOrNull())?.title;
+      case 'commitments':
+        return _seedTitle(uuid);
+      case 'check_ins':
+        final row = await (_db.select(
+          _db.checkIns,
+        )..where((c) => c.uuid.equals(uuid))).getSingleOrNull();
+        return row == null ? null : _seedTitle(row.commitmentUuid);
+      case 'seed_notes':
+        final row = await (_db.select(
+          _db.seedNotes,
+        )..where((n) => n.uuid.equals(uuid))).getSingleOrNull();
+        return row == null ? null : _seedTitle(row.commitmentUuid);
+      case 'memories':
+        final row = await (_db.select(
+          _db.memories,
+        )..where((m) => m.uuid.equals(uuid))).getSingleOrNull();
+        if (row == null) return null;
+        final album = await (_db.select(
+          _db.albums,
+        )..where((a) => a.uuid.equals(row.albumUuid))).getSingleOrNull();
+        return album?.name;
+      case 'goals':
+        return (await (_db.select(
+          _db.goals,
+        )..where((g) => g.uuid.equals(uuid))).getSingleOrNull())?.title;
+      case 'goal_items':
+        return (await (_db.select(
+          _db.goalItems,
+        )..where((i) => i.uuid.equals(uuid))).getSingleOrNull())?.body;
+      case 'workout_sessions':
+        return (await (_db.select(
+          _db.workoutSessions,
+        )..where((w) => w.uuid.equals(uuid))).getSingleOrNull())?.title;
+    }
+    return null;
+  }
+
+  Future<String?> _seedTitle(String uuid) async => (await (_db.select(
+    _db.commitments,
+  )..where((c) => c.uuid.equals(uuid))).getSingleOrNull())?.title;
+
   // -------------------------------------------------------- saved places
 
   Stream<List<SavedPlace>> watchSavedPlaces() {

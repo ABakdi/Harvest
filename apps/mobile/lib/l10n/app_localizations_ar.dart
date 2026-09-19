@@ -3356,4 +3356,167 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get goalItemOptions => 'خيارات البند';
+
+  @override
+  String get navPlaces => 'الأماكن';
+
+  @override
+  String get featurePlaces => 'الأماكن';
+
+  @override
+  String get featurePlacesHint =>
+      'أين ذهبتُ وماذا فعلت هناك: مسار ودبوس على كل فعل. لا شيء يغادر الهاتف.';
+
+  @override
+  String get placesDay => 'يوم';
+
+  @override
+  String get placesWeek => 'أسبوع';
+
+  @override
+  String get placesMonth => 'شهر';
+
+  @override
+  String get placesPrevious => 'السابق';
+
+  @override
+  String get placesNext => 'التالي';
+
+  @override
+  String get placesPickDay => 'اختر يومًا';
+
+  @override
+  String get placesTrailOn => 'سجّل مساري';
+
+  @override
+  String get placesTrailHint =>
+      'نقطة كل 50 م أثناء الحركة، مع إشعار ظاهر طوال الوقت.';
+
+  @override
+  String get placesTrailRefused =>
+      'المسار يحتاج الموقع «طوال الوقت». الوسوم الجغرافية تعمل بدونه.';
+
+  @override
+  String get placesOpenSettings => 'افتح الإعدادات';
+
+  @override
+  String get placesPause1h => 'إيقاف لساعة';
+
+  @override
+  String get placesPauseTomorrow => 'إيقاف حتى الغد';
+
+  @override
+  String get placesResume => 'استئناف المسار';
+
+  @override
+  String placesPausedUntil(String time) {
+    return 'متوقف حتى $time';
+  }
+
+  @override
+  String placesRecording(int count) {
+    return 'يسجّل · $count نقطة اليوم';
+  }
+
+  @override
+  String get placesHighAccuracy => 'دقة عالية';
+
+  @override
+  String get placesHighAccuracyHint => 'مسار أدق، وبطارية أكثر.';
+
+  @override
+  String get placesDeleteDay => 'احذف مسار هذا اليوم';
+
+  @override
+  String get placesDayDeleted => 'حُذف المسار';
+
+  @override
+  String get placesDeleteAll => 'احذف كل سجل المواقع';
+
+  @override
+  String get placesDeleteAllBody =>
+      'كل نقطة وكل وسم وكل مكان مسمّى، تُحذف نهائيًا. لا تراجع عن ذلك.';
+
+  @override
+  String get placesNothing => 'لا شيء هنا في هذا اليوم';
+
+  @override
+  String get placesNothingBody =>
+      'شغّل المسار، أو افعل شيئًا والأماكن مفعّلة، فيظهر هنا.';
+
+  @override
+  String placesStay(String duration) {
+    return 'مكثتُ $duration';
+  }
+
+  @override
+  String get placesNameStay => 'سمِّ هذا المكان';
+
+  @override
+  String get placesNameHint => 'البيت، المكتب، النادي…';
+
+  @override
+  String get placesOptions => 'خيارات الأماكن';
+
+  @override
+  String get placesNotificationTitle => 'Harvest';
+
+  @override
+  String get placesNotificationText => 'يسجّل مسارك';
+
+  @override
+  String get placesServiceOff => 'الموقع مطفأ على هذا الهاتف.';
+
+  @override
+  String placesDistance(String km) {
+    return '$km كم';
+  }
+
+  @override
+  String get geoExpense => 'مصروف';
+
+  @override
+  String get geoCheckIn => 'تسجيل';
+
+  @override
+  String get geoPicture => 'صورة';
+
+  @override
+  String get geoNote => 'ملاحظة';
+
+  @override
+  String get geoVoice => 'ملاحظة صوتية';
+
+  @override
+  String get geoSeed => 'زُرعت بذرة';
+
+  @override
+  String get geoSeedNote => 'ملاحظة بذرة';
+
+  @override
+  String get geoMoney => 'مال';
+
+  @override
+  String get geoDebt => 'دين';
+
+  @override
+  String get geoDebtPayment => 'سداد دين';
+
+  @override
+  String get geoWeight => 'وزن';
+
+  @override
+  String get geoNight => 'ليلة';
+
+  @override
+  String get geoSession => 'حصة رياضة';
+
+  @override
+  String get geoGoal => 'هدف';
+
+  @override
+  String get geoGoalItem => 'خطوة هدف';
+
+  @override
+  String get geoAlbum => 'ألبوم';
 }

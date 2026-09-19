@@ -48,7 +48,7 @@ final class PlacesControllerProvider
   PlacesController create() => PlacesController();
 }
 
-String _$placesControllerHash() => r'c1fe11a9e7040c8cdb7d1809e05f9c2e6832a256';
+String _$placesControllerHash() => r'0fca22bfce10e6feb14df085148319bab7221d07';
 
 /// Keeps the trail, the geotags and the filler in step with the
 /// settings ([[Places]]).
@@ -330,4 +330,158 @@ final class PointsOnFamily extends $Family
 
   @override
   String toString() => r'pointsOnProvider';
+}
+
+/// The map style ([[ADR-010-Maps]]).
+
+@ProviderFor(placesStyleUrl)
+final placesStyleUrlProvider = PlacesStyleUrlProvider._();
+
+/// The map style ([[ADR-010-Maps]]).
+
+final class PlacesStyleUrlProvider
+    extends $FunctionalProvider<AsyncValue<String>, String, Stream<String>>
+    with $FutureModifier<String>, $StreamProvider<String> {
+  /// The map style ([[ADR-010-Maps]]).
+  PlacesStyleUrlProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'placesStyleUrlProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$placesStyleUrlHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<String> create(Ref ref) {
+    return placesStyleUrl(ref);
+  }
+}
+
+String _$placesStyleUrlHash() => r'e90d5458d97395e0c4e3636c32b2e03cd2925a39';
+
+@ProviderFor(placesHighAccuracy)
+final placesHighAccuracyProvider = PlacesHighAccuracyProvider._();
+
+final class PlacesHighAccuracyProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
+    with $FutureModifier<bool>, $StreamProvider<bool> {
+  PlacesHighAccuracyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'placesHighAccuracyProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$placesHighAccuracyHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<bool> create(Ref ref) {
+    return placesHighAccuracy(ref);
+  }
+}
+
+String _$placesHighAccuracyHash() =>
+    r'b0a0f05147e1e55530f94d8c1bf0cd04332d8830';
+
+/// A few words on what a pin is: a note's title, an expense's amount.
+
+@ProviderFor(geotagDetail)
+final geotagDetailProvider = GeotagDetailFamily._();
+
+/// A few words on what a pin is: a note's title, an expense's amount.
+
+final class GeotagDetailProvider
+    extends $FunctionalProvider<AsyncValue<String?>, String?, FutureOr<String?>>
+    with $FutureModifier<String?>, $FutureProvider<String?> {
+  /// A few words on what a pin is: a note's title, an expense's amount.
+  GeotagDetailProvider._({
+    required GeotagDetailFamily super.from,
+    required ({String table, String uuid}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'geotagDetailProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$geotagDetailHash();
+
+  @override
+  String toString() {
+    return r'geotagDetailProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<String?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<String?> create(Ref ref) {
+    final argument = this.argument as ({String table, String uuid});
+    return geotagDetail(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GeotagDetailProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$geotagDetailHash() => r'55815cc0c19b9e0f881562b1b68e98581c34a58e';
+
+/// A few words on what a pin is: a note's title, an expense's amount.
+
+final class GeotagDetailFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<String?>,
+          ({String table, String uuid})
+        > {
+  GeotagDetailFamily._()
+    : super(
+        retry: null,
+        name: r'geotagDetailProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// A few words on what a pin is: a note's title, an expense's amount.
+
+  GeotagDetailProvider call(({String table, String uuid}) target) =>
+      GeotagDetailProvider._(argument: target, from: this);
+
+  @override
+  String toString() => r'geotagDetailProvider';
 }

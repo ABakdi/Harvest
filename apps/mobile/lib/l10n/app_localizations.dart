@@ -5545,6 +5545,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Item options'**
   String get goalItemOptions;
+
+  /// No description provided for @navPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get navPlaces;
+
+  /// No description provided for @featurePlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get featurePlaces;
+
+  /// No description provided for @featurePlacesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.'**
+  String get featurePlacesHint;
+
+  /// No description provided for @placesDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get placesDay;
+
+  /// No description provided for @placesWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get placesWeek;
+
+  /// No description provided for @placesMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get placesMonth;
+
+  /// No description provided for @placesPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get placesPrevious;
+
+  /// No description provided for @placesNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get placesNext;
+
+  /// No description provided for @placesPickDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a day'**
+  String get placesPickDay;
+
+  /// No description provided for @placesTrailOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Record my trail'**
+  String get placesTrailOn;
+
+  /// No description provided for @placesTrailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps a point every 50 m while you move, with a notification on screen the whole time.'**
+  String get placesTrailHint;
+
+  /// No description provided for @placesTrailRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'The trail needs location “all the time”. Geotags still work without it.'**
+  String get placesTrailRefused;
+
+  /// No description provided for @placesOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get placesOpenSettings;
+
+  /// No description provided for @placesPause1h.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause for an hour'**
+  String get placesPause1h;
+
+  /// No description provided for @placesPauseTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause until tomorrow'**
+  String get placesPauseTomorrow;
+
+  /// No description provided for @placesResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume the trail'**
+  String get placesResume;
+
+  /// No description provided for @placesPausedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused until {time}'**
+  String placesPausedUntil(String time);
+
+  /// No description provided for @placesRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording · {count} points today'**
+  String placesRecording(int count);
+
+  /// No description provided for @placesHighAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'High accuracy'**
+  String get placesHighAccuracy;
+
+  /// No description provided for @placesHighAccuracyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharper trail, more battery.'**
+  String get placesHighAccuracyHint;
+
+  /// No description provided for @placesDeleteDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this day\'s trail'**
+  String get placesDeleteDay;
+
+  /// No description provided for @placesDayDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Trail deleted'**
+  String get placesDayDeleted;
+
+  /// No description provided for @placesDeleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all location history'**
+  String get placesDeleteAll;
+
+  /// No description provided for @placesDeleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every point, every geotag and every named place, gone for good. This cannot be undone.'**
+  String get placesDeleteAllBody;
+
+  /// No description provided for @placesNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here on this day'**
+  String get placesNothing;
+
+  /// No description provided for @placesNothingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the trail, or do something with Places on, and it shows up here.'**
+  String get placesNothingBody;
+
+  /// No description provided for @placesStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stayed {duration}'**
+  String placesStay(String duration);
+
+  /// No description provided for @placesNameStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Name this place'**
+  String get placesNameStay;
+
+  /// No description provided for @placesNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Home, Office, Gym…'**
+  String get placesNameHint;
+
+  /// No description provided for @placesOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Places options'**
+  String get placesOptions;
+
+  /// No description provided for @placesNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get placesNotificationTitle;
+
+  /// No description provided for @placesNotificationText.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording your trail'**
+  String get placesNotificationText;
+
+  /// No description provided for @placesServiceOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is switched off on this phone.'**
+  String get placesServiceOff;
+
+  /// No description provided for @placesDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String placesDistance(String km);
+
+  /// No description provided for @geoExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get geoExpense;
+
+  /// No description provided for @geoCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get geoCheckIn;
+
+  /// No description provided for @geoPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture'**
+  String get geoPicture;
+
+  /// No description provided for @geoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get geoNote;
+
+  /// No description provided for @geoVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get geoVoice;
+
+  /// No description provided for @geoSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Planted a seed'**
+  String get geoSeed;
+
+  /// No description provided for @geoSeedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed note'**
+  String get geoSeedNote;
+
+  /// No description provided for @geoMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get geoMoney;
+
+  /// No description provided for @geoDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt'**
+  String get geoDebt;
+
+  /// No description provided for @geoDebtPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt payment'**
+  String get geoDebtPayment;
+
+  /// No description provided for @geoWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get geoWeight;
+
+  /// No description provided for @geoNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get geoNight;
+
+  /// No description provided for @geoSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym session'**
+  String get geoSession;
+
+  /// No description provided for @geoGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get geoGoal;
+
+  /// No description provided for @geoGoalItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal step'**
+  String get geoGoalItem;
+
+  /// No description provided for @geoAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get geoAlbum;
 }
 
 class _AppLocalizationsDelegate
