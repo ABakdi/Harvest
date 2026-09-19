@@ -79,6 +79,19 @@ void main() {
       },
     );
 
+    test('the last known position stands in, only while recent', () async {
+      db.geotagging = true;
+      await db.logChange('expenses', 'e1', 'insert');
+      gateway.last = at(5, 5, now.subtract(const Duration(minutes: 3)));
+      await fill();
+      expect((await tagOf('expenses', 'e1')).latitude, 5);
+
+      await db.logChange('expenses', 'e2', 'insert');
+      gateway.last = at(6, 6, now.subtract(const Duration(hours: 2)));
+      await fill();
+      expect((await tagOf('expenses', 'e2')).state, 'unavailable');
+    });
+
     test('a vague point is not good enough', () async {
       db.geotagging = true;
       await places.addPoint(

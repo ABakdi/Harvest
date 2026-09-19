@@ -24,6 +24,12 @@ enum LocationAccess {
 
 /// The platform edge for location, with a fake in the tests — the same
 /// shape as the steps source.
+///
+/// Every read goes through Android's own `LocationManager`, never Play
+/// Services' fused provider: the fused one answers a quiet geotag by
+/// putting a "turn on Location Accuracy" dialog over whatever is on
+/// screen, and it is a Google service where the rest of Places uses
+/// none ([[ADR-010-Maps]]).
 abstract interface class LocationGateway {
   Future<LocationAccess> access();
 
@@ -36,6 +42,10 @@ abstract interface class LocationGateway {
 
   /// One fresh fix, or null when none arrives within [timeout].
   Future<Fix?> currentFix({Duration timeout = const Duration(seconds: 10)});
+
+  /// The phone's own last known position, however it got it; null when
+  /// it has none.
+  Future<Fix?> lastKnown();
 
   Future<void> openSettings();
 }
@@ -96,9 +106,10 @@ class GeolocatorGateway implements LocationGateway {
   }) async {
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(
+        locationSettings: AndroidSettings(
           accuracy: LocationAccuracy.medium,
           timeLimit: timeout,
+          forceLocationManager: true,
         ),
       );
       return fixOf(position);
@@ -109,6 +120,18 @@ class GeolocatorGateway implements LocationGateway {
     } on LocationServiceDisabledException {
       return null;
     } on PermissionDeniedException {
+      return null;
+    }
+  }
+
+  @override
+  Future<Fix?> lastKnown() async {
+    try {
+      final position = await Geolocator.getLastKnownPosition(
+        forceAndroidLocationManager: true,
+      );
+      return position == null ? null : fixOf(position);
+    } on PlatformException {
       return null;
     }
   }

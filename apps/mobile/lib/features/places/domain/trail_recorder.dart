@@ -47,6 +47,7 @@ class TrailRecorder extends TaskHandler {
             accuracy: high ? LocationAccuracy.high : LocationAccuracy.medium,
             distanceFilter: trailDistanceFilterM,
             intervalDuration: trailInterval,
+            forceLocationManager: true,
           ),
         ).listen(
           (position) async {

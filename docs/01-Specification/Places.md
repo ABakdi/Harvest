@@ -83,7 +83,9 @@ this order:
    100 m accurate. This costs nothing and is what happens while
    tracking.
 2. Otherwise, **one fresh fix**, with a 10-second timeout.
-3. Otherwise, **unavailable**. The action is kept without a place.
+3. Otherwise, **the phone's last known position**, if it is from the
+   last ten minutes: a fresh fix can fail indoors or underground.
+4. Otherwise, **unavailable**. The action is kept without a place.
    An action is never delayed or refused for want of a location.
 
 A geotag is its own row (`target_table`, `target_uuid`, time,

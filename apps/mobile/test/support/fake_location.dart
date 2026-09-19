@@ -16,6 +16,12 @@ class FakeLocationGateway implements LocationGateway {
 
   int fixRequests = 0;
 
+  /// What the phone remembers when no fresh fix comes.
+  Fix? last;
+
+  @override
+  Future<Fix?> lastKnown() async => last;
+
   @override
   Future<LocationAccess> access() async => granted;
 

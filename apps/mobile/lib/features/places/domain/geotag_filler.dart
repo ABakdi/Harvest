@@ -8,14 +8,20 @@ import 'package:harvest/features/places/domain/place.dart';
 /// How old a trail point may be and still say where an action happened.
 const trailPointFreshness = Duration(minutes: 2);
 
+/// How old the phone's last known position may be and still stand in
+/// when a fresh fix does not come.
+const lastKnownFreshness = Duration(minutes: 10);
+
 /// How vague a trail point may be and still stand in for a fresh fix.
 const trailPointAccuracyM = 100.0;
 
 /// Gives every pending geotag a place, or marks it unavailable
 /// ([[Places]] PL2, PL3).
 ///
-/// Three tries, cheapest first: the trail's last point if it is recent
-/// and sharp enough, then one fresh fix, then nothing. The action it
+/// Four tries, cheapest first: the trail's last point if it is recent
+/// and sharp enough, then one fresh fix, then the phone's last known
+/// position if it is from the last ten minutes — a fresh fix can fail
+/// indoors, underground or with only satellites to ask — then nothing. The action it
 /// tags was written long before any of this runs; a missing place
 /// never reaches back to it.
 class GeotagFiller {
@@ -85,6 +91,11 @@ class GeotagFiller {
         access != LocationAccess.always) {
       return null;
     }
-    return _gateway.currentFix();
+    final fresh = await _gateway.currentFix();
+    if (fresh != null) return fresh;
+    final last = await _gateway.lastKnown();
+    if (last == null) return null;
+    final age = _clock().difference(last.at);
+    return age <= lastKnownFreshness ? last : null;
   }
 }
