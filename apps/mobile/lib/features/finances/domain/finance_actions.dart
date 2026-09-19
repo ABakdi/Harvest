@@ -72,6 +72,12 @@ class FinanceActions {
       note: note,
       day: day,
     );
+    // The movement lives on the expense's day, which a move may just
+    // have changed ([[Audit-v2]] B3-05).
+    final row = await (_db.select(
+      _db.expenses,
+    )..where((e) => e.uuid.equals(uuid))).getSingleOrNull();
+    final expenseDay = HarvestDay.tryParse(row?.harvestDay) ?? day;
     final linked = await _vault.linkedTxn(uuid);
     if (fromWallet) {
       if (linked == null) {
@@ -83,6 +89,7 @@ class FinanceActions {
           reference: category,
           linkUuid: uuid,
           note: note,
+          day: expenseDay,
         );
       } else {
         await _vault.updateLinked(
@@ -91,6 +98,7 @@ class FinanceActions {
           currency: currency,
           reference: category,
           note: note,
+          day: expenseDay,
         );
       }
     } else if (linked != null) {

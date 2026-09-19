@@ -441,7 +441,16 @@ class _CropTile extends ConsumerWidget {
           ],
         ),
       );
-      if (confirmed ?? false) await controller.undoToday(commitment);
+      if (confirmed ?? false) {
+        await controller.undoToday(commitment);
+        // A hand tick of a gym seed wrote an empty session; it goes with
+        // the tick ([[Audit-v2]] B3-04).
+        if (program != null) {
+          await ref
+              .read(sessionsRepositoryProvider)
+              .discardBareOn(program.uuid, ref.read(currentHarvestDayProvider));
+        }
+      }
       _reportError(ref, messenger, l10n);
       return;
     }
@@ -513,13 +522,21 @@ class _CropTile extends ConsumerWidget {
     );
     if (start == null || !context.mounted) return;
     if (start) {
-      await startSession(context, ref);
+      // This seed's program, not every program: a session of another one
+      // would never check this seed in ([[Audit-v2]] B3-10).
+      await startSession(context, ref, only: program);
       return;
     }
 
-    final session = await ref
-        .read(sessionsRepositoryProvider)
-        .startFreeform(title: l10n.gymSeedBare, programUuid: program.uuid);
+    // The bare session is the day that was up next, so "Up next" moves
+    // on as if I had logged it ([[Audit-v2]] B3-03).
+    final sessions = ref.read(sessionsRepositoryProvider);
+    final next = await sessions.nextDay(program);
+    final session = await sessions.startFreeform(
+      title: next?.name ?? l10n.gymSeedBare,
+      programUuid: program.uuid,
+      dayUuid: next?.uuid,
+    );
     final outcome = await ref.read(sessionFinisherProvider).finish(session);
     unawaited(HarvestHaptics.thud());
     if (outcome.xpEarned == 0) return;

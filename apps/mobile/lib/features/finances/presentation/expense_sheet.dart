@@ -110,7 +110,10 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   /// The Harvest Day the expense belongs to: today unless I say
   /// otherwise — a receipt found in a pocket is still Tuesday's
   /// ([[Checkpoint-8]]).
-  HarvestDay _day = HarvestDay.today();
+  /// Null until I pick a day or edit an existing expense: the day is
+  /// then decided when it is saved, so a sheet opened at 2:58 and saved
+  /// at 3:02 files under the new day ([[Audit-v2]] B3-07).
+  HarvestDay? _day;
 
   /// null until the user decides: the toggle follows the wallet balance
   /// on a new expense, and the existing movement when editing one.
@@ -273,7 +276,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     final today = HarvestDay.today();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _day.toDateTime(),
+      initialDate: (_day ?? HarvestDay.today()).toDateTime(),
       firstDate: today.addDays(-365).toDateTime(),
       lastDate: today.addDays(365).toDateTime(),
     );
@@ -397,9 +400,9 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
             ActionChip(
               avatar: const Icon(Icons.event_outlined, size: 18),
               label: Text(
-                _day == HarvestDay.today()
+                _day == null || _day == HarvestDay.today()
                     ? l10n.dueToday
-                    : formatDay(context, _day, weekday: true),
+                    : formatDay(context, _day!, weekday: true),
               ),
               onPressed: () => unawaited(_pickDay()),
             ),

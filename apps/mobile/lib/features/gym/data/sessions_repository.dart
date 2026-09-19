@@ -349,6 +349,11 @@ class SessionsRepository {
     Map<String, int> trainingMaxes = const {},
     HarvestDay? on,
   }) async {
+    // One session at a time (Y3): a second Start — a double tap, a
+    // retry — resumes the one already running rather than beginning
+    // another beside it ([[Audit-v2]] U3-15).
+    final running = await runningOnce();
+    if (running != null) return running;
     final uuid = _uuid.v4();
     final harvestDay = on ?? HarvestDay.today();
 
@@ -421,6 +426,7 @@ class SessionsRepository {
     String? title,
     HarvestDay? on,
     String? programUuid,
+    String? dayUuid,
   }) async {
     final uuid = _uuid.v4();
     await _db
@@ -430,11 +436,38 @@ class SessionsRepository {
             uuid: uuid,
             title: Value(title),
             programUuid: Value(programUuid),
+            dayUuid: Value(dayUuid),
             harvestDay: (on ?? HarvestDay.today()).key,
           ),
         );
     await _outbox(uuid, 'insert');
     return (await once(uuid))!;
+  }
+
+  /// Takes back the bare sessions a hand tick wrote for [programUuid] on
+  /// [day] — finished, and holding no exercise at all — when the tick is
+  /// undone, so the log and the streak keep agreeing ([[Gym]] Y12,
+  /// [[Audit-v2]] B3-04). A session with anything in it is never touched.
+  Future<int> discardBareOn(String programUuid, HarvestDay day) async {
+    final sessions =
+        await (_db.select(_db.workoutSessions)..where(
+              (s) =>
+                  s.programUuid.equals(programUuid) &
+                  s.harvestDay.equals(day.key) &
+                  s.endedAt.isNotNull() &
+                  s.deletedAt.isNull(),
+            ))
+            .get();
+    var discarded = 0;
+    for (final session in sessions) {
+      final exercises = await (_db.select(
+        _db.sessionExercises,
+      )..where((e) => e.sessionUuid.equals(session.uuid))).get();
+      if (exercises.isNotEmpty) continue;
+      await discard(session.uuid);
+      discarded++;
+    }
+    return discarded;
   }
 
   /// Ticks a set — and writes it, now.

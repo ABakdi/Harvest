@@ -58,11 +58,12 @@ class _SetRowState extends ConsumerState<SetRow> {
 
   String _weightText() => widget.set.weightGrams == 0
       ? ''
-      : widget.unit
-            .from(widget.set.weightGrams)
-            .toStringAsFixed(2)
-            .replaceFirst(RegExp(r'0+$'), '')
-            .replaceFirst(RegExp(r'\.$'), '');
+      : _format(widget.unit.from(widget.set.weightGrams));
+
+  static String _format(double value) => value
+      .toStringAsFixed(2)
+      .replaceFirst(RegExp(r'0+$'), '')
+      .replaceFirst(RegExp(r'\.$'), '');
 
   @override
   void didUpdateWidget(SetRow old) {
@@ -73,6 +74,17 @@ class _SetRowState extends ConsumerState<SetRow> {
     if (old.set.weightGrams != widget.set.weightGrams &&
         _weight.text == _lastWeight) {
       _weight.text = _weightText();
+    }
+    // The unit can arrive after the row was built — the session opened
+    // from the field before anything had read it — and a number shown
+    // in kilograms under a pound header would be logged as pounds. What
+    // is in the field is converted, not thrown away ([[Audit-v2]] U3-14).
+    if (old.unit != widget.unit) {
+      final typed = double.tryParse(_weight.text.trim().replaceAll(',', '.'));
+      final grams = typed == null
+          ? widget.set.weightGrams
+          : roundLoad(old.unit.toGrams(typed));
+      _weight.text = grams == 0 ? '' : _format(widget.unit.from(grams));
     }
     if (old.set.reps != widget.set.reps && _reps.text == _lastReps) {
       _reps.text = widget.set.reps == 0 ? '' : '${widget.set.reps}';

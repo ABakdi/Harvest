@@ -21,7 +21,31 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// running one is offered instead. Two: a day is chosen, never
 /// guessed. The app does not know which day of the program I feel like
 /// doing, and a wrong guess costs more than a tap.
-Future<void> startSession(BuildContext context, WidgetRef ref) async {
+/// Starts a session. With [only], the choice is that program's days —
+/// a gym seed starts its own program, never another one.
+Future<void> startSession(
+  BuildContext context,
+  WidgetRef ref, {
+  Program? only,
+}) async {
+  // Several awaits stand between the tap and the session screen; a
+  // second tap in that window waits for the first rather than racing it.
+  if (_starting) return;
+  _starting = true;
+  try {
+    await _startSession(context, ref, only: only);
+  } finally {
+    _starting = false;
+  }
+}
+
+var _starting = false;
+
+Future<void> _startSession(
+  BuildContext context,
+  WidgetRef ref, {
+  Program? only,
+}) async {
   final l10n = AppLocalizations.of(context);
   // The root navigator, so a session covers the tab bar. While I am
   // lifting the app is a workout log and nothing else — and those
@@ -41,7 +65,9 @@ Future<void> startSession(BuildContext context, WidgetRef ref) async {
   }
 
   final programs = await ref.read(programsRepositoryProvider).allOnce();
-  final withDays = programs.where((p) => p.days.isNotEmpty).toList();
+  final withDays = programs
+      .where((p) => p.days.isNotEmpty && (only == null || p.uuid == only.uuid))
+      .toList();
   if (!context.mounted) return;
 
   if (withDays.isEmpty) {

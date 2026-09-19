@@ -142,6 +142,7 @@ class VaultRepository {
     required Currency currency,
     String? reference,
     String? note,
+    HarvestDay? day,
   }) => _db.transaction(() async {
     await (_db.update(_db.moneyTxns)..where((t) => t.uuid.equals(uuid))).write(
       MoneyTxnsCompanion(
@@ -149,6 +150,7 @@ class VaultRepository {
         currency: Value(currency.code),
         reference: Value(reference),
         note: Value(note),
+        harvestDay: day == null ? const Value.absent() : Value(day.key),
         updatedAt: Value(DateTime.now()),
       ),
     );
