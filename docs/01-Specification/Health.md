@@ -161,8 +161,8 @@ One number, whenever I stand on the scale. Not a daily obligation.
   day is allowed — morning and evening are different facts.
 - Units are mine: **kg or lb**, set once, converted for display and
   never for storage. Weight is stored in **grams**, integer, for the
-  same reason money is stored in minor units ([[Business-Rules]] #3):
-  a body weight is not a float.
+  same reason money is stored in minor units ([[Finances]]): a body
+  weight is not a float.
 - Optional **note** on any entry — *"after the flu"*, *"new scale"* —
   because the outlier always has a reason and the reason is what makes
   the chart readable a year later.
@@ -176,8 +176,8 @@ So the chart draws **both**:
 - a **7-day moving average** as the line that actually means something.
 
 Above it, one sentence in plain words: *"Down 1.4 kg over 30 days"* —
-direction, amount, window. The window is mine to change (30 / 90 days /
-all), and the app **never says whether that is good**. It is my body and
+direction, amount, window. The window is mine to change (30 / 90 /
+365 days), and the app **never says whether that is good**. It is my body and
 my goal; the app's job is the arithmetic.
 
 - An optional **target weight** draws a line, and the summary then adds

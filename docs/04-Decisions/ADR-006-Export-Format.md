@@ -5,7 +5,7 @@
 ## Context
 
 Every byte Harvest holds lives on one phone. [[Sync-Strategy]] puts a
-second home for it in Phase 5, behind an outbox and a server I have not
+second home for it in Phase 6, behind an outbox and a server I have not
 written. Until then a lost phone is a lost year.
 
 I wanted a way to get the data out that I could use *today*, and that

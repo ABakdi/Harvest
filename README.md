@@ -67,8 +67,8 @@ repository is a monorepo for it: `apps/mobile` (Flutter), `apps/web`
   per-commitment streaks, streak freezes bought with coins, and a 3 AM day
   boundary so a 1 AM check-in still counts for the evening it belongs to.
 - **The plan ritual** — an evening planner and a morning review, each
-  reachable straight from its reminder; reminders escalate from gentle to
-  urgent and learn the best time to nudge.
+  reachable straight from its reminder; a nudge stops the moment its
+  reason is gone, and four a day is the cap.
 - **Focus timer** — a pomodoro attached to any commitment, adjustable
   block lengths, a live mini-timer in the app bar, and pause/abandon from
   the notification shade.
@@ -322,10 +322,11 @@ apps/
       features/     commitments, field, gamification, planner, pomodoro,
                     finances, calendar, stats, settings, security, export,
                     import, widget, onboarding, notes, gallery, records,
-                    body, health, gym, farmer
+                    body, health, gym, farmer, goals, places, assist,
+                    sync, account
       l10n/         ARB files (en, ar)
     packages/harvest_steps/   the Health Connect / step-sensor plugin
-    drift_schemas/  exported schema snapshots (v1 … v14)
+    drift_schemas/  exported schema snapshots (v1 … v15)
     test/           unit, widget, migration and golden tests
   web/              the React web app and PWA
   server/           the Express sync and accounts API

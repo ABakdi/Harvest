@@ -868,3 +868,31 @@ Tests: 836 on the phone, with `weight_text_test.dart` and
 
 Still open: wave 7 (the docs) and wave 8 (S3-08, S3-02; Q3-01 is
 already done).
+
+## Status — wave 7, the docs, 2026-09-20
+
+Every row of section F is now either corrected in its own doc or
+written down as a decision:
+
+| Row | What the doc says now |
+| :--- | :--- |
+| D3-01 | [[Business-Rules]] #8 names the four things that go for good — a seed planted by mistake, a note emptied from the trash, a purged album, structure being edited — and [[Local-Database]] has a table of them with the reason each one is not soft. |
+| D3-02 | The outbox column is `targetTable`, settings are `kv_settings`, there is no `budgets` table (the budget is one setting), the later-phase table list is current to v15, and the notes trash is not in the launch sweep. |
+| D3-03 | Already corrected: rule #13 lists the rate fetch, exercise media, map tiles, an assist action and sync, and says an export is a file I move. |
+| D3-04 | The 3 AM diagram is what the job does — reconcile, close the ended day, plan, refresh the widget. `workmanager`, Android only; no `BGTaskScheduler`, no `android_alarm_manager_plus`. |
+| D3-05 | Rule #9 says which two rituals are cancelled when their reason goes (streak risk, the expense check-in) and why the other two are not. |
+| D3-06 | [[Notifications]] lists what actually fires, at what hour, which times are mine, and which reminders ring as alarms. Prime-time learning is marked *not built*. |
+| D3-07 | [[Onboarding]] is the five pages that exist, with the five optional halves, and says language, theme and the guided first check-in are not steps. |
+| D3-08 | [[Finances]] says three currencies, converted for totals and never rewritten; budget quests are parked; privacy points at the private tier. |
+| D3-09 | [[Localization]] says digits are Western in both languages, and only the separators follow the locale. |
+| D3-10 | [[Health]]'s weight windows are 30 / 90 / 365, and the minor-units citation points at [[Finances]] rather than a sleep rule. |
+| D3-11 | [[Dashboard-and-Widgets]] describes the top tab row that was built, and says why. |
+| D3-12 | [[Core-Entities]] drops "six", adds the vault, goals, and the map's three entities, and reads steps from the health store first. |
+| D3-13 | [[Architecture-Overview]]'s tree is the twenty-six feature folders that exist; the service is `StreakService`; there is no `screentime/`. |
+| D3-14 | Sync is Phase 6 in [[ADR-002-Local-Database]], [[ADR-005-Local-First-Sync]], [[ADR-006-Export-Format]] and [[Architecture-Overview]]. |
+| D3-15 | Screen time is Phase 7 wherever it was Phase 4; quests are parked wherever they were promised; [[Product-Requirements]] says what shipped. |
+| D3-16 | The README's layout carries the five newer features and `v1 … v15`, and no longer claims reminders learn when to nudge. |
+| The coin amounts | In [[Gamification]] as a table: 50, 200 and 1,000 at seven, thirty and a hundred days; a freeze costs 100. |
+
+Left for the user: the nine decisions in section E (P3-01 … P3-09),
+each of which is *build it* or *strike it*.

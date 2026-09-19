@@ -7,8 +7,8 @@ The platform layer behind [[Notifications]], the 3 AM reset ([[Business-Rules]])
 | Concern | Package |
 | :--- | :--- |
 | Scheduled & shown notifications | `flutter_local_notifications` |
-| Periodic/one-off background jobs | `workmanager` (Android) / `BGTaskScheduler` (iOS) |
-| Exact wake-time alarm (Phase 3) | `android_alarm_manager_plus` + full-screen intent; iOS critical-alert entitlement or timer-based fallback |
+| Periodic/one-off background jobs | `workmanager`. Android only for now: there is no `ios/` in the repo, and `BGTaskScheduler` is a line in [[Phase-8-Social-and-Reach]], not a dependency |
+| Exact wake-time alarm | `flutter_local_notifications` with an exact-alarm schedule. `android_alarm_manager_plus` was never added ([[Audit-v2]] D3-04) |
 | Timezone-correct scheduling | `timezone` |
 
 ## Scheduling model

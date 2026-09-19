@@ -27,10 +27,14 @@ the first rank. That merge is what freed the slot the body needed
 
 - **Top tabs** are views of one subject — the Granary's Today,
   Balances and Insights are all the same money.
-- **A segmented switch at the bottom** is two *separate features*
-  sharing a tab. It sits low because that is where the thumb already is
-  after tapping the tab, and it disappears when only one of the two is
-  switched on, because there is then nothing to switch between.
+- **A tab row at the top** is two *separate features* sharing a tab —
+  Notes and the Gallery under Records, sleep and training under the
+  Body. It disappears when only one of the two is switched on, because
+  there is then nothing to switch between. It was meant to be a
+  segmented switch at the bottom, near the thumb; it became a top tab
+  row so that one component (`PairedScreen`) serves both shapes and
+  both read the same way in Arabic ([[Notes]] N6, [[Audit-v2]]
+  D3-11).
 
 ## The Field (home screen)
 
@@ -61,9 +65,9 @@ history — an archive whose contents cannot be read is a bin.
 A shareable summary card:
 - Total XP this week; best & worst day
 - Streak status and closest calls
-- Avg sleep vs. target (Phase 3+)
-- Most-used app category (Phase 4+)
-- Biggest spending category (Phase 2+)
+- Avg sleep vs. target
+- Biggest spending category
+- Most-used app category ([[Phase-7-Screen-Time]])
 
 ## Home-screen widget ✅ ([[Checkpoint-3]])
 

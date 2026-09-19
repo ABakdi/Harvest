@@ -11,8 +11,8 @@ These rules are the app's constitution. Any feature that conflicts with them is 
 | 5 | **Local-first, always** | Every feature must be fully functional with no network, forever. Sync ([[Sync-Strategy]]) is additive. |
 | 6 | **Financial privacy** | Expense data stays on-device; if synced later, end-to-end encrypted only. Never shared, never sold. |
 | 7 | **Blocking is self-imposed** | Screen-time locks are always escapable by deliberate action ([[Screen-Time]]). No dark patterns anywhere. |
-| 8 | **History is append-only, with one confirmed exception** | Retiring a seed never destroys its history — that is what **Archive** is for, and it keeps every check-in and every note ([[Checkpoint-3]]). The exception is the seed I planted by mistake: a **deliberate, confirmed delete** removes it, its check-ins, its notes and its streak, because a row that should never have existed is not history. Nothing else in the app hard-deletes; the confirm dialog says what it costs and offers Archive instead. |
-| 9 | **Rituals: four a day, and silent when already done** | The daily rituals — morning review, evening plan, expense check-in, streak-risk nudge — are the cap, and each is suppressed once its reason is gone ([[Notifications]]). The comeback ladder counts against them: on a day one of its rungs fires it **replaces** the morning ritual rather than stacking on it. A time I set on a seed, an album or a debt by hand is not a ritual and always fires ([[Audit-v2-Beta]] B-11). |
+| 8 | **History is append-only. What is not history is not kept** | Anything that records something that happened — a check-in, an expense, a night, a session, a step day — is soft-deleted and purged thirty days later, and retiring a seed never destroys its history at all: that is what **Archive** is for, and it keeps every check-in and every note ([[Checkpoint-3]]). Four things go for good on the spot, because none of them is a record of anything: **the seed I planted by mistake** (deliberate, confirmed, taking its check-ins, its notes and its streak with it), **a note emptied from the trash** and the links out of it, **an album purged** with its pictures, and **structure I am editing** — a program's days, slots and target sets, a set dropped from a session, a note taken off a seed. A confirm dialog says what each costs and offers Archive where there is one ([[Audit-v2]] D3-01). |
+| 9 | **Rituals: four a day, and silent once there is nothing to say** | The daily rituals — morning review, evening plan, expense check-in, streak-risk nudge — are the cap. Two of them have a reason that can disappear during the day, and those two are cancelled the moment it does: the streak-risk nudge once the Daily Harvest Goal is met, and the expense check-in once an expense is logged. The morning review and the evening plan have no such condition — a day I have already reviewed is not a day I cannot review again — so they fire as planned ([[Notifications]], [[Audit-v2]] D3-05). The comeback ladder counts against the cap: on a day one of its rungs fires it **replaces** the morning ritual rather than stacking on it. A time I set on a seed, an album or a debt by hand is not a ritual and always fires ([[Audit-v2-Beta]] B-11). |
 | 10 | **The lock is the device's, not mine** | The app lock ([[Checkpoint-2]]) is off by default and, when armed, defers entirely to whatever the phone already trusts — fingerprint, face, PIN, pattern, password. Harvest never stores a secret of its own, and never invents a PIN screen. |
 | 11 | **My data is always exportable, and comes back** | One tap produces an archive holding every row the database has, soft-deleted ones included, plus every file — notes as markdown, memories as pictures ([[ADR-006-Export-Format]], [[ADR-007-Archive-Format]]). No feature may add a table the export does not carry, or a file the archive does not hold. From Phase 3 the archive also **imports**: a merge by uuid that never deletes what it did not bring. |
 | 12 | **Nothing is due before it was planted** | A schedule describes a rhythm, not a history. Every seed carries a **start day** — the Harvest Day it was created — and no screen, streak or reminder may treat it as due on any day before that. One rule, `isDueOn`, enforces it for the field, the calendar and the planner alike ([[Checkpoint-3]]). |
@@ -28,9 +28,14 @@ flowchart TD
     S -- no --> F{Freeze available?}
     F -- yes --> U[Consume freeze, streak preserved]
     F -- no --> B[Streak broken - best kept]
-    A & U & B --> Q[Generate today's 4 daily quests]
-    Q --> R[Recompute floating budget limit]
-    R --> W[Refresh widgets + schedule today's notifications]
+    A & U & B --> C[Close the day that ended: its steps, and its goal paid once]
+    C --> P[Plan today's notifications]
+    P --> W[Refresh the widgets]
 ```
 
-Runs via `workmanager` (Android) / `BGTaskScheduler` (iOS); if the device was off, the same reconciliation runs lazily on next app open — the logic is idempotent per Harvest Day. See [[Notifications-and-Background]].
+Runs via `workmanager`. Android only, because there is no `ios/` in
+the repo yet; if the device was off, the same reconciliation runs
+lazily on next app open — the logic is idempotent per Harvest Day.
+The floating budget is recomputed whenever it is read, from history,
+so no job has to remember to; quests are parked ([[Gamification]],
+[[Audit-v2]] D3-04). See [[Notifications-and-Background]].

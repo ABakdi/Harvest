@@ -60,12 +60,12 @@ erDiagram
     }
     outbox {
         int seq PK
-        text tableName
+        text targetTable
         text rowUuid
         text op
         datetime queuedAt
     }
-    settings {
+    kv_settings {
         text key PK
         text valueJson
     }
@@ -73,9 +73,14 @@ erDiagram
 
 XP and coins are a **ledger**, not a counter — balances are sums, history is free, and sync conflicts become trivial merges.
 
-Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets` (Phase 4); `session_exercises` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
+Later phases add tables without touching these: `expenses`, `money_txns`, `debts`, `debt_payments`, `categories` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets`, `session_exercises` (Phase 4); `goals`, `goal_items`, `location_points`, `geotags`, `saved_places`, `note_attachments` (Phase 5); `screen_goals`, `usage_days` (Phase 7).
 
-Phase 4 landed at **schema v13**; [[Checkpoint-6]] took it to **v14**.
+There is **no `budgets` table**: the monthly budget is one setting,
+`finance.monthlyBudgetMinor`, because a single number I change a few
+times a year is not a table ([[Audit-v2]] D3-02).
+
+Phase 4 landed at **schema v13**; [[Checkpoint-6]] took it to **v14**,
+and Phase 5 to **v15**.
 
 **Phase 3 is the first time a row points at a file.** A note's body is
 text in the database, but a memory is a path into the app's own
@@ -111,14 +116,23 @@ app is a soft delete: the row keeps its history and its `updated_at` for
 a future sync. On each launch, rows soft-deleted more than 30 days ago
 are purged for good (`purgeDeleted` on the commitments, finances and
 vault repositories). Nothing about money lingers forever by accident.
+Notes are not in that sweep: their trash is emptied by hand, from the
+trash screen, or a note at a time ([[Notes]], [[Audit-v2]] D3-02).
 
-The one hard delete is `CommitmentsRepository.hardDelete` — the seed I
-planted by mistake, confirmed in the UI first, taking its check-ins, its
-notes and its streak row with it in a single transaction and leaving a
-`delete` outbox row behind ([[Business-Rules]] #8). Its focus sessions
-are detached rather than deleted: the time was still spent. A soft
-delete would have been worse here, not safer — the row would skew the
-stats for thirty days and then be lost anyway.
+**What is hard-deleted, and why each one is** ([[Business-Rules]] #8,
+[[Audit-v2]] D3-01):
+
+| What | Where | Why not soft |
+| :--- | :--- | :--- |
+| A seed planted by mistake | `CommitmentsRepository.hardDelete` | Confirmed in the UI first, and it takes its check-ins, notes and streak row in one transaction. A soft delete would skew the stats for thirty days and then be lost anyway. Its focus sessions are detached rather than deleted: the time was still spent. |
+| A note emptied from the trash | `NotesRepository.purge`, `emptyTrash` | The trash *is* the soft delete; emptying it is the second confirmation. Links out of the note go with it, and links into it become unresolved rather than pointing at nothing. |
+| An album purged | `GalleryRepository.purgeAlbum` | The pictures are files on disk; leaving the rows behind would leave the bytes behind. |
+| A note taken off a seed | `SeedNotesRepository.delete` | A line I am editing, not an event. |
+| A program's days, slots and target sets | `ProgramsRepository` | The plan is a document I edit; the sessions it produced are the history and are untouched. |
+| A set dropped from a session | `SessionsRepository.removeSet` | A set I logged by mistake is not a set I did. |
+
+Every one of them leaves a `delete` row in the outbox, so a sync
+carries the removal rather than resurrecting the row.
 
 **Every table is exportable.** The spreadsheet export
 ([[ADR-006-Export-Format]]) reads each table directly rather than through

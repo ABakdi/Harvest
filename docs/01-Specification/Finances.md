@@ -83,7 +83,12 @@ The whole point is a **sub-5-second log**:
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 
-Stored as integer minor units (cents) — never floats. Multi-currency is out of scope for V1; a single currency is chosen in settings.
+Stored as integer minor units (cents) — never floats, and always in
+the currency the money was in. **Three currencies are supported** —
+one default chosen in settings, and any amount logged in another is
+converted for the totals at the rate I last fetched, never rewritten
+([[Audit-v2]] D3-08). An earlier line here called multi-currency out
+of scope; it was out of date the day the Vault shipped.
 
 ## Smart repeats
 
@@ -109,8 +114,13 @@ flowchart LR
 ## Reminders & rewards
 
 - Evening check-in notification (default 8 PM, configurable), suppressed once logged ([[Notifications]]).
-- +10 XP for logging the day's expenses; budget-related daily quests ([[Gamification]]).
+- +10 XP for logging the day's expenses. Budget quests are parked with
+  the rest of the quest system ([[Gamification]], [[Audit-v2]] D3-08).
 
 ## Privacy — non-negotiable
 
-Financial data **never leaves the device** in plaintext. Local-only in Phases 2–4; when [[Phase-8-Social-and-Reach]] arrives, expense records sync end-to-end encrypted or stay local by choice. Never sold, never shared. See [[Business-Rules]].
+Financial data **never leaves the device** in plaintext. Local-only
+through Phase 5; from [[Phase-6-Sync-Accounts-and-Web]] it syncs in
+the **private tier** — encrypted on the phone with a passphrase the
+server never sees ([[Sync-Strategy]]) — or stays local by choice.
+Never sold, never shared. See [[Business-Rules]].
