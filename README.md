@@ -205,6 +205,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Code Quality Audit](docs/06-Audit/Code-Quality-Audit.md) | Correctness, error handling, state management, duplication, tests |
 | [UX Audit](docs/06-Audit/UX-Audit.md) | Every screen, component by component: keep, simplify, merge, remove |
 | [Audit 2 — the v2 beta](docs/06-Audit/Audit-v2-Beta.md) | Business logic, what the specs never said, code quality and security, read again on the v2 beta |
+| [Audit 3 — v2.0.0](docs/06-Audit/Audit-v2.md) | What changed since audit 2, the screens of the new half, the specs against the code, and the deferred list |
 
 ### Decisions
 

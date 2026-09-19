@@ -60,6 +60,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Audit-Home]] — the code, security and UX audit and its status board
 - [[Security-Audit]] · [[Code-Quality-Audit]] · [[UX-Audit]]
 - [[Audit-v2-Beta]] — the second audit: business logic, what the spec never said, code quality and security on the v2 beta
+- [[Audit-v2]] — the third audit, on v2.0.0: the new code, the screens, the specs against the code
 
 ### ⚖️ Decisions (ADRs)
 - [[ADR-001-State-Management]] — Riverpod over Bloc
