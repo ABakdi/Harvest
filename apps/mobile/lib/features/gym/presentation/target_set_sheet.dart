@@ -263,6 +263,7 @@ class _SetRow extends StatelessWidget {
       title: Text(label),
       onTap: onEdit,
       trailing: IconButton(
+        tooltip: AppLocalizations.of(context).removeAction,
         icon: const Icon(Icons.close, size: 18),
         onPressed: onRemove,
       ),

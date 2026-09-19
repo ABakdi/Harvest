@@ -1669,5 +1669,7 @@
   "@notesDeleteFolderBody": { "placeholders": { "folder": { "type": "String" } } },
   "unitKg": "kg",
   "unitLb": "lb",
-  "unitCm": "cm"
+  "unitCm": "cm",
+  "galleryPhoto": "Photo",
+  "galleryVideo": "Video"
 }

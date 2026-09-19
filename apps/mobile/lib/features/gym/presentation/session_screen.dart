@@ -382,7 +382,10 @@ class _SessionBar extends StatelessWidget {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(999),
                         onTap: onPause,
-                        child: Padding(
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minHeight: HarvestSpacing.tap,
+                          ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: HarvestSpacing.sm,
                             vertical: HarvestSpacing.xs,

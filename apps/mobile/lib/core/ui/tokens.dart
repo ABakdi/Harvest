@@ -136,6 +136,12 @@ abstract final class HarvestSpacing {
   static const double md = 16;
   static const double lg = 24;
   static const double xl = 32;
+
+  /// The smallest thing worth aiming at: 48 dp, the platform's own
+  /// minimum. A set is ticked one-handed with wet hands, and a target
+  /// that needs looking at is a target that costs a rep
+  /// ([[Audit-v2]] U3-17).
+  static const double tap = 48;
 }
 
 abstract final class HarvestRadii {

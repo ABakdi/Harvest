@@ -222,57 +222,71 @@ class _MemoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(HarvestRadii.chip),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            MemoryView(memory: memory),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.55),
-                      Colors.transparent,
+    // A grid of pictures is a grid of unlabelled buttons to a screen
+    // reader; each tile says what it is and when it was taken
+    // ([[Audit-v2]] U3-16).
+    return Semantics(
+      button: true,
+      image: true,
+      label: [
+        if (memory.kind == MemoryKind.video)
+          AppLocalizations.of(context).galleryVideo
+        else
+          AppLocalizations.of(context).galleryPhoto,
+        formatDay(context, memory.day),
+      ].join(' · '),
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(HarvestRadii.chip),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              MemoryView(memory: memory),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.55),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          formatDay(context, memory.day),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if ((memory.note ?? '').isNotEmpty)
+                        const Icon(
+                          Icons.sticky_note_2_outlined,
+                          size: 12,
+                          color: Colors.white,
+                        ),
                     ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        formatDay(context, memory.day),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if ((memory.note ?? '').isNotEmpty)
-                      const Icon(
-                        Icons.sticky_note_2_outlined,
-                        size: 12,
-                        color: Colors.white,
-                      ),
-                  ],
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

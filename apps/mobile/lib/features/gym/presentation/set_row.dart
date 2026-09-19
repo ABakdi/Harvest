@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
@@ -258,7 +258,7 @@ class _SetRowState extends ConsumerState<SetRow> {
             ),
           ),
           SizedBox(
-            width: 44,
+            width: HarvestSpacing.tap,
             child: IconButton(
               key: _tick,
               tooltip: done ? l10n.gymUntick : l10n.gymTick,

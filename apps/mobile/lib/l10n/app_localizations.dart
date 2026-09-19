@@ -6571,6 +6571,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'cm'**
   String get unitCm;
+
+  /// No description provided for @galleryPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get galleryPhoto;
+
+  /// No description provided for @galleryVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get galleryVideo;
 }
 
 class _AppLocalizationsDelegate

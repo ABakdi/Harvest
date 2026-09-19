@@ -348,7 +348,6 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
                 ),
               IconButton(
                 tooltip: l10n.notesFolderOptions,
-                visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.more_horiz, size: 18),
                 onPressed: () => unawaited(_folderMenu(folder)),
               ),

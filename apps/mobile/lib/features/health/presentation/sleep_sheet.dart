@@ -128,6 +128,8 @@ class _SleepSheetState extends ConsumerState<_SleepSheet> {
             for (var star = 1; star <= 5; star++)
               IconButton(
                 iconSize: 34,
+                tooltip: l10n.sleepStars(star),
+                isSelected: stars != null && star <= stars,
                 onPressed: () {
                   HarvestHaptics.tick().ignore();
                   // Tapping the star you already chose takes it back:

@@ -1108,5 +1108,7 @@
   "notesDeleteFolderBody": "كل ملاحظة في {folder} تذهب إلى المهملات. يمكنك إعادتها من هناك، أو التراجع عن هذا.",
   "unitKg": "كغ",
   "unitLb": "رطل",
-  "unitCm": "سم"
+  "unitCm": "سم",
+  "galleryPhoto": "صورة",
+  "galleryVideo": "مقطع"
 }

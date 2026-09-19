@@ -276,10 +276,12 @@ class _Stepper extends StatelessWidget {
     children: [
       Expanded(child: Text(label)),
       IconButton(
+        tooltip: '${AppLocalizations.of(context).decrease} · $label',
         icon: const Icon(Icons.remove_circle_outline),
         onPressed: value > min ? () => onChanged(value - 1) : null,
       ),
       IconButton(
+        tooltip: '${AppLocalizations.of(context).increase} · $label',
         icon: const Icon(Icons.add_circle_outline),
         onPressed: value < max ? () => onChanged(value + 1) : null,
       ),

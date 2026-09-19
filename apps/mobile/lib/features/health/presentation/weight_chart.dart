@@ -1,11 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:intl/intl.dart';
-import 'package:harvest/features/gym/presentation/weight_text.dart';
-import 'package:harvest/core/ui/format.dart';
 
 /// Every entry as a dot, the seven-day average as the line.
 ///

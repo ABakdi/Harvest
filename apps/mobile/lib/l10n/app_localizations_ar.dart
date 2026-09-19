@@ -3913,4 +3913,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get unitCm => 'سم';
+
+  @override
+  String get galleryPhoto => 'صورة';
+
+  @override
+  String get galleryVideo => 'مقطع';
 }

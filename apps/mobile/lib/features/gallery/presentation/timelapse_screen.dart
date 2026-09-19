@@ -180,6 +180,7 @@ class _TimelapseScreenState extends ConsumerState<TimelapseScreen> {
                     children: [
                       IconButton(
                         color: Colors.white,
+                        tooltip: _playing ? l10n.pause : l10n.galleryPlay,
                         icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
                         onPressed: () => setState(_playing ? _stop : _start),
                       ),

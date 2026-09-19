@@ -148,6 +148,7 @@ class _WeekdayTile extends ConsumerWidget {
       trailing: override == null
           ? const Icon(Icons.add, size: 20)
           : IconButton(
+              tooltip: l10n.clear,
               icon: const Icon(Icons.close, size: 20),
               onPressed: () => unawaited(_clear(ref)),
             ),

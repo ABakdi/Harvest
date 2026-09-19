@@ -11,6 +11,7 @@ import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/data/steps_source.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
@@ -25,7 +26,6 @@ import 'package:harvest/features/health/presentation/weight_chart.dart';
 import 'package:harvest/features/health/presentation/weight_sheet.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
-import 'package:harvest/features/gym/presentation/weight_text.dart';
 
 /// Sleep, steps and weight.
 ///

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
-import 'package:harvest/features/gym/presentation/weight_text.dart';
 
 /// One number off the scale.
 Future<void> showWeightSheet(

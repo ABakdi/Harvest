@@ -218,6 +218,7 @@ class SleepNightsList extends ConsumerWidget {
                 ].join(' · '),
               ),
               trailing: IconButton(
+                tooltip: l10n.deleteAction,
                 icon: const Icon(Icons.delete_outline),
                 onPressed: () => unawaited(_remove(context, ref, night)),
               ),

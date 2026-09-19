@@ -138,7 +138,7 @@ class _CompareScreenState extends State<CompareScreen> {
                 child: GestureDetector(
                   onTap: () => onPick(index),
                   child: Container(
-                    width: 44,
+                    width: HarvestSpacing.tap,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(HarvestRadii.chip),
                       border: Border.all(

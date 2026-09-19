@@ -3904,4 +3904,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitCm => 'cm';
+
+  @override
+  String get galleryPhoto => 'Photo';
+
+  @override
+  String get galleryVideo => 'Video';
 }
