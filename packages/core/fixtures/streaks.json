@@ -1,0 +1,123 @@
+{
+  "about": "The live streak updates (streak_service.dart: onCheckIn, onUndo, _refreshGlobal, productiveActions, dailyGoal). The 3 AM reconcile stays on the phone and is not here.",
+  "productiveActions": [
+    { "why": "nothing checked in", "units": {}, "commitments": [{ "uuid": "h", "type": "habit", "dailyCommitment": null }], "albums": 0, "actions": 0 },
+    {
+      "why": "a habit and a to-do count one each",
+      "units": { "h": 1, "t": 1 },
+      "commitments": [
+        { "uuid": "h", "type": "habit", "dailyCommitment": null },
+        { "uuid": "t", "type": "todo", "dailyCommitment": null }
+      ],
+      "albums": 0,
+      "actions": 2
+    },
+    {
+      "why": "a project counts once it reaches its daily commitment",
+      "units": { "p": 9, "q": 10 },
+      "commitments": [
+        { "uuid": "p", "type": "project", "dailyCommitment": 10 },
+        { "uuid": "q", "type": "project", "dailyCommitment": 10 }
+      ],
+      "albums": 0,
+      "actions": 1
+    },
+    {
+      "why": "a project with no daily commitment never counts",
+      "units": { "p": 5 },
+      "commitments": [{ "uuid": "p", "type": "project", "dailyCommitment": 0 }],
+      "albums": 0,
+      "actions": 0
+    },
+    {
+      "why": "scheduled albums add their own count; a seed whose row is gone does not",
+      "units": { "h": 1, "gone": 1 },
+      "commitments": [{ "uuid": "h", "type": "habit", "dailyCommitment": null }],
+      "albums": 2,
+      "actions": 3
+    }
+  ],
+  "dailyGoal": [
+    { "valueJson": null, "goal": 3 },
+    { "valueJson": "5", "goal": 5 },
+    { "valueJson": "\"4\"", "goal": 4 },
+    { "valueJson": "4.7", "goal": 4 },
+    { "valueJson": "\"four\"", "goal": 3 },
+    { "valueJson": "null", "goal": 3 }
+  ],
+  "earnHabitDay": [
+    {
+      "streak": { "current": 2, "best": 5, "lastEarnedDay": "2026-09-18", "freezesStored": 1 },
+      "day": "2026-09-19",
+      "next": { "current": 3, "best": 5, "lastEarnedDay": "2026-09-19", "freezesStored": 1 }
+    },
+    {
+      "why": "best follows current past it",
+      "streak": { "current": 5, "best": 5, "lastEarnedDay": "2026-09-18", "freezesStored": 0 },
+      "day": "2026-09-19",
+      "next": { "current": 6, "best": 6, "lastEarnedDay": "2026-09-19", "freezesStored": 0 }
+    },
+    {
+      "why": "the same day twice counts once",
+      "streak": { "current": 3, "best": 5, "lastEarnedDay": "2026-09-19", "freezesStored": 0 },
+      "day": "2026-09-19",
+      "next": null
+    }
+  ],
+  "retractHabitDay": [
+    {
+      "streak": { "current": 3, "best": 5, "lastEarnedDay": "2026-09-19", "freezesStored": 0 },
+      "day": "2026-09-19",
+      "next": { "current": 2, "best": 5, "lastEarnedDay": "2026-09-18", "freezesStored": 0 }
+    },
+    {
+      "why": "a streak that falls to zero points at no day",
+      "streak": { "current": 1, "best": 1, "lastEarnedDay": "2026-09-19", "freezesStored": 0 },
+      "day": "2026-09-19",
+      "next": { "current": 0, "best": 1, "lastEarnedDay": null, "freezesStored": 0 }
+    },
+    {
+      "why": "a day that was not earned has nothing to give back",
+      "streak": { "current": 3, "best": 5, "lastEarnedDay": "2026-09-18", "freezesStored": 0 },
+      "day": "2026-09-19",
+      "next": null
+    }
+  ],
+  "refreshGlobal": [
+    {
+      "why": "reaching the goal counts the day",
+      "streak": { "current": 2, "best": 2, "lastEarnedDay": "2026-09-18", "freezesStored": 1 },
+      "actions": 3, "goal": 3, "day": "2026-09-19",
+      "next": { "current": 3, "best": 3, "lastEarnedDay": "2026-09-19", "freezesStored": 1 },
+      "milestone": null
+    },
+    {
+      "why": "the seventh day pays 50 coins",
+      "streak": { "current": 6, "best": 10, "lastEarnedDay": "2026-09-18", "freezesStored": 0 },
+      "actions": 4, "goal": 3, "day": "2026-09-19",
+      "next": { "current": 7, "best": 10, "lastEarnedDay": "2026-09-19", "freezesStored": 0 },
+      "milestone": { "coins": 50, "reason": "streak:7" }
+    },
+    {
+      "why": "an earned day is not counted again",
+      "streak": { "current": 3, "best": 3, "lastEarnedDay": "2026-09-19", "freezesStored": 0 },
+      "actions": 5, "goal": 3, "day": "2026-09-19",
+      "next": null,
+      "milestone": null
+    },
+    {
+      "why": "a same-day undo below the goal takes the day back",
+      "streak": { "current": 3, "best": 3, "lastEarnedDay": "2026-09-19", "freezesStored": 0 },
+      "actions": 2, "goal": 3, "day": "2026-09-19",
+      "next": { "current": 2, "best": 3, "lastEarnedDay": "2026-09-18", "freezesStored": 0 },
+      "milestone": null
+    },
+    {
+      "why": "below the goal on a day never earned changes nothing",
+      "streak": { "current": 3, "best": 3, "lastEarnedDay": "2026-09-18", "freezesStored": 0 },
+      "actions": 2, "goal": 3, "day": "2026-09-19",
+      "next": null,
+      "milestone": null
+    }
+  ]
+}

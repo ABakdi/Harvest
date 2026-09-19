@@ -8,18 +8,27 @@ const githubReleaseSchema = z.object({
   name: z.string().nullable().optional(),
   published_at: z.string().nullable().optional(),
   html_url: z.string(),
+  body: z.string().nullable().optional(),
   assets: z
     .array(
       z.object({
         name: z.string(),
         browser_download_url: z.string(),
         size: z.number(),
+        // "sha256:<hex>", on assets uploaded since GitHub began hashing them.
+        digest: z.string().nullable().optional(),
       }),
     )
     .default([]),
 });
 
 export type Fetch = typeof fetch;
+
+/** The hex digest out of GitHub's `sha256:<hex>`; anything else is no digest. */
+function sha256Of(digest: string | null | undefined): string | null {
+  const match = /^sha256:([0-9a-f]{64})$/i.exec(digest ?? '');
+  return match ? match[1]!.toLowerCase() : null;
+}
 
 export interface ReleaseSourceOptions {
   repo: string;
@@ -85,7 +94,10 @@ export class ReleaseSource {
       name: parsed.data.name ?? null,
       publishedAt: parsed.data.published_at ?? null,
       htmlUrl: parsed.data.html_url,
-      apk: apk ? { name: apk.name, url: apk.browser_download_url, size: apk.size } : null,
+      notes: parsed.data.body?.trim() || null,
+      apk: apk
+        ? { name: apk.name, url: apk.browser_download_url, size: apk.size, sha256: sha256Of(apk.digest) }
+        : null,
     };
     this.cached = { release, at: this.now() };
     return release;

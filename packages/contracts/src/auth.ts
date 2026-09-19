@@ -176,11 +176,15 @@ export const releaseSchema = z.object({
   name: z.string().nullable(),
   publishedAt: isoInstant.nullable(),
   htmlUrl: z.string(),
+  /** The release notes as written on GitHub (markdown), for the download page. */
+  notes: z.string().nullable(),
   apk: z
     .object({
       name: z.string(),
       url: z.string(),
       size: z.number().int().nonnegative(),
+      /** Hex SHA-256 of the file, as GitHub computed it; null when GitHub has none. */
+      sha256: z.string().nullable(),
     })
     .nullable(),
 });

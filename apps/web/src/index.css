@@ -1,0 +1,224 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* Only the weights and scripts the app uses, so the service worker
+   precaches a handful of font files rather than every subset. */
+@import '@fontsource/nunito/latin-400.css';
+@import '@fontsource/nunito/latin-600.css';
+@import '@fontsource/nunito/latin-700.css';
+@import '@fontsource/nunito/latin-800.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The five presets, as on the phone (apps/mobile/lib/core/ui/tokens.dart).
+ * Each preset only names its raw colours; the semantic tokens below are
+ * derived from them once for light and once for dark, so a preset can
+ * never forget a token.
+ *
+ * `--p-strong` is the primary darkened until white text on it passes AA
+ * at body size; the phone's primary is kept for accents and gradients,
+ * where no text sits on it.
+ */
+:root,
+:root[data-preset='harvest'] {
+  --p-primary: #e85d3a;
+  --p-strong: #b5401f;
+  --p-primary-dark: #e85d3a;
+  --p-secondary: #3da576;
+  --p-tertiary: #ffb13d;
+  --p-surface-light: #fbf4e4;
+  --p-on-light: #32355c;
+  --p-surface-dark: #262941;
+  --p-on-dark: #f0ebda;
+}
+
+:root[data-preset='sunrise'] {
+  --p-primary: #ff4f6d;
+  --p-strong: #c8243f;
+  --p-primary-dark: #ff4f6d;
+  --p-secondary: #ff8e53;
+  --p-tertiary: #ffc93c;
+  --p-surface-light: #fff4ec;
+  --p-on-light: #43273b;
+  --p-surface-dark: #2c1b32;
+  --p-on-dark: #ffe9dc;
+}
+
+:root[data-preset='ocean'] {
+  --p-primary: #0e9de9;
+  --p-strong: #0b6fa6;
+  --p-primary-dark: #0e9de9;
+  --p-secondary: #10bfa5;
+  --p-tertiary: #7c6ff0;
+  --p-surface-light: #edf7fd;
+  --p-on-light: #16324a;
+  --p-surface-dark: #102839;
+  --p-on-dark: #ddf0fb;
+}
+
+:root[data-preset='orchard'] {
+  --p-primary: #1fb25a;
+  --p-strong: #16803f;
+  --p-primary-dark: #1fb25a;
+  --p-secondary: #8bc926;
+  --p-tertiary: #f7c948;
+  --p-surface-light: #f2fbec;
+  --p-on-light: #1c3325;
+  --p-surface-dark: #16281d;
+  --p-on-dark: #e4f5de;
+}
+
+:root[data-preset='dusk'] {
+  --p-primary: #8b5cf6;
+  --p-strong: #6d3fd9;
+  --p-primary-dark: #a78bfa;
+  --p-secondary: #ec4899;
+  --p-tertiary: #38bdf8;
+  --p-surface-light: #f6f1ff;
+  --p-on-light: #2c2350;
+  --p-surface-dark: #211a38;
+  --p-on-dark: #ede7fd;
+}
+
+:root {
+  --radius: 1rem;
+
+  /* The brand green: the icon, the install button, the manifest. The
+     presets recolour the app, never Harvest itself. */
+  --brand-deep: #1f8a46;
+  --brand-mid: #4fb54c;
+  --brand-light: #8ad84e;
+  --brand-olive: #17492c;
+
+  --background: var(--p-surface-light);
+  --foreground: var(--p-on-light);
+  --card: color-mix(in oklab, white 72%, var(--p-surface-light));
+  --card-foreground: var(--p-on-light);
+  --popover: color-mix(in oklab, white 80%, var(--p-surface-light));
+  --popover-foreground: var(--p-on-light);
+  --primary: var(--p-strong);
+  --primary-foreground: #ffffff;
+  --secondary: color-mix(in oklab, var(--p-secondary) 22%, var(--p-surface-light));
+  --secondary-foreground: var(--p-on-light);
+  --muted: color-mix(in oklab, var(--p-on-light) 7%, var(--p-surface-light));
+  --muted-foreground: color-mix(in oklab, var(--p-on-light) 72%, var(--p-surface-light));
+  --accent: color-mix(in oklab, var(--p-secondary) 16%, var(--p-surface-light));
+  --accent-foreground: var(--p-on-light);
+  --destructive: #c62828;
+  --destructive-foreground: #ffffff;
+  --border: color-mix(in oklab, var(--p-on-light) 14%, var(--p-surface-light));
+  --input: color-mix(in oklab, var(--p-on-light) 9%, var(--p-surface-light));
+  --ring: var(--p-strong);
+  --success: color-mix(in oklab, var(--p-secondary) 80%, black);
+  --sun: var(--p-tertiary);
+  --gradient-from: var(--p-primary);
+  --gradient-to: var(--p-tertiary);
+}
+
+.dark {
+  --background: var(--p-surface-dark);
+  --foreground: var(--p-on-dark);
+  --card: color-mix(in oklab, white 6%, var(--p-surface-dark));
+  --card-foreground: var(--p-on-dark);
+  --popover: color-mix(in oklab, white 9%, var(--p-surface-dark));
+  --popover-foreground: var(--p-on-dark);
+  --primary: var(--p-primary-dark);
+  --primary-foreground: #16182a;
+  --secondary: color-mix(in oklab, var(--p-secondary) 26%, var(--p-surface-dark));
+  --secondary-foreground: var(--p-on-dark);
+  --muted: color-mix(in oklab, white 8%, var(--p-surface-dark));
+  --muted-foreground: color-mix(in oklab, var(--p-on-dark) 72%, var(--p-surface-dark));
+  --accent: color-mix(in oklab, var(--p-secondary) 20%, var(--p-surface-dark));
+  --accent-foreground: var(--p-on-dark);
+  --destructive: #ef7070;
+  --destructive-foreground: #16182a;
+  --border: color-mix(in oklab, white 14%, var(--p-surface-dark));
+  --input: color-mix(in oklab, white 11%, var(--p-surface-dark));
+  --ring: var(--p-primary-dark);
+  --success: var(--p-secondary);
+}
+
+@theme inline {
+  --font-sans: 'Nunito', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', 'Menlo', monospace;
+
+  /* The phone's radii: chips 12, buttons and inputs 16, cards 20, sheets 28. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-sun: var(--sun);
+  --color-brand: var(--brand-deep);
+  --color-brand-mid: var(--brand-mid);
+  --color-brand-light: var(--brand-light);
+  --color-brand-olive: var(--brand-olive);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+  }
+
+  /* Visible focus everywhere, for the keyboard-first app. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Money and counts stay in Western digits and line up (Finances). */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@utility bg-harvest-gradient {
+  background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+}
+
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand-mid) 55%, var(--brand-light) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

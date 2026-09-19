@@ -103,9 +103,15 @@ describe('the latest release', () => {
     name: 'Harvest 2.0.0',
     published_at: '2026-09-15T12:00:00Z',
     html_url: 'https://github.com/ABakdi/Harvest/releases/tag/v2.0.0',
+    body: 'Phase 4, closed.\n',
     assets: [
       { name: 'checksums.txt', browser_download_url: 'https://example/checksums.txt', size: 120 },
-      { name: 'harvest-2.0.0.apk', browser_download_url: 'https://example/harvest-2.0.0.apk', size: 48_000_000 },
+      {
+        name: 'harvest-2.0.0.apk',
+        browser_download_url: 'https://example/harvest-2.0.0.apk',
+        size: 48_000_000,
+        digest: `sha256:${'AB'.repeat(32)}`,
+      },
     ],
   };
 
@@ -131,7 +137,13 @@ describe('the latest release', () => {
       name: 'Harvest 2.0.0',
       publishedAt: '2026-09-15T12:00:00Z',
       htmlUrl: 'https://github.com/ABakdi/Harvest/releases/tag/v2.0.0',
-      apk: { name: 'harvest-2.0.0.apk', url: 'https://example/harvest-2.0.0.apk', size: 48_000_000 },
+      notes: 'Phase 4, closed.',
+      apk: {
+        name: 'harvest-2.0.0.apk',
+        url: 'https://example/harvest-2.0.0.apk',
+        size: 48_000_000,
+        sha256: 'ab'.repeat(32),
+      },
     });
     await request(h.app).get('/v1/releases/latest').expect(200);
     expect(gh.calls).toEqual(['https://api.github.com/repos/ABakdi/Harvest/releases/latest']);
