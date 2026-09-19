@@ -194,7 +194,9 @@ void main() {
         day: day,
       );
       final ops = await db.select(db.outbox).get();
-      expect(ops.single.targetTable, 'expenses');
+      // The expense, and the +10 it paid: the ledger syncs too
+      // ([[Audit-v2]] Q3-01).
+      expect(ops.map((op) => op.targetTable), ['expenses', 'ledger']);
     });
 
     test('smart repeat appears after three straight days', () async {

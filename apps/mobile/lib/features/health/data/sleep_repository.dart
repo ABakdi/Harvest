@@ -89,17 +89,15 @@ class SleepRepository {
         );
     var paid = false;
     if (existing == null && await _xpNet(uuid) == 0) {
-      await _db
-          .into(_db.ledger)
-          .insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'xp',
-              delta: sleepXp,
-              reason: 'sleep:$uuid',
-              harvestDay: day.key,
-            ),
-          );
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: sleepXp,
+          reason: 'sleep:$uuid',
+          harvestDay: day.key,
+        ),
+      );
       paid = true;
     }
     await _outbox(uuid, existing == null ? 'insert' : 'update');
@@ -117,17 +115,15 @@ class SleepRepository {
         .write(SleepSessionsCompanion(deletedAt: Value(DateTime.now())));
     final net = await _xpNet(uuid);
     if (row != null && net > 0) {
-      await _db
-          .into(_db.ledger)
-          .insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'xp',
-              delta: -net,
-              reason: 'sleep-undo:$uuid',
-              harvestDay: row.harvestDay,
-            ),
-          );
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: -net,
+          reason: 'sleep-undo:$uuid',
+          harvestDay: row.harvestDay,
+        ),
+      );
     }
     await _outbox(uuid, 'delete');
   });

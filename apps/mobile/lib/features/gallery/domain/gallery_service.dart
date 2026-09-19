@@ -94,17 +94,15 @@ class GalleryService {
     );
 
     if (album.isScheduled && before == 0) {
-      await _db
-          .into(_db.ledger)
-          .insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'xp',
-              delta: Xp.habitOrTodo,
-              reason: 'memory:${memory.uuid}',
-              harvestDay: day.key,
-            ),
-          );
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: Xp.habitOrTodo,
+          reason: 'memory:${memory.uuid}',
+          harvestDay: day.key,
+        ),
+      );
       await _streaks.onAlbumMemory(album.uuid, day);
     }
     return memory;
@@ -117,17 +115,15 @@ class GalleryService {
     await _repository.restoreMemory(memory.uuid);
     if (!album.isScheduled) return;
     if (await _repository.countOn(album.uuid, memory.day) != 1) return;
-    await _db
-        .into(_db.ledger)
-        .insert(
-          LedgerCompanion.insert(
-            uuid: _uuid.v4(),
-            kind: 'xp',
-            delta: Xp.habitOrTodo,
-            reason: 'memory:${memory.uuid}',
-            harvestDay: memory.day.key,
-          ),
-        );
+    await _db.insertLedger(
+      LedgerCompanion.insert(
+        uuid: _uuid.v4(),
+        kind: 'xp',
+        delta: Xp.habitOrTodo,
+        reason: 'memory:${memory.uuid}',
+        harvestDay: memory.day.key,
+      ),
+    );
     await _streaks.onAlbumMemory(album.uuid, memory.day);
   }
 
@@ -151,17 +147,15 @@ class GalleryService {
       );
     final granted = (await query.getSingle()).read(earned) ?? 0;
     if (granted != 0) {
-      await _db
-          .into(_db.ledger)
-          .insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'xp',
-              delta: -granted,
-              reason: 'memory-undo:${memory.uuid}',
-              harvestDay: memory.day.key,
-            ),
-          );
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: -granted,
+          reason: 'memory-undo:${memory.uuid}',
+          harvestDay: memory.day.key,
+        ),
+      );
     }
     await _streaks.onAlbumMemoryRemoved(album.uuid, memory.day);
   }

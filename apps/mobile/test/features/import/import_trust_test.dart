@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
+import 'package:harvest/core/db/portable_settings.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/export/data/export_repository.dart';
 import 'package:harvest/features/export/domain/archive_layout.dart';

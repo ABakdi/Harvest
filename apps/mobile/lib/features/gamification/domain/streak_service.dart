@@ -232,17 +232,15 @@ class StreakService {
       final balance = (await query.getSingle()).read(sum) ?? 0;
       if (balance < freezeCost) return false;
 
-      await _db
-          .into(_db.ledger)
-          .insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'coin',
-              delta: -freezeCost,
-              reason: 'freeze:buy',
-              harvestDay: today.key,
-            ),
-          );
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'coin',
+          delta: -freezeCost,
+          reason: 'freeze:buy',
+          harvestDay: today.key,
+        ),
+      );
       await _write(
         scope: globalScope,
         current: streak.current,
@@ -590,22 +588,24 @@ class StreakService {
     required int best,
     required String? lastEarnedDay,
     required int freezesStored,
-  }) => _db
-      .into(_db.streaks)
-      .insertOnConflictUpdate(
-        StreaksCompanion.insert(
-          scope: scope,
-          current: Value(current),
-          best: Value(best),
-          lastEarnedDay: Value(lastEarnedDay),
-          freezesStored: Value(freezesStored),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+  }) async {
+    await _db
+        .into(_db.streaks)
+        .insertOnConflictUpdate(
+          StreaksCompanion.insert(
+            scope: scope,
+            current: Value(current),
+            best: Value(best),
+            lastEarnedDay: Value(lastEarnedDay),
+            freezesStored: Value(freezesStored),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+    await _db.logChange('streaks', scope, 'update');
+  }
 
-  Future<void> _grantCoins(int amount, String reason, HarvestDay day) => _db
-      .into(_db.ledger)
-      .insert(
+  Future<void> _grantCoins(int amount, String reason, HarvestDay day) =>
+      _db.insertLedger(
         LedgerCompanion.insert(
           uuid: _uuid.v4(),
           kind: 'coin',

@@ -170,6 +170,8 @@ class HealthRepository {
                   updatedAt: Value(DateTime.now()),
                 ),
               );
+          // Keyed by its day, which is the row's identity.
+          await _outbox('step_days', day.day.key, 'update');
         }
       });
 
@@ -210,17 +212,15 @@ class HealthRepository {
       _db.ledger,
     )..where((l) => l.reason.equals(reason))).getSingleOrNull();
     if (paid != null) return false;
-    await _db
-        .into(_db.ledger)
-        .insert(
-          LedgerCompanion.insert(
-            uuid: _uuid.v4(),
-            kind: 'xp',
-            delta: xp,
-            reason: reason,
-            harvestDay: day.key,
-          ),
-        );
+    await _db.insertLedger(
+      LedgerCompanion.insert(
+        uuid: _uuid.v4(),
+        kind: 'xp',
+        delta: xp,
+        reason: reason,
+        harvestDay: day.key,
+      ),
+    );
     return true;
   });
 

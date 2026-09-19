@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/core/db/portable_settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'settings_repository.g.dart';
@@ -93,15 +94,22 @@ class SettingsRepository {
     );
   }
 
-  Future<void> setString(String key, String value) => _db
-      .into(_db.kvSettings)
-      .insertOnConflictUpdate(
-        KvSettingsCompanion.insert(
-          key: key,
-          valueJson: jsonEncode(value),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+  /// Writes a setting. A preference ([[portable_settings]]) is also
+  /// recorded for sync; bookkeeping never leaves the phone.
+  Future<void> setString(String key, String value) async {
+    await _db
+        .into(_db.kvSettings)
+        .insertOnConflictUpdate(
+          KvSettingsCompanion.insert(
+            key: key,
+            valueJson: jsonEncode(value),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+    if (isImportableSetting(key)) {
+      await _db.logChange('kv_settings', key, 'update');
+    }
+  }
 
   Future<void> setBool(String key, {required bool value}) =>
       setString(key, '$value');
@@ -112,8 +120,12 @@ class SettingsRepository {
       setString(key, formatTime(hour, minute));
 
   /// Forgets a setting.
-  Future<void> remove(String key) =>
-      (_db.delete(_db.kvSettings)..where((s) => s.key.equals(key))).go();
+  Future<void> remove(String key) async {
+    await (_db.delete(_db.kvSettings)..where((s) => s.key.equals(key))).go();
+    if (isImportableSetting(key)) {
+      await _db.logChange('kv_settings', key, 'delete');
+    }
+  }
 }
 
 @Riverpod(keepAlive: true)

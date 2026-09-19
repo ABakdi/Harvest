@@ -291,33 +291,29 @@ class FinancesRepository {
 
   Future<void> _payDayIfUnpaid(HarvestDay day) async {
     if (await _dayXpNet(day) != 0) return;
-    await _db
-        .into(_db.ledger)
-        .insert(
-          LedgerCompanion.insert(
-            uuid: _uuid.v4(),
-            kind: 'xp',
-            delta: expenseLogXp,
-            reason: 'expenses:${day.key}',
-            harvestDay: day.key,
-          ),
-        );
+    await _db.insertLedger(
+      LedgerCompanion.insert(
+        uuid: _uuid.v4(),
+        kind: 'xp',
+        delta: expenseLogXp,
+        reason: 'expenses:${day.key}',
+        harvestDay: day.key,
+      ),
+    );
   }
 
   Future<void> _takeDayBack(HarvestDay day) async {
     final net = await _dayXpNet(day);
     if (net <= 0) return;
-    await _db
-        .into(_db.ledger)
-        .insert(
-          LedgerCompanion.insert(
-            uuid: _uuid.v4(),
-            kind: 'xp',
-            delta: -net,
-            reason: 'expenses-undo:${day.key}',
-            harvestDay: day.key,
-          ),
-        );
+    await _db.insertLedger(
+      LedgerCompanion.insert(
+        uuid: _uuid.v4(),
+        kind: 'xp',
+        delta: -net,
+        reason: 'expenses-undo:${day.key}',
+        harvestDay: day.key,
+      ),
+    );
   }
 
   Future<bool> _anyLiveOn(HarvestDay day) async {

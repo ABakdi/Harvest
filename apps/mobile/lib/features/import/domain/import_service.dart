@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/core/db/portable_settings.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
@@ -36,42 +37,34 @@ ImportCount totalOf(ImportPreview preview) {
   return (added: added, updated: updated, unchanged: unchanged);
 }
 
-/// The settings an archive is allowed to bring: my preferences.
-///
-/// The rest of `kv_settings` is the app's own bookkeeping — which
-/// day the streak engine last judged, which notification ids are
-/// scheduled, whether the lock is armed, the pomodoro that was
-/// running — and none of it means anything on another phone. An
-/// archive is data, never instructions ([[Audit-v2-Beta]] S2-04):
-/// a zip must not be able to arm the lock, resurrect a timer, or tell
-/// `reconcile` the past is already judged (B-02).
-const importableSettingPrefixes = [
-  'themeMode',
-  'locale',
-  'dailyHarvestGoal',
-  'cycle.',
-  'features.',
-  'finance.',
-  'gym.',
-  'health.',
-  'notes.',
-  'onboarding.done',
-  'pomodoro.focusMinutes',
-  'pomodoro.shortBreakMinutes',
-  'pomodoro.longBreakMinutes',
-  'pomodoro.blocksPerLongBreak',
-  'rate.',
-  'reminders.enabled',
-  'reminders.morningTime',
-  'reminders.eveningTime',
-  'reminders.expenseTime',
-  'reminders.streakNudge',
-  'sleep.',
-  'widget.',
-];
-
-bool isImportableSetting(String key) =>
-    importableSettingPrefixes.any(key.startsWith);
+/// Which table each sheet fills, for the change log.
+const Map<String, String> _syncedTables = {
+  SheetNames.seeds: 'commitments',
+  SheetNames.checkIns: 'check_ins',
+  SheetNames.seedNotes: 'seed_notes',
+  SheetNames.expenses: 'expenses',
+  SheetNames.money: 'money_txns',
+  SheetNames.debts: 'debts',
+  SheetNames.debtPayments: 'debt_payments',
+  SheetNames.focus: 'pomodoro_sessions',
+  SheetNames.ledger: 'ledger',
+  SheetNames.streaks: 'streaks',
+  SheetNames.notes: 'notes',
+  SheetNames.albums: 'albums',
+  SheetNames.steps: 'step_days',
+  SheetNames.weights: 'body_weights',
+  SheetNames.sleep: 'sleep_sessions',
+  SheetNames.exercises: 'exercises',
+  SheetNames.programs: 'programs',
+  SheetNames.programDays: 'program_days',
+  SheetNames.programSlots: 'program_slots',
+  SheetNames.targetSets: 'target_sets',
+  SheetNames.trainingMaxes: 'training_maxes',
+  SheetNames.sessions: 'workout_sessions',
+  SheetNames.sessionExercises: 'session_exercises',
+  SheetNames.sets: 'workout_sets',
+  SheetNames.settings: 'kv_settings',
+};
 
 /// One row of a sheet, keyed by header.
 typedef _Row = Map<String, String>;
@@ -246,6 +239,13 @@ class ImportService {
       await _db.transaction(() async {
         for (final row in pending) {
           await table.insert(_db, row);
+          // An imported row is a change like any other: sync must hear
+          // of it ([[Audit-v2]] Q3-01).
+          final synced = _syncedTables[table.sheet];
+          final key = table.keyOf(row);
+          if (synced != null && key != null) {
+            await _db.logChange(synced, key, 'update');
+          }
         }
       });
     }

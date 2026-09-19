@@ -120,6 +120,17 @@ class $CommitmentsTable extends Commitments
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _goalUuidMeta = const VerificationMeta(
+    'goalUuid',
+  );
+  @override
+  late final GeneratedColumn<String> goalUuid = GeneratedColumn<String>(
+    'goal_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _archivedAtMeta = const VerificationMeta(
     'archivedAt',
   );
@@ -190,6 +201,7 @@ class $CommitmentsTable extends Commitments
     note,
     remindAt,
     deadline,
+    goalUuid,
     archivedAt,
     archiveNote,
     deletedAt,
@@ -289,6 +301,12 @@ class $CommitmentsTable extends Commitments
         deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta),
       );
     }
+    if (data.containsKey('goal_uuid')) {
+      context.handle(
+        _goalUuidMeta,
+        goalUuid.isAcceptableOrUnknown(data['goal_uuid']!, _goalUuidMeta),
+      );
+    }
     if (data.containsKey('archived_at')) {
       context.handle(
         _archivedAtMeta,
@@ -375,6 +393,10 @@ class $CommitmentsTable extends Commitments
         DriftSqlType.string,
         data['${effectivePrefix}deadline'],
       ),
+      goalUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}goal_uuid'],
+      ),
       archivedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}archived_at'],
@@ -434,6 +456,10 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
 
   /// Accomplish-before day (yyyy-MM-dd); overdue seeds turn urgent.
   final String? deadline;
+
+  /// The goal this seed serves, if any ([[Goals]]). A link, not an
+  /// owner: archiving either side never touches the other (GL5).
+  final String? goalUuid;
   final DateTime? archivedAt;
 
   /// Why this seed was put away — written when it is archived, and the
@@ -454,6 +480,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     this.note,
     this.remindAt,
     this.deadline,
+    this.goalUuid,
     this.archivedAt,
     this.archiveNote,
     this.deletedAt,
@@ -489,6 +516,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     }
     if (!nullToAbsent || deadline != null) {
       map['deadline'] = Variable<String>(deadline);
+    }
+    if (!nullToAbsent || goalUuid != null) {
+      map['goal_uuid'] = Variable<String>(goalUuid);
     }
     if (!nullToAbsent || archivedAt != null) {
       map['archived_at'] = Variable<DateTime>(archivedAt);
@@ -531,6 +561,9 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       deadline: deadline == null && nullToAbsent
           ? const Value.absent()
           : Value(deadline),
+      goalUuid: goalUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(goalUuid),
       archivedAt: archivedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(archivedAt),
@@ -562,6 +595,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       note: serializer.fromJson<String?>(json['note']),
       remindAt: serializer.fromJson<String?>(json['remindAt']),
       deadline: serializer.fromJson<String?>(json['deadline']),
+      goalUuid: serializer.fromJson<String?>(json['goalUuid']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       archiveNote: serializer.fromJson<String?>(json['archiveNote']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -584,6 +618,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       'note': serializer.toJson<String?>(note),
       'remindAt': serializer.toJson<String?>(remindAt),
       'deadline': serializer.toJson<String?>(deadline),
+      'goalUuid': serializer.toJson<String?>(goalUuid),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'archiveNote': serializer.toJson<String?>(archiveNote),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -604,6 +639,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     Value<String?> note = const Value.absent(),
     Value<String?> remindAt = const Value.absent(),
     Value<String?> deadline = const Value.absent(),
+    Value<String?> goalUuid = const Value.absent(),
     Value<DateTime?> archivedAt = const Value.absent(),
     Value<String?> archiveNote = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -623,6 +659,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     note: note.present ? note.value : this.note,
     remindAt: remindAt.present ? remindAt.value : this.remindAt,
     deadline: deadline.present ? deadline.value : this.deadline,
+    goalUuid: goalUuid.present ? goalUuid.value : this.goalUuid,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     archiveNote: archiveNote.present ? archiveNote.value : this.archiveNote,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -648,6 +685,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
       note: data.note.present ? data.note.value : this.note,
       remindAt: data.remindAt.present ? data.remindAt.value : this.remindAt,
       deadline: data.deadline.present ? data.deadline.value : this.deadline,
+      goalUuid: data.goalUuid.present ? data.goalUuid.value : this.goalUuid,
       archivedAt: data.archivedAt.present
           ? data.archivedAt.value
           : this.archivedAt,
@@ -674,6 +712,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           ..write('note: $note, ')
           ..write('remindAt: $remindAt, ')
           ..write('deadline: $deadline, ')
+          ..write('goalUuid: $goalUuid, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('archiveNote: $archiveNote, ')
           ..write('deletedAt: $deletedAt, ')
@@ -696,6 +735,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
     note,
     remindAt,
     deadline,
+    goalUuid,
     archivedAt,
     archiveNote,
     deletedAt,
@@ -717,6 +757,7 @@ class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
           other.note == this.note &&
           other.remindAt == this.remindAt &&
           other.deadline == this.deadline &&
+          other.goalUuid == this.goalUuid &&
           other.archivedAt == this.archivedAt &&
           other.archiveNote == this.archiveNote &&
           other.deletedAt == this.deletedAt &&
@@ -736,6 +777,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
   final Value<String?> note;
   final Value<String?> remindAt;
   final Value<String?> deadline;
+  final Value<String?> goalUuid;
   final Value<DateTime?> archivedAt;
   final Value<String?> archiveNote;
   final Value<DateTime?> deletedAt;
@@ -754,6 +796,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.note = const Value.absent(),
     this.remindAt = const Value.absent(),
     this.deadline = const Value.absent(),
+    this.goalUuid = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.archiveNote = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -773,6 +816,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     this.note = const Value.absent(),
     this.remindAt = const Value.absent(),
     this.deadline = const Value.absent(),
+    this.goalUuid = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.archiveNote = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -794,6 +838,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Expression<String>? note,
     Expression<String>? remindAt,
     Expression<String>? deadline,
+    Expression<String>? goalUuid,
     Expression<DateTime>? archivedAt,
     Expression<String>? archiveNote,
     Expression<DateTime>? deletedAt,
@@ -813,6 +858,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       if (note != null) 'note': note,
       if (remindAt != null) 'remind_at': remindAt,
       if (deadline != null) 'deadline': deadline,
+      if (goalUuid != null) 'goal_uuid': goalUuid,
       if (archivedAt != null) 'archived_at': archivedAt,
       if (archiveNote != null) 'archive_note': archiveNote,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -834,6 +880,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     Value<String?>? note,
     Value<String?>? remindAt,
     Value<String?>? deadline,
+    Value<String?>? goalUuid,
     Value<DateTime?>? archivedAt,
     Value<String?>? archiveNote,
     Value<DateTime?>? deletedAt,
@@ -853,6 +900,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
       note: note ?? this.note,
       remindAt: remindAt ?? this.remindAt,
       deadline: deadline ?? this.deadline,
+      goalUuid: goalUuid ?? this.goalUuid,
       archivedAt: archivedAt ?? this.archivedAt,
       archiveNote: archiveNote ?? this.archiveNote,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -898,6 +946,9 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
     if (deadline.present) {
       map['deadline'] = Variable<String>(deadline.value);
     }
+    if (goalUuid.present) {
+      map['goal_uuid'] = Variable<String>(goalUuid.value);
+    }
     if (archivedAt.present) {
       map['archived_at'] = Variable<DateTime>(archivedAt.value);
     }
@@ -933,6 +984,7 @@ class CommitmentsCompanion extends UpdateCompanion<CommitmentRow> {
           ..write('note: $note, ')
           ..write('remindAt: $remindAt, ')
           ..write('deadline: $deadline, ')
+          ..write('goalUuid: $goalUuid, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('archiveNote: $archiveNote, ')
           ..write('deletedAt: $deletedAt, ')
@@ -15082,6 +15134,3735 @@ class KvSettingsCompanion extends UpdateCompanion<KvSetting> {
   }
 }
 
+class $GoalsTable extends Goals with TableInfo<$GoalsTable, GoalRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _whyMeta = const VerificationMeta('why');
+  @override
+  late final GeneratedColumn<String> why = GeneratedColumn<String>(
+    'why',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _targetDayMeta = const VerificationMeta(
+    'targetDay',
+  );
+  @override
+  late final GeneratedColumn<String> targetDay = GeneratedColumn<String>(
+    'target_day',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('active'),
+  );
+  static const VerificationMeta _statusNoteMeta = const VerificationMeta(
+    'statusNote',
+  );
+  @override
+  late final GeneratedColumn<String> statusNote = GeneratedColumn<String>(
+    'status_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _achievedAtMeta = const VerificationMeta(
+    'achievedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> achievedAt = GeneratedColumn<DateTime>(
+    'achieved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    title,
+    why,
+    targetDay,
+    status,
+    statusNote,
+    achievedAt,
+    position,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goals';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GoalRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('why')) {
+      context.handle(
+        _whyMeta,
+        why.isAcceptableOrUnknown(data['why']!, _whyMeta),
+      );
+    }
+    if (data.containsKey('target_day')) {
+      context.handle(
+        _targetDayMeta,
+        targetDay.isAcceptableOrUnknown(data['target_day']!, _targetDayMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('status_note')) {
+      context.handle(
+        _statusNoteMeta,
+        statusNote.isAcceptableOrUnknown(data['status_note']!, _statusNoteMeta),
+      );
+    }
+    if (data.containsKey('achieved_at')) {
+      context.handle(
+        _achievedAtMeta,
+        achievedAt.isAcceptableOrUnknown(data['achieved_at']!, _achievedAtMeta),
+      );
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  GoalRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      why: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}why'],
+      )!,
+      targetDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_day'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      statusNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_note'],
+      ),
+      achievedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}achieved_at'],
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $GoalsTable createAlias(String alias) {
+    return $GoalsTable(attachedDatabase, alias);
+  }
+}
+
+class GoalRow extends DataClass implements Insertable<GoalRow> {
+  final String uuid;
+  final String title;
+
+  /// Why I want it. Free text, shown at the top of the goal.
+  final String why;
+
+  /// Optional target Harvest Day (yyyy-MM-dd).
+  final String? targetDay;
+
+  /// `active` | `achieved` | `dropped`.
+  final String status;
+
+  /// Why it was dropped, or a line on how it was achieved.
+  final String? statusNote;
+  final DateTime? achievedAt;
+
+  /// Order on the board.
+  final int position;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const GoalRow({
+    required this.uuid,
+    required this.title,
+    required this.why,
+    this.targetDay,
+    required this.status,
+    this.statusNote,
+    this.achievedAt,
+    required this.position,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['title'] = Variable<String>(title);
+    map['why'] = Variable<String>(why);
+    if (!nullToAbsent || targetDay != null) {
+      map['target_day'] = Variable<String>(targetDay);
+    }
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || statusNote != null) {
+      map['status_note'] = Variable<String>(statusNote);
+    }
+    if (!nullToAbsent || achievedAt != null) {
+      map['achieved_at'] = Variable<DateTime>(achievedAt);
+    }
+    map['position'] = Variable<int>(position);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  GoalsCompanion toCompanion(bool nullToAbsent) {
+    return GoalsCompanion(
+      uuid: Value(uuid),
+      title: Value(title),
+      why: Value(why),
+      targetDay: targetDay == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetDay),
+      status: Value(status),
+      statusNote: statusNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(statusNote),
+      achievedAt: achievedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(achievedAt),
+      position: Value(position),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory GoalRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      title: serializer.fromJson<String>(json['title']),
+      why: serializer.fromJson<String>(json['why']),
+      targetDay: serializer.fromJson<String?>(json['targetDay']),
+      status: serializer.fromJson<String>(json['status']),
+      statusNote: serializer.fromJson<String?>(json['statusNote']),
+      achievedAt: serializer.fromJson<DateTime?>(json['achievedAt']),
+      position: serializer.fromJson<int>(json['position']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'title': serializer.toJson<String>(title),
+      'why': serializer.toJson<String>(why),
+      'targetDay': serializer.toJson<String?>(targetDay),
+      'status': serializer.toJson<String>(status),
+      'statusNote': serializer.toJson<String?>(statusNote),
+      'achievedAt': serializer.toJson<DateTime?>(achievedAt),
+      'position': serializer.toJson<int>(position),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  GoalRow copyWith({
+    String? uuid,
+    String? title,
+    String? why,
+    Value<String?> targetDay = const Value.absent(),
+    String? status,
+    Value<String?> statusNote = const Value.absent(),
+    Value<DateTime?> achievedAt = const Value.absent(),
+    int? position,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => GoalRow(
+    uuid: uuid ?? this.uuid,
+    title: title ?? this.title,
+    why: why ?? this.why,
+    targetDay: targetDay.present ? targetDay.value : this.targetDay,
+    status: status ?? this.status,
+    statusNote: statusNote.present ? statusNote.value : this.statusNote,
+    achievedAt: achievedAt.present ? achievedAt.value : this.achievedAt,
+    position: position ?? this.position,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  GoalRow copyWithCompanion(GoalsCompanion data) {
+    return GoalRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      title: data.title.present ? data.title.value : this.title,
+      why: data.why.present ? data.why.value : this.why,
+      targetDay: data.targetDay.present ? data.targetDay.value : this.targetDay,
+      status: data.status.present ? data.status.value : this.status,
+      statusNote: data.statusNote.present
+          ? data.statusNote.value
+          : this.statusNote,
+      achievedAt: data.achievedAt.present
+          ? data.achievedAt.value
+          : this.achievedAt,
+      position: data.position.present ? data.position.value : this.position,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalRow(')
+          ..write('uuid: $uuid, ')
+          ..write('title: $title, ')
+          ..write('why: $why, ')
+          ..write('targetDay: $targetDay, ')
+          ..write('status: $status, ')
+          ..write('statusNote: $statusNote, ')
+          ..write('achievedAt: $achievedAt, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    title,
+    why,
+    targetDay,
+    status,
+    statusNote,
+    achievedAt,
+    position,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalRow &&
+          other.uuid == this.uuid &&
+          other.title == this.title &&
+          other.why == this.why &&
+          other.targetDay == this.targetDay &&
+          other.status == this.status &&
+          other.statusNote == this.statusNote &&
+          other.achievedAt == this.achievedAt &&
+          other.position == this.position &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class GoalsCompanion extends UpdateCompanion<GoalRow> {
+  final Value<String> uuid;
+  final Value<String> title;
+  final Value<String> why;
+  final Value<String?> targetDay;
+  final Value<String> status;
+  final Value<String?> statusNote;
+  final Value<DateTime?> achievedAt;
+  final Value<int> position;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const GoalsCompanion({
+    this.uuid = const Value.absent(),
+    this.title = const Value.absent(),
+    this.why = const Value.absent(),
+    this.targetDay = const Value.absent(),
+    this.status = const Value.absent(),
+    this.statusNote = const Value.absent(),
+    this.achievedAt = const Value.absent(),
+    this.position = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GoalsCompanion.insert({
+    required String uuid,
+    required String title,
+    this.why = const Value.absent(),
+    this.targetDay = const Value.absent(),
+    this.status = const Value.absent(),
+    this.statusNote = const Value.absent(),
+    this.achievedAt = const Value.absent(),
+    this.position = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       title = Value(title);
+  static Insertable<GoalRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? title,
+    Expression<String>? why,
+    Expression<String>? targetDay,
+    Expression<String>? status,
+    Expression<String>? statusNote,
+    Expression<DateTime>? achievedAt,
+    Expression<int>? position,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (title != null) 'title': title,
+      if (why != null) 'why': why,
+      if (targetDay != null) 'target_day': targetDay,
+      if (status != null) 'status': status,
+      if (statusNote != null) 'status_note': statusNote,
+      if (achievedAt != null) 'achieved_at': achievedAt,
+      if (position != null) 'position': position,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GoalsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? title,
+    Value<String>? why,
+    Value<String?>? targetDay,
+    Value<String>? status,
+    Value<String?>? statusNote,
+    Value<DateTime?>? achievedAt,
+    Value<int>? position,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return GoalsCompanion(
+      uuid: uuid ?? this.uuid,
+      title: title ?? this.title,
+      why: why ?? this.why,
+      targetDay: targetDay ?? this.targetDay,
+      status: status ?? this.status,
+      statusNote: statusNote ?? this.statusNote,
+      achievedAt: achievedAt ?? this.achievedAt,
+      position: position ?? this.position,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (why.present) {
+      map['why'] = Variable<String>(why.value);
+    }
+    if (targetDay.present) {
+      map['target_day'] = Variable<String>(targetDay.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (statusNote.present) {
+      map['status_note'] = Variable<String>(statusNote.value);
+    }
+    if (achievedAt.present) {
+      map['achieved_at'] = Variable<DateTime>(achievedAt.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('title: $title, ')
+          ..write('why: $why, ')
+          ..write('targetDay: $targetDay, ')
+          ..write('status: $status, ')
+          ..write('statusNote: $statusNote, ')
+          ..write('achievedAt: $achievedAt, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GoalItemsTable extends GoalItems
+    with TableInfo<$GoalItemsTable, GoalItemRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _goalUuidMeta = const VerificationMeta(
+    'goalUuid',
+  );
+  @override
+  late final GeneratedColumn<String> goalUuid = GeneratedColumn<String>(
+    'goal_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES goals (uuid)',
+    ),
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('step'),
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _doneAtMeta = const VerificationMeta('doneAt');
+  @override
+  late final GeneratedColumn<DateTime> doneAt = GeneratedColumn<DateTime>(
+    'done_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _commitmentUuidMeta = const VerificationMeta(
+    'commitmentUuid',
+  );
+  @override
+  late final GeneratedColumn<String> commitmentUuid = GeneratedColumn<String>(
+    'commitment_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    goalUuid,
+    kind,
+    body,
+    note,
+    doneAt,
+    position,
+    commitmentUuid,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goal_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GoalItemRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('goal_uuid')) {
+      context.handle(
+        _goalUuidMeta,
+        goalUuid.isAcceptableOrUnknown(data['goal_uuid']!, _goalUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_goalUuidMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('done_at')) {
+      context.handle(
+        _doneAtMeta,
+        doneAt.isAcceptableOrUnknown(data['done_at']!, _doneAtMeta),
+      );
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
+    if (data.containsKey('commitment_uuid')) {
+      context.handle(
+        _commitmentUuidMeta,
+        commitmentUuid.isAcceptableOrUnknown(
+          data['commitment_uuid']!,
+          _commitmentUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  GoalItemRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalItemRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      goalUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}goal_uuid'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      doneAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}done_at'],
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      commitmentUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}commitment_uuid'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $GoalItemsTable createAlias(String alias) {
+    return $GoalItemsTable(attachedDatabase, alias);
+  }
+}
+
+class GoalItemRow extends DataClass implements Insertable<GoalItemRow> {
+  final String uuid;
+  final String goalUuid;
+
+  /// `need` | `step`.
+  final String kind;
+  final String body;
+  final String? note;
+
+  /// Ticked when set; the time it was ticked.
+  final DateTime? doneAt;
+  final int position;
+
+  /// The seed this item was planted as, if it was.
+  final String? commitmentUuid;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const GoalItemRow({
+    required this.uuid,
+    required this.goalUuid,
+    required this.kind,
+    required this.body,
+    this.note,
+    this.doneAt,
+    required this.position,
+    this.commitmentUuid,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['goal_uuid'] = Variable<String>(goalUuid);
+    map['kind'] = Variable<String>(kind);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || doneAt != null) {
+      map['done_at'] = Variable<DateTime>(doneAt);
+    }
+    map['position'] = Variable<int>(position);
+    if (!nullToAbsent || commitmentUuid != null) {
+      map['commitment_uuid'] = Variable<String>(commitmentUuid);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  GoalItemsCompanion toCompanion(bool nullToAbsent) {
+    return GoalItemsCompanion(
+      uuid: Value(uuid),
+      goalUuid: Value(goalUuid),
+      kind: Value(kind),
+      body: Value(body),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      doneAt: doneAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(doneAt),
+      position: Value(position),
+      commitmentUuid: commitmentUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(commitmentUuid),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory GoalItemRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalItemRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      goalUuid: serializer.fromJson<String>(json['goalUuid']),
+      kind: serializer.fromJson<String>(json['kind']),
+      body: serializer.fromJson<String>(json['body']),
+      note: serializer.fromJson<String?>(json['note']),
+      doneAt: serializer.fromJson<DateTime?>(json['doneAt']),
+      position: serializer.fromJson<int>(json['position']),
+      commitmentUuid: serializer.fromJson<String?>(json['commitmentUuid']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'goalUuid': serializer.toJson<String>(goalUuid),
+      'kind': serializer.toJson<String>(kind),
+      'body': serializer.toJson<String>(body),
+      'note': serializer.toJson<String?>(note),
+      'doneAt': serializer.toJson<DateTime?>(doneAt),
+      'position': serializer.toJson<int>(position),
+      'commitmentUuid': serializer.toJson<String?>(commitmentUuid),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  GoalItemRow copyWith({
+    String? uuid,
+    String? goalUuid,
+    String? kind,
+    String? body,
+    Value<String?> note = const Value.absent(),
+    Value<DateTime?> doneAt = const Value.absent(),
+    int? position,
+    Value<String?> commitmentUuid = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => GoalItemRow(
+    uuid: uuid ?? this.uuid,
+    goalUuid: goalUuid ?? this.goalUuid,
+    kind: kind ?? this.kind,
+    body: body ?? this.body,
+    note: note.present ? note.value : this.note,
+    doneAt: doneAt.present ? doneAt.value : this.doneAt,
+    position: position ?? this.position,
+    commitmentUuid: commitmentUuid.present
+        ? commitmentUuid.value
+        : this.commitmentUuid,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  GoalItemRow copyWithCompanion(GoalItemsCompanion data) {
+    return GoalItemRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      goalUuid: data.goalUuid.present ? data.goalUuid.value : this.goalUuid,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      body: data.body.present ? data.body.value : this.body,
+      note: data.note.present ? data.note.value : this.note,
+      doneAt: data.doneAt.present ? data.doneAt.value : this.doneAt,
+      position: data.position.present ? data.position.value : this.position,
+      commitmentUuid: data.commitmentUuid.present
+          ? data.commitmentUuid.value
+          : this.commitmentUuid,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalItemRow(')
+          ..write('uuid: $uuid, ')
+          ..write('goalUuid: $goalUuid, ')
+          ..write('kind: $kind, ')
+          ..write('body: $body, ')
+          ..write('note: $note, ')
+          ..write('doneAt: $doneAt, ')
+          ..write('position: $position, ')
+          ..write('commitmentUuid: $commitmentUuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    goalUuid,
+    kind,
+    body,
+    note,
+    doneAt,
+    position,
+    commitmentUuid,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalItemRow &&
+          other.uuid == this.uuid &&
+          other.goalUuid == this.goalUuid &&
+          other.kind == this.kind &&
+          other.body == this.body &&
+          other.note == this.note &&
+          other.doneAt == this.doneAt &&
+          other.position == this.position &&
+          other.commitmentUuid == this.commitmentUuid &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class GoalItemsCompanion extends UpdateCompanion<GoalItemRow> {
+  final Value<String> uuid;
+  final Value<String> goalUuid;
+  final Value<String> kind;
+  final Value<String> body;
+  final Value<String?> note;
+  final Value<DateTime?> doneAt;
+  final Value<int> position;
+  final Value<String?> commitmentUuid;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const GoalItemsCompanion({
+    this.uuid = const Value.absent(),
+    this.goalUuid = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.body = const Value.absent(),
+    this.note = const Value.absent(),
+    this.doneAt = const Value.absent(),
+    this.position = const Value.absent(),
+    this.commitmentUuid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GoalItemsCompanion.insert({
+    required String uuid,
+    required String goalUuid,
+    this.kind = const Value.absent(),
+    required String body,
+    this.note = const Value.absent(),
+    this.doneAt = const Value.absent(),
+    this.position = const Value.absent(),
+    this.commitmentUuid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       goalUuid = Value(goalUuid),
+       body = Value(body);
+  static Insertable<GoalItemRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? goalUuid,
+    Expression<String>? kind,
+    Expression<String>? body,
+    Expression<String>? note,
+    Expression<DateTime>? doneAt,
+    Expression<int>? position,
+    Expression<String>? commitmentUuid,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (goalUuid != null) 'goal_uuid': goalUuid,
+      if (kind != null) 'kind': kind,
+      if (body != null) 'body': body,
+      if (note != null) 'note': note,
+      if (doneAt != null) 'done_at': doneAt,
+      if (position != null) 'position': position,
+      if (commitmentUuid != null) 'commitment_uuid': commitmentUuid,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GoalItemsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? goalUuid,
+    Value<String>? kind,
+    Value<String>? body,
+    Value<String?>? note,
+    Value<DateTime?>? doneAt,
+    Value<int>? position,
+    Value<String?>? commitmentUuid,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return GoalItemsCompanion(
+      uuid: uuid ?? this.uuid,
+      goalUuid: goalUuid ?? this.goalUuid,
+      kind: kind ?? this.kind,
+      body: body ?? this.body,
+      note: note ?? this.note,
+      doneAt: doneAt ?? this.doneAt,
+      position: position ?? this.position,
+      commitmentUuid: commitmentUuid ?? this.commitmentUuid,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (goalUuid.present) {
+      map['goal_uuid'] = Variable<String>(goalUuid.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (doneAt.present) {
+      map['done_at'] = Variable<DateTime>(doneAt.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (commitmentUuid.present) {
+      map['commitment_uuid'] = Variable<String>(commitmentUuid.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalItemsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('goalUuid: $goalUuid, ')
+          ..write('kind: $kind, ')
+          ..write('body: $body, ')
+          ..write('note: $note, ')
+          ..write('doneAt: $doneAt, ')
+          ..write('position: $position, ')
+          ..write('commitmentUuid: $commitmentUuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LocationPointsTable extends LocationPoints
+    with TableInfo<$LocationPointsTable, LocationPointRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocationPointsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accuracyMMeta = const VerificationMeta(
+    'accuracyM',
+  );
+  @override
+  late final GeneratedColumn<double> accuracyM = GeneratedColumn<double>(
+    'accuracy_m',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _speedMpsMeta = const VerificationMeta(
+    'speedMps',
+  );
+  @override
+  late final GeneratedColumn<double> speedMps = GeneratedColumn<double>(
+    'speed_mps',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _altitudeMMeta = const VerificationMeta(
+    'altitudeM',
+  );
+  @override
+  late final GeneratedColumn<double> altitudeM = GeneratedColumn<double>(
+    'altitude_m',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    harvestDay,
+    recordedAt,
+    latitude,
+    longitude,
+    accuracyM,
+    speedMps,
+    altitudeM,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'location_points';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocationPointRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('accuracy_m')) {
+      context.handle(
+        _accuracyMMeta,
+        accuracyM.isAcceptableOrUnknown(data['accuracy_m']!, _accuracyMMeta),
+      );
+    }
+    if (data.containsKey('speed_mps')) {
+      context.handle(
+        _speedMpsMeta,
+        speedMps.isAcceptableOrUnknown(data['speed_mps']!, _speedMpsMeta),
+      );
+    }
+    if (data.containsKey('altitude_m')) {
+      context.handle(
+        _altitudeMMeta,
+        altitudeM.isAcceptableOrUnknown(data['altitude_m']!, _altitudeMMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  LocationPointRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocationPointRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      accuracyM: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}accuracy_m'],
+      ),
+      speedMps: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}speed_mps'],
+      ),
+      altitudeM: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}altitude_m'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $LocationPointsTable createAlias(String alias) {
+    return $LocationPointsTable(attachedDatabase, alias);
+  }
+}
+
+class LocationPointRow extends DataClass
+    implements Insertable<LocationPointRow> {
+  final String uuid;
+  final String harvestDay;
+  final DateTime recordedAt;
+  final double latitude;
+  final double longitude;
+  final double? accuracyM;
+  final double? speedMps;
+  final double? altitudeM;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const LocationPointRow({
+    required this.uuid,
+    required this.harvestDay,
+    required this.recordedAt,
+    required this.latitude,
+    required this.longitude,
+    this.accuracyM,
+    this.speedMps,
+    this.altitudeM,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    if (!nullToAbsent || accuracyM != null) {
+      map['accuracy_m'] = Variable<double>(accuracyM);
+    }
+    if (!nullToAbsent || speedMps != null) {
+      map['speed_mps'] = Variable<double>(speedMps);
+    }
+    if (!nullToAbsent || altitudeM != null) {
+      map['altitude_m'] = Variable<double>(altitudeM);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  LocationPointsCompanion toCompanion(bool nullToAbsent) {
+    return LocationPointsCompanion(
+      uuid: Value(uuid),
+      harvestDay: Value(harvestDay),
+      recordedAt: Value(recordedAt),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      accuracyM: accuracyM == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accuracyM),
+      speedMps: speedMps == null && nullToAbsent
+          ? const Value.absent()
+          : Value(speedMps),
+      altitudeM: altitudeM == null && nullToAbsent
+          ? const Value.absent()
+          : Value(altitudeM),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory LocationPointRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocationPointRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      accuracyM: serializer.fromJson<double?>(json['accuracyM']),
+      speedMps: serializer.fromJson<double?>(json['speedMps']),
+      altitudeM: serializer.fromJson<double?>(json['altitudeM']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'accuracyM': serializer.toJson<double?>(accuracyM),
+      'speedMps': serializer.toJson<double?>(speedMps),
+      'altitudeM': serializer.toJson<double?>(altitudeM),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  LocationPointRow copyWith({
+    String? uuid,
+    String? harvestDay,
+    DateTime? recordedAt,
+    double? latitude,
+    double? longitude,
+    Value<double?> accuracyM = const Value.absent(),
+    Value<double?> speedMps = const Value.absent(),
+    Value<double?> altitudeM = const Value.absent(),
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => LocationPointRow(
+    uuid: uuid ?? this.uuid,
+    harvestDay: harvestDay ?? this.harvestDay,
+    recordedAt: recordedAt ?? this.recordedAt,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    accuracyM: accuracyM.present ? accuracyM.value : this.accuracyM,
+    speedMps: speedMps.present ? speedMps.value : this.speedMps,
+    altitudeM: altitudeM.present ? altitudeM.value : this.altitudeM,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  LocationPointRow copyWithCompanion(LocationPointsCompanion data) {
+    return LocationPointRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      accuracyM: data.accuracyM.present ? data.accuracyM.value : this.accuracyM,
+      speedMps: data.speedMps.present ? data.speedMps.value : this.speedMps,
+      altitudeM: data.altitudeM.present ? data.altitudeM.value : this.altitudeM,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocationPointRow(')
+          ..write('uuid: $uuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('accuracyM: $accuracyM, ')
+          ..write('speedMps: $speedMps, ')
+          ..write('altitudeM: $altitudeM, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    harvestDay,
+    recordedAt,
+    latitude,
+    longitude,
+    accuracyM,
+    speedMps,
+    altitudeM,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocationPointRow &&
+          other.uuid == this.uuid &&
+          other.harvestDay == this.harvestDay &&
+          other.recordedAt == this.recordedAt &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.accuracyM == this.accuracyM &&
+          other.speedMps == this.speedMps &&
+          other.altitudeM == this.altitudeM &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class LocationPointsCompanion extends UpdateCompanion<LocationPointRow> {
+  final Value<String> uuid;
+  final Value<String> harvestDay;
+  final Value<DateTime> recordedAt;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<double?> accuracyM;
+  final Value<double?> speedMps;
+  final Value<double?> altitudeM;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const LocationPointsCompanion({
+    this.uuid = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.accuracyM = const Value.absent(),
+    this.speedMps = const Value.absent(),
+    this.altitudeM = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocationPointsCompanion.insert({
+    required String uuid,
+    required String harvestDay,
+    required DateTime recordedAt,
+    required double latitude,
+    required double longitude,
+    this.accuracyM = const Value.absent(),
+    this.speedMps = const Value.absent(),
+    this.altitudeM = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       harvestDay = Value(harvestDay),
+       recordedAt = Value(recordedAt),
+       latitude = Value(latitude),
+       longitude = Value(longitude);
+  static Insertable<LocationPointRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? recordedAt,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? accuracyM,
+    Expression<double>? speedMps,
+    Expression<double>? altitudeM,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (accuracyM != null) 'accuracy_m': accuracyM,
+      if (speedMps != null) 'speed_mps': speedMps,
+      if (altitudeM != null) 'altitude_m': altitudeM,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocationPointsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? harvestDay,
+    Value<DateTime>? recordedAt,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<double?>? accuracyM,
+    Value<double?>? speedMps,
+    Value<double?>? altitudeM,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return LocationPointsCompanion(
+      uuid: uuid ?? this.uuid,
+      harvestDay: harvestDay ?? this.harvestDay,
+      recordedAt: recordedAt ?? this.recordedAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      accuracyM: accuracyM ?? this.accuracyM,
+      speedMps: speedMps ?? this.speedMps,
+      altitudeM: altitudeM ?? this.altitudeM,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (accuracyM.present) {
+      map['accuracy_m'] = Variable<double>(accuracyM.value);
+    }
+    if (speedMps.present) {
+      map['speed_mps'] = Variable<double>(speedMps.value);
+    }
+    if (altitudeM.present) {
+      map['altitude_m'] = Variable<double>(altitudeM.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocationPointsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('accuracyM: $accuracyM, ')
+          ..write('speedMps: $speedMps, ')
+          ..write('altitudeM: $altitudeM, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GeotagsTable extends Geotags with TableInfo<$GeotagsTable, GeotagRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeotagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetTableMeta = const VerificationMeta(
+    'targetTable',
+  );
+  @override
+  late final GeneratedColumn<String> targetTable = GeneratedColumn<String>(
+    'target_table',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetUuidMeta = const VerificationMeta(
+    'targetUuid',
+  );
+  @override
+  late final GeneratedColumn<String> targetUuid = GeneratedColumn<String>(
+    'target_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _harvestDayMeta = const VerificationMeta(
+    'harvestDay',
+  );
+  @override
+  late final GeneratedColumn<String> harvestDay = GeneratedColumn<String>(
+    'harvest_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _accuracyMMeta = const VerificationMeta(
+    'accuracyM',
+  );
+  @override
+  late final GeneratedColumn<double> accuracyM = GeneratedColumn<double>(
+    'accuracy_m',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    targetTable,
+    targetUuid,
+    harvestDay,
+    at,
+    latitude,
+    longitude,
+    accuracyM,
+    state,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geotags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GeotagRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('target_table')) {
+      context.handle(
+        _targetTableMeta,
+        targetTable.isAcceptableOrUnknown(
+          data['target_table']!,
+          _targetTableMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTableMeta);
+    }
+    if (data.containsKey('target_uuid')) {
+      context.handle(
+        _targetUuidMeta,
+        targetUuid.isAcceptableOrUnknown(data['target_uuid']!, _targetUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetUuidMeta);
+    }
+    if (data.containsKey('harvest_day')) {
+      context.handle(
+        _harvestDayMeta,
+        harvestDay.isAcceptableOrUnknown(data['harvest_day']!, _harvestDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_harvestDayMeta);
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    }
+    if (data.containsKey('accuracy_m')) {
+      context.handle(
+        _accuracyMMeta,
+        accuracyM.isAcceptableOrUnknown(data['accuracy_m']!, _accuracyMMeta),
+      );
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  GeotagRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeotagRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      targetTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_table'],
+      )!,
+      targetUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_uuid'],
+      )!,
+      harvestDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}harvest_day'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      ),
+      accuracyM: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}accuracy_m'],
+      ),
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $GeotagsTable createAlias(String alias) {
+    return $GeotagsTable(attachedDatabase, alias);
+  }
+}
+
+class GeotagRow extends DataClass implements Insertable<GeotagRow> {
+  final String uuid;
+  final String targetTable;
+  final String targetUuid;
+  final String harvestDay;
+
+  /// When the action happened — not when the fix arrived.
+  final DateTime at;
+  final double? latitude;
+  final double? longitude;
+  final double? accuracyM;
+
+  /// `pending` | `fixed` | `unavailable`.
+  final String state;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const GeotagRow({
+    required this.uuid,
+    required this.targetTable,
+    required this.targetUuid,
+    required this.harvestDay,
+    required this.at,
+    this.latitude,
+    this.longitude,
+    this.accuracyM,
+    required this.state,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['target_table'] = Variable<String>(targetTable);
+    map['target_uuid'] = Variable<String>(targetUuid);
+    map['harvest_day'] = Variable<String>(harvestDay);
+    map['at'] = Variable<DateTime>(at);
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    if (!nullToAbsent || accuracyM != null) {
+      map['accuracy_m'] = Variable<double>(accuracyM);
+    }
+    map['state'] = Variable<String>(state);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  GeotagsCompanion toCompanion(bool nullToAbsent) {
+    return GeotagsCompanion(
+      uuid: Value(uuid),
+      targetTable: Value(targetTable),
+      targetUuid: Value(targetUuid),
+      harvestDay: Value(harvestDay),
+      at: Value(at),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
+      accuracyM: accuracyM == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accuracyM),
+      state: Value(state),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory GeotagRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeotagRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      targetTable: serializer.fromJson<String>(json['targetTable']),
+      targetUuid: serializer.fromJson<String>(json['targetUuid']),
+      harvestDay: serializer.fromJson<String>(json['harvestDay']),
+      at: serializer.fromJson<DateTime>(json['at']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
+      accuracyM: serializer.fromJson<double?>(json['accuracyM']),
+      state: serializer.fromJson<String>(json['state']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'targetTable': serializer.toJson<String>(targetTable),
+      'targetUuid': serializer.toJson<String>(targetUuid),
+      'harvestDay': serializer.toJson<String>(harvestDay),
+      'at': serializer.toJson<DateTime>(at),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
+      'accuracyM': serializer.toJson<double?>(accuracyM),
+      'state': serializer.toJson<String>(state),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  GeotagRow copyWith({
+    String? uuid,
+    String? targetTable,
+    String? targetUuid,
+    String? harvestDay,
+    DateTime? at,
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
+    Value<double?> accuracyM = const Value.absent(),
+    String? state,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => GeotagRow(
+    uuid: uuid ?? this.uuid,
+    targetTable: targetTable ?? this.targetTable,
+    targetUuid: targetUuid ?? this.targetUuid,
+    harvestDay: harvestDay ?? this.harvestDay,
+    at: at ?? this.at,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
+    accuracyM: accuracyM.present ? accuracyM.value : this.accuracyM,
+    state: state ?? this.state,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  GeotagRow copyWithCompanion(GeotagsCompanion data) {
+    return GeotagRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      targetTable: data.targetTable.present
+          ? data.targetTable.value
+          : this.targetTable,
+      targetUuid: data.targetUuid.present
+          ? data.targetUuid.value
+          : this.targetUuid,
+      harvestDay: data.harvestDay.present
+          ? data.harvestDay.value
+          : this.harvestDay,
+      at: data.at.present ? data.at.value : this.at,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      accuracyM: data.accuracyM.present ? data.accuracyM.value : this.accuracyM,
+      state: data.state.present ? data.state.value : this.state,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeotagRow(')
+          ..write('uuid: $uuid, ')
+          ..write('targetTable: $targetTable, ')
+          ..write('targetUuid: $targetUuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('at: $at, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('accuracyM: $accuracyM, ')
+          ..write('state: $state, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    targetTable,
+    targetUuid,
+    harvestDay,
+    at,
+    latitude,
+    longitude,
+    accuracyM,
+    state,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeotagRow &&
+          other.uuid == this.uuid &&
+          other.targetTable == this.targetTable &&
+          other.targetUuid == this.targetUuid &&
+          other.harvestDay == this.harvestDay &&
+          other.at == this.at &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.accuracyM == this.accuracyM &&
+          other.state == this.state &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class GeotagsCompanion extends UpdateCompanion<GeotagRow> {
+  final Value<String> uuid;
+  final Value<String> targetTable;
+  final Value<String> targetUuid;
+  final Value<String> harvestDay;
+  final Value<DateTime> at;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
+  final Value<double?> accuracyM;
+  final Value<String> state;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const GeotagsCompanion({
+    this.uuid = const Value.absent(),
+    this.targetTable = const Value.absent(),
+    this.targetUuid = const Value.absent(),
+    this.harvestDay = const Value.absent(),
+    this.at = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.accuracyM = const Value.absent(),
+    this.state = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeotagsCompanion.insert({
+    required String uuid,
+    required String targetTable,
+    required String targetUuid,
+    required String harvestDay,
+    required DateTime at,
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.accuracyM = const Value.absent(),
+    this.state = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       targetTable = Value(targetTable),
+       targetUuid = Value(targetUuid),
+       harvestDay = Value(harvestDay),
+       at = Value(at);
+  static Insertable<GeotagRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? targetTable,
+    Expression<String>? targetUuid,
+    Expression<String>? harvestDay,
+    Expression<DateTime>? at,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? accuracyM,
+    Expression<String>? state,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (targetTable != null) 'target_table': targetTable,
+      if (targetUuid != null) 'target_uuid': targetUuid,
+      if (harvestDay != null) 'harvest_day': harvestDay,
+      if (at != null) 'at': at,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (accuracyM != null) 'accuracy_m': accuracyM,
+      if (state != null) 'state': state,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeotagsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? targetTable,
+    Value<String>? targetUuid,
+    Value<String>? harvestDay,
+    Value<DateTime>? at,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
+    Value<double?>? accuracyM,
+    Value<String>? state,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return GeotagsCompanion(
+      uuid: uuid ?? this.uuid,
+      targetTable: targetTable ?? this.targetTable,
+      targetUuid: targetUuid ?? this.targetUuid,
+      harvestDay: harvestDay ?? this.harvestDay,
+      at: at ?? this.at,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      accuracyM: accuracyM ?? this.accuracyM,
+      state: state ?? this.state,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (targetTable.present) {
+      map['target_table'] = Variable<String>(targetTable.value);
+    }
+    if (targetUuid.present) {
+      map['target_uuid'] = Variable<String>(targetUuid.value);
+    }
+    if (harvestDay.present) {
+      map['harvest_day'] = Variable<String>(harvestDay.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (accuracyM.present) {
+      map['accuracy_m'] = Variable<double>(accuracyM.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeotagsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('targetTable: $targetTable, ')
+          ..write('targetUuid: $targetUuid, ')
+          ..write('harvestDay: $harvestDay, ')
+          ..write('at: $at, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('accuracyM: $accuracyM, ')
+          ..write('state: $state, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SavedPlacesTable extends SavedPlaces
+    with TableInfo<$SavedPlacesTable, SavedPlaceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SavedPlacesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _radiusMMeta = const VerificationMeta(
+    'radiusM',
+  );
+  @override
+  late final GeneratedColumn<double> radiusM = GeneratedColumn<double>(
+    'radius_m',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(100),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    name,
+    latitude,
+    longitude,
+    radiusM,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'saved_places';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SavedPlaceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('radius_m')) {
+      context.handle(
+        _radiusMMeta,
+        radiusM.isAcceptableOrUnknown(data['radius_m']!, _radiusMMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  SavedPlaceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SavedPlaceRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      radiusM: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}radius_m'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $SavedPlacesTable createAlias(String alias) {
+    return $SavedPlacesTable(attachedDatabase, alias);
+  }
+}
+
+class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
+  final String uuid;
+  final String name;
+  final double latitude;
+  final double longitude;
+  final double radiusM;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const SavedPlaceRow({
+    required this.uuid,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    required this.radiusM,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['name'] = Variable<String>(name);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    map['radius_m'] = Variable<double>(radiusM);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  SavedPlacesCompanion toCompanion(bool nullToAbsent) {
+    return SavedPlacesCompanion(
+      uuid: Value(uuid),
+      name: Value(name),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      radiusM: Value(radiusM),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory SavedPlaceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SavedPlaceRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      name: serializer.fromJson<String>(json['name']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      radiusM: serializer.fromJson<double>(json['radiusM']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'name': serializer.toJson<String>(name),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'radiusM': serializer.toJson<double>(radiusM),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  SavedPlaceRow copyWith({
+    String? uuid,
+    String? name,
+    double? latitude,
+    double? longitude,
+    double? radiusM,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => SavedPlaceRow(
+    uuid: uuid ?? this.uuid,
+    name: name ?? this.name,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    radiusM: radiusM ?? this.radiusM,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  SavedPlaceRow copyWithCompanion(SavedPlacesCompanion data) {
+    return SavedPlaceRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      name: data.name.present ? data.name.value : this.name,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      radiusM: data.radiusM.present ? data.radiusM.value : this.radiusM,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedPlaceRow(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusM: $radiusM, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    name,
+    latitude,
+    longitude,
+    radiusM,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SavedPlaceRow &&
+          other.uuid == this.uuid &&
+          other.name == this.name &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.radiusM == this.radiusM &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
+  final Value<String> uuid;
+  final Value<String> name;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<double> radiusM;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const SavedPlacesCompanion({
+    this.uuid = const Value.absent(),
+    this.name = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.radiusM = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SavedPlacesCompanion.insert({
+    required String uuid,
+    required String name,
+    required double latitude,
+    required double longitude,
+    this.radiusM = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       name = Value(name),
+       latitude = Value(latitude),
+       longitude = Value(longitude);
+  static Insertable<SavedPlaceRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? name,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? radiusM,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (name != null) 'name': name,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (radiusM != null) 'radius_m': radiusM,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SavedPlacesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? name,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<double>? radiusM,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return SavedPlacesCompanion(
+      uuid: uuid ?? this.uuid,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      radiusM: radiusM ?? this.radiusM,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (radiusM.present) {
+      map['radius_m'] = Variable<double>(radiusM.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedPlacesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusM: $radiusM, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $NoteAttachmentsTable extends NoteAttachments
+    with TableInfo<$NoteAttachmentsTable, NoteAttachmentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NoteAttachmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteUuidMeta = const VerificationMeta(
+    'noteUuid',
+  );
+  @override
+  late final GeneratedColumn<String> noteUuid = GeneratedColumn<String>(
+    'note_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES notes (uuid)',
+    ),
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('audio'),
+  );
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
+  );
+  @override
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _storedPathMeta = const VerificationMeta(
+    'storedPath',
+  );
+  @override
+  late final GeneratedColumn<String> storedPath = GeneratedColumn<String>(
+    'stored_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationMsMeta = const VerificationMeta(
+    'durationMs',
+  );
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
+    'sizeBytes',
+  );
+  @override
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+    'size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    noteUuid,
+    kind,
+    fileName,
+    storedPath,
+    durationMs,
+    sizeBytes,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'note_attachments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NoteAttachmentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('note_uuid')) {
+      context.handle(
+        _noteUuidMeta,
+        noteUuid.isAcceptableOrUnknown(data['note_uuid']!, _noteUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_noteUuidMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileNameMeta);
+    }
+    if (data.containsKey('stored_path')) {
+      context.handle(
+        _storedPathMeta,
+        storedPath.isAcceptableOrUnknown(data['stored_path']!, _storedPathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_storedPathMeta);
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+        _durationMsMeta,
+        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+      );
+    }
+    if (data.containsKey('size_bytes')) {
+      context.handle(
+        _sizeBytesMeta,
+        sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  NoteAttachmentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NoteAttachmentRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      noteUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note_uuid'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      fileName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_name'],
+      )!,
+      storedPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stored_path'],
+      )!,
+      durationMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_ms'],
+      ),
+      sizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size_bytes'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $NoteAttachmentsTable createAlias(String alias) {
+    return $NoteAttachmentsTable(attachedDatabase, alias);
+  }
+}
+
+class NoteAttachmentRow extends DataClass
+    implements Insertable<NoteAttachmentRow> {
+  final String uuid;
+  final String noteUuid;
+
+  /// `audio`.
+  final String kind;
+
+  /// The name the body embeds; unique, so an embed resolves to one file.
+  final String fileName;
+
+  /// Relative to the attachments directory.
+  final String storedPath;
+  final int? durationMs;
+  final int sizeBytes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const NoteAttachmentRow({
+    required this.uuid,
+    required this.noteUuid,
+    required this.kind,
+    required this.fileName,
+    required this.storedPath,
+    this.durationMs,
+    required this.sizeBytes,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['note_uuid'] = Variable<String>(noteUuid);
+    map['kind'] = Variable<String>(kind);
+    map['file_name'] = Variable<String>(fileName);
+    map['stored_path'] = Variable<String>(storedPath);
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  NoteAttachmentsCompanion toCompanion(bool nullToAbsent) {
+    return NoteAttachmentsCompanion(
+      uuid: Value(uuid),
+      noteUuid: Value(noteUuid),
+      kind: Value(kind),
+      fileName: Value(fileName),
+      storedPath: Value(storedPath),
+      durationMs: durationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMs),
+      sizeBytes: Value(sizeBytes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory NoteAttachmentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NoteAttachmentRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      noteUuid: serializer.fromJson<String>(json['noteUuid']),
+      kind: serializer.fromJson<String>(json['kind']),
+      fileName: serializer.fromJson<String>(json['fileName']),
+      storedPath: serializer.fromJson<String>(json['storedPath']),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'noteUuid': serializer.toJson<String>(noteUuid),
+      'kind': serializer.toJson<String>(kind),
+      'fileName': serializer.toJson<String>(fileName),
+      'storedPath': serializer.toJson<String>(storedPath),
+      'durationMs': serializer.toJson<int?>(durationMs),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  NoteAttachmentRow copyWith({
+    String? uuid,
+    String? noteUuid,
+    String? kind,
+    String? fileName,
+    String? storedPath,
+    Value<int?> durationMs = const Value.absent(),
+    int? sizeBytes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => NoteAttachmentRow(
+    uuid: uuid ?? this.uuid,
+    noteUuid: noteUuid ?? this.noteUuid,
+    kind: kind ?? this.kind,
+    fileName: fileName ?? this.fileName,
+    storedPath: storedPath ?? this.storedPath,
+    durationMs: durationMs.present ? durationMs.value : this.durationMs,
+    sizeBytes: sizeBytes ?? this.sizeBytes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  NoteAttachmentRow copyWithCompanion(NoteAttachmentsCompanion data) {
+    return NoteAttachmentRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      noteUuid: data.noteUuid.present ? data.noteUuid.value : this.noteUuid,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      storedPath: data.storedPath.present
+          ? data.storedPath.value
+          : this.storedPath,
+      durationMs: data.durationMs.present
+          ? data.durationMs.value
+          : this.durationMs,
+      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteAttachmentRow(')
+          ..write('uuid: $uuid, ')
+          ..write('noteUuid: $noteUuid, ')
+          ..write('kind: $kind, ')
+          ..write('fileName: $fileName, ')
+          ..write('storedPath: $storedPath, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    noteUuid,
+    kind,
+    fileName,
+    storedPath,
+    durationMs,
+    sizeBytes,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NoteAttachmentRow &&
+          other.uuid == this.uuid &&
+          other.noteUuid == this.noteUuid &&
+          other.kind == this.kind &&
+          other.fileName == this.fileName &&
+          other.storedPath == this.storedPath &&
+          other.durationMs == this.durationMs &&
+          other.sizeBytes == this.sizeBytes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
+  final Value<String> uuid;
+  final Value<String> noteUuid;
+  final Value<String> kind;
+  final Value<String> fileName;
+  final Value<String> storedPath;
+  final Value<int?> durationMs;
+  final Value<int> sizeBytes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const NoteAttachmentsCompanion({
+    this.uuid = const Value.absent(),
+    this.noteUuid = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.storedPath = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NoteAttachmentsCompanion.insert({
+    required String uuid,
+    required String noteUuid,
+    this.kind = const Value.absent(),
+    required String fileName,
+    required String storedPath,
+    this.durationMs = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       noteUuid = Value(noteUuid),
+       fileName = Value(fileName),
+       storedPath = Value(storedPath);
+  static Insertable<NoteAttachmentRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? noteUuid,
+    Expression<String>? kind,
+    Expression<String>? fileName,
+    Expression<String>? storedPath,
+    Expression<int>? durationMs,
+    Expression<int>? sizeBytes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (noteUuid != null) 'note_uuid': noteUuid,
+      if (kind != null) 'kind': kind,
+      if (fileName != null) 'file_name': fileName,
+      if (storedPath != null) 'stored_path': storedPath,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NoteAttachmentsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? noteUuid,
+    Value<String>? kind,
+    Value<String>? fileName,
+    Value<String>? storedPath,
+    Value<int?>? durationMs,
+    Value<int>? sizeBytes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return NoteAttachmentsCompanion(
+      uuid: uuid ?? this.uuid,
+      noteUuid: noteUuid ?? this.noteUuid,
+      kind: kind ?? this.kind,
+      fileName: fileName ?? this.fileName,
+      storedPath: storedPath ?? this.storedPath,
+      durationMs: durationMs ?? this.durationMs,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (noteUuid.present) {
+      map['note_uuid'] = Variable<String>(noteUuid.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (storedPath.present) {
+      map['stored_path'] = Variable<String>(storedPath.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteAttachmentsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('noteUuid: $noteUuid, ')
+          ..write('kind: $kind, ')
+          ..write('fileName: $fileName, ')
+          ..write('storedPath: $storedPath, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$HarvestDatabase extends GeneratedDatabase {
   _$HarvestDatabase(QueryExecutor e) : super(e);
   $HarvestDatabaseManager get managers => $HarvestDatabaseManager(this);
@@ -15122,6 +18903,26 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   late final $DebtPaymentsTable debtPayments = $DebtPaymentsTable(this);
   late final $OutboxTable outbox = $OutboxTable(this);
   late final $KvSettingsTable kvSettings = $KvSettingsTable(this);
+  late final $GoalsTable goals = $GoalsTable(this);
+  late final $GoalItemsTable goalItems = $GoalItemsTable(this);
+  late final $LocationPointsTable locationPoints = $LocationPointsTable(this);
+  late final $GeotagsTable geotags = $GeotagsTable(this);
+  late final $SavedPlacesTable savedPlaces = $SavedPlacesTable(this);
+  late final $NoteAttachmentsTable noteAttachments = $NoteAttachmentsTable(
+    this,
+  );
+  late final Index locationPointsDay = Index(
+    'location_points_day',
+    'CREATE INDEX location_points_day ON location_points (harvest_day)',
+  );
+  late final Index geotagsTarget = Index(
+    'geotags_target',
+    'CREATE INDEX geotags_target ON geotags (target_table, target_uuid)',
+  );
+  late final Index geotagsDay = Index(
+    'geotags_day',
+    'CREATE INDEX geotags_day ON geotags (harvest_day)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -15157,6 +18958,15 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     debtPayments,
     outbox,
     kvSettings,
+    goals,
+    goalItems,
+    locationPoints,
+    geotags,
+    savedPlaces,
+    noteAttachments,
+    locationPointsDay,
+    geotagsTarget,
+    geotagsDay,
   ];
 }
 
@@ -15173,6 +18983,7 @@ typedef $$CommitmentsTableCreateCompanionBuilder =
       Value<String?> note,
       Value<String?> remindAt,
       Value<String?> deadline,
+      Value<String?> goalUuid,
       Value<DateTime?> archivedAt,
       Value<String?> archiveNote,
       Value<DateTime?> deletedAt,
@@ -15193,6 +19004,7 @@ typedef $$CommitmentsTableUpdateCompanionBuilder =
       Value<String?> note,
       Value<String?> remindAt,
       Value<String?> deadline,
+      Value<String?> goalUuid,
       Value<DateTime?> archivedAt,
       Value<String?> archiveNote,
       Value<DateTime?> deletedAt,
@@ -15302,6 +19114,11 @@ class $$CommitmentsTableFilterComposer
 
   ColumnFilters<String> get deadline => $composableBuilder(
     column: $table.deadline,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get goalUuid => $composableBuilder(
+    column: $table.goalUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15445,6 +19262,11 @@ class $$CommitmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get goalUuid => $composableBuilder(
+    column: $table.goalUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
     column: $table.archivedAt,
     builder: (column) => ColumnOrderings(column),
@@ -15518,6 +19340,9 @@ class $$CommitmentsTableAnnotationComposer
 
   GeneratedColumn<String> get deadline =>
       $composableBuilder(column: $table.deadline, builder: (column) => column);
+
+  GeneratedColumn<String> get goalUuid =>
+      $composableBuilder(column: $table.goalUuid, builder: (column) => column);
 
   GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
     column: $table.archivedAt,
@@ -15628,6 +19453,7 @@ class $$CommitmentsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String?> remindAt = const Value.absent(),
                 Value<String?> deadline = const Value.absent(),
+                Value<String?> goalUuid = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<String?> archiveNote = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -15646,6 +19472,7 @@ class $$CommitmentsTableTableManager
                 note: note,
                 remindAt: remindAt,
                 deadline: deadline,
+                goalUuid: goalUuid,
                 archivedAt: archivedAt,
                 archiveNote: archiveNote,
                 deletedAt: deletedAt,
@@ -15666,6 +19493,7 @@ class $$CommitmentsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String?> remindAt = const Value.absent(),
                 Value<String?> deadline = const Value.absent(),
+                Value<String?> goalUuid = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<String?> archiveNote = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -15684,6 +19512,7 @@ class $$CommitmentsTableTableManager
                 note: note,
                 remindAt: remindAt,
                 deadline: deadline,
+                goalUuid: goalUuid,
                 archivedAt: archivedAt,
                 archiveNote: archiveNote,
                 deletedAt: deletedAt,
@@ -16524,6 +20353,27 @@ final class $$NotesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$NoteAttachmentsTable, List<NoteAttachmentRow>>
+  _noteAttachmentsRefsTable(_$HarvestDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.noteAttachments,
+        aliasName: 'notes__uuid__note_attachments__note_uuid',
+      );
+
+  $$NoteAttachmentsTableProcessedTableManager get noteAttachmentsRefs {
+    final manager = $$NoteAttachmentsTableTableManager(
+      $_db,
+      $_db.noteAttachments,
+    ).filter((f) => f.noteUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _noteAttachmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$NotesTableFilterComposer
@@ -16586,6 +20436,31 @@ class $$NotesTableFilterComposer
           }) => $$NoteLinksTableFilterComposer(
             $db: $db,
             $table: $db.noteLinks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> noteAttachmentsRefs(
+    Expression<bool> Function($$NoteAttachmentsTableFilterComposer f) f,
+  ) {
+    final $$NoteAttachmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.noteAttachments,
+      getReferencedColumn: (t) => t.noteUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteAttachmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.noteAttachments,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -16695,6 +20570,31 @@ class $$NotesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> noteAttachmentsRefs<T extends Object>(
+    Expression<T> Function($$NoteAttachmentsTableAnnotationComposer a) f,
+  ) {
+    final $$NoteAttachmentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.noteAttachments,
+      getReferencedColumn: (t) => t.noteUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteAttachmentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteAttachments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$NotesTableTableManager
@@ -16710,7 +20610,7 @@ class $$NotesTableTableManager
           $$NotesTableUpdateCompanionBuilder,
           (NoteRow, $$NotesTableReferences),
           NoteRow,
-          PrefetchHooks Function({bool noteLinksRefs})
+          PrefetchHooks Function({bool noteLinksRefs, bool noteAttachmentsRefs})
         > {
   $$NotesTableTableManager(_$HarvestDatabase db, $NotesTable table)
     : super(
@@ -16769,32 +20669,63 @@ class $$NotesTableTableManager
                     (e.readTable(table), $$NotesTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({noteLinksRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (noteLinksRefs) db.noteLinks],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (noteLinksRefs)
-                    await $_getPrefetchedData<
-                      NoteRow,
-                      $NotesTable,
-                      NoteLinkRow
-                    >(
-                      currentTable: table,
-                      referencedTable: $$NotesTableReferences
-                          ._noteLinksRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$NotesTableReferences(db, table, p0).noteLinksRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.fromUuid == item.uuid),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({noteLinksRefs = false, noteAttachmentsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (noteLinksRefs) db.noteLinks,
+                    if (noteAttachmentsRefs) db.noteAttachments,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (noteLinksRefs)
+                        await $_getPrefetchedData<
+                          NoteRow,
+                          $NotesTable,
+                          NoteLinkRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$NotesTableReferences
+                              ._noteLinksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$NotesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).noteLinksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.fromUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (noteAttachmentsRefs)
+                        await $_getPrefetchedData<
+                          NoteRow,
+                          $NotesTable,
+                          NoteAttachmentRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$NotesTableReferences
+                              ._noteAttachmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$NotesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).noteAttachmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.noteUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -16811,7 +20742,7 @@ typedef $$NotesTableProcessedTableManager =
       $$NotesTableUpdateCompanionBuilder,
       (NoteRow, $$NotesTableReferences),
       NoteRow,
-      PrefetchHooks Function({bool noteLinksRefs})
+      PrefetchHooks Function({bool noteLinksRefs, bool noteAttachmentsRefs})
     >;
 typedef $$NoteLinksTableCreateCompanionBuilder = NoteLinksCompanion Function({
   required String uuid,
@@ -25108,6 +29039,2152 @@ typedef $$KvSettingsTableProcessedTableManager =
       KvSetting,
       PrefetchHooks Function()
     >;
+typedef $$GoalsTableCreateCompanionBuilder = GoalsCompanion Function({
+  required String uuid,
+  required String title,
+  Value<String> why,
+  Value<String?> targetDay,
+  Value<String> status,
+  Value<String?> statusNote,
+  Value<DateTime?> achievedAt,
+  Value<int> position,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$GoalsTableUpdateCompanionBuilder = GoalsCompanion Function({
+  Value<String> uuid,
+  Value<String> title,
+  Value<String> why,
+  Value<String?> targetDay,
+  Value<String> status,
+  Value<String?> statusNote,
+  Value<DateTime?> achievedAt,
+  Value<int> position,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+
+final class $$GoalsTableReferences
+    extends BaseReferences<_$HarvestDatabase, $GoalsTable, GoalRow> {
+  $$GoalsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$GoalItemsTable, List<GoalItemRow>>
+  _goalItemsRefsTable(_$HarvestDatabase db) => MultiTypedResultKey.fromTable(
+    db.goalItems,
+    aliasName: 'goals__uuid__goal_items__goal_uuid',
+  );
+
+  $$GoalItemsTableProcessedTableManager get goalItemsRefs {
+    final manager = $$GoalItemsTableTableManager(
+      $_db,
+      $_db.goalItems,
+    ).filter((f) => f.goalUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
+
+    final cache = $_typedResult.readTableOrNull(_goalItemsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$GoalsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $GoalsTable> {
+  $$GoalsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get why => $composableBuilder(
+    column: $table.why,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetDay => $composableBuilder(
+    column: $table.targetDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statusNote => $composableBuilder(
+    column: $table.statusNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> goalItemsRefs(
+    Expression<bool> Function($$GoalItemsTableFilterComposer f) f,
+  ) {
+    final $$GoalItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.goalItems,
+      getReferencedColumn: (t) => t.goalUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.goalItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$GoalsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $GoalsTable> {
+  $$GoalsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get why => $composableBuilder(
+    column: $table.why,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetDay => $composableBuilder(
+    column: $table.targetDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statusNote => $composableBuilder(
+    column: $table.statusNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GoalsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $GoalsTable> {
+  $$GoalsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get why =>
+      $composableBuilder(column: $table.why, builder: (column) => column);
+
+  GeneratedColumn<String> get targetDay =>
+      $composableBuilder(column: $table.targetDay, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get statusNote => $composableBuilder(
+    column: $table.statusNote,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  Expression<T> goalItemsRefs<T extends Object>(
+    Expression<T> Function($$GoalItemsTableAnnotationComposer a) f,
+  ) {
+    final $$GoalItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.goalItems,
+      getReferencedColumn: (t) => t.goalUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.goalItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$GoalsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $GoalsTable,
+          GoalRow,
+          $$GoalsTableFilterComposer,
+          $$GoalsTableOrderingComposer,
+          $$GoalsTableAnnotationComposer,
+          $$GoalsTableCreateCompanionBuilder,
+          $$GoalsTableUpdateCompanionBuilder,
+          (GoalRow, $$GoalsTableReferences),
+          GoalRow,
+          PrefetchHooks Function({bool goalItemsRefs})
+        > {
+  $$GoalsTableTableManager(_$HarvestDatabase db, $GoalsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> why = const Value.absent(),
+                Value<String?> targetDay = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> statusNote = const Value.absent(),
+                Value<DateTime?> achievedAt = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalsCompanion(
+                uuid: uuid,
+                title: title,
+                why: why,
+                targetDay: targetDay,
+                status: status,
+                statusNote: statusNote,
+                achievedAt: achievedAt,
+                position: position,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String title,
+                Value<String> why = const Value.absent(),
+                Value<String?> targetDay = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> statusNote = const Value.absent(),
+                Value<DateTime?> achievedAt = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalsCompanion.insert(
+                uuid: uuid,
+                title: title,
+                why: why,
+                targetDay: targetDay,
+                status: status,
+                statusNote: statusNote,
+                achievedAt: achievedAt,
+                position: position,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$GoalsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({goalItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (goalItemsRefs) db.goalItems],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (goalItemsRefs)
+                    await $_getPrefetchedData<
+                      GoalRow,
+                      $GoalsTable,
+                      GoalItemRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$GoalsTableReferences
+                          ._goalItemsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$GoalsTableReferences(db, table, p0).goalItemsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.goalUuid == item.uuid),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$GoalsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $GoalsTable,
+      GoalRow,
+      $$GoalsTableFilterComposer,
+      $$GoalsTableOrderingComposer,
+      $$GoalsTableAnnotationComposer,
+      $$GoalsTableCreateCompanionBuilder,
+      $$GoalsTableUpdateCompanionBuilder,
+      (GoalRow, $$GoalsTableReferences),
+      GoalRow,
+      PrefetchHooks Function({bool goalItemsRefs})
+    >;
+typedef $$GoalItemsTableCreateCompanionBuilder = GoalItemsCompanion Function({
+  required String uuid,
+  required String goalUuid,
+  Value<String> kind,
+  required String body,
+  Value<String?> note,
+  Value<DateTime?> doneAt,
+  Value<int> position,
+  Value<String?> commitmentUuid,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$GoalItemsTableUpdateCompanionBuilder = GoalItemsCompanion Function({
+  Value<String> uuid,
+  Value<String> goalUuid,
+  Value<String> kind,
+  Value<String> body,
+  Value<String?> note,
+  Value<DateTime?> doneAt,
+  Value<int> position,
+  Value<String?> commitmentUuid,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+
+final class $$GoalItemsTableReferences
+    extends BaseReferences<_$HarvestDatabase, $GoalItemsTable, GoalItemRow> {
+  $$GoalItemsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $GoalsTable _goalUuidTable(_$HarvestDatabase db) =>
+      db.goals.createAlias('goal_items__goal_uuid__goals__uuid');
+
+  $$GoalsTableProcessedTableManager get goalUuid {
+    final $_column = $_itemColumn<String>('goal_uuid')!;
+
+    final manager = $$GoalsTableTableManager(
+      $_db,
+      $_db.goals,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_goalUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$GoalItemsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $GoalItemsTable> {
+  $$GoalItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get doneAt => $composableBuilder(
+    column: $table.doneAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get commitmentUuid => $composableBuilder(
+    column: $table.commitmentUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$GoalsTableFilterComposer get goalUuid {
+    final $$GoalsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.goalUuid,
+      referencedTable: $db.goals,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalsTableFilterComposer(
+            $db: $db,
+            $table: $db.goals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GoalItemsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $GoalItemsTable> {
+  $$GoalItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get doneAt => $composableBuilder(
+    column: $table.doneAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get commitmentUuid => $composableBuilder(
+    column: $table.commitmentUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$GoalsTableOrderingComposer get goalUuid {
+    final $$GoalsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.goalUuid,
+      referencedTable: $db.goals,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalsTableOrderingComposer(
+            $db: $db,
+            $table: $db.goals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GoalItemsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $GoalItemsTable> {
+  $$GoalItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get doneAt =>
+      $composableBuilder(column: $table.doneAt, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get commitmentUuid => $composableBuilder(
+    column: $table.commitmentUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$GoalsTableAnnotationComposer get goalUuid {
+    final $$GoalsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.goalUuid,
+      referencedTable: $db.goals,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.goals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GoalItemsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $GoalItemsTable,
+          GoalItemRow,
+          $$GoalItemsTableFilterComposer,
+          $$GoalItemsTableOrderingComposer,
+          $$GoalItemsTableAnnotationComposer,
+          $$GoalItemsTableCreateCompanionBuilder,
+          $$GoalItemsTableUpdateCompanionBuilder,
+          (GoalItemRow, $$GoalItemsTableReferences),
+          GoalItemRow,
+          PrefetchHooks Function({bool goalUuid})
+        > {
+  $$GoalItemsTableTableManager(_$HarvestDatabase db, $GoalItemsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> goalUuid = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime?> doneAt = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String?> commitmentUuid = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalItemsCompanion(
+                uuid: uuid,
+                goalUuid: goalUuid,
+                kind: kind,
+                body: body,
+                note: note,
+                doneAt: doneAt,
+                position: position,
+                commitmentUuid: commitmentUuid,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String goalUuid,
+                Value<String> kind = const Value.absent(),
+                required String body,
+                Value<String?> note = const Value.absent(),
+                Value<DateTime?> doneAt = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String?> commitmentUuid = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalItemsCompanion.insert(
+                uuid: uuid,
+                goalUuid: goalUuid,
+                kind: kind,
+                body: body,
+                note: note,
+                doneAt: doneAt,
+                position: position,
+                commitmentUuid: commitmentUuid,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$GoalItemsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({goalUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (goalUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.goalUuid,
+                        referencedTable: $$GoalItemsTableReferences
+                            ._goalUuidTable(db),
+                        referencedColumn: $$GoalItemsTableReferences
+                            ._goalUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$GoalItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $GoalItemsTable,
+      GoalItemRow,
+      $$GoalItemsTableFilterComposer,
+      $$GoalItemsTableOrderingComposer,
+      $$GoalItemsTableAnnotationComposer,
+      $$GoalItemsTableCreateCompanionBuilder,
+      $$GoalItemsTableUpdateCompanionBuilder,
+      (GoalItemRow, $$GoalItemsTableReferences),
+      GoalItemRow,
+      PrefetchHooks Function({bool goalUuid})
+    >;
+typedef $$LocationPointsTableCreateCompanionBuilder =
+    LocationPointsCompanion Function({
+      required String uuid,
+      required String harvestDay,
+      required DateTime recordedAt,
+      required double latitude,
+      required double longitude,
+      Value<double?> accuracyM,
+      Value<double?> speedMps,
+      Value<double?> altitudeM,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$LocationPointsTableUpdateCompanionBuilder =
+    LocationPointsCompanion Function({
+      Value<String> uuid,
+      Value<String> harvestDay,
+      Value<DateTime> recordedAt,
+      Value<double> latitude,
+      Value<double> longitude,
+      Value<double?> accuracyM,
+      Value<double?> speedMps,
+      Value<double?> altitudeM,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$LocationPointsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $LocationPointsTable> {
+  $$LocationPointsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get accuracyM => $composableBuilder(
+    column: $table.accuracyM,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get speedMps => $composableBuilder(
+    column: $table.speedMps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get altitudeM => $composableBuilder(
+    column: $table.altitudeM,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LocationPointsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $LocationPointsTable> {
+  $$LocationPointsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get accuracyM => $composableBuilder(
+    column: $table.accuracyM,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get speedMps => $composableBuilder(
+    column: $table.speedMps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get altitudeM => $composableBuilder(
+    column: $table.altitudeM,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LocationPointsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $LocationPointsTable> {
+  $$LocationPointsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get accuracyM =>
+      $composableBuilder(column: $table.accuracyM, builder: (column) => column);
+
+  GeneratedColumn<double> get speedMps =>
+      $composableBuilder(column: $table.speedMps, builder: (column) => column);
+
+  GeneratedColumn<double> get altitudeM =>
+      $composableBuilder(column: $table.altitudeM, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$LocationPointsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $LocationPointsTable,
+          LocationPointRow,
+          $$LocationPointsTableFilterComposer,
+          $$LocationPointsTableOrderingComposer,
+          $$LocationPointsTableAnnotationComposer,
+          $$LocationPointsTableCreateCompanionBuilder,
+          $$LocationPointsTableUpdateCompanionBuilder,
+          (
+            LocationPointRow,
+            BaseReferences<
+              _$HarvestDatabase,
+              $LocationPointsTable,
+              LocationPointRow
+            >,
+          ),
+          LocationPointRow,
+          PrefetchHooks Function()
+        > {
+  $$LocationPointsTableTableManager(
+    _$HarvestDatabase db,
+    $LocationPointsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocationPointsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocationPointsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocationPointsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<double?> accuracyM = const Value.absent(),
+                Value<double?> speedMps = const Value.absent(),
+                Value<double?> altitudeM = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocationPointsCompanion(
+                uuid: uuid,
+                harvestDay: harvestDay,
+                recordedAt: recordedAt,
+                latitude: latitude,
+                longitude: longitude,
+                accuracyM: accuracyM,
+                speedMps: speedMps,
+                altitudeM: altitudeM,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String harvestDay,
+                required DateTime recordedAt,
+                required double latitude,
+                required double longitude,
+                Value<double?> accuracyM = const Value.absent(),
+                Value<double?> speedMps = const Value.absent(),
+                Value<double?> altitudeM = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocationPointsCompanion.insert(
+                uuid: uuid,
+                harvestDay: harvestDay,
+                recordedAt: recordedAt,
+                latitude: latitude,
+                longitude: longitude,
+                accuracyM: accuracyM,
+                speedMps: speedMps,
+                altitudeM: altitudeM,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LocationPointsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $LocationPointsTable,
+      LocationPointRow,
+      $$LocationPointsTableFilterComposer,
+      $$LocationPointsTableOrderingComposer,
+      $$LocationPointsTableAnnotationComposer,
+      $$LocationPointsTableCreateCompanionBuilder,
+      $$LocationPointsTableUpdateCompanionBuilder,
+      (
+        LocationPointRow,
+        BaseReferences<
+          _$HarvestDatabase,
+          $LocationPointsTable,
+          LocationPointRow
+        >,
+      ),
+      LocationPointRow,
+      PrefetchHooks Function()
+    >;
+typedef $$GeotagsTableCreateCompanionBuilder = GeotagsCompanion Function({
+  required String uuid,
+  required String targetTable,
+  required String targetUuid,
+  required String harvestDay,
+  required DateTime at,
+  Value<double?> latitude,
+  Value<double?> longitude,
+  Value<double?> accuracyM,
+  Value<String> state,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$GeotagsTableUpdateCompanionBuilder = GeotagsCompanion Function({
+  Value<String> uuid,
+  Value<String> targetTable,
+  Value<String> targetUuid,
+  Value<String> harvestDay,
+  Value<DateTime> at,
+  Value<double?> latitude,
+  Value<double?> longitude,
+  Value<double?> accuracyM,
+  Value<String> state,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+
+class $$GeotagsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $GeotagsTable> {
+  $$GeotagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetUuid => $composableBuilder(
+    column: $table.targetUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get accuracyM => $composableBuilder(
+    column: $table.accuracyM,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GeotagsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $GeotagsTable> {
+  $$GeotagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetUuid => $composableBuilder(
+    column: $table.targetUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get accuracyM => $composableBuilder(
+    column: $table.accuracyM,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GeotagsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $GeotagsTable> {
+  $$GeotagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetUuid => $composableBuilder(
+    column: $table.targetUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get harvestDay => $composableBuilder(
+    column: $table.harvestDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get accuracyM =>
+      $composableBuilder(column: $table.accuracyM, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$GeotagsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $GeotagsTable,
+          GeotagRow,
+          $$GeotagsTableFilterComposer,
+          $$GeotagsTableOrderingComposer,
+          $$GeotagsTableAnnotationComposer,
+          $$GeotagsTableCreateCompanionBuilder,
+          $$GeotagsTableUpdateCompanionBuilder,
+          (
+            GeotagRow,
+            BaseReferences<_$HarvestDatabase, $GeotagsTable, GeotagRow>,
+          ),
+          GeotagRow,
+          PrefetchHooks Function()
+        > {
+  $$GeotagsTableTableManager(_$HarvestDatabase db, $GeotagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeotagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeotagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeotagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> targetTable = const Value.absent(),
+                Value<String> targetUuid = const Value.absent(),
+                Value<String> harvestDay = const Value.absent(),
+                Value<DateTime> at = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<double?> accuracyM = const Value.absent(),
+                Value<String> state = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GeotagsCompanion(
+                uuid: uuid,
+                targetTable: targetTable,
+                targetUuid: targetUuid,
+                harvestDay: harvestDay,
+                at: at,
+                latitude: latitude,
+                longitude: longitude,
+                accuracyM: accuracyM,
+                state: state,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String targetTable,
+                required String targetUuid,
+                required String harvestDay,
+                required DateTime at,
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<double?> accuracyM = const Value.absent(),
+                Value<String> state = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GeotagsCompanion.insert(
+                uuid: uuid,
+                targetTable: targetTable,
+                targetUuid: targetUuid,
+                harvestDay: harvestDay,
+                at: at,
+                latitude: latitude,
+                longitude: longitude,
+                accuracyM: accuracyM,
+                state: state,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GeotagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $GeotagsTable,
+      GeotagRow,
+      $$GeotagsTableFilterComposer,
+      $$GeotagsTableOrderingComposer,
+      $$GeotagsTableAnnotationComposer,
+      $$GeotagsTableCreateCompanionBuilder,
+      $$GeotagsTableUpdateCompanionBuilder,
+      (GeotagRow, BaseReferences<_$HarvestDatabase, $GeotagsTable, GeotagRow>),
+      GeotagRow,
+      PrefetchHooks Function()
+    >;
+typedef $$SavedPlacesTableCreateCompanionBuilder =
+    SavedPlacesCompanion Function({
+      required String uuid,
+      required String name,
+      required double latitude,
+      required double longitude,
+      Value<double> radiusM,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$SavedPlacesTableUpdateCompanionBuilder =
+    SavedPlacesCompanion Function({
+      Value<String> uuid,
+      Value<String> name,
+      Value<double> latitude,
+      Value<double> longitude,
+      Value<double> radiusM,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$SavedPlacesTableFilterComposer
+    extends Composer<_$HarvestDatabase, $SavedPlacesTable> {
+  $$SavedPlacesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get radiusM => $composableBuilder(
+    column: $table.radiusM,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SavedPlacesTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $SavedPlacesTable> {
+  $$SavedPlacesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get radiusM => $composableBuilder(
+    column: $table.radiusM,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SavedPlacesTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $SavedPlacesTable> {
+  $$SavedPlacesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get radiusM =>
+      $composableBuilder(column: $table.radiusM, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$SavedPlacesTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $SavedPlacesTable,
+          SavedPlaceRow,
+          $$SavedPlacesTableFilterComposer,
+          $$SavedPlacesTableOrderingComposer,
+          $$SavedPlacesTableAnnotationComposer,
+          $$SavedPlacesTableCreateCompanionBuilder,
+          $$SavedPlacesTableUpdateCompanionBuilder,
+          (
+            SavedPlaceRow,
+            BaseReferences<_$HarvestDatabase, $SavedPlacesTable, SavedPlaceRow>,
+          ),
+          SavedPlaceRow,
+          PrefetchHooks Function()
+        > {
+  $$SavedPlacesTableTableManager(_$HarvestDatabase db, $SavedPlacesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SavedPlacesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SavedPlacesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SavedPlacesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<double> radiusM = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SavedPlacesCompanion(
+                uuid: uuid,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusM: radiusM,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String name,
+                required double latitude,
+                required double longitude,
+                Value<double> radiusM = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SavedPlacesCompanion.insert(
+                uuid: uuid,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusM: radiusM,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SavedPlacesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $SavedPlacesTable,
+      SavedPlaceRow,
+      $$SavedPlacesTableFilterComposer,
+      $$SavedPlacesTableOrderingComposer,
+      $$SavedPlacesTableAnnotationComposer,
+      $$SavedPlacesTableCreateCompanionBuilder,
+      $$SavedPlacesTableUpdateCompanionBuilder,
+      (
+        SavedPlaceRow,
+        BaseReferences<_$HarvestDatabase, $SavedPlacesTable, SavedPlaceRow>,
+      ),
+      SavedPlaceRow,
+      PrefetchHooks Function()
+    >;
+typedef $$NoteAttachmentsTableCreateCompanionBuilder =
+    NoteAttachmentsCompanion Function({
+      required String uuid,
+      required String noteUuid,
+      Value<String> kind,
+      required String fileName,
+      required String storedPath,
+      Value<int?> durationMs,
+      Value<int> sizeBytes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$NoteAttachmentsTableUpdateCompanionBuilder =
+    NoteAttachmentsCompanion Function({
+      Value<String> uuid,
+      Value<String> noteUuid,
+      Value<String> kind,
+      Value<String> fileName,
+      Value<String> storedPath,
+      Value<int?> durationMs,
+      Value<int> sizeBytes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$NoteAttachmentsTableReferences
+    extends
+        BaseReferences<
+          _$HarvestDatabase,
+          $NoteAttachmentsTable,
+          NoteAttachmentRow
+        > {
+  $$NoteAttachmentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $NotesTable _noteUuidTable(_$HarvestDatabase db) =>
+      db.notes.createAlias('note_attachments__note_uuid__notes__uuid');
+
+  $$NotesTableProcessedTableManager get noteUuid {
+    final $_column = $_itemColumn<String>('note_uuid')!;
+
+    final manager = $$NotesTableTableManager(
+      $_db,
+      $_db.notes,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_noteUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$NoteAttachmentsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $NoteAttachmentsTable> {
+  $$NoteAttachmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get storedPath => $composableBuilder(
+    column: $table.storedPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$NotesTableFilterComposer get noteUuid {
+    final $$NotesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteUuid,
+      referencedTable: $db.notes,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NotesTableFilterComposer(
+            $db: $db,
+            $table: $db.notes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteAttachmentsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $NoteAttachmentsTable> {
+  $$NoteAttachmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get storedPath => $composableBuilder(
+    column: $table.storedPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$NotesTableOrderingComposer get noteUuid {
+    final $$NotesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteUuid,
+      referencedTable: $db.notes,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NotesTableOrderingComposer(
+            $db: $db,
+            $table: $db.notes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteAttachmentsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $NoteAttachmentsTable> {
+  $$NoteAttachmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<String> get storedPath => $composableBuilder(
+    column: $table.storedPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sizeBytes =>
+      $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$NotesTableAnnotationComposer get noteUuid {
+    final $$NotesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteUuid,
+      referencedTable: $db.notes,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NotesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.notes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteAttachmentsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $NoteAttachmentsTable,
+          NoteAttachmentRow,
+          $$NoteAttachmentsTableFilterComposer,
+          $$NoteAttachmentsTableOrderingComposer,
+          $$NoteAttachmentsTableAnnotationComposer,
+          $$NoteAttachmentsTableCreateCompanionBuilder,
+          $$NoteAttachmentsTableUpdateCompanionBuilder,
+          (NoteAttachmentRow, $$NoteAttachmentsTableReferences),
+          NoteAttachmentRow,
+          PrefetchHooks Function({bool noteUuid})
+        > {
+  $$NoteAttachmentsTableTableManager(
+    _$HarvestDatabase db,
+    $NoteAttachmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NoteAttachmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NoteAttachmentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NoteAttachmentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> noteUuid = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> fileName = const Value.absent(),
+                Value<String> storedPath = const Value.absent(),
+                Value<int?> durationMs = const Value.absent(),
+                Value<int> sizeBytes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NoteAttachmentsCompanion(
+                uuid: uuid,
+                noteUuid: noteUuid,
+                kind: kind,
+                fileName: fileName,
+                storedPath: storedPath,
+                durationMs: durationMs,
+                sizeBytes: sizeBytes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String noteUuid,
+                Value<String> kind = const Value.absent(),
+                required String fileName,
+                required String storedPath,
+                Value<int?> durationMs = const Value.absent(),
+                Value<int> sizeBytes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NoteAttachmentsCompanion.insert(
+                uuid: uuid,
+                noteUuid: noteUuid,
+                kind: kind,
+                fileName: fileName,
+                storedPath: storedPath,
+                durationMs: durationMs,
+                sizeBytes: sizeBytes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$NoteAttachmentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({noteUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (noteUuid) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.noteUuid,
+                        referencedTable: $$NoteAttachmentsTableReferences
+                            ._noteUuidTable(db),
+                        referencedColumn: $$NoteAttachmentsTableReferences
+                            ._noteUuidTable(db)
+                            .uuid,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$NoteAttachmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $NoteAttachmentsTable,
+      NoteAttachmentRow,
+      $$NoteAttachmentsTableFilterComposer,
+      $$NoteAttachmentsTableOrderingComposer,
+      $$NoteAttachmentsTableAnnotationComposer,
+      $$NoteAttachmentsTableCreateCompanionBuilder,
+      $$NoteAttachmentsTableUpdateCompanionBuilder,
+      (NoteAttachmentRow, $$NoteAttachmentsTableReferences),
+      NoteAttachmentRow,
+      PrefetchHooks Function({bool noteUuid})
+    >;
 
 class $HarvestDatabaseManager {
   final _$HarvestDatabase _db;
@@ -25172,4 +31249,16 @@ class $HarvestDatabaseManager {
       $$OutboxTableTableManager(_db, _db.outbox);
   $$KvSettingsTableTableManager get kvSettings =>
       $$KvSettingsTableTableManager(_db, _db.kvSettings);
+  $$GoalsTableTableManager get goals =>
+      $$GoalsTableTableManager(_db, _db.goals);
+  $$GoalItemsTableTableManager get goalItems =>
+      $$GoalItemsTableTableManager(_db, _db.goalItems);
+  $$LocationPointsTableTableManager get locationPoints =>
+      $$LocationPointsTableTableManager(_db, _db.locationPoints);
+  $$GeotagsTableTableManager get geotags =>
+      $$GeotagsTableTableManager(_db, _db.geotags);
+  $$SavedPlacesTableTableManager get savedPlaces =>
+      $$SavedPlacesTableTableManager(_db, _db.savedPlaces);
+  $$NoteAttachmentsTableTableManager get noteAttachments =>
+      $$NoteAttachmentsTableTableManager(_db, _db.noteAttachments);
 }

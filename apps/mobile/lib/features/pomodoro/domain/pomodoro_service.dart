@@ -177,6 +177,7 @@ class PomodoroService {
             startedAt: at,
           ),
         );
+    await _db.logChange('pomodoro_sessions', snapshot.sessionUuid, 'insert');
     await saveActive(snapshot);
     return snapshot;
   }
@@ -192,17 +193,15 @@ class PomodoroService {
           focusBlocks: Value(snapshot.blocksDone + 1),
         ),
       );
-      await _db
-          .into(_db.ledger)
-          .insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'xp',
-              delta: pomodoroBlockXp,
-              reason: 'pomodoro:${snapshot.sessionUuid}',
-              harvestDay: HarvestDay.of(at).key,
-            ),
-          );
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: pomodoroBlockXp,
+          reason: 'pomodoro:${snapshot.sessionUuid}',
+          harvestDay: HarvestDay.of(at).key,
+        ),
+      );
     });
   }
 

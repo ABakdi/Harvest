@@ -89,17 +89,15 @@ class CheckInService {
               quantity: Value(toLog),
             ),
           );
-      await _db
-          .into(_db.ledger)
-          .insert(
-            LedgerCompanion.insert(
-              uuid: _uuid.v4(),
-              kind: 'xp',
-              delta: xp,
-              reason: 'checkin:$checkInUuid',
-              harvestDay: harvestDay.key,
-            ),
-          );
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: xp,
+          reason: 'checkin:$checkInUuid',
+          harvestDay: harvestDay.key,
+        ),
+      );
       await _outbox(checkInUuid, 'insert');
       return capped
           ? CheckInCapped(quantityLogged: toLog, xpEarned: xp)
@@ -142,17 +140,15 @@ class CheckInService {
           ..where(_db.ledger.reason.equals('checkin:${row.uuid}'));
         final xp = (await earnedQuery.getSingle()).read(earned) ?? 0;
         if (xp != 0) {
-          await _db
-              .into(_db.ledger)
-              .insert(
-                LedgerCompanion.insert(
-                  uuid: _uuid.v4(),
-                  kind: 'xp',
-                  delta: -xp,
-                  reason: 'undo:${row.uuid}',
-                  harvestDay: harvestDay.key,
-                ),
-              );
+          await _db.insertLedger(
+            LedgerCompanion.insert(
+              uuid: _uuid.v4(),
+              kind: 'xp',
+              delta: -xp,
+              reason: 'undo:${row.uuid}',
+              harvestDay: harvestDay.key,
+            ),
+          );
         }
         await _outbox(row.uuid, 'update');
       }

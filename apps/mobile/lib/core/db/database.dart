@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
@@ -35,6 +37,10 @@ class Commitments extends Table {
 
   /// Accomplish-before day (yyyy-MM-dd); overdue seeds turn urgent.
   TextColumn get deadline => text().nullable()();
+
+  /// The goal this seed serves, if any ([[Goals]]). A link, not an
+  /// owner: archiving either side never touches the other (GL5).
+  TextColumn get goalUuid => text().nullable()();
 
   DateTimeColumn get archivedAt => dateTime().nullable()();
 
@@ -647,6 +653,172 @@ class SleepSessions extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
+/// Something I am working toward, with a list of what it takes
+/// ([[Goals]]). No streak, no schedule: its seeds are what get judged.
+@DataClassName('GoalRow')
+class Goals extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get title => text()();
+
+  /// Why I want it. Free text, shown at the top of the goal.
+  TextColumn get why => text().withDefault(const Constant(''))();
+
+  /// Optional target Harvest Day (yyyy-MM-dd).
+  TextColumn get targetDay => text().nullable()();
+
+  /// `active` | `achieved` | `dropped`.
+  TextColumn get status => text().withDefault(const Constant('active'))();
+
+  /// Why it was dropped, or a line on how it was achieved.
+  TextColumn get statusNote => text().nullable()();
+  DateTimeColumn get achievedAt => dateTime().nullable()();
+
+  /// Order on the board.
+  IntColumn get position => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One line of what a goal takes: a `need` (to have or know) or a
+/// `step` (to do). Ticked by hand, or by the to-do it was planted as.
+@DataClassName('GoalItemRow')
+class GoalItems extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get goalUuid => text().references(Goals, #uuid)();
+
+  /// `need` | `step`.
+  TextColumn get kind => text().withDefault(const Constant('step'))();
+  TextColumn get body => text()();
+  TextColumn get note => text().nullable()();
+
+  /// Ticked when set; the time it was ticked.
+  DateTimeColumn get doneAt => dateTime().nullable()();
+  IntColumn get position => integer().withDefault(const Constant(0))();
+
+  /// The seed this item was planted as, if it was.
+  TextColumn get commitmentUuid => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One point of the trail ([[Places]]). Append-only (PL4): a day's
+/// trail can be deleted whole, a point is never moved.
+@DataClassName('LocationPointRow')
+@TableIndex(name: 'location_points_day', columns: {#harvestDay})
+class LocationPoints extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get harvestDay => text()();
+  DateTimeColumn get recordedAt => dateTime()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get accuracyM => real().nullable()();
+  RealColumn get speedMps => real().nullable()();
+  RealColumn get altitudeM => real().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// Where I was when a row was written ([[Places]] PL2): one geotag per
+/// insert into an action table, resolved after the fact.
+@DataClassName('GeotagRow')
+@TableIndex(name: 'geotags_target', columns: {#targetTable, #targetUuid})
+@TableIndex(name: 'geotags_day', columns: {#harvestDay})
+class Geotags extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get targetTable => text()();
+  TextColumn get targetUuid => text()();
+  TextColumn get harvestDay => text()();
+
+  /// When the action happened — not when the fix arrived.
+  DateTimeColumn get at => dateTime()();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+  RealColumn get accuracyM => real().nullable()();
+
+  /// `pending` | `fixed` | `unavailable`.
+  TextColumn get state => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// A stay I gave a name ("Home", "Gym"), and the circle it covers.
+@DataClassName('SavedPlaceRow')
+class SavedPlaces extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get name => text()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get radiusM => real().withDefault(const Constant(100))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// A file that belongs to a note — a recording — embedded in its body
+/// as `![[fileName]]` ([[Notes]] N7).
+@DataClassName('NoteAttachmentRow')
+class NoteAttachments extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get noteUuid => text().references(Notes, #uuid)();
+
+  /// `audio`.
+  TextColumn get kind => text().withDefault(const Constant('audio'))();
+
+  /// The name the body embeds; unique, so an embed resolves to one file.
+  TextColumn get fileName => text().unique()();
+
+  /// Relative to the attachments directory.
+  TextColumn get storedPath => text()();
+  IntColumn get durationMs => integer().nullable()();
+  IntColumn get sizeBytes => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// The tables whose inserts are *things I did*, and so get a geotag
+/// when Places is on ([[Places]] PL2). A new feature joins by being
+/// added here.
+const actionTables = {
+  'commitments',
+  'check_ins',
+  'seed_notes',
+  'notes',
+  'note_attachments',
+  'memories',
+  'albums',
+  'expenses',
+  'money_txns',
+  'debts',
+  'debt_payments',
+  'body_weights',
+  'sleep_sessions',
+  'workout_sessions',
+  'goals',
+  'goal_items',
+  'saved_places',
+};
+
 @DriftDatabase(
   tables: [
     Commitments,
@@ -679,6 +851,12 @@ class SleepSessions extends Table {
     DebtPayments,
     Outbox,
     KvSettings,
+    Goals,
+    GoalItems,
+    LocationPoints,
+    Geotags,
+    SavedPlaces,
+    NoteAttachments,
   ],
 )
 class HarvestDatabase extends _$HarvestDatabase {
@@ -687,7 +865,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -761,18 +939,96 @@ class HarvestDatabase extends _$HarvestDatabase {
         await m.addColumn(workoutSessions, workoutSessions.pausedAt);
         await m.addColumn(workoutSessions, workoutSessions.pausedSeconds);
       }
+      // Phase 5 in one step, as phase 4 was: goals, places and voice.
+      if (from < 15) {
+        await m.addColumn(commitments, commitments.goalUuid);
+        await m.createTable(goals);
+        await m.createTable(goalItems);
+        await m.createTable(locationPoints);
+        await m.createTable(geotags);
+        await m.createTable(savedPlaces);
+        await m.createTable(noteAttachments);
+        await m.createIndex(locationPointsDay);
+        await m.createIndex(geotagsTarget);
+        await m.createIndex(geotagsDay);
+      }
     },
   );
 
   static QueryExecutor _openConnection() => driftDatabase(name: 'harvest');
 
-  /// Appends one change-log row for the future sync client
-  /// ([[Sync-Strategy]]). Every repository used to carry its own copy
-  /// of this insert; now they call this ([[Audit-v2-Beta]] Q2-06).
-  Future<void> logChange(String table, String rowUuid, String op) =>
-      into(
-        outbox,
-      ).insert(
-        OutboxCompanion.insert(targetTable: table, rowUuid: rowUuid, op: op),
+  /// Whether an insert into an action table also writes a pending
+  /// geotag ([[Places]] PL2). Set from the `features.places` setting by
+  /// the app; a background isolate's database leaves it off.
+  bool geotagging = false;
+
+  /// Appends one change-log row for the sync client ([[Sync-Strategy]]).
+  /// Every repository used to carry its own copy of this insert; now
+  /// they call this ([[Audit-v2-Beta]] Q2-06).
+  ///
+  /// It is also the one place every action passes through, so it is
+  /// where an action gets its place: an insert into an [actionTables]
+  /// table leaves a pending geotag for the filler to resolve.
+  Future<void> logChange(String table, String rowUuid, String op) async {
+    await into(
+      outbox,
+    ).insert(
+      OutboxCompanion.insert(targetTable: table, rowUuid: rowUuid, op: op),
+    );
+    if (geotagging && op == 'insert' && actionTables.contains(table)) {
+      final now = DateTime.now();
+      final tag = geotagUuid(table, rowUuid);
+      await into(geotags).insert(
+        GeotagsCompanion.insert(
+          uuid: tag,
+          targetTable: table,
+          targetUuid: rowUuid,
+          harvestDay: harvestDayKeyOf(now),
+          at: now,
+        ),
+        mode: InsertMode.insertOrIgnore,
       );
+      await into(outbox).insert(
+        OutboxCompanion.insert(
+          targetTable: 'geotags',
+          rowUuid: tag,
+          op: 'insert',
+        ),
+      );
+    }
+  }
+
+  /// Keeps the change log to its newest [keep] rows.
+  ///
+  /// The log is an increment, never the only copy: a device's first sync
+  /// sends a full snapshot of every table ([[Sync-API]]), so rows that
+  /// piled up before any account existed can go without losing a
+  /// thing. This is the cap [[ADR-005-Local-First-Sync]] promised.
+  Future<int> capOutbox({int keep = 50000}) async {
+    final newest =
+        await (selectOnly(
+              outbox,
+            )..addColumns([outbox.seq.max()]))
+            .map((row) => row.read(outbox.seq.max()))
+            .getSingleOrNull();
+    if (newest == null || newest <= keep) return 0;
+    return (delete(
+      outbox,
+    )..where((row) => row.seq.isSmallerOrEqualValue(newest - keep))).go();
+  }
+
+  /// One XP or coin movement, with its change-log row. The ledger is
+  /// history that syncs ([[Sync-Strategy]]), so no service inserts
+  /// into it any other way ([[Audit-v2]] Q3-01).
+  Future<void> insertLedger(LedgerCompanion entry) async {
+    await into(ledger).insert(entry);
+    await logChange('ledger', entry.uuid.value, 'insert');
+  }
 }
+
+/// A geotag's id is derived from what it tags, so the same action can
+/// never be tagged twice — not by a retry, not by an import.
+String geotagUuid(String table, String rowUuid) =>
+    const Uuid().v5(Namespace.url.value, 'harvest:geotag:$table:$rowUuid');
+
+String harvestDayKeyOf(DateTime moment) => HarvestDay.of(moment).key;

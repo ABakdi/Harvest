@@ -102,6 +102,7 @@ Future<void> appBootstrap(Ref ref) async {
       await ref
           .read(vaultRepositoryProvider)
           .purgeDeleted(olderThan: purgeAfter);
+      await ref.read(databaseProvider).capOutbox();
     }),
   );
   unawaited(

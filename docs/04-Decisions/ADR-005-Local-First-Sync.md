@@ -18,6 +18,6 @@ Local-first is constitutional ([[Business-Rules]] #5). From schema v1, every tab
 
 ## Consequences
 
-- Outbox grows until Phase 5 — pruned by a size cap until a server exists to drain it.
+- The outbox is capped at its newest 50,000 rows (`capOutbox`, run with the startup purge). A device's first sync sends a full snapshot of every table ([[Sync-API]]), so the cap can never lose a change: the outbox is an increment, not the only copy.
 - Deletes must be soft (`deletedAt`) everywhere from day one.
 - The sync API contract (batch push/pull by cursor, upsert-by-uuid) is fixed early, which constrains but also clarifies the Phase 5 server design.
