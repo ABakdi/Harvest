@@ -32,13 +32,22 @@ class _RatesCardState extends ConsumerState<RatesCard> {
   final _usdFocus = FocusNode();
   final _eurFocus = FocusNode();
   var _fetching = false;
+  var _loaded = false;
 
   @override
   void initState() {
     super.initState();
-    final values = ref.read(rateSettingsProvider).value ?? const {};
-    _usdController.text = values[RateKeys.dzdPerUsd] ?? '';
-    _eurController.text = values[RateKeys.dzdPerEur] ?? '';
+    // The stored rates arrive from a stream that is still loading when
+    // the card opens. The fields are filled on the first data, and until
+    // then nothing is saved: an empty field that has not heard from the
+    // database yet is not a rate I cleared ([[Audit-v2]] U3-02).
+    ref.listenManual(rateSettingsProvider, (_, next) {
+      final values = next.value;
+      if (values == null || _loaded) return;
+      _loaded = true;
+      _usdController.text = values[RateKeys.dzdPerUsd] ?? '';
+      _eurController.text = values[RateKeys.dzdPerEur] ?? '';
+    }, fireImmediately: true);
     _usdFocus.addListener(
       () => _onFocusChange(_usdFocus, RateKeys.dzdPerUsd, _usdController),
     );
@@ -61,7 +70,7 @@ class _RatesCardState extends ConsumerState<RatesCard> {
     String key,
     TextEditingController controller,
   ) {
-    if (node.hasFocus) return;
+    if (node.hasFocus || !_loaded) return;
     final stored = ref.read(rateSettingsProvider).value?[key] ?? '';
     if (controller.text.trim() != stored) {
       unawaited(_saveManual(key, controller.text));

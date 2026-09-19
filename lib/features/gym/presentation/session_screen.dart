@@ -8,6 +8,7 @@ import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/presentation/capture_sheet.dart';
 import 'package:harvest/features/gym/data/exercises_repository.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
@@ -241,6 +242,15 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     // Finishing is the only thing that checks the habit in: starting
     // is an intention and abandoning is a Tuesday ([[Gym]] rule Y4).
     final outcome = await ref.read(sessionFinisherProvider).finish(session);
+    // The album is looked up while `ref` still works: the picture is
+    // offered after this screen has gone.
+    final album = outcome.albumUuid == null
+        ? null
+        : await ref
+              .read(galleryRepositoryProvider)
+              .albumOnce(
+                outcome.albumUuid!,
+              );
     await HarvestHaptics.thud();
     navigator.pop();
 
@@ -252,8 +262,8 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           SnackBar(content: Text(l10n.gymCheckedIn(outcome.xpEarned))),
         );
     }
-    if (outcome.albumUuid != null) {
-      await _offerPicture(outcome.albumUuid!);
+    if (album != null) {
+      unawaited(_offerPicture(navigator, album));
     }
   }
 
@@ -262,23 +272,25 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   /// Offered rather than demanded, and never in the middle of a set:
   /// the whole reason the preference exists is that a prompt at the
   /// wrong moment gets dismissed forever.
-  Future<void> _offerPicture(String albumUuid) async {
+  ///
+  /// Asked from the navigator's own context, which outlives this
+  /// route: by the time I answer, the session screen is gone, and a
+  /// sheet opened from its context would open nowhere ([[Audit-v2]]
+  /// U3-03).
+  static Future<void> _offerPicture(
+    NavigatorState navigator,
+    Album album,
+  ) async {
+    final context = navigator.context;
     final l10n = AppLocalizations.of(context);
-    final album = await ref
-        .read(galleryRepositoryProvider)
-        .albumOnce(
-          albumUuid,
-        );
-    if (album == null || !mounted) return;
-
     final ok = await confirm(
       context,
       title: l10n.gymPictureNow,
       body: l10n.gymPictureNowBody,
       confirmLabel: l10n.gymPictureYes,
     );
-    if (!ok || !mounted) return;
-    await showCaptureSheet(context, album: album);
+    if (!ok || !navigator.mounted) return;
+    await showCaptureSheet(navigator.context, album: album);
   }
 
   Future<void> _discard(WorkoutSession session) async {

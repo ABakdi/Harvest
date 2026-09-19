@@ -20,6 +20,7 @@ import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -30,8 +31,12 @@ import io.flutter.plugin.common.PluginRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.Period
+import java.time.ZoneId
 
 /**
  * Where the step count comes from.
@@ -95,6 +100,8 @@ class HarvestStepsPlugin :
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel?.setMethodCallHandler(null)
         channel = null
+        // A read still in flight would answer a messenger that is gone.
+        scope.cancel()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) = attach(binding)
@@ -265,7 +272,7 @@ class HarvestStepsPlugin :
                     result.success("denied")
                     return@launch
                 }
-                val totals = windows.map { window ->
+                val totals = groupedTotals(client, windows) ?: windows.map { window ->
                     val response = client.aggregate(
                         AggregateRequest(
                             metrics = setOf(StepsRecord.COUNT_TOTAL),
@@ -284,6 +291,39 @@ class HarvestStepsPlugin :
                 result.error("read", error.message, null)
             }
         }
+    }
+
+    /**
+     * The whole run of windows in one call, when they are what the app
+     * always asks for: back-to-back days that each start at the same
+     * local time. Health Connect rate-limits reads, and thirty of them
+     * on every resume was most of the quota. Slicing by local days also
+     * gets a DST day's 23 or 25 hours right without any arithmetic.
+     *
+     * Returns null when the windows are any other shape, so the caller
+     * falls back to one read per window.
+     */
+    private suspend fun groupedTotals(
+        client: HealthConnectClient,
+        windows: List<List<Long>>,
+    ): List<Long>? {
+        if (windows.isEmpty()) return emptyList()
+        val zone = ZoneId.systemDefault()
+        val starts = windows.map { LocalDateTime.ofInstant(Instant.ofEpochMilli(it[0]), zone) }
+        val first = starts.first()
+        val contiguous = windows.zipWithNext().all { (a, b) -> a[1] == b[0] }
+        val daily = starts.withIndex().all { (i, start) -> start == first.plusDays(i.toLong()) }
+        if (!contiguous || !daily) return null
+        val end = first.plusDays(windows.size.toLong())
+        val buckets = client.aggregateGroupByPeriod(
+            AggregateGroupByPeriodRequest(
+                metrics = setOf(StepsRecord.COUNT_TOTAL),
+                timeRangeFilter = TimeRangeFilter.between(first, end),
+                timeRangeSlicer = Period.ofDays(1),
+            ),
+        )
+        val byStart = buckets.associate { it.startTime to (it.result[StepsRecord.COUNT_TOTAL] ?: 0L) }
+        return starts.map { byStart[it] ?: 0L }
     }
 
     private fun openHealthConnect() {

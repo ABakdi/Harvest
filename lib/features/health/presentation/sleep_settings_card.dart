@@ -180,8 +180,9 @@ class _WeekdayTile extends ConsumerWidget {
       initialTime: TimeOfDay(hour: base.wakeTime.$1, minute: base.wakeTime.$2),
       helpText: AppLocalizations.of(context).cycleWakeTime,
     );
-    if (wake == null) return;
+    if (wake == null || !context.mounted) return;
 
+    final planner = ref.read(notificationPlannerProvider);
     await ref
         .read(sleepNightOverrideProvider(weekday).notifier)
         .set(
@@ -190,6 +191,6 @@ class _WeekdayTile extends ConsumerWidget {
             wakeTime: (wake.hour, wake.minute),
           ),
         );
-    await ref.read(notificationPlannerProvider).planToday();
+    await planner.planToday();
   }
 }

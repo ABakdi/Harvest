@@ -78,17 +78,19 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
     );
     if (name == null || name.trim().isEmpty) return;
     final to = normalizeFolder(parent.isEmpty ? name : '$parent/$name');
-    if (to == folder) return;
+    if (to == folder || !mounted) return;
+    final folders = ref.read(declaredFoldersProvider.notifier);
     await ref.read(notesRepositoryProvider).renameFolder(folder, to);
-    await ref.read(declaredFoldersProvider.notifier).rename(folder, to);
+    await folders.rename(folder, to);
   }
 
   Future<void> _deleteFolder(String folder) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final repository = ref.read(notesRepositoryProvider);
+    final folders = ref.read(declaredFoldersProvider.notifier);
     final moved = await repository.trashFolder(folder);
-    await ref.read(declaredFoldersProvider.notifier).forget(folder);
+    await folders.forget(folder);
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.notesFolderTrashed(folder, moved))),
     );
@@ -187,14 +189,15 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
             ),
             const SizedBox(height: HarvestSpacing.xs),
             Expanded(
-              child: query.isNotEmpty
-                  ? _results(matches)
-                  : _tree(all, folders),
+              child: query.isNotEmpty ? _results(matches) : _tree(all, folders),
             ),
             const Divider(height: 1),
             ListTile(
               dense: true,
-              leading: Icon(Icons.delete_outline, color: scheme.onSurfaceVariant),
+              leading: Icon(
+                Icons.delete_outline,
+                color: scheme.onSurfaceVariant,
+              ),
               title: Text(l10n.trashTitle),
               trailing: trashed.isEmpty
                   ? null
@@ -329,7 +332,8 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
         ),
       ),
       if (expanded) ...[
-        for (final child in children) ..._folder(child, all, folders, depth + 1),
+        for (final child in children)
+          ..._folder(child, all, folders, depth + 1),
         for (final note in notes) _noteTile(note, depth: depth + 1),
         _NewHere(
           label: l10n.notesNewHere,
@@ -398,7 +402,9 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
     return InkWell(
       onTap: () => widget.onOpen(note.uuid),
       child: Container(
-        color: selected ? scheme.secondaryContainer.withValues(alpha: 0.6) : null,
+        color: selected
+            ? scheme.secondaryContainer.withValues(alpha: 0.6)
+            : null,
         padding: EdgeInsets.fromLTRB(
           HarvestSpacing.md + depth * 14,
           8,

@@ -828,3 +828,15 @@ is broken.
    releases), S3-02 (the rationale page).
 
 Related: [[Audit-Home]] · [[Audit-v2-Beta]] · [[Checkpoint-7]] · [[Checkpoint-8]]
+
+## Status — waves 1 and 2 remediated 2026-09-19
+
+| Wave | Findings | What landed |
+| :--- | :--- | :--- |
+| 1 · what loses what I typed | U3-01 · U3-02 · U3-03 · U3-09 · U3-20 | **The note editor** takes its repository and the writing flag in `initState`, so `dispose` no longer touches `ref`. The pending save is written, and the flag is put down after the frame. **The rate card** fills on the first data and saves nothing before it. **The gym picture prompt** is asked from the navigator's context, which outlives the session route. **The field** keys the `Animate` wrapper and takes the editor before the completion dialog. **The daily-cycle card, the sleep override and the folder sheet** take what they need before their first await. Widget tests: `note_editor_test.dart` and `rates_card_test.dart`, both failing against the old code. |
+| 2 · steps | B3-01 · B3-02 · B3-06 · B3-08 · S3-03 · S3-04 · S3-09 | **The sensor close** only writes to the ended day inside a three-hour window after 3 AM, and only if nothing has read the new day yet. Outside that, the ended day keeps what it had, so a late job, a DST shift or a morning open cannot count the same steps twice. **A pull** pays every unpaid day since the last one the ledger paid. **The step windows** move with `currentHarvestDayProvider`. **`_payOnce`** reads and writes in one transaction. **A failed Health Connect read** is a `failed` outcome that keeps the card as it was, and "unavailable" is no longer mistaken for a refusal. **The plugin** reads the thirty days in one `aggregateGroupByPeriod` (per-window reads remain as the fallback) and cancels its scope on detach. 586 tests. |
+
+The job itself is still a periodic WorkManager task, and it still
+drifts. With the window guard, drift can no longer corrupt a day: at
+worst the close is skipped, and the evening's steps are written down
+on the next open.

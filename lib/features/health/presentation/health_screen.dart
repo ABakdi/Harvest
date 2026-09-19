@@ -379,7 +379,7 @@ class _StepsSourceRow extends ConsumerWidget {
     final healthConnect = pull.status.backend == StepsBackend.healthConnect;
 
     switch (pull.outcome) {
-      case StepsSyncOutcome.synced:
+      case StepsSyncOutcome.synced || StepsSyncOutcome.failed:
         return Row(
           children: [
             Expanded(

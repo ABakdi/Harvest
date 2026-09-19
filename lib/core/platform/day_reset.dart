@@ -75,13 +75,14 @@ Future<void> _closeSteps(HarvestDatabase db) async {
     final settings = SettingsRepository(db);
     final health = await settings.getString(FeatureKeys.health);
     if (health != 'true') return;
+    final now = DateTime.now();
     final goal = int.tryParse(
       await settings.getString(HealthKeys.stepGoal) ?? '',
     );
     final outcome = await StepsSync(
       HealthRepository(db),
       const ChannelStepsSource(),
-    ).closeDay(ended: HarvestDay.today().previous, goal: goal ?? 0);
+    ).closeDay(ended: HarvestDay.of(now).previous, goal: goal ?? 0, now: now);
     debugPrint('[day reset] steps: ${outcome.name}');
   } on Object catch (error) {
     debugPrint('[day reset] steps not closed: ${error.runtimeType}');

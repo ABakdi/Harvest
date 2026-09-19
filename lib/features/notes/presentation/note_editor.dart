@@ -45,13 +45,17 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
   String? _loaded;
   String _lastBody = '';
 
-  late final NotesRepository _repository = ref.read(
-    notesRepositoryProvider,
-  );
+  // Taken while the widget is alive: `dispose` runs after the element
+  // is unmounted, and by then `ref` refuses every call ([[Audit-v2]]
+  // U3-01). What the last save and the toolbar need is kept here.
+  late final NotesRepository _repository;
+  late final WritingNote _writing;
 
   @override
   void initState() {
     super.initState();
+    _repository = ref.read(notesRepositoryProvider);
+    _writing = ref.read(writingNoteProvider.notifier);
     // Redraws on every caret move: which line shows its syntax is a
     // function of the selection, so the selection has to repaint.
     widget.controller.addListener(_onSelectionChanged);
@@ -74,13 +78,14 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
           .ignore();
     }
     _title.dispose();
-    // Leaving the editor puts the toolbar away with it.
-    ref.read(writingNoteProvider.notifier).set(false);
+    // Leaving the editor puts the toolbar away with it — after the
+    // frame, since providers may not change while the tree finalizes.
+    final writing = _writing;
+    unawaited(Future.microtask(writing.release));
     super.dispose();
   }
 
-  void _onFocusChanged() =>
-      ref.read(writingNoteProvider.notifier).set(_bodyFocus.hasFocus);
+  void _onFocusChanged() => _writing.set(_bodyFocus.hasFocus);
 
   /// Fires for a caret move *and* for an edit.
   ///
@@ -105,9 +110,11 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
 
   Future<void> _save() async {
     if (!mounted) return;
-    await ref
-        .read(notesRepositoryProvider)
-        .update(widget.uuid, title: _title.text, body: widget.controller.text);
+    await _repository.update(
+      widget.uuid,
+      title: _title.text,
+      body: widget.controller.text,
+    );
   }
 
   /// Tapping a `[[link]]`: go there, or offer to write it.

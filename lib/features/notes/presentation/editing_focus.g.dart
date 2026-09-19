@@ -61,7 +61,7 @@ final class WritingNoteProvider extends $NotifierProvider<WritingNote, bool> {
   }
 }
 
-String _$writingNoteHash() => r'1d9eb2ec17a6c616058ea94f550a1532652f7db9';
+String _$writingNoteHash() => r'f6b66a77bf602972a0265302c71923c3383a8daa';
 
 /// Whether a note's body currently has the caret.
 ///

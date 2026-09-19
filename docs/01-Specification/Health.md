@@ -209,6 +209,7 @@ that is a different app and I am not writing it.
 | H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. |
 | H7 | Sleep is not a seed: it checks nothing in, breaks no streak, and never appears on the field. |
 | H8 | A night is filed under the Harvest Day I **woke up on**, because that is the day it decides. |
-| H9 | The day that ended gets its step goal paid by whichever pull sees it first — the 3 AM job or the next open — and once only ([[Checkpoint-8]]). |
+| H9 | The day that ended gets its step goal paid by whichever pull sees it first — the 3 AM job or the next open — and once only ([[Checkpoint-8]]). A pull pays every day since the last one paid, so a weekend without an open is paid on Monday ([[Audit-v2]] B3-02). |
+| H10 | On the sensor, the 3 AM job closes the ended day only within three hours of 3 AM and only if nothing has read the new day yet. Otherwise — and on most phones, which give a background app no sensor events at all — the evening's steps are written down on the next open, on the new day. Losing where a few hundred steps land is better than counting them twice ([[Audit-v2]] B3-01). |
 
 Related: [[Gym]] · [[Gallery]] · [[Gamification]] · [[Notifications]] · [[Business-Rules]]

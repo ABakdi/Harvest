@@ -103,7 +103,7 @@ final class RecentStepsProvider
   }
 }
 
-String _$recentStepsHash() => r'e50a663a46f709063c978cc2e29be6335be9b3b4';
+String _$recentStepsHash() => r'd8a96e63c09dce3249a3dbf78e95cded7d0b7914';
 
 final class RecentStepsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<StepDay>>, int> {

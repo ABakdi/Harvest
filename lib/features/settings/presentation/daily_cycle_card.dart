@@ -37,18 +37,21 @@ class DailyCycleCard extends ConsumerWidget {
         : current.copyWith(wakeTime: (picked.hour, picked.minute));
     if (next == current) return;
 
+    // Everything this needs from `ref` is taken before the first await:
+    // the dialog below can outlive the card ([[Audit-v2]] U3-20).
     final service = ref.read(dailyCycleServiceProvider);
+    final planner = ref.read(notificationPlannerProvider);
     await service.write(next);
 
     final clashes = await service.clashes(from: current, to: next);
     if (clashes.isEmpty || !context.mounted) {
-      await ref.read(notificationPlannerProvider).planToday();
+      await planner.planToday();
       return;
     }
 
     final move = await _askToMove(context, clashes);
     if (move) await service.shift(clashes);
-    await ref.read(notificationPlannerProvider).planToday();
+    await planner.planToday();
   }
 
   Future<bool> _askToMove(

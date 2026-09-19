@@ -21,7 +21,17 @@ enum StepsSyncOutcome {
 
   /// Nothing on this phone can count steps.
   unavailable,
+
+  /// The read was allowed and failed: keep what is there, try again
+  /// on the next pull.
+  failed,
 }
+
+/// How long after 3 AM a sensor reading still belongs to the day that
+/// ended. Later than this, the steps in the counter are as likely to be
+/// this morning's as last night's, and guessing is how a day gets
+/// counted twice ([[Audit-v2]] B3-01).
+const sensorCloseWindow = Duration(hours: 3);
 
 /// Pulls the phone's step count into `step_days`.
 ///
@@ -61,12 +71,32 @@ class StepsSync {
       StepsBackend.none => StepsSyncOutcome.unavailable,
     };
     if (outcome == StepsSyncOutcome.synced) {
-      await _repository.payStepGoal(today, goal: goal);
-      // Yesterday's goal may have been met after the last pull; the
-      // ledger takes it once and never again, so asking is free.
-      await _repository.payStepGoal(today.previous, goal: goal);
+      await _payUnpaid(today, goal: goal, days: days);
     }
     return outcome;
+  }
+
+  /// Pays every day a pull can see and the ledger has not paid (H9:
+  /// "whichever pull sees it first"). A day the 3 AM job could not
+  /// read, followed by a weekend without an open, is still paid on
+  /// Monday ([[Audit-v2]] B3-02).
+  ///
+  /// The walk starts after the last day ever paid, so a goal set today
+  /// does not pay a month of history back. A phone that has never paid
+  /// looks at today and yesterday only, which is what it always did.
+  Future<void> _payUnpaid(
+    HarvestDay today, {
+    required int goal,
+    required int days,
+  }) async {
+    if (goal <= 0) return;
+    final oldest = today.addDays(-(days - 1));
+    final lastPaid = await _repository.lastPaidStepDay();
+    var day = lastPaid == null ? today.previous : lastPaid.next;
+    if (day.compareTo(oldest) < 0) day = oldest;
+    for (; day.compareTo(today) <= 0; day = day.next) {
+      await _repository.payStepGoal(day, goal: goal);
+    }
   }
 
   /// The 3 AM pull: closes [ended], the day that just finished, and
@@ -76,15 +106,23 @@ class StepsSync {
   /// ordinary pull a day later. The sensor has no memory: the steps
   /// since its last reading belong to the day that ended, and the new
   /// day starts anchored where this reading leaves the counter.
+  ///
+  /// [now] is when the job actually runs, which WorkManager decides:
+  /// Doze defers it by hours and a DST change moves it by one.
   Future<StepsSyncOutcome> closeDay({
     required HarvestDay ended,
     required int goal,
+    DateTime? now,
     int days = stepsSyncDays,
   }) async {
     final status = await _source.status();
     final outcome = switch (status.backend) {
       StepsBackend.healthConnect => await _fromHealthConnect(ended.next, days),
-      StepsBackend.sensor => await _sensorAtDayEnd(status, ended),
+      StepsBackend.sensor => await _sensorAtDayEnd(
+        status,
+        ended,
+        now ?? DateTime.now(),
+      ),
       StepsBackend.none => StepsSyncOutcome.unavailable,
     };
     if (outcome == StepsSyncOutcome.synced) {
@@ -96,8 +134,26 @@ class StepsSync {
   Future<StepsSyncOutcome> _sensorAtDayEnd(
     StepsStatus status,
     HarvestDay ended,
+    DateTime now,
   ) async {
     if (!status.granted) return StepsSyncOutcome.needsPermission;
+
+    // The reading is only ended's to take when two things are true:
+    // it is still the small hours after ended closed, and nothing has
+    // read the new day yet. Otherwise the steps in the counter may
+    // already belong to — or already be counted on — the new day, and
+    // the ended day keeps what it had. On most phones the question is
+    // moot: Android does not deliver sensor events to a background
+    // app, the reading comes back null, and the evening's steps are
+    // written down on the next open ([[Health]] H9).
+    final closedAt = ended.next.startsAt;
+    final fresh =
+        !now.isBefore(closedAt) &&
+        now.isBefore(closedAt.add(sensorCloseWindow));
+    if (!fresh) return StepsSyncOutcome.synced;
+    final next = await _repository.stepsOn(ended.next);
+    if (next.lastCounter != null) return StepsSyncOutcome.synced;
+
     final counter = await _source.counter();
     if (counter == null) return StepsSyncOutcome.synced;
 
@@ -108,13 +164,9 @@ class StepsSync {
         counter: await _repository.lastCounterBefore(ended),
       );
     }
-    final closed = applyReading(day, counter);
-    final next = await _repository.stepsOn(ended.next);
     await _repository.saveStepDays([
-      closed,
-      // Only anchor a day nothing has written yet: a pull that beat
-      // the job to it already knows where the counter stands.
-      if (next.lastCounter == null) startOfDay(ended.next, counter: counter),
+      applyReading(day, counter),
+      startOfDay(ended.next, counter: counter),
     ]);
     return StepsSyncOutcome.synced;
   }
@@ -132,6 +184,8 @@ class StepsSync {
     switch (totals) {
       case StepsDenied():
         return StepsSyncOutcome.needsPermission;
+      case StepsUnreadable():
+        return StepsSyncOutcome.failed;
       case StepsCounted(:final totals):
         await _repository.saveStepDays([
           for (final (i, total) in totals.indexed)

@@ -136,7 +136,10 @@ class FieldScreen extends ConsumerWidget {
                 else ...[
                   for (final item in items)
                     _CropTile(key: ValueKey(item.commitment.uuid), item: item)
-                        .animate()
+                        // Keyed on the wrapper too: done crops sort
+                        // down, and an unkeyed Animate would rebuild the
+                        // tile mid-check-in ([[Audit-v2]] U3-09).
+                        .animate(key: ValueKey('anim:${item.commitment.uuid}'))
                         .fadeIn(duration: 220.ms)
                         .slideY(begin: 0.05, curve: Curves.easeOut),
                   for (final entry in albums)
@@ -526,6 +529,9 @@ class _CropTile extends ConsumerWidget {
     NavigatorState navigator,
     int total,
   ) async {
+    // Taken before the dialog: the tile may be gone by the time it
+    // closes, and its `ref` with it.
+    final editor = ref.read(commitmentEditorProvider.notifier);
     final context = navigator.context;
     if (!context.mounted) return;
     final l10n = AppLocalizations.of(context);
@@ -542,9 +548,7 @@ class _CropTile extends ConsumerWidget {
         ],
       ),
     );
-    await ref
-        .read(commitmentEditorProvider.notifier)
-        .archive(item.commitment.uuid);
+    await editor.archive(item.commitment.uuid);
   }
 }
 

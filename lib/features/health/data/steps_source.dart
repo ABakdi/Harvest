@@ -73,6 +73,13 @@ class StepsDenied extends StepsTotals {
   const StepsDenied();
 }
 
+/// The read was allowed and failed anyway: a rate limit, Health
+/// Connect mid-update, a remote error. Keep what is on screen and try
+/// again on the next pull; it is neither a refusal nor a quiet day.
+class StepsUnreadable extends StepsTotals {
+  const StepsUnreadable();
+}
+
 /// The platform edge for steps — a real one on the phone, a fake in
 /// the tests, the same as every other sensor-shaped thing in the app.
 abstract interface class StepsSource {
@@ -94,7 +101,8 @@ abstract interface class StepsSource {
   Future<void> openHealthConnect();
 }
 
-/// The method channel to `StepsChannel.kt`.
+/// The method channel to the `harvest_steps` plugin
+/// (`HarvestStepsPlugin.kt`).
 class ChannelStepsSource implements StepsSource {
   const ChannelStepsSource();
 
@@ -132,21 +140,39 @@ class ChannelStepsSource implements StepsSource {
 
   @override
   Future<StepsTotals> totals(List<StepsWindow> windows) async {
-    final raw = await _channel.invokeMethod<Object?>('readTotals', [
-      for (final window in windows)
-        [
-          window.start.millisecondsSinceEpoch,
-          window.end.millisecondsSinceEpoch,
-        ],
-    ]);
-    if (raw is List) {
-      return StepsCounted([for (final total in raw) (total as num).toInt()]);
+    final Object? raw;
+    try {
+      raw = await _channel.invokeMethod<Object?>('readTotals', [
+        for (final window in windows)
+          [
+            window.start.millisecondsSinceEpoch,
+            window.end.millisecondsSinceEpoch,
+          ],
+      ]);
+    } on PlatformException {
+      return const StepsUnreadable();
+    } on MissingPluginException {
+      return const StepsUnreadable();
     }
-    return const StepsDenied();
+    return switch (raw) {
+      final List<Object?> totals => StepsCounted([
+        for (final total in totals) (total! as num).toInt(),
+      ]),
+      'denied' => const StepsDenied(),
+      _ => const StepsUnreadable(),
+    };
   }
 
   @override
-  Future<int?> counter() => _channel.invokeMethod<int>('readCounter');
+  Future<int?> counter() async {
+    try {
+      return await _channel.invokeMethod<int>('readCounter');
+    } on PlatformException {
+      return null;
+    } on MissingPluginException {
+      return null;
+    }
+  }
 
   @override
   Future<void> openHealthConnect() =>

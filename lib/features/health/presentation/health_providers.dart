@@ -23,8 +23,9 @@ Stream<List<BodyWeight>> bodyWeights(Ref ref) =>
     ref.watch(healthRepositoryProvider).watchWeights();
 
 @riverpod
-Stream<List<StepDay>> recentSteps(Ref ref, int days) =>
-    ref.watch(healthRepositoryProvider).watchSteps(days: days);
+Stream<List<StepDay>> recentSteps(Ref ref, int days) => ref
+    .watch(healthRepositoryProvider)
+    .watchSteps(days: days, today: ref.watch(currentHarvestDayProvider));
 
 @riverpod
 Stream<StepDay?> stepsToday(Ref ref) => ref

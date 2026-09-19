@@ -16,6 +16,10 @@ class FakeStepsSource implements StepsSource {
   /// windows asked for means zeros for the rest.
   List<int> perWindow = const [];
 
+  /// A read that is allowed and fails anyway (a rate limit, Health
+  /// Connect mid-update).
+  bool unreadable = false;
+
   /// The sensor's since-boot reading; null for a silent sensor.
   int? sinceBoot;
 
@@ -44,6 +48,7 @@ class FakeStepsSource implements StepsSource {
     if (backend != StepsBackend.healthConnect || !granted) {
       return const StepsDenied();
     }
+    if (unreadable) return const StepsUnreadable();
     return StepsCounted([
       for (var i = 0; i < windows.length; i++)
         if (i < perWindow.length) perWindow[i] else 0,

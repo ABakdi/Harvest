@@ -18,4 +18,10 @@ class WritingNote extends _$WritingNote {
   void set(bool writing) {
     if (state != writing) state = writing;
   }
+
+  /// The editor is gone. If nobody watches the flag any more it has
+  /// already reset itself with its provider; otherwise put it down.
+  void release() {
+    if (ref.mounted) set(false);
+  }
 }

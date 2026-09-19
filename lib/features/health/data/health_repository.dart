@@ -116,8 +116,10 @@ class HealthRepository {
 
   // --------------------------------------------------------------- steps
 
-  Stream<List<StepDay>> watchSteps({int days = 30}) {
-    final from = HarvestDay.today().addDays(-(days - 1)).key;
+  /// The [days] ending on [today] — passed in, so a screen left open
+  /// across 3 AM moves its window with the day ([[Audit-v2]] B3-06).
+  Stream<List<StepDay>> watchSteps({int days = 30, HarvestDay? today}) {
+    final from = (today ?? HarvestDay.today()).addDays(-(days - 1)).key;
     final query = _db.select(_db.stepDays)
       ..where((s) => s.harvestDay.isBiggerOrEqualValue(from))
       ..orderBy([(s) => OrderingTerm.asc(s.harvestDay)]);
@@ -181,12 +183,29 @@ class HealthRepository {
     return _payOnce(reason: 'steps:${day.key}', xp: stepGoalXp, day: day);
   }
 
+  /// The most recent day whose step goal the ledger has paid, or null
+  /// if it never has.
+  Future<HarvestDay?> lastPaidStepDay() async {
+    final row =
+        await (_db.select(_db.ledger)
+              ..where((l) => l.reason.like('steps:%'))
+              ..orderBy([(l) => OrderingTerm.desc(l.harvestDay)])
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null ? null : HarvestDay.tryParse(row.harvestDay);
+  }
+
   /// One ledger row per [reason], ever. Returns whether one was added.
+  ///
+  /// The read and the write share a transaction: the 3 AM job runs in
+  /// its own isolate with its own connection, and a pull landing at the
+  /// same moment must find the job's row or fail, never pay beside it
+  /// ([[Audit-v2]] B3-08).
   Future<bool> _payOnce({
     required String reason,
     required int xp,
     required HarvestDay day,
-  }) async {
+  }) => _db.transaction(() async {
     final paid = await (_db.select(
       _db.ledger,
     )..where((l) => l.reason.equals(reason))).getSingleOrNull();
@@ -203,7 +222,7 @@ class HealthRepository {
           ),
         );
     return true;
-  }
+  });
 
   // ---------------------------------------------------------------------
 
