@@ -213,3 +213,43 @@ final class GymEnabledProvider extends $FunctionalProvider<bool, bool, bool>
 }
 
 String _$gymEnabledHash() => r'a05238209aa9054a9fd156f6c5aa4b4ba6a4e8f5';
+
+@ProviderFor(placesEnabled)
+final placesEnabledProvider = PlacesEnabledProvider._();
+
+final class PlacesEnabledProvider extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  PlacesEnabledProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'placesEnabledProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$placesEnabledHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return placesEnabled(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$placesEnabledHash() => r'071cc1e02d19c162a247e4bf39a550f03c3976e7';

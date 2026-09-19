@@ -20,12 +20,16 @@ abstract final class FeatureKeys {
   static const health = 'features.health';
   static const gym = 'features.gym';
 
+  /// Places: the trail and a geotag on every action ([[Places]] PL1).
+  static const places = 'features.places';
+
   /// Asked in onboarding; every one of them defaults to no.
   static const Map<String, bool> defaults = {
     notes: false,
     gallery: false,
     health: false,
     gym: false,
+    places: false,
   };
 }
 
@@ -60,3 +64,7 @@ bool healthEnabled(Ref ref) =>
 @riverpod
 bool gymEnabled(Ref ref) =>
     ref.watch(featureSwitchesProvider).value?[FeatureKeys.gym] ?? false;
+
+@riverpod
+bool placesEnabled(Ref ref) =>
+    ref.watch(featureSwitchesProvider).value?[FeatureKeys.places] ?? false;

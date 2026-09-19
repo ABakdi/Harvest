@@ -816,7 +816,6 @@ const actionTables = {
   'workout_sessions',
   'goals',
   'goal_items',
-  'saved_places',
 };
 
 @DriftDatabase(

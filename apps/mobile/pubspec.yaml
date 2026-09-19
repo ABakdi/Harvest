@@ -17,10 +17,12 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.2
+  flutter_foreground_task: ^11.0.3
   flutter_local_notifications: ^22.3.0
   flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^3.4.2
+  geolocator: ^14.0.3
   go_router: ^18.0.0
   harvest_steps:
     path: packages/harvest_steps
@@ -29,10 +31,12 @@ dependencies:
   image_picker: ^1.2.3
   intl: ^0.20.3
   local_auth: ^3.0.2
+  maplibre_gl: ^0.25.0
   meta: ^1.19.0
   path: ^1.9.1
   path_provider: ^2.1.6
   pdf: ^3.12.0
+  permission_handler: ^13.0.2
   printing: ^5.14.3
   riverpod_annotation: ^4.0.6
   share_plus: ^13.3.0

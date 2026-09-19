@@ -11,6 +11,7 @@ import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
+import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/security/domain/app_lock.dart';
 import 'package:harvest/features/security/presentation/lock_gate.dart';
@@ -86,6 +87,9 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
       if (ref.read(healthEnabledProvider)) {
         await ref.read(stepsPullProvider.notifier).refresh();
       }
+      // A pause that ran out while I was away, or a permission granted
+      // in the settings page, takes effect on the way back in.
+      await ref.read(placesControllerProvider.notifier).sync();
     } on Object catch (error) {
       ref.read(bootstrapStatusProvider.notifier).report('resume', error);
     }

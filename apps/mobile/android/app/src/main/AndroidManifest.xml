@@ -22,6 +22,14 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
     <!-- The app lock uses the device's own prompt (checkpoint C2-1). -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <!-- Places (phase 5): geotags need "while using the app"; the trail
+         needs "all the time" and a foreground service of type location,
+         whose notification is always on screen while it records. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
     <!-- Spreadsheet export writes to Downloads. Android 10+ goes
          through MediaStore and needs nothing; only 8.0-9.0 needs this,
          so it stops at API 28 (checkpoint rule X6). -->
@@ -138,6 +146,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- The trail recorder (flutter_foreground_task). The name is the
+             plugin's own and must not change. -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
