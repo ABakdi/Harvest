@@ -13,6 +13,7 @@ import {
   sleepDebtMinutes,
   sleptMinutes,
   shortfallMinutes,
+  stayRadiusM,
   staysIn,
   targetMinutesFor,
   toDefault,
@@ -167,6 +168,7 @@ describe('places', () => {
       why: string;
       points: { latitude: number; longitude: number; at: string }[];
       places: { uuid: string; name: string; latitude: number; longitude: number; radiusM?: number }[];
+
       result: (Omit<Stay, 'place'> & { minutes: number; place: string | null })[];
     }[];
   }>('places');
@@ -180,7 +182,11 @@ describe('places', () => {
   });
 
   it.each(spec.stays)('a stay: $why', ({ points, places, result }) => {
-    const stays = staysIn(points, places);
+    // A fixture may leave the radius out; the default is the rule's own.
+    const stays = staysIn(
+      points,
+      places.map((place) => ({ ...place, radiusM: place.radiusM ?? stayRadiusM })),
+    );
     expect(stays).toHaveLength(result.length);
     stays.forEach((stay, i) => {
       const expected = result[i]!;
