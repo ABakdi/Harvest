@@ -8,6 +8,7 @@ import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/features/account/presentation/account_card.dart';
 import 'package:harvest/features/assist/presentation/assist_settings_card.dart';
 import 'package:harvest/features/export/presentation/export_card.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
@@ -37,6 +38,7 @@ enum SettingsSection {
   pomodoro,
   money,
   privacy,
+  account,
   data,
   appearance,
 }
@@ -49,6 +51,7 @@ extension on SettingsSection {
     SettingsSection.pomodoro => Icons.timer_outlined,
     SettingsSection.money => Icons.payments_outlined,
     SettingsSection.privacy => Icons.lock_outline,
+    SettingsSection.account => Icons.account_circle_outlined,
     SettingsSection.data => Icons.folder_outlined,
     SettingsSection.appearance => Icons.palette_outlined,
   };
@@ -60,6 +63,7 @@ extension on SettingsSection {
     SettingsSection.pomodoro => l10n.settingsPomodoro,
     SettingsSection.money => l10n.settingsMoney,
     SettingsSection.privacy => l10n.settingsPrivacy,
+    SettingsSection.account => l10n.settingsAccount,
     SettingsSection.data => l10n.settingsData,
     SettingsSection.appearance => l10n.settingsAppearance,
   };
@@ -71,6 +75,7 @@ extension on SettingsSection {
     SettingsSection.pomodoro => l10n.settingsSectionPomodoroHint,
     SettingsSection.money => l10n.settingsSectionMoneyHint,
     SettingsSection.privacy => l10n.settingsSectionPrivacyHint,
+    SettingsSection.account => l10n.settingsSectionAccountHint,
     SettingsSection.data => l10n.settingsSectionDataHint,
     SettingsSection.appearance => l10n.settingsSectionAppearanceHint,
   };
@@ -228,6 +233,7 @@ class SettingsSectionScreen extends ConsumerWidget {
       RatesCard(),
     ],
     SettingsSection.privacy => const [AppLockCard()],
+    SettingsSection.account => const [AccountCard()],
     SettingsSection.data => const [
       ExportCard(),
       SizedBox(height: HarvestSpacing.sm),

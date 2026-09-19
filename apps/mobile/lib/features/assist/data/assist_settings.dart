@@ -1,5 +1,4 @@
-import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:harvest/core/platform/secret_store.dart';
 import 'package:harvest/features/assist/data/providers.dart';
 import 'package:harvest/features/assist/domain/assist.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -20,41 +19,6 @@ abstract final class AssistKeys {
   /// never exported, never archived, never synced
   /// ([[ADR-013-Assist-Providers]]).
   static const secretKey = 'assist.apiKey';
-}
-
-/// Where the key lives: the Android Keystore, behind a small interface
-/// so the tests keep theirs in a map.
-abstract interface class SecretStore {
-  Future<String?> read(String key);
-  Future<void> write(String key, String? value);
-}
-
-class KeystoreSecretStore implements SecretStore {
-  const KeystoreSecretStore();
-
-  static const _storage = FlutterSecureStorage();
-
-  @override
-  Future<String?> read(String key) async {
-    try {
-      return await _storage.read(key: key);
-    } on PlatformException {
-      return null;
-    }
-  }
-
-  @override
-  Future<void> write(String key, String? value) async {
-    try {
-      if (value == null || value.isEmpty) {
-        await _storage.delete(key: key);
-      } else {
-        await _storage.write(key: key, value: value);
-      }
-    } on PlatformException {
-      return;
-    }
-  }
 }
 
 /// The assist as configured, key included (in memory only).
@@ -94,9 +58,6 @@ class AssistConfig {
     };
   }
 }
-
-@Riverpod(keepAlive: true)
-SecretStore secretStore(Ref ref) => const KeystoreSecretStore();
 
 /// Reads and writes the assist's configuration.
 @Riverpod(keepAlive: true)

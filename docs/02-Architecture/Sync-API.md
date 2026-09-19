@@ -149,6 +149,17 @@ A sync runs:
 
 It never runs more than once at a time.
 
+## A known limit: the phone's clock is to the second
+
+Drift stores the phone's dates as whole seconds, and the web writes
+milliseconds. Two edits to the same row within the same second, one on
+each side, can tie, and a tie goes to whichever reached the server
+first. The other side's push comes back `stale`, and the two disagree
+until either edits the row again. For one person, editing one row on two
+screens inside a second is rare enough to leave for now. The fix is
+microsecond clocks on the phone (text-stored dates, one migration),
+and it is on the list for [[Phase-6-Sync-Accounts-and-Web]] M6.8.
+
 ## Files
 
 Pictures and voice notes are not rows. They sync in a later milestone

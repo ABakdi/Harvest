@@ -193,6 +193,7 @@ class PomodoroService {
           focusBlocks: Value(snapshot.blocksDone + 1),
         ),
       );
+      await _db.logChange('pomodoro_sessions', snapshot.sessionUuid, 'update');
       await _db.insertLedger(
         LedgerCompanion.insert(
           uuid: _uuid.v4(),
@@ -212,6 +213,7 @@ class PomodoroService {
     )..where((p) => p.uuid.equals(snapshot.sessionUuid))).write(
       PomodoroSessionsCompanion(endedAt: Value(now ?? DateTime.now())),
     );
+    await _db.logChange('pomodoro_sessions', snapshot.sessionUuid, 'update');
     await saveActive(null);
   }
 }

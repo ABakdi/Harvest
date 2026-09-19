@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/core/platform/secret_store.dart';
 import 'package:harvest/features/assist/data/assist_settings.dart';
 import 'package:harvest/features/assist/data/providers.dart';
 

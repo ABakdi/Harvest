@@ -6187,6 +6187,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It did not answer: {detail}'**
   String assistFailed(String detail);
+
+  /// No description provided for @settingsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsAccount;
+
+  /// No description provided for @settingsSectionAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: sync with your other devices and the web'**
+  String get settingsSectionAccountHint;
+
+  /// No description provided for @accountWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'An account only syncs your data between your phone and the web. Harvest works fully without one, forever.'**
+  String get accountWhy;
+
+  /// No description provided for @accountServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get accountServer;
+
+  /// No description provided for @accountServerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://your-harvest-server'**
+  String get accountServerHint;
+
+  /// No description provided for @accountEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get accountEmail;
+
+  /// No description provided for @accountPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get accountPassword;
+
+  /// No description provided for @accountDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get accountDisplayName;
+
+  /// No description provided for @accountSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get accountSignIn;
+
+  /// No description provided for @accountCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get accountCreate;
+
+  /// No description provided for @accountHaveOne.
+  ///
+  /// In en, this message translates to:
+  /// **'I have an account'**
+  String get accountHaveOne;
+
+  /// No description provided for @accountNeedOne.
+  ///
+  /// In en, this message translates to:
+  /// **'I need an account'**
+  String get accountNeedOne;
+
+  /// No description provided for @accountPasswordRule.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters, and not a common one.'**
+  String get accountPasswordRule;
+
+  /// No description provided for @accountUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email for the verification link. Sync starts once it is verified.'**
+  String get accountUnverified;
+
+  /// No description provided for @accountResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the link again'**
+  String get accountResend;
+
+  /// No description provided for @accountResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get accountResent;
+
+  /// No description provided for @accountVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get accountVerified;
+
+  /// No description provided for @accountSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get accountSyncNow;
+
+  /// No description provided for @accountSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get accountSyncing;
+
+  /// No description provided for @accountLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced {time}'**
+  String accountLastSynced(String time);
+
+  /// No description provided for @accountNeverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get accountNeverSynced;
+
+  /// No description provided for @accountPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes waiting'**
+  String accountPending(int count);
+
+  /// No description provided for @accountRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes the server refused'**
+  String accountRefused(int count);
+
+  /// No description provided for @accountHeldBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Money and places wait for a sync passphrase.'**
+  String get accountHeldBack;
+
+  /// No description provided for @accountDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get accountDevices;
+
+  /// No description provided for @accountThisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get accountThisDevice;
+
+  /// No description provided for @accountEndSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out there'**
+  String get accountEndSession;
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get accountSignOut;
+
+  /// No description provided for @accountSignOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone keeps everything. Sync stops until you sign in again.'**
+  String get accountSignOutBody;
+
+  /// No description provided for @accountDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get accountDelete;
+
+  /// No description provided for @accountDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes your account and everything on the server, at once. Nothing on this phone is touched.'**
+  String get accountDeleteBody;
+
+  /// No description provided for @accountDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Password to confirm'**
+  String get accountDeleteConfirm;
+
+  /// No description provided for @accountErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach the server.'**
+  String get accountErrorOffline;
+
+  /// No description provided for @accountErrorWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That email and password do not match.'**
+  String get accountErrorWrong;
+
+  /// No description provided for @accountErrorTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That email already has an account.'**
+  String get accountErrorTaken;
+
+  /// No description provided for @accountErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the fields: {detail}'**
+  String accountErrorInvalid(String detail);
+
+  /// No description provided for @accountErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a few minutes.'**
+  String get accountErrorRateLimited;
+
+  /// No description provided for @accountErrorOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong ({code}).'**
+  String accountErrorOther(String code);
 }
 
 class _AppLocalizationsDelegate

@@ -3690,4 +3690,134 @@ class AppLocalizationsEn extends AppLocalizations {
   String assistFailed(String detail) {
     return 'It did not answer: $detail';
   }
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get settingsSectionAccountHint =>
+      'Optional: sync with your other devices and the web';
+
+  @override
+  String get accountWhy =>
+      'An account only syncs your data between your phone and the web. Harvest works fully without one, forever.';
+
+  @override
+  String get accountServer => 'Server';
+
+  @override
+  String get accountServerHint => 'https://your-harvest-server';
+
+  @override
+  String get accountEmail => 'Email';
+
+  @override
+  String get accountPassword => 'Password';
+
+  @override
+  String get accountDisplayName => 'Name (optional)';
+
+  @override
+  String get accountSignIn => 'Sign in';
+
+  @override
+  String get accountCreate => 'Create account';
+
+  @override
+  String get accountHaveOne => 'I have an account';
+
+  @override
+  String get accountNeedOne => 'I need an account';
+
+  @override
+  String get accountPasswordRule =>
+      'At least 10 characters, and not a common one.';
+
+  @override
+  String get accountUnverified =>
+      'Check your email for the verification link. Sync starts once it is verified.';
+
+  @override
+  String get accountResend => 'Send the link again';
+
+  @override
+  String get accountResent => 'Sent';
+
+  @override
+  String get accountVerified => 'Verified';
+
+  @override
+  String get accountSyncNow => 'Sync now';
+
+  @override
+  String get accountSyncing => 'Syncing…';
+
+  @override
+  String accountLastSynced(String time) {
+    return 'Last synced $time';
+  }
+
+  @override
+  String get accountNeverSynced => 'Not synced yet';
+
+  @override
+  String accountPending(int count) {
+    return '$count changes waiting';
+  }
+
+  @override
+  String accountRefused(int count) {
+    return '$count changes the server refused';
+  }
+
+  @override
+  String get accountHeldBack => 'Money and places wait for a sync passphrase.';
+
+  @override
+  String get accountDevices => 'Devices';
+
+  @override
+  String get accountThisDevice => 'This device';
+
+  @override
+  String get accountEndSession => 'Sign out there';
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountSignOutBody =>
+      'This phone keeps everything. Sync stops until you sign in again.';
+
+  @override
+  String get accountDelete => 'Delete account';
+
+  @override
+  String get accountDeleteBody =>
+      'Deletes your account and everything on the server, at once. Nothing on this phone is touched.';
+
+  @override
+  String get accountDeleteConfirm => 'Password to confirm';
+
+  @override
+  String get accountErrorOffline => 'Cannot reach the server.';
+
+  @override
+  String get accountErrorWrong => 'That email and password do not match.';
+
+  @override
+  String get accountErrorTaken => 'That email already has an account.';
+
+  @override
+  String accountErrorInvalid(String detail) {
+    return 'Check the fields: $detail';
+  }
+
+  @override
+  String get accountErrorRateLimited => 'Too many tries. Wait a few minutes.';
+
+  @override
+  String accountErrorOther(String code) {
+    return 'Something went wrong ($code).';
+  }
 }

@@ -110,6 +110,9 @@ flowchart LR
 - [ ] Finance and location tables sync encrypted ([[Sync-API]]).
 - [ ] Content-addressed file sync for pictures and recordings,
   encrypted, with size caps.
+- [ ] Microsecond clocks on the phone (dates stored as text, one
+  migration), so an edit can never tie with the web's ([[Sync-API]]: a
+  known limit).
 
 ## M6.9 — The server assist, and the release
 - [ ] `POST /v1/assist`: server-held key, per-user quota, the same

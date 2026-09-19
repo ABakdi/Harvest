@@ -17,6 +17,7 @@ import 'package:harvest/features/security/domain/app_lock.dart';
 import 'package:harvest/features/security/presentation/lock_gate.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
+import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -90,6 +91,7 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
       // A pause that ran out while I was away, or a permission granted
       // in the settings page, takes effect on the way back in.
       await ref.read(placesControllerProvider.notifier).sync();
+      await ref.read(syncControllerProvider.notifier).syncNow();
     } on Object catch (error) {
       ref.read(bootstrapStatusProvider.notifier).report('resume', error);
     }

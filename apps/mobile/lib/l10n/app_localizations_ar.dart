@@ -3699,4 +3699,133 @@ class AppLocalizationsAr extends AppLocalizations {
   String assistFailed(String detail) {
     return 'لم يُجب: $detail';
   }
+
+  @override
+  String get settingsAccount => 'الحساب';
+
+  @override
+  String get settingsSectionAccountHint =>
+      'اختياري: مزامنة مع أجهزتك الأخرى ومع الويب';
+
+  @override
+  String get accountWhy =>
+      'الحساب لا يفعل سوى مزامنة بياناتك بين هاتفك والويب. Harvest يعمل كاملًا بدونه، دائمًا.';
+
+  @override
+  String get accountServer => 'الخادم';
+
+  @override
+  String get accountServerHint => 'https://your-harvest-server';
+
+  @override
+  String get accountEmail => 'البريد الإلكتروني';
+
+  @override
+  String get accountPassword => 'كلمة المرور';
+
+  @override
+  String get accountDisplayName => 'الاسم (اختياري)';
+
+  @override
+  String get accountSignIn => 'تسجيل الدخول';
+
+  @override
+  String get accountCreate => 'إنشاء حساب';
+
+  @override
+  String get accountHaveOne => 'لدي حساب';
+
+  @override
+  String get accountNeedOne => 'أحتاج حسابًا';
+
+  @override
+  String get accountPasswordRule => 'عشرة أحرف على الأقل، وليست شائعة.';
+
+  @override
+  String get accountUnverified =>
+      'تحقّق من بريدك لرابط التأكيد. تبدأ المزامنة بعد التأكيد.';
+
+  @override
+  String get accountResend => 'أرسل الرابط مجددًا';
+
+  @override
+  String get accountResent => 'أُرسل';
+
+  @override
+  String get accountVerified => 'مؤكَّد';
+
+  @override
+  String get accountSyncNow => 'زامن الآن';
+
+  @override
+  String get accountSyncing => 'يزامن…';
+
+  @override
+  String accountLastSynced(String time) {
+    return 'آخر مزامنة $time';
+  }
+
+  @override
+  String get accountNeverSynced => 'لم تتم المزامنة بعد';
+
+  @override
+  String accountPending(int count) {
+    return '$count تغييرات تنتظر';
+  }
+
+  @override
+  String accountRefused(int count) {
+    return '$count تغييرات رفضها الخادم';
+  }
+
+  @override
+  String get accountHeldBack => 'المال والأماكن تنتظر عبارة مرور المزامنة.';
+
+  @override
+  String get accountDevices => 'الأجهزة';
+
+  @override
+  String get accountThisDevice => 'هذا الجهاز';
+
+  @override
+  String get accountEndSession => 'سجّل الخروج هناك';
+
+  @override
+  String get accountSignOut => 'تسجيل الخروج';
+
+  @override
+  String get accountSignOutBody =>
+      'يحتفظ هذا الهاتف بكل شيء. تتوقف المزامنة حتى تسجّل الدخول مجددًا.';
+
+  @override
+  String get accountDelete => 'حذف الحساب';
+
+  @override
+  String get accountDeleteBody =>
+      'يحذف حسابك وكل ما على الخادم، فورًا. لا يُمسّ شيء على هذا الهاتف.';
+
+  @override
+  String get accountDeleteConfirm => 'كلمة المرور للتأكيد';
+
+  @override
+  String get accountErrorOffline => 'تعذّر الوصول إلى الخادم.';
+
+  @override
+  String get accountErrorWrong => 'البريد وكلمة المرور غير متطابقين.';
+
+  @override
+  String get accountErrorTaken => 'لهذا البريد حساب بالفعل.';
+
+  @override
+  String accountErrorInvalid(String detail) {
+    return 'تحقّق من الحقول: $detail';
+  }
+
+  @override
+  String get accountErrorRateLimited => 'محاولات كثيرة. انتظر بضع دقائق.';
+
+  @override
+  String accountErrorOther(String code) {
+    return 'حدث خطأ ($code).';
+  }
 }

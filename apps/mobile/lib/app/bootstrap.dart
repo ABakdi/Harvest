@@ -13,6 +13,7 @@ import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
+import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/features/widget/domain/widget_actions.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -88,6 +89,14 @@ Future<void> appBootstrap(Ref ref) async {
   );
   unawaited(step('widget', ref.read(widgetServiceProvider).refresh));
   unawaited(step('places', ref.read(placesControllerProvider.notifier).sync));
+  // Sync only ever runs for a verified account; for everyone else these
+  // triggers look, find nothing to do, and stay quiet ([[Accounts]] AC1).
+  unawaited(
+    step('sync', () async {
+      final sync = ref.read(syncControllerProvider.notifier)..start();
+      await sync.syncNow();
+    }),
+  );
   unawaited(
     step(
       'widget actions',

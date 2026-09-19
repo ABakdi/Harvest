@@ -115,4 +115,4 @@ final class AppBootstrapProvider
   }
 }
 
-String _$appBootstrapHash() => r'8a334d6a794991e3f55352d2a16bae2a5feb70e3';
+String _$appBootstrapHash() => r'98ae73e04aad205aeacb6c8624c0fd592369b533';
