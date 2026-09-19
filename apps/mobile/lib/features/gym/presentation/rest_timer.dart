@@ -99,7 +99,10 @@ class RestTimerBar extends StatelessWidget {
           top: false,
           bottom: safe,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
+            // The dismiss button is tighter to its edge than the
+            // label is to the other, so the sides are start and end
+            // rather than left and right ([[Audit-v2]] U3-20).
+            padding: const EdgeInsetsDirectional.fromSTEB(
               HarvestSpacing.md,
               HarvestSpacing.sm,
               HarvestSpacing.sm,

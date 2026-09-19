@@ -328,7 +328,13 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final open = _open;
-    final note = open == null ? null : ref.watch(noteProvider(open)).value;
+    final opened = open == null ? null : ref.watch(noteProvider(open));
+    final note = opened?.value;
+    // A note still being read is not the same as having no notes, and
+    // the two looked identical for the frame in between: opening a note
+    // flashed "No notes yet" before the note appeared ([[Audit-v2]]
+    // U3-20). While it is loading the page stays empty instead.
+    final opening = opened != null && !opened.hasValue;
     final writing = ref.watch(writingNoteProvider);
 
     return Scaffold(
@@ -481,7 +487,9 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               dictating: _dictating,
             )
           : null,
-      body: note == null
+      body: opening
+          ? const SizedBox.shrink()
+          : note == null
           ? EmptyState(
               icon: Icons.description_outlined,
               title: l10n.notesEmpty,

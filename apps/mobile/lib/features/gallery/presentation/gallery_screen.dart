@@ -204,7 +204,7 @@ class _AlbumCard extends StatelessWidget {
                     ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding: const EdgeInsetsDirectional.fromSTEB(
                 HarvestSpacing.md,
                 HarvestSpacing.sm,
                 HarvestSpacing.sm,

@@ -43,22 +43,9 @@ class SessionScreen extends ConsumerStatefulWidget {
 
 class _SessionScreenState extends ConsumerState<SessionScreen> {
   final _rest = RestTimerController();
-  Timer? _clock;
-
-  @override
-  void initState() {
-    super.initState();
-    // The elapsed time is a clock, not a state change, so it ticks
-    // itself rather than waiting on the database.
-    _clock = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => mounted ? setState(() {}) : null,
-    );
-  }
 
   @override
   void dispose() {
-    _clock?.cancel();
     _rest.dispose();
     super.dispose();
   }
@@ -77,8 +64,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         body: Center(child: Text(l10n.gymSessionGone)),
       );
     }
-
-    final elapsed = session.elapsed;
 
     // Leaving is not discarding: the session keeps running, and the
     // gym offers to resume it. Nothing here needs confirming on the
@@ -131,7 +116,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           RestTimerBar(controller: _rest, safe: false),
           _SessionBar(
             session: session,
-            clock: _clockLabel(elapsed),
             onPause: () => unawaited(_togglePause(session)),
             onFinish: () => unawaited(_finish(session)),
           ),
@@ -171,12 +155,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         ],
       ),
     );
-  }
-
-  static String _clockLabel(Duration elapsed) {
-    final minutes = elapsed.inMinutes;
-    final seconds = elapsed.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   Future<void> _togglePause(WorkoutSession session) async {
@@ -311,16 +289,60 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
 
 /// The session's bottom bar: the clock, which is also the pause button,
 /// and Finish.
+/// The elapsed time, ticking on its own.
+///
+/// It used to be a timer on the whole screen, so every second rebuilt
+/// every exercise card and every set row — during a workout, for a
+/// number two centimetres wide ([[Audit-v2]] U3-07). Now the second
+/// hand is the only thing that redraws.
+class _Clock extends StatefulWidget {
+  const _Clock({required this.session, this.style});
+
+  final WorkoutSession session;
+  final TextStyle? style;
+
+  @override
+  State<_Clock> createState() => _ClockState();
+}
+
+class _ClockState extends State<_Clock> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    _tick = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => mounted ? setState(() {}) : null,
+    );
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final elapsed = widget.session.elapsed;
+    final minutes = elapsed.inMinutes;
+    final seconds = elapsed.inSeconds % 60;
+    return Text(
+      '$minutes:${seconds.toString().padLeft(2, '0')}',
+      style: widget.style,
+    );
+  }
+}
+
 class _SessionBar extends StatelessWidget {
   const _SessionBar({
     required this.session,
-    required this.clock,
     required this.onPause,
     required this.onFinish,
   });
 
   final WorkoutSession session;
-  final String clock;
   final VoidCallback onPause;
   final VoidCallback onFinish;
 
@@ -336,7 +358,7 @@ class _SessionBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: const EdgeInsetsDirectional.fromSTEB(
             HarvestSpacing.sm,
             HarvestSpacing.sm,
             HarvestSpacing.md,
@@ -377,8 +399,8 @@ class _SessionBar extends StatelessWidget {
                                     : scheme.onSurfaceVariant,
                               ),
                               const SizedBox(width: HarvestSpacing.xs),
-                              Text(
-                                clock,
+                              _Clock(
+                                session: session,
                                 style: theme.textTheme.titleLarge?.copyWith(
                                   fontFeatures: const [
                                     FontFeature.tabularFigures(),
