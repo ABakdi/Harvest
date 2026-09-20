@@ -3950,4 +3950,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gymDropSetBody =>
       'The set goes from this session. What you have already ticked stays.';
+
+  @override
+  String get galleryGymBound =>
+      'The gym habit is the seed for this album, so it has no schedule of its own — two cards on the field for one session would be an accounting error.';
+
+  @override
+  String get gymDiscardAgain => 'Sure? This cannot be undone';
+
+  @override
+  String gymDiscardAgainBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'All $done sets are gone for good, and the session with them.',
+      one: 'The set you logged is gone for good, and the session with it.',
+    );
+    return '$_temp0';
+  }
 }

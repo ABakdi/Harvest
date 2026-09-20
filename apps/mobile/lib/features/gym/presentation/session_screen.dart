@@ -282,6 +282,20 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       destructive: true,
     );
     if (!ok) return;
+    // Asked twice, but only when there is something to lose: a second
+    // dialog about an empty session is a dialog about nothing
+    // ([[Gym]], [[Audit-v2]] P3-02).
+    if (session.doneSets > 0) {
+      if (!mounted) return;
+      final sure = await confirm(
+        context,
+        title: l10n.gymDiscardAgain,
+        body: l10n.gymDiscardAgainBody(session.doneSets),
+        confirmLabel: l10n.gymDiscardSession,
+        destructive: true,
+      );
+      if (!sure) return;
+    }
     await ref.read(sessionsRepositoryProvider).discard(session.uuid);
     navigator.pop();
   }

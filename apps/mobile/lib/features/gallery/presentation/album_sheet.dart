@@ -6,6 +6,7 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
+import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -133,6 +134,12 @@ class _AlbumSheetState extends ConsumerState<_AlbumSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // An album the gym owns takes its rhythm from the gym habit, so
+    // the schedule is not offered here at all ([[Audit-v2]] P3-08).
+    final gymBound =
+        widget.existing != null &&
+        (ref.watch(albumIsGymBoundProvider(widget.existing!.uuid)).value ??
+            false);
     return HarvestSheet(
       title: _editing ? l10n.galleryEditAlbum : l10n.galleryNewAlbum,
       subtitle: l10n.galleryAlbumHint,
@@ -150,78 +157,88 @@ class _AlbumSheetState extends ConsumerState<_AlbumSheet> {
           ),
         ),
         const SizedBox(height: HarvestSpacing.md),
-        Text(l10n.gallerySchedule),
-        const SizedBox(height: HarvestSpacing.xs),
-        Text(
-          l10n.gallerySeedHint,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        if (gymBound)
+          Text(
+            l10n.galleryGymBound,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          )
+        else ...[
+          Text(l10n.gallerySchedule),
+          const SizedBox(height: HarvestSpacing.xs),
+          Text(
+            l10n.gallerySeedHint,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
-        const SizedBox(height: HarvestSpacing.sm),
-        Wrap(
-          spacing: HarvestSpacing.xs,
-          children: [
-            for (final kind in _ScheduleKind.values)
-              ChoiceChip(
-                label: Text(switch (kind) {
-                  _ScheduleKind.none => l10n.galleryScheduleNone,
-                  _ScheduleKind.daily => l10n.scheduleDaily,
-                  _ScheduleKind.weekly => l10n.scheduleWeekly,
-                  _ScheduleKind.interval => l10n.scheduleInterval,
-                  _ScheduleKind.timesPerWeek => l10n.scheduleTimesPerWeek,
-                }),
-                selected: _kind == kind,
-                onSelected: (_) => setState(() => _kind = kind),
+          const SizedBox(height: HarvestSpacing.sm),
+          Wrap(
+            spacing: HarvestSpacing.xs,
+            children: [
+              for (final kind in _ScheduleKind.values)
+                ChoiceChip(
+                  label: Text(switch (kind) {
+                    _ScheduleKind.none => l10n.galleryScheduleNone,
+                    _ScheduleKind.daily => l10n.scheduleDaily,
+                    _ScheduleKind.weekly => l10n.scheduleWeekly,
+                    _ScheduleKind.interval => l10n.scheduleInterval,
+                    _ScheduleKind.timesPerWeek => l10n.scheduleTimesPerWeek,
+                  }),
+                  selected: _kind == kind,
+                  onSelected: (_) => setState(() => _kind = kind),
+                ),
+            ],
+          ),
+          const SizedBox(height: HarvestSpacing.md),
+          ...switch (_kind) {
+            _ScheduleKind.none || _ScheduleKind.daily => const <Widget>[],
+            _ScheduleKind.weekly => [_weekdayPicker()],
+            _ScheduleKind.interval => [
+              _Stepper(
+                label: l10n.everyDaysLabel(_intervalDays),
+                value: _intervalDays,
+                min: 2,
+                max: 60,
+                onChanged: (v) => setState(() => _intervalDays = v),
               ),
-          ],
-        ),
-        const SizedBox(height: HarvestSpacing.md),
-        ...switch (_kind) {
-          _ScheduleKind.none || _ScheduleKind.daily => const <Widget>[],
-          _ScheduleKind.weekly => [_weekdayPicker()],
-          _ScheduleKind.interval => [
-            _Stepper(
-              label: l10n.everyDaysLabel(_intervalDays),
-              value: _intervalDays,
-              min: 2,
-              max: 60,
-              onChanged: (v) => setState(() => _intervalDays = v),
+            ],
+            _ScheduleKind.timesPerWeek => [
+              _Stepper(
+                label: l10n.timesPerWeekLabel(_timesPerWeek),
+                value: _timesPerWeek,
+                min: 1,
+                max: 6,
+                onChanged: (v) => setState(() => _timesPerWeek = v),
+              ),
+            ],
+          },
+          if (_kind != _ScheduleKind.none)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.alarm),
+              title: Text(l10n.remindMeAt),
+              subtitle: Text(
+                _remindAt == null ? l10n.notSet : _remindAt!.format(context),
+              ),
+              trailing: _remindAt == null
+                  ? null
+                  : IconButton(
+                      tooltip: l10n.clearValue,
+                      icon: const Icon(Icons.close),
+                      onPressed: () => setState(() => _remindAt = null),
+                    ),
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime:
+                      _remindAt ?? const TimeOfDay(hour: 20, minute: 0),
+                );
+                if (picked != null) setState(() => _remindAt = picked);
+              },
             ),
-          ],
-          _ScheduleKind.timesPerWeek => [
-            _Stepper(
-              label: l10n.timesPerWeekLabel(_timesPerWeek),
-              value: _timesPerWeek,
-              min: 1,
-              max: 6,
-              onChanged: (v) => setState(() => _timesPerWeek = v),
-            ),
-          ],
-        },
-        if (_kind != _ScheduleKind.none)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.alarm),
-            title: Text(l10n.remindMeAt),
-            subtitle: Text(
-              _remindAt == null ? l10n.notSet : _remindAt!.format(context),
-            ),
-            trailing: _remindAt == null
-                ? null
-                : IconButton(
-                    tooltip: l10n.clearValue,
-                    icon: const Icon(Icons.close),
-                    onPressed: () => setState(() => _remindAt = null),
-                  ),
-            onTap: () async {
-              final picked = await showTimePicker(
-                context: context,
-                initialTime: _remindAt ?? const TimeOfDay(hour: 20, minute: 0),
-              );
-              if (picked != null) setState(() => _remindAt = picked);
-            },
-          ),
+        ],
         TextField(
           controller: _note,
           maxLines: 2,

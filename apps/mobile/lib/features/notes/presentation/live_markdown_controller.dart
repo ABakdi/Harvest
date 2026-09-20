@@ -22,6 +22,31 @@ class LiveMarkdownController extends TextEditingController {
   /// Turns folding off entirely, for a plain-text look.
   bool raw = false;
 
+  /// The titles a `[[link]]` can actually reach, lowercased.
+  ///
+  /// A link to a note I have not written yet is drawn faintly, with a
+  /// dashed underline: the vault's own trick, and the difference
+  /// between "go there" and "write this next" ([[Notes]],
+  /// [[Audit-v2]] P3-06). Empty means unknown, and an unknown link is
+  /// drawn as a written one rather than accusing every link at once.
+  Set<String> _knownTitles = const {};
+
+  /// Replaces what is known, and redraws if it changed.
+  set knownTitles(Set<String> titles) {
+    if (titles.length == _knownTitles.length &&
+        titles.containsAll(_knownTitles)) {
+      return;
+    }
+    _knownTitles = titles;
+    notifyListeners();
+  }
+
+  Set<String> get knownTitles => _knownTitles;
+
+  /// Whether [title] points at a note that exists.
+  bool isWritten(String title) =>
+      _knownTitles.isEmpty || _knownTitles.contains(title.trim().toLowerCase());
+
   /// A marker that is folded away: present, addressable, invisible.
   static const _folded = TextStyle(
     fontSize: 0.01,
@@ -282,10 +307,19 @@ class LiveMarkdownController extends TextEditingController {
             ..add(TextSpan(text: part.text, style: style))
             ..add(TextSpan(text: part.close, style: fold(style)));
         case InlineKind.wikiLink:
-          final style = base.copyWith(
-            color: scheme.secondary,
-            fontWeight: FontWeight.w700,
-          );
+          final written = isWritten(part.text);
+          final style = written
+              ? base.copyWith(
+                  color: scheme.secondary,
+                  fontWeight: FontWeight.w700,
+                )
+              : base.copyWith(
+                  color: scheme.secondary.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w700,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dashed,
+                  decorationColor: scheme.secondary.withValues(alpha: 0.6),
+                );
           spans
             ..add(TextSpan(text: part.open, style: fold(style)))
             ..add(TextSpan(text: part.text, style: style))

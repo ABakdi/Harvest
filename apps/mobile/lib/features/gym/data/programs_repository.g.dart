@@ -166,6 +166,104 @@ final class ProgramFamily extends $Family
   String toString() => r'programProvider';
 }
 
+/// Whether a program takes its pictures into this album.
+///
+/// An album a gym habit owns is not scheduled separately: the habit is
+/// the seed and the album rides on it, or the field shows two cards
+/// for one session ([[Gym]], [[Audit-v2]] P3-08).
+
+@ProviderFor(albumIsGymBound)
+final albumIsGymBoundProvider = AlbumIsGymBoundFamily._();
+
+/// Whether a program takes its pictures into this album.
+///
+/// An album a gym habit owns is not scheduled separately: the habit is
+/// the seed and the album rides on it, or the field shows two cards
+/// for one session ([[Gym]], [[Audit-v2]] P3-08).
+
+final class AlbumIsGymBoundProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
+    with $FutureModifier<bool>, $StreamProvider<bool> {
+  /// Whether a program takes its pictures into this album.
+  ///
+  /// An album a gym habit owns is not scheduled separately: the habit is
+  /// the seed and the album rides on it, or the field shows two cards
+  /// for one session ([[Gym]], [[Audit-v2]] P3-08).
+  AlbumIsGymBoundProvider._({
+    required AlbumIsGymBoundFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'albumIsGymBoundProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$albumIsGymBoundHash();
+
+  @override
+  String toString() {
+    return r'albumIsGymBoundProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<bool> create(Ref ref) {
+    final argument = this.argument as String;
+    return albumIsGymBound(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AlbumIsGymBoundProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$albumIsGymBoundHash() => r'26e3961966a4c9f793dda3d64e47606970d2d31c';
+
+/// Whether a program takes its pictures into this album.
+///
+/// An album a gym habit owns is not scheduled separately: the habit is
+/// the seed and the album rides on it, or the field shows two cards
+/// for one session ([[Gym]], [[Audit-v2]] P3-08).
+
+final class AlbumIsGymBoundFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<bool>, String> {
+  AlbumIsGymBoundFamily._()
+    : super(
+        retry: null,
+        name: r'albumIsGymBoundProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Whether a program takes its pictures into this album.
+  ///
+  /// An album a gym habit owns is not scheduled separately: the habit is
+  /// the seed and the album rides on it, or the field shows two cards
+  /// for one session ([[Gym]], [[Audit-v2]] P3-08).
+
+  AlbumIsGymBoundProvider call(String uuid) =>
+      AlbumIsGymBoundProvider._(argument: uuid, from: this);
+
+  @override
+  String toString() => r'albumIsGymBoundProvider';
+}
+
 @ProviderFor(programForCommitment)
 final programForCommitmentProvider = ProgramForCommitmentFamily._();
 

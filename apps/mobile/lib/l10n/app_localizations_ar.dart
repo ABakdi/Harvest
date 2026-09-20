@@ -3959,4 +3959,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gymDropSetBody =>
       'تُحذف المجموعة من هذه الجلسة. ما سجّلته من قبل يبقى.';
+
+  @override
+  String get galleryGymBound =>
+      'عادة النادي هي بذرة هذا الألبوم، فليس له جدول خاص به — بطاقتان في الحقل لجلسة واحدة خطأ في الحساب لا ميزة.';
+
+  @override
+  String get gymDiscardAgain => 'متأكد؟ لا رجوع في هذا';
+
+  @override
+  String gymDiscardAgainBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'المجموعات الـ$done كلها تذهب نهائيًا، والجلسة معها.',
+      one: 'المجموعة التي سجّلتها تذهب نهائيًا، والجلسة معها.',
+    );
+    return '$_temp0';
+  }
 }

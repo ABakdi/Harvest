@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
-import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/data/steps_source.dart';
+import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/domain/steps.dart';
 import 'package:harvest/features/health/domain/steps_sync.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
-import 'package:harvest/features/health/presentation/steps_history.dart';
 import 'package:harvest/features/health/presentation/health_screen.dart';
+import 'package:harvest/features/health/presentation/steps_history.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 class _Day extends CurrentHarvestDay {

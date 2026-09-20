@@ -6649,6 +6649,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The set goes from this session. What you have already ticked stays.'**
   String get gymDropSetBody;
+
+  /// No description provided for @galleryGymBound.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym habit is the seed for this album, so it has no schedule of its own — two cards on the field for one session would be an accounting error.'**
+  String get galleryGymBound;
+
+  /// No description provided for @gymDiscardAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sure? This cannot be undone'**
+  String get gymDiscardAgain;
+
+  /// No description provided for @gymDiscardAgainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done, plural, =1{The set you logged is gone for good, and the session with it.} other{All {done} sets are gone for good, and the session with them.}}'**
+  String gymDiscardAgainBody(int done);
 }
 
 class _AppLocalizationsDelegate

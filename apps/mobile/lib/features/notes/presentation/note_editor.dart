@@ -130,6 +130,22 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
     await _attachments.reconcile(widget.uuid, body);
   }
 
+  /// Tells the controller which links lead somewhere.
+  ///
+  /// Titles are compared as the body writes them, lowercased and
+  /// trimmed, exactly as `byTitle` resolves them.
+  void _knowTitles(List<Note> notes) {
+    final titles = {
+      for (final note in notes)
+        if (note.title.trim().isNotEmpty) note.title.trim().toLowerCase(),
+    };
+    // After the frame: the setter redraws the field, and a redraw
+    // asked for during a build is an error.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.controller.knownTitles = titles;
+    });
+  }
+
   /// Tapping a `[[link]]`: go there, or offer to write it.
   Future<void> _followLink(String title) async {
     final repository = ref.read(notesRepositoryProvider);
@@ -173,6 +189,7 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
     final note = ref.watch(noteProvider(widget.uuid)).value;
     final backlinks =
         ref.watch(backlinksProvider(widget.uuid)).value ?? const <Note>[];
+    _knowTitles(ref.watch(allNotesProvider).value ?? const <Note>[]);
 
     if (note == null) {
       return Center(

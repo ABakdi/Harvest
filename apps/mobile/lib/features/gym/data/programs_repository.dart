@@ -522,6 +522,17 @@ Stream<List<Program>> programs(Ref ref) =>
 Stream<Program?> program(Ref ref, String uuid) =>
     ref.watch(programsRepositoryProvider).watchOne(uuid);
 
+/// Whether a program takes its pictures into this album.
+///
+/// An album a gym habit owns is not scheduled separately: the habit is
+/// the seed and the album rides on it, or the field shows two cards
+/// for one session ([[Gym]], [[Audit-v2]] P3-08).
+@riverpod
+Stream<bool> albumIsGymBound(Ref ref, String uuid) => ref
+    .watch(programsRepositoryProvider)
+    .watchAll()
+    .map((programs) => programs.any((program) => program.albumUuid == uuid));
+
 @riverpod
 Stream<Program?> programForCommitment(Ref ref, String commitmentUuid) =>
     ref.watch(programsRepositoryProvider).watchForCommitment(commitmentUuid);
