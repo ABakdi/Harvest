@@ -11,7 +11,7 @@ import {
   WifiOffIcon,
   type LucideIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -26,9 +26,15 @@ import { BodyScreen } from './screens/body';
 import { CalendarScreen } from './screens/calendar';
 import { FarmerScreen } from './screens/farmer';
 import { FieldScreen } from './screens/field';
+import { GalleryScreen } from './screens/gallery';
 import { GoalScreen } from './screens/goal';
 import { GranaryScreen } from './screens/granary';
 import { NotesScreen } from './screens/notes';
+
+// The map is most of a megabyte of MapLibre, and most days nobody
+// opens it: it arrives when Places does, not when the app does.
+const PlacesScreen = lazy(async () => ({ default: (await import('./screens/places')).PlacesScreen }));
+
 import { SettingsScreen } from './screens/settings';
 import { useShortcuts } from './shortcuts';
 
@@ -176,6 +182,15 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             <Route path="field/goals/:uuid" element={<GoalScreen />} />
             <Route path="body" element={<BodyScreen />} />
             <Route path="records" element={<NotesScreen />} />
+            <Route path="records/gallery" element={<GalleryScreen />} />
+            <Route
+              path="records/places"
+              element={
+                <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
+                  <PlacesScreen />
+                </Suspense>
+              }
+            />
             <Route path="records/trash" element={<NotesScreen trash />} />
             <Route path="records/:uuid" element={<NotesScreen />} />
             <Route path="granary" element={<GranaryScreen />} />

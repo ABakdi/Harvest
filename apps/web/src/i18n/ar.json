@@ -237,6 +237,17 @@
       "tooLong": "هذا طويل جدًا"
     }
   },
+  "gallery": {
+    "andMore": "و{{count}} أخرى",
+    "count_one": "صورة واحدة",
+    "count_other": "{{count}} صور",
+    "emptyBody": "الألبومات تُنشأ على الهاتف، حيث الكاميرا.",
+    "emptyTitle": "لا ألبومات بعد",
+    "filesOnPhone": "الصور نفسها تبقى على الهاتف حتى تصل مزامنة الملفات؛ ما يحويه الألبوم موجود هنا بالفعل.",
+    "scheduled": "بذرة في الحقل",
+    "title": "المعرض",
+    "untitled": "بلا تعليق"
+  },
   "goals": {
     "achieved": "المتحققة ({{count}})",
     "addNeed": "أضف شيئًا يتطلبه",
@@ -412,6 +423,7 @@
     "field": "الحقل",
     "granary": "المخزن",
     "main": "الرئيسية",
+    "notes": "الملاحظات",
     "records": "السجلات",
     "settings": "الإعدادات"
   },
@@ -489,6 +501,36 @@
     "warning": "إن فقدتها فلا يمكن قراءة الصفوف المشفّرة على جهاز جديد — بل إرسالها مجددًا من جهاز لا يزال يحملها.",
     "wrong": "هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك."
   },
+  "places": {
+    "emptyBody": "الأماكن تُشغَّل على الهاتف: المسار يُسجَّل هناك، وتظهر الأيام هنا بعد المزامنة.",
+    "emptyTitle": "لا مسار بعد",
+    "km": "{{value}} كم",
+    "m": "{{value}} م",
+    "mappedDays_one": "يوم واحد على الخريطة",
+    "mappedDays_other": "{{count}} يومًا على الخريطة",
+    "minutes_one": "دقيقة",
+    "minutes_other": "{{count}} دقيقة",
+    "nothingHere": "لم يُسجَّل شيء في ذلك اليوم.",
+    "pickDay": "أي يوم",
+    "points_one": "نقطة واحدة",
+    "points_other": "{{count}} نقطة",
+    "stay": "مكث هنا",
+    "tables": {
+      "expenses": "مصروف",
+      "memories": "صورة",
+      "notes": "ملاحظة",
+      "check_ins": "تسجيل",
+      "workout_sessions": "حصة",
+      "goals": "هدف",
+      "body_weights": "وزن",
+      "sleep_sessions": "ليلة"
+    },
+    "title": "الأماكن",
+    "todayLabel": "اليوم",
+    "unavailable_one": "فعل واحد بلا مكان",
+    "unavailable_other": "{{count}} أفعال بلا مكان",
+    "walked": "{{distance}} من المسار"
+  },
   "prefs": {
     "langSystem": "النظام",
     "language": "اللغة",
@@ -552,6 +594,9 @@
   "pwa": {
     "reload": "أعد التحميل للتحديث",
     "updateReady": "إصدار جديد من Harvest جاهز."
+  },
+  "records": {
+    "tabs": "السجلات"
   },
   "search": {
     "archivedSeed": "بذرة مؤرشفة",

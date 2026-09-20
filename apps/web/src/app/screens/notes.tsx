@@ -43,6 +43,7 @@ import { registerPendingEdit } from '@/lib/pending-edits';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '../components/bits';
 import { useHarvest } from '../context';
+import { RecordsTabs } from './records';
 import { decodeFolders, folderTree, linksIn, notePreview, type NoteRow } from '../data/notes';
 import { settingKeys, settingText } from '../data/settings';
 
@@ -587,7 +588,9 @@ export function NotesScreen({ trash = false }: { trash?: boolean }) {
   const detail = trash || uuid !== undefined;
 
   return (
-    <div className="grid gap-6 md:grid-cols-[18rem_1fr]">
+    <div className="flex flex-col gap-4">
+      <RecordsTabs />
+      <div className="grid gap-6 md:grid-cols-[18rem_1fr]">
       <div className={cn(detail && 'hidden md:block')}>
         <Sidebar vault={vault} folder={folder} setFolder={setFolder} selected={uuid} />
       </div>
@@ -615,6 +618,7 @@ export function NotesScreen({ trash = false }: { trash?: boolean }) {
             }
           />
         )}
+        </div>
       </div>
     </div>
   );

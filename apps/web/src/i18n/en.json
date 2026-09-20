@@ -248,6 +248,17 @@
       "tooLong": "That is too long"
     }
   },
+  "gallery": {
+    "andMore": "and {{count}} more",
+    "count_one": "{{count}} picture",
+    "count_other": "{{count}} pictures",
+    "emptyBody": "Albums are made on the phone, where the camera is.",
+    "emptyTitle": "No albums yet",
+    "filesOnPhone": "The pictures themselves stay on the phone until file sync lands; what an album holds is already here.",
+    "scheduled": "a seed on the field",
+    "title": "Gallery",
+    "untitled": "No caption"
+  },
   "goals": {
     "achieved_one": "Achieved ({{count}})",
     "achieved_other": "Achieved ({{count}})",
@@ -424,6 +435,7 @@
     "field": "Field",
     "granary": "Granary",
     "main": "Main",
+    "notes": "Notes",
     "records": "Records",
     "settings": "Settings"
   },
@@ -503,6 +515,36 @@
     "warning": "If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.",
     "wrong": "This passphrase does not open what your other devices sent. Enter the one you used there."
   },
+  "places": {
+    "emptyBody": "Places is switched on per phone: the trail is recorded there, and the days appear here once they sync.",
+    "emptyTitle": "No trail yet",
+    "km": "{{value}} km",
+    "m": "{{value}} m",
+    "mappedDays_one": "{{count}} day on the map",
+    "mappedDays_other": "{{count}} days on the map",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "nothingHere": "Nothing was recorded that day.",
+    "pickDay": "Which day",
+    "points_one": "{{count}} point",
+    "points_other": "{{count}} points",
+    "stay": "Stayed here",
+    "tables": {
+      "expenses": "Expense",
+      "memories": "Picture",
+      "notes": "Note",
+      "check_ins": "Check-in",
+      "workout_sessions": "Session",
+      "goals": "Goal",
+      "body_weights": "Weight",
+      "sleep_sessions": "Night"
+    },
+    "title": "Places",
+    "todayLabel": "Today",
+    "unavailable_one": "{{count}} action with no place",
+    "unavailable_other": "{{count}} actions with no place",
+    "walked": "{{distance}} of trail"
+  },
   "prefs": {
     "langSystem": "System",
     "language": "Language",
@@ -566,6 +608,9 @@
   "pwa": {
     "reload": "Reload to update",
     "updateReady": "A new version of Harvest is ready."
+  },
+  "records": {
+    "tabs": "Records"
   },
   "search": {
     "archivedSeed": "Archived seed",
