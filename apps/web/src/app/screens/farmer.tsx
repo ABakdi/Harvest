@@ -4,7 +4,9 @@ import { ArchiveRestoreIcon, CoinsIcon, FlameIcon, SnowflakeIcon, TrophyIcon } f
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatNumber } from '@/lib/format';
-import { useHarvest } from '../context';
+import { StreakChip } from '../components/bits';
+import { useHarvest, useHarvestDay } from '../context';
+import { readStats, type HeatDay, type StatsView } from '../data/stats';
 
 /**
  * The farmer: rank, XP, coins and the streak, all sums over the ledger
@@ -87,6 +89,8 @@ export function FarmerScreen() {
       </section>
       <p className="text-xs text-muted-foreground">{t('streak.phoneJudges')}</p>
 
+      <StatsSection />
+
       <section aria-labelledby="archive-heading" className="flex flex-col gap-2">
         <h2 id="archive-heading" className="text-lg font-extrabold">
           {t('farmer.archive')}
@@ -114,5 +118,71 @@ export function FarmerScreen() {
         )}
       </section>
     </div>
+  );
+}
+
+/** A square per day, a column per week: the run of the last four months. */
+function Heat({ stats }: { stats: StatsView }) {
+  const { t } = useTranslation();
+  const weeks: HeatDay[][] = [];
+  for (let index = 0; index < stats.heat.length; index += 7) {
+    weeks.push(stats.heat.slice(index, index + 7));
+  }
+  const shade = (actions: number) => {
+    if (actions === 0) return 'bg-muted';
+    const step = stats.busiest === 0 ? 1 : actions / stats.busiest;
+    if (step > 0.66) return 'bg-primary';
+    if (step > 0.33) return 'bg-primary/70';
+    return 'bg-primary/40';
+  };
+  return (
+    <div className="flex gap-1 overflow-x-auto pb-1" role="img" aria-label={t('stats.heatLabel', { count: stats.heat.length })}>
+      {weeks.map((week) => (
+        <div key={week[0]!.key} className="flex flex-col gap-1">
+          {week.map((day) => (
+            <span
+              key={day.key}
+              title={`${formatDate(day.day.toDate())} · ${t('stats.actions', { count: day.actions })}`}
+              className={`size-3 rounded-[3px] ${shade(day.actions)}`}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * What the log adds up to: the run of days, the habits' own streaks,
+ * and two lifetime numbers. The 3 AM judging happens on the phone, so
+ * a streak here is the one the phone last wrote ([[Web]]).
+ */
+function StatsSection() {
+  const { t } = useTranslation();
+  const { db } = useHarvest();
+  const today = useHarvestDay();
+  const stats = useLiveQuery(() => readStats(db, today), [db, today.key]);
+  if (!stats) return null;
+  return (
+    <section aria-labelledby="stats-heading" className="flex flex-col gap-3">
+      <h2 id="stats-heading" className="text-lg font-extrabold">
+        {t('stats.title')}
+      </h2>
+      <Heat stats={stats} />
+      <p className="text-xs text-muted-foreground tabular">
+        {t('stats.lifetime', { checkIns: formatNumber(stats.checkIns), days: formatNumber(stats.activeDays) })}
+      </p>
+      {stats.seeds.length > 0 && (
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
+          {stats.seeds.map((seed) => (
+            <li key={seed.uuid} className="flex items-center gap-3 px-4 py-2.5">
+              <span className="min-w-0 flex-1 truncate font-bold">{seed.title}</span>
+              <StreakChip count={seed.current} />
+              <span className="text-xs text-muted-foreground tabular">{t('streak.best', { count: seed.best })}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

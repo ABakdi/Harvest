@@ -104,6 +104,21 @@
     "title": "Budget",
     "today": "Left today"
   },
+  "calendar": {
+    "cell": "{{day}}, {{count}} due",
+    "deadline": "Deadline",
+    "expenses_one": "{{count}} expense",
+    "expenses_other": "{{count}} expenses",
+    "memories_one": "{{count}} picture",
+    "memories_other": "{{count}} pictures",
+    "next": "Next month",
+    "nothingDue": "Nothing due that day.",
+    "previous": "Previous month",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "title": "Calendar",
+    "todayLabel": "Today"
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",
@@ -680,6 +695,13 @@
     "openApp": "Open Harvest",
     "openInBrowser": "Open Harvest in the browser",
     "privacy": "Privacy"
+  },
+  "stats": {
+    "actions_one": "{{count}} action",
+    "actions_other": "{{count}} actions",
+    "heatLabel": "Productive actions over the last {{count}} days",
+    "lifetime": "{{checkIns}} check-ins over {{days}} days",
+    "title": "The run so far"
   },
   "streak": {
     "best": "Best: {{count}}",

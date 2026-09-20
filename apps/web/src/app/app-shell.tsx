@@ -23,6 +23,7 @@ import { SyncIndicator } from './components/sync-indicator';
 import { useHarvest, useSyncStatus } from './context';
 import { DialogsProvider, useDialogs } from './dialogs';
 import { BodyScreen } from './screens/body';
+import { CalendarScreen } from './screens/calendar';
 import { FarmerScreen } from './screens/farmer';
 import { FieldScreen } from './screens/field';
 import { GoalScreen } from './screens/goal';
@@ -136,6 +137,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
     ...Object.fromEntries(tabs.map((tab) => [`g ${tab.key}`, () => void navigate(tab.to)])),
     'g s': () => void navigate('/app/settings'),
     'g g': () => void navigate('/app/field/goals'),
+    'g c': () => void navigate('/app/field/calendar'),
   });
 
   return (
@@ -169,6 +171,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
           <Routes>
             <Route index element={<Navigate to="field" replace />} />
             <Route path="field" element={<FieldScreen tab="today" />} />
+            <Route path="field/calendar" element={<CalendarScreen />} />
             <Route path="field/goals" element={<FieldScreen tab="goals" />} />
             <Route path="field/goals/:uuid" element={<GoalScreen />} />
             <Route path="body" element={<BodyScreen />} />

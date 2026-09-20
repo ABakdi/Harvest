@@ -64,6 +64,9 @@ export function FieldTabs() {
       <NavLink to="/app/field/goals" className={tab}>
         {t('field.goals')}
       </NavLink>
+      <NavLink to="/app/field/calendar" className={tab}>
+        {t('calendar.title')}
+      </NavLink>
     </nav>
   );
 }

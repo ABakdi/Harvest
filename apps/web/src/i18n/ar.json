@@ -104,6 +104,21 @@
     "title": "الميزانية",
     "today": "المتبقي اليوم"
   },
+  "calendar": {
+    "cell": "{{day}}، {{count}} مستحقة",
+    "deadline": "موعد نهائي",
+    "expenses_one": "مصروف واحد",
+    "expenses_other": "{{count}} مصاريف",
+    "memories_one": "صورة واحدة",
+    "memories_other": "{{count}} صور",
+    "next": "الشهر التالي",
+    "nothingDue": "لا شيء مستحق في ذلك اليوم.",
+    "previous": "الشهر السابق",
+    "sessions_one": "حصة واحدة",
+    "sessions_other": "{{count}} حصص",
+    "title": "التقويم",
+    "todayLabel": "اليوم"
+  },
   "common": {
     "cancel": "إلغاء",
     "close": "إغلاق",
@@ -660,6 +675,13 @@
     "openApp": "افتح Harvest",
     "openInBrowser": "افتح Harvest في المتصفح",
     "privacy": "الخصوصية"
+  },
+  "stats": {
+    "actions_one": "فعل واحد",
+    "actions_other": "{{count}} أفعال",
+    "heatLabel": "الأفعال المنتجة خلال آخر {{count}} يومًا",
+    "lifetime": "{{checkIns}} تسجيلًا على مدى {{days}} يومًا",
+    "title": "المسيرة حتى الآن"
   },
   "streak": {
     "best": "الأفضل: {{count}}",
