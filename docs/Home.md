@@ -36,7 +36,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[State-Management]] — Riverpod conventions
 - [[Local-Database]] — Drift schema and repositories
 - [[Sync-Strategy]] — local-first now, MongoDB sync later
-- [[Sync-API]] — the wire contract: records, push, pull, errors
+- [[Sync-API]] · [[Deployment]] — the wire contract: records, push, pull, errors
 - [[Theming-and-Design-System]] — colors, type, motion, dark/light
 - [[Localization]] — English + Arabic, RTL
 - [[Notifications-and-Background]] — scheduling, 3 AM reset, alarms

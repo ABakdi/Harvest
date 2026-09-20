@@ -137,8 +137,10 @@ flowchart LR
 - [x] `HarvestServerProvider` on the phone — the fallback, since a key
   of my own still wins — and the assist in the web's note editor,
   where the server is the only provider a browser can safely have.
-- [ ] Deployment notes (Docker image for the server, the static web
-  bundle), then the checkpoint and `v3.0.0`.
+- [x] Deployment notes ([[Deployment]]): the server's two-stage
+  image, built and run against a real MongoDB to prove it serves; the
+  static web bundle, and the two things its host must do.
+- [ ] The checkpoint and `v3.0.0`.
 
 **Exit:** the phone and the browser converge on the same day's
 field, the same notes and the same month of expenses, with the private

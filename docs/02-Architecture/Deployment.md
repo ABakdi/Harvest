@@ -1,0 +1,104 @@
+# Deployment
+
+What it takes to run Harvest for myself: a server, a database, and a
+folder of static files. Phase 6
+([[Phase-6-Sync-Accounts-and-Web]] M6.9).
+
+Nothing here is required to *use* Harvest. The phone works alone, as
+it always has ([[Business-Rules]] #5); this is only for the account
+that ties a phone to a browser.
+
+## The server
+
+`apps/server/Dockerfile` builds it in two stages. The first installs
+the workspace and compiles the server with the packages it imports;
+the second carries what `pnpm deploy --prod` wrote and nothing else —
+no sources, no toolchain, no store.
+
+```sh
+docker build -f apps/server/Dockerfile -t harvest-server .
+docker run -d --name harvest-server -p 8080:8080 \
+  -e MONGO_URL=mongodb://mongo:27017/harvest \
+  -e JWT_PRIVATE_KEY="$(cat jwt.key)" \
+  -e JWT_PUBLIC_KEY="$(cat jwt.pub)" \
+  -e CORS_ORIGINS=https://harvest.example.org \
+  -e APP_URL=https://harvest.example.org \
+  -e SMTP_HOST=smtp.example.org -e SMTP_USER=… -e SMTP_PASS=… \
+  harvest-server
+```
+
+`apps/server/.env.example` lists every variable. Four of them are not
+optional in production, and the server refuses to start without them
+rather than failing later on the first request that needs one:
+
+| Variable | Why it is required |
+| :--- | :--- |
+| `MONGO_URL` | There is nowhere to put anything otherwise. |
+| `JWT_PRIVATE_KEY`, `JWT_PUBLIC_KEY` | Without them a pair is generated at every start, which signs everyone out on every restart. Ed25519, PEM: `openssl genpkey -algorithm ed25519 -out jwt.key` then `openssl pkey -in jwt.key -pubout -out jwt.pub`. |
+| `SMTP_HOST` | Verification and password-reset links go to the log otherwise, which means nobody can verify an account. |
+
+Behind a reverse proxy, set `TRUST_PROXY` to the number of hops so the
+rate limits see the client's real address, and leave `COOKIE_SECURE`
+alone — it defaults to on everywhere but development, and the refresh
+cookie is the session.
+
+`GET /v1/health` is what a load balancer should watch; the image's own
+`HEALTHCHECK` watches the same route.
+
+## The database
+
+Any MongoDB 7 or later. The indexes are created at boot, every time,
+because `createIndex` on an index that exists does nothing.
+
+```sh
+docker run -d --name harvest-mongo -p 27017:27017 -v harvest-data:/data/db mongo:7
+```
+
+**Back it up.** The phone is the first copy and this is the second,
+but an account holding the only copy of a year of pictures is an
+account worth `mongodump`-ing on a schedule.
+
+## The web
+
+A static bundle: build it and serve the folder.
+
+```sh
+pnpm --filter @harvest/web build   # → apps/web/dist
+```
+
+Two things the host must do:
+
+1. **Serve `index.html` for any path it does not have a file for.**
+   The app routes in the browser, so `/app/field` is not a file.
+2. **Send `/v1/*` to the server**, on the same origin. The refresh
+   cookie is `SameSite=Strict` on `/v1/auth`, which is what makes a
+   stolen token useless from another site — and what makes a separate
+   API domain more trouble than it is worth.
+
+With Caddy that is six lines:
+
+```
+harvest.example.org {
+  handle /v1/* {
+    reverse_proxy harvest-server:8080
+  }
+  handle {
+    root * /srv/harvest
+    try_files {path} /index.html
+    file_server
+  }
+}
+```
+
+The service worker caches the shell and never the API
+([[Web]] W4), so a deploy reaches an open tab as an offer to reload
+rather than a page that changes under a half-written note.
+
+## The phone
+
+Release builds are signed with the upload key and fail without it
+([[Audit-v2]] S3-08); the README has the keystore steps. The APK goes
+to a GitHub release, which is where `/download` reads it from
+([[Web]]).
+
+Related: [[ADR-011-Backend]] · [[Sync-API]] · [[Accounts]] · [[Web]]
