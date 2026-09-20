@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/assist/domain/assist.dart';
+import 'package:harvest/features/assist/domain/prompts.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/domain/sleep.dart';
 import 'package:harvest/features/places/domain/place.dart';
@@ -151,6 +153,38 @@ void main() {
           expect(stay.from, DateTime.parse(expected[i]['from']! as String));
           expect(stay.place?.name, expected[i]['place']);
         }
+      }
+    });
+  });
+
+  group('the assist', () {
+    final spec = fixture('assist');
+
+    test('every action asks for exactly what the web asks for', () {
+      for (final entry in list(spec['cases'])) {
+        final input = entry['input']! as Map<String, Object?>;
+        final action = AssistAction.values.byName(entry['action']! as String);
+        final request = buildRequest(
+          action,
+          text: input['text']! as String,
+          upToCaret: input['upToCaret']! as String,
+          question: input['question']! as String,
+          language: input['language']! as String,
+          audio: action == AssistAction.transcribe
+              ? AssistAudio(bytes: Uint8List(0), mimeType: 'audio/mp4')
+              : null,
+        );
+        final prompt = entry['prompt']! as Map<String, Object?>;
+        expect(request.system, prompt['system'], reason: entry['why'] as String?);
+        expect(
+          [
+            for (final message in request.messages)
+              {'role': message.fromModel ? 'model' : 'user', 'text': message.text},
+          ],
+          prompt['messages'],
+        );
+        expect(request.audio != null, prompt['wantsAudio']);
+        expect(actsOnSelection(action), entry['actsOnSelection']);
       }
     });
   });

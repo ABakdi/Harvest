@@ -23,6 +23,10 @@ Two routes will exist:
   messages plus optional inline audio, streamed back as text. Every
   action in the app is a prompt template over that call. No screen
   knows which provider answered.
+- **The prompts are a rule, not a screen.** They live in
+  `packages/core` and are pinned by `fixtures/assist.json`, which both
+  the TypeScript and the Dart tests read: the same button must ask the
+  same thing of the same model on either device.
 - **Providers:**
   - `GeminiProvider`: `streamGenerateContent` on the Generative
     Language API, with the key sent in the `x-goog-api-key` header,
@@ -32,9 +36,11 @@ Two routes will exist:
   - `OpenAiCompatibleProvider`: any `/v1/chat/completions` endpoint
     (OpenAI, OpenRouter, a local Ollama). It is the same few lines, and
     it keeps the interface honest.
-  - `HarvestServerProvider`: added in Phase 6, `POST /v1/assist` on
-    the Harvest server. Once signed in, it is the default, and my own
-    key still wins when set.
+  - `HarvestServerProvider`: `POST /v1/assist` on the Harvest server,
+    which lends its own key to a signed-in, verified account and counts
+    the requests per account per UTC day. My own key still wins where
+    it is set. On the **web** it is the only provider, because a key
+    pasted into a browser is a key in everyone's browser.
 - **The key** lives in Android Keystore-backed secure storage, never
   in `kv_settings`. It is never exported, never archived and never
   synced.

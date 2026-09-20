@@ -129,9 +129,14 @@ flowchart LR
   so every instant is the one that was already there.
 
 ## M6.9 — The server assist, and the release
-- [ ] `POST /v1/assist`: server-held key, per-user quota, the same
-  prompt templates.
-- [ ] `HarvestServerProvider` on the phone and the web.
+- [x] `POST /v1/assist`: server-held key, per-account daily quota, the
+  answer relayed as server-sent events; `GET /v1/assist/status` says
+  whether the server offers one at all.
+- [x] The prompts moved to `packages/core` with a fixture both clients
+  are read against, so the same button asks the same thing.
+- [x] `HarvestServerProvider` on the phone — the fallback, since a key
+  of my own still wins — and the assist in the web's note editor,
+  where the server is the only provider a browser can safely have.
 - [ ] Deployment notes (Docker image for the server, the static web
   bundle), then the checkpoint and `v3.0.0`.
 

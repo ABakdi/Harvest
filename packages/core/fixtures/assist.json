@@ -1,0 +1,151 @@
+{
+  "cases": [
+    {
+      "why": "summarise asks for exactly this",
+      "action": "summarise",
+      "input": {
+        "text": "Bread rises twice.",
+        "upToCaret": "Bread rises",
+        "question": "How many times?",
+        "language": "ar"
+      },
+      "actsOnSelection": false,
+      "prompt": {
+        "system": "You help me with my own notes. Answer with the text only: no preamble, no closing remarks, no quotation marks around it. Keep the markdown the note already uses. Never add facts that are not in what I give you. Summarise the note in a few sentences, in the language the note is written in.",
+        "messages": [
+          {
+            "role": "user",
+            "text": "Bread rises twice."
+          }
+        ],
+        "wantsAudio": false
+      }
+    },
+    {
+      "why": "rewrite asks for exactly this",
+      "action": "rewrite",
+      "input": {
+        "text": "Bread rises twice.",
+        "upToCaret": "Bread rises",
+        "question": "How many times?",
+        "language": "ar"
+      },
+      "actsOnSelection": true,
+      "prompt": {
+        "system": "You help me with my own notes. Answer with the text only: no preamble, no closing remarks, no quotation marks around it. Keep the markdown the note already uses. Never add facts that are not in what I give you. Rewrite this more clearly and simply. Keep the meaning, the language and my voice.",
+        "messages": [
+          {
+            "role": "user",
+            "text": "Bread rises twice."
+          }
+        ],
+        "wantsAudio": false
+      }
+    },
+    {
+      "why": "continueWriting asks for exactly this",
+      "action": "continueWriting",
+      "input": {
+        "text": "Bread rises twice.",
+        "upToCaret": "Bread rises",
+        "question": "How many times?",
+        "language": "ar"
+      },
+      "actsOnSelection": false,
+      "prompt": {
+        "system": "You help me with my own notes. Answer with the text only: no preamble, no closing remarks, no quotation marks around it. Keep the markdown the note already uses. Never add facts that are not in what I give you. Continue writing from where the text stops, in the same language, voice and style. Write one paragraph, and do not repeat what is already there.",
+        "messages": [
+          {
+            "role": "user",
+            "text": "Bread rises"
+          }
+        ],
+        "wantsAudio": false
+      }
+    },
+    {
+      "why": "fixGrammar asks for exactly this",
+      "action": "fixGrammar",
+      "input": {
+        "text": "Bread rises twice.",
+        "upToCaret": "Bread rises",
+        "question": "How many times?",
+        "language": "ar"
+      },
+      "actsOnSelection": true,
+      "prompt": {
+        "system": "You help me with my own notes. Answer with the text only: no preamble, no closing remarks, no quotation marks around it. Keep the markdown the note already uses. Never add facts that are not in what I give you. Correct spelling, grammar and punctuation. Change nothing else: not the words I chose, not the order, not the tone.",
+        "messages": [
+          {
+            "role": "user",
+            "text": "Bread rises twice."
+          }
+        ],
+        "wantsAudio": false
+      }
+    },
+    {
+      "why": "translate asks for exactly this",
+      "action": "translate",
+      "input": {
+        "text": "Bread rises twice.",
+        "upToCaret": "Bread rises",
+        "question": "How many times?",
+        "language": "ar"
+      },
+      "actsOnSelection": true,
+      "prompt": {
+        "system": "You help me with my own notes. Answer with the text only: no preamble, no closing remarks, no quotation marks around it. Keep the markdown the note already uses. Never add facts that are not in what I give you. Translate between English and Arabic: English becomes Arabic, Arabic becomes English. Keep the markdown.",
+        "messages": [
+          {
+            "role": "user",
+            "text": "Bread rises twice."
+          }
+        ],
+        "wantsAudio": false
+      }
+    },
+    {
+      "why": "ask asks for exactly this",
+      "action": "ask",
+      "input": {
+        "text": "Bread rises twice.",
+        "upToCaret": "Bread rises",
+        "question": "How many times?",
+        "language": "ar"
+      },
+      "actsOnSelection": false,
+      "prompt": {
+        "system": "You help me with my own notes. Answer with the text only: no preamble, no closing remarks, no quotation marks around it. Keep the markdown the note already uses. Never add facts that are not in what I give you. Answer my question using only the note below. If the note does not say, answer that it does not. Answer in Arabic.",
+        "messages": [
+          {
+            "role": "user",
+            "text": "Note:\nBread rises twice.\n\nQuestion: How many times?"
+          }
+        ],
+        "wantsAudio": false
+      }
+    },
+    {
+      "why": "transcribe asks for exactly this",
+      "action": "transcribe",
+      "input": {
+        "text": "Bread rises twice.",
+        "upToCaret": "Bread rises",
+        "question": "How many times?",
+        "language": "ar"
+      },
+      "actsOnSelection": false,
+      "prompt": {
+        "system": "You help me with my own notes. Answer with the text only: no preamble, no closing remarks, no quotation marks around it. Keep the markdown the note already uses. Never add facts that are not in what I give you. Transcribe the recording word for word, in the language it is spoken in. Mark nothing you cannot hear; skip it.",
+        "messages": [
+          {
+            "role": "user",
+            "text": "Transcribe this recording."
+          }
+        ],
+        "wantsAudio": true
+      }
+    }
+  ]
+}

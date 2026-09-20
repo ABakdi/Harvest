@@ -8,3 +8,4 @@ export * from './sleep.js';
 export * from './money.js';
 export * from './places.js';
 export * from './body.js';
+export * from './assist.js';

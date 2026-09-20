@@ -1,4 +1,6 @@
 import type {
+  AssistRequest,
+  AssistStatus,
   AuthResult,
   ErrorBody,
   ForgotPasswordBody,
@@ -331,6 +333,33 @@ export const api = {
     }
     if (!response.ok) throw await toError(response);
     return { sealed: await response.arrayBuffer(), iv: response.headers.get(fileIvHeader) ?? '' };
+  },
+
+  assistStatus: () => request<AssistStatus>('/v1/assist/status'),
+
+  /**
+   * The assist, as server-sent events. The response itself is handed
+   * back, because what matters is reading it as it arrives.
+   */
+  async assist(body: AssistRequest, signal?: AbortSignal): Promise<Response> {
+    const init = (token: string | null): RequestInit => ({
+      method: 'POST',
+      headers: {
+        accept: 'text/event-stream',
+        'content-type': 'application/json',
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+      ...(signal ? { signal } : {}),
+    });
+    let response = await send('/v1/assist', init(await accessToken()));
+    if (response.status === 401) {
+      const result = await refreshSession();
+      if (!result) throw new ApiError(401, 'unauthorized', 'Signed out');
+      response = await send('/v1/assist', init(result.accessToken));
+    }
+    if (!response.ok) throw await toError(response);
+    return response;
   },
 
   push: (body: PushBody) => request<PushResult>('/v1/sync/push', { method: 'POST', body }),

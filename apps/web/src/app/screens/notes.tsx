@@ -1,6 +1,9 @@
+import { actsOnSelection, assistActions } from '@harvest/core';
+import { useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   ArrowLeftIcon,
+  SparklesIcon,
   BoldIcon,
   CodeIcon,
   FilePlusIcon,
@@ -33,6 +36,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,9 +50,11 @@ import { formatDate } from '@/lib/format';
 import { Markdown } from '@/lib/markdown';
 import { registerPendingEdit } from '@/lib/pending-edits';
 import { cn } from '@/lib/utils';
+import { AssistDialog, type AssistTarget } from '../components/assist-dialog';
 import { EmptyState } from '../components/bits';
 import { useHarvest } from '../context';
 import { RecordsTabs } from './records';
+import { assistStatus } from '../data/assist';
 import { decodeFolders, folderTree, linksIn, notePreview, type NoteRow } from '../data/notes';
 import { settingKeys, settingText } from '../data/settings';
 
@@ -267,6 +278,10 @@ function applyFormat(area: HTMLTextAreaElement, format: { wrap?: [string, string
 function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
   const { t } = useTranslation();
   const { notes } = useHarvest();
+  // The assist is the server's or nothing: a key pasted into a browser
+  // is a key in everyone's browser ([[ADR-013-Assist-Providers]]).
+  const assist = useQuery({ queryKey: ['assist-status'], queryFn: assistStatus, staleTime: 60_000 });
+  const [asking, setAsking] = useState<AssistTarget | null>(null);
   const navigate = useNavigate();
   const [title, setTitle] = useState(note.title);
   const [folder, setFolder] = useState(note.folder);
@@ -404,6 +419,28 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
         <span>{t('notes.edited', { when: formatDate(note.updatedAt, { dateStyle: 'medium', timeStyle: 'short' }) })}</span>
       </div>
 
+      <AssistDialog
+        target={asking}
+        model={assist.data?.model ?? ''}
+        onClose={() => setAsking(null)}
+        onInsert={(text) => {
+          const next = `${body}${body.length === 0 || body.endsWith('\n') ? '' : '\n\n'}${text}`;
+          setBody(next);
+          schedule({ title, folder, body: next });
+          setAsking(null);
+        }}
+        onReplace={(text) => {
+          const field = area.current;
+          const next =
+            asking?.fromSelection && field
+              ? body.slice(0, field.selectionStart) + text + body.slice(field.selectionEnd)
+              : text;
+          setBody(next);
+          schedule({ title, folder, body: next });
+          setAsking(null);
+        }}
+      />
+
       <Tabs value={mode} onValueChange={(value) => setMode(value as 'write' | 'read')}>
         <div className="flex flex-wrap items-center gap-2">
           <TabsList>
@@ -418,6 +455,43 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
                 </Button>
               ))}
             </div>
+          )}
+          {assist.data?.available === true && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="ms-auto">
+                  <SparklesIcon />
+                  {t('assist.title')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {/* Transcribe belongs to the recorder, which is the
+                    phone's ([[Notes]] N7). */}
+                {assistActions
+                  .filter((action) => action !== 'transcribe')
+                  .map((action) => (
+                    <DropdownMenuItem
+                      key={action}
+                      onSelect={() => {
+                        const field = area.current;
+                        const selected =
+                          field && field.selectionEnd > field.selectionStart
+                            ? field.value.slice(field.selectionStart, field.selectionEnd)
+                            : '';
+                        const onSelection = actsOnSelection(action) && selected.length > 0;
+                        setAsking({
+                          action,
+                          text: onSelection ? selected : body,
+                          upToCaret: field ? field.value.slice(0, field.selectionStart) : body,
+                          fromSelection: onSelection,
+                        });
+                      }}
+                    >
+                      {t(`assist.actions.${action}`)}
+                    </DropdownMenuItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
         <TabsContent value="write">

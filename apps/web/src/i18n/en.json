@@ -13,6 +13,38 @@
     "verifyResend": "Send the link again",
     "verifySent": "Sent"
   },
+  "assist": {
+    "actions": {
+      "summarise": "Summarise",
+      "rewrite": "Rewrite",
+      "continueWriting": "Continue writing",
+      "fixGrammar": "Fix the grammar",
+      "translate": "Translate",
+      "ask": "Ask about this note",
+      "transcribe": "Transcribe"
+    },
+    "copied": "Copied",
+    "copy": "Copy",
+    "failures": {
+      "rate_limited": "That is all the assist this account has today.",
+      "unauthorized": "Sign in again to use the assist.",
+      "forbidden": "Verify your email to use the assist.",
+      "unavailable": "The model could not be reached. Try again in a moment.",
+      "other": "It did not answer. Try again.",
+      "internal": "It did not answer. Try again."
+    },
+    "insert": "Insert",
+    "question": "Your question",
+    "questionHint": "What do you want to know about this note?",
+    "replace": "Replace",
+    "send": "Send",
+    "sends": "{{what}} goes to {{model}}, and nothing else.",
+    "sendsNote": "This note",
+    "sendsSelection": "What you selected",
+    "sendsUpToCaret": "The note up to the caret",
+    "thinking": "Thinking…",
+    "title": "Assist"
+  },
   "auth": {
     "accountOptional": "Harvest works fully without an account, forever. This one only syncs.",
     "backToSignIn": "Back to sign in",

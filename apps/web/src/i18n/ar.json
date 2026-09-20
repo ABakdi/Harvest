@@ -13,6 +13,38 @@
     "verifyResend": "أرسل الرابط مجددًا",
     "verifySent": "أُرسل"
   },
+  "assist": {
+    "actions": {
+      "summarise": "لخّص",
+      "rewrite": "أعد الصياغة",
+      "continueWriting": "أكمل الكتابة",
+      "fixGrammar": "صحّح القواعد",
+      "translate": "ترجم",
+      "ask": "اسأل عن هذه الملاحظة",
+      "transcribe": "فرّغ التسجيل"
+    },
+    "copied": "نُسخ",
+    "copy": "انسخ",
+    "failures": {
+      "rate_limited": "هذا كل ما لهذا الحساب من المساعدة اليوم.",
+      "unauthorized": "سجّل الدخول من جديد لاستخدام المساعدة.",
+      "forbidden": "أكّد بريدك لاستخدام المساعدة.",
+      "unavailable": "تعذّر الوصول إلى النموذج. جرّب بعد قليل.",
+      "other": "لم يُجب. جرّب مرة أخرى.",
+      "internal": "لم يُجب. جرّب مرة أخرى."
+    },
+    "insert": "أدرج",
+    "question": "سؤالك",
+    "questionHint": "ما الذي تريد معرفته عن هذه الملاحظة؟",
+    "replace": "استبدل",
+    "send": "أرسل",
+    "sends": "{{what}} يذهب إلى {{model}}، ولا شيء غيره.",
+    "sendsNote": "هذه الملاحظة",
+    "sendsSelection": "ما حدّدته",
+    "sendsUpToCaret": "الملاحظة حتى المؤشر",
+    "thinking": "يفكّر…",
+    "title": "المساعدة"
+  },
   "auth": {
     "accountOptional": "Harvest يعمل كاملًا بدون حساب، دائمًا. هذا للمزامنة فقط.",
     "backToSignIn": "العودة إلى تسجيل الدخول",
