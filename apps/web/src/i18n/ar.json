@@ -89,6 +89,21 @@
     "weightTitle": "الوزن",
     "window": "على أي مدى"
   },
+  "budget": {
+    "byCategory": "أين ذهب",
+    "converted": "المبالغ بعملات أخرى محوَّلة بالأسعار التي جلبها الهاتف آخر مرة.",
+    "daysLeft_one": "بقي يوم واحد في الشهر",
+    "daysLeft_other": "بقي {{count}} يومًا في الشهر",
+    "lastDay": "آخر يوم في الشهر",
+    "monthLine": "{{spent}} من {{budget}} هذا الشهر",
+    "noBudget": "لا ميزانية شهرية",
+    "noBudgetBody": "اضبطها على الهاتف فيظهر الحد اليومي هنا، يتحرك مع ما تبقّى.",
+    "nothingYet": "لا شيء مسجَّل هذا الشهر بعد.",
+    "ofDaily": "من {{limit}} لليوم",
+    "overBy": "تجاوز بـ{{amount}}",
+    "title": "الميزانية",
+    "today": "المتبقي اليوم"
+  },
   "common": {
     "cancel": "إلغاء",
     "close": "إغلاق",
@@ -358,6 +373,7 @@
       "amount": "اكتب مبلغًا أكبر من صفر، مثل 450 أو 12.50.",
       "day": "اختر يومًا."
     },
+    "expenses": "المصاريف",
     "expensesCount": "المصاريف: {{count}}",
     "fromWallet": "من المحفظة",
     "granary": "المخزن",
@@ -665,5 +681,27 @@
     "syncing": "يزامن…",
     "unverified": "أكّد البريد للمزامنة",
     "waiting": "تغييرات تنتظر: {{count}}."
+  },
+  "vault": {
+    "debtPayment": "دُفع لـ{{person}}",
+    "debts": "الديون",
+    "deposit": "أُضيف",
+    "dueOn": "يُسدَّد في {{day}}",
+    "emptyPot": "لا شيء فيها",
+    "movements": "حركات {{account}}",
+    "noDebts": "لا ديون",
+    "noDebtsBody": "المال المستحق في الاتجاهين يُسجَّل على الهاتف، ويظهر هنا.",
+    "noMovements": "لا حركات بعد.",
+    "owed": "مستحق",
+    "paidOf": "دُفع {{paid}} من {{total}}",
+    "payments_one": "دفعة واحدة",
+    "payments_other": "{{count}} دفعات",
+    "phoneOnly": "المال يُحرَّك على الهاتف. هذا سجلّه، للقراءة.",
+    "savings": "المدّخرات",
+    "settled": "مسدَّد",
+    "title": "الخزنة",
+    "transfer": "نُقل إلى {{account}}",
+    "wallet": "المحفظة",
+    "withdrawal": "سُحب"
   }
 }

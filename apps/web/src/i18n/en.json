@@ -89,6 +89,21 @@
     "weightTitle": "Weight",
     "window": "Over how long"
   },
+  "budget": {
+    "byCategory": "Where it went",
+    "converted": "Amounts in other currencies are converted at the rates the phone last fetched.",
+    "daysLeft_one": "{{count}} day left in the month",
+    "daysLeft_other": "{{count}} days left in the month",
+    "lastDay": "The last day of the month",
+    "monthLine": "{{spent}} of {{budget}} this month",
+    "noBudget": "No monthly budget set",
+    "noBudgetBody": "Set one on the phone and the daily limit appears here, floating with what is left.",
+    "nothingYet": "Nothing logged this month yet.",
+    "ofDaily": "of {{limit}} for today",
+    "overBy": "{{amount}} over",
+    "title": "Budget",
+    "today": "Left today"
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",
@@ -369,6 +384,7 @@
       "amount": "Type an amount above zero, like 450 or 12.50.",
       "day": "Pick a day."
     },
+    "expenses": "Expenses",
     "expensesCount_one": "{{count}} expense",
     "expensesCount_other": "{{count}} expenses",
     "fromWallet": "From the wallet",
@@ -688,5 +704,27 @@
     "unverified": "Verify email to sync",
     "waiting_one": "{{count}} change waiting.",
     "waiting_other": "{{count}} changes waiting."
+  },
+  "vault": {
+    "debtPayment": "Paid {{person}}",
+    "debts": "Debts",
+    "deposit": "Added",
+    "dueOn": "due {{day}}",
+    "emptyPot": "Nothing in it",
+    "movements": "{{account}} movements",
+    "noDebts": "No debts",
+    "noDebtsBody": "Money owed either way is logged on the phone, and shows up here.",
+    "noMovements": "No movements yet.",
+    "owed": "Owed",
+    "paidOf": "{{paid}} of {{total}} paid",
+    "payments_one": "{{count}} payment",
+    "payments_other": "{{count}} payments",
+    "phoneOnly": "Money is moved on the phone. This is its ledger, read.",
+    "savings": "Savings",
+    "settled": "Settled",
+    "title": "Vault",
+    "transfer": "Moved to {{account}}",
+    "wallet": "Wallet",
+    "withdrawal": "Taken out"
   }
 }

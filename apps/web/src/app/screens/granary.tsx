@@ -3,6 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, WalletIcon } from 'lucide-
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate, formatDay, formatMoney } from '@/lib/format';
 import { EmptyState } from '../components/bits';
 import { categoryLabel } from '../components/category';
@@ -11,6 +12,8 @@ import { useHarvest, useHarvestDay } from '../context';
 import type { ExpenseRow } from '../data/money';
 import { useDialogs } from '../dialogs';
 import { usePrivateKey } from '../hooks';
+import { BudgetPanel } from './budget';
+import { VaultPanel } from './vault';
 
 /** Sums per currency: amounts in different currencies are never added together. */
 function totals(rows: ExpenseRow[]): [string, number][] {
@@ -37,12 +40,11 @@ function shiftMonth(month: string, by: number): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
-/** The Granary: today's spending and the month's, day by day ([[Finances]]). */
-export function GranaryScreen() {
+/** Today's spending and the month's, day by day ([[Finances]]). */
+function ExpensesPanel() {
   const { t } = useTranslation();
   const { db } = useHarvest();
   const dialogs = useDialogs();
-  const unlocked = usePrivateKey();
   const today = useHarvestDay();
   const current = today.key.slice(0, 7);
   const [month, setMonth] = useState(current);
@@ -55,17 +57,6 @@ export function GranaryScreen() {
     [db, month, today.key],
   );
 
-  if (unlocked === undefined) return null;
-  if (!unlocked) {
-    return (
-      <div className="mx-auto flex w-full max-w-lg flex-col gap-4">
-        <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
-        <div className="rounded-2xl border bg-card p-5">
-          <PassphrasePrompt />
-        </div>
-      </div>
-    );
-  }
   if (!rows) return null;
 
   const todays = rows.filter((row) => row.harvestDay === today.key);
@@ -75,14 +66,6 @@ export function GranaryScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
-        <Button onClick={dialogs.logExpense} title={`${t('money.log')} (e)`}>
-          <PlusIcon />
-          {t('money.log')}
-        </Button>
-      </div>
-
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
           <span className="text-sm font-bold text-muted-foreground">{t('money.today')}</span>
@@ -156,6 +139,60 @@ export function GranaryScreen() {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The Granary, in three views of the same money: what I spent, what I
+ * have, and what the month allows ([[Finances]]).
+ *
+ * The private tier is asked for once, here, because all three read
+ * rows that are sealed on the wire ([[Sync-Strategy]]).
+ */
+export function GranaryScreen() {
+  const { t } = useTranslation();
+  const dialogs = useDialogs();
+  const unlocked = usePrivateKey();
+  const [tab, setTab] = useState('expenses');
+
+  if (unlocked === undefined) return null;
+  if (!unlocked) {
+    return (
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-4">
+        <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
+        <div className="rounded-2xl border bg-card p-5">
+          <PassphrasePrompt />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
+        <Button onClick={dialogs.logExpense} title={`${t('money.log')} (e)`}>
+          <PlusIcon />
+          {t('money.log')}
+        </Button>
+      </div>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList>
+          <TabsTrigger value="expenses">{t('money.expenses')}</TabsTrigger>
+          <TabsTrigger value="vault">{t('vault.title')}</TabsTrigger>
+          <TabsTrigger value="budget">{t('budget.title')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="expenses">
+          <ExpensesPanel />
+        </TabsContent>
+        <TabsContent value="vault">
+          <VaultPanel />
+        </TabsContent>
+        <TabsContent value="budget">
+          <BudgetPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
