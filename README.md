@@ -346,8 +346,8 @@ docs/               the Obsidian vault
 | — | Four checkpoints: calendar, app lock, export, seed notes and history, the archive, the comeback ladder, the widget, the daily cycle | ✅ **v1.0** |
 | 3 — Notes, Gallery & the Archive | Markdown notes with links; photo albums that are seeds; the zip archive **and an importer** | ✅ **v1.1** |
 | 4 — Health & the Gym | Steps, body weight, and a training log — programs, sessions, personal records — plus the sleep alarm | ✅ **v2.0** |
-| 5 — Goals, Places & Voice | A goals board, a trail and a geotag on every action on a free map, voice notes, read aloud, an assist in notes | next · v2.1 |
-| 6 — Sync, Accounts & the Web | Express + MongoDB server, optional accounts, sync, the whole app in the browser as a PWA | v3.0 |
+| 5 — Goals, Places & Voice | A goals board, a trail and a geotag on every action on a free map, voice notes, read aloud, an assist in notes | ✅ |
+| 6 — Sync, Accounts & the Web | Express + MongoDB server, optional accounts, sync, the whole app in the browser as a PWA | ✅ **v3.0.0-beta.1** |
 | 7 — Screen Time | Usage caps, weed-pull interventions | v3.1 |
 | 8 — Social & Reach | Rankings, the share card, iOS polish | |
 
