@@ -27,6 +27,8 @@ export interface HarnessOptions {
   env?: Record<string, string>;
   rateLimits?: Partial<RateLimitSettings>;
   fetch?: Fetch;
+  /** The assist's model, which is otherwise over the network. */
+  assistFetch?: typeof fetch;
 }
 
 /**
@@ -55,6 +57,7 @@ export async function harness(options: HarnessOptions = {}): Promise<Harness> {
     }),
     logger: createLogger('silent'),
     ...(options.rateLimits ? { rateLimits: options.rateLimits } : {}),
+    ...(options.assistFetch ? { assistFetch: options.assistFetch } : {}),
   });
   return {
     app,

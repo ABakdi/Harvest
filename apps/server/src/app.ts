@@ -16,12 +16,17 @@ import type { ReleaseSource } from './releases/github.js';
 import { authRoutes } from './routes/auth.js';
 import { meRoutes } from './routes/me.js';
 import { publicRoutes } from './routes/public.js';
+import { GeminiUpstream, type Fetch as AssistFetch } from './assist/gemini.js';
+import { assistRoutes } from './routes/assist.js';
 import { fileRoutes } from './routes/files.js';
 import { syncRoutes } from './routes/sync.js';
 import { SyncService } from './sync/service.js';
 
 export interface AppDeps {
-  config: Pick<Config, 'corsOrigins' | 'cookieSecure' | 'trustProxy' | 'bodyLimit' | 'appUrl' | 'jwt'>;
+  config: Pick<
+    Config,
+    'corsOrigins' | 'cookieSecure' | 'trustProxy' | 'bodyLimit' | 'appUrl' | 'jwt' | 'assist'
+  >;
   db: Db;
   repos: Repositories;
   mailer: Mailer;
@@ -29,6 +34,8 @@ export interface AppDeps {
   logger: Logger;
   rateLimits?: Partial<RateLimitSettings>;
   now?: () => Date;
+  /** The model, for tests: the real one is reached over the network. */
+  assistFetch?: AssistFetch;
 }
 
 /**
@@ -93,6 +100,23 @@ export function createApp(deps: AppDeps): Express {
     requireAuth(auth),
     requireVerified(deps.repos.users),
     fileRoutes(deps.repos.files, deps.now),
+  );
+  v1.use(
+    '/assist',
+    requireAuth(auth),
+    requireVerified(deps.repos.users),
+    assistRoutes({
+      upstream: config.assist.apiKey
+        ? new GeminiUpstream({
+            apiKey: config.assist.apiKey,
+            model: config.assist.model,
+            ...(deps.assistFetch ? { fetch: deps.assistFetch } : {}),
+          })
+        : null,
+      usage: deps.repos.assistUsage,
+      dailyLimit: config.assist.dailyLimit,
+      ...(deps.now ? { now: deps.now } : {}),
+    }),
   );
   app.use('/v1', v1);
 

@@ -1,5 +1,5 @@
 import type { Collection, Db } from 'mongodb';
-import type { CounterDoc, FileDoc, OneTimeTokenDoc, RecordDoc, RefreshTokenDoc, SessionDoc, UserDoc } from './types.js';
+import type { AssistUsageDoc, CounterDoc, FileDoc, OneTimeTokenDoc, RecordDoc, RefreshTokenDoc, SessionDoc, UserDoc } from './types.js';
 
 export interface Collections {
   users: Collection<UserDoc>;
@@ -9,6 +9,7 @@ export interface Collections {
   records: Collection<RecordDoc>;
   counters: Collection<CounterDoc>;
   files: Collection<FileDoc>;
+  assistUsage: Collection<AssistUsageDoc>;
 }
 
 export function collections(db: Db): Collections {
@@ -20,6 +21,7 @@ export function collections(db: Db): Collections {
     records: db.collection<RecordDoc>('records'),
     counters: db.collection<CounterDoc>('counters'),
     files: db.collection<FileDoc>('files'),
+    assistUsage: db.collection<AssistUsageDoc>('assist_usage'),
   };
 }
 
@@ -51,5 +53,9 @@ export async function ensureIndexes(c: Collections): Promise<void> {
 
     // A file is named by its own contents, once per account.
     c.files.createIndex({ userId: 1, sha256: 1 }, { unique: true, name: 'user_file' }),
+
+    // One row per account per day, and old days sweep themselves away.
+    c.assistUsage.createIndex({ userId: 1, day: 1 }, { unique: true, name: 'user_day' }),
+    c.assistUsage.createIndex({ lastAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60, name: 'assist_ttl' }),
   ]);
 }

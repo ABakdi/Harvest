@@ -67,6 +67,16 @@ export interface OneTimeTokenDoc {
 }
 
 /** One synced row, as the server holds it. */
+/** One account's assist requests on one UTC day. */
+export interface AssistUsageDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  /** `2026-09-20`. */
+  day: string;
+  count: number;
+  lastAt: Date;
+}
+
 /** One file, content-addressed, its bytes sealed by the client. */
 export interface FileDoc {
   _id: ObjectId;

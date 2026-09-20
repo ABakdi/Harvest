@@ -262,6 +262,7 @@ export class AuthService {
     await this.repos.oneTimeTokens.deleteAll(userId);
     await this.repos.records.deleteAll(userId);
     await this.repos.files.deleteAllFor(userId);
+    await this.repos.assistUsage.deleteAllFor(userId);
     await this.repos.users.delete(userId);
   }
 

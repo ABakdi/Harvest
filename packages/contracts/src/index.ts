@@ -6,3 +6,4 @@ export * from './tables.js';
 export * from './sync.js';
 export * from './crypto.js';
 export * from './files.js';
+export * from './assist.js';

@@ -47,6 +47,16 @@ const envSchema = z.object({
   /** Where the web app lives; the emailed links point into it. */
   APP_URL: z.url().default('http://localhost:5173'),
 
+  /**
+   * The key the server lends to signed-in accounts
+   * ([[ADR-013-Assist-Providers]]). Without it there is no server
+   * assist, and the clients say so rather than failing at the sheet.
+   */
+  ASSIST_API_KEY: z.string().min(1).optional(),
+  ASSIST_MODEL: z.string().min(1).default('gemini-2.5-flash'),
+  /** Requests per account per UTC day. */
+  ASSIST_DAILY_LIMIT: z.coerce.number().int().min(0).default(50),
+
   GITHUB_REPO: z
     .string()
     .regex(/^[\w.-]+\/[\w.-]+$/, { message: 'owner/name' })
@@ -77,6 +87,8 @@ export interface Config {
   smtp: SmtpConfig | null;
   mailFrom: string;
   appUrl: string;
+  /** The server-held assist; `apiKey` null means it offers none. */
+  assist: { apiKey: string | null; model: string; dailyLimit: number };
   githubRepo: string;
   githubToken: string | undefined;
 }
@@ -146,6 +158,11 @@ export async function loadConfig(source: Record<string, string | undefined> = pr
       : null,
     mailFrom: env.SMTP_FROM,
     appUrl: env.APP_URL.replace(/\/+$/, ''),
+    assist: {
+      apiKey: env.ASSIST_API_KEY ?? null,
+      model: env.ASSIST_MODEL,
+      dailyLimit: env.ASSIST_DAILY_LIMIT,
+    },
     githubRepo: env.GITHUB_REPO,
     githubToken: env.GITHUB_TOKEN,
   };
