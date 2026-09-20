@@ -3982,4 +3982,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String sleepOwedLine(int hours, int minutes) {
     return '$hours س $minutes د دَين لنفسك';
   }
+
+  @override
+  String get gymBestVolumeLabel => 'أفضل جلسة';
+
+  @override
+  String get gymBestVolumeHint => 'الوزن في التكرارات، مجموعًا على جلسة واحدة.';
+
+  @override
+  String get gymChartEstimate => 'الفردية المقدَّرة';
+
+  @override
+  String get gymChartVolume => 'حجم الجلسة';
+
+  @override
+  String get gymResting => 'راحة';
+
+  @override
+  String get gymRestOverTitle => 'انتهت الراحة';
+
+  @override
+  String get gymRestOverBody => 'المجموعة التالية.';
 }

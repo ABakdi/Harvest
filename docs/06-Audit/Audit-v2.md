@@ -894,5 +894,21 @@ written down as a decision:
 | D3-16 | The README's layout carries the five newer features and `v1 … v15`, and no longer claims reminders learn when to nudge. |
 | The coin amounts | In [[Gamification]] as a table: 50, 200 and 1,000 at seven, thirty and a hundred days; a freeze costs 100. |
 
-Left for the user: the nine decisions in section E (P3-01 … P3-09),
-each of which is *build it* or *strike it*.
+## Status — section E decided, 2026-09-20
+
+All nine were built rather than struck.
+
+| # | What landed |
+| :--- | :--- |
+| P3-01 | The rest counts down in the notification shade on the system's own chronometer, and rings as an alarm at zero, over the lock screen. Ending it while I am watching the app calls the alarm off. |
+| P3-02 | Dropping a session asks twice when sets are logged, once when it is empty. |
+| P3-03 | Holding down a set's number drops it, after one confirmation. |
+| P3-04 | Skipping asks why, in a sentence I can leave empty; the reason is its own column (schema v16), shown under the exercise and kept in history, and cleared when the exercise goes back. |
+| P3-05 | The third record — best session volume — is shown beside the other two, and a chart draws the estimated single or the session volume across every outing. |
+| P3-06 | A `[[link]]` to a note I have not written is faint and dashed; one that leads somewhere keeps its colour. |
+| P3-07 | A scheduled album's card carries its own streak. |
+| P3-08 | An album the gym owns is not offered a schedule; the sheet says why. |
+| P3-09 | Sleep debt sits under the budget on the field header when there is any, and leads to the body. |
+
+Each spec was corrected in the same pass, so [[Gym]], [[Gallery]] and
+[[Dashboard-and-Widgets]] now describe what the screens do.

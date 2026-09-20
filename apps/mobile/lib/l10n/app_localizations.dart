@@ -6673,6 +6673,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{hours}h {minutes}m owed to yourself'**
   String sleepOwedLine(int hours, int minutes);
+
+  /// No description provided for @gymBestVolumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best session'**
+  String get gymBestVolumeLabel;
+
+  /// No description provided for @gymBestVolumeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight times reps, added up over one session.'**
+  String get gymBestVolumeHint;
+
+  /// No description provided for @gymChartEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated single'**
+  String get gymChartEstimate;
+
+  /// No description provided for @gymChartVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Session volume'**
+  String get gymChartVolume;
+
+  /// No description provided for @gymResting.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting'**
+  String get gymResting;
+
+  /// No description provided for @gymRestOverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest is up'**
+  String get gymRestOverTitle;
+
+  /// No description provided for @gymRestOverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Next set.'**
+  String get gymRestOverBody;
 }
 
 class _AppLocalizationsDelegate

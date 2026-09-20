@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
@@ -42,7 +44,14 @@ class SessionScreen extends ConsumerStatefulWidget {
 }
 
 class _SessionScreenState extends ConsumerState<SessionScreen> {
-  final _rest = RestTimerController();
+  // The rest keeps going in the shade when I put the phone down
+  // ([[Audit-v2]] P3-01).
+  late final _rest = RestTimerController(
+    alerts: NotificationRestAlerts(
+      ref.read(notificationServiceProvider),
+      ref.read(databaseProvider),
+    ),
+  );
 
   @override
   void dispose() {

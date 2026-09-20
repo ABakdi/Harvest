@@ -1689,5 +1689,12 @@
   "gymDiscardAgainBody": "{done, plural, =1{The set you logged is gone for good, and the session with it.} other{All {done} sets are gone for good, and the session with them.}}",
   "@gymDiscardAgainBody": { "placeholders": { "done": { "type": "int" } } },
   "sleepOwedLine": "{hours}h {minutes}m owed to yourself",
-  "@sleepOwedLine": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" } } }
+  "@sleepOwedLine": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" } } },
+  "gymBestVolumeLabel": "Best session",
+  "gymBestVolumeHint": "Weight times reps, added up over one session.",
+  "gymChartEstimate": "Estimated single",
+  "gymChartVolume": "Session volume",
+  "gymResting": "Resting",
+  "gymRestOverTitle": "Rest is up",
+  "gymRestOverBody": "Next set."
 }

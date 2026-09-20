@@ -3973,4 +3973,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String sleepOwedLine(int hours, int minutes) {
     return '${hours}h ${minutes}m owed to yourself';
   }
+
+  @override
+  String get gymBestVolumeLabel => 'Best session';
+
+  @override
+  String get gymBestVolumeHint =>
+      'Weight times reps, added up over one session.';
+
+  @override
+  String get gymChartEstimate => 'Estimated single';
+
+  @override
+  String get gymChartVolume => 'Session volume';
+
+  @override
+  String get gymResting => 'Resting';
+
+  @override
+  String get gymRestOverTitle => 'Rest is up';
+
+  @override
+  String get gymRestOverBody => 'Next set.';
 }

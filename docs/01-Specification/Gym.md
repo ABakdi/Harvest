@@ -121,14 +121,23 @@ What a session can do while it is running:
 - **Log a set** — weight and reps, ticked. The tick is what matters;
   the numbers are already there.
 - **Add a set** the program did not ask for, or drop one.
-- **Skip an exercise**, with the reason kept if I give one.
+- **Skip an exercise**, which asks why in a sentence I can leave
+  empty. The reason sits under the exercise for the rest of the
+  session and in its history afterwards, and putting the exercise back
+  clears it.
+- **Drop a set**, by holding down its number: held rather than tapped,
+  because a workout is tapped at speed.
 - **Replace an exercise on the fly** — the rack is taken, the machine
   is broken. The replacement is recorded as a replacement, so history
   knows the day was *meant* to be squats.
 - **Rest timer.** Starts itself when a set is ticked, per-exercise
-  duration from the program, and it counts down over the app and
-  through the lock screen. Silence-able for one session without
-  changing the program.
+  duration from the program. It counts down in the app, and in the
+  notification shade on the system's own chronometer, so nothing has
+  to be running for it to be right; at zero it rings as an alarm, over
+  the lock screen, because the phone is in a pocket by then. If I am
+  still looking at the app when it ends, the bar buzzes and the alarm
+  is called off. Silence-able for one session without changing the
+  program.
 - **Plate calculator.** Given a target weight and a bar, what goes on
   each side. The bar is the exercise's own — **20 kg by default**,
   because that is right nearly always, and changeable because an EZ bar
@@ -140,7 +149,8 @@ What a session can do while it is running:
   starts it. Sets can still be ticked while paused.
 - **Finish**, which writes everything — and asks first if un-skipped
   sets are still unticked, because Finish is the check-in (Y10) — or
-  **discard**, which asks twice.
+  **discard**, which asks twice when there is something to lose and
+  once when the session is empty.
 
 A session that is interrupted — the app is killed, the phone dies —
 **resumes where it was**. A workout is thirty to ninety minutes of

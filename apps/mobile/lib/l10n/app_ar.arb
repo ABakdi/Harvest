@@ -1125,5 +1125,12 @@
   "galleryGymBound": "عادة النادي هي بذرة هذا الألبوم، فليس له جدول خاص به — بطاقتان في الحقل لجلسة واحدة خطأ في الحساب لا ميزة.",
   "gymDiscardAgain": "متأكد؟ لا رجوع في هذا",
   "gymDiscardAgainBody": "{done, plural, =1{المجموعة التي سجّلتها تذهب نهائيًا، والجلسة معها.} other{المجموعات الـ{done} كلها تذهب نهائيًا، والجلسة معها.}}",
-  "sleepOwedLine": "{hours} س {minutes} د دَين لنفسك"
+  "sleepOwedLine": "{hours} س {minutes} د دَين لنفسك",
+  "gymBestVolumeLabel": "أفضل جلسة",
+  "gymBestVolumeHint": "الوزن في التكرارات، مجموعًا على جلسة واحدة.",
+  "gymChartEstimate": "الفردية المقدَّرة",
+  "gymChartVolume": "حجم الجلسة",
+  "gymResting": "راحة",
+  "gymRestOverTitle": "انتهت الراحة",
+  "gymRestOverBody": "المجموعة التالية."
 }

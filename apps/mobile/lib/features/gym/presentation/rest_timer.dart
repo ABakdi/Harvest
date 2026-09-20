@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:harvest/core/db/database.dart';
+import 'package:harvest/core/l10n_loader.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/platform/notifications.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -13,6 +16,12 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// program: a day where I am in a hurry is not a reason to rewrite what
 /// the program asks for.
 class RestTimerController extends ChangeNotifier {
+  RestTimerController({this.alerts});
+
+  /// Where the rest is shown when the screen is not. Null in tests and
+  /// anywhere the shade is not wanted.
+  final RestAlerts? alerts;
+
   Timer? _ticker;
   DateTime? _endsAt;
   int _seconds = 0;
@@ -38,11 +47,14 @@ class RestTimerController extends ChangeNotifier {
     _ticker = Timer.periodic(const Duration(milliseconds: 200), (_) {
       if (remaining == Duration.zero) {
         HarvestHaptics.thud().ignore();
+        // The phone is in my hand and the bar has already buzzed, so
+        // the alarm behind this has nothing left to announce.
         stop();
       } else {
         notifyListeners();
       }
     });
+    alerts?.show(_endsAt!).ignore();
     notifyListeners();
   }
 
@@ -52,6 +64,7 @@ class RestTimerController extends ChangeNotifier {
     if (endsAt == null) return;
     _seconds += seconds;
     _endsAt = endsAt.add(Duration(seconds: seconds));
+    alerts?.show(_endsAt!).ignore();
     notifyListeners();
   }
 
@@ -59,13 +72,66 @@ class RestTimerController extends ChangeNotifier {
     _ticker?.cancel();
     _ticker = null;
     _endsAt = null;
+    alerts?.clear().ignore();
     notifyListeners();
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
+    alerts?.clear().ignore();
     super.dispose();
+  }
+}
+
+/// The rest, outside the app.
+///
+/// A rest timer that dies with the screen is a rest timer I check by
+/// waking the phone, which is exactly what a set break is not for
+/// ([[Gym]], [[Audit-v2]] P3-01). The countdown goes in the shade,
+/// driven by the system's own chronometer so nothing has to tick, and
+/// an alarm rings at zero even with the phone locked in a pocket.
+abstract interface class RestAlerts {
+  Future<void> show(DateTime until);
+  Future<void> clear();
+}
+
+/// Reserved notification ids for the two halves of the rest.
+abstract final class RestNotifications {
+  static const ongoing = 9101;
+  static const over = 9102;
+}
+
+class NotificationRestAlerts implements RestAlerts {
+  const NotificationRestAlerts(this._notifications, this._db);
+
+  final NotificationService _notifications;
+  final HarvestDatabase _db;
+
+  @override
+  Future<void> show(DateTime until) async {
+    final l10n = await localizationsFromSettings(_db);
+    await _notifications.showCountdown(
+      id: RestNotifications.ongoing,
+      channelId: NotificationChannels.pomodoro,
+      title: l10n.gymResting,
+      until: until,
+    );
+    await _notifications.cancel(RestNotifications.over);
+    await _notifications.schedule(
+      id: RestNotifications.over,
+      channelId: NotificationChannels.pomodoro,
+      title: l10n.gymRestOverTitle,
+      body: l10n.gymRestOverBody,
+      when: until,
+      snoozeLabels: const [],
+    );
+  }
+
+  @override
+  Future<void> clear() async {
+    await _notifications.cancel(RestNotifications.ongoing);
+    await _notifications.cancel(RestNotifications.over);
   }
 }
 
