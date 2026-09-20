@@ -3968,4 +3968,9 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String sleepOwedLine(int hours, int minutes) {
+    return '${hours}h ${minutes}m owed to yourself';
+  }
 }

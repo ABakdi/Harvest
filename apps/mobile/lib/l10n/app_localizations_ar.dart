@@ -3977,4 +3977,9 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String sleepOwedLine(int hours, int minutes) {
+    return '$hours س $minutes د دَين لنفسك';
+  }
 }

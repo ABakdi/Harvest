@@ -6667,6 +6667,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{done, plural, =1{The set you logged is gone for good, and the session with it.} other{All {done} sets are gone for good, and the session with them.}}'**
   String gymDiscardAgainBody(int done);
+
+  /// No description provided for @sleepOwedLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m owed to yourself'**
+  String sleepOwedLine(int hours, int minutes);
 }
 
 class _AppLocalizationsDelegate

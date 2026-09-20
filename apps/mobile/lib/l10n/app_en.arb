@@ -1687,5 +1687,7 @@
   "galleryGymBound": "The gym habit is the seed for this album, so it has no schedule of its own — two cards on the field for one session would be an accounting error.",
   "gymDiscardAgain": "Sure? This cannot be undone",
   "gymDiscardAgainBody": "{done, plural, =1{The set you logged is gone for good, and the session with it.} other{All {done} sets are gone for good, and the session with them.}}",
-  "@gymDiscardAgainBody": { "placeholders": { "done": { "type": "int" } } }
+  "@gymDiscardAgainBody": { "placeholders": { "done": { "type": "int" } } },
+  "sleepOwedLine": "{hours}h {minutes}m owed to yourself",
+  "@sleepOwedLine": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" } } }
 }

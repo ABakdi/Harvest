@@ -47,6 +47,7 @@ import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/domain/session_finisher.dart';
 import 'package:harvest/features/gym/presentation/session_start.dart';
+import 'package:harvest/features/health/presentation/sleep_providers.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/mini_timer_chip.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -229,7 +230,8 @@ class _TodayTab extends ConsumerWidget {
   };
 }
 
-/// Rank, XP and the budget pulse in one card at the top of the field.
+/// Rank, XP and the day's two gauges in one card at the top of the
+/// field: what is left to spend, and what is owed in sleep.
 class _FieldHeader extends ConsumerWidget {
   const _FieldHeader({
     required this.xp,
@@ -248,6 +250,12 @@ class _FieldHeader extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final snap = budget;
     final currency = ref.watch(defaultCurrencyProvider);
+    // The second pillar's pulse, promised on this header since the
+    // first draft of [[Dashboard-and-Widgets]] ([[Audit-v2]] P3-09).
+    // Nothing owed is not news, so it shows only when there is a debt.
+    final debt = ref.watch(healthEnabledProvider)
+        ? ref.watch(sleepDebtNowProvider).value
+        : null;
 
     return Card(
       child: Padding(
@@ -277,6 +285,36 @@ class _FieldHeader extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         _budgetLine(l10n, snap, currency),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+                  ],
+                ),
+              ),
+            ],
+            if (debt != null && debt.minutes > 0) ...[
+              Divider(height: snap == null ? HarvestSpacing.lg : 0),
+              InkWell(
+                borderRadius: BorderRadius.circular(HarvestRadii.chip),
+                onTap: () => context.go(AppRoutes.body),
+                child: Row(
+                  children: [
+                    IconBadge(
+                      Icons.bedtime_outlined,
+                      color: scheme.tertiary,
+                      size: 32,
+                      iconSize: 18,
+                    ),
+                    const SizedBox(width: HarvestSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        l10n.sleepOwedLine(
+                          debt.minutes ~/ 60,
+                          debt.minutes % 60,
+                        ),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
