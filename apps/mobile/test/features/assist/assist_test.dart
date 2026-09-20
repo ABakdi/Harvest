@@ -189,4 +189,123 @@ void main() {
     expect(ask.messages.single.text, contains('when?'));
     expect(ask.system, contains('Arabic'));
   });
+
+  group('the Harvest server', () {
+    HarvestServerProvider serverWith(http.Client client, {String? token}) =>
+        HarvestServerProvider(
+          baseUrl: Uri.parse('https://harvest.example.org'),
+          accessToken: () async => token,
+          model: 'gemini-2.5-flash',
+          client: client,
+        );
+
+    test("sends the turns to /v1/assist with the account's token", () async {
+      late http.BaseRequest seen;
+      String? sentBody;
+      final client = MockClient.streaming((request, body) async {
+        seen = request;
+        sentBody = await body.bytesToString();
+        return sse([
+          jsonEncode({'text': 'A note '}),
+          jsonEncode({'text': 'about bread.'}),
+          '[DONE]',
+        ]);
+      });
+
+      final words = await serverWith(client, token: 'an-access-token')
+          .stream(
+            const AssistRequest(
+              system: 'Be brief.',
+              messages: [AssistMessage.user('Summarise this note.')],
+            ),
+          )
+          .join();
+
+      expect(words, 'A note about bread.');
+      expect(seen.url.path, '/v1/assist');
+      expect(seen.headers['authorization'], 'Bearer an-access-token');
+      final sent = jsonDecode(sentBody!) as Map<String, Object?>;
+      expect(sent['system'], 'Be brief.');
+      expect((sent['messages']! as List).single, {
+        'role': 'user',
+        'text': 'Summarise this note.',
+      });
+    });
+
+    test('carries a recording, which the server model can hear', () async {
+      String? sentBody;
+      final client = MockClient.streaming((request, body) async {
+        sentBody = await body.bytesToString();
+        return sse([
+          jsonEncode({'text': 'Buy bread.'}),
+          '[DONE]',
+        ]);
+      });
+
+      final provider = serverWith(client, token: 'token');
+      expect(provider.acceptsAudio, isTrue);
+      await provider
+          .stream(
+            AssistRequest(
+              system: 'Transcribe.',
+              messages: const [AssistMessage.user('')],
+              audio: AssistAudio(
+                bytes: Uint8List.fromList([1, 2, 3]),
+                mimeType: 'audio/mp4',
+              ),
+            ),
+          )
+          .join();
+
+      final sent = jsonDecode(sentBody!) as Map<String, Object?>;
+      expect((sent['audio']! as Map)['mimeType'], 'audio/mp4');
+      expect((sent['audio']! as Map)['data'], base64Encode([1, 2, 3]));
+    });
+
+    test('turns a failure sent mid-answer into the right kind', () async {
+      final client = MockClient.streaming(
+        (request, body) async => sse([
+          jsonEncode({'text': 'Half '}),
+          jsonEncode({'error': 'rate_limited'}),
+        ]),
+      );
+
+      final stream = serverWith(client, token: 'token').stream(
+        const AssistRequest(
+          system: 'Be brief.',
+          messages: [AssistMessage.user('Again.')],
+        ),
+      );
+      expect(
+        stream,
+        emitsInOrder([
+          'Half ',
+          emitsError(
+            isA<AssistException>().having(
+              (e) => e.failure,
+              'failure',
+              AssistFailure.quota,
+            ),
+          ),
+        ]),
+      );
+    });
+
+    test('without a session there is nothing to send', () async {
+      final client = MockClient.streaming(
+        (request, body) async => sse([
+          jsonEncode({'text': 'never'}),
+        ]),
+      );
+      expect(
+        serverWith(client).stream(
+          const AssistRequest(
+            system: 'Be brief.',
+            messages: [AssistMessage.user('Hello.')],
+          ),
+        ),
+        emitsError(isA<AssistException>()),
+      );
+    });
+  });
 }

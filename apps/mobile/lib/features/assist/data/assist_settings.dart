@@ -1,4 +1,6 @@
 import 'package:harvest/core/platform/secret_store.dart';
+import 'package:harvest/features/account/data/api_client.dart';
+import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/assist/data/providers.dart';
 import 'package:harvest/features/assist/domain/assist.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -57,6 +59,45 @@ class AssistConfig {
       ),
     };
   }
+}
+
+/// What the signed-in server offers ([[ADR-013-Assist-Providers]]).
+///
+/// Asked once when the sheet opens, not kept: a server that gains a key
+/// tomorrow should offer it tomorrow, and one that has none should not
+/// be offered as a provider at all.
+@riverpod
+Future<AssistProvider?> serverAssist(Ref ref) async {
+  final account = await ref.watch(accountControllerProvider.future);
+  final me = account.me;
+  if (me == null || !me.verified) return null;
+  final api = ref.watch(apiClientProvider);
+  final Map<String, Object?> status;
+  try {
+    status = await api.get('/v1/assist/status');
+  } on ApiException {
+    return null;
+  }
+  if (status['available'] != true) return null;
+  return HarvestServerProvider(
+    baseUrl: api.baseUrl(),
+    accessToken: () async {
+      // The client refreshes on its own; this only reads what it has,
+      // asking it something harmless first when it holds nothing.
+      if (api.tokens.access == null) await api.get('/v1/me');
+      return api.tokens.access;
+    },
+    model: status['model'] as String? ?? 'the server',
+  );
+}
+
+/// The provider that answers: mine where I set one, the server's
+/// otherwise, and none at all when neither is there.
+@riverpod
+Future<AssistProvider?> assistProviderInUse(Ref ref) async {
+  final mine = (await ref.watch(assistSettingsProvider.future)).provider();
+  if (mine != null) return mine;
+  return ref.watch(serverAssistProvider.future);
 }
 
 /// Reads and writes the assist's configuration.

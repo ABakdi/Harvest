@@ -147,6 +147,89 @@ class OpenAiCompatibleProvider implements AssistProvider {
 /// Posts and hands back the server-sent events' `data:` payloads, or
 /// throws the failure in plain terms ([[Notes]]: errors are words in
 /// the sheet, never an exception on the note).
+/// The Harvest server's own key, lent to a signed-in account
+/// ([[ADR-013-Assist-Providers]], [[Sync-API]]).
+///
+/// It is the fallback, not the default: a key of my own is the one
+/// that answers where it is set, because it is my quota and my choice
+/// of model. This one needs an account, a verified one, and nothing
+/// else — no key to paste, and nothing to configure.
+class HarvestServerProvider implements AssistProvider {
+  HarvestServerProvider({
+    required this.baseUrl,
+    required this.accessToken,
+    required this.model,
+    http.Client? client,
+  }) : _client = client ?? http.Client();
+
+  final Uri baseUrl;
+
+  /// Read afresh for each call: the sheet is opened long after sign-in.
+  final Future<String?> Function() accessToken;
+
+  /// What the server said it uses, for the line that says where the
+  /// words go.
+  final String model;
+  final http.Client _client;
+
+  @override
+  String get displayName => 'Harvest ($model)';
+
+  @override
+  bool get acceptsAudio => true;
+
+  @override
+  Stream<String> stream(AssistRequest request) async* {
+    final token = await accessToken();
+    if (token == null) throw const AssistException(AssistFailure.badKey);
+    final url = baseUrl.replace(
+      path: '${baseUrl.path.replaceAll(RegExp(r'/$'), '')}/v1/assist',
+    );
+    final lines = await _post(
+      _client,
+      url,
+      headers: {
+        'authorization': 'Bearer $token',
+        'content-type': 'application/json',
+        'accept': 'text/event-stream',
+      },
+      body: jsonEncode({
+        'system': request.system,
+        'messages': [
+          for (final message in request.messages)
+            {'role': message.fromModel ? 'model' : 'user', 'text': message.text},
+        ],
+        if (request.audio != null)
+          'audio': {
+            'mimeType': request.audio!.mimeType,
+            'data': base64Encode(request.audio!.bytes),
+          },
+      }),
+    );
+    await for (final data in lines) {
+      if (data == '[DONE]') return;
+      final json = jsonDecode(data);
+      if (json is! Map<String, Object?>) continue;
+      // A failure after the first byte travels as a line, the status
+      // having already gone ([[Sync-API]]).
+      final error = json['error'];
+      if (error is String) {
+        throw AssistException(
+          switch (error) {
+            'rate_limited' => AssistFailure.quota,
+            'unauthorized' || 'forbidden' => AssistFailure.badKey,
+            'unavailable' => AssistFailure.offline,
+            _ => AssistFailure.other,
+          },
+          error,
+        );
+      }
+      final text = json['text'];
+      if (text is String && text.isNotEmpty) yield text;
+    }
+  }
+}
+
 Future<Stream<String>> _post(
   http.Client client,
   Uri url, {

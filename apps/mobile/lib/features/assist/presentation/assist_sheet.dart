@@ -147,8 +147,8 @@ class _AssistSheetState extends ConsumerState<_AssistSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final config = ref.watch(assistSettingsProvider).value;
-    final provider = config?.provider();
+    // Mine where I set one, the server's where I am signed in.
+    final provider = ref.watch(assistProviderInUseProvider).value;
 
     if (provider == null) {
       return HarvestSheet(
