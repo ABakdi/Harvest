@@ -103,10 +103,15 @@ flowchart LR
 - [x] Keyboard shortcuts ([[Web]]).
 
 ## M6.7 — Web: the rest
-- [ ] Vault, calendar, stats, farmer and streak details.
-- [ ] Body: sleep, weight and steps, as views.
-- [ ] Gym: programs and history.
-- [ ] Places: the map, day and range views.
+- [x] Vault (the pots and their ledgers, debts), the month's budget
+  with its floating daily limit, the calendar, and the run so far —
+  the heat-map and each habit's streak — on the farmer.
+- [x] Body: sleep, weight and steps, as views.
+- [x] Gym: programs and history, with the catalogue's names carried as
+  their own index because the catalogue does not sync (#14).
+- [x] Places: the day on a MapLibre map, its trail, its pins and its
+  stays, loaded only when the map is opened.
+- [x] Gallery: what each album holds. The pictures wait for M6.8.
 
 ## M6.8 — The private tier, and files
 - [x] Sync passphrase: PBKDF2-SHA256 → AES-256-GCM, identical in Dart
