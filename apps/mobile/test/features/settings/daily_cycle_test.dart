@@ -118,7 +118,8 @@ void main() {
       await db.customStatement(
         'insert into debts (uuid, person, amount_minor, currency, '
         'remind_at, created_at, updated_at) '
-        "values ('d1', 'Sam', 5000, 'DZD', '02:00', 0, 0)",
+        "values ('d1', 'Sam', 5000, 'DZD', '02:00', "
+        "'2026-09-01 10:00:00', '2026-09-01 10:00:00')",
       );
       const to = DailyCycle(bedTime: (1, 0), wakeTime: (9, 0));
       final clashes = await service.clashes(from: from, to: to);

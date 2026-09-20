@@ -19137,6 +19137,9 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     geotagsTarget,
     geotagsDay,
   ];
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $$CommitmentsTableCreateCompanionBuilder =

@@ -11,8 +11,8 @@ import 'package:harvest/features/sync/domain/sync_cipher.dart';
 /// The server as the file routes behave: it keeps bytes under the name
 /// it is given, and has no key to check them with.
 class FakeFiles implements FileRemote {
-  final held = <String, ({Uint8List sealed, String iv})>{};
-  var uploads = 0;
+  final Map<String, ({Uint8List sealed, String iv})> held = {};
+  int uploads = 0;
 
   @override
   Future<List<String>> missing(List<String> hashes) async =>

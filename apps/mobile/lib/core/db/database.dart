@@ -888,8 +888,20 @@ class HarvestDatabase extends _$HarvestDatabase {
 
   HarvestDatabase.forTesting(super.e);
 
+  /// Dates are stored as ISO-8601 text, not unix seconds.
+  ///
+  /// Seconds were enough while the phone was the only writer. Sync gave
+  /// the same row a second writer with a millisecond clock, and two
+  /// edits inside one second tie — the loser's push comes back stale
+  /// and the two devices disagree until the row is touched again
+  /// ([[Sync-API]], [[Phase-6-Sync-Accounts-and-Web]] M6.8). Text keeps
+  /// microseconds, so a tie needs two edits inside one microsecond.
   @override
-  int get schemaVersion => 17;
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
+
+  @override
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -987,8 +999,40 @@ class HarvestDatabase extends _$HarvestDatabase {
           await m.addColumn(noteAttachments, noteAttachments.fileHash);
         }
       }
+      // Every date becomes text, keeping the instant it already held.
+      // A table created earlier in this same run is empty and converts
+      // to nothing, which costs a statement and no data.
+      if (from < 18) {
+        await customStatement('PRAGMA foreign_keys = OFF');
+        for (final table in allTables) {
+          await _datesToText(m, table);
+        }
+        await customStatement('PRAGMA foreign_keys = ON');
+      }
     },
   );
+
+  /// Rewrites one table's date columns from unix seconds to text.
+  ///
+  /// `datetime(col, 'unixepoch')` is sqlite's own conversion, so the
+  /// instant is the one that was stored; only its spelling changes.
+  static Future<void> _datesToText(
+    Migrator m,
+    TableInfo<Table, Object?> table,
+  ) async {
+    final transformer = <GeneratedColumn<Object>, Expression<Object>>{};
+    for (final column in table.$columns) {
+      if (column.type == DriftSqlType.dateTime) {
+        transformer[column] = DateTimeExpressions.fromUnixEpoch(
+          column.dartCast<int>(),
+        );
+      }
+    }
+    if (transformer.isEmpty) return;
+    await m.alterTable(
+      TableMigration(table, columnTransformer: transformer),
+    );
+  }
 
   static QueryExecutor _openConnection() => driftDatabase(name: 'harvest');
 

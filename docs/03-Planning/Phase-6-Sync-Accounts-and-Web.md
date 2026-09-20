@@ -119,11 +119,14 @@ flowchart LR
   the table and key as additional data so a sealed row cannot be moved.
 - [x] Finance and location tables sync encrypted ([[Sync-API]]), checked
   end to end against the real server (`test/e2e`).
-- [ ] Content-addressed file sync for pictures and recordings,
-  encrypted, with size caps.
-- [ ] Microsecond clocks on the phone (dates stored as text, one
-  migration), so an edit can never tie with the web's ([[Sync-API]]: a
-  known limit).
+- [x] Content-addressed file sync for pictures and recordings,
+  encrypted, with size caps: `POST /v1/files/missing` before anything
+  is sent, `PUT`/`GET /v1/files/<sha256>`, 25 MB a file and 2 GB an
+  account. The phone hashes, seals, uploads and stamps the row; what
+  comes back is hashed again before it is written.
+- [x] Microsecond clocks on the phone: schema v18 stores dates as
+  ISO-8601 text, converted with sqlite's own `datetime(…, 'unixepoch')`
+  so every instant is the one that was already there.
 
 ## M6.9 — The server assist, and the release
 - [ ] `POST /v1/assist`: server-held key, per-user quota, the same

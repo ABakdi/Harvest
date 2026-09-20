@@ -149,28 +149,41 @@ A sync runs:
 
 It never runs more than once at a time.
 
-## A known limit: the phone's clock is to the second
+## Both clocks are finer than a second
 
-Drift stores the phone's dates as whole seconds, and the web writes
-milliseconds. Two edits to the same row within the same second, one on
-each side, can tie, and a tie goes to whichever reached the server
-first. The other side's push comes back `stale`, and the two disagree
-until either edits the row again. For one person, editing one row on two
-screens inside a second is rare enough to leave for now. The fix is
-microsecond clocks on the phone (text-stored dates, one migration),
-and it is on the list for [[Phase-6-Sync-Accounts-and-Web]] M6.8.
+The phone used to store its dates as whole seconds while the web wrote
+milliseconds, so two edits to one row inside the same second could tie,
+and a tie went to whichever reached the server first. Schema v18
+stores the phone's dates as ISO-8601 text, microseconds and all: a tie
+now needs two edits inside one microsecond. The migration converts
+every stored date with sqlite's own `datetime(col, 'unixepoch')`, so
+the instant is the one that was already there and only its spelling
+changes.
 
 ## Files
 
-Pictures and voice notes are not rows. They sync in a later milestone
-of [[Phase-6-Sync-Accounts-and-Web]], content-addressed:
-- `PUT /v1/files/<sha256>` uploads the bytes, encrypted with the same
-  key as the private tier.
-- `GET /v1/files/<sha256>` downloads them.
-- A row that names a file carries its hash.
+Pictures and voice notes are not rows. They are content-addressed by
+the SHA-256 of their **plaintext**, so the same picture on two phones
+is one file on the server and travels once:
 
-Until then, a picture's row syncs and shows as *"on another device"*
-where the file is missing.
+| Route | What it does |
+| :--- | :--- |
+| `POST /v1/files/missing` | Takes up to 500 hashes and answers with the ones the account does not have, plus what it is using and what it may use. Nothing is uploaded before this asks. |
+| `PUT /v1/files/<sha256>` | The bytes, sealed with the private tier's key, as `application/octet-stream`. The nonce travels in `x-harvest-iv` and the plaintext's length in `x-harvest-plain-bytes`. 201 when it was stored, 200 with `had: true` when the server already had it. |
+| `GET /v1/files/<sha256>` | The bytes back, with the same two headers. |
+
+- **A file may be 25 MB**, and an account may keep **2 GB**; past that
+  the answer is `quota_exceeded` (507).
+- **The name is a claim the server cannot check**, having no key. That
+  is safe: a wrong name only ever misleads the account that wrote it.
+  The reader checks, though — bytes that do not hash to the name they
+  came under are dropped rather than written.
+- **A row that names a file carries its hash**, and that is what the
+  other device fetches by. Files travel only once a sync passphrase is
+  set, because they go sealed or not at all.
+- **A file never holds up a row.** One that fails is tried again on the
+  next sync, and a picture whose file has not arrived shows as being on
+  another device.
 
 ## Other routes
 
