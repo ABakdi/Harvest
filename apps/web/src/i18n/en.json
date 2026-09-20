@@ -57,17 +57,37 @@
     "verifying": "Checking the link…"
   },
   "body": {
-    "phoneOnly": "Steps, alarms and gym sessions are recorded on the phone.",
-    "sleep_one": "{{count}} night of sleep",
-    "sleep_other": "{{count}} nights of sleep",
-    "soon": "Sleep, weight and steps come to the web in the next milestone. Until then they are on the phone, and already syncing here.",
-    "steps_one": "{{count}} day of steps",
-    "steps_other": "{{count}} days of steps",
+    "average": "Average of the last two weeks",
+    "chartLabel": "Weight from {{from}} to {{to}}",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "debt": "Owed to yourself",
+    "debtBody": "Two weeks of short nights, added up. Long nights pay it back.",
+    "duration": "{{hours}}h {{minutes}}m",
+    "gym": "Training",
+    "health": "Health",
+    "nightOf": "night of {{day}}",
+    "noNights": "No nights written down yet. A night is written from bed, on the phone.",
+    "noTrend": "Not enough entries yet to say which way it is going.",
+    "noWeights": "No weights yet. They are logged on the phone, beside the scale.",
+    "ofGoal": "of {{goal}}",
+    "sleepTitle": "Sleep",
+    "stars_one": "{{count}} star",
+    "stars_other": "{{count}} stars",
+    "stepsChart_one": "Steps over {{count}} day",
+    "stepsChart_other": "Steps over the last {{count}} days",
+    "stepsSource": "Counted by the phone, from its own health store.",
+    "stepsTitle": "Steps",
     "title": "Body",
-    "weights_one": "{{count}} weight",
-    "weights_other": "{{count}} weights",
-    "workouts_one": "{{count}} workout",
-    "workouts_other": "{{count}} workouts"
+    "trendDown": "Down {{amount}} over {{days}} days",
+    "trendSteady": "Steady over {{days}} days",
+    "trendUp": "Up {{amount}} over {{days}} days",
+    "unit": {
+      "kg": "kg",
+      "lb": "lb"
+    },
+    "weightTitle": "Weight",
+    "window": "Over how long"
   },
   "common": {
     "cancel": "Cancel",
@@ -260,6 +280,20 @@
     "up": "Move up",
     "why": "Why",
     "whyHint": "Because…"
+  },
+  "gym": {
+    "dayEmpty": "nothing in it yet",
+    "history": "History",
+    "noPrograms": "No programs",
+    "noProgramsBody": "A program is written on the phone, where the sessions are run from.",
+    "noSessions": "No sessions yet",
+    "noSessionsBody": "Finished sessions appear here as soon as the phone syncs them.",
+    "phoneOnly": "A session is run on the phone: it is ticked one-handed, between sets.",
+    "programs": "Programs",
+    "session": "Session",
+    "skipped": "skipped",
+    "skippedBecause": "skipped — {{reason}}",
+    "summary": "{{sets}} sets · {{volume}}"
   },
   "home": {
     "ctaBody": "Install the Android app, or open Harvest right here and add it to your home screen.",
