@@ -124,6 +124,7 @@ describe('the gallery', () => {
       path: 'gallery/m1.jpg',
       kind: 'photo',
       note: 'After the session',
+      fileHash: null,
       capturedAt: `${today.key}T18:00:00.000Z`,
       updatedAt: '',
       deletedAt: null,
@@ -139,6 +140,6 @@ describe('the gallery', () => {
 
     expect(await screen.findByText('Gym')).toBeInTheDocument();
     expect(screen.getByText('1 picture · a seed on the field')).toBeInTheDocument();
-    expect(screen.getByText(/pictures themselves stay on the phone/i)).toBeInTheDocument();
+    expect(screen.getByText(/pictures arrive once the phone has synced them/i)).toBeInTheDocument();
   });
 });

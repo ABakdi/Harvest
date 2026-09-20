@@ -83,12 +83,23 @@ export interface SealedRow {
   enc: EncEnvelope;
 }
 
+/**
+ * A picture or a recording this browser has fetched and opened, kept
+ * by the name of its own bytes so it is fetched once.
+ */
+export interface CachedFile {
+  sha256: string;
+  blob: Blob;
+  fetchedAt: string;
+}
+
 export type Row<T extends SyncedTable> = TableData<T>;
 
 export class HarvestDB extends Dexie {
   outbox!: Table<OutboxRow, number>;
   meta!: Table<MetaRow, string>;
   sealed!: Table<SealedRow, [string, string]>;
+  files!: Table<CachedFile, string>;
 
   constructor(name = 'harvest') {
     super(name);
@@ -98,6 +109,8 @@ export class HarvestDB extends Dexie {
       meta: 'key',
       sealed: '[table+uuid], table',
     });
+    // Files arrived with the phone's own file sync ([[Sync-API]]).
+    this.version(2).stores({ files: 'sha256' });
   }
 
   rows<T extends SyncedTable>(table: T): Table<Row<T>, IndexableType> {

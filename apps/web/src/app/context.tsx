@@ -3,6 +3,7 @@ import { HarvestDay } from '@harvest/core';
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { api } from '@/lib/api';
 import { CheckInsRepository } from './data/check-ins';
+import { FileStore } from './data/files';
 import type { HarvestDB } from './data/db';
 import { GoalsRepository } from './data/goals';
 import { MoneyRepository } from './data/money';
@@ -18,6 +19,7 @@ export interface Harvest {
   db: HarvestDB;
   writer: Writer;
   keyring: Keyring;
+  files: FileStore;
   engine: SyncEngine;
   seeds: SeedsRepository;
   checkIns: CheckInsRepository;
@@ -41,6 +43,7 @@ export function createHarvest(
     db,
     writer,
     keyring,
+    files: new FileStore(db, keyring, () => harvest.user.syncSalt),
     engine: new SyncEngine({ db, transport, keyring, salt: () => harvest.user.syncSalt, now: clock }),
     seeds: new SeedsRepository(writer),
     checkIns: new CheckInsRepository(writer),

@@ -77,6 +77,44 @@ export async function sealRow(
   return { v: 1, iv: toBase64(iv), ct: toBase64(new Uint8Array(ct)) };
 }
 
+/**
+ * Seals a file's bytes: the same cipher and key as a row, with the
+ * file's own name as the additional data, so ciphertext offered under
+ * another name fails to open ([[Sync-API]], files).
+ */
+export async function sealFile(
+  key: CryptoKey,
+  sha256: string,
+  bytes: Uint8Array<ArrayBuffer>,
+  iv: Uint8Array<ArrayBuffer> = crypto.getRandomValues(new Uint8Array(12)),
+): Promise<{ iv: string; sealed: ArrayBuffer }> {
+  const sealed = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, additionalData: encoder.encode(`file/${sha256}`), tagLength: 128 },
+    key,
+    bytes,
+  );
+  return { iv: toBase64(iv), sealed };
+}
+
+/** Opens a file's bytes, sealed by whichever device had them first. */
+export async function openFile(
+  key: CryptoKey,
+  sha256: string,
+  envelope: { iv: string; ct: ArrayBuffer },
+): Promise<Uint8Array> {
+  const plain = await crypto.subtle.decrypt(
+    {
+      name: 'AES-GCM',
+      iv: fromBase64(envelope.iv),
+      additionalData: encoder.encode(`file/${sha256}`),
+      tagLength: 128,
+    },
+    key,
+    envelope.ct,
+  );
+  return new Uint8Array(plain);
+}
+
 /** Opens one row, or throws when the key, the row or the table is wrong. */
 export async function openRow(
   key: CryptoKey,

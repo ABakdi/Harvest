@@ -7,17 +7,57 @@ import { cn } from '@/lib/utils';
 import { EmptyState } from '../components/bits';
 import { StreakChip } from '../components/bits';
 import { useHarvest } from '../context';
+import type { Row } from '../data/db';
+import { useFile } from '../hooks';
 import { RecordsTabs } from './records';
 
 /**
- * The Gallery, as much of it as a browser can have.
+ * One memory's picture, once this browser has fetched it.
  *
- * The rows sync; the files do not, until content-addressed file sync
- * lands ([[Phase-6-Sync-Accounts-and-Web]] M6.8). So this is the
- * album's shape — when it is due, how many pictures it holds, what
- * each one was captioned and when — with the pictures themselves still
- * on the phone. A grid of grey squares pretending to be photographs
- * would be worse than saying so.
+ * A file is fetched by the name of its own bytes, opened with the
+ * private tier's key and kept ([[Sync-API]], files). Until it arrives
+ * — no hash yet, no passphrase, or the phone has not uploaded it — the
+ * tile says where the picture is rather than showing a broken frame.
+ */
+function Thumbnail({ memory }: { memory: Row<'memories'> }) {
+  const { t } = useTranslation();
+  const url = useFile(memory.fileHash);
+  if (url === undefined) return <span className="size-10 shrink-0 animate-pulse rounded bg-muted" />;
+  if (url === null) {
+    return (
+      <span
+        className="flex size-10 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground"
+        title={t('gallery.onPhone')}
+      >
+        {memory.kind === 'video' ? <VideoIcon className="size-4" /> : <SmartphoneIcon className="size-4" />}
+      </span>
+    );
+  }
+  if (memory.kind === 'video') {
+    // A video is not played here; the frame is the phone's job.
+    return (
+      <a href={url} download className="flex size-10 shrink-0 items-center justify-center rounded bg-muted">
+        <VideoIcon className="size-4 text-muted-foreground" aria-hidden />
+        <span className="sr-only">{t('gallery.download')}</span>
+      </a>
+    );
+  }
+  return (
+    <img
+      src={url}
+      alt={memory.note ?? t('gallery.untitled')}
+      loading="lazy"
+      className="size-10 shrink-0 rounded object-cover"
+    />
+  );
+}
+
+/**
+ * The Gallery: the albums, what each holds, and the pictures
+ * themselves once they have synced.
+ *
+ * An album is made on the phone, where the camera is. What a browser
+ * does here is look.
  */
 export function GalleryScreen() {
   const { t } = useTranslation();
@@ -76,11 +116,7 @@ export function GalleryScreen() {
                 <ul className={cn('flex flex-col divide-y rounded-lg border', memories.length === 0 && 'hidden')}>
                   {memories.slice(0, 40).map((memory) => (
                     <li key={memory.uuid} className="flex items-center gap-3 px-3 py-2">
-                      {memory.kind === 'video' ? (
-                        <VideoIcon className="size-4 text-muted-foreground" aria-hidden />
-                      ) : (
-                        <ImageIcon className="size-4 text-muted-foreground" aria-hidden />
-                      )}
+                      <Thumbnail memory={memory} />
                       <span className="min-w-0 flex-1 truncate text-sm">{memory.note ?? t('gallery.untitled')}</span>
                       <span className="text-xs text-muted-foreground tabular">{formatDay(memory.harvestDay)}</span>
                     </li>
@@ -97,8 +133,8 @@ export function GalleryScreen() {
         </ul>
       )}
       <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        <SmartphoneIcon className="size-4" aria-hidden />
-        {t('gallery.filesOnPhone')}
+        <ImageIcon className="size-4" aria-hidden />
+        {t('gallery.filesSynced')}
       </p>
     </div>
   );

@@ -14,6 +14,7 @@ import type {
   ResetPasswordBody,
   SessionsResult,
 } from '@harvest/contracts';
+import { fileIvHeader } from '@harvest/contracts';
 
 /**
  * The web's only door to the server. Everything else it knows, it knows
@@ -308,6 +309,29 @@ export const api = {
 
   latestRelease: (signal?: AbortSignal) =>
     request<Release>('/v1/releases/latest', { auth: false, ...(signal ? { signal } : {}) }),
+
+  /**
+   * One file's sealed bytes, with the nonce they were sealed with
+   * ([[Sync-API]], files). Binary rather than JSON, so it goes around
+   * `request` — the one thing it borrows is the retry after a refresh.
+   */
+  async file(sha256: string): Promise<{ sealed: ArrayBuffer; iv: string }> {
+    const init = (token: string | null): RequestInit => ({
+      method: 'GET',
+      headers: {
+        accept: 'application/octet-stream',
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    let response = await send(`/v1/files/${sha256}`, init(await accessToken()));
+    if (response.status === 401) {
+      const result = await refreshSession();
+      if (!result) throw new ApiError(401, 'unauthorized', 'Signed out');
+      response = await send(`/v1/files/${sha256}`, init(result.accessToken));
+    }
+    if (!response.ok) throw await toError(response);
+    return { sealed: await response.arrayBuffer(), iv: response.headers.get(fileIvHeader) ?? '' };
+  },
 
   push: (body: PushBody) => request<PushResult>('/v1/sync/push', { method: 'POST', body }),
   pull: (after: number, limit: number) => request<PullResult>(`/v1/sync/pull?after=${after}&limit=${limit}`),

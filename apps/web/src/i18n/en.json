@@ -252,9 +252,11 @@
     "andMore": "and {{count}} more",
     "count_one": "{{count}} picture",
     "count_other": "{{count}} pictures",
+    "download": "Download",
     "emptyBody": "Albums are made on the phone, where the camera is.",
     "emptyTitle": "No albums yet",
-    "filesOnPhone": "The pictures themselves stay on the phone until file sync lands; what an album holds is already here.",
+    "filesSynced": "Pictures arrive once the phone has synced them, and are opened here with the sync passphrase.",
+    "onPhone": "Still on the phone",
     "scheduled": "a seed on the field",
     "title": "Gallery",
     "untitled": "No caption"
