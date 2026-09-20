@@ -1121,6 +1121,7 @@ class ImportService {
               plannedExerciseId: Value(row['PlannedExerciseId']),
               slotUuid: Value(row['SlotUuid']),
               skipped: Value(_bool(row['Skipped'])),
+              skipReason: Value(row['SkipReason']),
               note: Value(row['Note']),
               restSeconds: Value(_int(row['RestSeconds'])),
               barGrams: Value(_int(row['BarGrams']) ?? 20000),

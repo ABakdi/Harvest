@@ -598,6 +598,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'PlannedExerciseId',
       'SlotUuid',
       'Skipped',
+      'SkipReason',
       'Note',
       'RestSeconds',
       'BarGrams',

@@ -507,6 +507,7 @@ class ExportRepository {
             row.plannedExerciseId,
             row.slotUuid,
             row.skipped,
+            row.skipReason,
             row.note,
             row.restSeconds,
             row.barGrams,

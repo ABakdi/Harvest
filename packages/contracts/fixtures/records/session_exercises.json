@@ -11,6 +11,7 @@
     "plannedExerciseId": "0025",
     "slotUuid": "6b9d3f1a-8e5c-4f2b-9d7a-3a6c8e4b1f59",
     "skipped": false,
+    "skipReason": null,
     "note": "Shoulder felt off, swapped",
     "restSeconds": 150,
     "barGrams": 20000

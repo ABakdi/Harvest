@@ -8301,6 +8301,17 @@ class $SessionExercisesTable extends SessionExercises
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _skipReasonMeta = const VerificationMeta(
+    'skipReason',
+  );
+  @override
+  late final GeneratedColumn<String> skipReason = GeneratedColumn<String>(
+    'skip_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -8342,6 +8353,7 @@ class $SessionExercisesTable extends SessionExercises
     plannedExerciseId,
     slotUuid,
     skipped,
+    skipReason,
     note,
     restSeconds,
     barGrams,
@@ -8414,6 +8426,12 @@ class $SessionExercisesTable extends SessionExercises
         skipped.isAcceptableOrUnknown(data['skipped']!, _skippedMeta),
       );
     }
+    if (data.containsKey('skip_reason')) {
+      context.handle(
+        _skipReasonMeta,
+        skipReason.isAcceptableOrUnknown(data['skip_reason']!, _skipReasonMeta),
+      );
+    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -8472,6 +8490,10 @@ class $SessionExercisesTable extends SessionExercises
         DriftSqlType.bool,
         data['${effectivePrefix}skipped'],
       )!,
+      skipReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}skip_reason'],
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -8506,6 +8528,13 @@ class SessionExerciseRow extends DataClass
   final String? plannedExerciseId;
   final String? slotUuid;
   final bool skipped;
+
+  /// Why it was skipped, in my own words.
+  ///
+  /// Separate from [note], because "shoulder still sore" is the reason
+  /// I did not do it and the note is what I want to remember about
+  /// doing it ([[Gym]], [[Audit-v2]] P3-04).
+  final String? skipReason;
   final String? note;
   final int? restSeconds;
   final int barGrams;
@@ -8517,6 +8546,7 @@ class SessionExerciseRow extends DataClass
     this.plannedExerciseId,
     this.slotUuid,
     required this.skipped,
+    this.skipReason,
     this.note,
     this.restSeconds,
     required this.barGrams,
@@ -8535,6 +8565,9 @@ class SessionExerciseRow extends DataClass
       map['slot_uuid'] = Variable<String>(slotUuid);
     }
     map['skipped'] = Variable<bool>(skipped);
+    if (!nullToAbsent || skipReason != null) {
+      map['skip_reason'] = Variable<String>(skipReason);
+    }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -8558,6 +8591,9 @@ class SessionExerciseRow extends DataClass
           ? const Value.absent()
           : Value(slotUuid),
       skipped: Value(skipped),
+      skipReason: skipReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(skipReason),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       restSeconds: restSeconds == null && nullToAbsent
           ? const Value.absent()
@@ -8581,6 +8617,7 @@ class SessionExerciseRow extends DataClass
       ),
       slotUuid: serializer.fromJson<String?>(json['slotUuid']),
       skipped: serializer.fromJson<bool>(json['skipped']),
+      skipReason: serializer.fromJson<String?>(json['skipReason']),
       note: serializer.fromJson<String?>(json['note']),
       restSeconds: serializer.fromJson<int?>(json['restSeconds']),
       barGrams: serializer.fromJson<int>(json['barGrams']),
@@ -8597,6 +8634,7 @@ class SessionExerciseRow extends DataClass
       'plannedExerciseId': serializer.toJson<String?>(plannedExerciseId),
       'slotUuid': serializer.toJson<String?>(slotUuid),
       'skipped': serializer.toJson<bool>(skipped),
+      'skipReason': serializer.toJson<String?>(skipReason),
       'note': serializer.toJson<String?>(note),
       'restSeconds': serializer.toJson<int?>(restSeconds),
       'barGrams': serializer.toJson<int>(barGrams),
@@ -8611,6 +8649,7 @@ class SessionExerciseRow extends DataClass
     Value<String?> plannedExerciseId = const Value.absent(),
     Value<String?> slotUuid = const Value.absent(),
     bool? skipped,
+    Value<String?> skipReason = const Value.absent(),
     Value<String?> note = const Value.absent(),
     Value<int?> restSeconds = const Value.absent(),
     int? barGrams,
@@ -8624,6 +8663,7 @@ class SessionExerciseRow extends DataClass
         : this.plannedExerciseId,
     slotUuid: slotUuid.present ? slotUuid.value : this.slotUuid,
     skipped: skipped ?? this.skipped,
+    skipReason: skipReason.present ? skipReason.value : this.skipReason,
     note: note.present ? note.value : this.note,
     restSeconds: restSeconds.present ? restSeconds.value : this.restSeconds,
     barGrams: barGrams ?? this.barGrams,
@@ -8643,6 +8683,9 @@ class SessionExerciseRow extends DataClass
           : this.plannedExerciseId,
       slotUuid: data.slotUuid.present ? data.slotUuid.value : this.slotUuid,
       skipped: data.skipped.present ? data.skipped.value : this.skipped,
+      skipReason: data.skipReason.present
+          ? data.skipReason.value
+          : this.skipReason,
       note: data.note.present ? data.note.value : this.note,
       restSeconds: data.restSeconds.present
           ? data.restSeconds.value
@@ -8661,6 +8704,7 @@ class SessionExerciseRow extends DataClass
           ..write('plannedExerciseId: $plannedExerciseId, ')
           ..write('slotUuid: $slotUuid, ')
           ..write('skipped: $skipped, ')
+          ..write('skipReason: $skipReason, ')
           ..write('note: $note, ')
           ..write('restSeconds: $restSeconds, ')
           ..write('barGrams: $barGrams')
@@ -8677,6 +8721,7 @@ class SessionExerciseRow extends DataClass
     plannedExerciseId,
     slotUuid,
     skipped,
+    skipReason,
     note,
     restSeconds,
     barGrams,
@@ -8692,6 +8737,7 @@ class SessionExerciseRow extends DataClass
           other.plannedExerciseId == this.plannedExerciseId &&
           other.slotUuid == this.slotUuid &&
           other.skipped == this.skipped &&
+          other.skipReason == this.skipReason &&
           other.note == this.note &&
           other.restSeconds == this.restSeconds &&
           other.barGrams == this.barGrams);
@@ -8705,6 +8751,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
   final Value<String?> plannedExerciseId;
   final Value<String?> slotUuid;
   final Value<bool> skipped;
+  final Value<String?> skipReason;
   final Value<String?> note;
   final Value<int?> restSeconds;
   final Value<int> barGrams;
@@ -8717,6 +8764,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
     this.plannedExerciseId = const Value.absent(),
     this.slotUuid = const Value.absent(),
     this.skipped = const Value.absent(),
+    this.skipReason = const Value.absent(),
     this.note = const Value.absent(),
     this.restSeconds = const Value.absent(),
     this.barGrams = const Value.absent(),
@@ -8730,6 +8778,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
     this.plannedExerciseId = const Value.absent(),
     this.slotUuid = const Value.absent(),
     this.skipped = const Value.absent(),
+    this.skipReason = const Value.absent(),
     this.note = const Value.absent(),
     this.restSeconds = const Value.absent(),
     this.barGrams = const Value.absent(),
@@ -8746,6 +8795,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
     Expression<String>? plannedExerciseId,
     Expression<String>? slotUuid,
     Expression<bool>? skipped,
+    Expression<String>? skipReason,
     Expression<String>? note,
     Expression<int>? restSeconds,
     Expression<int>? barGrams,
@@ -8759,6 +8809,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
       if (plannedExerciseId != null) 'planned_exercise_id': plannedExerciseId,
       if (slotUuid != null) 'slot_uuid': slotUuid,
       if (skipped != null) 'skipped': skipped,
+      if (skipReason != null) 'skip_reason': skipReason,
       if (note != null) 'note': note,
       if (restSeconds != null) 'rest_seconds': restSeconds,
       if (barGrams != null) 'bar_grams': barGrams,
@@ -8774,6 +8825,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
     Value<String?>? plannedExerciseId,
     Value<String?>? slotUuid,
     Value<bool>? skipped,
+    Value<String?>? skipReason,
     Value<String?>? note,
     Value<int?>? restSeconds,
     Value<int>? barGrams,
@@ -8787,6 +8839,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
       plannedExerciseId: plannedExerciseId ?? this.plannedExerciseId,
       slotUuid: slotUuid ?? this.slotUuid,
       skipped: skipped ?? this.skipped,
+      skipReason: skipReason ?? this.skipReason,
       note: note ?? this.note,
       restSeconds: restSeconds ?? this.restSeconds,
       barGrams: barGrams ?? this.barGrams,
@@ -8818,6 +8871,9 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
     if (skipped.present) {
       map['skipped'] = Variable<bool>(skipped.value);
     }
+    if (skipReason.present) {
+      map['skip_reason'] = Variable<String>(skipReason.value);
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -8843,6 +8899,7 @@ class SessionExercisesCompanion extends UpdateCompanion<SessionExerciseRow> {
           ..write('plannedExerciseId: $plannedExerciseId, ')
           ..write('slotUuid: $slotUuid, ')
           ..write('skipped: $skipped, ')
+          ..write('skipReason: $skipReason, ')
           ..write('note: $note, ')
           ..write('restSeconds: $restSeconds, ')
           ..write('barGrams: $barGrams, ')
@@ -24984,6 +25041,7 @@ typedef $$SessionExercisesTableCreateCompanionBuilder =
       Value<String?> plannedExerciseId,
       Value<String?> slotUuid,
       Value<bool> skipped,
+      Value<String?> skipReason,
       Value<String?> note,
       Value<int?> restSeconds,
       Value<int> barGrams,
@@ -24998,6 +25056,7 @@ typedef $$SessionExercisesTableUpdateCompanionBuilder =
       Value<String?> plannedExerciseId,
       Value<String?> slotUuid,
       Value<bool> skipped,
+      Value<String?> skipReason,
       Value<String?> note,
       Value<int?> restSeconds,
       Value<int> barGrams,
@@ -25092,6 +25151,11 @@ class $$SessionExercisesTableFilterComposer
 
   ColumnFilters<bool> get skipped => $composableBuilder(
     column: $table.skipped,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get skipReason => $composableBuilder(
+    column: $table.skipReason,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -25198,6 +25262,11 @@ class $$SessionExercisesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get skipReason => $composableBuilder(
+    column: $table.skipReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -25267,6 +25336,11 @@ class $$SessionExercisesTableAnnotationComposer
 
   GeneratedColumn<bool> get skipped =>
       $composableBuilder(column: $table.skipped, builder: (column) => column);
+
+  GeneratedColumn<String> get skipReason => $composableBuilder(
+    column: $table.skipReason,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -25365,6 +25439,7 @@ class $$SessionExercisesTableTableManager
                 Value<String?> plannedExerciseId = const Value.absent(),
                 Value<String?> slotUuid = const Value.absent(),
                 Value<bool> skipped = const Value.absent(),
+                Value<String?> skipReason = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int?> restSeconds = const Value.absent(),
                 Value<int> barGrams = const Value.absent(),
@@ -25377,6 +25452,7 @@ class $$SessionExercisesTableTableManager
                 plannedExerciseId: plannedExerciseId,
                 slotUuid: slotUuid,
                 skipped: skipped,
+                skipReason: skipReason,
                 note: note,
                 restSeconds: restSeconds,
                 barGrams: barGrams,
@@ -25391,6 +25467,7 @@ class $$SessionExercisesTableTableManager
                 Value<String?> plannedExerciseId = const Value.absent(),
                 Value<String?> slotUuid = const Value.absent(),
                 Value<bool> skipped = const Value.absent(),
+                Value<String?> skipReason = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int?> restSeconds = const Value.absent(),
                 Value<int> barGrams = const Value.absent(),
@@ -25403,6 +25480,7 @@ class $$SessionExercisesTableTableManager
                 plannedExerciseId: plannedExerciseId,
                 slotUuid: slotUuid,
                 skipped: skipped,
+                skipReason: skipReason,
                 note: note,
                 restSeconds: restSeconds,
                 barGrams: barGrams,

@@ -146,6 +146,7 @@ class SessionsRepository {
               plannedExerciseId: exercise.plannedExerciseId,
               slotUuid: exercise.slotUuid,
               skipped: exercise.skipped,
+              skipReason: exercise.skipReason,
               note: exercise.note,
               restSeconds: exercise.restSeconds,
               barGrams: exercise.barGrams,
@@ -521,8 +522,23 @@ class SessionsRepository {
     await _outbox(uuid, 'delete', table: 'workout_sets');
   });
 
-  Future<void> skipExercise(String uuid, {required bool skipped}) =>
-      _exerciseWrite(uuid, SessionExercisesCompanion(skipped: Value(skipped)));
+  /// Skips an exercise, or takes the skip back.
+  ///
+  /// A skip keeps its reason: "shoulder still sore" is the difference
+  /// between a day I chose to leave something out and a day I simply
+  /// did less ([[Audit-v2]] P3-04). Un-skipping clears it, because the
+  /// reason no longer applies to anything.
+  Future<void> skipExercise(
+    String uuid, {
+    required bool skipped,
+    String? reason,
+  }) => _exerciseWrite(
+    uuid,
+    SessionExercisesCompanion(
+      skipped: Value(skipped),
+      skipReason: Value(skipped ? reason : null),
+    ),
+  );
 
   /// One exercise row changed, and the outbox told.
   Future<void> _exerciseWrite(String uuid, SessionExercisesCompanion change) =>

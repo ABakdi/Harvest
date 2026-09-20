@@ -400,6 +400,13 @@ class SessionExercises extends Table {
   TextColumn get plannedExerciseId => text().nullable()();
   TextColumn get slotUuid => text().nullable()();
   BoolColumn get skipped => boolean().withDefault(const Constant(false))();
+
+  /// Why it was skipped, in my own words.
+  ///
+  /// Separate from [note], because "shoulder still sore" is the reason
+  /// I did not do it and the note is what I want to remember about
+  /// doing it ([[Gym]], [[Audit-v2]] P3-04).
+  TextColumn get skipReason => text().nullable()();
   TextColumn get note => text().nullable()();
   IntColumn get restSeconds => integer().nullable()();
   IntColumn get barGrams => integer().withDefault(const Constant(20000))();
@@ -864,7 +871,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -950,6 +957,9 @@ class HarvestDatabase extends _$HarvestDatabase {
         await m.createIndex(locationPointsDay);
         await m.createIndex(geotagsTarget);
         await m.createIndex(geotagsDay);
+      }
+      if (from < 16 && !sessionsJustCreated) {
+        await m.addColumn(sessionExercises, sessionExercises.skipReason);
       }
     },
   );

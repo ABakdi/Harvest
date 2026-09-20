@@ -7,6 +7,7 @@ import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/celebration.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/domain/session.dart';
@@ -200,24 +201,32 @@ class _SetRowState extends ConsumerState<SetRow> {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          SizedBox(
-            width: 30,
-            child: CircleAvatar(
-              radius: 12,
-              backgroundColor: set.openEnded
-                  ? scheme.secondary
-                  : Colors.transparent,
-              child: Text(
-                // The open set is the one that decides whether the
-                // weight goes up, so it gets a badge, not a number —
-                // and the badge says what the set asks ([[Checkpoint-7]]).
-                set.openEnded ? '1+' : '${set.position + 1}',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontSize: set.openEnded ? 10 : null,
-                  fontWeight: FontWeight.w800,
-                  color: set.openEnded
-                      ? scheme.onSecondary
-                      : scheme.onSurfaceVariant,
+          // A set I added by mistake, or one the program asked for and
+          // my shoulder did not: held down, it offers to go
+          // ([[Audit-v2]] P3-03). A long press, because a workout is
+          // tapped at speed and nothing here should be one slip from
+          // deleting a row.
+          GestureDetector(
+            onLongPress: () => unawaited(_drop(context)),
+            child: SizedBox(
+              width: 30,
+              child: CircleAvatar(
+                radius: 12,
+                backgroundColor: set.openEnded
+                    ? scheme.secondary
+                    : Colors.transparent,
+                child: Text(
+                  // The open set is the one that decides whether the
+                  // weight goes up, so it gets a badge, not a number —
+                  // and the badge says what the set asks ([[Checkpoint-7]]).
+                  set.openEnded ? '1+' : '${set.position + 1}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: set.openEnded ? 10 : null,
+                    fontWeight: FontWeight.w800,
+                    color: set.openEnded
+                        ? scheme.onSecondary
+                        : scheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ),
@@ -272,6 +281,24 @@ class _SetRowState extends ConsumerState<SetRow> {
         ],
       ),
     );
+  }
+
+  /// Drops this set, after asking.
+  Future<void> _drop(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final repository = ref.read(sessionsRepositoryProvider);
+    unawaited(HarvestHaptics.tick());
+    final sure = await confirm(
+      context,
+      title: l10n.gymDropSet,
+      body: l10n.gymDropSetBody,
+      confirmLabel: l10n.gymDropSet,
+      destructive: true,
+    );
+    if (!sure) return;
+    await repository.removeSet(widget.set.uuid);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.gymSetDropped)));
   }
 
   /// `83.25×5` from the stored label, in whatever unit is on screen —

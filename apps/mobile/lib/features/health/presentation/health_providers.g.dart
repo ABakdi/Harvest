@@ -390,7 +390,7 @@ final class StrideSettingProvider
   StrideSetting create() => StrideSetting();
 }
 
-String _$strideSettingHash() => r'0eb59c0259f5a1a410c180f20fd612c94441341c';
+String _$strideSettingHash() => r'996821a09c4ce58f0fdd420bde210caf5782a307';
 
 /// How far one step goes, in centimetres — what turns a count into a
 /// distance.

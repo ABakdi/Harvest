@@ -6613,6 +6613,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can withdraw the permission in Health Connect at any time, or turn Health off in Harvest. Either one stops the reading; neither deletes a day already counted.'**
   String get healthWhyOff;
+
+  /// No description provided for @gymSkipWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Why skip it?'**
+  String get gymSkipWhy;
+
+  /// No description provided for @gymSkipHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoulder still sore, short on time…'**
+  String get gymSkipHint;
+
+  /// No description provided for @gymSkippedBecause.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped — {reason}'**
+  String gymSkippedBecause(String reason);
+
+  /// No description provided for @gymDropSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop this set'**
+  String get gymDropSet;
+
+  /// No description provided for @gymSetDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Set dropped'**
+  String get gymSetDropped;
+
+  /// No description provided for @gymDropSetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The set goes from this session. What you have already ticked stays.'**
+  String get gymDropSetBody;
 }
 
 class _AppLocalizationsDelegate

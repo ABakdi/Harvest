@@ -342,6 +342,7 @@ export const tables = {
       plannedExerciseId: id.nullable(),
       slotUuid: id.nullable(),
       skipped: bool,
+      skipReason: text.nullable(),
       note: text.nullable(),
       restSeconds: int.nullable(),
       barGrams: int,

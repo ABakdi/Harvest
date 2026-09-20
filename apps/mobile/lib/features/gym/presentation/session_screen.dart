@@ -566,14 +566,7 @@ class _ExerciseCard extends ConsumerWidget {
                 PopupMenuButton<String>(
                   onSelected: (value) => switch (value) {
                     'swap' => unawaited(_swap(context, ref)),
-                    'skip' => unawaited(
-                      ref
-                          .read(sessionsRepositoryProvider)
-                          .skipExercise(
-                            exercise.uuid,
-                            skipped: !exercise.skipped,
-                          ),
-                    ),
+                    'skip' => unawaited(_skip(context, ref)),
                     'rest' => unawaited(_setRest(context, ref)),
                     'note' => unawaited(_note(context, ref)),
                     _ => unawaited(
@@ -597,6 +590,16 @@ class _ExerciseCard extends ConsumerWidget {
                 ),
               ],
             ),
+            if (exercise.skipped && (exercise.skipReason ?? '').isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  l10n.gymSkippedBecause(exercise.skipReason!),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             if ((exercise.note ?? '').isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
@@ -695,6 +698,33 @@ class _ExerciseCard extends ConsumerWidget {
     await ref
         .read(sessionsRepositoryProvider)
         .setExerciseRest(exercise.uuid, chosen);
+  }
+
+  /// Skips the exercise, asking why first.
+  ///
+  /// The question can be left empty — a skip with no reason is still a
+  /// skip, and holding up a workout for a sentence would be worse than
+  /// not asking ([[Audit-v2]] P3-04). Putting it back asks nothing.
+  Future<void> _skip(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final repository = ref.read(sessionsRepositoryProvider);
+    if (exercise.skipped) {
+      await repository.skipExercise(exercise.uuid, skipped: false);
+      return;
+    }
+    final reason = await promptForText(
+      context,
+      title: l10n.gymSkipWhy,
+      hint: l10n.gymSkipHint,
+      initial: exercise.skipReason ?? '',
+      confirmLabel: l10n.gymSkip,
+    );
+    if (reason == null) return;
+    await repository.skipExercise(
+      exercise.uuid,
+      skipped: true,
+      reason: reason.trim().isEmpty ? null : reason.trim(),
+    );
   }
 
   Future<void> _note(BuildContext context, WidgetRef ref) async {

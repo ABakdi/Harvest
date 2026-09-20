@@ -3938,4 +3938,25 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get healthWhyOff =>
       'يمكنك سحب الإذن من Health Connect في أي وقت، أو إطفاء الصحة داخل Harvest. كلاهما يوقف القراءة، ولا يحذف أي يوم سبق عدّه.';
+
+  @override
+  String get gymSkipWhy => 'لماذا تتخطاه؟';
+
+  @override
+  String get gymSkipHint => 'الكتف ما زال مؤلمًا، الوقت ضيق…';
+
+  @override
+  String gymSkippedBecause(String reason) {
+    return 'تُخُطّي — $reason';
+  }
+
+  @override
+  String get gymDropSet => 'احذف هذه المجموعة';
+
+  @override
+  String get gymSetDropped => 'حُذفت المجموعة';
+
+  @override
+  String get gymDropSetBody =>
+      'تُحذف المجموعة من هذه الجلسة. ما سجّلته من قبل يبقى.';
 }

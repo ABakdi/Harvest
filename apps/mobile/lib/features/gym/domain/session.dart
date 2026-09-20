@@ -65,6 +65,7 @@ class SessionExercise {
     this.plannedExerciseId,
     this.slotUuid,
     this.skipped = false,
+    this.skipReason,
     this.note,
     this.restSeconds,
     this.barGrams = 20000,
@@ -82,6 +83,9 @@ class SessionExercise {
   final String? plannedExerciseId;
   final String? slotUuid;
   final bool skipped;
+
+  /// Why it was skipped, when I said ([[Gym]] Y-skip).
+  final String? skipReason;
   final String? note;
   final int? restSeconds;
   final int barGrams;

@@ -3929,4 +3929,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get healthWhyOff =>
       'You can withdraw the permission in Health Connect at any time, or turn Health off in Harvest. Either one stops the reading; neither deletes a day already counted.';
+
+  @override
+  String get gymSkipWhy => 'Why skip it?';
+
+  @override
+  String get gymSkipHint => 'Shoulder still sore, short on time…';
+
+  @override
+  String gymSkippedBecause(String reason) {
+    return 'Skipped — $reason';
+  }
+
+  @override
+  String get gymDropSet => 'Drop this set';
+
+  @override
+  String get gymSetDropped => 'Set dropped';
+
+  @override
+  String get gymDropSetBody =>
+      'The set goes from this session. What you have already ticked stays.';
 }
