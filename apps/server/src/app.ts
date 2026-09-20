@@ -16,6 +16,7 @@ import type { ReleaseSource } from './releases/github.js';
 import { authRoutes } from './routes/auth.js';
 import { meRoutes } from './routes/me.js';
 import { publicRoutes } from './routes/public.js';
+import { fileRoutes } from './routes/files.js';
 import { syncRoutes } from './routes/sync.js';
 import { SyncService } from './sync/service.js';
 
@@ -87,6 +88,12 @@ export function createApp(deps: AppDeps): Express {
   v1.use('/auth', authRoutes(auth, limits, cookies));
   v1.use('/me', requireAuth(auth), meRoutes(auth, deps.repos, cookies));
   v1.use('/sync', requireAuth(auth), requireVerified(deps.repos.users), syncRoutes(sync));
+  v1.use(
+    '/files',
+    requireAuth(auth),
+    requireVerified(deps.repos.users),
+    fileRoutes(deps.repos.files, deps.now),
+  );
   app.use('/v1', v1);
 
   app.use(notFoundHandler);

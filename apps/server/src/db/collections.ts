@@ -1,5 +1,5 @@
 import type { Collection, Db } from 'mongodb';
-import type { CounterDoc, OneTimeTokenDoc, RecordDoc, RefreshTokenDoc, SessionDoc, UserDoc } from './types.js';
+import type { CounterDoc, FileDoc, OneTimeTokenDoc, RecordDoc, RefreshTokenDoc, SessionDoc, UserDoc } from './types.js';
 
 export interface Collections {
   users: Collection<UserDoc>;
@@ -8,6 +8,7 @@ export interface Collections {
   oneTimeTokens: Collection<OneTimeTokenDoc>;
   records: Collection<RecordDoc>;
   counters: Collection<CounterDoc>;
+  files: Collection<FileDoc>;
 }
 
 export function collections(db: Db): Collections {
@@ -18,6 +19,7 @@ export function collections(db: Db): Collections {
     oneTimeTokens: db.collection<OneTimeTokenDoc>('one_time_tokens'),
     records: db.collection<RecordDoc>('records'),
     counters: db.collection<CounterDoc>('counters'),
+    files: db.collection<FileDoc>('files'),
   };
 }
 
@@ -46,5 +48,8 @@ export async function ensureIndexes(c: Collections): Promise<void> {
     c.records.createIndex({ userId: 1, table: 1, uuid: 1 }, { unique: true, name: 'user_row' }),
     // The pull: a user's rows in sequence order.
     c.records.createIndex({ userId: 1, seq: 1 }, { unique: true, name: 'user_seq' }),
+
+    // A file is named by its own contents, once per account.
+    c.files.createIndex({ userId: 1, sha256: 1 }, { unique: true, name: 'user_file' }),
   ]);
 }

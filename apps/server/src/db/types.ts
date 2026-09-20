@@ -1,5 +1,5 @@
 import type { ClientKind, EncEnvelope, SyncedTable } from '@harvest/contracts';
-import type { ObjectId } from 'mongodb';
+import type { Binary, ObjectId } from 'mongodb';
 
 /**
  * The documents the server keeps. Every one but the user carries
@@ -67,6 +67,21 @@ export interface OneTimeTokenDoc {
 }
 
 /** One synced row, as the server holds it. */
+/** One file, content-addressed, its bytes sealed by the client. */
+export interface FileDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  /** SHA-256 of the plaintext, lowercase hex. */
+  sha256: string;
+  /** The ciphertext. */
+  bytes: number;
+  iv: string;
+  /** The plaintext's length, so a reader can check what it decrypted. */
+  plainBytes: number;
+  blob: Binary;
+  uploadedAt: Date;
+}
+
 export interface RecordDoc {
   _id: ObjectId;
   userId: ObjectId;

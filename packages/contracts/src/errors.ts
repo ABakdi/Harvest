@@ -12,6 +12,8 @@ export const errorStatus = {
   not_found: 404,
   conflict: 409,
   payload_too_large: 413,
+  /** The account has kept as many file bytes as it may ([[Sync-API]]). */
+  quota_exceeded: 507,
   rate_limited: 429,
   internal: 500,
   // Not in the first table of the Sync API page: the one route that
