@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:harvest/core/platform/secret_store.dart';
 import 'package:http/http.dart' as http;
@@ -86,10 +87,46 @@ class ApiClient {
   Future<Map<String, Object?>> postAnonymous(String path, Object? body) =>
       _send('POST', path, body: body, authenticated: false);
 
+  /// Sends raw bytes and reads the JSON answer: the file routes, whose
+  /// bodies are ciphertext rather than JSON ([[Sync-API]]).
+  Future<Map<String, Object?>> putBytes(
+    String path,
+    List<int> bytes, {
+    Map<String, String> headers = const {},
+  }) => _send('PUT', path, bytes: bytes, extraHeaders: headers);
+
+  /// Reads raw bytes, with the headers that came with them.
+  Future<({Uint8List bytes, Map<String, String> headers})> getBytes(
+    String path,
+  ) async {
+    final response = await _rawRetried('GET', path, accept: 'application/octet-stream');
+    if (response.statusCode >= 400) {
+      // An error answer is JSON even on these routes.
+      _decode(response);
+    }
+    return (bytes: response.bodyBytes, headers: response.headers);
+  }
+
+  Future<http.Response> _rawRetried(
+    String method,
+    String path, {
+    String accept = 'application/json',
+  }) async {
+    if (tokens.access == null) await _refreshOnce();
+    var response = await _raw(method, path, bearer: tokens.access, accept: accept);
+    if (response.statusCode == 401) {
+      await _refreshOnce();
+      response = await _raw(method, path, bearer: tokens.access, accept: accept);
+    }
+    return response;
+  }
+
   Future<Map<String, Object?>> _send(
     String method,
     String path, {
     Object? body,
+    List<int>? bytes,
+    Map<String, String> extraHeaders = const {},
     Map<String, String>? query,
     bool authenticated = true,
     bool retried = false,
@@ -101,6 +138,8 @@ class ApiClient {
       method,
       path,
       body: body,
+      bytes: bytes,
+      extraHeaders: extraHeaders,
       query: query,
       bearer: authenticated ? tokens.access : null,
     );
@@ -110,6 +149,8 @@ class ApiClient {
         method,
         path,
         body: body,
+        bytes: bytes,
+        extraHeaders: extraHeaders,
         query: query,
         retried: true,
       );
@@ -151,18 +192,24 @@ class ApiClient {
     String method,
     String path, {
     Object? body,
+    List<int>? bytes,
+    Map<String, String> extraHeaders = const {},
     Map<String, String>? query,
     String? bearer,
+    String accept = 'application/json',
   }) async {
     final base = baseUrl();
     final url = base.replace(
       path: '${base.path.replaceAll(RegExp(r'/$'), '')}$path',
       queryParameters: query,
     );
-    final request = http.Request(method, url)
-      ..headers['accept'] = 'application/json';
+    final request = http.Request(method, url)..headers['accept'] = accept;
     if (bearer != null) request.headers['authorization'] = 'Bearer $bearer';
-    if (body != null) {
+    request.headers.addAll(extraHeaders);
+    if (bytes != null) {
+      request.headers['content-type'] = 'application/octet-stream';
+      request.bodyBytes = bytes;
+    } else if (body != null) {
       request.headers['content-type'] = 'application/json';
       request.body = jsonEncode(body);
     }

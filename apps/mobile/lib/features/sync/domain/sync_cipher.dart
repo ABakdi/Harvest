@@ -60,6 +60,43 @@ class SyncCipher {
     };
   }
 
+  /// Seals a file's bytes: the same cipher, the same key, and the
+  /// file's own name as the additional data, so ciphertext offered
+  /// under another name fails to open ([[Sync-API]]).
+  Future<({Uint8List iv, Uint8List bytes})> sealBytes(
+    String sha256,
+    List<int> plain, {
+    List<int>? iv,
+  }) async {
+    final box = await _aes.encrypt(
+      plain,
+      secretKey: _key,
+      nonce: iv ?? _aes.newNonce(),
+      aad: utf8.encode('file/$sha256'),
+    );
+    return (
+      iv: Uint8List.fromList(box.nonce),
+      bytes: Uint8List.fromList([...box.cipherText, ...box.mac.bytes]),
+    );
+  }
+
+  /// Opens a file's bytes.
+  Future<Uint8List> openBytes(
+    String sha256,
+    List<int> iv,
+    List<int> sealed,
+  ) async {
+    const tag = 16;
+    final box = SecretBox(
+      sealed.sublist(0, sealed.length - tag),
+      nonce: iv,
+      mac: Mac(sealed.sublist(sealed.length - tag)),
+    );
+    return Uint8List.fromList(
+      await _aes.decrypt(box, secretKey: _key, aad: utf8.encode('file/$sha256')),
+    );
+  }
+
   /// Opens one row. Throws [SecretBoxAuthenticationError] when the key,
   /// the row or the table is not the one it was sealed for.
   Future<Map<String, Object?>> open(

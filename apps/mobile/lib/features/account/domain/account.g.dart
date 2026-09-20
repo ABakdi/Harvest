@@ -91,6 +91,52 @@ final class ApiClientProvider
 
 String _$apiClientHash() => r'a1365ec6af98a1fec326ea395cc0fdfe2e4b4de8';
 
+/// Files sync only once a passphrase is set: a picture is as personal
+/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+
+@ProviderFor(fileSync)
+final fileSyncProvider = FileSyncProvider._();
+
+/// Files sync only once a passphrase is set: a picture is as personal
+/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+
+final class FileSyncProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<FileSync?>,
+          FileSync?,
+          FutureOr<FileSync?>
+        >
+    with $FutureModifier<FileSync?>, $FutureProvider<FileSync?> {
+  /// Files sync only once a passphrase is set: a picture is as personal
+  /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+  FileSyncProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'fileSyncProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$fileSyncHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<FileSync?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<FileSync?> create(Ref ref) {
+    return fileSync(ref);
+  }
+}
+
+String _$fileSyncHash() => r'ab269243c6e3c1e829ccd837df197dba12cca8f3';
+
 @ProviderFor(syncService)
 final syncServiceProvider = SyncServiceProvider._();
 

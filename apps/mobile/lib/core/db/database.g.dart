@@ -3299,6 +3299,17 @@ class $MemoriesTable extends Memories
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _fileHashMeta = const VerificationMeta(
+    'fileHash',
+  );
+  @override
+  late final GeneratedColumn<String> fileHash = GeneratedColumn<String>(
+    'file_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _capturedAtMeta = const VerificationMeta(
     'capturedAt',
   );
@@ -3342,6 +3353,7 @@ class $MemoriesTable extends Memories
     path,
     kind,
     note,
+    fileHash,
     capturedAt,
     updatedAt,
     deletedAt,
@@ -3402,6 +3414,12 @@ class $MemoriesTable extends Memories
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('file_hash')) {
+      context.handle(
+        _fileHashMeta,
+        fileHash.isAcceptableOrUnknown(data['file_hash']!, _fileHashMeta),
+      );
+    }
     if (data.containsKey('captured_at')) {
       context.handle(
         _capturedAtMeta,
@@ -3453,6 +3471,10 @@ class $MemoriesTable extends Memories
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      fileHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_hash'],
+      ),
       capturedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}captured_at'],
@@ -3486,6 +3508,14 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
   /// `photo` | `video`.
   final String kind;
   final String? note;
+
+  /// The SHA-256 of the file's bytes, once it has been synced.
+  ///
+  /// A file is named by its own contents on the server, so this is
+  /// both the name to fetch it by and the proof that what arrived is
+  /// what left ([[Sync-API]]). Null means it has never been uploaded,
+  /// which is every file until sync is switched on.
+  final String? fileHash;
   final DateTime capturedAt;
   final DateTime updatedAt;
 
@@ -3498,6 +3528,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     required this.path,
     required this.kind,
     this.note,
+    this.fileHash,
     required this.capturedAt,
     required this.updatedAt,
     this.deletedAt,
@@ -3512,6 +3543,9 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     map['kind'] = Variable<String>(kind);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || fileHash != null) {
+      map['file_hash'] = Variable<String>(fileHash);
     }
     map['captured_at'] = Variable<DateTime>(capturedAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -3529,6 +3563,9 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
       path: Value(path),
       kind: Value(kind),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      fileHash: fileHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileHash),
       capturedAt: Value(capturedAt),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -3549,6 +3586,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
       path: serializer.fromJson<String>(json['path']),
       kind: serializer.fromJson<String>(json['kind']),
       note: serializer.fromJson<String?>(json['note']),
+      fileHash: serializer.fromJson<String?>(json['fileHash']),
       capturedAt: serializer.fromJson<DateTime>(json['capturedAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -3564,6 +3602,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
       'path': serializer.toJson<String>(path),
       'kind': serializer.toJson<String>(kind),
       'note': serializer.toJson<String?>(note),
+      'fileHash': serializer.toJson<String?>(fileHash),
       'capturedAt': serializer.toJson<DateTime>(capturedAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -3577,6 +3616,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     String? path,
     String? kind,
     Value<String?> note = const Value.absent(),
+    Value<String?> fileHash = const Value.absent(),
     DateTime? capturedAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -3587,6 +3627,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     path: path ?? this.path,
     kind: kind ?? this.kind,
     note: note.present ? note.value : this.note,
+    fileHash: fileHash.present ? fileHash.value : this.fileHash,
     capturedAt: capturedAt ?? this.capturedAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -3601,6 +3642,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
       path: data.path.present ? data.path.value : this.path,
       kind: data.kind.present ? data.kind.value : this.kind,
       note: data.note.present ? data.note.value : this.note,
+      fileHash: data.fileHash.present ? data.fileHash.value : this.fileHash,
       capturedAt: data.capturedAt.present
           ? data.capturedAt.value
           : this.capturedAt,
@@ -3618,6 +3660,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
           ..write('path: $path, ')
           ..write('kind: $kind, ')
           ..write('note: $note, ')
+          ..write('fileHash: $fileHash, ')
           ..write('capturedAt: $capturedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -3633,6 +3676,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
     path,
     kind,
     note,
+    fileHash,
     capturedAt,
     updatedAt,
     deletedAt,
@@ -3647,6 +3691,7 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
           other.path == this.path &&
           other.kind == this.kind &&
           other.note == this.note &&
+          other.fileHash == this.fileHash &&
           other.capturedAt == this.capturedAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -3659,6 +3704,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
   final Value<String> path;
   final Value<String> kind;
   final Value<String?> note;
+  final Value<String?> fileHash;
   final Value<DateTime> capturedAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -3670,6 +3716,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     this.path = const Value.absent(),
     this.kind = const Value.absent(),
     this.note = const Value.absent(),
+    this.fileHash = const Value.absent(),
     this.capturedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -3682,6 +3729,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     required String path,
     this.kind = const Value.absent(),
     this.note = const Value.absent(),
+    this.fileHash = const Value.absent(),
     this.capturedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -3697,6 +3745,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     Expression<String>? path,
     Expression<String>? kind,
     Expression<String>? note,
+    Expression<String>? fileHash,
     Expression<DateTime>? capturedAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -3709,6 +3758,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
       if (path != null) 'path': path,
       if (kind != null) 'kind': kind,
       if (note != null) 'note': note,
+      if (fileHash != null) 'file_hash': fileHash,
       if (capturedAt != null) 'captured_at': capturedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -3723,6 +3773,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     Value<String>? path,
     Value<String>? kind,
     Value<String?>? note,
+    Value<String?>? fileHash,
     Value<DateTime>? capturedAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -3735,6 +3786,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
       path: path ?? this.path,
       kind: kind ?? this.kind,
       note: note ?? this.note,
+      fileHash: fileHash ?? this.fileHash,
       capturedAt: capturedAt ?? this.capturedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -3763,6 +3815,9 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (fileHash.present) {
+      map['file_hash'] = Variable<String>(fileHash.value);
+    }
     if (capturedAt.present) {
       map['captured_at'] = Variable<DateTime>(capturedAt.value);
     }
@@ -3787,6 +3842,7 @@ class MemoriesCompanion extends UpdateCompanion<MemoryRow> {
           ..write('path: $path, ')
           ..write('kind: $kind, ')
           ..write('note: $note, ')
+          ..write('fileHash: $fileHash, ')
           ..write('capturedAt: $capturedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -18387,6 +18443,17 @@ class $NoteAttachmentsTable extends NoteAttachments
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _fileHashMeta = const VerificationMeta(
+    'fileHash',
+  );
+  @override
+  late final GeneratedColumn<String> fileHash = GeneratedColumn<String>(
+    'file_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -18431,6 +18498,7 @@ class $NoteAttachmentsTable extends NoteAttachments
     storedPath,
     durationMs,
     sizeBytes,
+    fileHash,
     createdAt,
     updatedAt,
     deletedAt,
@@ -18497,6 +18565,12 @@ class $NoteAttachmentsTable extends NoteAttachments
         sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
       );
     }
+    if (data.containsKey('file_hash')) {
+      context.handle(
+        _fileHashMeta,
+        fileHash.isAcceptableOrUnknown(data['file_hash']!, _fileHashMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -18552,6 +18626,10 @@ class $NoteAttachmentsTable extends NoteAttachments
         DriftSqlType.int,
         data['${effectivePrefix}size_bytes'],
       )!,
+      fileHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_hash'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -18588,6 +18666,14 @@ class NoteAttachmentRow extends DataClass
   final String storedPath;
   final int? durationMs;
   final int sizeBytes;
+
+  /// The SHA-256 of the file's bytes, once it has been synced.
+  ///
+  /// A file is named by its own contents on the server, so this is
+  /// both the name to fetch it by and the proof that what arrived is
+  /// what left ([[Sync-API]]). Null means it has never been uploaded,
+  /// which is every file until sync is switched on.
+  final String? fileHash;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -18599,6 +18685,7 @@ class NoteAttachmentRow extends DataClass
     required this.storedPath,
     this.durationMs,
     required this.sizeBytes,
+    this.fileHash,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -18615,6 +18702,9 @@ class NoteAttachmentRow extends DataClass
       map['duration_ms'] = Variable<int>(durationMs);
     }
     map['size_bytes'] = Variable<int>(sizeBytes);
+    if (!nullToAbsent || fileHash != null) {
+      map['file_hash'] = Variable<String>(fileHash);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
@@ -18634,6 +18724,9 @@ class NoteAttachmentRow extends DataClass
           ? const Value.absent()
           : Value(durationMs),
       sizeBytes: Value(sizeBytes),
+      fileHash: fileHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileHash),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -18655,6 +18748,7 @@ class NoteAttachmentRow extends DataClass
       storedPath: serializer.fromJson<String>(json['storedPath']),
       durationMs: serializer.fromJson<int?>(json['durationMs']),
       sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      fileHash: serializer.fromJson<String?>(json['fileHash']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -18671,6 +18765,7 @@ class NoteAttachmentRow extends DataClass
       'storedPath': serializer.toJson<String>(storedPath),
       'durationMs': serializer.toJson<int?>(durationMs),
       'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'fileHash': serializer.toJson<String?>(fileHash),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -18685,6 +18780,7 @@ class NoteAttachmentRow extends DataClass
     String? storedPath,
     Value<int?> durationMs = const Value.absent(),
     int? sizeBytes,
+    Value<String?> fileHash = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -18696,6 +18792,7 @@ class NoteAttachmentRow extends DataClass
     storedPath: storedPath ?? this.storedPath,
     durationMs: durationMs.present ? durationMs.value : this.durationMs,
     sizeBytes: sizeBytes ?? this.sizeBytes,
+    fileHash: fileHash.present ? fileHash.value : this.fileHash,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -18713,6 +18810,7 @@ class NoteAttachmentRow extends DataClass
           ? data.durationMs.value
           : this.durationMs,
       sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      fileHash: data.fileHash.present ? data.fileHash.value : this.fileHash,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -18729,6 +18827,7 @@ class NoteAttachmentRow extends DataClass
           ..write('storedPath: $storedPath, ')
           ..write('durationMs: $durationMs, ')
           ..write('sizeBytes: $sizeBytes, ')
+          ..write('fileHash: $fileHash, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -18745,6 +18844,7 @@ class NoteAttachmentRow extends DataClass
     storedPath,
     durationMs,
     sizeBytes,
+    fileHash,
     createdAt,
     updatedAt,
     deletedAt,
@@ -18760,6 +18860,7 @@ class NoteAttachmentRow extends DataClass
           other.storedPath == this.storedPath &&
           other.durationMs == this.durationMs &&
           other.sizeBytes == this.sizeBytes &&
+          other.fileHash == this.fileHash &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -18773,6 +18874,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
   final Value<String> storedPath;
   final Value<int?> durationMs;
   final Value<int> sizeBytes;
+  final Value<String?> fileHash;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -18785,6 +18887,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
     this.storedPath = const Value.absent(),
     this.durationMs = const Value.absent(),
     this.sizeBytes = const Value.absent(),
+    this.fileHash = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -18798,6 +18901,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
     required String storedPath,
     this.durationMs = const Value.absent(),
     this.sizeBytes = const Value.absent(),
+    this.fileHash = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -18814,6 +18918,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
     Expression<String>? storedPath,
     Expression<int>? durationMs,
     Expression<int>? sizeBytes,
+    Expression<String>? fileHash,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -18827,6 +18932,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
       if (storedPath != null) 'stored_path': storedPath,
       if (durationMs != null) 'duration_ms': durationMs,
       if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (fileHash != null) 'file_hash': fileHash,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -18842,6 +18948,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
     Value<String>? storedPath,
     Value<int?>? durationMs,
     Value<int>? sizeBytes,
+    Value<String?>? fileHash,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -18855,6 +18962,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
       storedPath: storedPath ?? this.storedPath,
       durationMs: durationMs ?? this.durationMs,
       sizeBytes: sizeBytes ?? this.sizeBytes,
+      fileHash: fileHash ?? this.fileHash,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -18886,6 +18994,9 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
     if (sizeBytes.present) {
       map['size_bytes'] = Variable<int>(sizeBytes.value);
     }
+    if (fileHash.present) {
+      map['file_hash'] = Variable<String>(fileHash.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -18911,6 +19022,7 @@ class NoteAttachmentsCompanion extends UpdateCompanion<NoteAttachmentRow> {
           ..write('storedPath: $storedPath, ')
           ..write('durationMs: $durationMs, ')
           ..write('sizeBytes: $sizeBytes, ')
+          ..write('fileHash: $fileHash, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -21456,6 +21568,7 @@ typedef $$MemoriesTableCreateCompanionBuilder = MemoriesCompanion Function({
   required String path,
   Value<String> kind,
   Value<String?> note,
+  Value<String?> fileHash,
   Value<DateTime> capturedAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
@@ -21468,6 +21581,7 @@ typedef $$MemoriesTableUpdateCompanionBuilder = MemoriesCompanion Function({
   Value<String> path,
   Value<String> kind,
   Value<String?> note,
+  Value<String?> fileHash,
   Value<DateTime> capturedAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
@@ -21527,6 +21641,11 @@ class $$MemoriesTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileHash => $composableBuilder(
+    column: $table.fileHash,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21603,6 +21722,11 @@ class $$MemoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get fileHash => $composableBuilder(
+    column: $table.fileHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get capturedAt => $composableBuilder(
     column: $table.capturedAt,
     builder: (column) => ColumnOrderings(column),
@@ -21667,6 +21791,9 @@ class $$MemoriesTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get fileHash =>
+      $composableBuilder(column: $table.fileHash, builder: (column) => column);
 
   GeneratedColumn<DateTime> get capturedAt => $composableBuilder(
     column: $table.capturedAt,
@@ -21737,6 +21864,7 @@ class $$MemoriesTableTableManager
                 Value<String> path = const Value.absent(),
                 Value<String> kind = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> fileHash = const Value.absent(),
                 Value<DateTime> capturedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -21748,6 +21876,7 @@ class $$MemoriesTableTableManager
                 path: path,
                 kind: kind,
                 note: note,
+                fileHash: fileHash,
                 capturedAt: capturedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -21761,6 +21890,7 @@ class $$MemoriesTableTableManager
                 required String path,
                 Value<String> kind = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> fileHash = const Value.absent(),
                 Value<DateTime> capturedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -21772,6 +21902,7 @@ class $$MemoriesTableTableManager
                 path: path,
                 kind: kind,
                 note: note,
+                fileHash: fileHash,
                 capturedAt: capturedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -30847,6 +30978,7 @@ typedef $$NoteAttachmentsTableCreateCompanionBuilder =
       required String storedPath,
       Value<int?> durationMs,
       Value<int> sizeBytes,
+      Value<String?> fileHash,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -30861,6 +30993,7 @@ typedef $$NoteAttachmentsTableUpdateCompanionBuilder =
       Value<String> storedPath,
       Value<int?> durationMs,
       Value<int> sizeBytes,
+      Value<String?> fileHash,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -30934,6 +31067,11 @@ class $$NoteAttachmentsTableFilterComposer
 
   ColumnFilters<int> get sizeBytes => $composableBuilder(
     column: $table.sizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileHash => $composableBuilder(
+    column: $table.fileHash,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -31015,6 +31153,11 @@ class $$NoteAttachmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get fileHash => $composableBuilder(
+    column: $table.fileHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -31084,6 +31227,9 @@ class $$NoteAttachmentsTableAnnotationComposer
 
   GeneratedColumn<int> get sizeBytes =>
       $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
+
+  GeneratedColumn<String> get fileHash =>
+      $composableBuilder(column: $table.fileHash, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -31155,6 +31301,7 @@ class $$NoteAttachmentsTableTableManager
                 Value<String> storedPath = const Value.absent(),
                 Value<int?> durationMs = const Value.absent(),
                 Value<int> sizeBytes = const Value.absent(),
+                Value<String?> fileHash = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -31167,6 +31314,7 @@ class $$NoteAttachmentsTableTableManager
                 storedPath: storedPath,
                 durationMs: durationMs,
                 sizeBytes: sizeBytes,
+                fileHash: fileHash,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -31181,6 +31329,7 @@ class $$NoteAttachmentsTableTableManager
                 required String storedPath,
                 Value<int?> durationMs = const Value.absent(),
                 Value<int> sizeBytes = const Value.absent(),
+                Value<String?> fileHash = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -31193,6 +31342,7 @@ class $$NoteAttachmentsTableTableManager
                 storedPath: storedPath,
                 durationMs: durationMs,
                 sizeBytes: sizeBytes,
+                fileHash: fileHash,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,

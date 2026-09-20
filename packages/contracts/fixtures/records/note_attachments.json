@@ -11,6 +11,7 @@
     "storedPath": "attachments/memo-2026-09-12.m4a",
     "durationMs": 48230,
     "sizeBytes": 389120,
+    "fileHash": null,
     "createdAt": "2026-09-12T09:14:02.000Z",
     "updatedAt": "2026-09-12T09:14:02.000Z",
     "deletedAt": null

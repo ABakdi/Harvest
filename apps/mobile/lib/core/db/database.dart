@@ -172,6 +172,15 @@ class Memories extends Table {
   /// `photo` | `video`.
   TextColumn get kind => text().withDefault(const Constant('photo'))();
   TextColumn get note => text().nullable()();
+
+  /// The SHA-256 of the file's bytes, once it has been synced.
+  ///
+  /// A file is named by its own contents on the server, so this is
+  /// both the name to fetch it by and the proof that what arrived is
+  /// what left ([[Sync-API]]). Null means it has never been uploaded,
+  /// which is every file until sync is switched on.
+  TextColumn get fileHash => text().nullable()();
+
   DateTimeColumn get capturedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
@@ -795,6 +804,15 @@ class NoteAttachments extends Table {
   TextColumn get storedPath => text()();
   IntColumn get durationMs => integer().nullable()();
   IntColumn get sizeBytes => integer().withDefault(const Constant(0))();
+
+  /// The SHA-256 of the file's bytes, once it has been synced.
+  ///
+  /// A file is named by its own contents on the server, so this is
+  /// both the name to fetch it by and the proof that what arrived is
+  /// what left ([[Sync-API]]). Null means it has never been uploaded,
+  /// which is every file until sync is switched on.
+  TextColumn get fileHash => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
@@ -871,7 +889,7 @@ class HarvestDatabase extends _$HarvestDatabase {
   HarvestDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -960,6 +978,14 @@ class HarvestDatabase extends _$HarvestDatabase {
       }
       if (from < 16 && !sessionsJustCreated) {
         await m.addColumn(sessionExercises, sessionExercises.skipReason);
+      }
+      // The files themselves start unsynced, so every hash starts null
+      // and is filled in by the first sync that carries the file.
+      if (from < 17) {
+        if (!memoriesJustCreated) await m.addColumn(memories, memories.fileHash);
+        if (from >= 15) {
+          await m.addColumn(noteAttachments, noteAttachments.fileHash);
+        }
       }
     },
   );

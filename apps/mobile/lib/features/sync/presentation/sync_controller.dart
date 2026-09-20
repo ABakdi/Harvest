@@ -1,10 +1,11 @@
 import 'dart:async';
-
 import 'package:drift/drift.dart' show countAll;
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
+import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -93,6 +94,7 @@ class SyncController extends _$SyncController {
     state = state.copyWith(running: true);
     try {
       final report = await ref.read(syncServiceProvider).run();
+      await _syncFiles();
       state = state.copyWith(running: false, last: report, clearError: true);
     } on ApiException catch (error) {
       state = state.copyWith(running: false, error: error.code);
@@ -104,6 +106,34 @@ class SyncController extends _$SyncController {
     } on Object catch (error) {
       debugPrint('[sync] failed: ${error.runtimeType}');
       state = state.copyWith(running: false, error: 'internal');
+    }
+  }
+
+  /// Pictures and recordings, after the rows ([[Sync-API]]).
+  ///
+  /// A file failing is not a sync failing: the rows are already there,
+  /// and the next run picks the file up again. Without a passphrase
+  /// there is nothing to do, because files travel sealed or not at all.
+  Future<void> _syncFiles() async {
+    final files = await ref.read(fileSyncProvider.future);
+    if (files == null) return;
+    final gallery = ref.read(galleryStorageProvider);
+    final attachments = ref.read(attachmentStorageProvider);
+    try {
+      await files.run(
+        // A path from a row is still a path from somewhere else's
+        // archive ([[Audit-v2-Beta]] S2-01): it is checked before it
+        // becomes a file to write to.
+        gallery: (relative) async => GalleryStorage.isSafeRelative(relative)
+            ? await gallery.fileOf(relative)
+            : null,
+        attachments: (relative) async =>
+            GalleryStorage.isSafeRelative(relative)
+            ? await attachments.fileOf(relative)
+            : null,
+      );
+    } on Object catch (error) {
+      debugPrint('[sync] files: ${error.runtimeType}');
     }
   }
 }

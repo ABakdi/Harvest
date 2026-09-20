@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/secret_store.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
+import 'package:harvest/features/sync/domain/file_sync.dart';
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -107,6 +107,56 @@ class ApiRemote implements SyncRemote {
       more: json['more'] == true,
     );
   }
+}
+
+/// The file routes, over the same client ([[Sync-API]]).
+class ApiFiles implements FileRemote {
+  ApiFiles(this._api);
+
+  final ApiClient _api;
+
+  @override
+  Future<List<String>> missing(List<String> hashes) async {
+    final json = await _api.post('/v1/files/missing', {'hashes': hashes});
+    return [
+      for (final item in json['missing']! as List<Object?>) item! as String,
+    ];
+  }
+
+  @override
+  Future<void> upload(String sha256, Uint8List sealed, String iv) =>
+      _api.putBytes(
+        '/v1/files/$sha256',
+        sealed,
+        headers: {fileIvHeader: iv},
+      );
+
+  @override
+  Future<({Uint8List sealed, String iv})> download(String sha256) async {
+    final answer = await _api.getBytes('/v1/files/$sha256');
+    final iv = answer.headers[fileIvHeader];
+    if (iv == null) throw const ApiException('internal', 500, 'No nonce');
+    return (sealed: answer.bytes, iv: iv);
+  }
+}
+
+/// The header the nonce travels in, as the contract names it
+/// (`packages/contracts/src/files.ts`).
+const fileIvHeader = 'x-harvest-iv';
+
+/// Files sync only once a passphrase is set: a picture is as personal
+/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+@Riverpod(keepAlive: true)
+Future<FileSync?> fileSync(Ref ref) async {
+  final stored = await ref
+      .read(secretStoreProvider)
+      .read(SyncPassphrase.keyName);
+  if (stored == null) return null;
+  return FileSync(
+    ref.watch(databaseProvider),
+    ApiFiles(ref.watch(apiClientProvider)),
+    SyncCipher(base64Decode(stored)),
+  );
 }
 
 @Riverpod(keepAlive: true)
