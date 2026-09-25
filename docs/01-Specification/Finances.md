@@ -103,7 +103,19 @@ If the same amount+category (e.g., "Coffee — $5, Food") appears 3 days running
 - Removing a movement, or undoing that removal, never takes a pot below
   zero; it is refused with the same words as an overdraw.
 - The month's total counts the expenses up to today; one logged ahead
-  waits for its day.
+  waits for its day. It is listed under **Upcoming**, soonest first,
+  where it can be edited or removed like any other. Its wallet movement
+  waits too: a movement dated after today counts in no balance and in
+  no guard until its day, and sits at the top of the ledger marked
+  *upcoming*.
+- A settled debt keeps its payments: removing one — a last payment made
+  by mistake — reopens the debt, with Undo. Settling says so, with a
+  small celebration.
+- The dinar rates are typed by hand; *Fetch* brings only EUR → USD, and
+  the card says so beside the dinar fields.
+- In Arabic an amount is held left to right as one piece, so its sign
+  sits before the number, and every number in the app — amounts, dates,
+  times, counts — uses the same Western digits.
 
 ## Budget logic
 

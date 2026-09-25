@@ -86,7 +86,7 @@ be a lie about a month of work.
 
 ## Calendar
 
-A month calendar (field app bar) populated from every schedule: habits due per their rules, projects' daily commitments, to-dos on their planned days, and deadline flags. Future days accept quick-planted to-dos.
+A month calendar (field app bar) populated from every schedule: habits due per their rules, to-dos on their planned days, and deadline flags (a project's deadline included). Projects themselves stay off the grid: a project is due every day until it is done, so its daily commitment would sit on every square and the month would stop telling me anything. Future days accept quick-planted to-dos.
 
 ## Editing & lifecycle
 

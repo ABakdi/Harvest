@@ -147,7 +147,9 @@ new change, and echoing it back would loop.
 A sync runs:
 - on app resume (the web: on focus);
 - two seconds after the last local write;
-- every 15 minutes while the app is open;
+- every 15 minutes while the app is open — on the web, every minute
+  while the page is visible, and other tabs of the same browser are
+  told at once;
 - from the 3 AM job on the phone.
 
 It never runs more than once at a time.
@@ -196,7 +198,7 @@ is one file on the server and travels once:
 | `POST /v1/auth/register` · `login` · `refresh` · `logout` · `verify-email` · `resend-verification` · `forgot-password` · `reset-password` | – | [[Accounts]] |
 | `GET /v1/me` · `PATCH /v1/me` · `DELETE /v1/me` | ✓ | The account |
 | `GET /v1/me/sessions` · `DELETE /v1/me/sessions/:id` | ✓ | Devices |
-| `GET /v1/releases/latest` | – | The newest APK, for the download page ([[Web]]) |
+| `GET /v1/releases/latest` | – | The newest APK, for the download page ([[Web]]), and the newest pre-release above it when there is one |
 | `POST /v1/assist` | ✓ | The server assist ([[ADR-013-Assist-Providers]]), in a later milestone |
 
 Related: [[Sync-Strategy]] · [[Accounts]] · [[ADR-011-Backend]] · [[ADR-005-Local-First-Sync]]

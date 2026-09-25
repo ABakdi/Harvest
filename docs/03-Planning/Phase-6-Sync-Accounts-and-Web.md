@@ -196,6 +196,7 @@ phone's own hardware, the browser writes too ([[Web]]).
   and Caddy serving the site, with the headers in `deploy/Caddyfile`
   ([[Deployment]]).
 - [x] The checkpoint ([[Checkpoint-9]]) and `v3.0.0-beta.2`.
+- [x] A fourth audit, by hand on both clients ([[Audit-v3-Beta]]), fixed and retested; `v3.0.0-beta.3`.
 - [ ] `v3.0.0`, once the beta has been lived in.
 
 **Exit:** the phone and the browser converge on the same day's

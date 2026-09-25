@@ -180,5 +180,6 @@ timeline and stays still list everything, because they are local.
 | PL7 | No location is ever shared with another person, sent to a geocoder in the background, or used to suggest anything. |
 | PL8 | Every geotagged action shows a location chip — the saved place's name or the coordinates, and the time — that opens that day's map with its pin selected. A geotag without a fix still shows the chip, muted, so the action is not mistaken for a located one. |
 | PL9 | The map base is one setting, `places.mapBase` (streets or satellite), shared between the phone and the browser. Satellite tiles come from Esri World Imagery; both bases show their required attribution. |
+| PL10 | The map never zooms past street level (19): a day whose points all sit in one spot is centred at 15, not fitted into a box of no size. Records reopens on Places only once the map has drawn on this device. |
 
 Related: [[ADR-010-Maps]] · [[Gallery]] · [[Finances]] · [[Sync-Strategy]] · [[Phase-5-Goals-Places-and-Voice]]

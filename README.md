@@ -226,6 +226,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [UX Audit](docs/06-Audit/UX-Audit.md) | Every screen, component by component: keep, simplify, merge, remove |
 | [Audit 2 — the v2 beta](docs/06-Audit/Audit-v2-Beta.md) | Business logic, what the specs never said, code quality and security, read again on the v2 beta |
 | [Audit 3 — v2.0.0](docs/06-Audit/Audit-v2.md) | What changed since audit 2, the screens of the new half, the specs against the code, and the deferred list |
+| [Audit 4 — v3 beta, by hand](docs/06-Audit/Audit-v3-Beta.md) | The phone on the emulator and the web as deployed, used screen by screen |
 
 ### Decisions
 

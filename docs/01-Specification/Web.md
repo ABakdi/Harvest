@@ -21,7 +21,7 @@ need the phone's own hardware, the web does too.
 | Route | What it is |
 | :--- | :--- |
 | `/` | **Home.** One screen of what Harvest is (the field, the streak, the four pillars), three sections with real screenshots, and two buttons: **Get the Android app** and **Open Harvest in the browser**. Where the browser can install it, the second one becomes **Install Harvest**. |
-| `/download` | The latest APK: version, date, size, SHA-256, the release notes, and how to allow the install. It is fed by `GET /v1/releases/latest`, which reads the GitHub release and caches it for an hour. |
+| `/download` | The latest APK: version, date, size, SHA-256, the release notes, and how to allow the install. It is fed by `GET /v1/releases/latest`, which reads the GitHub releases and caches them for an hour; a newer beta is named beside the release. |
 | `/privacy` | What leaves the device, in plain words, generated from the same list as [[Business-Rules]] #13. |
 | `/login` · `/register` · `/forgot` · `/reset/:token` · `/verify/:token` | [[Accounts]] |
 
@@ -151,6 +151,13 @@ app lock. The web shows their data, and Settings lists them under
 - **The archive is the phone's archive.** The same zip and the same
   sheets, in both directions; the web writes its timestamps in UTC.
   Whether an export carries the location sheets is chosen per browser.
+- **The access token stays in memory.** A reload refreshes; a refresh the
+  server turns away (429, 5xx) opens the app from what the browser
+  holds, as offline does, and asks again later with a growing pause.
+  Only a 401 signs out.
+- **A note being typed is never lost to a reload**: each keystroke is
+  copied to the browser's own storage before the autosave, and put back
+  on the next load if it is newer than the note.
 - **Token refreshes are serialised across tabs** with the Web Locks API:
   a refresh token used twice revokes the session everywhere
   ([[Accounts]] AC4).
