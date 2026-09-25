@@ -686,7 +686,7 @@ class _ExerciseCard extends ConsumerWidget {
       // precision it does not have.
       if (records.bestSetEstimate != null)
         l10n.gymBestEstimate(
-          formatLoad(context, roundLoad(records.bestSetEstimate!), unit),
+          formatLoad(context, roundLoad(records.bestSetEstimate!, unit: unit), unit),
         ),
     ];
     return l10n.gymBestLine(parts.join(' · '));

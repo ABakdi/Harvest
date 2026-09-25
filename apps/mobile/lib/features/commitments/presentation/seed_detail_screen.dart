@@ -16,6 +16,7 @@ import 'package:harvest/features/commitments/presentation/commitment_editor_shee
 import 'package:harvest/features/commitments/presentation/seed_note_sheet.dart';
 import 'package:harvest/features/commitments/presentation/seed_providers.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
+import 'package:harvest/features/places/presentation/geotag_chip.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Everything one seed has ever done: its streak, its run of days, and
@@ -275,6 +276,15 @@ class _DayRow extends ConsumerWidget {
                   if (entry.note != null) ...[
                     const SizedBox(height: 4),
                     Text(entry.note!, style: theme.textTheme.bodyMedium),
+                  ],
+                  // Where the watering happened, if Places was there
+                  // to say ([[Places]]).
+                  if (logged && entry.checkInUuid != null) ...[
+                    const SizedBox(height: 4),
+                    GeotagChip(
+                      targetTable: 'check_ins',
+                      targetUuid: entry.checkInUuid!,
+                    ),
                   ],
                 ],
               ),

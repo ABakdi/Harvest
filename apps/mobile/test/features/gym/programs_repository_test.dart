@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -20,6 +21,38 @@ void main() {
   });
 
   tearDown(() async => db.close());
+
+  group('editing one field leaves the others', () {
+    test('picking a bar keeps the rest and the note', () async {
+      final program = await repository.createProgram(name: 'nSuns');
+      final day = await repository.addDay(program.uuid, name: 'Day 1');
+      final slot = await repository.addSlot(
+        day.uuid,
+        exerciseId: 'squat',
+        restSeconds: 180,
+      );
+      await repository.updateSlot(slot.uuid, note: const Value('belt'));
+
+      await repository.updateSlot(slot.uuid, barGrams: 15000);
+
+      final row = await db.select(db.programSlots).getSingle();
+      expect(row.barGrams, 15000);
+      expect(row.restSeconds, 180);
+      expect(row.note, 'belt');
+    });
+
+    test('renaming a day keeps its accessories', () async {
+      final program = await repository.createProgram(name: 'nSuns');
+      final day = await repository.addDay(program.uuid, name: 'Day 1');
+      await repository.updateDay(day.uuid, accessories: const Value('Abs'));
+
+      await repository.updateDay(day.uuid, name: 'Heavy');
+
+      final row = await db.select(db.programDays).getSingle();
+      expect(row.name, 'Heavy');
+      expect(row.accessories, 'Abs');
+    });
+  });
 
   group('the program stream', () {
     test('emits once immediately, before anything changes', () async {
@@ -120,6 +153,37 @@ void main() {
         read.days.last.slots.single.uuid,
         isNot(read.days.first.slots.single.uuid),
       );
+    });
+  });
+
+  group('adding after a removal', () {
+    test('never repeats a position', () async {
+      final program = await repository.createProgram(name: 'A');
+      final days = [
+        for (final name in ['a', 'b', 'c'])
+          await repository.addDay(program.uuid, name: name),
+      ];
+      final slots = [
+        for (final id in ['0001', '0002', '0003'])
+          await repository.addSlot(days.first.uuid, exerciseId: id),
+      ];
+      for (final reps in [5, 3, 1]) {
+        await repository.addTargetSet(slots.first.uuid, reps: reps);
+      }
+      var read = (await repository.once(program.uuid))!;
+
+      await repository.removeDay(days[1].uuid);
+      await repository.removeSlot(slots[1].uuid);
+      await repository.removeTargetSet(read.days.first.slots.first.sets[1].uuid);
+      await repository.addDay(program.uuid, name: 'd');
+      await repository.addSlot(days.first.uuid, exerciseId: '0004');
+      await repository.addTargetSet(slots.first.uuid, reps: 8);
+
+      read = (await repository.once(program.uuid))!;
+      expect([for (final day in read.days) day.position], [0, 2, 3]);
+      final slot = read.days.first.slots;
+      expect([for (final s in slot) s.position], [0, 2, 3]);
+      expect([for (final set in slot.first.sets) set.position], [0, 2, 3]);
     });
   });
 

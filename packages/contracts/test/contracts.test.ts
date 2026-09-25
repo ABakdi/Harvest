@@ -102,8 +102,9 @@ describe('instants', () => {
 });
 
 describe('the registry', () => {
-  it('knows 34 tables, and not the outbox or quests', () => {
-    expect(syncedTables).toHaveLength(34);
+  it('knows 35 tables, and not the outbox or quests', () => {
+    expect(syncedTables).toHaveLength(35);
+    expect(syncedTables).toContain('wishlist_items');
     expect(syncedTables).not.toContain('outbox');
     expect(syncedTables).not.toContain('quests');
   });
@@ -121,6 +122,44 @@ describe('the registry', () => {
         'saved_places',
       ].sort(),
     );
+  });
+});
+
+describe('columns added after a release', () => {
+  const place = {
+    uuid: '6a2d9f5c-1b8e-4d4a-a7c3-5f9e2b6d8a14',
+    name: 'Home',
+    latitude: 36.7538,
+    longitude: 3.0588,
+    radiusM: 100,
+    createdAt: '2026-09-10T20:00:00.000Z',
+    updatedAt: '2026-09-10T20:00:00.000Z',
+    deletedAt: null,
+  };
+
+  it('reads a place sealed before notes existed as having none', () => {
+    const parsed = tables.saved_places.data.safeParse(place);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.notes).toBeNull();
+  });
+
+  it('still keeps notes that are there, and still refuses the wrong type', () => {
+    expect(tables.saved_places.data.parse({ ...place, notes: 'By the olive tree' }).notes).toBe('By the olive tree');
+    expect(tables.saved_places.data.safeParse({ ...place, notes: 4 }).success).toBe(false);
+  });
+
+  it('reads a category sealed before createdAt existed as having none', () => {
+    const category = {
+      uuid: '3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58',
+      name: 'Books',
+      icon: 'book',
+      deletedAt: null,
+      updatedAt: '2026-09-02T10:00:00.000Z',
+    };
+    expect(tables.expense_categories.data.parse(category).createdAt).toBeNull();
+    const made = '2026-08-28T18:30:00.000Z';
+    expect(tables.expense_categories.data.parse({ ...category, createdAt: made }).createdAt).toBe(made);
+    expect(tables.expense_categories.data.safeParse({ ...category, createdAt: 'yesterday' }).success).toBe(false);
   });
 });
 

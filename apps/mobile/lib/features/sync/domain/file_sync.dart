@@ -219,14 +219,17 @@ class FileSync {
 
   Future<void> _stamp(SyncableFile one, String hash) async {
     if (one.hash == hash) return;
+    // A newer stamp, or the server keeps the copy it already has and
+    // the name never reaches the other devices.
+    final now = Value(DateTime.now());
     if (one.table == 'memories') {
       await (_db.update(_db.memories)..where((m) => m.uuid.equals(one.rowUuid)))
-          .write(MemoriesCompanion(fileHash: Value(hash)));
+          .write(MemoriesCompanion(fileHash: Value(hash), updatedAt: now));
     } else {
       await (_db.update(
         _db.noteAttachments,
       )..where((a) => a.uuid.equals(one.rowUuid))).write(
-        NoteAttachmentsCompanion(fileHash: Value(hash)),
+        NoteAttachmentsCompanion(fileHash: Value(hash), updatedAt: now),
       );
     }
     // The row travels again so the other devices learn the name.

@@ -5,6 +5,7 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/domain/session.dart';
+import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -214,9 +215,7 @@ class SessionsRepository {
   /// in a day, or a clock coarser than the gap between them — so the
   /// row order breaks the tie: the later insert is the later session.
   Future<List<WorkoutSet>> lastTime(String exerciseId) async {
-    final exercises = await (_db.select(
-      _db.sessionExercises,
-    )..where((e) => e.exerciseId.equals(exerciseId))).get();
+    final exercises = await _appearances(exerciseId);
     if (exercises.isEmpty) return const [];
 
     final finished =
@@ -249,6 +248,15 @@ class SessionsRepository {
             .get();
     return [for (final set in sets) _toSet(set)];
   }
+
+  /// Every row of an exercise, by position — so an exercise done twice
+  /// in one session answers with its first appearance, the order the
+  /// web reads it in too.
+  Future<List<SessionExerciseRow>> _appearances(String exerciseId) =>
+      (_db.select(_db.sessionExercises)
+            ..where((e) => e.exerciseId.equals(exerciseId))
+            ..orderBy([(e) => OrderingTerm.asc(e.position)]))
+          .get();
 
   /// Every ticked set of an exercise, and the volume of each session it
   /// appeared in — everything [recordsFrom] needs.
@@ -290,9 +298,7 @@ class SessionsRepository {
     String exerciseId, {
     int limit = 30,
   }) async {
-    final exercises = await (_db.select(
-      _db.sessionExercises,
-    )..where((e) => e.exerciseId.equals(exerciseId))).get();
+    final exercises = await _appearances(exerciseId);
     if (exercises.isEmpty) return const [];
 
     final sessions =
@@ -348,6 +354,7 @@ class SessionsRepository {
     required String programUuid,
     required String title,
     Map<String, int> trainingMaxes = const {},
+    WeightUnit unit = WeightUnit.kg,
     HarvestDay? on,
   }) async {
     // One session at a time (Y3): a second Start — a double tap, a
@@ -392,6 +399,7 @@ class SessionsRepository {
         final resolved = resolveSlot(
           slot,
           trainingMaxGrams: trainingMaxes[slot.exerciseId],
+          unit: unit,
         );
         for (final entry in resolved) {
           final setUuid = _uuid.v4();
@@ -497,9 +505,11 @@ class SessionsRepository {
     int weightGrams = 0,
     int reps = 0,
   }) async {
-    final existing = await (_db.select(
-      _db.workoutSets,
-    )..where((s) => s.sessionExerciseUuid.equals(sessionExerciseUuid))).get();
+    final existing =
+        await (_db.select(_db.workoutSets)
+              ..where((s) => s.sessionExerciseUuid.equals(sessionExerciseUuid))
+              ..orderBy([(s) => OrderingTerm.asc(s.position)]))
+            .get();
     final uuid = _uuid.v4();
     await _db
         .into(_db.workoutSets)
@@ -507,7 +517,7 @@ class SessionsRepository {
           WorkoutSetsCompanion.insert(
             uuid: uuid,
             sessionExerciseUuid: sessionExerciseUuid,
-            position: existing.length,
+            position: nextPosition([for (final set in existing) set.position]),
             weightGrams: Value(
               existing.isEmpty ? 0 : existing.last.weightGrams,
             ),
@@ -574,7 +584,9 @@ class SessionsRepository {
           SessionExercisesCompanion.insert(
             uuid: uuid,
             sessionUuid: sessionUuid,
-            position: existing.length,
+            position: nextPosition([
+              for (final exercise in existing) exercise.position,
+            ]),
             exerciseId: exerciseId,
             restSeconds: Value(restSeconds),
           ),
@@ -622,6 +634,8 @@ class SessionsRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    // The other device showing this session reads the same clock.
+    await _outbox(uuid, 'update');
   }
 
   /// Starts the clock again, banking the pause that just ended.
@@ -640,6 +654,7 @@ class SessionsRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    await _outbox(uuid, 'update');
   }
 
   Future<void> finish(String uuid) => _db.transaction(() async {

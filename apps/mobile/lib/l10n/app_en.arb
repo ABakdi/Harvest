@@ -400,6 +400,57 @@
   "manageCategories": "Custom categories",
   "todayTab": "Today",
   "insightsTab": "Insights",
+  "wishlistTitle": "Wishlist",
+  "wishlistBuyList": "To buy",
+  "wishlistWishlist": "Wishlist",
+  "wishlistBuyEmptyTitle": "Nothing to buy",
+  "wishlistBuyEmptyBody": "Add what you mean to pick up soon — the buy list is day to day.",
+  "wishlistWishEmptyTitle": "Nothing wished for",
+  "wishlistWishEmptyBody": "Add what you want someday, with at most an estimate in mind.",
+  "wishlistAdd": "Add",
+  "wishlistOpen": "Open",
+  "wishlistBought": "{count} bought",
+  "@wishlistBought": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wishlistRemoved": "Removed",
+  "wishlistOptions": "Options",
+  "wishlistEdit": "Edit",
+  "wishlistEditItem": "Edit item",
+  "wishlistMoveToBuy": "To the buy list",
+  "wishlistMoveToWish": "To the wishlist",
+  "wishlistDelete": "Delete",
+  "wishlistNew": "Something I want",
+  "wishlistTitleHint": "e.g. Winter coat, kettle, espresso machine",
+  "wishlistEstimateLabel": "Estimated price",
+  "wishlistEstimateHint": "What I think it costs",
+  "wishlistEstimateInvalid": "Type a price above zero, or leave it empty.",
+  "wishlistNoteLabel": "Note",
+  "wishlistNoteHint": "Size, model, colour, why",
+  "wishlistTargetDay": "Planned purchase day",
+  "wishlistNoTargetDay": "Some day",
+  "wishlistToday": "Today",
+  "wishlistInDays": "In {count} days",
+  "@wishlistInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wishlistBoughtOn": "Bought on {day}",
+  "@wishlistBoughtOn": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "wishlistTotalsSeparator": " · ",
   "savingsLow": "Savings running low",
   "rangeWeek": "Week",
   "rangeMonth": "Month",
@@ -1361,6 +1412,18 @@
   "gymJustTheBar": "Just the bar",
   "gymPlateShortfall": "Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.",
   "@gymPlateShortfall": { "placeholders": { "total": { "type": "String" }, "short": { "type": "String" } } },
+  "gymBarOver": "Lighter than the bar: the bar alone is {over} over.",
+  "@gymBarOver": { "placeholders": { "over": { "type": "String" } } },
+  "gymMoveDayUp": "Move up",
+  "gymMoveDayDown": "Move down",
+  "gymMineTitle": "Add my own",
+  "gymMineBody": "One the catalogue is missing. It is yours: it syncs, and it works like any other everywhere.",
+  "gymMineName": "Name",
+  "gymMineBodyPart": "Body part",
+  "gymMineEquipment": "Equipment",
+  "gymMineEquipmentHint": "barbell, cable…",
+  "gymMineMuscle": "Muscle",
+  "gymMineAdd": "Add it",
 
 
   "sleepTitle": "Last night",
@@ -1518,6 +1581,27 @@
   "@placesStay": { "placeholders": { "duration": { "type": "String" } } },
   "placesNameStay": "Name this place",
   "placesNameHint": "Home, Office, Gym…",
+  "placesLayers": "Map views",
+  "placesStreets": "Streets",
+  "placesSatellite": "Satellite",
+  "placesLocateMe": "My location",
+  "placesSavePlace": "Save this place",
+  "placesEditPlace": "Edit place",
+  "placesPlaceName": "Place name",
+  "placesPlaceNotes": "Notes",
+  "placesPlaceNotesHint": "What to remember about here.",
+  "placesRadius": "Reach (m)",
+  "placesRadiusRange": "Between {min} and {max} m",
+  "@placesRadiusRange": { "placeholders": { "min": { "type": "int" }, "max": { "type": "int" } } },
+  "placesPlaceSaved": "Place saved",
+  "placesPlaceUpdated": "Place updated",
+  "placesPlaceForgotten": "Place forgotten",
+  "placesForgetPlace": "Forget place",
+  "placesForgetPlaceBody": "This removes the pin, not the trail.",
+  "placesNoFix": "Can't find your location right now.",
+  "geoWhere": "{name} · {time}",
+  "@geoWhere": { "placeholders": { "name": { "type": "String" }, "time": { "type": "String" } } },
+  "geoUnavailable": "No location recorded",
   "placesOptions": "Places options",
   "placesNotificationTitle": "Harvest",
   "placesNotificationText": "Recording your trail",
@@ -1588,6 +1672,13 @@
   "assistSendsNote": "this note",
   "assistSendsSelection": "the selected text",
   "assistSendsUpToCaret": "the note up to the cursor",
+  "assistTranscribeTooLong": "This recording is too long to transcribe: the server takes recordings up to {limit} MB.",
+  "@assistTranscribeTooLong": {
+    "placeholders": {
+      "limit": {"type": "int"}
+    }
+  },
+  "assistTranscribeUnknown": "This is not a kind of recording the server can transcribe.",
   "assistSendsRecording": "this recording",
   "assistGo": "Send",
   "assistInsert": "Insert",

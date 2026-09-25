@@ -114,6 +114,56 @@ void main() {
       expect(gateway.fixRequests, 0);
       expect(await places.pendingOnce(), isEmpty);
     });
+
+    test(
+      "an old pending tag, as sync brings one, never gets this phone's place",
+      () async {
+        Future<void> pendingAt(String uuid, DateTime when) =>
+            db.into(db.geotags).insert(
+              GeotagsCompanion.insert(
+                uuid: uuid,
+                targetTable: 'notes',
+                targetUuid: 'n-$uuid',
+                harvestDay: harvestDayKeyOf(when),
+                at: when,
+              ),
+            );
+        await pendingAt('old', now.subtract(const Duration(hours: 2)));
+        await pendingAt('mine', now.subtract(const Duration(minutes: 1)));
+        gateway.fix = at(36.7, 3.1, now);
+        await fill();
+
+        final old = await tagOf('notes', 'n-old');
+        expect(old.state, 'unavailable');
+        expect(old.latitude, isNull);
+        expect(old.longitude, isNull);
+        final mine = await tagOf('notes', 'n-mine');
+        expect(mine.state, 'fixed');
+        expect(mine.latitude, 36.7);
+        expect(gateway.fixRequests, 1);
+        expect(await places.pendingOnce(), isEmpty);
+      },
+    );
+    test('an old pending tag takes the trail from its own time', () async {
+      final then = now.subtract(const Duration(hours: 2));
+      await places.addPoint(at(36.8, 3, then.add(const Duration(seconds: 40))));
+      await places.addPoint(at(36.9, 3.2, now.subtract(const Duration(seconds: 20))));
+      await db.into(db.geotags).insert(
+        GeotagsCompanion.insert(
+          uuid: 'waited',
+          targetTable: 'notes',
+          targetUuid: 'n-waited',
+          harvestDay: harvestDayKeyOf(then),
+          at: then,
+        ),
+      );
+      await fill();
+
+      final tag = await tagOf('notes', 'n-waited');
+      expect(tag.state, 'fixed');
+      expect(tag.latitude, 36.8);
+      expect(gateway.fixRequests, 0);
+    });
   });
 
   group('stays (PL5)', () {

@@ -15,6 +15,12 @@ const lastKnownFreshness = Duration(minutes: 10);
 /// How vague a trail point may be and still stand in for a fresh fix.
 const trailPointAccuracyM = 100.0;
 
+/// How old a pending geotag may be and still be given this phone's
+/// position. Anything older was not made here just now — it came by
+/// sync, or outlived an app that was closed before its fix — and where
+/// the phone is today says nothing about where it happened.
+const Duration ownTagWindow = lastKnownFreshness;
+
 /// Gives every pending geotag a place, or marks it unavailable
 /// ([[Places]] PL2, PL3).
 ///
@@ -24,6 +30,11 @@ const trailPointAccuracyM = 100.0;
 /// indoors, underground or with only satellites to ask — then nothing. The action it
 /// tags was written long before any of this runs; a missing place
 /// never reaches back to it.
+///
+/// Only a tag from the last [ownTagWindow] is given where the phone is
+/// now. An older one can only take the trail point recorded at its own
+/// time, if the trail was on; otherwise it is marked unavailable, with
+/// no position, and the chip shows it muted (PL3, PL8).
 class GeotagFiller {
   GeotagFiller(this._places, this._gateway, {DateTime Function()? clock})
     : _clock = clock ?? DateTime.now;
@@ -57,7 +68,12 @@ class GeotagFiller {
       // single expense flow are one place, not five GPS requests.
       Fix? fresh;
       var asked = false;
+      final since = _clock().subtract(ownTagWindow);
       for (final tag in pending) {
+        if (tag.at.isBefore(since)) {
+          await _places.resolve(tag.uuid, await _fromTrailAt(tag.at));
+          continue;
+        }
         var fix = await _fromTrail();
         if (fix == null) {
           if (!asked) {
@@ -79,6 +95,15 @@ class GeotagFiller {
     final point = await _places.lastPointSince(
       _clock().subtract(trailPointFreshness),
     );
+    if (point == null) return null;
+    final accuracy = point.accuracyM;
+    if (accuracy != null && accuracy > trailPointAccuracyM) return null;
+    return point;
+  }
+
+  /// The trail at [at], not now: for a tag that waited.
+  Future<Fix?> _fromTrailAt(DateTime at) async {
+    final point = await _places.pointNear(at, trailPointFreshness);
     if (point == null) return null;
     final accuracy = point.accuracyM;
     if (accuracy != null && accuracy > trailPointAccuracyM) return null;

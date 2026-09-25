@@ -45,7 +45,7 @@ describe('files on the web', () => {
     const key = await deriveSyncKey('a long passphrase', testUser.syncSalt, { iterations: 1 });
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     // Sealed correctly for that name, but the bytes are something else.
-    const lie = await sealFile(key, sha256, new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+    const lie = await sealFile(key, sha256, new Uint8Array([1, 2, 3]));
     vi.spyOn(api, 'file').mockResolvedValue({ sealed: lie.sealed, iv: lie.iv });
 
     expect(await h.files.get(sha256)).toBeNull();

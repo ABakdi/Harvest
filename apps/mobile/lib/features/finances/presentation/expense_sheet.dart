@@ -20,6 +20,7 @@ import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/finances/presentation/amount_keypad.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/places/presentation/geotag_chip.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -92,6 +93,31 @@ Future<void> showExpenseSheet(BuildContext context, {Expense? existing}) =>
       builder: (_) => _ExpenseSheet(existing: existing),
     );
 
+/// What the wallet would hold in [currency] without the expense being
+/// edited: its own movement ([linked]) is given back before comparing.
+@visibleForTesting
+int walletBalanceFor(
+  Map<Currency, int> balances,
+  Currency currency, {
+  MoneyTxn? linked,
+}) {
+  final balance = balances[currency] ?? 0;
+  return linked != null && linked.currency == currency
+      ? balance - linked.deltaMinor
+      : balance;
+}
+
+/// Paying from the wallet is the default whenever the wallet can cover
+/// [amountMinor], and never happens when it cannot — whatever [choice]
+/// was made, the wallet does not go below zero.
+@visibleForTesting
+bool paysFromWallet({
+  required int? amountMinor,
+  required int walletBalance,
+  bool? choice,
+}) =>
+    amountMinor != null && walletBalance >= amountMinor && (choice ?? true);
+
 class _ExpenseSheet extends ConsumerStatefulWidget {
   const _ExpenseSheet({this.existing});
 
@@ -119,6 +145,9 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   /// on a new expense, and the existing movement when editing one.
   bool? _walletChoice;
 
+  /// The movement this expense already took from the wallet, if any.
+  MoneyTxn? _linked;
+
   @override
   void initState() {
     super.initState();
@@ -136,7 +165,12 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       // Whether this expense already came out of the wallet.
       unawaited(
         ref.read(vaultRepositoryProvider).linkedTxn(existing.uuid).then((txn) {
-          if (mounted) setState(() => _walletChoice = txn != null);
+          if (mounted) {
+            setState(() {
+              _walletChoice = txn != null;
+              _linked = txn;
+            });
+          }
         }),
       );
     }
@@ -150,19 +184,20 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   Currency get _effectiveCurrency =>
       _currencyOr(ref.read(defaultCurrencyProvider));
 
-  int get _walletBalance =>
-      ref.watch(
-        accountBalancesProvider(MoneyAccount.wallet),
-      )[_effectiveCurrency] ??
-      0;
+  int get _walletBalance => walletBalanceFor(
+    ref.watch(accountBalancesProvider(MoneyAccount.wallet)),
+    _effectiveCurrency,
+    linked: _linked,
+  );
 
   bool get _walletCanCover =>
       _amountMinor != null && _walletBalance >= _amountMinor!;
 
-  /// Paying from the wallet is the default whenever the wallet can.
-  bool get _fromWallet =>
-      (_walletChoice ?? _walletCanCover) &&
-      (_walletCanCover || _walletChoice == true);
+  bool get _fromWallet => paysFromWallet(
+    amountMinor: _amountMinor,
+    walletBalance: _walletBalance,
+    choice: _walletChoice,
+  );
 
   void _onAmountChanged() {
     if (mounted) setState(() {});
@@ -436,6 +471,14 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
             counterText: '',
           ),
         ),
+        // Where the money was spent, if Places was there to say.
+        if (widget.existing != null) ...[
+          const SizedBox(height: HarvestSpacing.xs),
+          GeotagChip(
+            targetTable: 'expenses',
+            targetUuid: widget.existing!.uuid,
+          ),
+        ],
       ],
     );
   }

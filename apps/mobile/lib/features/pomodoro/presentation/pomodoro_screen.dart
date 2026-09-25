@@ -9,6 +9,8 @@ import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/commitments/presentation/quantity_sheet.dart';
+import 'package:harvest/features/gym/data/programs_repository.dart';
+import 'package:harvest/features/gym/presentation/gym_seed_choice.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_clock.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart';
@@ -246,6 +248,29 @@ class PomodoroScreen extends ConsumerWidget {
           );
         }
       } else {
+        // A gym seed is checked in by a session, even after a focus
+        // block ([[Gym]] Y12).
+        final program = commitment.type == CommitmentType.habit
+            ? await ref.read(
+                programForCommitmentProvider(commitment.uuid).future,
+              )
+            : null;
+        if (program != null) {
+          if (!context.mounted) return;
+          final xp = await chooseGymSeed(
+            context,
+            ref,
+            title: commitment.title,
+            program: program,
+          );
+          if (xp != null && xp > 0) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(l10n.xpEarned(xp))),
+            );
+          }
+          router.pop();
+          return;
+        }
         final result = await ref
             .read(checkInControllerProvider.notifier)
             .checkIn(commitment);

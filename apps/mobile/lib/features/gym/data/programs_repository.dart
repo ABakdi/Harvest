@@ -244,6 +244,7 @@ class ProgramsRepository {
     final existing = await (_db.select(
       _db.programDays,
     )..where((d) => d.programUuid.equals(programUuid))).get();
+    final position = nextPosition([for (final day in existing) day.position]);
     await _db
         .into(_db.programDays)
         .insert(
@@ -251,7 +252,7 @@ class ProgramsRepository {
             uuid: uuid,
             programUuid: programUuid,
             name: name.trim(),
-            position: existing.length,
+            position: position,
             week: Value(week),
             accessories: Value(accessories),
           ),
@@ -261,7 +262,7 @@ class ProgramsRepository {
       uuid: uuid,
       programUuid: programUuid,
       name: name.trim(),
-      position: existing.length,
+      position: position,
       week: week,
       accessories: accessories,
     );
@@ -270,7 +271,9 @@ class ProgramsRepository {
   Future<void> updateDay(
     String uuid, {
     String? name,
-    String? accessories,
+    // A Value, so a rename leaves the accessories where they are and a
+    // cleared field can still be written as null.
+    Value<String?> accessories = const Value.absent(),
     int? week,
   }) => _db.transaction(() async {
     await (_db.update(
@@ -278,7 +281,7 @@ class ProgramsRepository {
     )..where((d) => d.uuid.equals(uuid))).write(
       ProgramDaysCompanion(
         name: name == null ? const Value.absent() : Value(name.trim()),
-        accessories: Value(accessories),
+        accessories: accessories,
         week: week == null ? const Value.absent() : Value(week),
       ),
     );
@@ -299,6 +302,17 @@ class ProgramsRepository {
     )..where((s) => s.dayUuid.equals(uuid))).go();
     await (_db.delete(_db.programDays)..where((d) => d.uuid.equals(uuid))).go();
     await _outbox('program_days', uuid, 'delete');
+  });
+
+  /// Reorders the days of a program to the given uuids, in that order
+  /// — which also moves what is up next, since that follows position
+  /// ([[Gym]] rule Y11).
+  Future<void> reorderDays(List<String> uuids) => _db.transaction(() async {
+    for (final (index, uuid) in uuids.indexed) {
+      await (_db.update(_db.programDays)..where((d) => d.uuid.equals(uuid)))
+          .write(ProgramDaysCompanion(position: Value(index)));
+      await _outbox('program_days', uuid, 'update');
+    }
   });
 
   /// Copies a day, sets and all — the fastest way to write a program,
@@ -345,6 +359,7 @@ class ProgramsRepository {
     final existing = await (_db.select(
       _db.programSlots,
     )..where((s) => s.dayUuid.equals(dayUuid))).get();
+    final position = nextPosition([for (final slot in existing) slot.position]);
     await _db
         .into(_db.programSlots)
         .insert(
@@ -352,7 +367,7 @@ class ProgramsRepository {
             uuid: uuid,
             dayUuid: dayUuid,
             exerciseId: exerciseId,
-            position: existing.length,
+            position: position,
             restSeconds: Value(restSeconds),
             barGrams: Value(barGrams),
           ),
@@ -362,7 +377,7 @@ class ProgramsRepository {
       uuid: uuid,
       dayUuid: dayUuid,
       exerciseId: exerciseId,
-      position: existing.length,
+      position: position,
       restSeconds: restSeconds,
       barGrams: barGrams,
     );
@@ -371,9 +386,10 @@ class ProgramsRepository {
   Future<void> updateSlot(
     String uuid, {
     String? exerciseId,
-    int? restSeconds,
+    // Values, so picking a bar leaves the rest and the note alone.
+    Value<int?> restSeconds = const Value.absent(),
     int? barGrams,
-    String? note,
+    Value<String?> note = const Value.absent(),
   }) => _db.transaction(() async {
     await (_db.update(
       _db.programSlots,
@@ -382,9 +398,9 @@ class ProgramsRepository {
         exerciseId: exerciseId == null
             ? const Value.absent()
             : Value(exerciseId),
-        restSeconds: Value(restSeconds),
+        restSeconds: restSeconds,
         barGrams: barGrams == null ? const Value.absent() : Value(barGrams),
-        note: Value(note),
+        note: note,
       ),
     );
     await _outbox('program_slots', uuid, 'update');
@@ -419,11 +435,12 @@ class ProgramsRepository {
     final existing = await (_db.select(
       _db.targetSets,
     )..where((t) => t.slotUuid.equals(slotUuid))).get();
+    final position = nextPosition([for (final set in existing) set.position]);
     await _insertSet(
       slotUuid,
       TargetSet(
         uuid: _uuid.v4(),
-        position: existing.length,
+        position: position,
         reps: reps,
         weightGrams: weightGrams,
         percentTenths: percentTenths,

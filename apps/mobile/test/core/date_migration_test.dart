@@ -25,7 +25,7 @@ void main() {
 
     await verifier.testWithDataIntegrity(
       oldVersion: 17,
-      newVersion: 18,
+      newVersion: 21,
       createOld: v17.DatabaseAtV17.new,
       createNew: HarvestDatabase.forTesting,
       openTestedDatabase: HarvestDatabase.forTesting,

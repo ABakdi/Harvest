@@ -46,6 +46,7 @@ const Map<String, String> _syncedTables = {
   SheetNames.seedNotes: 'seed_notes',
   SheetNames.goals: 'goals',
   SheetNames.goalItems: 'goal_items',
+  SheetNames.wishlist: 'wishlist_items',
   SheetNames.expenses: 'expenses',
   SheetNames.categories: 'expense_categories',
   SheetNames.money: 'money_txns',
@@ -626,6 +627,31 @@ class ImportService {
           ),
     ),
     _Table(
+      sheet: SheetNames.wishlist,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) =>
+          _stamps(db, db.wishlistItems, (r) => r.uuid, (r) => r.updatedAt),
+      insert: (db, row) => db
+          .into(db.wishlistItems)
+          .insertOnConflictUpdate(
+            WishlistItemsCompanion.insert(
+              uuid: row['Uuid']!,
+              list: Value(row['List'] ?? 'buy'),
+              title: row['Title'] ?? '',
+              priceMinor: Value(_int(row['PriceMinor'])),
+              currency: Value(row['Currency'] ?? 'DZD'),
+              note: Value(row['Note']),
+              targetDay: Value(row['TargetDay']),
+              boughtAt: Value(_time(row['BoughtAt'])),
+              position: Value(_int(row['Position']) ?? 0),
+              createdAt: Value(_time(row['CreatedAt']) ?? _now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    ),
+    _Table(
       sheet: SheetNames.checkIns,
       keyOf: _uuid,
       stampColumn: 'UpdatedAt',
@@ -714,6 +740,9 @@ class ImportService {
               uuid: row['Uuid']!,
               name: row['Name'] ?? '',
               icon: row['Icon'] ?? '',
+              // Missing from an archive made before v21; the list then
+              // orders it by UpdatedAt, as it always had.
+              createdAt: Value(_time(row['CreatedAt'])),
               updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
               deletedAt: Value(_time(row['DeletedAt'])),
             ),
@@ -1016,6 +1045,10 @@ class ImportService {
               name: row['Name'] ?? '',
               position: _int(row['Position']) ?? 0,
               week: Value(_int(row['Week'])),
+              // Older archives have no column: keep what is here.
+              accessories: row.containsKey('Accessories')
+                  ? Value(row['Accessories'])
+                  : const Value.absent(),
             ),
           ),
     ),
@@ -1171,7 +1204,8 @@ class ImportService {
     ),
     // Places. A point without both coordinates is not a point, so a
     // blank cell reads as 0,0 rather than failing the table; the
-    // archive I wrote never has one.
+    // archive I wrote never has one. A place's notes came later (v20):
+    // an older archive has no column, which reads as no notes.
     _Table(
       sheet: SheetNames.savedPlaces,
       keyOf: _uuid,
@@ -1187,6 +1221,7 @@ class ImportService {
               latitude: _double(row['Latitude']) ?? 0,
               longitude: _double(row['Longitude']) ?? 0,
               radiusM: Value(_double(row['RadiusM']) ?? 100),
+              notes: Value(row['Notes']),
               createdAt: Value(_time(row['CreatedAt']) ?? _now()),
               updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
               deletedAt: Value(_time(row['DeletedAt'])),

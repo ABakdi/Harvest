@@ -56,6 +56,10 @@ abstract final class AppRoutes {
   /// A single note, opened straight from a link or a reminder.
   static const notes = '/records/note';
 
+  /// The Places map, opened from a location link on an entity: the day
+  /// and the pin to land on come through the focus request.
+  static const places = '/records/places';
+
   /// An album's own screen; append the album's uuid.
   static const gallery = '/records/album';
 }
@@ -209,6 +213,11 @@ GoRouter router(Ref ref) {
                       initial: RecordsTab.notes,
                       noteUuid: state.pathParameters['uuid'],
                     ),
+                  ),
+                  GoRoute(
+                    path: 'places',
+                    builder: (context, state) =>
+                        const RecordsScreen(initial: RecordsTab.places),
                   ),
                   GoRoute(
                     path: 'album/:uuid',

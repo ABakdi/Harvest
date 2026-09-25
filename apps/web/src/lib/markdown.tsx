@@ -5,17 +5,20 @@ import { Fragment, type ReactNode } from 'react';
  * strings, so nothing in a note or a release body can inject markup.
  *
  * It covers what the Notes spec lists: headings, bold, italic, code,
- * lists, task lists, quotes, links and `[[wiki links]]`. Anything else
- * passes through as text rather than being silently eaten.
+ * lists, task lists, quotes, tables, links, `[[wiki links]]` and
+ * Obsidian's `![[embeds]]`. Anything else passes through as text rather
+ * than being silently eaten.
  */
 
 export interface MarkdownOptions {
   /** How a `[[wiki link]]` renders; plain text when absent. */
   renderWikiLink?: (title: string, key: string) => ReactNode;
+  /** How an `![[embed]]` renders, a recording say ([[Notes]] N7); its name when absent. */
+  renderEmbed?: (name: string, key: string) => ReactNode;
 }
 
 const inlinePattern =
-  /(`[^`\n]+`)|(\[\[[^[\]\n]+\]\])|(\[[^\]\n]+\]\([^)\s]+\))|(\*\*[^*\n]+\*\*|__[^_\n]+__)|(~~[^~\n]+~~)|(\*[^*\n]+\*|(?<![\w])_[^_\n]+_(?![\w]))/g;
+  /(`[^`\n]+`)|(\[\[[^[\]\n]+\]\])|(\[[^\]\n]+\]\([^)\s]+\))|(\*\*[^*\n]+\*\*|__[^_\n]+__)|(~~[^~\n]+~~)|(\*[^*\n]+\*|(?<![\w])_[^_\n]+_(?![\w]))|(!\[\[[^[\]\n]+\]\])/g;
 
 function safeHref(url: string): string | null {
   return /^(https?:|mailto:)/i.test(url) ? url : null;
@@ -66,6 +69,17 @@ export function renderInline(text: string, options: MarkdownOptions = {}, keyPre
       nodes.push(<s key={key}>{renderInline(token.slice(2, -2), options, key)}</s>);
     } else if (match[6]) {
       nodes.push(<em key={key}>{renderInline(token.slice(1, -1), options, key)}</em>);
+    } else if (match[7]) {
+      const name = token.slice(3, -2).trim();
+      nodes.push(
+        options.renderEmbed ? (
+          <Fragment key={key}>{options.renderEmbed(name, key)}</Fragment>
+        ) : (
+          <span key={key} className="text-muted-foreground">
+            {name}
+          </span>
+        ),
+      );
     }
     last = start + token.length;
   }
@@ -79,9 +93,27 @@ type Block =
   | { kind: 'quote'; lines: string[] }
   | { kind: 'list'; ordered: boolean; items: { text: string; task: boolean | null }[] }
   | { kind: 'rule' }
+  | { kind: 'table'; head: string[]; rows: string[][] }
   | { kind: 'paragraph'; lines: string[] };
 
-const listItem = /^\s{0,3}([-*+]|\d+[.)])\s+(.*)$/;
+/**
+ * Line bodies are `[^\n]*` and never `.*`: `.` stops at U+2028/U+2029, so
+ * a heading or item holding one would fail here while the paragraph loop
+ * still refused the line, and the parser would never move on.
+ */
+const listItem = /^\s{0,3}([-*+]|\d+[.)])\s+([^\n]*)$/;
+const tableDivider = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+
+/** A row's cells, the outer pipes dropped. */
+function cellsOf(row: string): string[] {
+  const trimmed = row.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return trimmed.split('|').map((cell) => cell.trim());
+}
+
+/** A table starts with a `|` row and has the `| --- |` divider under it. */
+function tableAt(lines: string[], i: number): boolean {
+  return /^\s*\|/.test(lines[i] ?? '') && tableDivider.test(lines[i + 1] ?? '') && (lines[i + 1] ?? '').includes('-');
+}
 
 export function parseBlocks(source: string): Block[] {
   const lines = source.replace(/\r\n?/g, '\n').split('\n');
@@ -101,7 +133,7 @@ export function parseBlocks(source: string): Block[] {
       blocks.push({ kind: 'code', text: body.join('\n') });
       continue;
     }
-    const heading = /^\s{0,3}(#{1,6})\s+(.*)$/.exec(line);
+    const heading = /^\s{0,3}(#{1,6})\s+([^\n]*)$/.exec(line);
     if (heading) {
       blocks.push({ kind: 'heading', level: heading[1]!.length, text: heading[2]!.replace(/\s+#+\s*$/, '') });
       i++;
@@ -118,6 +150,14 @@ export function parseBlocks(source: string): Block[] {
       blocks.push({ kind: 'quote', lines: quote });
       continue;
     }
+    if (tableAt(lines, i)) {
+      const head = cellsOf(line);
+      const rows: string[][] = [];
+      i += 2;
+      while (i < lines.length && /^\s*\|/.test(lines[i]!)) rows.push(cellsOf(lines[i++]!));
+      blocks.push({ kind: 'table', head, rows });
+      continue;
+    }
     const first = listItem.exec(line);
     if (first) {
       const ordered = /\d/.test(first[1]!);
@@ -125,7 +165,7 @@ export function parseBlocks(source: string): Block[] {
       while (i < lines.length) {
         const item = listItem.exec(lines[i]!);
         if (!item || /\d/.test(item[1]!) !== ordered) break;
-        const task = /^\[([ xX])\]\s+(.*)$/.exec(item[2]!);
+        const task = /^\[([ xX])\]\s+([^\n]*)$/.exec(item[2]!);
         items.push(task ? { text: task[2]!, task: task[1] !== ' ' } : { text: item[2]!, task: null });
         i++;
       }
@@ -137,10 +177,15 @@ export function parseBlocks(source: string): Block[] {
       i < lines.length &&
       lines[i]!.trim() !== '' &&
       !/^\s{0,3}(#{1,6}\s|```|>)/.test(lines[i]!) &&
-      !listItem.test(lines[i]!)
+      !listItem.test(lines[i]!) &&
+      !tableAt(lines, i)
     ) {
       paragraph.push(lines[i++]!);
     }
+    // Every branch above consumes at least one line; should a line slip past
+    // them all and be refused here too, it is kept as text and passed, so
+    // no input can stall the loop.
+    if (paragraph.length === 0) paragraph.push(lines[i++]!);
     blocks.push({ kind: 'paragraph', lines: paragraph });
   }
   return blocks;
@@ -205,6 +250,33 @@ export function Markdown({ source, options = {}, className }: { source: string; 
           }
           case 'rule':
             return <hr key={key} className="border-border" />;
+          case 'table':
+            return (
+              <div key={key} className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      {block.head.map((cell, n) => (
+                        <th key={n} className="border px-2 py-1 text-start font-bold">
+                          {renderInline(cell, options, `${key}-h${n}`)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {block.rows.map((row, r) => (
+                      <tr key={r}>
+                        {block.head.map((_, n) => (
+                          <td key={n} className="border px-2 py-1 align-top">
+                            {renderInline(row[n] ?? '', options, `${key}-${r}-${n}`)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
           case 'paragraph':
             return (
               <p key={key} className="whitespace-pre-wrap">

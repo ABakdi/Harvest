@@ -466,4 +466,4 @@ final class AlbumsDueTodayProvider
   }
 }
 
-String _$albumsDueTodayHash() => r'c978c2b25f936f972ef3be2dfa1edd2ae29f1046';
+String _$albumsDueTodayHash() => r'6bff0d0a9c3bc0e12107c5cbfbe2ef7623e17dab';

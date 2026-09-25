@@ -1298,6 +1298,186 @@ abstract class AppLocalizations {
   /// **'Insights'**
   String get insightsTab;
 
+  /// No description provided for @wishlistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishlist'**
+  String get wishlistTitle;
+
+  /// No description provided for @wishlistBuyList.
+  ///
+  /// In en, this message translates to:
+  /// **'To buy'**
+  String get wishlistBuyList;
+
+  /// No description provided for @wishlistWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishlist'**
+  String get wishlistWishlist;
+
+  /// No description provided for @wishlistBuyEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to buy'**
+  String get wishlistBuyEmptyTitle;
+
+  /// No description provided for @wishlistBuyEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what you mean to pick up soon — the buy list is day to day.'**
+  String get wishlistBuyEmptyBody;
+
+  /// No description provided for @wishlistWishEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing wished for'**
+  String get wishlistWishEmptyTitle;
+
+  /// No description provided for @wishlistWishEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what you want someday, with at most an estimate in mind.'**
+  String get wishlistWishEmptyBody;
+
+  /// No description provided for @wishlistAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get wishlistAdd;
+
+  /// No description provided for @wishlistOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get wishlistOpen;
+
+  /// No description provided for @wishlistBought.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bought'**
+  String wishlistBought(int count);
+
+  /// No description provided for @wishlistRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get wishlistRemoved;
+
+  /// No description provided for @wishlistOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get wishlistOptions;
+
+  /// No description provided for @wishlistEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get wishlistEdit;
+
+  /// No description provided for @wishlistEditItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit item'**
+  String get wishlistEditItem;
+
+  /// No description provided for @wishlistMoveToBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'To the buy list'**
+  String get wishlistMoveToBuy;
+
+  /// No description provided for @wishlistMoveToWish.
+  ///
+  /// In en, this message translates to:
+  /// **'To the wishlist'**
+  String get wishlistMoveToWish;
+
+  /// No description provided for @wishlistDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get wishlistDelete;
+
+  /// No description provided for @wishlistNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Something I want'**
+  String get wishlistNew;
+
+  /// No description provided for @wishlistTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Winter coat, kettle, espresso machine'**
+  String get wishlistTitleHint;
+
+  /// No description provided for @wishlistEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated price'**
+  String get wishlistEstimateLabel;
+
+  /// No description provided for @wishlistEstimateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What I think it costs'**
+  String get wishlistEstimateHint;
+
+  /// No description provided for @wishlistEstimateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a price above zero, or leave it empty.'**
+  String get wishlistEstimateInvalid;
+
+  /// No description provided for @wishlistNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get wishlistNoteLabel;
+
+  /// No description provided for @wishlistNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Size, model, colour, why'**
+  String get wishlistNoteHint;
+
+  /// No description provided for @wishlistTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned purchase day'**
+  String get wishlistTargetDay;
+
+  /// No description provided for @wishlistNoTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Some day'**
+  String get wishlistNoTargetDay;
+
+  /// No description provided for @wishlistToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get wishlistToday;
+
+  /// No description provided for @wishlistInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {count} days'**
+  String wishlistInDays(int count);
+
+  /// No description provided for @wishlistBoughtOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought on {day}'**
+  String wishlistBoughtOn(String day);
+
+  /// No description provided for @wishlistTotalsSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' · '**
+  String get wishlistTotalsSeparator;
+
   /// No description provided for @savingsLow.
   ///
   /// In en, this message translates to:
@@ -4880,6 +5060,72 @@ abstract class AppLocalizations {
   /// **'Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.'**
   String gymPlateShortfall(String total, String short);
 
+  /// No description provided for @gymBarOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighter than the bar: the bar alone is {over} over.'**
+  String gymBarOver(String over);
+
+  /// No description provided for @gymMoveDayUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get gymMoveDayUp;
+
+  /// No description provided for @gymMoveDayDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get gymMoveDayDown;
+
+  /// No description provided for @gymMineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add my own'**
+  String get gymMineTitle;
+
+  /// No description provided for @gymMineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One the catalogue is missing. It is yours: it syncs, and it works like any other everywhere.'**
+  String get gymMineBody;
+
+  /// No description provided for @gymMineName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get gymMineName;
+
+  /// No description provided for @gymMineBodyPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Body part'**
+  String get gymMineBodyPart;
+
+  /// No description provided for @gymMineEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get gymMineEquipment;
+
+  /// No description provided for @gymMineEquipmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'barbell, cable…'**
+  String get gymMineEquipmentHint;
+
+  /// No description provided for @gymMineMuscle.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle'**
+  String get gymMineMuscle;
+
+  /// No description provided for @gymMineAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add it'**
+  String get gymMineAdd;
+
   /// No description provided for @sleepTitle.
   ///
   /// In en, this message translates to:
@@ -5720,6 +5966,120 @@ abstract class AppLocalizations {
   /// **'Home, Office, Gym…'**
   String get placesNameHint;
 
+  /// No description provided for @placesLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Map views'**
+  String get placesLayers;
+
+  /// No description provided for @placesStreets.
+  ///
+  /// In en, this message translates to:
+  /// **'Streets'**
+  String get placesStreets;
+
+  /// No description provided for @placesSatellite.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite'**
+  String get placesSatellite;
+
+  /// No description provided for @placesLocateMe.
+  ///
+  /// In en, this message translates to:
+  /// **'My location'**
+  String get placesLocateMe;
+
+  /// No description provided for @placesSavePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this place'**
+  String get placesSavePlace;
+
+  /// No description provided for @placesEditPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit place'**
+  String get placesEditPlace;
+
+  /// No description provided for @placesPlaceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Place name'**
+  String get placesPlaceName;
+
+  /// No description provided for @placesPlaceNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get placesPlaceNotes;
+
+  /// No description provided for @placesPlaceNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What to remember about here.'**
+  String get placesPlaceNotesHint;
+
+  /// No description provided for @placesRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach (m)'**
+  String get placesRadius;
+
+  /// No description provided for @placesRadiusRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max} m'**
+  String placesRadiusRange(int min, int max);
+
+  /// No description provided for @placesPlaceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Place saved'**
+  String get placesPlaceSaved;
+
+  /// No description provided for @placesPlaceUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Place updated'**
+  String get placesPlaceUpdated;
+
+  /// No description provided for @placesPlaceForgotten.
+  ///
+  /// In en, this message translates to:
+  /// **'Place forgotten'**
+  String get placesPlaceForgotten;
+
+  /// No description provided for @placesForgetPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget place'**
+  String get placesForgetPlace;
+
+  /// No description provided for @placesForgetPlaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the pin, not the trail.'**
+  String get placesForgetPlaceBody;
+
+  /// No description provided for @placesNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find your location right now.'**
+  String get placesNoFix;
+
+  /// No description provided for @geoWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {time}'**
+  String geoWhere(String name, String time);
+
+  /// No description provided for @geoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No location recorded'**
+  String get geoUnavailable;
+
   /// No description provided for @placesOptions.
   ///
   /// In en, this message translates to:
@@ -6121,6 +6481,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'the note up to the cursor'**
   String get assistSendsUpToCaret;
+
+  /// No description provided for @assistTranscribeTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording is too long to transcribe: the server takes recordings up to {limit} MB.'**
+  String assistTranscribeTooLong(int limit);
+
+  /// No description provided for @assistTranscribeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a kind of recording the server can transcribe.'**
+  String get assistTranscribeUnknown;
 
   /// No description provided for @assistSendsRecording.
   ///

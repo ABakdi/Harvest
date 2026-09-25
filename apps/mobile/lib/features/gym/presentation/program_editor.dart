@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
@@ -16,6 +17,8 @@ import 'package:harvest/features/gym/presentation/program_seed_card.dart';
 import 'package:harvest/features/gym/presentation/target_set_sheet.dart';
 import 'package:harvest/features/gym/presentation/training_max_sheet.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
+import 'package:harvest/features/health/domain/body_weight.dart';
+import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Writing a program: days, the exercises in them, and what each asks.
@@ -107,8 +110,13 @@ class ProgramEditor extends ConsumerWidget {
               color: theme.colorScheme.tertiary,
             )
           else
-            for (final day in program.days)
-              _DayCard(program: program, day: day, maxes: maxes),
+            for (final (index, day) in program.days.indexed)
+              _DayCard(
+                program: program,
+                day: day,
+                index: index,
+                maxes: maxes,
+              ),
         ],
       ),
     );
@@ -175,11 +183,13 @@ class _DayCard extends ConsumerWidget {
   const _DayCard({
     required this.program,
     required this.day,
+    required this.index,
     required this.maxes,
   });
 
   final Program program;
   final ProgramDay day;
+  final int index;
   final Map<String, int> maxes;
 
   @override
@@ -223,12 +233,26 @@ class _DayCard extends ConsumerWidget {
                     ),
                     'accessories' => unawaited(_editAccessories(context, ref)),
                     'rename' => unawaited(_rename(context, ref)),
+                    'up' => unawaited(_move(ref, index - 1)),
+                    'down' => unawaited(_move(ref, index + 1)),
                     _ => unawaited(_remove(context, ref)),
                   },
                   itemBuilder: (context) => [
                     PopupMenuItem(
                       value: 'duplicate',
                       child: Text(l10n.gymDuplicateDay),
+                    ),
+                    // The order is the rotation: what is up next after
+                    // a day is the day below it ([[Gym]] rule Y11).
+                    PopupMenuItem(
+                      value: 'up',
+                      enabled: index > 0,
+                      child: Text(l10n.gymMoveDayUp),
+                    ),
+                    PopupMenuItem(
+                      value: 'down',
+                      enabled: index < program.days.length - 1,
+                      child: Text(l10n.gymMoveDayDown),
                     ),
                     PopupMenuItem(
                       value: 'accessories',
@@ -291,6 +315,15 @@ class _DayCard extends ConsumerWidget {
     await ref.read(programsRepositoryProvider).reorderSlots(after);
   }
 
+  /// Moves this day to [to] among the program's days.
+  Future<void> _move(WidgetRef ref, int to) async {
+    final before = [for (final day in program.days) day.uuid];
+    if (to < 0 || to >= before.length) return;
+    await ref
+        .read(programsRepositoryProvider)
+        .reorderDays(reorderedUuids(before, index, to));
+  }
+
   Future<void> _addSlot(BuildContext context, WidgetRef ref) async {
     final exercise = await pickExercise(context);
     if (exercise == null) return;
@@ -321,7 +354,10 @@ class _DayCard extends ConsumerWidget {
     if (text == null) return;
     await ref
         .read(programsRepositoryProvider)
-        .updateDay(day.uuid, accessories: text.trim());
+        .updateDay(
+          day.uuid,
+          accessories: Value(text.trim().isEmpty ? null : text.trim()),
+        );
   }
 
   Future<void> _remove(BuildContext context, WidgetRef ref) async {
@@ -356,7 +392,12 @@ class _SlotRow extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final exercise = ref.watch(exerciseByIdProvider(slot.exerciseId)).value;
-    final resolved = resolveSlot(slot, trainingMaxGrams: trainingMaxGrams);
+    final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
+    final resolved = resolveSlot(
+      slot,
+      trainingMaxGrams: trainingMaxGrams,
+      unit: unit,
+    );
 
     return InkWell(
       borderRadius: BorderRadius.circular(HarvestRadii.chip),
@@ -402,7 +443,7 @@ class _SlotRow extends ConsumerWidget {
                       children: [
                         for (final entry in resolved)
                           Text(
-                            targetLabel(context, entry),
+                            targetLabel(context, entry, unit: unit),
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: entry.target.openEnded
                                   ? scheme.secondary

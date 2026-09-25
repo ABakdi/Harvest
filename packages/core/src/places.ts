@@ -25,6 +25,8 @@ export interface SavedPlaceLike {
   readonly latitude: number;
   readonly longitude: number;
   readonly radiusM: number;
+  /** Whatever I want to remember about this place. */
+  readonly notes: string | null;
 }
 
 export interface Stay {

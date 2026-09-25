@@ -1,9 +1,20 @@
+import { maxFileBytes } from '@harvest/contracts';
 import { actsOnSelection, assistActions } from '@harvest/core';
 import { useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   ArrowLeftIcon,
+  AudioLinesIcon,
+  EllipsisVerticalIcon,
+  FolderPenIcon,
+  MicIcon,
+  MicVocalIcon,
+  PaperclipIcon,
+  PlusIcon,
+  PrinterIcon,
   SparklesIcon,
+  TableIcon,
+  Volume2Icon,
   BoldIcon,
   CodeIcon,
   FilePlusIcon,
@@ -21,7 +32,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -46,16 +57,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatDate } from '@/lib/format';
+import { formatBytes, formatDate } from '@/lib/format';
 import { Markdown } from '@/lib/markdown';
 import { registerPendingEdit } from '@/lib/pending-edits';
 import { cn } from '@/lib/utils';
 import { AssistDialog, type AssistTarget } from '../components/assist-dialog';
 import { EmptyState } from '../components/bits';
+import { LocationNote } from '../components/location-note';
+import { addTableColumn, addTableRow, insertTable, tableAt, type Edit } from '../components/notes/markdown-actions';
+import { NotePrint } from '../components/notes/note-print';
+import { ReadAloudDialog } from '../components/notes/read-aloud-dialog';
+import { RecordingDialog } from '../components/notes/recording-dialog';
+import { Recordings } from '../components/notes/recordings';
+import { canSpeak, localDictation, recordingFormat, type Recognition } from '../components/notes/voice';
 import { useHarvest } from '../context';
 import { RecordsTabs } from './records';
 import { assistStatus } from '../data/assist';
-import { decodeFolders, folderTree, linksIn, notePreview, type NoteRow } from '../data/notes';
+import { placeTranscript } from '../data/transcribe';
+import { attachmentFileName, audioEmbed, audioExtensionOf, voiceNoteTitle } from '../data/attachments';
+import { FileTooLargeError } from '../data/files';
+import { decodeFolders, folderTree, linksIn, normalizeFolder, notePreview, type NoteRow } from '../data/notes';
 import { settingKeys, settingText } from '../data/settings';
 
 type Sort = 'edited' | 'created' | 'title';
@@ -104,15 +125,32 @@ function useOpenTitle(notes: NoteRow[], folder: string) {
 
 // ------------------------------------------------------------- sidebar
 
-function FolderDialog({ parent, onClose }: { parent: string; onClose: () => void }) {
+/** The folder a path sits in, `''` at the top. */
+function parentOf(path: string): string {
+  return path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+}
+
+/**
+ * Makes a folder inside [parent], or renames [renaming] in place: its
+ * notes and its subfolders move with it (`renameFolder`).
+ */
+function FolderDialog({
+  parent,
+  renaming,
+  onClose,
+}: {
+  parent: string;
+  renaming?: string;
+  onClose: (renamedTo?: string) => void;
+}) {
   const { t } = useTranslation();
   const { notes } = useHarvest();
-  const [name, setName] = useState('');
+  const [name, setName] = useState(renaming ? (renaming.split('/').at(-1) ?? '') : '');
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>{t('notes.newFolder')}</DialogTitle>
+          <DialogTitle>{renaming ? t('notes.renameFolder') : t('notes.newFolder')}</DialogTitle>
           <DialogDescription>{parent ? t('notes.insideFolder', { folder: parent }) : t('notes.atRoot')}</DialogDescription>
         </DialogHeader>
         <form
@@ -120,20 +158,104 @@ function FolderDialog({ parent, onClose }: { parent: string; onClose: () => void
           onSubmit={(event) => {
             event.preventDefault();
             if (!name.trim()) return;
-            void notes.addFolder(parent ? `${parent}/${name}` : name).then(onClose);
+            const path = normalizeFolder(parent ? `${parent}/${name}` : name);
+            if (!renaming) {
+              void notes.addFolder(path).then(() => onClose());
+            } else if (path === renaming || !path) {
+              onClose();
+            } else {
+              void notes.renameFolder(renaming, path).then(() => onClose(path));
+            }
           }}
         >
           <Label htmlFor="folder-name">{t('notes.folderName')}</Label>
-          <Input id="folder-name" autoFocus value={name} onChange={(event) => setName(event.target.value)} />
+          <Input id="folder-name" autoFocus value={name} placeholder={t('notes.folderNameHint')} onChange={(event) => setName(event.target.value)} />
           <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={() => onClose()}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit">{t('common.create')}</Button>
+            <Button type="submit">{renaming ? t('common.save') : t('common.create')}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * What a folder offers from the sidebar, as the phone's folder sheet
+ * does: a note or a folder inside it, a new name, or the trash — which
+ * takes every note in it, so it asks first and can be undone.
+ */
+function FolderMenu({
+  path,
+  onNewNote,
+  onNewFolder,
+  onRename,
+  onDeleted,
+}: {
+  path: string;
+  onNewNote: () => void;
+  onNewFolder: () => void;
+  onRename: () => void;
+  onDeleted: () => void;
+}) {
+  const { t } = useTranslation();
+  const { notes } = useHarvest();
+  const [confirming, setConfirming] = useState(false);
+  const name = path.split('/').at(-1) ?? path;
+
+  const remove = async () => {
+    setConfirming(false);
+    const trashed = await notes.trashFolder(path);
+    onDeleted();
+    toast(t('notes.folderTrashed', { folder: name, count: trashed.length }), {
+      action: { label: t('common.undo'), onClick: () => void notes.restoreFolder(path, trashed) },
+    });
+  };
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm" className="shrink-0" aria-label={t('notes.folderOptions', { folder: name })}>
+            <EllipsisVerticalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={onNewNote}>
+            <FilePlusIcon />
+            {t('notes.newNoteHere')}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={onNewFolder}>
+            <FolderPlusIcon />
+            {t('notes.newSubfolder')}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={onRename}>
+            <FolderPenIcon />
+            {t('notes.renameFolder')}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setConfirming(true)}>
+            <Trash2Icon />
+            {t('notes.deleteFolder')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog open={confirming} onOpenChange={setConfirming}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('notes.deleteFolderTitle', { folder: name })}</AlertDialogTitle>
+            <AlertDialogDescription>{t('notes.deleteFolderBody', { folder: path })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction destructive onClick={() => void remove()}>
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -153,7 +275,7 @@ function Sidebar({
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<Sort>('edited');
-  const [makingFolder, setMakingFolder] = useState(false);
+  const [folderDialog, setFolderDialog] = useState<{ parent: string; renaming?: string } | null>(null);
 
   const shown = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -170,9 +292,15 @@ function Sidebar({
     return list.sort(compare[sort]);
   }, [vault.notes, folder, query, sort]);
 
-  const create = async () => {
-    const note = await notes.create({ folder });
+  const create = async (where = folder) => {
+    const note = await notes.create({ folder: where });
     void navigate(`/app/records/${note.uuid}`);
+  };
+
+  // The three-second path: a note named by the minute, recording at once.
+  const createVoice = async () => {
+    const note = await notes.create({ title: voiceNoteTitle(new Date()), folder });
+    void navigate(`/app/records/${note.uuid}`, { state: { record: true } });
   };
 
   const counts = new Map<string, number>();
@@ -185,7 +313,12 @@ function Sidebar({
           <FilePlusIcon />
           {t('notes.new')}
         </Button>
-        <Button variant="outline" size="icon" aria-label={t('notes.newFolder')} onClick={() => setMakingFolder(true)}>
+        {recordingFormat() !== null && (
+          <Button variant="outline" size="icon" aria-label={t('voice.newNote')} title={t('voice.newNote')} onClick={() => void createVoice()}>
+            <MicIcon />
+          </Button>
+        )}
+        <Button variant="outline" size="icon" aria-label={t('notes.newFolder')} onClick={() => setFolderDialog({ parent: folder })}>
           <FolderPlusIcon />
         </Button>
       </div>
@@ -197,21 +330,30 @@ function Sidebar({
         {['', ...vault.folders].map((path) => {
           const depth = path ? path.split('/').length : 0;
           return (
-            <button
-              key={path || 'root'}
-              type="button"
-              aria-current={folder === path ? 'true' : undefined}
-              onClick={() => setFolder(path)}
-              style={{ paddingInlineStart: `${0.5 + depth * 0.9}rem` }}
-              className={cn(
-                'flex items-center gap-2 rounded-md py-1.5 pe-2 text-start text-sm font-semibold outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
-                folder === path && 'bg-accent text-accent-foreground',
+            <div key={path || 'root'} className={cn('flex items-center rounded-md', folder === path && 'bg-accent text-accent-foreground')}>
+              <button
+                type="button"
+                aria-current={folder === path ? 'true' : undefined}
+                onClick={() => setFolder(path)}
+                style={{ paddingInlineStart: `${0.5 + depth * 0.9}rem` }}
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-1.5 pe-2 text-start text-sm font-semibold outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <FolderIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <span className="truncate">{path ? path.split('/').at(-1) : t('notes.allNotes')}</span>
+                {path && counts.get(path) ? <span className="ms-auto text-xs text-muted-foreground tabular">{counts.get(path)}</span> : null}
+              </button>
+              {path && (
+                <FolderMenu
+                  path={path}
+                  onNewNote={() => void create(path)}
+                  onNewFolder={() => setFolderDialog({ parent: path })}
+                  onRename={() => setFolderDialog({ parent: parentOf(path), renaming: path })}
+                  onDeleted={() => {
+                    if (folder === path || folder.startsWith(`${path}/`)) setFolder('');
+                  }}
+                />
               )}
-            >
-              <FolderIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-              <span className="truncate">{path ? path.split('/').at(-1) : t('notes.allNotes')}</span>
-              {path && counts.get(path) ? <span className="ms-auto text-xs text-muted-foreground tabular">{counts.get(path)}</span> : null}
-            </button>
+            </div>
           );
         })}
       </nav>
@@ -252,7 +394,20 @@ function Sidebar({
         <Trash2Icon className="size-4" aria-hidden />
         {t('notes.trash', { count: vault.trash.length })}
       </Link>
-      {makingFolder && <FolderDialog parent={folder} onClose={() => setMakingFolder(false)} />}
+      {folderDialog && (
+        <FolderDialog
+          parent={folderDialog.parent}
+          {...(folderDialog.renaming ? { renaming: folderDialog.renaming } : {})}
+          onClose={(renamedTo) => {
+            const renaming = folderDialog.renaming;
+            setFolderDialog(null);
+            // The folder I was in moved: follow it.
+            if (renaming && renamedTo && (folder === renaming || folder.startsWith(`${renaming}/`))) {
+              setFolder(renamedTo + folder.slice(renaming.length));
+            }
+          }}
+        />
+      )}
     </aside>
   );
 }
@@ -276,8 +431,9 @@ function applyFormat(area: HTMLTextAreaElement, format: { wrap?: [string, string
 }
 
 function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
-  const { t } = useTranslation();
-  const { notes } = useHarvest();
+  const { t, i18n } = useTranslation();
+  const { notes, attachments, files } = useHarvest();
+  const location = useLocation();
   // The assist is the server's or nothing: a key pasted into a browser
   // is a key in everyone's browser ([[ADR-013-Assist-Providers]]).
   const assist = useQuery({ queryKey: ['assist-status'], queryFn: assistStatus, staleTime: 60_000 });
@@ -291,13 +447,38 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
   const pending = useRef<{ title: string; folder: string; body: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const seen = useRef(note.updatedAt);
+  const [inTable, setInTable] = useState(false);
+  const [recording, setRecording] = useState<boolean>(() => Boolean((location.state as { record?: boolean } | null)?.record));
+  const [reading, setReading] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const dictation = useRef<Recognition | null>(null);
+  const [canDictate, setCanDictate] = useState(false);
+  const [dictating, setDictating] = useState(false);
+  const attachInput = useRef<HTMLInputElement>(null);
+  const canRecord = recordingFormat() !== null;
 
   const flush = useCallback(async () => {
     clearTimeout(timer.current);
     const changes = pending.current;
     pending.current = null;
-    if (changes) await notes.update(note.uuid, changes);
-  }, [notes, note.uuid]);
+    if (!changes) return;
+    await notes.update(note.uuid, changes);
+    // A recording whose line was deleted goes to the trash with this save (N7).
+    await attachments.reconcile(note.uuid, changes.body);
+  }, [notes, attachments, note.uuid]);
+
+  // Dictation only where the browser listens on this computer (N10).
+  useEffect(() => {
+    let live = true;
+    void localDictation(i18n.language).then((found) => {
+      if (!live) return;
+      dictation.current = found;
+      setCanDictate(found !== null);
+    });
+    return () => {
+      live = false;
+    };
+  }, [i18n.language]);
 
   // Autosave, debounced: there is no Save button to miss ([[Notes]]).
   const schedule = (next: { title: string; folder: string; body: string }) => {
@@ -352,6 +533,101 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
     area.current.focus();
   };
 
+  const caret = (): Edit => {
+    const field = area.current;
+    return field
+      ? { text: body, start: field.selectionStart, end: field.selectionEnd }
+      : { text: body, start: body.length, end: body.length };
+  };
+
+  /** Applies a toolbar edit and puts the selection where it says. */
+  const applyEdit = (result: Edit | null) => {
+    if (!result) return;
+    setBody(result.text);
+    schedule({ title, folder, body: result.text });
+    requestAnimationFrame(() => {
+      const field = area.current;
+      if (!field) return;
+      field.focus();
+      field.setSelectionRange(result.start, result.end);
+      setInTable(tableAt(result) !== null);
+    });
+  };
+
+  // The row and column buttons are there only while the caret is in a table.
+  const trackCaret = () => {
+    const field = area.current;
+    if (field) setInTable(tableAt({ text: field.value, start: field.selectionStart, end: field.selectionEnd }) !== null);
+  };
+
+  /** Types [text] at the caret, as a line of its own when asked (`_insertAtCaret`). */
+  const insertAtCaret = (text: string, ownLine = false) => {
+    const field = area.current;
+    const at = mode === 'write' && field ? field.selectionEnd : body.length;
+    const before = body.slice(0, at);
+    const after = body.slice(at);
+    const lead =
+      ownLine && before && !before.endsWith('\n')
+        ? '\n'
+        : !ownLine && before && !before.endsWith(' ') && !before.endsWith('\n')
+          ? ' '
+          : '';
+    const tail = ownLine && !after.startsWith('\n') ? '\n' : '';
+    const inserted = `${lead}${text}${tail}`;
+    applyEdit({ text: before + inserted + after, start: at + inserted.length, end: at + inserted.length });
+  };
+
+  // Words arrive after the render that started listening; they go in
+  // with the body as it is then, not as it was.
+  const insertLatest = useRef(insertAtCaret);
+  useEffect(() => {
+    insertLatest.current = insertAtCaret;
+  });
+
+  const dictate = () => {
+    const listener = dictation.current;
+    if (!listener) return;
+    if (dictating) {
+      listener.stop();
+      return;
+    }
+    listener.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i]!;
+        const words = result[0].transcript.trim();
+        if (result.isFinal && words) insertLatest.current(words);
+      }
+    };
+    listener.onend = () => setDictating(false);
+    listener.onerror = () => setDictating(false);
+    setMode('write');
+    setDictating(true);
+    listener.start();
+  };
+
+  /** An audio file from this computer, filed and embedded as a recording would be. */
+  const attach = async (file: File) => {
+    const extension = audioExtensionOf(file);
+    if (!extension) {
+      toast.error(t('voice.notAudio'));
+      return;
+    }
+    const stem = file.name.replace(/\.[^.]*$/, '').replace(/[[\]\n|#^]/g, ' ').trim() || voiceNoteTitle(new Date());
+    const name = attachmentFileName(stem, extension, await attachments.takenNames());
+    try {
+      await attachments.add({ noteUuid: note.uuid, blob: file, fileName: name, durationMs: null });
+    } catch (error) {
+      toast.error(
+        error instanceof FileTooLargeError
+          ? t('gallery.tooLarge', { size: formatBytes(error.bytes), max: formatBytes(maxFileBytes) })
+          : t('common.saveFailed'),
+      );
+      return;
+    }
+    setMode('write');
+    insertAtCaret(audioEmbed(name), true);
+  };
+
   const remove = async () => {
     await flush();
     await notes.remove(note.uuid);
@@ -369,6 +645,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
     { label: t('notes.tool.quote'), icon: <QuoteIcon />, spec: { prefix: '> ' } },
     { label: t('notes.tool.link'), icon: <LinkIcon />, spec: { wrap: ['[[', ']]'] } },
   ];
+  const printDone = useCallback(() => setPrinting(false), []);
 
   return (
     <article className="flex min-w-0 flex-col gap-3">
@@ -391,9 +668,57 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
             schedule({ title: event.target.value, folder, body });
           }}
         />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label={t('notes.more')}>
+              <EllipsisVerticalIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {canRecord && (
+              <DropdownMenuItem onSelect={() => setRecording(true)}>
+                <MicIcon />
+                {t('voice.record')}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onSelect={() => attachInput.current?.click()}>
+              <PaperclipIcon />
+              {t('voice.attach')}
+            </DropdownMenuItem>
+            {canSpeak() && (
+              <DropdownMenuItem onSelect={() => setReading(true)}>
+                <Volume2Icon />
+                {t('voice.readAloud')}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              onSelect={() => {
+                void flush();
+                setPrinting(true);
+              }}
+            >
+              <PrinterIcon />
+              {t('notes.exportPdf')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button variant="ghost" size="icon" aria-label={t('notes.moveToTrash')} onClick={() => void remove()}>
           <Trash2Icon />
         </Button>
+        <input
+          ref={attachInput}
+          type="file"
+          accept="audio/*"
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden
+          data-testid="attach-recording"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (file) void attach(file);
+          }}
+        />
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <Label htmlFor="note-folder" className="flex items-center gap-1 text-xs font-semibold">
@@ -417,14 +742,19 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
           ))}
         </datalist>
         <span>{t('notes.edited', { when: formatDate(note.updatedAt, { dateStyle: 'medium', timeStyle: 'short' }) })}</span>
+        <LocationNote table="notes" uuid={note.uuid} />
       </div>
 
       <AssistDialog
         target={asking}
         model={assist.data?.model ?? ''}
+        spent={assist.data ? assist.data.usedToday >= assist.data.dailyLimit : false}
         onClose={() => setAsking(null)}
         onInsert={(text) => {
-          const next = `${body}${body.length === 0 || body.endsWith('\n') ? '' : '\n\n'}${text}`;
+          // A transcript goes under its recording, as a quote (N10).
+          const next = asking?.recording
+            ? placeTranscript(body, asking.recording.name, text)
+            : `${body}${body.length === 0 || body.endsWith('\n') ? '' : '\n\n'}${text}`;
           setBody(next);
           schedule({ title, folder, body: next });
           setAsking(null);
@@ -454,6 +784,40 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
                   {tool.icon}
                 </Button>
               ))}
+              <Button variant="ghost" size="icon-sm" aria-label={t('notes.tool.table')} title={t('notes.tool.table')} onClick={() => applyEdit(insertTable(caret()))}>
+                <TableIcon />
+              </Button>
+              {inTable && (
+                <>
+                  <Button variant="ghost" size="sm" className="h-8 px-2" title={t('notes.tool.tableRow')} onClick={() => applyEdit(addTableRow(caret()))}>
+                    <PlusIcon />
+                    {t('notes.tool.rowShort')}
+                    <span className="sr-only">{t('notes.tool.tableRow')}</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 px-2" title={t('notes.tool.tableColumn')} onClick={() => applyEdit(addTableColumn(caret()))}>
+                    <PlusIcon />
+                    {t('notes.tool.columnShort')}
+                    <span className="sr-only">{t('notes.tool.tableColumn')}</span>
+                  </Button>
+                </>
+              )}
+              {canRecord && (
+                <Button variant="ghost" size="icon-sm" aria-label={t('voice.record')} title={t('voice.record')} onClick={() => setRecording(true)}>
+                  <MicIcon />
+                </Button>
+              )}
+              {canDictate && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={dictating ? t('voice.listening') : t('voice.dictate')}
+                  title={dictating ? t('voice.listening') : t('voice.dictate')}
+                  aria-pressed={dictating}
+                  onClick={dictate}
+                >
+                  {dictating ? <AudioLinesIcon className="text-destructive" /> : <MicVocalIcon />}
+                </Button>
+              )}
             </div>
           )}
           {assist.data?.available === true && (
@@ -465,8 +829,9 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {/* Transcribe belongs to the recorder, which is the
-                    phone's ([[Notes]] N7). */}
+                {/* Transcribe works on one recording, from its
+                    player below ([[Notes]] N10); it is not a
+                    whole-note action. */}
                 {assistActions
                   .filter((action) => action !== 'transcribe')
                   .map((action) => (
@@ -509,6 +874,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
               setBody(event.target.value);
               schedule({ title, folder, body: event.target.value });
             }}
+            onSelect={trackCaret}
             className="min-h-[55dvh] w-full resize-y rounded-xl border bg-card p-4 font-mono text-[15px] leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </TabsContent>
@@ -518,6 +884,12 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
               <Markdown
                 source={body}
                 options={{
+                  renderEmbed: (name) => (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-sm text-muted-foreground">
+                      <MicIcon className="size-3.5" aria-hidden />
+                      {name}
+                    </span>
+                  ),
                   renderWikiLink: (linkTitle) => {
                     const target = byTitle(vault.notes, linkTitle);
                     return (
@@ -539,6 +911,50 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Recordings
+        noteUuid={note.uuid}
+        body={body}
+        onTranscribe={
+          assist.data?.available === true
+            ? (recording) => {
+                // The file is read now; nothing leaves until Send (N10).
+                void (async () => {
+                  const hash = recording.fileHash ?? (await files.localHash(recording.uuid));
+                  const blob = hash ? await files.get(hash) : null;
+                  if (!blob) {
+                    toast.error(t('voice.missing'));
+                    return;
+                  }
+                  setAsking({
+                    action: 'transcribe',
+                    text: '',
+                    upToCaret: '',
+                    fromSelection: false,
+                    recording: { name: recording.fileName, blob },
+                  });
+                })();
+              }
+            : undefined
+        }
+      />
+
+      {recording && (
+        <RecordingDialog
+          noteUuid={note.uuid}
+          onDone={(fileName) => {
+            setRecording(false);
+            // The request to record came with the note; it is spent.
+            if (location.state) void navigate(location.pathname, { replace: true, state: null });
+            if (fileName) {
+              setMode('write');
+              insertAtCaret(audioEmbed(fileName), true);
+            }
+          }}
+        />
+      )}
+      {reading && <ReadAloudDialog markdown={body} onClose={() => setReading(false)} />}
+      {printing && <NotePrint note={{ ...note, title, folder, body }} onDone={printDone} />}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <section aria-labelledby="outgoing" className="rounded-xl border bg-card p-3">

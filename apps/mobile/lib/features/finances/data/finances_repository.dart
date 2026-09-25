@@ -62,11 +62,15 @@ class FinancesRepository {
     return query.watch().map((rows) => rows.map(_toDomain).toList());
   }
 
-  /// User-created categories, newest last.
+  /// User-created categories, newest last — by when each was made, so
+  /// an edit or a restore never moves one. A row synced from a device
+  /// that predates `created_at` falls back to its last edit.
   Stream<List<CustomCategory>> watchCategories() =>
       (_db.select(_db.expenseCategories)
             ..where((c) => c.deletedAt.isNull())
-            ..orderBy([(c) => OrderingTerm.asc(c.updatedAt)]))
+            ..orderBy([
+              (c) => OrderingTerm.asc(coalesce([c.createdAt, c.updatedAt])),
+            ]))
           .watch()
           .map(
             (rows) => rows
@@ -93,6 +97,7 @@ class FinancesRepository {
               uuid: uuid,
               name: name,
               icon: icon,
+              createdAt: Value(DateTime.now()),
             ),
           );
       await _db.logChange('expense_categories', uuid, 'insert');

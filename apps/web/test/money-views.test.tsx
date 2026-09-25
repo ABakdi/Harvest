@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { HarvestContext } from '@/app/context';
 import { readBudget, readVault } from '@/app/data/vault';
@@ -77,13 +78,18 @@ describe('the vault', () => {
 
     render(
       <HarvestContext.Provider value={h}>
-        <VaultPanel />
+        <MemoryRouter>
+          <VaultPanel />
+        </MemoryRouter>
       </HarvestContext.Provider>,
     );
+    // Debts are their own section, chosen from the Owed tile.
+    fireEvent.click(await screen.findByRole('button', { name: /Owed/ }));
     expect(await screen.findByText('Amine')).toBeInTheDocument();
-    // Twice over: what this debt has left, and the Owed tile, which is
-    // every unsettled debt converted into the default currency.
-    expect(screen.getAllByText('DA150')).toHaveLength(2);
+    // Three times over: what this debt has left, the section's balance
+    // per currency, and the Owed tile, which is every unsettled debt
+    // converted into the default currency.
+    expect(screen.getAllByText('DA150')).toHaveLength(3);
     expect(screen.getByText('DA50 of DA200 paid')).toBeInTheDocument();
   });
 });

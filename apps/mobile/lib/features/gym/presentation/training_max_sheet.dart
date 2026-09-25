@@ -125,7 +125,7 @@ class _MaxRow extends ConsumerWidget {
         .setTrainingMax(
           programUuid: programUuid,
           exerciseId: exerciseId,
-          grams: roundLoad(unit.toGrams(value)),
+          grams: roundLoad(unit.toGrams(value), unit: unit),
         );
   }
 }

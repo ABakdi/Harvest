@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gym/domain/plates.dart';
+import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
@@ -13,7 +14,8 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// Two taps of arithmetic I should never do tired, and the one place
 /// the app admits a target cannot be made: a barbell loads in pairs, so
 /// its smallest step is twice the smallest plate, and 20.25 kg is not a
-/// weight however much the percentage says so.
+/// weight however much the percentage says so. In pounds it is a pound
+/// gym: 45 lb bar, 45 to 2.5 lb plates ([[Gym]] rule Y8).
 Future<void> showPlates(
   BuildContext context, {
   required int targetGrams,
@@ -35,11 +37,12 @@ class _PlateSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
-    final plan = platesFor(targetGrams, barGrams: barGrams);
+    final bar = barIn(barGrams, unit);
+    final plan = platesFor(targetGrams, barGrams: bar, unit: unit);
 
     return HarvestSheet(
       title: formatLoad(context, targetGrams, unit),
-      subtitle: l10n.gymPerSide(formatLoad(context, barGrams, unit)),
+      subtitle: l10n.gymPerSide(formatLoad(context, bar, unit)),
       children: [
         if (plan.stacks.isEmpty)
           Padding(
@@ -74,6 +77,25 @@ class _PlateSheet extends ConsumerWidget {
                 ),
             ],
           ),
+        // Lighter than the bar: the bar is still the bar, and says by
+        // how much it is over rather than pretending to be the target.
+        if (plan.overGrams > 0) ...[
+          const SizedBox(height: HarvestSpacing.md),
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: scheme.error),
+              const SizedBox(width: HarvestSpacing.xs),
+              Expanded(
+                child: Text(
+                  l10n.gymBarOver(formatLoad(context, plan.overGrams, unit)),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
         if (plan.shortfallGrams > 0) ...[
           const SizedBox(height: HarvestSpacing.md),
           Row(

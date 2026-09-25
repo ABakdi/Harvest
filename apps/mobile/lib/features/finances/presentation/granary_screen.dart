@@ -24,11 +24,13 @@ import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/finances/presentation/vault_tab.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
+import 'package:harvest/features/wishlist/presentation/wishlist_tab.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// The Granary: Today (gauge + quick log), Vault (wallet, savings,
-/// debts) and Insights (charts). The expense action floats on Today
-/// only — the vault carries its own actions.
+/// debts), Insights (charts) and Wishlist (to buy vs. someday). The
+/// expense action floats on Today only — the other tabs carry their
+/// own actions.
 class GranaryScreen extends StatefulWidget {
   const GranaryScreen({super.key});
 
@@ -38,7 +40,7 @@ class GranaryScreen extends StatefulWidget {
 
 class _GranaryScreenState extends State<GranaryScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 3, vsync: this)
+  late final TabController _tabs = TabController(length: 4, vsync: this)
     ..addListener(() => setState(() {}));
 
   @override
@@ -61,6 +63,7 @@ class _GranaryScreenState extends State<GranaryScreen>
             Tab(text: l10n.todayTab),
             Tab(text: l10n.vaultTab),
             Tab(text: l10n.insightsTab),
+            Tab(text: l10n.wishlistTitle),
           ],
         ),
       ),
@@ -75,7 +78,7 @@ class _GranaryScreenState extends State<GranaryScreen>
       ),
       body: TabBarView(
         controller: _tabs,
-        children: const [_TodayTab(), VaultTab(), InsightsTab()],
+        children: const [_TodayTab(), VaultTab(), InsightsTab(), WishlistTab()],
       ),
     );
   }

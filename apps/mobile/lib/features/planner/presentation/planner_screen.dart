@@ -18,7 +18,12 @@ part 'planner_screen.g.dart';
 ({List<Commitment> habits, List<Commitment> todos}) tomorrowPlan(Ref ref) {
   final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
   final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
-  final tomorrow = ref.watch(currentHarvestDayProvider).next;
+  final today = ref.watch(currentHarvestDayProvider);
+  final tomorrow = today.next;
+  // Tomorrow shares this week's count unless it starts a new week.
+  final weekDone = tomorrow.weekStart == today.weekStart
+      ? ref.watch(doneDaysThisWeekProvider).value ?? const {}
+      : const <String, int>{};
 
   final habits = <Commitment>[];
   final todos = <Commitment>[];
@@ -26,7 +31,12 @@ part 'planner_screen.g.dart';
     switch (commitment.type) {
       case CommitmentType.habit:
         // Flexible schedules count as due unless the week is done.
-        if (isDueOn(commitment, tomorrow)) habits.add(commitment);
+        final due = isDueOn(
+          commitment,
+          tomorrow,
+          doneDaysThisWeek: weekDone[commitment.uuid] ?? 0,
+        );
+        if (due) habits.add(commitment);
       case CommitmentType.todo:
         final done = (totals[commitment.uuid] ?? 0) > 0;
         if (!done && commitment.dueDay == tomorrow) todos.add(commitment);

@@ -1,6 +1,8 @@
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
+import 'package:harvest/features/gym/data/programs_repository.dart';
+import 'package:harvest/features/gym/domain/program.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gallery_providers.g.dart';
@@ -53,10 +55,17 @@ List<({Album album, bool done})> albumsDueToday(Ref ref) {
   final all = ref.watch(albumsProvider).value ?? const <Album>[];
   final counts = ref.watch(albumCountsTodayProvider).value ?? const {};
   final weekDone = ref.watch(albumDoneDaysThisWeekProvider).value ?? const {};
+  // A program's album is fed by its sessions and stands on the field as
+  // the program's seed, never as a second card — even one given a
+  // schedule before it was bound ([[Gym]]).
+  final bound = {
+    for (final program in ref.watch(programsProvider).value ?? const <Program>[])
+      ?program.albumUuid,
+  };
 
   final due = <({Album album, bool done})>[];
   for (final album in all) {
-    if (!album.isScheduled) continue;
+    if (!album.isScheduled || bound.contains(album.uuid)) continue;
     final done = (counts[album.uuid] ?? 0) > 0;
     // Anything fed today stays visible, the way a checked crop does.
     final isDue =

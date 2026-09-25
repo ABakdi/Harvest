@@ -82,10 +82,18 @@ class _SetRowState extends ConsumerState<SetRow> {
     // in kilograms under a pound header would be logged as pounds. What
     // is in the field is converted, not thrown away ([[Audit-v2]] U3-14).
     if (old.unit != widget.unit) {
+      // A field still showing the row is re-read from the row, not from
+      // its two decimals: 135 lb first shown as 61.24 kg stays 135 lb
+      // ([[Gym]] rule Y8).
+      final untouched =
+          _weight.text ==
+          (old.set.weightGrams == 0
+              ? ''
+              : _format(old.unit.from(old.set.weightGrams)));
       final typed = double.tryParse(_weight.text.trim().replaceAll(',', '.'));
-      final grams = typed == null
+      final grams = typed == null || untouched
           ? widget.set.weightGrams
-          : roundLoad(old.unit.toGrams(typed));
+          : roundLoad(old.unit.toGrams(typed), unit: old.unit);
       _weight.text = grams == 0 ? '' : _format(widget.unit.from(grams));
     }
     if (old.set.reps != widget.set.reps && _reps.text == _lastReps) {
@@ -102,7 +110,7 @@ class _SetRowState extends ConsumerState<SetRow> {
 
   int get _enteredGrams {
     final value = double.tryParse(_weight.text.trim().replaceAll(',', '.'));
-    return value == null ? 0 : roundLoad(widget.unit.toGrams(value));
+    return value == null ? 0 : roundLoad(widget.unit.toGrams(value), unit: widget.unit);
   }
 
   int get _enteredReps => int.tryParse(_reps.text.trim()) ?? 0;
@@ -303,24 +311,19 @@ class _SetRowState extends ConsumerState<SetRow> {
 
   /// `83.25×5` from the stored label, in whatever unit is on screen —
   /// and without the `.00` the label is stored with, which is a
-  /// spreadsheet's idea of a weight.
+  /// spreadsheet's idea of a weight. Read back in the unit on screen,
+  /// so 135 lb stored as `61.23` shows as 135 ([[Gym]] rule Y8).
   static String _prettyTarget(
     BuildContext context,
     String label,
     WeightUnit unit,
   ) {
-    if (!label.contains('×')) return label;
-    final parts = label.split('×');
-    final kg = double.tryParse(parts.first);
-    if (kg == null) return label;
+    final grams = storedLabelGrams(label, unit);
+    if (grams == null) return label;
     // The load without its unit: `83.25×5` reads as one thing, and the
     // unit is already on the row above it.
-    final load = formatNumber(
-      context,
-      unit.from((kg * 1000).round()),
-      decimals: 2,
-    );
-    return '$load×${parts.last}';
+    final load = formatNumber(context, unit.from(grams), decimals: 2);
+    return '$load×${label.split('×').last}';
   }
 }
 

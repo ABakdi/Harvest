@@ -11,6 +11,8 @@ import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
 import 'package:harvest/features/gym/presentation/session_screen.dart';
+import 'package:harvest/features/health/domain/body_weight.dart';
+import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Getting into a session, from wherever I am.
@@ -95,6 +97,7 @@ Future<void> _startSession(
     programUuid: picked.program.uuid,
     title: picked.day.name,
     trainingMaxes: maxes,
+    unit: ref.read(weightUnitSettingProvider).value ?? WeightUnit.kg,
   );
   if (!context.mounted) return;
 

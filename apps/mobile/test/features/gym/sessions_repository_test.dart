@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -178,6 +179,46 @@ void main() {
       expect(set.loggedAt, isNotNull);
     });
 
+    test('a set added after a drop takes a position of its own', () async {
+      final made = await aDay(reps: const [5, 3, 1]);
+      final started = await sessions.start(
+        day: made.day,
+        programUuid: made.program.uuid,
+        title: 'Day 1',
+      );
+      final exercise = started.exercises.single;
+      await sessions.removeSet(exercise.sets[1].uuid);
+      await sessions.addSet(exercise.uuid);
+
+      final sets = (await sessions.once(started.uuid))!.exercises.single.sets;
+      // Counting would have put the new one at 2, beside the last.
+      expect([for (final set in sets) set.position], [0, 2, 3]);
+    });
+
+    test('ticking a set moves the session on too', () async {
+      final made = await aDay();
+      final started = await sessions.start(
+        day: made.day,
+        programUuid: made.program.uuid,
+        title: 'Day 1',
+      );
+      final long = DateTime(2020);
+      await (db.update(db.workoutSessions)
+            ..where((s) => s.uuid.equals(started.uuid)))
+          .write(WorkoutSessionsCompanion(updatedAt: Value(long)));
+
+      await sessions.logSet(
+        started.exercises.single.sets.first.uuid,
+        weightGrams: 100 * gramsPerKg,
+        reps: 5,
+      );
+
+      final row = await (db.select(
+        db.workoutSessions,
+      )..where((s) => s.uuid.equals(started.uuid))).getSingle();
+      expect(row.updatedAt.isAfter(long), isTrue);
+    });
+
     test('unticking gives the set back without losing the numbers', () async {
       final made = await aDay();
       final started = await sessions.start(
@@ -338,6 +379,34 @@ void main() {
 
       final last = await sessions.lastTime('0025');
       expect(last.single.weightGrams, 105 * gramsPerKg);
+    });
+
+    test('twice in one session, is the earlier position', () async {
+      final session = await sessions.startFreeform(title: 'Mixed');
+      await sessions.addExercise(session.uuid, exerciseId: '0025');
+      await sessions.addExercise(session.uuid, exerciseId: '0025');
+      final exercises = (await sessions.once(session.uuid))!.exercises;
+      // The row written first is moved below the other, so insertion
+      // order and position disagree.
+      await (db.update(db.sessionExercises)
+            ..where((e) => e.uuid.equals(exercises[0].uuid)))
+          .write(const SessionExercisesCompanion(position: Value(5)));
+      await sessions.logSet(
+        exercises[0].sets.single.uuid,
+        weightGrams: 60 * gramsPerKg,
+        reps: 10,
+      );
+      await sessions.logSet(
+        exercises[1].sets.single.uuid,
+        weightGrams: 100 * gramsPerKg,
+        reps: 5,
+      );
+      await sessions.finish(session.uuid);
+
+      final last = await sessions.lastTime('0025');
+      expect(last.single.weightGrams, 100 * gramsPerKg);
+      final history = await sessions.history('0025');
+      expect(history.single.sets.single.weightGrams, 100 * gramsPerKg);
     });
 
     test('is empty for an exercise I have never done', () async {

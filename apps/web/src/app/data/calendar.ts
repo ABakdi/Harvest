@@ -95,7 +95,11 @@ export async function readMonth(db: HarvestDB, anyDayInMonth: HarvestDay): Promi
     for (const { row, commitment } of seeds) {
       // A project is due every day by nature; showing it would fill
       // the month with one seed.
-      if (row.type !== 'project') {
+      if (row.type === 'todo') {
+        // A to-do sits on the day it was planned for, done or not, as on
+        // the phone; the field carries it forward, the calendar does not.
+        if (row.dueDay === day.key) entries.push({ row, commitment, deadline: false, done: done.has(row.uuid) });
+      } else if (row.type !== 'project') {
         const doneDaysThisWeek = weekDone.get(day.weekStart.key)?.get(row.uuid)?.size ?? 0;
         if (isDueOn(commitment, day, { doneDaysThisWeek, totalLogged: totals.get(row.uuid) ?? 0 })) {
           entries.push({ row, commitment, deadline: false, done: done.has(row.uuid) });

@@ -93,8 +93,8 @@
         { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-19T08:30:00" }
       ],
       "places": [
-        { "uuid": "p1", "name": "Home", "latitude": 36.7501, "longitude": 3.0601, "radiusM": 100 },
-        { "uuid": "p2", "name": "Work", "latitude": 36.79, "longitude": 3.06, "radiusM": 100 }
+        { "uuid": "p1", "name": "Home", "latitude": 36.7501, "longitude": 3.0601, "radiusM": 100, "notes": null },
+        { "uuid": "p2", "name": "Work", "latitude": 36.79, "longitude": 3.06, "radiusM": 100, "notes": null }
       ],
       "result": [
         {

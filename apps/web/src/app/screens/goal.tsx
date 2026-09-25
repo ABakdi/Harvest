@@ -172,7 +172,14 @@ function Section({ view, kind, items }: { view: GoalView; kind: GoalItemKind; it
   const add = (event: FormEvent) => {
     event.preventDefault();
     if (!text.trim()) return;
-    void goals.addItem(view.goal.uuid, text, kind).then(() => setText(''));
+    // Emptied at once, so a second Enter before the write lands adds
+    // nothing; a write that fails gives the text back.
+    const body = text;
+    setText('');
+    void goals.addItem(view.goal.uuid, body, kind).catch(() => {
+      setText(body);
+      toast.error(t('common.saveFailed'));
+    });
   };
   const move = (from: number, to: number) => {
     const order = items.map((item) => item.uuid);

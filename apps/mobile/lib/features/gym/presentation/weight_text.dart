@@ -37,6 +37,19 @@ String loadFieldValue(int grams, WeightUnit unit) {
             .replaceFirst(RegExp(r'\.$'), '');
 }
 
+/// The grams a session's stored label asks for, read in [unit]; null
+/// for a label with no load (`95.0%×1+`, `×5`).
+///
+/// A label keeps kilos to two places, ten grams at worst from the load,
+/// so rounding in the unit on screen gives the pounds back exactly
+/// ([[Gym]] rule Y8).
+int? storedLabelGrams(String label, WeightUnit unit) {
+  if (!label.contains('×')) return null;
+  final first = label.split('×').first;
+  if (!RegExp(r'^-?\d+(\.\d+)?$').hasMatch(first)) return null;
+  return roundLoad((double.parse(first) * 1000).round(), unit: unit);
+}
+
 /// Percent tenths as a percentage: `82.5%`, `75%`.
 String formatPercent(int tenths) {
   final whole = tenths ~/ 10;

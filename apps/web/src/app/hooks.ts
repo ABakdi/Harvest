@@ -34,6 +34,32 @@ export function useDefaultCurrency(): string {
 }
 
 /**
+ * A count that goes up each time a file that could not be had might now
+ * be had: the passphrase was entered, or a sync finished. Listens only
+ * while [waiting], so a file already shown is never fetched again.
+ */
+export function useFileRetry(waiting: boolean): number {
+  const { keyring, engine } = useHarvest();
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!waiting) return;
+    const bump = () => setTick((n) => n + 1);
+    let phase = engine.status.phase;
+    const offSync = engine.subscribe(() => {
+      const next = engine.status.phase;
+      if (phase === 'syncing' && next !== 'syncing') bump();
+      phase = next;
+    });
+    const offUnlock = keyring.onUnlock(bump);
+    return () => {
+      offSync();
+      offUnlock();
+    };
+  }, [waiting, keyring, engine]);
+  return tick;
+}
+
+/**
  * A picture or a recording as a URL, once this browser has it.
  *
  * Undefined while it is being fetched and null when it cannot be had —
@@ -46,6 +72,8 @@ export function useFile(sha256: string | null): string | null | undefined {
   // Keyed by the hash, so a tile scrolled into a new row starts again
   // rather than showing the last file it held.
   const [found, setFound] = useState<{ hash: string; url: string | null }>();
+  // Locked or offline the first time: asked again when that may have changed.
+  const retry = useFileRetry(sha256 !== null && found?.hash === sha256 && found.url === null);
 
   useEffect(() => {
     if (sha256 === null) return;
@@ -60,7 +88,7 @@ export function useFile(sha256: string | null): string | null | undefined {
       live = false;
       if (made !== null) URL.revokeObjectURL(made);
     };
-  }, [files, sha256]);
+  }, [files, sha256, retry]);
 
   if (sha256 === null) return null;
   return found?.hash === sha256 ? found.url : undefined;

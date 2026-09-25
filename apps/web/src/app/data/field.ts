@@ -1,5 +1,9 @@
 import {
   commitmentFromRow,
+  cycleMinutes,
+  decodeCycle,
+  fallbackCycle,
+  sleepDebt,
   globalStreakScope,
   isDueOn,
   isOverdueOn,
@@ -10,8 +14,10 @@ import {
   type HarvestDay,
 } from '@harvest/core';
 import type { HarvestDB } from './db';
+import { readNights } from './health';
 import type { SeedRow } from './seeds';
-import { settingKeys } from './settings';
+import { readSetting, settingKeys } from './settings';
+import { readBudget } from './vault';
 
 export interface FieldSeed {
   row: SeedRow;
@@ -127,5 +133,88 @@ export async function loadField(db: HarvestDB, day: HarvestDay): Promise<FieldVi
     actions: productiveActions(todays, rows, albumActions),
     goal: dailyGoalFromJson(goalSetting?.valueJson),
     streak: { current: global?.current ?? 0, best: global?.best ?? 0, freezes: global?.freezesStored ?? 0 },
+  };
+}
+
+/** What tomorrow asks for: habits due, and the to-dos planned for it. */
+export interface TomorrowPlan {
+  day: HarvestDay;
+  habits: SeedRow[];
+  todos: SeedRow[];
+}
+
+/**
+ * Tomorrow at a glance, as the phone's `tomorrowPlan` works it out:
+ * habits by `isDueOn` (a times-per-week habit whose week is already
+ * done is not due), and to-dos planned for tomorrow and not yet done.
+ * Projects are implicitly daily, so they stay off it.
+ */
+export async function readTomorrow(db: HarvestDB, today: HarvestDay): Promise<TomorrowPlan> {
+  const tomorrow = today.next;
+  const [rows, checkIns] = await Promise.all([db.rows('commitments').toArray(), db.rows('check_ins').toArray()]);
+  const week = new Set(tomorrow.weekDays.map((d) => d.key));
+  const totals = new Map<string, number>();
+  const weekDays = new Map<string, Set<string>>();
+  for (const row of checkIns) {
+    if (row.deletedAt !== null) continue;
+    totals.set(row.commitmentUuid, (totals.get(row.commitmentUuid) ?? 0) + row.quantity);
+    if (week.has(row.harvestDay)) {
+      const days = weekDays.get(row.commitmentUuid) ?? new Set<string>();
+      days.add(row.harvestDay);
+      weekDays.set(row.commitmentUuid, days);
+    }
+  }
+  const habits: SeedRow[] = [];
+  const todos: SeedRow[] = [];
+  const live = rows
+    .filter((row) => row.deletedAt === null && row.archivedAt === null)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  for (const row of live) {
+    if (row.type === 'habit') {
+      let commitment: DueCommitment;
+      try {
+        commitment = commitmentFromRow(row);
+      } catch {
+        continue;
+      }
+      if (isDueOn(commitment, tomorrow, { doneDaysThisWeek: weekDays.get(row.uuid)?.size ?? 0 })) habits.push(row);
+    } else if (row.type === 'todo') {
+      if ((totals.get(row.uuid) ?? 0) === 0 && row.dueDay === tomorrow.key) todos.push(row);
+    }
+  }
+  return { day: tomorrow, habits, todos };
+}
+
+/** The two gauges under the field's header: money left today, and sleep owed. */
+export interface FieldGauges {
+  /** Left (positive) or over (negative) today, in the default currency; null without a budget. */
+  budgetLeft: number | null;
+  /** Minutes of sleep owed; only when Health is switched on and something is owed. */
+  sleepOwed: number | null;
+}
+
+/**
+ * The same headline the Granary shows, and the sleep debt the Body
+ * shows — the field header's two lines on the phone. Nothing owed is
+ * not news, so the sleep line is only there when there is a debt.
+ */
+export async function readFieldGauges(db: HarvestDB, today: HarvestDay): Promise<FieldGauges> {
+  const [budget, health, nights, bed, wake] = await Promise.all([
+    readBudget(db, today),
+    readSetting(db, 'features.health'),
+    readNights(db),
+    readSetting(db, 'cycle.bedTime'),
+    readSetting(db, 'cycle.wakeTime'),
+  ]);
+  const snapshot = budget.monthlyBudget > 0 ? budget.snapshot : null;
+  let sleepOwed: number | null = null;
+  if (health === 'true') {
+    const cycle = decodeCycle(bed && wake ? `${bed}-${wake}` : null) ?? fallbackCycle;
+    const debt = sleepDebt(nights, { targetMinutes: cycleMinutes(cycle), upTo: today });
+    if (debt.minutes > 0) sleepOwed = debt.minutes;
+  }
+  return {
+    budgetLeft: snapshot === null ? null : snapshot.floatingDailyLimit - snapshot.spentToday,
+    sleepOwed,
   };
 }

@@ -485,3 +485,176 @@ final class GeotagDetailFamily extends $Family
   @override
   String toString() => r'geotagDetailProvider';
 }
+
+/// The geotag of one action, for the "where was it" line under it.
+
+@ProviderFor(geotagFor)
+final geotagForProvider = GeotagForFamily._();
+
+/// The geotag of one action, for the "where was it" line under it.
+
+final class GeotagForProvider
+    extends $FunctionalProvider<AsyncValue<Geotag?>, Geotag?, Stream<Geotag?>>
+    with $FutureModifier<Geotag?>, $StreamProvider<Geotag?> {
+  /// The geotag of one action, for the "where was it" line under it.
+  GeotagForProvider._({
+    required GeotagForFamily super.from,
+    required ({String table, String uuid}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'geotagForProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$geotagForHash();
+
+  @override
+  String toString() {
+    return r'geotagForProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<Geotag?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Geotag?> create(Ref ref) {
+    final argument = this.argument as ({String table, String uuid});
+    return geotagFor(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GeotagForProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$geotagForHash() => r'351b6f4622d46ae60eddc47b13e40dbc0c4c14c6';
+
+/// The geotag of one action, for the "where was it" line under it.
+
+final class GeotagForFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          Stream<Geotag?>,
+          ({String table, String uuid})
+        > {
+  GeotagForFamily._()
+    : super(
+        retry: null,
+        name: r'geotagForProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The geotag of one action, for the "where was it" line under it.
+
+  GeotagForProvider call(({String table, String uuid}) target) =>
+      GeotagForProvider._(argument: target, from: this);
+
+  @override
+  String toString() => r'geotagForProvider';
+}
+
+/// Which view of the map is on ([[Places]]): streets or satellite.
+
+@ProviderFor(placesMapBase)
+final placesMapBaseProvider = PlacesMapBaseProvider._();
+
+/// Which view of the map is on ([[Places]]): streets or satellite.
+
+final class PlacesMapBaseProvider
+    extends $FunctionalProvider<AsyncValue<MapBase>, MapBase, Stream<MapBase>>
+    with $FutureModifier<MapBase>, $StreamProvider<MapBase> {
+  /// Which view of the map is on ([[Places]]): streets or satellite.
+  PlacesMapBaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'placesMapBaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$placesMapBaseHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<MapBase> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<MapBase> create(Ref ref) {
+    return placesMapBase(ref);
+  }
+}
+
+String _$placesMapBaseHash() => r'79c1bbf703dfdaa92cf8e3e4e35664bd06647601';
+
+@ProviderFor(PlacesFocusRequest)
+final placesFocusRequestProvider = PlacesFocusRequestProvider._();
+
+final class PlacesFocusRequestProvider
+    extends $NotifierProvider<PlacesFocusRequest, PlacesFocus?> {
+  PlacesFocusRequestProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'placesFocusRequestProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$placesFocusRequestHash();
+
+  @$internal
+  @override
+  PlacesFocusRequest create() => PlacesFocusRequest();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PlacesFocus? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PlacesFocus?>(value),
+    );
+  }
+}
+
+String _$placesFocusRequestHash() =>
+    r'3384c58df518e2239354ee0b5d346e1081f3e16f';
+
+abstract class _$PlacesFocusRequest extends $Notifier<PlacesFocus?> {
+  PlacesFocus? build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<PlacesFocus?, PlacesFocus?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<PlacesFocus?, PlacesFocus?>,
+              PlacesFocus?,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

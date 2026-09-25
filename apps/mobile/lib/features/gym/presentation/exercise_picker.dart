@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gym/data/exercise_catalogue.dart';
 import 'package:harvest/features/gym/data/exercises_repository.dart';
 import 'package:harvest/features/gym/domain/exercise.dart';
@@ -162,6 +163,11 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                           ),
                         ),
                       ),
+                      TextButton.icon(
+                        onPressed: () => unawaited(_addMine(context)),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: Text(l10n.gymMineTitle),
+                      ),
                       const MediaAttribution(),
                     ],
                   ),
@@ -190,6 +196,104 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                 ),
               ],
             ),
+    );
+  }
+
+  /// One the catalogue is missing, named from what I was searching
+  /// for, and chosen the moment it exists.
+  Future<void> _addMine(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final created = await showHarvestSheet<Exercise>(
+      context,
+      builder: (_) => _MineSheet(initialName: _search.text.trim()),
+    );
+    if (created != null && mounted) navigator.pop(created);
+  }
+}
+
+/// Adding my own exercise: a name, and — if I know them — where it
+/// hits and what it needs. Stored exactly as the web stores one, so it
+/// syncs both ways ([[Business-Rules]] #14).
+class _MineSheet extends ConsumerStatefulWidget {
+  const _MineSheet({required this.initialName});
+
+  final String initialName;
+
+  @override
+  ConsumerState<_MineSheet> createState() => _MineSheetState();
+}
+
+class _MineSheetState extends ConsumerState<_MineSheet> {
+  late final _name = TextEditingController(text: widget.initialName);
+  final _bodyPart = TextEditingController();
+  final _equipment = TextEditingController();
+  final _target = TextEditingController();
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _bodyPart.dispose();
+    _equipment.dispose();
+    _target.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    // One exercise per press, however fast the second one comes.
+    if (_busy || _name.text.trim().isEmpty) return;
+    setState(() => _busy = true);
+    final navigator = Navigator.of(context);
+    final exercise = await ref
+        .read(exercisesRepositoryProvider)
+        .create(
+          name: _name.text,
+          bodyPart: _bodyPart.text,
+          equipment: _equipment.text,
+          target: _target.text,
+        );
+    if (mounted) navigator.pop(exercise);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return HarvestSheet(
+      title: l10n.gymMineTitle,
+      subtitle: l10n.gymMineBody,
+      actionLabel: l10n.gymMineAdd,
+      onAction: _busy || _name.text.trim().isEmpty
+          ? null
+          : () => unawaited(_save()),
+      children: [
+        TextField(
+          controller: _name,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(labelText: l10n.gymMineName),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        TextField(
+          controller: _bodyPart,
+          decoration: InputDecoration(labelText: l10n.gymMineBodyPart),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        TextField(
+          controller: _equipment,
+          decoration: InputDecoration(
+            labelText: l10n.gymMineEquipment,
+            hintText: l10n.gymMineEquipmentHint,
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        TextField(
+          controller: _target,
+          textInputAction: TextInputAction.done,
+          decoration: InputDecoration(labelText: l10n.gymMineMuscle),
+          onSubmitted: (_) => unawaited(_save()),
+        ),
+      ],
     );
   }
 }

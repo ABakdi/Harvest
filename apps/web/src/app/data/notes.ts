@@ -170,6 +170,40 @@ export class NotesRepository {
     });
   }
 
+  /**
+   * Puts every note in [folder] or below it into the trash and forgets
+   * the folder, saying which notes went so the undo brings back exactly
+   * those (`trashFolder`).
+   */
+  trashFolder(folder: string): Promise<string[]> {
+    return this.writer.run(async (tx) => {
+      const now = tx.now();
+      const trashed: string[] = [];
+      for (const note of await tx.rows('notes').toArray()) {
+        if (note.deletedAt !== null) continue;
+        if (note.folder !== folder && !note.folder.startsWith(`${folder}/`)) continue;
+        await tx.put('notes', { ...note, deletedAt: now, updatedAt: now });
+        trashed.push(note.uuid);
+      }
+      const declared = await declaredFolders(tx);
+      await writeFolders(
+        tx,
+        declared.filter((path) => path !== folder && !path.startsWith(`${folder}/`)),
+      );
+      return trashed;
+    });
+  }
+
+  /** The undo of [trashFolder]. */
+  restoreFolder(folder: string, uuids: string[]): Promise<void> {
+    return this.writer.run(async (tx) => {
+      const now = tx.now();
+      for (const uuid of uuids) await tx.patch('notes', uuid, { deletedAt: null, updatedAt: now });
+      const declared = await declaredFolders(tx);
+      if (!declared.includes(folder)) await writeFolders(tx, [...declared, folder]);
+    });
+  }
+
   /** Remembers a folder that has no note in it yet. */
   addFolder(path: string): Promise<string> {
     const cleaned = normalizeFolder(path);

@@ -1,19 +1,23 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, WalletIcon } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, RepeatIcon, WalletIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate, formatDay, formatMoney } from '@/lib/format';
 import { EmptyState } from '../components/bits';
 import { categoryLabel } from '../components/category';
+import { LocationNote } from '../components/location-note';
 import { PassphrasePrompt } from '../components/passphrase-prompt';
 import { useHarvest, useHarvestDay } from '../context';
-import type { ExpenseRow } from '../data/money';
+import { type ExpenseRow, readRepeatSuggestion } from '../data/money';
 import { useDialogs } from '../dialogs';
 import { usePrivateKey } from '../hooks';
 import { BudgetPanel } from './budget';
+import { InsightsPanel } from './insights';
 import { VaultPanel } from './vault';
+import { WishlistPanel } from './wishlist';
 
 /** Sums per currency: amounts in different currencies are never added together. */
 function totals(rows: ExpenseRow[]): [string, number][] {
@@ -38,6 +42,59 @@ function shiftMonth(month: string, by: number): string {
   const [year, value] = month.split('-').map(Number) as [number, number];
   const date = new Date(Date.UTC(year, value - 1 + by, 1));
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Day four of the same thing three days running, as a one-tap card
+ * ([[Finances]] Smart repeats). Like the phone's, the tap logs the
+ * expense and nothing else: where the money came from is a question
+ * for the editor.
+ */
+function RepeatCard() {
+  const { t } = useTranslation();
+  const { db, money } = useHarvest();
+  const today = useHarvestDay();
+  const suggestion = useLiveQuery(() => readRepeatSuggestion(db, today), [db, today.key]);
+  // One tap, one expense: a second click while the first is still
+  // writing is not a second coffee.
+  const busy = useRef(false);
+  const [logging, setLogging] = useState(false);
+  if (!suggestion) return null;
+  const amount = formatMoney(suggestion.amountMinor, suggestion.currency);
+
+  async function log() {
+    if (!suggestion || busy.current) return;
+    busy.current = true;
+    setLogging(true);
+    try {
+      await money.log({ ...suggestion, day: today.key, fromWallet: false });
+      toast.success(t('money.repeatLogged', { amount }));
+    } catch {
+      toast.error(t('common.saveFailed'));
+    } finally {
+      busy.current = false;
+      setLogging(false);
+    }
+  }
+
+  return (
+    <section className="flex items-center gap-3 rounded-xl border border-success/40 bg-success/5 p-4" aria-label={t('money.repeatTitle')}>
+      <RepeatIcon className="size-5 shrink-0 text-success" aria-hidden />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate font-extrabold">
+          <span dir="ltr" className="tabular">
+            {amount}
+          </span>
+          {' · '}
+          {categoryLabel(t, suggestion.category)}
+        </span>
+        <span className="text-xs text-muted-foreground">{t('money.repeatTitle')}</span>
+      </div>
+      <Button disabled={logging} onClick={() => void log()}>
+        {t('money.logIt')}
+      </Button>
+    </section>
+  );
 }
 
 /** Today's spending and the month's, day by day ([[Finances]]). */
@@ -66,6 +123,7 @@ function ExpensesPanel() {
 
   return (
     <div className="flex flex-col gap-4">
+      <RepeatCard />
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
           <span className="text-sm font-bold text-muted-foreground">{t('money.today')}</span>
@@ -117,7 +175,7 @@ function ExpensesPanel() {
                 </div>
                 <ul className="flex flex-col divide-y rounded-xl border bg-card">
                   {entries.map((row) => (
-                    <li key={row.uuid}>
+                    <li key={row.uuid} className="flex flex-col">
                       <button
                         type="button"
                         onClick={() => dialogs.editExpense(row)}
@@ -131,6 +189,7 @@ function ExpensesPanel() {
                           {formatMoney(row.amountMinor, row.currency)}
                         </span>
                       </button>
+                      <LocationNote table="expenses" uuid={row.uuid} className="px-4 pb-1.5" />
                     </li>
                   ))}
                 </ul>
@@ -144,11 +203,14 @@ function ExpensesPanel() {
 }
 
 /**
- * The Granary, in three views of the same money: what I spent, what I
- * have, and what the month allows ([[Finances]]).
+ * The Granary, in four views of the same home: what I spent, what I
+ * have, what the month allows — and the Wishlist, what I plan to buy
+ * ([[Finances]], [[Wishlist]]).
  *
- * The private tier is asked for once, here, because all three read
- * rows that are sealed on the wire ([[Sync-Strategy]]).
+ * The private tier is asked for once, here, because the three money
+ * tabs read rows that are sealed on the wire ([[Sync-Strategy]]). The
+ * wishlist is a plain table, so it renders even while the passphrase
+ * is missing.
  */
 export function GranaryScreen() {
   const { t } = useTranslation();
@@ -157,41 +219,51 @@ export function GranaryScreen() {
   const [tab, setTab] = useState('expenses');
 
   if (unlocked === undefined) return null;
-  if (!unlocked) {
-    return (
-      <div className="mx-auto flex w-full max-w-lg flex-col gap-4">
-        <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
-        <div className="rounded-2xl border bg-card p-5">
-          <PassphrasePrompt />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
-        <Button onClick={dialogs.logExpense} title={`${t('money.log')} (e)`}>
-          <PlusIcon />
-          {t('money.log')}
-        </Button>
+        {unlocked && (
+          <Button onClick={dialogs.logExpense} title={`${t('money.log')} (e)`}>
+            <PlusIcon />
+            {t('money.log')}
+          </Button>
+        )}
       </div>
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="max-w-full justify-start overflow-x-auto">
           <TabsTrigger value="expenses">{t('money.expenses')}</TabsTrigger>
           <TabsTrigger value="vault">{t('vault.title')}</TabsTrigger>
+          <TabsTrigger value="insights">{t('insights.title')}</TabsTrigger>
           <TabsTrigger value="budget">{t('budget.title')}</TabsTrigger>
+          <TabsTrigger value="wishlist">{t('wishlist.title')}</TabsTrigger>
         </TabsList>
-        <TabsContent value="expenses">
-          <ExpensesPanel />
+        <TabsContent value="wishlist">
+          <WishlistPanel />
         </TabsContent>
-        <TabsContent value="vault">
-          <VaultPanel />
-        </TabsContent>
-        <TabsContent value="budget">
-          <BudgetPanel />
-        </TabsContent>
+        {unlocked ? (
+          <>
+            <TabsContent value="expenses">
+              <ExpensesPanel />
+            </TabsContent>
+            <TabsContent value="vault">
+              <VaultPanel />
+            </TabsContent>
+            <TabsContent value="insights">
+              <InsightsPanel />
+            </TabsContent>
+            <TabsContent value="budget">
+              <BudgetPanel />
+            </TabsContent>
+          </>
+        ) : (
+          tab !== 'wishlist' && (
+            <div className="rounded-2xl border bg-card p-5">
+              <PassphrasePrompt />
+            </div>
+          )
+        )}
       </Tabs>
     </div>
   );

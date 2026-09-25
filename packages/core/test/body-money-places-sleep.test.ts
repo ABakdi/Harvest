@@ -167,7 +167,7 @@ describe('places', () => {
     stays: {
       why: string;
       points: { latitude: number; longitude: number; at: string }[];
-      places: { uuid: string; name: string; latitude: number; longitude: number; radiusM?: number }[];
+      places: { uuid: string; name: string; latitude: number; longitude: number; radiusM?: number; notes?: string | null }[];
 
       result: (Omit<Stay, 'place'> & { minutes: number; place: string | null })[];
     }[];
@@ -185,7 +185,11 @@ describe('places', () => {
     // A fixture may leave the radius out; the default is the rule's own.
     const stays = staysIn(
       points,
-      places.map((place) => ({ ...place, radiusM: place.radiusM ?? stayRadiusM })),
+      places.map((place) => ({
+        ...place,
+        radiusM: place.radiusM ?? stayRadiusM,
+        notes: place.notes ?? null,
+      })),
     );
     expect(stays).toHaveLength(result.length);
     stays.forEach((stay, i) => {

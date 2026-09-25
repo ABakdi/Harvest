@@ -12504,6 +12504,17 @@ class $ExpenseCategoriesTable extends ExpenseCategories
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
   );
@@ -12532,6 +12543,7 @@ class $ExpenseCategoriesTable extends ExpenseCategories
     uuid,
     name,
     icon,
+    createdAt,
     deletedAt,
     updatedAt,
   ];
@@ -12571,6 +12583,12 @@ class $ExpenseCategoriesTable extends ExpenseCategories
     } else if (isInserting) {
       context.missing(_iconMeta);
     }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
     if (data.containsKey('deleted_at')) {
       context.handle(
         _deletedAtMeta,
@@ -12604,6 +12622,10 @@ class $ExpenseCategoriesTable extends ExpenseCategories
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      ),
       deletedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
@@ -12630,12 +12652,19 @@ class ExpenseCategoryRow extends DataClass
 
   /// Icon key resolved through the app's icon map.
   final String icon;
+
+  /// When the category was made; the list is ordered by it, so a
+  /// restore (which bumps [updatedAt] for sync) keeps its place. Null
+  /// only on a row synced from a device that predates the column, which
+  /// sorts by [updatedAt] instead.
+  final DateTime? createdAt;
   final DateTime? deletedAt;
   final DateTime updatedAt;
   const ExpenseCategoryRow({
     required this.uuid,
     required this.name,
     required this.icon,
+    this.createdAt,
     this.deletedAt,
     required this.updatedAt,
   });
@@ -12645,6 +12674,9 @@ class ExpenseCategoryRow extends DataClass
     map['uuid'] = Variable<String>(uuid);
     map['name'] = Variable<String>(name);
     map['icon'] = Variable<String>(icon);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
@@ -12657,6 +12689,9 @@ class ExpenseCategoryRow extends DataClass
       uuid: Value(uuid),
       name: Value(name),
       icon: Value(icon),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
@@ -12673,6 +12708,7 @@ class ExpenseCategoryRow extends DataClass
       uuid: serializer.fromJson<String>(json['uuid']),
       name: serializer.fromJson<String>(json['name']),
       icon: serializer.fromJson<String>(json['icon']),
+      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -12684,6 +12720,7 @@ class ExpenseCategoryRow extends DataClass
       'uuid': serializer.toJson<String>(uuid),
       'name': serializer.toJson<String>(name),
       'icon': serializer.toJson<String>(icon),
+      'createdAt': serializer.toJson<DateTime?>(createdAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -12693,12 +12730,14 @@ class ExpenseCategoryRow extends DataClass
     String? uuid,
     String? name,
     String? icon,
+    Value<DateTime?> createdAt = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? updatedAt,
   }) => ExpenseCategoryRow(
     uuid: uuid ?? this.uuid,
     name: name ?? this.name,
     icon: icon ?? this.icon,
+    createdAt: createdAt.present ? createdAt.value : this.createdAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -12707,6 +12746,7 @@ class ExpenseCategoryRow extends DataClass
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
       name: data.name.present ? data.name.value : this.name,
       icon: data.icon.present ? data.icon.value : this.icon,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -12718,6 +12758,7 @@ class ExpenseCategoryRow extends DataClass
           ..write('uuid: $uuid, ')
           ..write('name: $name, ')
           ..write('icon: $icon, ')
+          ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -12725,7 +12766,8 @@ class ExpenseCategoryRow extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(uuid, name, icon, deletedAt, updatedAt);
+  int get hashCode =>
+      Object.hash(uuid, name, icon, createdAt, deletedAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -12733,6 +12775,7 @@ class ExpenseCategoryRow extends DataClass
           other.uuid == this.uuid &&
           other.name == this.name &&
           other.icon == this.icon &&
+          other.createdAt == this.createdAt &&
           other.deletedAt == this.deletedAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -12741,6 +12784,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
   final Value<String> uuid;
   final Value<String> name;
   final Value<String> icon;
+  final Value<DateTime?> createdAt;
   final Value<DateTime?> deletedAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -12748,6 +12792,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
     this.uuid = const Value.absent(),
     this.name = const Value.absent(),
     this.icon = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -12756,6 +12801,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
     required String uuid,
     required String name,
     required String icon,
+    this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -12766,6 +12812,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
     Expression<String>? uuid,
     Expression<String>? name,
     Expression<String>? icon,
+    Expression<DateTime>? createdAt,
     Expression<DateTime>? deletedAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -12774,6 +12821,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
       if (uuid != null) 'uuid': uuid,
       if (name != null) 'name': name,
       if (icon != null) 'icon': icon,
+      if (createdAt != null) 'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -12784,6 +12832,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
     Value<String>? uuid,
     Value<String>? name,
     Value<String>? icon,
+    Value<DateTime?>? createdAt,
     Value<DateTime?>? deletedAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -12792,6 +12841,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
       uuid: uuid ?? this.uuid,
       name: name ?? this.name,
       icon: icon ?? this.icon,
+      createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -12809,6 +12859,9 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
     }
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
@@ -12828,6 +12881,7 @@ class ExpenseCategoriesCompanion extends UpdateCompanion<ExpenseCategoryRow> {
           ..write('uuid: $uuid, ')
           ..write('name: $name, ')
           ..write('icon: $icon, ')
+          ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -16568,6 +16622,713 @@ class GoalItemsCompanion extends UpdateCompanion<GoalItemRow> {
   }
 }
 
+class $WishlistItemsTable extends WishlistItems
+    with TableInfo<$WishlistItemsTable, WishlistItemRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WishlistItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _listMeta = const VerificationMeta('list');
+  @override
+  late final GeneratedColumn<String> list = GeneratedColumn<String>(
+    'list',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('buy'),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _priceMinorMeta = const VerificationMeta(
+    'priceMinor',
+  );
+  @override
+  late final GeneratedColumn<int> priceMinor = GeneratedColumn<int>(
+    'price_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('DZD'),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _targetDayMeta = const VerificationMeta(
+    'targetDay',
+  );
+  @override
+  late final GeneratedColumn<String> targetDay = GeneratedColumn<String>(
+    'target_day',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _boughtAtMeta = const VerificationMeta(
+    'boughtAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> boughtAt = GeneratedColumn<DateTime>(
+    'bought_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    list,
+    title,
+    priceMinor,
+    currency,
+    note,
+    targetDay,
+    boughtAt,
+    position,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'wishlist_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WishlistItemRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('list')) {
+      context.handle(
+        _listMeta,
+        list.isAcceptableOrUnknown(data['list']!, _listMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('price_minor')) {
+      context.handle(
+        _priceMinorMeta,
+        priceMinor.isAcceptableOrUnknown(data['price_minor']!, _priceMinorMeta),
+      );
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('target_day')) {
+      context.handle(
+        _targetDayMeta,
+        targetDay.isAcceptableOrUnknown(data['target_day']!, _targetDayMeta),
+      );
+    }
+    if (data.containsKey('bought_at')) {
+      context.handle(
+        _boughtAtMeta,
+        boughtAt.isAcceptableOrUnknown(data['bought_at']!, _boughtAtMeta),
+      );
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  WishlistItemRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WishlistItemRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      list: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}list'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      priceMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}price_minor'],
+      ),
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      targetDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_day'],
+      ),
+      boughtAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}bought_at'],
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $WishlistItemsTable createAlias(String alias) {
+    return $WishlistItemsTable(attachedDatabase, alias);
+  }
+}
+
+class WishlistItemRow extends DataClass implements Insertable<WishlistItemRow> {
+  final String uuid;
+
+  /// `buy` | `wish`.
+  final String list;
+  final String title;
+
+  /// Estimated price in minor units; null while the thing has no number.
+  final int? priceMinor;
+  final String currency;
+  final String? note;
+
+  /// Planned purchase Harvest Day (yyyy-MM-dd) — a plan, not a
+  /// commitment: nothing reads it to judge or remind.
+  final String? targetDay;
+
+  /// When I marked it bought; bought items fold under the open ones.
+  final DateTime? boughtAt;
+
+  /// Order within one list.
+  final int position;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const WishlistItemRow({
+    required this.uuid,
+    required this.list,
+    required this.title,
+    this.priceMinor,
+    required this.currency,
+    this.note,
+    this.targetDay,
+    this.boughtAt,
+    required this.position,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['list'] = Variable<String>(list);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || priceMinor != null) {
+      map['price_minor'] = Variable<int>(priceMinor);
+    }
+    map['currency'] = Variable<String>(currency);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || targetDay != null) {
+      map['target_day'] = Variable<String>(targetDay);
+    }
+    if (!nullToAbsent || boughtAt != null) {
+      map['bought_at'] = Variable<DateTime>(boughtAt);
+    }
+    map['position'] = Variable<int>(position);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  WishlistItemsCompanion toCompanion(bool nullToAbsent) {
+    return WishlistItemsCompanion(
+      uuid: Value(uuid),
+      list: Value(list),
+      title: Value(title),
+      priceMinor: priceMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceMinor),
+      currency: Value(currency),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      targetDay: targetDay == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetDay),
+      boughtAt: boughtAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(boughtAt),
+      position: Value(position),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory WishlistItemRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WishlistItemRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      list: serializer.fromJson<String>(json['list']),
+      title: serializer.fromJson<String>(json['title']),
+      priceMinor: serializer.fromJson<int?>(json['priceMinor']),
+      currency: serializer.fromJson<String>(json['currency']),
+      note: serializer.fromJson<String?>(json['note']),
+      targetDay: serializer.fromJson<String?>(json['targetDay']),
+      boughtAt: serializer.fromJson<DateTime?>(json['boughtAt']),
+      position: serializer.fromJson<int>(json['position']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'list': serializer.toJson<String>(list),
+      'title': serializer.toJson<String>(title),
+      'priceMinor': serializer.toJson<int?>(priceMinor),
+      'currency': serializer.toJson<String>(currency),
+      'note': serializer.toJson<String?>(note),
+      'targetDay': serializer.toJson<String?>(targetDay),
+      'boughtAt': serializer.toJson<DateTime?>(boughtAt),
+      'position': serializer.toJson<int>(position),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  WishlistItemRow copyWith({
+    String? uuid,
+    String? list,
+    String? title,
+    Value<int?> priceMinor = const Value.absent(),
+    String? currency,
+    Value<String?> note = const Value.absent(),
+    Value<String?> targetDay = const Value.absent(),
+    Value<DateTime?> boughtAt = const Value.absent(),
+    int? position,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => WishlistItemRow(
+    uuid: uuid ?? this.uuid,
+    list: list ?? this.list,
+    title: title ?? this.title,
+    priceMinor: priceMinor.present ? priceMinor.value : this.priceMinor,
+    currency: currency ?? this.currency,
+    note: note.present ? note.value : this.note,
+    targetDay: targetDay.present ? targetDay.value : this.targetDay,
+    boughtAt: boughtAt.present ? boughtAt.value : this.boughtAt,
+    position: position ?? this.position,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  WishlistItemRow copyWithCompanion(WishlistItemsCompanion data) {
+    return WishlistItemRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      list: data.list.present ? data.list.value : this.list,
+      title: data.title.present ? data.title.value : this.title,
+      priceMinor: data.priceMinor.present
+          ? data.priceMinor.value
+          : this.priceMinor,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      note: data.note.present ? data.note.value : this.note,
+      targetDay: data.targetDay.present ? data.targetDay.value : this.targetDay,
+      boughtAt: data.boughtAt.present ? data.boughtAt.value : this.boughtAt,
+      position: data.position.present ? data.position.value : this.position,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WishlistItemRow(')
+          ..write('uuid: $uuid, ')
+          ..write('list: $list, ')
+          ..write('title: $title, ')
+          ..write('priceMinor: $priceMinor, ')
+          ..write('currency: $currency, ')
+          ..write('note: $note, ')
+          ..write('targetDay: $targetDay, ')
+          ..write('boughtAt: $boughtAt, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    list,
+    title,
+    priceMinor,
+    currency,
+    note,
+    targetDay,
+    boughtAt,
+    position,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WishlistItemRow &&
+          other.uuid == this.uuid &&
+          other.list == this.list &&
+          other.title == this.title &&
+          other.priceMinor == this.priceMinor &&
+          other.currency == this.currency &&
+          other.note == this.note &&
+          other.targetDay == this.targetDay &&
+          other.boughtAt == this.boughtAt &&
+          other.position == this.position &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class WishlistItemsCompanion extends UpdateCompanion<WishlistItemRow> {
+  final Value<String> uuid;
+  final Value<String> list;
+  final Value<String> title;
+  final Value<int?> priceMinor;
+  final Value<String> currency;
+  final Value<String?> note;
+  final Value<String?> targetDay;
+  final Value<DateTime?> boughtAt;
+  final Value<int> position;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const WishlistItemsCompanion({
+    this.uuid = const Value.absent(),
+    this.list = const Value.absent(),
+    this.title = const Value.absent(),
+    this.priceMinor = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.note = const Value.absent(),
+    this.targetDay = const Value.absent(),
+    this.boughtAt = const Value.absent(),
+    this.position = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WishlistItemsCompanion.insert({
+    required String uuid,
+    this.list = const Value.absent(),
+    required String title,
+    this.priceMinor = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.note = const Value.absent(),
+    this.targetDay = const Value.absent(),
+    this.boughtAt = const Value.absent(),
+    this.position = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       title = Value(title);
+  static Insertable<WishlistItemRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? list,
+    Expression<String>? title,
+    Expression<int>? priceMinor,
+    Expression<String>? currency,
+    Expression<String>? note,
+    Expression<String>? targetDay,
+    Expression<DateTime>? boughtAt,
+    Expression<int>? position,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (list != null) 'list': list,
+      if (title != null) 'title': title,
+      if (priceMinor != null) 'price_minor': priceMinor,
+      if (currency != null) 'currency': currency,
+      if (note != null) 'note': note,
+      if (targetDay != null) 'target_day': targetDay,
+      if (boughtAt != null) 'bought_at': boughtAt,
+      if (position != null) 'position': position,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WishlistItemsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? list,
+    Value<String>? title,
+    Value<int?>? priceMinor,
+    Value<String>? currency,
+    Value<String?>? note,
+    Value<String?>? targetDay,
+    Value<DateTime?>? boughtAt,
+    Value<int>? position,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return WishlistItemsCompanion(
+      uuid: uuid ?? this.uuid,
+      list: list ?? this.list,
+      title: title ?? this.title,
+      priceMinor: priceMinor ?? this.priceMinor,
+      currency: currency ?? this.currency,
+      note: note ?? this.note,
+      targetDay: targetDay ?? this.targetDay,
+      boughtAt: boughtAt ?? this.boughtAt,
+      position: position ?? this.position,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (list.present) {
+      map['list'] = Variable<String>(list.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (priceMinor.present) {
+      map['price_minor'] = Variable<int>(priceMinor.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (targetDay.present) {
+      map['target_day'] = Variable<String>(targetDay.value);
+    }
+    if (boughtAt.present) {
+      map['bought_at'] = Variable<DateTime>(boughtAt.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WishlistItemsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('list: $list, ')
+          ..write('title: $title, ')
+          ..write('priceMinor: $priceMinor, ')
+          ..write('currency: $currency, ')
+          ..write('note: $note, ')
+          ..write('targetDay: $targetDay, ')
+          ..write('boughtAt: $boughtAt, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $LocationPointsTable extends LocationPoints
     with TableInfo<$LocationPointsTable, LocationPointRow> {
   @override
@@ -17908,6 +18669,15 @@ class $SavedPlacesTable extends SavedPlaces
     requiredDuringInsert: false,
     defaultValue: const Constant(100),
   );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -17950,6 +18720,7 @@ class $SavedPlacesTable extends SavedPlaces
     latitude,
     longitude,
     radiusM,
+    notes,
     createdAt,
     updatedAt,
     deletedAt,
@@ -18004,6 +18775,12 @@ class $SavedPlacesTable extends SavedPlaces
         radiusM.isAcceptableOrUnknown(data['radius_m']!, _radiusMMeta),
       );
     }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -18051,6 +18828,10 @@ class $SavedPlacesTable extends SavedPlaces
         DriftSqlType.double,
         data['${effectivePrefix}radius_m'],
       )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -18078,6 +18859,9 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
   final double latitude;
   final double longitude;
   final double radiusM;
+
+  /// Whatever I want to remember about this place.
+  final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -18087,6 +18871,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
     required this.latitude,
     required this.longitude,
     required this.radiusM,
+    this.notes,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -18099,6 +18884,9 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
     map['latitude'] = Variable<double>(latitude);
     map['longitude'] = Variable<double>(longitude);
     map['radius_m'] = Variable<double>(radiusM);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
@@ -18114,6 +18902,9 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
       latitude: Value(latitude),
       longitude: Value(longitude),
       radiusM: Value(radiusM),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -18133,6 +18924,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
       latitude: serializer.fromJson<double>(json['latitude']),
       longitude: serializer.fromJson<double>(json['longitude']),
       radiusM: serializer.fromJson<double>(json['radiusM']),
+      notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -18147,6 +18939,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
       'latitude': serializer.toJson<double>(latitude),
       'longitude': serializer.toJson<double>(longitude),
       'radiusM': serializer.toJson<double>(radiusM),
+      'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -18159,6 +18952,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
     double? latitude,
     double? longitude,
     double? radiusM,
+    Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -18168,6 +18962,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
     latitude: latitude ?? this.latitude,
     longitude: longitude ?? this.longitude,
     radiusM: radiusM ?? this.radiusM,
+    notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -18179,6 +18974,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
       radiusM: data.radiusM.present ? data.radiusM.value : this.radiusM,
+      notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -18193,6 +18989,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('radiusM: $radiusM, ')
+          ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -18207,6 +19004,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
     latitude,
     longitude,
     radiusM,
+    notes,
     createdAt,
     updatedAt,
     deletedAt,
@@ -18220,6 +19018,7 @@ class SavedPlaceRow extends DataClass implements Insertable<SavedPlaceRow> {
           other.latitude == this.latitude &&
           other.longitude == this.longitude &&
           other.radiusM == this.radiusM &&
+          other.notes == this.notes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -18231,6 +19030,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
   final Value<double> latitude;
   final Value<double> longitude;
   final Value<double> radiusM;
+  final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -18241,6 +19041,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     this.radiusM = const Value.absent(),
+    this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -18252,6 +19053,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
     required double latitude,
     required double longitude,
     this.radiusM = const Value.absent(),
+    this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -18266,6 +19068,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
     Expression<double>? latitude,
     Expression<double>? longitude,
     Expression<double>? radiusM,
+    Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -18277,6 +19080,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (radiusM != null) 'radius_m': radiusM,
+      if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -18290,6 +19094,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
     Value<double>? latitude,
     Value<double>? longitude,
     Value<double>? radiusM,
+    Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -18301,6 +19106,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       radiusM: radiusM ?? this.radiusM,
+      notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -18326,6 +19132,9 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
     if (radiusM.present) {
       map['radius_m'] = Variable<double>(radiusM.value);
     }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -18349,6 +19158,7 @@ class SavedPlacesCompanion extends UpdateCompanion<SavedPlaceRow> {
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('radiusM: $radiusM, ')
+          ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -19074,6 +19884,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   late final $KvSettingsTable kvSettings = $KvSettingsTable(this);
   late final $GoalsTable goals = $GoalsTable(this);
   late final $GoalItemsTable goalItems = $GoalItemsTable(this);
+  late final $WishlistItemsTable wishlistItems = $WishlistItemsTable(this);
   late final $LocationPointsTable locationPoints = $LocationPointsTable(this);
   late final $GeotagsTable geotags = $GeotagsTable(this);
   late final $SavedPlacesTable savedPlaces = $SavedPlacesTable(this);
@@ -19129,6 +19940,7 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     kvSettings,
     goals,
     goalItems,
+    wishlistItems,
     locationPoints,
     geotags,
     savedPlaces,
@@ -27604,6 +28416,7 @@ typedef $$ExpenseCategoriesTableCreateCompanionBuilder =
       required String uuid,
       required String name,
       required String icon,
+      Value<DateTime?> createdAt,
       Value<DateTime?> deletedAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -27613,6 +28426,7 @@ typedef $$ExpenseCategoriesTableUpdateCompanionBuilder =
       Value<String> uuid,
       Value<String> name,
       Value<String> icon,
+      Value<DateTime?> createdAt,
       Value<DateTime?> deletedAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -27639,6 +28453,11 @@ class $$ExpenseCategoriesTableFilterComposer
 
   ColumnFilters<String> get icon => $composableBuilder(
     column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27677,6 +28496,11 @@ class $$ExpenseCategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
@@ -27705,6 +28529,9 @@ class $$ExpenseCategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -27756,6 +28583,7 @@ class $$ExpenseCategoriesTableTableManager
                 Value<String> uuid = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> icon = const Value.absent(),
+                Value<DateTime?> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -27763,6 +28591,7 @@ class $$ExpenseCategoriesTableTableManager
                 uuid: uuid,
                 name: name,
                 icon: icon,
+                createdAt: createdAt,
                 deletedAt: deletedAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -27772,6 +28601,7 @@ class $$ExpenseCategoriesTableTableManager
                 required String uuid,
                 required String name,
                 required String icon,
+                Value<DateTime?> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -27779,6 +28609,7 @@ class $$ExpenseCategoriesTableTableManager
                 uuid: uuid,
                 name: name,
                 icon: icon,
+                createdAt: createdAt,
                 deletedAt: deletedAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -30091,6 +30922,347 @@ typedef $$GoalItemsTableProcessedTableManager =
       GoalItemRow,
       PrefetchHooks Function({bool goalUuid})
     >;
+typedef $$WishlistItemsTableCreateCompanionBuilder =
+    WishlistItemsCompanion Function({
+      required String uuid,
+      Value<String> list,
+      required String title,
+      Value<int?> priceMinor,
+      Value<String> currency,
+      Value<String?> note,
+      Value<String?> targetDay,
+      Value<DateTime?> boughtAt,
+      Value<int> position,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$WishlistItemsTableUpdateCompanionBuilder =
+    WishlistItemsCompanion Function({
+      Value<String> uuid,
+      Value<String> list,
+      Value<String> title,
+      Value<int?> priceMinor,
+      Value<String> currency,
+      Value<String?> note,
+      Value<String?> targetDay,
+      Value<DateTime?> boughtAt,
+      Value<int> position,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$WishlistItemsTableFilterComposer
+    extends Composer<_$HarvestDatabase, $WishlistItemsTable> {
+  $$WishlistItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get list => $composableBuilder(
+    column: $table.list,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get priceMinor => $composableBuilder(
+    column: $table.priceMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetDay => $composableBuilder(
+    column: $table.targetDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get boughtAt => $composableBuilder(
+    column: $table.boughtAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WishlistItemsTableOrderingComposer
+    extends Composer<_$HarvestDatabase, $WishlistItemsTable> {
+  $$WishlistItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get list => $composableBuilder(
+    column: $table.list,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get priceMinor => $composableBuilder(
+    column: $table.priceMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetDay => $composableBuilder(
+    column: $table.targetDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get boughtAt => $composableBuilder(
+    column: $table.boughtAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WishlistItemsTableAnnotationComposer
+    extends Composer<_$HarvestDatabase, $WishlistItemsTable> {
+  $$WishlistItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get list =>
+      $composableBuilder(column: $table.list, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<int> get priceMinor => $composableBuilder(
+    column: $table.priceMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get targetDay =>
+      $composableBuilder(column: $table.targetDay, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get boughtAt =>
+      $composableBuilder(column: $table.boughtAt, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$WishlistItemsTableTableManager
+    extends
+        RootTableManager<
+          _$HarvestDatabase,
+          $WishlistItemsTable,
+          WishlistItemRow,
+          $$WishlistItemsTableFilterComposer,
+          $$WishlistItemsTableOrderingComposer,
+          $$WishlistItemsTableAnnotationComposer,
+          $$WishlistItemsTableCreateCompanionBuilder,
+          $$WishlistItemsTableUpdateCompanionBuilder,
+          (
+            WishlistItemRow,
+            BaseReferences<
+              _$HarvestDatabase,
+              $WishlistItemsTable,
+              WishlistItemRow
+            >,
+          ),
+          WishlistItemRow,
+          PrefetchHooks Function()
+        > {
+  $$WishlistItemsTableTableManager(
+    _$HarvestDatabase db,
+    $WishlistItemsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WishlistItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WishlistItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WishlistItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> list = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<int?> priceMinor = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> targetDay = const Value.absent(),
+                Value<DateTime?> boughtAt = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WishlistItemsCompanion(
+                uuid: uuid,
+                list: list,
+                title: title,
+                priceMinor: priceMinor,
+                currency: currency,
+                note: note,
+                targetDay: targetDay,
+                boughtAt: boughtAt,
+                position: position,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                Value<String> list = const Value.absent(),
+                required String title,
+                Value<int?> priceMinor = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> targetDay = const Value.absent(),
+                Value<DateTime?> boughtAt = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WishlistItemsCompanion.insert(
+                uuid: uuid,
+                list: list,
+                title: title,
+                priceMinor: priceMinor,
+                currency: currency,
+                note: note,
+                targetDay: targetDay,
+                boughtAt: boughtAt,
+                position: position,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WishlistItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$HarvestDatabase,
+      $WishlistItemsTable,
+      WishlistItemRow,
+      $$WishlistItemsTableFilterComposer,
+      $$WishlistItemsTableOrderingComposer,
+      $$WishlistItemsTableAnnotationComposer,
+      $$WishlistItemsTableCreateCompanionBuilder,
+      $$WishlistItemsTableUpdateCompanionBuilder,
+      (
+        WishlistItemRow,
+        BaseReferences<_$HarvestDatabase, $WishlistItemsTable, WishlistItemRow>,
+      ),
+      WishlistItemRow,
+      PrefetchHooks Function()
+    >;
 typedef $$LocationPointsTableCreateCompanionBuilder =
     LocationPointsCompanion Function({
       required String uuid,
@@ -30722,6 +31894,7 @@ typedef $$SavedPlacesTableCreateCompanionBuilder =
       required double latitude,
       required double longitude,
       Value<double> radiusM,
+      Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -30734,6 +31907,7 @@ typedef $$SavedPlacesTableUpdateCompanionBuilder =
       Value<double> latitude,
       Value<double> longitude,
       Value<double> radiusM,
+      Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -30771,6 +31945,11 @@ class $$SavedPlacesTableFilterComposer
 
   ColumnFilters<double> get radiusM => $composableBuilder(
     column: $table.radiusM,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -30824,6 +32003,11 @@ class $$SavedPlacesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -30863,6 +32047,9 @@ class $$SavedPlacesTableAnnotationComposer
 
   GeneratedColumn<double> get radiusM =>
       $composableBuilder(column: $table.radiusM, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -30910,6 +32097,7 @@ class $$SavedPlacesTableTableManager
                 Value<double> latitude = const Value.absent(),
                 Value<double> longitude = const Value.absent(),
                 Value<double> radiusM = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -30920,6 +32108,7 @@ class $$SavedPlacesTableTableManager
                 latitude: latitude,
                 longitude: longitude,
                 radiusM: radiusM,
+                notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -30932,6 +32121,7 @@ class $$SavedPlacesTableTableManager
                 required double latitude,
                 required double longitude,
                 Value<double> radiusM = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -30942,6 +32132,7 @@ class $$SavedPlacesTableTableManager
                 latitude: latitude,
                 longitude: longitude,
                 radiusM: radiusM,
+                notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -31484,6 +32675,8 @@ class $HarvestDatabaseManager {
       $$GoalsTableTableManager(_db, _db.goals);
   $$GoalItemsTableTableManager get goalItems =>
       $$GoalItemsTableTableManager(_db, _db.goalItems);
+  $$WishlistItemsTableTableManager get wishlistItems =>
+      $$WishlistItemsTableTableManager(_db, _db.wishlistItems);
   $$LocationPointsTableTableManager get locationPoints =>
       $$LocationPointsTableTableManager(_db, _db.locationPoints);
   $$GeotagsTableTableManager get geotags =>

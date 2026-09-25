@@ -77,6 +77,7 @@ class SavedPlace {
     required this.latitude,
     required this.longitude,
     this.radiusM = 100,
+    this.notes,
   });
 
   final String uuid;
@@ -84,6 +85,9 @@ class SavedPlace {
   final double latitude;
   final double longitude;
   final double radiusM;
+
+  /// Whatever I want to remember about this place.
+  final String? notes;
 
   bool contains(double lat, double lon) =>
       haversineMetres(latitude, longitude, lat, lon) <= radiusM;
@@ -115,6 +119,11 @@ class Stay {
 /// How long and how close a run of points must be to count as a stay.
 const stayMinimum = Duration(minutes: 10);
 const stayRadiusM = 100.0;
+
+/// How far a saved place may reach, in metres: a room, a street, a
+/// village. The web's form holds to the same numbers.
+const minPlaceRadiusM = 10;
+const maxPlaceRadiusM = 5000;
 
 /// The stays in a day's trail, oldest first.
 ///

@@ -2,6 +2,7 @@
   "uuid": "3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58",
   "name": "Books",
   "icon": "book",
+  "createdAt": "2026-08-28T18:30:00.000Z",
   "deletedAt": null,
   "updatedAt": "2026-09-02T10:00:00.000Z"
 }

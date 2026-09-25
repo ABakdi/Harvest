@@ -3,6 +3,9 @@ import type {
   AssistStatus,
   AuthResult,
   ErrorBody,
+  FileQuery,
+  FileQueryResult,
+  FileUploaded,
   ForgotPasswordBody,
   Issue,
   LoginBody,
@@ -16,7 +19,7 @@ import type {
   ResetPasswordBody,
   SessionsResult,
 } from '@harvest/contracts';
-import { fileIvHeader } from '@harvest/contracts';
+import { fileIvHeader, filePlainBytesHeader } from '@harvest/contracts';
 
 /**
  * The web's only door to the server. Everything else it knows, it knows
@@ -333,6 +336,37 @@ export const api = {
     }
     if (!response.ok) throw await toError(response);
     return { sealed: await response.arrayBuffer(), iv: response.headers.get(fileIvHeader) ?? '' };
+  },
+
+  /** Which of [hashes] the account does not hold yet; asked before anything is sent. */
+  filesMissing: (hashes: string[]) =>
+    request<FileQueryResult>('/v1/files/missing', { method: 'POST', body: { hashes } satisfies FileQuery }),
+
+  /**
+   * One file's sealed bytes, under the name of its plaintext. The nonce
+   * and the plaintext's length ride in headers, as the phone sends them;
+   * a full account answers 507 `quota_exceeded`.
+   */
+  async putFile(sha256: string, sealed: ArrayBuffer, iv: string, plainBytes: number): Promise<FileUploaded> {
+    const init = (token: string | null): RequestInit => ({
+      method: 'PUT',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/octet-stream',
+        [fileIvHeader]: iv,
+        [filePlainBytesHeader]: String(plainBytes),
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
+      body: sealed,
+    });
+    let response = await send(`/v1/files/${sha256}`, init(await accessToken()));
+    if (response.status === 401) {
+      const result = await refreshSession();
+      if (!result) throw new ApiError(401, 'unauthorized', 'Signed out');
+      response = await send(`/v1/files/${sha256}`, init(result.accessToken));
+    }
+    if (!response.ok) throw await toError(response);
+    return parse<FileUploaded>(response);
   },
 
   assistStatus: () => request<AssistStatus>('/v1/assist/status'),

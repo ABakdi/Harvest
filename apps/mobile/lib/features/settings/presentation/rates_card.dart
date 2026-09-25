@@ -16,6 +16,13 @@ part 'rates_card.g.dart';
 Stream<Map<String, String>> rateSettings(Ref ref) =>
     ref.watch(settingsRepositoryProvider).watchAll(RateKeys.all);
 
+/// When the EUR→USD rate was fetched, on this phone's clock. The phone
+/// stores a local time with no offset and the web may store UTC with a
+/// `Z`; read either way, the moment is shown in local time.
+@visibleForTesting
+DateTime? rateFetchedAt(String? raw) =>
+    raw == null ? null : DateTime.tryParse(raw)?.toLocal();
+
 /// Exchange-rate settings (checkpoint P5): manual DZD legs, fetched
 /// EUR→USD from the ECB. Saves on submit or when a field loses focus
 /// with a changed value, and says so.
@@ -117,16 +124,12 @@ class _RatesCardState extends ConsumerState<RatesCard> {
     final values = ref.watch(rateSettingsProvider).value ?? const {};
 
     final fetched = values[RateKeys.usdPerEur];
-    final fetchedAtRaw = values[RateKeys.usdPerEurAt];
-    String? fetchedAt;
-    if (fetchedAtRaw != null) {
-      final at = DateTime.tryParse(fetchedAtRaw);
-      if (at != null) {
-        fetchedAt = DateFormat.MMMd(
-          Localizations.localeOf(context).toString(),
-        ).add_Hm().format(at);
-      }
-    }
+    final at = rateFetchedAt(values[RateKeys.usdPerEurAt]);
+    final fetchedAt = at == null
+        ? null
+        : DateFormat.MMMd(
+            Localizations.localeOf(context).toString(),
+          ).add_Hm().format(at);
 
     return Card(
       child: Padding(

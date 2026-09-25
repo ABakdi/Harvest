@@ -686,6 +686,105 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insightsTab => 'تحليلات';
 
   @override
+  String get wishlistTitle => 'قائمة الأمنيات';
+
+  @override
+  String get wishlistBuyList => 'لأشتريه';
+
+  @override
+  String get wishlistWishlist => 'أمنياتي';
+
+  @override
+  String get wishlistBuyEmptyTitle => 'لا شيء لشرائه';
+
+  @override
+  String get wishlistBuyEmptyBody =>
+      'أضف ما تنوي شراءه قريبًا — قائمة الشراء للاستخدام اليومي.';
+
+  @override
+  String get wishlistWishEmptyTitle => 'لا أمنيات بعد';
+
+  @override
+  String get wishlistWishEmptyBody =>
+      'أضف ما تريده يومًا ما، مع تقدير للسعر على الأكثر.';
+
+  @override
+  String get wishlistAdd => 'أضف';
+
+  @override
+  String get wishlistOpen => 'مفتوح';
+
+  @override
+  String wishlistBought(int count) {
+    return '$count مُشترى';
+  }
+
+  @override
+  String get wishlistRemoved => 'أُزيل';
+
+  @override
+  String get wishlistOptions => 'خيارات';
+
+  @override
+  String get wishlistEdit => 'تعديل';
+
+  @override
+  String get wishlistEditItem => 'تعديل العنصر';
+
+  @override
+  String get wishlistMoveToBuy => 'إلى قائمة الشراء';
+
+  @override
+  String get wishlistMoveToWish => 'إلى الأمنيات';
+
+  @override
+  String get wishlistDelete => 'حذف';
+
+  @override
+  String get wishlistNew => 'شيء أريده';
+
+  @override
+  String get wishlistTitleHint => 'مثال: معطف شتوي، غلاية، آلة إسبريسو';
+
+  @override
+  String get wishlistEstimateLabel => 'السعر التقديري';
+
+  @override
+  String get wishlistEstimateHint => 'ما أظن أنه سيكلف';
+
+  @override
+  String get wishlistEstimateInvalid =>
+      'اكتب سعرًا أكبر من صفر، أو اتركه فارغًا.';
+
+  @override
+  String get wishlistNoteLabel => 'ملاحظة';
+
+  @override
+  String get wishlistNoteHint => 'المقاس، الموديل، اللون، لماذا';
+
+  @override
+  String get wishlistTargetDay => 'يوم الشراء المخطط';
+
+  @override
+  String get wishlistNoTargetDay => 'يومًا ما';
+
+  @override
+  String get wishlistToday => 'اليوم';
+
+  @override
+  String wishlistInDays(int count) {
+    return 'بعد $count يوم';
+  }
+
+  @override
+  String wishlistBoughtOn(String day) {
+    return 'اشتراه في $day';
+  }
+
+  @override
+  String get wishlistTotalsSeparator => ' · ';
+
+  @override
   String get savingsLow => 'المدخرات تنخفض';
 
   @override
@@ -2941,6 +3040,42 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String gymBarOver(String over) {
+    return 'أخف من البار: البار وحده يزيد $over.';
+  }
+
+  @override
+  String get gymMoveDayUp => 'انقله للأعلى';
+
+  @override
+  String get gymMoveDayDown => 'انقله للأسفل';
+
+  @override
+  String get gymMineTitle => 'أضف تمريني';
+
+  @override
+  String get gymMineBody =>
+      'تمرين ينقص الفهرس. هو لك: يُزامَن، ويعمل كغيره في كل مكان.';
+
+  @override
+  String get gymMineName => 'الاسم';
+
+  @override
+  String get gymMineBodyPart => 'جزء الجسم';
+
+  @override
+  String get gymMineEquipment => 'الأداة';
+
+  @override
+  String get gymMineEquipmentHint => 'بار، كابل…';
+
+  @override
+  String get gymMineMuscle => 'العضلة';
+
+  @override
+  String get gymMineAdd => 'أضفه';
+
+  @override
   String get sleepTitle => 'ليلة أمس';
 
   @override
@@ -3456,6 +3591,67 @@ class AppLocalizationsAr extends AppLocalizations {
   String get placesNameHint => 'البيت، المكتب، النادي…';
 
   @override
+  String get placesLayers => 'عروض الخريطة';
+
+  @override
+  String get placesStreets => 'الشوارع';
+
+  @override
+  String get placesSatellite => 'قمر صناعي';
+
+  @override
+  String get placesLocateMe => 'موقعي';
+
+  @override
+  String get placesSavePlace => 'احفظ هذا المكان';
+
+  @override
+  String get placesEditPlace => 'تعديل المكان';
+
+  @override
+  String get placesPlaceName => 'اسم المكان';
+
+  @override
+  String get placesPlaceNotes => 'ملاحظات';
+
+  @override
+  String get placesPlaceNotesHint => 'ما تريد تذكّره عن هنا.';
+
+  @override
+  String get placesRadius => 'المدى (م)';
+
+  @override
+  String placesRadiusRange(int min, int max) {
+    return 'بين $min و$max م';
+  }
+
+  @override
+  String get placesPlaceSaved => 'حُفظ المكان';
+
+  @override
+  String get placesPlaceUpdated => 'حُدّث المكان';
+
+  @override
+  String get placesPlaceForgotten => 'نُسي المكان';
+
+  @override
+  String get placesForgetPlace => 'انسَ هذا المكان';
+
+  @override
+  String get placesForgetPlaceBody => 'يُزيل هذا الدبوس، ويُبقي المسار.';
+
+  @override
+  String get placesNoFix => 'لا يمكن تحديد موقعك الآن.';
+
+  @override
+  String geoWhere(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get geoUnavailable => 'لا يوجد موقع مسجّل';
+
+  @override
   String get placesOptions => 'خيارات الأماكن';
 
   @override
@@ -3664,6 +3860,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get assistSendsUpToCaret => 'الملاحظة حتى المؤشر';
+
+  @override
+  String assistTranscribeTooLong(int limit) {
+    return 'هذا التسجيل أطول من أن يُفرَّغ: يقبل الخادم تسجيلات حتى $limit ميغابايت.';
+  }
+
+  @override
+  String get assistTranscribeUnknown =>
+      'هذا ليس نوعًا من التسجيلات يستطيع الخادم تفريغه.';
 
   @override
   String get assistSendsRecording => 'هذا التسجيل';

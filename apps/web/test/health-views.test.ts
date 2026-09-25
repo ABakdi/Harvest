@@ -1,3 +1,4 @@
+import { HarvestDay, fallbackCycle } from '@harvest/core';
 import { describe, expect, it } from 'vitest';
 import { readNights, readSteps, readWeights, sleepSummary, weightSummary } from '@/app/data/health';
 import { readPrograms, readSessions } from '@/app/data/gym';
@@ -47,7 +48,7 @@ describe('the body, read', () => {
     const nights = await readNights(h.db);
     expect(nights.map((night) => night.harvestDay)).toEqual(['2026-09-18', '2026-09-17']);
 
-    const summary = sleepSummary(nights, 480);
+    const summary = sleepSummary(nights, { cycle: fallbackCycle, overrides: {} }, HarvestDay.parse('2026-09-19'));
     // 80 short, then 60 short.
     expect(summary.debt.minutes).toBe(140);
     expect(summary.averageMinutes).toBe(410);
@@ -98,8 +99,8 @@ describe('the gym, read', () => {
     ]);
 
     const [view] = await readPrograms(h.db);
-    expect(view?.days.map((day) => day.name)).toEqual(['Upper', 'Lower']);
-    expect(view?.days[0]?.exercises).toEqual(['0001', '0025']);
+    expect(view?.days.map((day) => day.row.name)).toEqual(['Upper', 'Lower']);
+    expect(view?.days[0]?.slots.map((slot) => slot.row.exerciseId)).toEqual(['0001', '0025']);
     // The catalogue is bundled, not synced, so the reader has its names.
     expect(catalogueName('0001')).toBe('3/4 sit-up');
     expect(catalogueName('nope')).toBeNull();

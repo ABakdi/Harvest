@@ -27,6 +27,8 @@ class ExercisesRepository {
     return query.watch().map((rows) => rows.map(_toDomain).toList());
   }
 
+  /// Written as the web writes it: trimmed, and a blank field is no
+  /// field, so the same exercise reads the same on both sides.
   Future<Exercise> create({
     required String name,
     String? bodyPart,
@@ -34,12 +36,14 @@ class ExercisesRepository {
     String? target,
     String? note,
   }) async {
+    String? blank(String? value) =>
+        (value ?? '').trim().isEmpty ? null : value!.trim();
     final exercise = Exercise(
       id: _uuid.v4(),
       name: name.trim(),
-      bodyPart: bodyPart,
-      equipment: equipment,
-      target: target,
+      bodyPart: blank(bodyPart),
+      equipment: blank(equipment),
+      target: blank(target),
       mine: true,
     );
     await _db.transaction(() async {
@@ -49,9 +53,9 @@ class ExercisesRepository {
             ExercisesCompanion.insert(
               uuid: exercise.id,
               name: exercise.name,
-              bodyPart: Value(bodyPart),
-              equipment: Value(equipment),
-              target: Value(target),
+              bodyPart: Value(exercise.bodyPart),
+              equipment: Value(exercise.equipment),
+              target: Value(exercise.target),
               note: Value(note),
             ),
           );

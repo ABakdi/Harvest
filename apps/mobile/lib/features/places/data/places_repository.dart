@@ -69,6 +69,29 @@ class PlacesRepository {
     return row == null ? null : _toPoint(row).fix;
   }
 
+  /// The trail point recorded closest to [at], within [within] either
+  /// side: where the phone was when something happened, read back later.
+  Future<Fix?> pointNear(DateTime at, Duration within) async {
+    final rows =
+        await (_db.select(_db.locationPoints)..where(
+              (p) =>
+                  p.recordedAt.isBetweenValues(
+                    at.subtract(within),
+                    at.add(within),
+                  ) &
+                  p.deletedAt.isNull(),
+            ))
+            .get();
+    if (rows.isEmpty) return null;
+    rows.sort(
+      (a, b) => a.recordedAt
+          .difference(at)
+          .abs()
+          .compareTo(b.recordedAt.difference(at).abs()),
+    );
+    return _toPoint(rows.first).fix;
+  }
+
   /// How many points today holds, so a runaway sampler is visible.
   Stream<int> watchCountOn(HarvestDay day) {
     final count = _db.locationPoints.uuid.count();
@@ -150,6 +173,24 @@ class PlacesRepository {
       )
       ..orderBy([(g) => OrderingTerm.asc(g.at)]);
     return query.watch().map((rows) => rows.map(_toGeotag).toList());
+  }
+
+  /// The geotag of one action, for the "where was it" line under it.
+  /// Null when the action never got one (Places off, or its geotag
+  /// was deleted with the day's trail).
+  Stream<Geotag?> watchGeotagFor(String table, String uuid) {
+    final query = _db.select(_db.geotags)
+      ..where(
+        (g) =>
+            g.targetTable.equals(table) &
+            g.targetUuid.equals(uuid) &
+            g.deletedAt.isNull(),
+      )
+      ..orderBy([(g) => OrderingTerm.desc(g.at)])
+      ..limit(1);
+    return query
+        .watchSingleOrNull()
+        .map((row) => row == null ? null : _toGeotag(row));
   }
 
   /// Geotags still waiting for a place, live: the filler's queue.
@@ -257,6 +298,7 @@ class PlacesRepository {
             latitude: row.latitude,
             longitude: row.longitude,
             radiusM: row.radiusM,
+            notes: row.notes,
           ),
       ],
     );
@@ -267,6 +309,7 @@ class PlacesRepository {
     required double latitude,
     required double longitude,
     double radiusM = stayRadiusM,
+    String? notes,
   }) => _db.transaction(() async {
     final uuid = _uuid.v4();
     await _db
@@ -278,23 +321,47 @@ class PlacesRepository {
             latitude: latitude,
             longitude: longitude,
             radiusM: Value(radiusM),
+            notes: Value(notes),
           ),
         );
     await _db.logChange('saved_places', uuid, 'insert');
   });
 
   Future<void> renamePlace(String uuid, String name) =>
-      _db.transaction(() async {
-        await (_db.update(
-          _db.savedPlaces,
-        )..where((p) => p.uuid.equals(uuid))).write(
-          SavedPlacesCompanion(
-            name: Value(name),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
-        await _db.logChange('saved_places', uuid, 'update');
-      });
+      updatePlace(uuid, name: name, changeName: true);
+
+  /// The only places a name, a note and a reach are edited; a
+  /// coordinate is how a place is found again, and moving it is a new
+  /// place. A `change` flag says which field the call is *writing* — the
+  /// other stays as it is. Passing `notes: null` with `changeNotes: true`
+  /// clears it. [radiusM], when given, is the new reach, held between
+  /// [minPlaceRadiusM] and [maxPlaceRadiusM].
+  Future<void> updatePlace(
+    String uuid, {
+    String? name,
+    bool changeName = false,
+    String? notes,
+    bool changeNotes = false,
+    double? radiusM,
+  }) {
+    if (radiusM != null &&
+        !(radiusM >= minPlaceRadiusM && radiusM <= maxPlaceRadiusM)) {
+      throw ArgumentError.value(radiusM, 'radiusM', 'out of range');
+    }
+    return _db.transaction(() async {
+      await (_db.update(
+        _db.savedPlaces,
+      )..where((p) => p.uuid.equals(uuid))).write(
+        SavedPlacesCompanion(
+          name: changeName ? Value(name!) : const Value.absent(),
+          notes: changeNotes ? Value(notes) : const Value.absent(),
+          radiusM: radiusM == null ? const Value.absent() : Value(radiusM),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      await _db.logChange('saved_places', uuid, 'update');
+    });
+  }
 
   Future<void> forgetPlace(String uuid) => _db.transaction(() async {
     await (_db.update(

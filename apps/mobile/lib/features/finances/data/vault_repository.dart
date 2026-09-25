@@ -122,13 +122,18 @@ class VaultRepository {
   }
 
   /// The movement that belongs to [linkUuid] (an expense, a payment),
-  /// or null when that row was never paid from a pot.
+  /// or null when that row was never paid from a pot. With
+  /// [includeDeleted], a live one first and then the one deleted last:
+  /// the one that went with its owner, not an older row an edit dropped.
   Future<MoneyTxn?> linkedTxn(
     String linkUuid, {
     bool includeDeleted = false,
   }) async {
     final query = _db.select(_db.moneyTxns)
       ..where((t) => t.linkUuid.equals(linkUuid))
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.deletedAt, nulls: NullsOrder.first),
+      ])
       ..limit(1);
     if (!includeDeleted) query.where((t) => t.deletedAt.isNull());
     final row = await query.getSingleOrNull();

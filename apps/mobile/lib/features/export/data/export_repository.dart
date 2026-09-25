@@ -71,6 +71,7 @@ class ExportRepository {
     final setRows = await _db.select(_db.workoutSets).get();
     final goalRows = await _db.select(_db.goals).get();
     final goalItemRows = await _db.select(_db.goalItems).get();
+    final wishlistRows = await _db.select(_db.wishlistItems).get();
     final categoryRows = await _db.select(_db.expenseCategories).get();
     final attachmentRows = await _db.select(_db.noteAttachments).get();
     final placeRows = includePlaces
@@ -253,6 +254,23 @@ class ExportRepository {
             _at(row.deletedAt),
           ],
       ],
+      wishlistItems: [
+        for (final row in wishlistRows)
+          [
+            row.uuid,
+            row.list,
+            row.title,
+            row.priceMinor,
+            row.currency,
+            row.note,
+            row.targetDay,
+            _at(row.boughtAt),
+            row.position,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
       expenses: [
         for (final row in expenses)
           [
@@ -273,6 +291,7 @@ class ExportRepository {
             row.uuid,
             row.name,
             row.icon,
+            _at(row.createdAt),
             _at(row.updatedAt),
             _at(row.deletedAt),
           ],
@@ -447,7 +466,14 @@ class ExportRepository {
       ],
       programDays: [
         for (final row in dayRows)
-          [row.uuid, row.programUuid, row.name, row.position, row.week],
+          [
+            row.uuid,
+            row.programUuid,
+            row.name,
+            row.position,
+            row.week,
+            row.accessories,
+          ],
       ],
       programSlots: [
         for (final row in slotRows)
@@ -537,6 +563,7 @@ class ExportRepository {
             row.latitude,
             row.longitude,
             row.radiusM,
+            row.notes,
             _at(row.createdAt),
             _at(row.updatedAt),
             _at(row.deletedAt),

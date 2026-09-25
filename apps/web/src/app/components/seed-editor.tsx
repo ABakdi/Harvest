@@ -13,6 +13,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import i18n from '@/i18n';
 import { useHarvest, useHarvestDay } from '../context';
 import type { SeedInput, SeedRow, SeedType } from '../data/seeds';
+import { useBusy } from './use-busy';
 
 export interface SeedPrefill {
   title?: string;
@@ -84,7 +85,7 @@ export function SeedEditor({
   const [deadline, setDeadline] = useState(editing?.deadline ?? '');
   const [goalUuid, setGoalUuid] = useState<string>(editing?.goalUuid ?? prefill.goalUuid ?? 'none');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
+  const [saving, once] = useBusy();
 
   const goals = useLiveQuery(
     async () =>
@@ -136,7 +137,6 @@ export function SeedEditor({
       deadline: deadline || null,
       goalUuid: goalUuid === 'none' ? null : goalUuid,
     };
-    setSaving(true);
     try {
       if (editing) {
         await seeds.edit(editing.uuid, input);
@@ -148,7 +148,6 @@ export function SeedEditor({
       onClose();
     } catch {
       toast.error(t('common.saveFailed'));
-      setSaving(false);
     }
   }
 
@@ -168,7 +167,7 @@ export function SeedEditor({
           <DialogTitle>{editing ? t('seed.editTitle') : t('seed.plant')}</DialogTitle>
           <DialogDescription>{t('seed.editorLead')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => void once(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label id={field('type')}>{t('seed.typeLabel')}</Label>
             <ToggleGroup

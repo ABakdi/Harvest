@@ -78,8 +78,17 @@ class FinanceActions {
       _db.expenses,
     )..where((e) => e.uuid.equals(uuid))).getSingleOrNull();
     final expenseDay = HarvestDay.tryParse(row?.harvestDay) ?? day;
-    final linked = await _vault.linkedTxn(uuid);
+    var linked = await _vault.linkedTxn(uuid);
     if (fromWallet) {
+      // The switch turned back on brings the old movement back rather
+      // than writing a second one beside it.
+      final dropped = linked == null
+          ? await _vault.linkedTxn(uuid, includeDeleted: true)
+          : null;
+      if (dropped != null) {
+        await _vault.restoreTxn(dropped.uuid);
+        linked = dropped;
+      }
       if (linked == null) {
         await _vault.move(
           account: MoneyAccount.wallet,

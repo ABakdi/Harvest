@@ -11,6 +11,8 @@ import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/domain/gallery_service.dart';
 import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
 import 'package:harvest/features/gallery/presentation/memory_view.dart';
+import 'package:harvest/features/places/presentation/geotag_chip.dart';
+import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
@@ -119,6 +121,12 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
     final memories = live == null || live.isEmpty ? widget.memories : live;
     if (memories.isEmpty) return const SizedBox.shrink();
     final current = memories[_index.clamp(0, memories.length - 1)];
+    final hasNote = (current.note ?? '').isNotEmpty;
+    final showsPlace = GeotagChip.shows(
+      ref
+          .watch(geotagForProvider((table: 'memories', uuid: current.uuid)))
+          .value,
+    );
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -171,18 +179,43 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
               },
             ),
           ),
-          if ((current.note ?? '').isNotEmpty)
+          // The note, and where the picture was taken when Places was
+          // there to say ([[Places]]), share one bar and one inset —
+          // and with neither there is no bar at all.
+          if (hasNote || showsPlace)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(HarvestSpacing.md),
+              padding: const EdgeInsets.fromLTRB(
+                HarvestSpacing.md,
+                HarvestSpacing.sm,
+                HarvestSpacing.md,
+                HarvestSpacing.sm,
+              ),
               color: Colors.black,
               child: SafeArea(
                 top: false,
-                child: Text(
-                  current.note!,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (hasNote)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: HarvestSpacing.xs,
+                        ),
+                        child: Text(
+                          current.note!,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Colors.white70),
+                        ),
+                      ),
+                    if (showsPlace)
+                      GeotagChip(
+                        targetTable: 'memories',
+                        targetUuid: current.uuid,
+                        onDark: true,
+                      ),
+                  ],
                 ),
               ),
             ),

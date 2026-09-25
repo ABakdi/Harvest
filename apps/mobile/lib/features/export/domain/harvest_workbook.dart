@@ -12,6 +12,7 @@ typedef ExportData = ({
   List<List<Object?>> seedNotes,
   List<List<Object?>> goals,
   List<List<Object?>> goalItems,
+  List<List<Object?>> wishlistItems,
   List<List<Object?>> expenses,
   List<List<Object?>> categories,
   List<List<Object?>> money,
@@ -68,6 +69,7 @@ abstract final class SheetNames {
   static const seedNotes = 'SeedNotes';
   static const goals = 'Goals';
   static const goalItems = 'GoalItems';
+  static const wishlist = 'Wishlist';
   static const expenses = 'Expenses';
 
   /// The categories I made myself (`expense_categories`); the presets
@@ -227,6 +229,25 @@ List<ExportSheet> harvestSheets(ExportData data) {
     derived: const [(header: 'Goal', template: _goalTitle)],
   );
 
+  final wishlistItems = ExportSheet(
+    name: SheetNames.wishlist,
+    headers: const [
+      'Uuid',
+      'List',
+      'Title',
+      'PriceMinor',
+      'Currency',
+      'Note',
+      'TargetDay',
+      'BoughtAt',
+      'Position',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.wishlistItems,
+  );
+
   final expenses = ExportSheet(
     name: SheetNames.expenses,
     headers: const [
@@ -246,7 +267,14 @@ List<ExportSheet> harvestSheets(ExportData data) {
 
   final categories = ExportSheet(
     name: SheetNames.categories,
-    headers: const ['Uuid', 'Name', 'Icon', 'UpdatedAt', 'DeletedAt'],
+    headers: const [
+      'Uuid',
+      'Name',
+      'Icon',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
     rows: data.categories,
   );
 
@@ -527,7 +555,14 @@ List<ExportSheet> harvestSheets(ExportData data) {
 
   final programDays = ExportSheet(
     name: SheetNames.programDays,
-    headers: const ['Uuid', 'ProgramUuid', 'Name', 'Position', 'Week'],
+    headers: const [
+      'Uuid',
+      'ProgramUuid',
+      'Name',
+      'Position',
+      'Week',
+      'Accessories',
+    ],
     rows: data.programDays,
   );
 
@@ -646,6 +681,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'Latitude',
       'Longitude',
       'RadiusM',
+      'Notes',
       'CreatedAt',
       'UpdatedAt',
       'DeletedAt',
@@ -694,6 +730,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
     seedNotes,
     goals,
     goalItems,
+    wishlistItems,
     expenses,
     categories,
     money,

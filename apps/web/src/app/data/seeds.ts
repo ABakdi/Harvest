@@ -1,6 +1,6 @@
 import { HarvestDay, scheduleToJson, type Schedule } from '@harvest/core';
 import type { Row } from './db';
-import type { Writer } from './writer';
+import type { Tx, Writer } from './writer';
 
 export type SeedRow = Row<'commitments'>;
 export type SeedType = SeedRow['type'];
@@ -39,6 +39,27 @@ function columns(input: SeedInput) {
 }
 
 /**
+ * Plants a seed inside a write already open, so a caller can plant
+ * several with other writes as one (onboarding's finish).
+ */
+export async function plantSeed(tx: Tx, input: SeedInput, linkItem?: string): Promise<SeedRow> {
+  const now = tx.now();
+  const row: SeedRow = {
+    uuid: crypto.randomUUID(),
+    ...columns(input),
+    pausedAt: null,
+    archivedAt: null,
+    archiveNote: null,
+    deletedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await tx.put('commitments', row);
+  if (linkItem) await tx.patch('goal_items', linkItem, { commitmentUuid: row.uuid, updatedAt: now });
+  return row;
+}
+
+/**
  * Seeds (`commitments`), mirroring CommitmentsRepository on the phone:
  * the same columns, and the same "history stays" rule, so archiving is
  * the way a seed retires.
@@ -51,22 +72,7 @@ export class SeedsRepository {
    * item and the seed are linked in the same transaction ([[Goals]]).
    */
   plant(input: SeedInput, linkItem?: string): Promise<SeedRow> {
-    return this.writer.run(async (tx) => {
-      const now = tx.now();
-      const row: SeedRow = {
-        uuid: crypto.randomUUID(),
-        ...columns(input),
-        pausedAt: null,
-        archivedAt: null,
-        archiveNote: null,
-        deletedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      };
-      await tx.put('commitments', row);
-      if (linkItem) await tx.patch('goal_items', linkItem, { commitmentUuid: row.uuid, updatedAt: now });
-      return row;
-    });
+    return this.writer.run((tx) => plantSeed(tx, input, linkItem));
   }
 
   /** An edit rewrites the seed's own fields and keeps its state (pause, archive). */

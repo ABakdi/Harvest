@@ -224,6 +224,29 @@ void main() {
       );
     });
 
+    test('a pause and a resume travel, so the other device keeps the clock', () async {
+      final program = await programs.createProgram(name: 'PPL');
+      final day = await programs.addDay(program.uuid, name: 'Push');
+      final session = await sessions.start(
+        day: day,
+        programUuid: program.uuid,
+        title: day.name,
+      );
+      Future<int> updates() async => (await db.select(db.outbox).get())
+          .where(
+            (r) =>
+                r.targetTable == 'workout_sessions' &&
+                r.rowUuid == session.uuid &&
+                r.op == 'update',
+          )
+          .length;
+
+      await sessions.pause(session.uuid);
+      expect(await updates(), 1);
+      await sessions.resume(session.uuid);
+      expect(await updates(), 2);
+    });
+
     test("a session's exercises and sets, and what happens to them", () async {
       final program = await programs.createProgram(name: 'PPL');
       final day = await programs.addDay(program.uuid, name: 'Push');

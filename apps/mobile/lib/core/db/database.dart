@@ -610,6 +610,12 @@ class ExpenseCategories extends Table {
 
   /// Icon key resolved through the app's icon map.
   TextColumn get icon => text()();
+
+  /// When the category was made; the list is ordered by it, so a
+  /// restore (which bumps [updatedAt] for sync) keeps its place. Null
+  /// only on a row synced from a device that predates the column, which
+  /// sorts by [updatedAt] instead.
+  DateTimeColumn get createdAt => dateTime().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
@@ -725,6 +731,39 @@ class GoalItems extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
+/// One thing I want to buy, on the buy list (day to day) or the
+/// wishlist (future planning), with an estimated price at most
+/// ([[Wishlist]]). A plan, not money: nothing here moves a wallet.
+@DataClassName('WishlistItemRow')
+class WishlistItems extends Table {
+  TextColumn get uuid => text()();
+
+  /// `buy` | `wish`.
+  TextColumn get list => text().withDefault(const Constant('buy'))();
+  TextColumn get title => text()();
+
+  /// Estimated price in minor units; null while the thing has no number.
+  IntColumn get priceMinor => integer().nullable()();
+  TextColumn get currency => text().withDefault(const Constant('DZD'))();
+  TextColumn get note => text().nullable()();
+
+  /// Planned purchase Harvest Day (yyyy-MM-dd) — a plan, not a
+  /// commitment: nothing reads it to judge or remind.
+  TextColumn get targetDay => text().nullable()();
+
+  /// When I marked it bought; bought items fold under the open ones.
+  DateTimeColumn get boughtAt => dateTime().nullable()();
+
+  /// Order within one list.
+  IntColumn get position => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
 /// One point of the trail ([[Places]]). Append-only (PL4): a day's
 /// trail can be deleted whole, a point is never moved.
 @DataClassName('LocationPointRow')
@@ -779,6 +818,10 @@ class SavedPlaces extends Table {
   RealColumn get latitude => real()();
   RealColumn get longitude => real()();
   RealColumn get radiusM => real().withDefault(const Constant(100))();
+
+  /// Whatever I want to remember about this place.
+  TextColumn get notes => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
@@ -877,6 +920,7 @@ const actionTables = {
     KvSettings,
     Goals,
     GoalItems,
+    WishlistItems,
     LocationPoints,
     Geotags,
     SavedPlaces,
@@ -901,7 +945,7 @@ class HarvestDatabase extends _$HarvestDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -999,15 +1043,45 @@ class HarvestDatabase extends _$HarvestDatabase {
           await m.addColumn(noteAttachments, noteAttachments.fileHash);
         }
       }
+      // Saved places take a note: what I want to remember about a spot
+      // ([[Places]]). Existing rows keep a null note, which the editors
+      // treat as empty. A box created earlier in this same run (from
+      // < 15) is built with the current definition and already carries
+      // the column. From 15 to 17 the column must exist *before* the
+      // date rewrite below, because that rewrite rebuilds the table
+      // from the current definition and would otherwise read a column
+      // that is not there yet.
+      if (from >= 15 && from < 20) {
+        await m.addColumn(savedPlaces, savedPlaces.notes);
+      }
+      // Categories remember when they were made, so a restored one keeps
+      // its place in the list ([[Finances]]). The last edit is the best
+      // guess an existing row has, and it keeps today's order. Same
+      // ordering rule as above: before the rewrite, which then converts
+      // the copied value along with the one it came from.
+      if (from >= 4 && from < 21) {
+        await m.addColumn(expenseCategories, expenseCategories.createdAt);
+        await customStatement(
+          'UPDATE expense_categories SET created_at = updated_at',
+        );
+      }
       // Every date becomes text, keeping the instant it already held.
       // A table created earlier in this same run is empty and converts
       // to nothing, which costs a statement and no data.
       if (from < 18) {
         await customStatement('PRAGMA foreign_keys = OFF');
         for (final table in allTables) {
+          // Tables created later in this run (v19+) do not exist yet;
+          // theirs are already text.
+          if (table.actualTableName == wishlistItems.actualTableName) continue;
           await _datesToText(m, table);
         }
         await customStatement('PRAGMA foreign_keys = ON');
+      }
+      // The wishlist: one new table ([[Wishlist]]), inert until the tab
+      // is built on it, so exactly one step.
+      if (from < 19) {
+        await m.createTable(wishlistItems);
       }
     },
   );

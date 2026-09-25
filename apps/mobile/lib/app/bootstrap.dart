@@ -16,6 +16,7 @@ import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart'
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/features/widget/domain/widget_actions.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
+import 'package:harvest/features/wishlist/data/wishlist_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'bootstrap.g.dart';
@@ -113,6 +114,9 @@ Future<void> appBootstrap(Ref ref) async {
           .purgeDeleted(olderThan: purgeAfter);
       await ref
           .read(vaultRepositoryProvider)
+          .purgeDeleted(olderThan: purgeAfter);
+      await ref
+          .read(wishlistRepositoryProvider)
           .purgeDeleted(olderThan: purgeAfter);
       await ref.read(databaseProvider).capOutbox();
       // Recordings trashed a month ago, and any whose note is gone.

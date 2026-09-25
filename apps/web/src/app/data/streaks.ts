@@ -2,7 +2,9 @@ import {
   dailyGoalFromJson,
   earnHabitDay,
   emptyStreak,
+  freezeCost,
   globalStreakScope,
+  maxFreezesStored,
   productiveActions,
   refreshGlobalStreak,
   retractHabitDay,
@@ -10,7 +12,7 @@ import {
   type StreakState,
 } from '@harvest/core';
 import { settingKeys } from './settings';
-import type { Tx } from './writer';
+import type { Tx, Writer } from './writer';
 
 /**
  * The live streak updates a check-in and its undo make, written through
@@ -81,4 +83,25 @@ export async function onUndo(tx: Tx, seed: { uuid: string; type: string }, day: 
     if (next) await writeStreak(tx, seed.uuid, next);
   }
   await refreshGlobal(tx, day);
+}
+
+/**
+ * Buys one streak freeze for [freezeCost] coins, as the phone's
+ * `buyFreeze` does: the balance and the shed are read inside the
+ * transaction, so two clicks cannot both pass the check. Buying is
+ * fine here; spending one on a missed day is the phone's 3 AM judging.
+ */
+export function buyFreeze(writer: Writer, day: HarvestDay): Promise<boolean> {
+  return writer.run(async (tx) => {
+    const streak = await streakOf(tx, globalStreakScope);
+    if (streak.freezesStored >= maxFreezesStored) return false;
+    const balance = (await tx.rows('ledger').where('kind').equals('coin').toArray()).reduce(
+      (sum, entry) => sum + entry.delta,
+      0,
+    );
+    if (balance < freezeCost) return false;
+    await tx.ledger({ kind: 'coin', delta: -freezeCost, reason: 'freeze:buy', harvestDay: day.key });
+    await writeStreak(tx, globalStreakScope, { ...streak, freezesStored: streak.freezesStored + 1 });
+    return true;
+  });
 }

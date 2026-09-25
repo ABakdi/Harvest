@@ -18,7 +18,7 @@
     {
       "table": "expense_categories",
       "uuid": "3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58",
-      "plaintext": "{\"uuid\":\"3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58\",\"name\":\"Books\",\"icon\":\"book\",\"deletedAt\":null,\"updatedAt\":\"2026-09-02T10:00:00.000Z\"}"
+      "plaintext": "{\"uuid\":\"3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58\",\"name\":\"Books\",\"icon\":\"book\",\"createdAt\":\"2026-08-28T18:30:00.000Z\",\"deletedAt\":null,\"updatedAt\":\"2026-09-02T10:00:00.000Z\"}"
     },
     {
       "table": "expenses",
@@ -43,7 +43,7 @@
     {
       "table": "saved_places",
       "uuid": "6a2d9f5c-1b8e-4d4a-a7c3-5f9e2b6d8a14",
-      "plaintext": "{\"uuid\":\"6a2d9f5c-1b8e-4d4a-a7c3-5f9e2b6d8a14\",\"name\":\"Home\",\"latitude\":36.7538,\"longitude\":3.0588,\"radiusM\":100,\"createdAt\":\"2026-09-10T20:00:00.000Z\",\"updatedAt\":\"2026-09-10T20:00:00.000Z\",\"deletedAt\":null}"
+      "plaintext": "{\"uuid\":\"6a2d9f5c-1b8e-4d4a-a7c3-5f9e2b6d8a14\",\"name\":\"Home\",\"latitude\":36.7538,\"longitude\":3.0588,\"radiusM\":100,\"notes\":\"The bench by the old olive tree\",\"createdAt\":\"2026-09-10T20:00:00.000Z\",\"updatedAt\":\"2026-09-10T20:00:00.000Z\",\"deletedAt\":null}"
     }
   ]
 }

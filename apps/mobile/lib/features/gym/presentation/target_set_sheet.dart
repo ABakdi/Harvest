@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
@@ -110,12 +111,13 @@ class _TargetSetSheet extends ConsumerWidget {
           _ChipField(
             icon: Icons.straighten,
             label: l10n.gymBarWeight,
-            value: formatLoad(context, slot.barGrams, unit),
+            value: formatLoad(context, barIn(slot.barGrams, unit), unit),
             children: [
-              for (final grams in [10000, 15000, 20000, 25000])
+              // Pounds get a pound gym's bars, not 20 kg read as 44.09.
+              for (final grams in barChoicesIn(unit))
                 ChoiceChip(
                   label: Text(formatLoad(context, grams, unit)),
-                  selected: slot.barGrams == grams,
+                  selected: barIn(slot.barGrams, unit) == grams,
                   onSelected: (_) => unawaited(
                     repository.updateSlot(slot.uuid, barGrams: grams),
                   ),
@@ -134,7 +136,7 @@ class _TargetSetSheet extends ConsumerWidget {
             RestField(
               seconds: slot.restSeconds,
               onChanged: (seconds) => unawaited(
-                repository.updateSlot(slot.uuid, restSeconds: seconds),
+                repository.updateSlot(slot.uuid, restSeconds: Value(seconds)),
               ),
             ),
           ],
@@ -320,7 +322,7 @@ class _EditSetState extends ConsumerState<_EditSet> {
               ? (value * 10).round()
               : null,
           weightGrams: !_percentage && value != null
-              ? roundLoad(unit.toGrams(value))
+              ? roundLoad(unit.toGrams(value), unit: unit)
               : null,
           clearWeight: _percentage,
           clearPercent: !_percentage,

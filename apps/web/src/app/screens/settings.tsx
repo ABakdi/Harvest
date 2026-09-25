@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { KeyRoundIcon, LogOutIcon, MonitorSmartphoneIcon, RefreshCwIcon, ShieldCheckIcon, Trash2Icon } from 'lucide-react';
-import { useId, useState, type ReactNode } from 'react';
+import { KeyRoundIcon, LogOutIcon, MonitorSmartphoneIcon, RefreshCwIcon, ShieldCheckIcon, SmartphoneIcon, Trash2Icon } from 'lucide-react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -22,45 +22,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api, ApiError } from '@/lib/api';
 import { currencies, formatDate } from '@/lib/format';
 import { useLeave } from '../app-root';
+import { GeotagSetting } from '../components/geotag-setting';
+import { DataCard } from '../components/data-card';
 import { PassphrasePrompt } from '../components/passphrase-prompt';
 import { LanguageSelect, PresetPicker, ThemeModePicker } from '../components/prefs-pickers';
 import { useRelativeTime } from '../components/relative-time';
 import { useHarvest, useSyncStatus } from '../context';
-import { settingKeys } from '../data/settings';
+import { SettingsRow as Row, SettingsSection as Section, Stepper, FeatureSwitchList, useFeaturesOrOff } from '../components/settings-bits';
+import { DailyCycleCard, SleepNightsCard } from '../components/settings-cycle';
+import { RatesCard } from '../components/settings-rates';
+import { featureKeys, pomodoroSettings, settingKeys } from '../data/settings';
 import { useDefaultCurrency, usePrivateKey, useSetting } from '../hooks';
-
-function Section({ title, children, id }: { title: string; children: ReactNode; id: string }) {
-  return (
-    <section aria-labelledby={id} className="flex flex-col gap-4 rounded-2xl border bg-card p-5">
-      <h2 id={id} className="text-lg font-extrabold">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-function Row({
-  label,
-  hint,
-  children,
-  htmlFor,
-}: {
-  label: string;
-  hint?: string | undefined;
-  children: ReactNode;
-  htmlFor?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-col">
-        <Label htmlFor={htmlFor}>{label}</Label>
-        {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
-      </div>
-      {children}
-    </div>
-  );
-}
 
 function SyncSection() {
   const { t } = useTranslation();
@@ -279,11 +251,16 @@ function AccountSection() {
   );
 }
 
-function HarvestSection() {
+/**
+ * The day: how many actions make it, its hours, and — with Health on —
+ * the weekdays that are their own night (`SettingsSection.harvest`).
+ * The alarm and the wind-down ring on the phone, so they are set there.
+ */
+export function HarvestSection() {
   const { t } = useTranslation();
   const { settings } = useHarvest();
   const goal = useSetting(settingKeys.dailyHarvestGoal);
-  const currency = useDefaultCurrency();
+  const { health } = useFeaturesOrOff();
   const id = useId();
   return (
     <Section title={t('settings.harvest')} id="settings-harvest">
@@ -301,6 +278,109 @@ function HarvestSection() {
           </SelectContent>
         </Select>
       </Row>
+      <div className="flex flex-col gap-3 border-t pt-4">
+        <div className="flex flex-col">
+          <h3 className="text-sm font-extrabold">{t('settingsWeb.cycle')}</h3>
+          <span className="text-xs text-muted-foreground">{t('settingsWeb.cycleHint')}</span>
+        </div>
+        <DailyCycleCard />
+      </div>
+      {health && (
+        <div className="flex flex-col gap-3 border-t pt-4">
+          <div className="flex flex-col">
+            <h3 className="text-sm font-extrabold">{t('settingsWeb.ownNights')}</h3>
+            <span className="text-xs text-muted-foreground">{t('settingsWeb.ownNightsHint')}</span>
+          </div>
+          <SleepNightsCard />
+        </div>
+      )}
+    </Section>
+  );
+}
+
+/** The parts of the app that stay out of the way until asked for (`FeaturesCard`). */
+export function ExtrasSection() {
+  const { t } = useTranslation();
+  const { settings } = useHarvest();
+  const values = useFeaturesOrOff();
+  return (
+    <Section title={t('settingsWeb.extras')} id="settings-extras" lead={t('settingsWeb.extrasLead')}>
+      <FeatureSwitchList values={values} onChange={(feature, on) => void settings.setBool(featureKeys[feature], on)} />
+    </Section>
+  );
+}
+
+/** The four numbers of the focus timer (`_PomodoroCard`). */
+export function PomodoroSection() {
+  const { t } = useTranslation();
+  const { settings } = useHarvest();
+  return (
+    <Section title={t('settingsWeb.pomodoro')} id="settings-pomodoro">
+      <ul className="flex flex-col divide-y">
+        {pomodoroSettings.map((setting) => (
+          <PomodoroRow
+            key={setting.key}
+            label={t(`settingsWeb.pomodoroLen.${setting.name}`)}
+            setting={setting}
+            onChange={(value) => void settings.setInt(setting.key, value)}
+          />
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+function PomodoroRow({
+  label,
+  setting,
+  onChange,
+}: {
+  label: string;
+  setting: (typeof pomodoroSettings)[number];
+  onChange: (value: number) => void;
+}) {
+  const { t } = useTranslation();
+  const raw = useSetting(setting.key);
+  const stored = Number.parseInt(raw ?? '', 10);
+  const read = Number.isFinite(stored) ? stored : setting.fallback;
+  // The last step taken, shown until the stored value catches up: two
+  // quick presses step twice, rather than both stepping from the same
+  // read.
+  const [pending, setPending] = useState<number | null>(null);
+  if (pending !== null && read === pending) setPending(null);
+  const value = pending ?? read;
+  return (
+    <li className="flex items-center justify-between gap-3 py-2">
+      <div className="flex flex-col">
+        <span className="text-sm font-bold">{label}</span>
+        <span className="text-sm text-muted-foreground tabular">
+          {setting.name === 'blocks' ? value : t('settingsWeb.minutes', { count: value })}
+        </span>
+      </div>
+      <Stepper
+        value={value}
+        min={setting.min}
+        max={setting.max}
+        step={setting.step}
+        label={label}
+        disabled={raw === undefined}
+        onChange={(next) => {
+          setPending(next);
+          onChange(next);
+        }}
+      />
+    </li>
+  );
+}
+
+/** The currency amounts are shown in, and the rates between them (`SettingsSection.money`). */
+export function MoneySection() {
+  const { t } = useTranslation();
+  const { settings } = useHarvest();
+  const currency = useDefaultCurrency();
+  const id = useId();
+  return (
+    <Section title={t('settingsWeb.money')} id="settings-money">
       <Row label={t('settings.defaultCurrency')} htmlFor={`${id}-currency`}>
         <Select value={currency} onValueChange={(value) => void settings.setString(settingKeys.defaultCurrency, value)}>
           <SelectTrigger id={`${id}-currency`} className="w-full sm:w-40">
@@ -315,6 +395,33 @@ function HarvestSection() {
           </SelectContent>
         </Select>
       </Row>
+      <div className="border-t pt-4">
+        <RatesCard />
+      </div>
+    </Section>
+  );
+}
+
+/**
+ * What only the phone can do, named rather than left out: the web has
+ * no alarm, no lock of its own, no home screen and no archive to write
+ * to a folder ([[Web]], phone-only by nature).
+ */
+export function PhoneOnlySection() {
+  const { t } = useTranslation();
+  return (
+    <Section title={t('settingsWeb.onPhone')} id="settings-phone" lead={t('settingsWeb.onPhoneLead')}>
+      <ul className="grid gap-2 text-sm sm:grid-cols-2">
+        {(['reminders', 'sleepAlarm', 'appLock', 'widget', 'steps'] as const).map((item) => (
+          <li key={item} className="flex items-start gap-2 rounded-lg bg-muted/60 p-3">
+            <SmartphoneIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="flex flex-col">
+              <span className="font-bold">{t(`settingsWeb.phone.${item}`)}</span>
+              <span className="text-xs text-muted-foreground">{t(`settingsWeb.phone.${item}Hint`)}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
     </Section>
   );
 }
@@ -340,6 +447,11 @@ export function SettingsScreen() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-extrabold">{t('nav.settings')}</h1>
+      <HarvestSection />
+      <ExtrasSection />
+      <GeotagSetting />
+      <PomodoroSection />
+      <MoneySection />
       <Section title={t('settings.appearance')} id="settings-appearance">
         <Row label={t('prefs.language')} htmlFor={`${id}-language`}>
           <LanguageSelect id={`${id}-language`} />
@@ -353,8 +465,9 @@ export function SettingsScreen() {
           <PresetPicker />
         </div>
       </Section>
-      <HarvestSection />
+      <PhoneOnlySection />
       <SyncSection />
+      <DataCard />
       <AccountSection />
       <Section title={t('settings.keyboard')} id="settings-keys">
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">

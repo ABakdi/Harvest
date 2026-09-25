@@ -56,4 +56,17 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
   });
+
+  test('reads the fetch time as a local moment, stored either way', () {
+    // The web's `toISOString()`: UTC with a Z.
+    final fromWeb = rateFetchedAt('2026-09-19T12:00:00.000Z')!;
+    expect(fromWeb.isUtc, isFalse);
+    expect(fromWeb, DateTime.utc(2026, 9, 19, 12).toLocal());
+    // The phone's own `toIso8601String()` of a local time: no offset.
+    final fromPhone = rateFetchedAt('2026-09-19T13:00:00.000')!;
+    expect(fromPhone.isUtc, isFalse);
+    expect(fromPhone, DateTime(2026, 9, 19, 13));
+    expect(rateFetchedAt(null), isNull);
+    expect(rateFetchedAt('not a time'), isNull);
+  });
 }

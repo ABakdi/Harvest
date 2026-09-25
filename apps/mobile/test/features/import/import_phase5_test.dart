@@ -235,6 +235,7 @@ void main() {
               latitude: 36.7538123,
               longitude: 3.0587561,
               radiusM: const Value(150.5),
+              notes: const Value('Gate code 4412, second floor'),
               createdAt: Value(at),
               updatedAt: Value(at),
             ),

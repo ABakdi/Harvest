@@ -8,7 +8,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'seed_providers.g.dart';
 
 /// One day in a seed's life: what I logged, and what I wrote about it.
-typedef SeedDay = ({HarvestDay day, int quantity, String? note});
+/// `checkInUuid` is the day's last check-in, for its geotag ([[Places]]).
+typedef SeedDay = ({
+  HarvestDay day,
+  int quantity,
+  String? note,
+  String? checkInUuid,
+});
 
 @riverpod
 Stream<List<Commitment>> archivedCommitments(Ref ref) =>
@@ -23,7 +29,10 @@ Stream<List<SeedNote>> seedNotes(Ref ref, String uuid) =>
     ref.watch(seedNotesRepositoryProvider).watchFor(uuid);
 
 @riverpod
-Stream<List<({HarvestDay day, int quantity, DateTime loggedAt})>> seedHistory(
+Stream<
+    List<({HarvestDay day, int quantity, DateTime loggedAt, String? uuid})>
+>
+seedHistory(
   Ref ref,
   String uuid,
 ) => ref.watch(commitmentsRepositoryProvider).watchHistory(uuid);
@@ -36,12 +45,18 @@ List<SeedDay> seedTimeline(Ref ref, String uuid) {
   final notes = ref.watch(seedNotesProvider(uuid)).value ?? const [];
 
   final quantities = {for (final entry in history) entry.day: entry.quantity};
+  final uuidOf = {for (final entry in history) entry.day: entry.uuid};
   final bodies = {for (final note in notes) note.day: note.body};
   final days = {...quantities.keys, ...bodies.keys}.toList()
     ..sort((a, b) => b.compareTo(a));
   return [
     for (final day in days)
-      (day: day, quantity: quantities[day] ?? 0, note: bodies[day]),
+      (
+        day: day,
+        quantity: quantities[day] ?? 0,
+        note: bodies[day],
+        checkInUuid: uuidOf[day],
+      ),
   ];
 }
 

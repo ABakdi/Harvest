@@ -81,9 +81,13 @@ class SleepRepository {
             harvestDay: day.key,
             fellAsleepAt: fellAsleepAt,
             wokeAt: wokeAt,
-            targetMinutes: targetMinutes,
+            // A night keeps the target it was judged against when it was
+            // first written; changing my hours never rewrites it (#3).
+            targetMinutes: existing?.targetMinutes ?? targetMinutes,
             restedStars: Value(restedStars),
-            note: Value(note),
+            // The sheet has no note field: a correction keeps the note
+            // another device may have written.
+            note: Value(note ?? existing?.note),
             updatedAt: Value(DateTime.now()),
           ),
         );

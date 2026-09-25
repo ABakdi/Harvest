@@ -685,6 +685,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightsTab => 'Insights';
 
   @override
+  String get wishlistTitle => 'Wishlist';
+
+  @override
+  String get wishlistBuyList => 'To buy';
+
+  @override
+  String get wishlistWishlist => 'Wishlist';
+
+  @override
+  String get wishlistBuyEmptyTitle => 'Nothing to buy';
+
+  @override
+  String get wishlistBuyEmptyBody =>
+      'Add what you mean to pick up soon — the buy list is day to day.';
+
+  @override
+  String get wishlistWishEmptyTitle => 'Nothing wished for';
+
+  @override
+  String get wishlistWishEmptyBody =>
+      'Add what you want someday, with at most an estimate in mind.';
+
+  @override
+  String get wishlistAdd => 'Add';
+
+  @override
+  String get wishlistOpen => 'Open';
+
+  @override
+  String wishlistBought(int count) {
+    return '$count bought';
+  }
+
+  @override
+  String get wishlistRemoved => 'Removed';
+
+  @override
+  String get wishlistOptions => 'Options';
+
+  @override
+  String get wishlistEdit => 'Edit';
+
+  @override
+  String get wishlistEditItem => 'Edit item';
+
+  @override
+  String get wishlistMoveToBuy => 'To the buy list';
+
+  @override
+  String get wishlistMoveToWish => 'To the wishlist';
+
+  @override
+  String get wishlistDelete => 'Delete';
+
+  @override
+  String get wishlistNew => 'Something I want';
+
+  @override
+  String get wishlistTitleHint => 'e.g. Winter coat, kettle, espresso machine';
+
+  @override
+  String get wishlistEstimateLabel => 'Estimated price';
+
+  @override
+  String get wishlistEstimateHint => 'What I think it costs';
+
+  @override
+  String get wishlistEstimateInvalid =>
+      'Type a price above zero, or leave it empty.';
+
+  @override
+  String get wishlistNoteLabel => 'Note';
+
+  @override
+  String get wishlistNoteHint => 'Size, model, colour, why';
+
+  @override
+  String get wishlistTargetDay => 'Planned purchase day';
+
+  @override
+  String get wishlistNoTargetDay => 'Some day';
+
+  @override
+  String get wishlistToday => 'Today';
+
+  @override
+  String wishlistInDays(int count) {
+    return 'In $count days';
+  }
+
+  @override
+  String wishlistBoughtOn(String day) {
+    return 'Bought on $day';
+  }
+
+  @override
+  String get wishlistTotalsSeparator => ' · ';
+
+  @override
   String get savingsLow => 'Savings running low';
 
   @override
@@ -2932,6 +3031,42 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String gymBarOver(String over) {
+    return 'Lighter than the bar: the bar alone is $over over.';
+  }
+
+  @override
+  String get gymMoveDayUp => 'Move up';
+
+  @override
+  String get gymMoveDayDown => 'Move down';
+
+  @override
+  String get gymMineTitle => 'Add my own';
+
+  @override
+  String get gymMineBody =>
+      'One the catalogue is missing. It is yours: it syncs, and it works like any other everywhere.';
+
+  @override
+  String get gymMineName => 'Name';
+
+  @override
+  String get gymMineBodyPart => 'Body part';
+
+  @override
+  String get gymMineEquipment => 'Equipment';
+
+  @override
+  String get gymMineEquipmentHint => 'barbell, cable…';
+
+  @override
+  String get gymMineMuscle => 'Muscle';
+
+  @override
+  String get gymMineAdd => 'Add it';
+
+  @override
   String get sleepTitle => 'Last night';
 
   @override
@@ -3445,6 +3580,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get placesNameHint => 'Home, Office, Gym…';
 
   @override
+  String get placesLayers => 'Map views';
+
+  @override
+  String get placesStreets => 'Streets';
+
+  @override
+  String get placesSatellite => 'Satellite';
+
+  @override
+  String get placesLocateMe => 'My location';
+
+  @override
+  String get placesSavePlace => 'Save this place';
+
+  @override
+  String get placesEditPlace => 'Edit place';
+
+  @override
+  String get placesPlaceName => 'Place name';
+
+  @override
+  String get placesPlaceNotes => 'Notes';
+
+  @override
+  String get placesPlaceNotesHint => 'What to remember about here.';
+
+  @override
+  String get placesRadius => 'Reach (m)';
+
+  @override
+  String placesRadiusRange(int min, int max) {
+    return 'Between $min and $max m';
+  }
+
+  @override
+  String get placesPlaceSaved => 'Place saved';
+
+  @override
+  String get placesPlaceUpdated => 'Place updated';
+
+  @override
+  String get placesPlaceForgotten => 'Place forgotten';
+
+  @override
+  String get placesForgetPlace => 'Forget place';
+
+  @override
+  String get placesForgetPlaceBody => 'This removes the pin, not the trail.';
+
+  @override
+  String get placesNoFix => 'Can\'t find your location right now.';
+
+  @override
+  String geoWhere(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get geoUnavailable => 'No location recorded';
+
+  @override
   String get placesOptions => 'Places options';
 
   @override
@@ -3654,6 +3850,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assistSendsUpToCaret => 'the note up to the cursor';
+
+  @override
+  String assistTranscribeTooLong(int limit) {
+    return 'This recording is too long to transcribe: the server takes recordings up to $limit MB.';
+  }
+
+  @override
+  String get assistTranscribeUnknown =>
+      'This is not a kind of recording the server can transcribe.';
 
   @override
   String get assistSendsRecording => 'this recording';

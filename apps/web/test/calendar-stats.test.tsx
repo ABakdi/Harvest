@@ -33,6 +33,17 @@ describe('the calendar', () => {
     expect(deadline?.entries.some((entry) => entry.deadline && entry.row.uuid === todo.uuid)).toBe(true);
   });
 
+  it('keeps a to-do on its planned day, done or not, as the phone does', async () => {
+    const h = await device(new FakeServer());
+    const todo = await h.seeds.plant({ type: 'todo', title: 'Call the bank', dueDay: '2026-09-20' });
+
+    const month = await readMonth(h.db, today);
+    const days = [...month.values()]
+      .filter((day) => day.entries.some((entry) => !entry.deadline && entry.row.uuid === todo.uuid))
+      .map((day) => day.day.key);
+    expect(days).toEqual(['2026-09-20']);
+  });
+
   it('keeps projects off the grid, since they are due every day', async () => {
     const h = await device(new FakeServer());
     await h.seeds.plant({ type: 'project', title: 'Read', totalTarget: 300, dailyCommitment: 10 });

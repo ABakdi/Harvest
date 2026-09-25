@@ -1,3 +1,4 @@
+import { maxAssistAudioBytes } from '@harvest/contracts';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { type Express } from 'express';
@@ -21,6 +22,9 @@ import { assistRoutes } from './routes/assist.js';
 import { fileRoutes } from './routes/files.js';
 import { syncRoutes } from './routes/sync.js';
 import { SyncService } from './sync/service.js';
+
+/** The assist's body limit, in bytes ([[Notes]] N10). */
+export const assistBodyLimit = Math.ceil((maxAssistAudioBytes * 4) / 3) + 4 * 1024 * 1024;
 
 export interface AppDeps {
   config: Pick<
@@ -75,6 +79,10 @@ export function createApp(deps: AppDeps): Express {
       maxAge: 600,
     }),
   );
+  // A recording sent to be transcribed is the largest body the server
+  // takes, and its cap is the contract's, not the general limit: the
+  // base64 of the largest recording, with room for the words beside it.
+  app.use('/v1/assist', express.json({ limit: assistBodyLimit }));
   app.use(express.json({ limit: config.bodyLimit }));
   app.use(cookieParser());
 

@@ -112,6 +112,18 @@ void main() {
     expect(await File('${phoneB.path}/m1.jpg').readAsBytes(), bytes);
   });
 
+  test('naming the file makes the row newer, so the server takes it', () async {
+    await picture(a, phoneA, 'm1', List<int>.generate(64, (index) => index));
+    final before = (await a.select(a.memories).getSingle()).updatedAt;
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+
+    await run(a, phoneA);
+
+    final after = await a.select(a.memories).getSingle();
+    expect(after.fileHash, isNotNull);
+    expect(after.updatedAt.isAfter(before), isTrue);
+  });
+
   test('the same picture on two phones is one file on the server', () async {
     final bytes = List<int>.generate(512, (index) => index % 7);
     await picture(a, phoneA, 'm1', bytes);

@@ -204,16 +204,30 @@ final seedHistoryProvider = SeedHistoryFamily._();
 final class SeedHistoryProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<({HarvestDay day, DateTime loggedAt, int quantity})>>,
-          List<({HarvestDay day, DateTime loggedAt, int quantity})>,
-          Stream<List<({HarvestDay day, DateTime loggedAt, int quantity})>>
+          AsyncValue<
+            List<
+              ({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})
+            >
+          >,
+          List<
+            ({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})
+          >,
+          Stream<
+            List<
+              ({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})
+            >
+          >
         >
     with
         $FutureModifier<
-          List<({HarvestDay day, DateTime loggedAt, int quantity})>
+          List<
+            ({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})
+          >
         >,
         $StreamProvider<
-          List<({HarvestDay day, DateTime loggedAt, int quantity})>
+          List<
+            ({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})
+          >
         > {
   SeedHistoryProvider._({
     required SeedHistoryFamily super.from,
@@ -239,14 +253,15 @@ final class SeedHistoryProvider
   @$internal
   @override
   $StreamProviderElement<
-    List<({HarvestDay day, DateTime loggedAt, int quantity})>
+    List<({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})>
   >
   $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
-  Stream<List<({HarvestDay day, DateTime loggedAt, int quantity})>> create(
-    Ref ref,
-  ) {
+  Stream<
+    List<({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})>
+  >
+  create(Ref ref) {
     final argument = this.argument as String;
     return seedHistory(ref, argument);
   }
@@ -262,12 +277,16 @@ final class SeedHistoryProvider
   }
 }
 
-String _$seedHistoryHash() => r'20e7a4c82f6e83312da8f7bedaaa5435df369f21';
+String _$seedHistoryHash() => r'7fd9d484e454a3c57c4244b0b3ba8a4a9ece7480';
 
 final class SeedHistoryFamily extends $Family
     with
         $FunctionalFamilyOverride<
-          Stream<List<({HarvestDay day, DateTime loggedAt, int quantity})>>,
+          Stream<
+            List<
+              ({HarvestDay day, DateTime loggedAt, int quantity, String? uuid})
+            >
+          >,
           String
         > {
   SeedHistoryFamily._()
@@ -351,7 +370,7 @@ final class SeedTimelineProvider
   }
 }
 
-String _$seedTimelineHash() => r'206b36d7c495a7b4229219be2353f4a4c9d268f1';
+String _$seedTimelineHash() => r'ab27bbec6f3a276d69a97c19a5a1df43623e67d7';
 
 /// The seed's whole story, newest day first: every day it was watered
 /// and every day it was written about, merged into one timeline.

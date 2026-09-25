@@ -1,10 +1,11 @@
+import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:meta/meta.dart';
 
 /// Weights are stored in grams, integer, for the reason money is
 /// stored in minor units: a barbell load is not a float.
 const gramsPerKg = 1000;
 
-/// What a resolved weight is rounded to.
+/// What a resolved weight is rounded to in kilos.
 ///
 /// A quarter of a kilo: fine enough for micro-plates and dumbbells,
 /// coarse enough that nobody is reading `83.7625` off a screen at the
@@ -18,6 +19,33 @@ const roundingGrams = 250;
 /// not a constant.
 const int defaultBarGrams = 20 * gramsPerKg;
 
+/// Pounds as the whole grams that read back as exactly those pounds.
+int gramsOfPounds(num pounds) => (pounds * WeightUnit.gramsPerPound).round();
+
+/// Grams as whole quarter pounds, the pound's loadable step.
+int quarterPounds(int grams) => (grams / WeightUnit.gramsPerPound * 4).round();
+
+/// The bar a pound gym has: 45 lb, not 20 kg ([[Gym]] rule Y8).
+final int defaultBarGramsLb = gramsOfPounds(45);
+
+/// The bars a slot can be told about: EZ, Smith, Olympic, the heavy one.
+const barChoicesGrams = [10000, 15000, 20000, 25000];
+
+/// The bars in pounds: the women's and the men's Olympic.
+final List<int> barChoicesGramsLb = [gramsOfPounds(35), gramsOfPounds(45)];
+
+/// The bar chips for the unit on screen.
+List<int> barChoicesIn(WeightUnit unit) =>
+    unit == WeightUnit.lb ? barChoicesGramsLb : barChoicesGrams;
+
+/// The bar a slot really has in [unit]: a slot still on the 20 kg
+/// default is the 45 lb bar to someone lifting in pounds; any other bar
+/// is the one I set.
+int barIn(int barGrams, WeightUnit unit) =>
+    unit == WeightUnit.lb && barGrams == defaultBarGrams
+    ? defaultBarGramsLb
+    : barGrams;
+
 /// The rest to count down when nothing else has been said.
 ///
 /// Two minutes is wrong for curls and wrong for a heavy single, and
@@ -28,8 +56,14 @@ const int defaultRestSeconds = 120;
 /// type while holding a bar.
 const restChoices = [60, 90, 120, 180, 240, 300];
 
-/// Rounds to something that can actually be loaded.
-int roundLoad(num grams) => (grams / roundingGrams).round() * roundingGrams;
+/// Rounds to something that can actually be loaded: the nearest
+/// quarter kilo, or for pounds the nearest quarter pound, kept as the
+/// whole grams of that many pounds so 135 lb reads back as 135 and not
+/// 135.03 ([[Gym]] rule Y8).
+int roundLoad(num grams, {WeightUnit unit = WeightUnit.kg}) =>
+    unit == WeightUnit.lb
+    ? gramsOfPounds((grams / WeightUnit.gramsPerPound * 4).round() / 4)
+    : (grams / roundingGrams).round() * roundingGrams;
 
 /// One row of what I am *meant* to do.
 ///
@@ -69,12 +103,13 @@ class TargetSet {
   /// percentage of.
   ///
   /// Null when it is a percentage and no training max has been set —
-  /// which is a question to ask, not a zero to load.
-  int? resolve({int? trainingMaxGrams}) {
+  /// which is a question to ask, not a zero to load. A percentage is
+  /// rounded in the [unit] I lift in.
+  int? resolve({int? trainingMaxGrams, WeightUnit unit = WeightUnit.kg}) {
     if (weightGrams != null) return weightGrams;
     if (percentTenths == null) return null;
     if (trainingMaxGrams == null) return null;
-    return roundLoad(trainingMaxGrams * percentTenths! / 1000);
+    return roundLoad(trainingMaxGrams * percentTenths! / 1000, unit: unit);
   }
 
   TargetSet copyWith({
@@ -206,10 +241,25 @@ class Program {
 typedef ResolvedSet = ({TargetSet target, int? grams});
 
 /// What a slot asks of me today, with its percentages worked out.
-List<ResolvedSet> resolveSlot(ProgramSlot slot, {int? trainingMaxGrams}) => [
+List<ResolvedSet> resolveSlot(
+  ProgramSlot slot, {
+  int? trainingMaxGrams,
+  WeightUnit unit = WeightUnit.kg,
+}) => [
   for (final set in slot.sets)
-    (target: set, grams: set.resolve(trainingMaxGrams: trainingMaxGrams)),
+    (
+      target: set,
+      grams: set.resolve(trainingMaxGrams: trainingMaxGrams, unit: unit),
+    ),
 ];
+
+/// Where a new row goes: after the highest live position, not at the
+/// count. Counting repeats a position once a row has been dropped from
+/// the middle — sets 0, 1, 2, drop 1, add, and two rows would claim 2.
+int nextPosition(Iterable<int> positions) => positions.fold(
+  0,
+  (next, position) => position + 1 > next ? position + 1 : next,
+);
 
 /// The slot order after dragging the item at [from] to [to], where
 /// [to] is its index in the list *after* the move — what

@@ -1,0 +1,219 @@
+{
+  "about": "program.dart, session.dart, plates.dart, exercise.dart, weight_text.dart and the pure half of sessions_repository.dart: loads round to a quarter kilo or a quarter pound, in the unit they are read in, percentages resolve against a training max, a session keeps the phone's label of its target, Epley estimates, three records, plates per side, and the day that is up next.",
+  "roundLoad": [
+    { "grams": 83250, "rounded": 83250 },
+    { "grams": 83260, "rounded": 83250 },
+    { "grams": 83375, "rounded": 83500 },
+    { "grams": 124, "rounded": 0 },
+    { "grams": 125, "rounded": 250 },
+    { "why": "135 lb is the whole grams of 135 lb, so it reads back as 135", "grams": 61234, "unit": "lb", "rounded": 61235 },
+    { "why": "a quarter pound, not a quarter kilo", "grams": 61300, "unit": "lb", "rounded": 61348 },
+    { "why": "100 kg to someone in pounds is 220.5 lb", "grams": 100000, "unit": "lb", "rounded": 100017 }
+  ],
+  "targets": [
+    {
+      "why": "a weight is a weight, whatever the training max",
+      "target": { "reps": 5, "weightGrams": 100000, "percentTenths": null, "openEnded": false },
+      "trainingMaxGrams": 90000,
+      "grams": 100000,
+      "label": "100.00×5"
+    },
+    {
+      "why": "75% of 111 kg is 83.25, not a float nobody can load",
+      "target": { "reps": 5, "weightGrams": null, "percentTenths": 750, "openEnded": false },
+      "trainingMaxGrams": 111000,
+      "grams": 83250,
+      "label": "83.25×5"
+    },
+    {
+      "why": "33.3% of 100 kg rounds to the nearest quarter kilo",
+      "target": { "reps": 8, "weightGrams": null, "percentTenths": 333, "openEnded": false },
+      "trainingMaxGrams": 100000,
+      "grams": 33250,
+      "label": "33.25×8"
+    },
+    {
+      "why": "a percentage with no training max is a question, not a zero, and keeps its percent in the label",
+      "target": { "reps": 1, "weightGrams": null, "percentTenths": 950, "openEnded": true },
+      "trainingMaxGrams": null,
+      "grams": null,
+      "label": "95.0%×1+"
+    },
+    {
+      "why": "half a percent survives the label",
+      "target": { "reps": 3, "weightGrams": null, "percentTenths": 825, "openEnded": false },
+      "trainingMaxGrams": null,
+      "grams": null,
+      "label": "82.5%×3"
+    },
+    {
+      "why": "no load and no reps is one rep of nothing in particular",
+      "target": { "reps": null, "weightGrams": null, "percentTenths": null, "openEnded": false },
+      "trainingMaxGrams": null,
+      "grams": null,
+      "label": "×1"
+    },
+    {
+      "why": "135 lb stays 135 lb, and the label keeps kilos to two places as ever",
+      "unit": "lb",
+      "target": { "reps": 5, "weightGrams": 61235, "percentTenths": null, "openEnded": false },
+      "trainingMaxGrams": null,
+      "grams": 61235,
+      "label": "61.23×5"
+    },
+    {
+      "why": "75% of 225 lb resolves in pounds: 168.75 lb",
+      "unit": "lb",
+      "target": { "reps": 5, "weightGrams": null, "percentTenths": 750, "openEnded": true },
+      "trainingMaxGrams": 102058,
+      "grams": 76544,
+      "label": "76.54×5+"
+    },
+    {
+      "why": "33.3% of 225 lb rounds to the nearest quarter pound, 75 lb",
+      "unit": "lb",
+      "target": { "reps": 8, "weightGrams": null, "percentTenths": 333, "openEnded": false },
+      "trainingMaxGrams": 102058,
+      "grams": 34019,
+      "label": "34.02×8"
+    }
+  ],
+  "labelsRead": [
+    { "why": "kilos read back as they were stored", "label": "83.25×5", "unit": "kg", "grams": 83250 },
+    { "why": "two places of kilos are within a quarter pound, so 135 lb comes back", "label": "61.23×5", "unit": "lb", "grams": 61235 },
+    { "why": "168.75 lb comes back", "label": "76.54×5+", "unit": "lb", "grams": 76544 },
+    { "why": "a percentage has no load to read", "label": "95.0%×1+", "unit": "lb", "grams": null },
+    { "why": "nor does a bare rep count", "label": "×1", "unit": "kg", "grams": null }
+  ],
+  "percents": [
+    { "tenths": 825, "text": "82.5%" },
+    { "tenths": 750, "text": "75%" },
+    { "tenths": 5, "text": "0.5%" }
+  ],
+  "fieldValues": [
+    { "grams": 100000, "unit": "kg", "text": "100" },
+    { "grams": 82500, "unit": "kg", "text": "82.5" },
+    { "grams": 83250, "unit": "kg", "text": "83.25" },
+    { "grams": 1250, "unit": "kg", "text": "1.25" },
+    { "grams": 100000, "unit": "lb", "text": "220.46" },
+    { "grams": 20000, "unit": "lb", "text": "44.09" },
+    { "grams": 61235, "unit": "lb", "text": "135" },
+    { "grams": 76544, "unit": "lb", "text": "168.75" }
+  ],
+  "estimates": [
+    { "why": "Epley: 100 × (1 + 5/30)", "weightGrams": 100000, "reps": 5, "estimate": 116667 },
+    { "why": "a single estimates to itself", "weightGrams": 100000, "reps": 1, "estimate": 100000 },
+    { "why": "ten reps is a third more", "weightGrams": 60000, "reps": 10, "estimate": 80000 },
+    { "why": "an empty bar lifted nothing", "weightGrams": 0, "reps": 5, "estimate": null },
+    { "why": "no reps, no estimate", "weightGrams": 100000, "reps": 0, "estimate": null }
+  ],
+  "records": [
+    {
+      "why": "the heaviest and the best estimate can be different sets, and an unticked set is not a record",
+      "sets": [
+        { "weightGrams": 100000, "reps": 5, "done": true },
+        { "weightGrams": 110000, "reps": 1, "done": true },
+        { "weightGrams": 120000, "reps": 3, "done": false },
+        { "weightGrams": 90000, "reps": 10, "done": true }
+      ],
+      "sessionVolumes": [610000, 900000],
+      "heaviest": 1,
+      "bestSet": 3,
+      "bestSetEstimate": 120000,
+      "bestSessionVolumeGrams": 900000
+    },
+    {
+      "why": "a tie keeps the first",
+      "sets": [
+        { "weightGrams": 100000, "reps": 5, "done": true },
+        { "weightGrams": 100000, "reps": 3, "done": true }
+      ],
+      "sessionVolumes": [],
+      "heaviest": 0,
+      "bestSet": 0,
+      "bestSetEstimate": 116667,
+      "bestSessionVolumeGrams": 0
+    },
+    {
+      "why": "nothing done, nothing kept",
+      "sets": [{ "weightGrams": 100000, "reps": 5, "done": false }],
+      "sessionVolumes": [],
+      "heaviest": null,
+      "bestSet": null,
+      "bestSetEstimate": null,
+      "bestSessionVolumeGrams": 0
+    }
+  ],
+  "beaten": [
+    { "why": "eight at 100 estimates past the old best", "records": { "heaviestGrams": 110000, "bestSetEstimate": 120000 }, "set": { "weightGrams": 100000, "reps": 8, "done": true }, "kinds": ["estimated"] },
+    { "why": "heavier, but a single at 115 is not the best estimate", "records": { "heaviestGrams": 110000, "bestSetEstimate": 120000 }, "set": { "weightGrams": 115000, "reps": 1, "done": true }, "kinds": ["heaviest"] },
+    { "why": "both at once", "records": { "heaviestGrams": 110000, "bestSetEstimate": 120000 }, "set": { "weightGrams": 120000, "reps": 2, "done": true }, "kinds": ["heaviest", "estimated"] },
+    { "why": "equalling a record does not beat it", "records": { "heaviestGrams": 110000, "bestSetEstimate": 120000 }, "set": { "weightGrams": 110000, "reps": 1, "done": true }, "kinds": [] },
+    { "why": "an unticked set beats nothing", "records": { "heaviestGrams": 110000, "bestSetEstimate": 120000 }, "set": { "weightGrams": 200000, "reps": 5, "done": false }, "kinds": [] },
+    { "why": "the first set ever is both records", "records": { "heaviestGrams": null, "bestSetEstimate": null }, "set": { "weightGrams": 50000, "reps": 5, "done": true }, "kinds": ["heaviest", "estimated"] }
+  ],
+  "plates": [
+    { "why": "100 on a 20 bar: a 25 and a 15 a side", "targetGrams": 100000, "barGrams": 20000, "stacks": [{ "grams": 25000, "perSide": 1 }, { "grams": 15000, "perSide": 1 }], "totalGrams": 100000, "shortfallGrams": 0, "overGrams": 0 },
+    { "why": "the micro-plates are used", "targetGrams": 142500, "barGrams": 20000, "stacks": [{ "grams": 25000, "perSide": 2 }, { "grams": 10000, "perSide": 1 }, { "grams": 1250, "perSide": 1 }], "totalGrams": 142500, "shortfallGrams": 0, "overGrams": 0 },
+    { "why": "an EZ bar is its own bar", "targetGrams": 60000, "barGrams": 10000, "stacks": [{ "grams": 25000, "perSide": 1 }], "totalGrams": 60000, "shortfallGrams": 0, "overGrams": 0 },
+    { "why": "just the bar", "targetGrams": 20000, "barGrams": 20000, "stacks": [], "totalGrams": 20000, "shortfallGrams": 0, "overGrams": 0 },
+    { "why": "below the bar is still the bar", "targetGrams": 15000, "barGrams": 20000, "stacks": [], "totalGrams": 20000, "shortfallGrams": 0, "overGrams": 5000 },
+    { "why": "a bar loads in pairs, so a quarter kilo over is short, never rounded up", "targetGrams": 20250, "barGrams": 20000, "stacks": [], "totalGrams": 20000, "shortfallGrams": 250, "overGrams": 0 },
+    { "why": "135 lb on a 45 lb bar: a 45 a side, exactly", "unit": "lb", "targetGrams": 61235, "barGrams": 20412, "stacks": [{ "grams": 20412, "perSide": 1 }], "totalGrams": 61235, "shortfallGrams": 0, "overGrams": 0 },
+    { "why": "the pound plates go down to 2.5", "unit": "lb", "targetGrams": 63503, "barGrams": 20412, "stacks": [{ "grams": 20412, "perSide": 1 }, { "grams": 1134, "perSide": 1 }], "totalGrams": 63503, "shortfallGrams": 0, "overGrams": 0 },
+    { "why": "a 35 lb bar with a 25 and a 5 a side is 95 lb", "unit": "lb", "targetGrams": 43091, "barGrams": 15876, "stacks": [{ "grams": 11340, "perSide": 1 }, { "grams": 2268, "perSide": 1 }], "totalGrams": 43091, "shortfallGrams": 0, "overGrams": 0 },
+    { "why": "137.5 lb cannot be made from pairs of 2.5s: 2.5 lb short", "unit": "lb", "targetGrams": 62369, "barGrams": 20412, "stacks": [{ "grams": 20412, "perSide": 1 }], "totalGrams": 61235, "shortfallGrams": 1134, "overGrams": 0 },
+    { "why": "40 lb on a 45 lb bar: the bar alone is 5 lb over", "unit": "lb", "targetGrams": 18144, "barGrams": 20412, "stacks": [], "totalGrams": 20412, "shortfallGrams": 0, "overGrams": 2268 }
+  ],
+  "poundGym": { "bar": 20412, "bars": [15876, 20412], "plates": [20412, 15876, 11340, 4536, 2268, 1134] },
+  "barsIn": [
+    { "why": "the 20 kg default is the 45 lb bar in pounds", "barGrams": 20000, "unit": "lb", "bar": 20412 },
+    { "why": "and stays 20 kg in kilos", "barGrams": 20000, "unit": "kg", "bar": 20000 },
+    { "why": "a bar I chose is the bar I chose", "barGrams": 15876, "unit": "lb", "bar": 15876 },
+    { "why": "an EZ bar in pounds is still an EZ bar", "barGrams": 10000, "unit": "lb", "bar": 10000 }
+  ],
+  "bars": [
+    { "name": "barbell bench press", "equipment": "barbell", "usesBar": true },
+    { "name": "dumbbell row", "equipment": "dumbbell", "usesBar": false },
+    { "name": "My Smith Machine squat", "equipment": null, "usesBar": true },
+    { "name": "landmine", "equipment": "Trap Bar", "usesBar": true },
+    { "name": "lever seated row", "equipment": "leverage machine", "usesBar": false }
+  ],
+  "catalogue": [
+    { "id": "0001", "name": "cable seated row", "bodyPart": "back", "equipment": "cable", "target": "upper back", "secondary": [], "mine": false },
+    { "id": "0002", "name": "barbell bent over row", "bodyPart": "back", "equipment": "barbell", "target": "upper back", "secondary": ["biceps"], "mine": false },
+    { "id": "0003", "name": "cable triceps pushdown", "bodyPart": "upper arms", "equipment": "cable", "target": "triceps", "secondary": [], "mine": false },
+    { "id": "m1", "name": "Rowing machine sprint", "bodyPart": null, "equipment": null, "target": null, "secondary": [], "mine": true },
+    { "id": "0004", "name": "Row, inverted", "bodyPart": "back", "equipment": "body weight", "target": "lats", "secondary": [], "mine": false }
+  ],
+  "searches": [
+    { "why": "every word has to match somewhere", "search": "cable row", "bodyPart": null, "equipment": null, "ids": ["0001"] },
+    { "why": "mine first, then a name that starts with it, then the rest by name", "search": "row", "bodyPart": null, "equipment": null, "ids": ["m1", "0004", "0002", "0001"] },
+    { "why": "a body part alone, by name", "search": "", "bodyPart": "back", "equipment": null, "ids": ["0002", "0001", "0004"] },
+    { "why": "what else hits triceps on this cable", "search": "triceps", "bodyPart": null, "equipment": "cable", "ids": ["0003"] },
+    { "why": "secondary muscles count, in any case", "search": "BICEPS", "bodyPart": null, "equipment": null, "ids": ["0002"] }
+  ],
+  "nextDays": [
+    { "why": "nothing finished starts at the top", "days": ["A", "B", "C"], "last": null, "next": "A" },
+    { "why": "the day after the last one finished", "days": ["A", "B", "C"], "last": "A", "next": "B" },
+    { "why": "the end wraps round", "days": ["A", "B", "C"], "last": "C", "next": "A" },
+    { "why": "a last day since deleted starts at the top", "days": ["A", "B", "C"], "last": "gone", "next": "A" },
+    { "why": "no days, no next", "days": [], "last": null, "next": null }
+  ],
+  "clocks": [
+    { "why": "running, less the pause that ended", "startedAt": "2026-09-19T10:00:00.000Z", "endedAt": null, "pausedAt": null, "pausedSeconds": 60, "now": "2026-09-19T10:30:15.000Z", "seconds": 1755 },
+    { "why": "paused, the clock stands at the pause", "startedAt": "2026-09-19T10:00:00.000Z", "endedAt": null, "pausedAt": "2026-09-19T10:20:00.000Z", "pausedSeconds": 120, "now": "2026-09-19T11:00:00.000Z", "seconds": 1080 },
+    { "why": "finished, the clock stands at the end", "startedAt": "2026-09-19T10:00:00.000Z", "endedAt": "2026-09-19T10:45:00.000Z", "pausedAt": null, "pausedSeconds": 0, "now": "2026-09-19T12:00:00.000Z", "seconds": 2700 },
+    { "why": "never below zero", "startedAt": "2026-09-19T10:00:00.000Z", "endedAt": null, "pausedAt": null, "pausedSeconds": 5000, "now": "2026-09-19T10:10:00.000Z", "seconds": 0 }
+  ],
+  "reorders": [
+    { "uuids": ["a", "b", "c"], "from": 0, "to": 2, "result": ["b", "c", "a"] },
+    { "uuids": ["a", "b", "c"], "from": 2, "to": 0, "result": ["c", "a", "b"] }
+  ],
+  "nextPositions": [
+    { "positions": [], "next": 0, "why": "the first row" },
+    { "positions": [0, 1, 2], "next": 3, "why": "nothing dropped" },
+    { "positions": [0, 2], "next": 3, "why": "the middle one dropped: after the highest, not at the count" },
+    { "positions": [2, 0], "next": 3, "why": "whatever order they are read in" }
+  ]
+}

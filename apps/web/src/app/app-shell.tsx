@@ -11,7 +11,7 @@ import {
   WifiOffIcon,
   type LucideIcon,
 } from 'lucide-react';
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -19,6 +19,8 @@ import { HarvestMark } from '@/components/brand';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { PomodoroChip } from './components/pomodoro-timer';
+import { useFeaturesOrOff } from './components/settings-bits';
 import { SyncIndicator } from './components/sync-indicator';
 import { useHarvest, useSyncStatus } from './context';
 import { DialogsProvider, useDialogs } from './dialogs';
@@ -29,12 +31,17 @@ import { FieldScreen } from './screens/field';
 import { GalleryScreen } from './screens/gallery';
 import { GoalScreen } from './screens/goal';
 import { GranaryScreen } from './screens/granary';
+import { ProgramEditorScreen } from './screens/gym/program-editor';
+import { SessionScreen } from './screens/gym/session';
 import { NotesScreen } from './screens/notes';
+import { PomodoroScreen } from './screens/pomodoro';
+import { SeedScreen } from './screens/seed';
 
 // The map is most of a megabyte of MapLibre, and most days nobody
 // opens it: it arrives when Places does, not when the app does.
 const PlacesScreen = lazy(async () => ({ default: (await import('./screens/places')).PlacesScreen }));
 
+import { OnboardingGate, OnboardingScreen } from './screens/onboarding';
 import { SettingsScreen } from './screens/settings';
 import { useShortcuts } from './shortcuts';
 
@@ -46,12 +53,21 @@ interface Tab {
   key: string;
 }
 
+/**
+ * The tabs, with the paired ones only while one of their halves is
+ * switched on, as on the phone: Records for notes, pictures or places,
+ * Body for health or training. A tab switched off still opens by link.
+ */
 function useTabs(): Tab[] {
   const { t } = useTranslation();
+  const on = useFeaturesOrOff();
   return [
     { to: '/app/field', label: t('nav.field'), icon: SproutIcon, key: 'f' },
-    { to: '/app/body', label: t('nav.body'), icon: HeartPulseIcon, key: 'b' },
-    { to: '/app/records', label: t('nav.records'), icon: BookOpenIcon, key: 'r' },
+    ...(on.health || on.gym ? [{ to: '/app/body', label: t('nav.body'), icon: HeartPulseIcon, key: 'b' }] : []),
+    // Records opens on its first half that is on.
+    ...(on.notes || on.gallery || on.places
+      ? [{ to: on.notes ? '/app/records' : on.gallery ? '/app/records/gallery' : '/app/records/places', label: t('nav.records'), icon: BookOpenIcon, key: 'r' }]
+      : []),
     { to: '/app/granary', label: t('nav.granary'), icon: WalletIcon, key: 'm' },
     { to: '/app/farmer', label: t('nav.farmer'), icon: UserRoundIcon, key: 'p' },
   ];
@@ -161,6 +177,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             <HarvestMark className="size-8" />
           </Link>
           <div className="ms-auto flex items-center gap-1">
+            <PomodoroChip />
             <SyncIndicator />
             <Button variant="ghost" size="icon" aria-label={t('app.search')} title={`${t('app.search')} (/)`} onClick={dialogs.openSearch}>
               <SearchIcon />
@@ -174,13 +191,21 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
         </header>
         <main id="app-main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-3 py-4 md:px-6">
           <Banners startedOffline={startedOffline} />
+          <OnboardingGate />
           <Routes>
             <Route index element={<Navigate to="field" replace />} />
             <Route path="field" element={<FieldScreen tab="today" />} />
             <Route path="field/calendar" element={<CalendarScreen />} />
+            <Route path="field/seed/:uuid" element={<SeedScreen />} />
+            <Route path="field/focus" element={<PomodoroScreen />} />
             <Route path="field/goals" element={<FieldScreen tab="goals" />} />
             <Route path="field/goals/:uuid" element={<GoalScreen />} />
-            <Route path="body" element={<BodyScreen />} />
+            {/* Keyed apart: the two paths are two screens, so following a
+                link from one to the other opens on the tab it names. */}
+            <Route path="body" element={<BodyScreen key="health" />} />
+            <Route path="body/gym" element={<BodyScreen key="gym" tab="gym" />} />
+            <Route path="body/gym/programs/:uuid" element={<ProgramEditorScreen />} />
+            <Route path="body/gym/sessions/:uuid" element={<SessionScreen />} />
             <Route path="records" element={<NotesScreen />} />
             <Route path="records/gallery" element={<GalleryScreen />} />
             <Route
@@ -196,6 +221,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             <Route path="granary" element={<GranaryScreen />} />
             <Route path="farmer" element={<FarmerScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
+            <Route path="welcome" element={<OnboardingScreen />} />
             <Route path="*" element={<Navigate to="field" replace />} />
           </Routes>
         </main>
@@ -204,9 +230,17 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
   );
 }
 
+/** Pictures and recordings made here leave after each sync ([[Sync-API]], files). */
+function FileUploads() {
+  const { files, engine } = useHarvest();
+  useEffect(() => files.follow(engine), [files, engine]);
+  return null;
+}
+
 export function AppShell({ startedOffline }: { startedOffline: boolean }) {
   return (
     <DialogsProvider>
+      <FileUploads />
       <Shell startedOffline={startedOffline} />
     </DialogsProvider>
   );

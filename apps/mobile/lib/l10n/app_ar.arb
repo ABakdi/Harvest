@@ -201,6 +201,57 @@
   "manageCategories": "الفئات المخصصة",
   "todayTab": "اليوم",
   "insightsTab": "تحليلات",
+  "wishlistTitle": "قائمة الأمنيات",
+  "wishlistBuyList": "لأشتريه",
+  "wishlistWishlist": "أمنياتي",
+  "wishlistBuyEmptyTitle": "لا شيء لشرائه",
+  "wishlistBuyEmptyBody": "أضف ما تنوي شراءه قريبًا — قائمة الشراء للاستخدام اليومي.",
+  "wishlistWishEmptyTitle": "لا أمنيات بعد",
+  "wishlistWishEmptyBody": "أضف ما تريده يومًا ما، مع تقدير للسعر على الأكثر.",
+  "wishlistAdd": "أضف",
+  "wishlistOpen": "مفتوح",
+  "wishlistBought": "{count} مُشترى",
+  "@wishlistBought": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wishlistRemoved": "أُزيل",
+  "wishlistOptions": "خيارات",
+  "wishlistEdit": "تعديل",
+  "wishlistEditItem": "تعديل العنصر",
+  "wishlistMoveToBuy": "إلى قائمة الشراء",
+  "wishlistMoveToWish": "إلى الأمنيات",
+  "wishlistDelete": "حذف",
+  "wishlistNew": "شيء أريده",
+  "wishlistTitleHint": "مثال: معطف شتوي، غلاية، آلة إسبريسو",
+  "wishlistEstimateLabel": "السعر التقديري",
+  "wishlistEstimateHint": "ما أظن أنه سيكلف",
+  "wishlistEstimateInvalid": "اكتب سعرًا أكبر من صفر، أو اتركه فارغًا.",
+  "wishlistNoteLabel": "ملاحظة",
+  "wishlistNoteHint": "المقاس، الموديل، اللون، لماذا",
+  "wishlistTargetDay": "يوم الشراء المخطط",
+  "wishlistNoTargetDay": "يومًا ما",
+  "wishlistToday": "اليوم",
+  "wishlistInDays": "بعد {count} يوم",
+  "@wishlistInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wishlistBoughtOn": "اشتراه في {day}",
+  "@wishlistBoughtOn": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "wishlistTotalsSeparator": " · ",
   "savingsLow": "المدخرات تنخفض",
   "rangeWeek": "أسبوع",
   "rangeMonth": "شهر",
@@ -825,6 +876,17 @@
   "gymPerSide": "لكل جهة، على بار {bar}",
   "gymJustTheBar": "البار وحده",
   "gymPlateShortfall": "أقرب ما يمكن {total} — بنقص {short}. البار يُحمّل مثنى مثنى، فلا يبلغ كل رقم.",
+  "gymBarOver": "أخف من البار: البار وحده يزيد {over}.",
+  "gymMoveDayUp": "انقله للأعلى",
+  "gymMoveDayDown": "انقله للأسفل",
+  "gymMineTitle": "أضف تمريني",
+  "gymMineBody": "تمرين ينقص الفهرس. هو لك: يُزامَن، ويعمل كغيره في كل مكان.",
+  "gymMineName": "الاسم",
+  "gymMineBodyPart": "جزء الجسم",
+  "gymMineEquipment": "الأداة",
+  "gymMineEquipmentHint": "بار، كابل…",
+  "gymMineMuscle": "العضلة",
+  "gymMineAdd": "أضفه",
 
 
   "sleepTitle": "ليلة أمس",
@@ -967,6 +1029,26 @@
   "placesStay": "مكثتُ {duration}",
   "placesNameStay": "سمِّ هذا المكان",
   "placesNameHint": "البيت، المكتب، النادي…",
+  "placesLayers": "عروض الخريطة",
+  "placesStreets": "الشوارع",
+  "placesSatellite": "قمر صناعي",
+  "placesLocateMe": "موقعي",
+  "placesSavePlace": "احفظ هذا المكان",
+  "placesEditPlace": "تعديل المكان",
+  "placesPlaceName": "اسم المكان",
+  "placesPlaceNotes": "ملاحظات",
+  "placesPlaceNotesHint": "ما تريد تذكّره عن هنا.",
+  "placesRadius": "المدى (م)",
+  "placesRadiusRange": "بين {min} و{max} م",
+  "placesPlaceSaved": "حُفظ المكان",
+  "placesPlaceUpdated": "حُدّث المكان",
+  "placesPlaceForgotten": "نُسي المكان",
+  "placesForgetPlace": "انسَ هذا المكان",
+  "placesForgetPlaceBody": "يُزيل هذا الدبوس، ويُبقي المسار.",
+  "placesNoFix": "لا يمكن تحديد موقعك الآن.",
+  "geoWhere": "{name} · {time}",
+  "@geoWhere": { "placeholders": { "name": { "type": "String" }, "time": { "type": "String" } } },
+  "geoUnavailable": "لا يوجد موقع مسجّل",
   "placesOptions": "خيارات الأماكن",
   "placesNotificationTitle": "Harvest",
   "placesNotificationText": "يسجّل مسارك",
@@ -1034,6 +1116,8 @@
   "assistSendsNote": "هذه الملاحظة",
   "assistSendsSelection": "النص المحدد",
   "assistSendsUpToCaret": "الملاحظة حتى المؤشر",
+  "assistTranscribeTooLong": "هذا التسجيل أطول من أن يُفرَّغ: يقبل الخادم تسجيلات حتى {limit} ميغابايت.",
+  "assistTranscribeUnknown": "هذا ليس نوعًا من التسجيلات يستطيع الخادم تفريغه.",
   "assistSendsRecording": "هذا التسجيل",
   "assistGo": "أرسل",
   "assistInsert": "أدرج",

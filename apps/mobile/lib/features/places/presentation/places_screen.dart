@@ -15,6 +15,7 @@ import 'package:harvest/core/ui/widgets/text_prompt.dart';
 import 'package:harvest/features/places/data/location_gateway.dart';
 import 'package:harvest/features/places/data/places_repository.dart';
 import 'package:harvest/features/places/domain/place.dart';
+import 'package:harvest/features/places/presentation/place_form.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -55,6 +56,18 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
   /// The pin a timeline row or a tap last pointed at.
   String? _selected;
 
+  /// Where I was the last time the phone knew, drawn as the blue dot.
+  Fix? _here;
+
+  /// A location link coming in from an entity: the day and the action
+  /// whose pin the map should land on.
+  ({String table, String uuid})? _pendingFocus;
+
+  /// The style the map was last given. The map widget reloads its style
+  /// when this prop changes; the pins go with the old style, so a change
+  /// means drawing them again once the new one has loaded.
+  String? _style;
+
   HarvestDay get _day => _anchor ?? ref.read(currentHarvestDayProvider);
 
   PlacesSpan get _span => switch (_range) {
@@ -65,6 +78,39 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
       to: HarvestDay.fromDate(DateTime(_day.year, _day.month + 1, 0)),
     ),
   };
+
+  @override
+  void initState() {
+    super.initState();
+    // The blue dot is the phone's last known fix, remembered locally —
+    // the map never asks the platform engines that the geotags refuse
+    // ([[ADR-010-Maps]]).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_seedHere());
+      // A location link that opened this screen.
+      final focus = ref.read(placesFocusRequestProvider);
+      if (focus != null) _claimFocus(focus);
+    });
+  }
+
+  /// A location link from an entity: land on its day, then on its pin
+  /// once that day's geotags arrive. Claimed outside build — the
+  /// request is cleared as it is taken, so it never fires twice.
+  void _claimFocus(PlacesFocus focus) {
+    if (!mounted) return;
+    ref.read(placesFocusRequestProvider.notifier).clear();
+    setState(() {
+      _anchor = focus.day;
+      _range = PlacesRange.day;
+      _pendingFocus = (table: focus.table, uuid: focus.uuid);
+    });
+  }
+
+  Future<void> _seedHere() async {
+    final fix = await ref.read(locationGatewayProvider).lastKnown();
+    if (fix == null || !mounted) return;
+    setState(() => _here = fix);
+  }
 
   void _step(int direction) => setState(() {
     _anchor = switch (_range) {
@@ -96,15 +142,58 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     final saved = ref.watch(savedPlacesProvider).value ?? const [];
     final state = ref.watch(placesControllerProvider).value;
     final style = ref.watch(placesStyleUrlProvider).value;
+    final mapBase = ref.watch(placesMapBaseProvider).value ?? MapBase.streets;
     final pinned = [
       for (final tag in tags)
         if (tag.hasPlace) tag,
     ];
     final stays = staysIn([for (final p in trail) p.fix], places: saved);
 
+    final styleString = placesStyleString(mapBase, streetStyle: style);
+    if (style != null && styleString != _style) {
+      if (_style != null) {
+        _styleReady = false;
+        _drawn = '';
+      }
+      _style = styleString;
+    }
+
+    // A link followed while this screen is already open (it stays alive
+    // behind the Records tabs).
+    ref.listen(placesFocusRequestProvider, (previous, next) {
+      if (next == null) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _claimFocus(next));
+    });
+    if (_pendingFocus != null) {
+      final pending = _pendingFocus!;
+      final match = tags
+          .where(
+            (tag) =>
+                tag.targetTable == pending.table &&
+                tag.targetUuid == pending.uuid,
+          )
+          .firstOrNull;
+      if (match != null) {
+        _pendingFocus = null;
+        final latitude = match.latitude;
+        final longitude = match.longitude;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() => _selected = match.uuid);
+          if (latitude != null && longitude != null) {
+            unawaited(
+              _map?.animateCamera(
+                CameraUpdate.newLatLngZoom(LatLng(latitude, longitude), 16),
+              ),
+            );
+          }
+        });
+      }
+    }
+
     // Redraw whenever what is on the map changes.
     if (_styleReady) {
-      unawaited(_draw(trail, pinned, stays));
+      unawaited(_draw(trail, pinned, stays, saved, _here));
     }
 
     return Scaffold(
@@ -133,7 +222,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
               children: [
                 if (style != null)
                   MapLibreMap(
-                    styleString: style,
+                    styleString: styleString,
                     initialCameraPosition: const CameraPosition(
                       target: LatLng(36.75, 3.06),
                       zoom: 11,
@@ -141,13 +230,35 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
                     onMapCreated: (controller) {
                       _map = controller;
                       controller.onCircleTapped.add(_onPinTapped);
+                      controller.onSymbolTapped.add(_onPlaceTapped);
                     },
+                    onMapLongClick: (_, coordinates) =>
+                        unawaited(_savePlaceAt(coordinates)),
                     onStyleLoadedCallback: () {
                       setState(() => _styleReady = true);
                     },
                     attributionButtonPosition:
                         AttributionButtonPosition.bottomLeft,
                   ),
+                Positioned(
+                  right: HarvestSpacing.md,
+                  bottom: 224,
+                  child: Column(
+                    children: [
+                      _MapButton(
+                        tooltip: l10n.placesLocateMe,
+                        icon: Icons.my_location,
+                        onPressed: () => unawaited(_locateMe()),
+                      ),
+                      const SizedBox(height: HarvestSpacing.sm),
+                      _MapButton(
+                        tooltip: l10n.placesLayers,
+                        icon: Icons.layers_outlined,
+                        onPressed: () => unawaited(_pickMapBase(mapBase)),
+                      ),
+                    ],
+                  ),
+                ),
                 DraggableScrollableSheet(
                   initialChildSize: 0.3,
                   minChildSize: 0.12,
@@ -190,6 +301,8 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     List<TrailPoint> trail,
     List<Geotag> pins,
     List<Stay> stays,
+    List<SavedPlace> saved,
+    Fix? here,
   ) async {
     final map = _map;
     if (map == null) return;
@@ -197,13 +310,15 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     // must not flicker it.
     final signature =
         '${trail.length}:${trail.lastOrNull?.uuid}:${pins.length}:'
-        '${pins.lastOrNull?.uuid}:${stays.length}:$_selected';
+        '${pins.lastOrNull?.uuid}:${stays.length}:${saved.length}:'
+        '${here?.latitude},${here?.longitude}:$_selected';
     if (signature == _drawn) return;
     _drawn = signature;
 
     final scheme = Theme.of(context).colorScheme;
     await map.clearLines();
     await map.clearCircles();
+    await map.clearSymbols();
 
     if (trail.length > 1) {
       await map.addLine(
@@ -226,6 +341,54 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
           circleOpacity: 0.25,
           circleStrokeColor: _hex(scheme.tertiary),
           circleStrokeWidth: 1,
+        ),
+      );
+    }
+    // The places I kept, as red pins with their names — the map's own
+    // legend, drawn under everything that happened on a day.
+    for (final place in saved) {
+      await map.addSymbol(
+        SymbolOptions(
+          geometry: LatLng(place.latitude, place.longitude),
+          textField: place.name,
+          textSize: 12.5,
+          textColor: '#202124',
+          textHaloColor: '#FFFFFF',
+          textHaloWidth: 1.5,
+          textAnchor: 'top',
+          textOffset: const Offset(0, 0.4),
+        ),
+        {'place': place.uuid},
+      );
+      await map.addCircle(
+        CircleOptions(
+          geometry: LatLng(place.latitude, place.longitude),
+          circleRadius: 8,
+          circleColor: '#EA4335',
+          circleStrokeColor: '#FFFFFF',
+          circleStrokeWidth: 2,
+        ),
+        {'place': place.uuid},
+      );
+    }
+    // "You are here": the phone's own last fix, drawn in the Google
+    // blue — an accuracy ring, a white border, a solid dot.
+    if (here != null) {
+      await map.addCircle(
+        CircleOptions(
+          geometry: LatLng(here.latitude, here.longitude),
+          circleRadius: 22,
+          circleColor: '#1A73E8',
+          circleOpacity: 0.15,
+        ),
+      );
+      await map.addCircle(
+        CircleOptions(
+          geometry: LatLng(here.latitude, here.longitude),
+          circleRadius: 9,
+          circleColor: '#1A73E8',
+          circleStrokeColor: '#FFFFFF',
+          circleStrokeWidth: 3,
         ),
       );
     }
@@ -280,7 +443,172 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
 
   void _onPinTapped(Circle circle) {
     final uuid = circle.data?['geotag'] as String?;
-    if (uuid != null) setState(() => _selected = uuid);
+    if (uuid != null) {
+      setState(() => _selected = uuid);
+      return;
+    }
+    // A saved place's red dot is a circle too; it opens the same card
+    // as its name.
+    final place = circle.data?['place'] as String?;
+    if (place != null) unawaited(_showPlace(place));
+  }
+
+  void _onPlaceTapped(Symbol symbol) {
+    final uuid = symbol.data?['place'] as String?;
+    if (uuid != null) unawaited(_showPlace(uuid));
+  }
+
+  /// One saved place, on a card: its name, its note, and what to do
+  /// with it — edit, forget, or just look at it a moment.
+  Future<void> _showPlace(String uuid) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final repository = ref.read(placesRepositoryProvider);
+    final saved = ref.read(savedPlacesProvider).value ?? const [];
+    final place = saved.where((p) => p.uuid == uuid).firstOrNull;
+    if (place == null || !mounted) return;
+    setState(() => _selected = null);
+    await _map?.animateCamera(
+      CameraUpdate.newLatLngZoom(
+        LatLng(place.latitude, place.longitude),
+        15,
+      ),
+    );
+    if (!mounted) return;
+
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => _PlaceCard(place: place),
+    );
+    if (action == null || !mounted) return;
+    switch (action) {
+      case 'edit':
+        final draft = await showDialog<PlaceDraft>(
+          context: context,
+          builder: (_) => PlaceFormDialog(
+            title: l10n.placesEditPlace,
+            nameHint: l10n.placesNameHint,
+            initialName: place.name,
+            initialNotes: place.notes ?? '',
+            initialRadiusM: place.radiusM,
+          ),
+        );
+        if (draft == null || !mounted) return;
+        await repository.updatePlace(
+          place.uuid,
+          name: draft.name,
+          changeName: true,
+          notes: draft.notes,
+          changeNotes: true,
+          radiusM: draft.radiusM,
+        );
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.placesPlaceUpdated)),
+        );
+      case 'forget':
+        final ok = await confirm(
+          context,
+          title: l10n.placesForgetPlace,
+          body: l10n.placesForgetPlaceBody,
+          confirmLabel: l10n.placesForgetPlace,
+        );
+        if (ok && mounted) {
+          await repository.forgetPlace(place.uuid);
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.placesPlaceForgotten)),
+          );
+        }
+    }
+  }
+
+  /// A long press drops a pin here: a name and a note, saved for good.
+  Future<void> _savePlaceAt(LatLng coordinates) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final draft = await showDialog<PlaceDraft>(
+      context: context,
+      builder: (_) => PlaceFormDialog(
+        title: l10n.placesSavePlace,
+        nameHint: l10n.placesNameHint,
+      ),
+    );
+    if (draft == null || !mounted) return;
+    await ref.read(placesRepositoryProvider).savePlace(
+      name: draft.name,
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      radiusM: draft.radiusM,
+      notes: draft.notes,
+    );
+    messenger.showSnackBar(SnackBar(content: Text(l10n.placesPlaceSaved)));
+  }
+
+  /// Centres the map on where I am now, asking for location first if
+  /// Places never got the chance to.
+  Future<void> _locateMe() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final gateway = ref.read(locationGatewayProvider);
+    var access = await gateway.access();
+    if (access == LocationAccess.none) {
+      access = await gateway.requestWhileInUse();
+    }
+    if (access == LocationAccess.none || access == LocationAccess.serviceOff) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.placesNoFix)));
+      return;
+    }
+    final fix = await gateway.currentFix() ?? await gateway.lastKnown();
+    if (fix == null || !mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.placesNoFix)));
+      return;
+    }
+    setState(() => _here = fix);
+    await _map?.animateCamera(
+      CameraUpdate.newLatLngZoom(LatLng(fix.latitude, fix.longitude), 17),
+    );
+  }
+
+  /// Which view of the map is on: streets or satellite.
+  Future<void> _pickMapBase(MapBase current) async {
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.read(settingsRepositoryProvider);
+    final base = await showModalBottomSheet<MapBase>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                l10n.placesLayers,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              dense: true,
+            ),
+            ListTile(
+              leading: const Icon(Icons.map_outlined),
+              title: Text(l10n.placesStreets),
+              trailing: current == MapBase.streets
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(context, MapBase.streets),
+            ),
+            ListTile(
+              leading: const Icon(Icons.satellite_alt_outlined),
+              title: Text(l10n.placesSatellite),
+              trailing: current == MapBase.satellite
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(context, MapBase.satellite),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (base != null && !mounted) return;
+    if (base != null) {
+      await settings.setString(PlacesKeys.mapBase, base.name);
+    }
   }
 
   void _focusTag(Geotag tag) {
@@ -735,6 +1063,127 @@ class _GeotagTile extends ConsumerWidget {
         '${TimeOfDay.fromDateTime(tag.at).format(context)} · ${kind.label}',
       ),
       onTap: onTap,
+    );
+  }
+}
+
+/// A floating map button, in the Google shape: a white card that casts
+/// a shadow, with an icon that darkens when touched.
+class _MapButton extends StatelessWidget {
+  const _MapButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Theme.of(context).colorScheme.surface,
+        elevation: 2,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Icon(icon, size: 22),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One saved place, shown when its pin is tapped: the name, the note
+/// it carries, and Edit and Forget.
+class _PlaceCard extends StatelessWidget {
+  const _PlaceCard({required this.place});
+
+  final SavedPlace place;
+
+  String _coord(double value) => value.toStringAsFixed(4);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          HarvestSpacing.md,
+          HarvestSpacing.xs,
+          HarvestSpacing.md,
+          HarvestSpacing.md,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                const Icon(Icons.place, color: Color(0xFFEA4335)),
+                const SizedBox(width: HarvestSpacing.sm),
+                Expanded(
+                  child: Text(
+                    place.name,
+                    style: theme.textTheme.titleLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            if (place.notes case final notes? when notes.isNotEmpty) ...[
+              const SizedBox(height: HarvestSpacing.sm),
+              Text(notes, style: theme.textTheme.bodyMedium),
+            ],
+            const SizedBox(height: HarvestSpacing.sm),
+            Text(
+              '${_coord(place.latitude)}, ${_coord(place.longitude)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: HarvestSpacing.md),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: () => Navigator.pop(context, 'forget'),
+                  icon: const Icon(Icons.delete_outline),
+                  label: Text(l10n.placesForgetPlace),
+                ),
+                const SizedBox(width: HarvestSpacing.sm),
+                FilledButton.icon(
+                  onPressed: () => Navigator.pop(context, 'edit'),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(l10n.placesEditPlace),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -81,9 +81,9 @@ describe('the assist in a note', () => {
   });
 
   it('says what it will send, and proposes rather than writes', async () => {
-    vi.spyOn(api, 'assist').mockResolvedValue(
-      streaming(JSON.stringify({ text: 'Bread rises two times.' }), assistDoneMarker),
-    );
+    const assist = vi
+      .spyOn(api, 'assist')
+      .mockResolvedValue(streaming(JSON.stringify({ text: 'Bread rises two times.' }), assistDoneMarker));
     await editor(true);
     const user = userEvent.setup();
 
@@ -95,15 +95,15 @@ describe('the assist in a note', () => {
 
     // What goes, and to whom, before anything is sent.
     expect(await screen.findByText(/this note goes to gemini-2\.5-flash/i)).toBeInTheDocument();
-    expect(api.assist).not.toHaveBeenCalled();
+    expect(assist).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Send' }));
     expect(await screen.findByText('Bread rises two times.')).toBeInTheDocument();
 
     // The note is untouched until Replace is chosen.
-    const body = screen.getByLabelText('Note') as HTMLTextAreaElement;
+    const body = screen.getByLabelText<HTMLTextAreaElement>('Note');
     expect(body.value).toBe('Bread rises twice.');
     await user.click(screen.getByRole('button', { name: 'Replace' }));
-    await waitFor(() => expect((screen.getByLabelText('Note') as HTMLTextAreaElement).value).toBe('Bread rises two times.'));
+    await waitFor(() => expect(screen.getByLabelText<HTMLTextAreaElement>('Note').value).toBe('Bread rises two times.'));
   });
 });

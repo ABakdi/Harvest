@@ -10,6 +10,7 @@ import 'package:harvest/features/gym/domain/session.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
+import 'package:harvest/features/places/presentation/geotag_chip.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Every session I have finished, newest first.
@@ -116,6 +117,15 @@ class SessionDetailScreen extends ConsumerWidget {
             '${l10n.gymSessionSummary(session.doneSets, formatLoad(context, session.volumeGrams, unit))}',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
+            ),
+          ),
+          // Where the session happened, if Places was there to say.
+          const SizedBox(height: HarvestSpacing.xs),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: GeotagChip(
+              targetTable: 'workout_sessions',
+              targetUuid: session.uuid,
             ),
           ),
           if (session.note case final note? when note.isNotEmpty) ...[

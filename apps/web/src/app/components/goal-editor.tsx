@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useHarvest } from '../context';
 import type { GoalRow } from '../data/goals';
+import { useBusy } from './use-busy';
 
 /** A goal is a title, a *why* and an optional target day; nothing more ([[Goals]]). */
 export function GoalEditor({ goal, onClose, onCreated }: { goal: GoalRow | null; onClose: () => void; onCreated?: (uuid: string) => void }) {
@@ -17,6 +18,7 @@ export function GoalEditor({ goal, onClose, onCreated }: { goal: GoalRow | null;
   const [why, setWhy] = useState(goal?.why ?? '');
   const [targetDay, setTargetDay] = useState(goal?.targetDay ?? '');
   const [error, setError] = useState(false);
+  const [saving, once] = useBusy();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -40,7 +42,7 @@ export function GoalEditor({ goal, onClose, onCreated }: { goal: GoalRow | null;
           <DialogTitle>{goal ? t('goals.editTitle') : t('goals.new')}</DialogTitle>
           <DialogDescription>{t('goals.editorLead')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => void once(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${id}-title`}>{t('goals.title')}</Label>
             <Input
@@ -69,7 +71,7 @@ export function GoalEditor({ goal, onClose, onCreated }: { goal: GoalRow | null;
             <Button variant="outline" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit">{goal ? t('common.save') : t('goals.create')}</Button>
+            <Button type="submit" disabled={saving}>{goal ? t('common.save') : t('goals.create')}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

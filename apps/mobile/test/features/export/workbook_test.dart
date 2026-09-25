@@ -30,6 +30,7 @@ void main() {
     seedNotes: seedNotes,
     goals: const <List<Object?>>[],
     goalItems: const <List<Object?>>[],
+    wishlistItems: const <List<Object?>>[],
     expenses: expenses,
     categories: const <List<Object?>>[],
     money: money,
@@ -110,6 +111,7 @@ void main() {
         SheetNames.seedNotes,
         SheetNames.goals,
         SheetNames.goalItems,
+        SheetNames.wishlist,
         SheetNames.expenses,
         SheetNames.categories,
         SheetNames.money,
@@ -159,6 +161,22 @@ void main() {
         expenses.derived.single,
         (header: 'Amount', template: '={AmountMinor}{row}/100'),
       );
+    });
+
+    test("a saved place's notes have their own column (rule X7)", () {
+      final places = sheetNamed(harvestSheets(data()), SheetNames.savedPlaces);
+
+      expect(places.headers, [
+        'Uuid',
+        'Name',
+        'Latitude',
+        'Longitude',
+        'RadiusM',
+        'Notes',
+        'CreatedAt',
+        'UpdatedAt',
+        'DeletedAt',
+      ]);
     });
 
     test('what is left on a debt is a formula over its payments', () {

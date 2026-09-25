@@ -19,6 +19,25 @@ class AssistAudio {
 
   final Uint8List bytes;
   final String mimeType;
+
+  /// The largest recording the server's assist takes, before encoding
+  /// (`maxAssistAudioBytes` in the contracts).
+  static const int maxBytes = 8 * 1024 * 1024;
+
+  /// The type the model is told, by the extension a recording is filed
+  /// under; null for one it cannot take.
+  static String? mimeTypeFor(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    final ext = dot < 0 ? '' : fileName.substring(dot + 1).toLowerCase();
+    return switch (ext) {
+      'm4a' => 'audio/mp4',
+      'aac' => 'audio/aac',
+      'mp3' => 'audio/mpeg',
+      'wav' => 'audio/wav',
+      'ogg' || 'opus' => 'audio/ogg',
+      _ => null,
+    };
+  }
 }
 
 /// Everything one assist call sends ([[ADR-013-Assist-Providers]]).

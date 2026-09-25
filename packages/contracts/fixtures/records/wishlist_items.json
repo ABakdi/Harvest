@@ -1,0 +1,20 @@
+{
+  "table": "wishlist_items",
+  "uuid": "6c3a1f4e-9b2d-4e8a-9f1c-3d7b5a2e8c64",
+  "updatedAt": "2026-09-20T10:15:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "6c3a1f4e-9b2d-4e8a-9f1c-3d7b5a2e8c64",
+    "list": "buy",
+    "title": "Winter coat",
+    "priceMinor": 1800000,
+    "currency": "DZD",
+    "note": "Wool, dark grey",
+    "targetDay": "2026-10-15",
+    "boughtAt": null,
+    "position": 0,
+    "createdAt": "2026-09-20T10:10:00.000Z",
+    "updatedAt": "2026-09-20T10:15:00.000Z",
+    "deletedAt": null
+  }
+}

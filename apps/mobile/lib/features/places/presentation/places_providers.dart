@@ -29,8 +29,47 @@ abstract final class PlacesKeys {
   /// The map style ([[ADR-010-Maps]]): OpenFreeMap's by default.
   static const styleUrl = 'places.styleUrl';
 
+  /// Which view of the map: 'streets' or 'satellite'.
+  static const mapBase = 'places.mapBase';
+
   static const defaultStyleUrl = 'https://tiles.openfreemap.org/styles/liberty';
 }
+
+/// The two map views ([[Places]]): OpenFreeMap's streets, and a
+/// satellite raster. Both need no key and no account ([[ADR-010-Maps]]).
+enum MapBase { streets, satellite }
+
+MapBase mapBaseOf(String? value) =>
+    value == 'satellite' ? MapBase.satellite : MapBase.streets;
+
+/// Satellite tiles: Esri's World Imagery, free with attribution, no
+/// account and no key — the standard satellite layer of OSM-derived
+/// apps. Drawn as a plain raster with no labels, so the streets that
+/// matter still come from OpenFreeMap underneath ([[ADR-010-Maps]]).
+/// The glyphs are OpenFreeMap's, the same fonts the streets style
+/// already loads, so the map's own labels (the saved places' names)
+/// can still be drawn over the imagery.
+const String satelliteStyleJson = '''
+{
+  "version": 8,
+  "name": "Esri World Imagery",
+  "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  "sources": {
+    "satellite": {
+      "type": "raster",
+      "tiles": [
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      ],
+      "tileSize": 256,
+      "attribution": "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, GIS User Community"
+    }
+  },
+  "layers": [
+    { "id": "background", "type": "background", "paint": { "background-color": "#0b0f1a" } },
+    { "id": "satellite", "type": "raster", "source": "satellite" }
+  ]
+}
+''';
 
 /// What the Places settings and screen show about the trail.
 @immutable
@@ -243,3 +282,54 @@ Stream<bool> placesHighAccuracy(Ref ref) => ref
 @riverpod
 Future<String?> geotagDetail(Ref ref, ({String table, String uuid}) target) =>
     ref.watch(placesRepositoryProvider).detailFor(target.table, target.uuid);
+
+/// The geotag of one action, for the "where was it" line under it.
+@riverpod
+Stream<Geotag?> geotagFor(Ref ref, ({String table, String uuid}) target) =>
+    ref
+        .watch(placesRepositoryProvider)
+        .watchGeotagFor(target.table, target.uuid);
+
+/// Which view of the map is on ([[Places]]): streets or satellite.
+@riverpod
+Stream<MapBase> placesMapBase(Ref ref) => ref
+    .watch(settingsRepositoryProvider)
+    .watchAll([PlacesKeys.mapBase])
+    .map((values) => mapBaseOf(values[PlacesKeys.mapBase]));
+
+/// The style string for the view that is on.
+String placesStyleString(MapBase base, {String? streetStyle}) =>
+    switch (base) {
+      MapBase.streets => streetStyle ?? PlacesKeys.defaultStyleUrl,
+      MapBase.satellite => satelliteStyleJson,
+    };
+
+/// Where to take the Places screen when a link from an entity points
+/// at it: the day, and the geotag's target. Set by the location chips
+/// on expenses, notes and photos; taken (and cleared) by the map.
+@immutable
+class PlacesFocus {
+  const PlacesFocus({required this.day, required this.table, required this.uuid});
+
+  final HarvestDay day;
+  final String table;
+  final String uuid;
+}
+
+@Riverpod(keepAlive: true)
+class PlacesFocusRequest extends _$PlacesFocusRequest {
+  @override
+  PlacesFocus? build() => null;
+
+  /// Where the map is being pointed; set by a location link,
+  /// claimed by the map screen.
+  PlacesFocus? get focus => state;
+
+  /// Where to point the map; the screen claims it and starts clean.
+  set focus(PlacesFocus? focus) => state = focus;
+
+  /// The screen has claimed it; the next build starts clean.
+  void clear() {
+    if (state != null) state = null;
+  }
+}

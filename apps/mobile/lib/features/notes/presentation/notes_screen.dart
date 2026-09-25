@@ -26,6 +26,7 @@ import 'package:harvest/features/notes/presentation/note_trash_screen.dart';
 import 'package:harvest/features/notes/presentation/notes_providers.dart';
 import 'package:harvest/features/notes/presentation/notes_sidebar.dart';
 import 'package:harvest/features/notes/presentation/voice_widgets.dart';
+import 'package:harvest/features/places/presentation/geotag_chip.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:printing/printing.dart';
@@ -235,13 +236,34 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         .read(attachmentStorageProvider)
         .fileOf(recording.storedPath);
     if (!file.existsSync() || !mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    // Said here, before anything is read or sent, rather than as a bare
+    // error from the server afterwards.
+    final mimeType = AssistAudio.mimeTypeFor(recording.fileName);
+    if (mimeType == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.assistTranscribeUnknown)),
+      );
+      return;
+    }
+    if (file.lengthSync() > AssistAudio.maxBytes) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.assistTranscribeTooLong(AssistAudio.maxBytes ~/ (1024 * 1024)),
+          ),
+        ),
+      );
+      return;
+    }
     final bytes = await file.readAsBytes();
     if (!mounted) return;
     final outcome = await showAssistSheet(
       context,
       action: AssistAction.transcribe,
       text: '',
-      audio: AssistAudio(bytes: bytes, mimeType: 'audio/mp4'),
+      audio: AssistAudio(bytes: bytes, mimeType: mimeType),
     );
     if (outcome == null || !mounted) return;
     final text = _body.text;
@@ -501,12 +523,34 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                 label: Text(l10n.notesNew),
               ),
             )
-          : NoteEditor(
-              key: ValueKey(note.uuid),
-              uuid: note.uuid,
-              controller: _body,
-              onOpen: _show,
-              onTranscribe: (recording) => unawaited(_transcribe(recording)),
+          : Column(
+              children: [
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      start: HarvestSpacing.md,
+                      top: HarvestSpacing.xs,
+                    ),
+                    // Where the note was written, if Places was
+                    // there to say ([[Places]]).
+                    child: GeotagChip(
+                      targetTable: 'notes',
+                      targetUuid: note.uuid,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: NoteEditor(
+                    key: ValueKey(note.uuid),
+                    uuid: note.uuid,
+                    controller: _body,
+                    onOpen: _show,
+                    onTranscribe: (recording) =>
+                        unawaited(_transcribe(recording)),
+                  ),
+                ),
+              ],
             ),
     );
   }

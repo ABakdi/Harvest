@@ -41,6 +41,14 @@ const real = z.number();
 const bool = z.boolean();
 const instant = isoInstantSchema;
 
+/**
+ * A nullable column added after a release already shipped. A row sealed
+ * by a device from before it (or kept in a browser's store since) has
+ * no key for it at all, so a missing key reads as null instead of
+ * failing the whole row.
+ */
+const added = <T extends z.ZodType>(column: T) => column.nullable().default(null);
+
 /** A Harvest Day key, `yyyy-MM-dd`, that names a real calendar date. */
 const day = z.string().refine(isHarvestDayKey, { message: 'Not a Harvest Day key (yyyy-MM-dd)' });
 
@@ -429,6 +437,24 @@ export const tables = {
     }),
   ),
 
+  // ----------------------------------------------------------- wishlist
+  wishlist_items: plain(
+    z.strictObject({
+      uuid: id,
+      list: z.enum(['buy', 'wish']),
+      title: text,
+      priceMinor: int.nullable(),
+      currency: text,
+      note: text.nullable(),
+      targetDay: day.nullable(),
+      boughtAt: instant.nullable(),
+      position: int,
+      createdAt: instant,
+      updatedAt: instant,
+      deletedAt: instant.nullable(),
+    }),
+  ),
+
   // ---------------------------------------------------------- settings
   kv_settings: plain(
     z.strictObject({
@@ -458,6 +484,9 @@ export const tables = {
       uuid: id,
       name: text,
       icon: text,
+      // Added in v21, after v3.0.0-beta.1 had sealed categories without
+      // it. Null orders by updatedAt, as every category did before.
+      createdAt: added(instant),
       deletedAt: instant.nullable(),
       updatedAt: instant,
     }),
@@ -541,6 +570,8 @@ export const tables = {
       latitude: real,
       longitude: real,
       radiusM: real,
+      // Added in v20, after v3.0.0-beta.1 had sealed places without it.
+      notes: added(text),
       createdAt: instant,
       updatedAt: instant,
       deletedAt: instant.nullable(),

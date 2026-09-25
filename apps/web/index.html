@@ -8,22 +8,8 @@
     <meta name="theme-color" content="#1F8A46" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <script>
-      // Paint the right theme before React loads, so a dark-mode reader
-      // never sees a cream flash. Mirrors src/lib/theme.ts.
-      (function () {
-        try {
-          var mode = localStorage.getItem('harvest.themeMode') || 'system';
-          var preset = localStorage.getItem('harvest.themePreset') || 'harvest';
-          var dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
-          var root = document.documentElement;
-          root.classList.toggle('dark', dark);
-          root.dataset.preset = preset;
-          var lang = localStorage.getItem('harvest.locale');
-          if (lang === 'ar') { root.lang = 'ar'; root.dir = 'rtl'; }
-        } catch (e) {}
-      })();
-    </script>
+    <!-- A file, not inline: the site's CSP runs no inline script. -->
+    <script src="/theme-boot.js"></script>
   </head>
   <body>
     <div id="root"></div>

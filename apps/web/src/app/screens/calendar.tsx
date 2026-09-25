@@ -1,10 +1,12 @@
 import { HarvestDay } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { CameraIcon, ChevronLeftIcon, ChevronRightIcon, CoinsIcon, DumbbellIcon, FlagIcon } from 'lucide-react';
+import { CameraIcon, ChevronLeftIcon, ChevronRightIcon, CoinsIcon, DumbbellIcon, FlagIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { formatDate, formatDay, formatNumber } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useHarvest, useHarvestDay } from '../context';
@@ -78,9 +80,10 @@ function Cell({
  */
 export function CalendarScreen() {
   const { t, i18n } = useTranslation();
-  const { db } = useHarvest();
+  const { db, seeds } = useHarvest();
   const today = useHarvestDay();
   const [selectedKey, setSelectedKey] = useState(today.key);
+  const [quickAdd, setQuickAdd] = useState('');
   const selected = HarvestDay.tryParse(selectedKey) ?? today;
   const month = useLiveQuery(() => readMonth(db, selected), [db, `${selected.year}-${selected.month}`]);
 
@@ -88,6 +91,15 @@ export function CalendarScreen() {
   const blanks = first.weekday - 1;
   const names = weekdayNames(i18n.language === 'ar' ? 'ar' : 'en');
   const day = month?.get(selected.key);
+  // Planning is forward: a to-do can be planted on today or later.
+  const isFuture = selected.compareTo(today) >= 0;
+
+  async function addTodo() {
+    const title = quickAdd.trim();
+    if (title === '') return;
+    setQuickAdd('');
+    await seeds.plant({ type: 'todo', title, dueDay: selected.key });
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -135,6 +147,28 @@ export function CalendarScreen() {
         <h2 className="text-sm font-extrabold text-muted-foreground">
           {selected.key === today.key ? t('calendar.todayLabel') : formatDay(selected.key, { weekday: 'long', day: 'numeric', month: 'long' })}
         </h2>
+        {isFuture && (
+          <form
+            className="flex gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void addTodo();
+            }}
+          >
+            <Label htmlFor="calendar-add" className="sr-only">
+              {t('calendar.addForDay')}
+            </Label>
+            <Input
+              id="calendar-add"
+              placeholder={t('calendar.addForDay')}
+              value={quickAdd}
+              onChange={(event) => setQuickAdd(event.target.value)}
+            />
+            <Button type="submit" size="icon" aria-label={t('calendar.add')} disabled={quickAdd.trim() === ''}>
+              <PlusIcon />
+            </Button>
+          </form>
+        )}
         {!day || day.entries.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('calendar.nothingDue')}</p>
         ) : (
@@ -142,7 +176,7 @@ export function CalendarScreen() {
             {day.entries.map((entry) => (
               <li key={`${entry.row.uuid}-${entry.deadline ? 'deadline' : 'due'}`}>
                 <Link
-                  to={`/app/field`}
+                  to={`/app/field/seed/${entry.row.uuid}`}
                   className="flex items-center gap-3 px-4 py-3 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="flex min-w-0 flex-1 flex-col">

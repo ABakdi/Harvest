@@ -37,6 +37,7 @@ export const tableSchemas: Record<SyncedTable, string> = {
   pomodoro_sessions: 'uuid, harvestDay',
   goals: 'uuid',
   goal_items: 'uuid, goalUuid, commitmentUuid',
+  wishlist_items: 'uuid',
   kv_settings: 'key',
   expenses: 'uuid, harvestDay',
   expense_categories: 'uuid',
@@ -103,14 +104,20 @@ export class HarvestDB extends Dexie {
 
   constructor(name = 'harvest') {
     super(name);
+    // A store that joins later gets a version of its own: a browser that
+    // already opened an earlier version never re-reads the first one, so
+    // a table added there would simply not exist for it.
+    const { wishlist_items: wishlistItems, ...firstTables } = tableSchemas;
     this.version(1).stores({
-      ...tableSchemas,
+      ...firstTables,
       outbox: '++seq, [table+key], table',
       meta: 'key',
       sealed: '[table+uuid], table',
     });
     // Files arrived with the phone's own file sync ([[Sync-API]]).
     this.version(2).stores({ files: 'sha256' });
+    // The Wishlist ([[Wishlist]]), v19 on the phone.
+    this.version(3).stores({ wishlist_items: wishlistItems });
   }
 
   rows<T extends SyncedTable>(table: T): Table<Row<T>, IndexableType> {

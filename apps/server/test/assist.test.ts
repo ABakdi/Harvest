@@ -21,10 +21,12 @@ afterEach(async () => {
 });
 
 describe('the server assist', () => {
+  let model: typeof fetch;
   beforeEach(async () => {
+    model = modelSaying('A note ', 'about bread.');
     h = await harness({
       env: { ASSIST_API_KEY: 'a-server-key', ASSIST_DAILY_LIMIT: '2' },
-      assistFetch: modelSaying('A note ', 'about bread.'),
+      assistFetch: model,
     });
   });
 
@@ -68,6 +70,24 @@ describe('the server assist', () => {
     await request(h.app).post('/v1/assist').set(bearer(account)).send(ask).expect(200);
     await request(h.app).delete('/v1/me').set(bearer(account)).send({ password }).expect(204);
     expect(await h.db.collection('assist_usage').countDocuments({})).toBe(0);
+  });
+
+  it('takes a recording larger than the general body limit, up to its own cap', async () => {
+    const account = await signUp(h);
+    // Six megabytes of recording: past the 5 MB every other route takes.
+    const data = Buffer.alloc(6 * 1024 * 1024, 7).toString('base64');
+    const transcribe = {
+      system: 'Transcribe.',
+      messages: [{ role: 'user' as const, text: 'Transcribe this recording.' }],
+      audio: { mimeType: 'audio/mp4' as const, data },
+    };
+    await request(h.app).post('/v1/assist').set(bearer(account)).send(transcribe).expect(200);
+    const sent = JSON.parse(vi.mocked(model).mock.calls[0]![1]!.body as string) as {
+      contents: { parts: { inlineData?: { mimeType: string; data: string } }[] }[];
+    };
+    const inline = sent.contents.at(-1)!.parts.find((part) => part.inlineData)!.inlineData!;
+    expect(inline.mimeType).toBe('audio/mp4');
+    expect(inline.data).toHaveLength(data.length);
   });
 
   it('refuses an unverified account and a malformed ask', async () => {

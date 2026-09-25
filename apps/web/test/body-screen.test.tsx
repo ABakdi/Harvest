@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { HarvestContext } from '@/app/context';
 import { BodyScreen } from '@/app/screens/body';
@@ -12,6 +12,8 @@ import { device } from './helpers';
  */
 async function bodyWith(seed: (h: Awaited<ReturnType<typeof device>>) => Promise<void>) {
   const harvest = await device(new FakeServer());
+  // Health is off until switched on (H1); these rows are the phone's.
+  await harvest.settings.setBool('features.health', true);
   await seed(harvest);
   render(
     <HarvestContext.Provider value={harvest}>
@@ -38,11 +40,10 @@ describe('the Body tab', () => {
       });
     });
 
-    // Seven hours slept: the headline, the two-week average and the
-    // night's own row all say so.
+    // Seven hours slept: the headline and the night's own row both say so.
     expect(await screen.findAllByText('7h 0m')).not.toHaveLength(0);
     // An hour short of the eight-hour target is an hour owed.
-    expect(screen.getByText('Owed to yourself')).toBeInTheDocument();
+    expect(await screen.findByText('Owed to yourself')).toBeInTheDocument();
     expect(screen.getByText('1h 0m')).toBeInTheDocument();
     expect(screen.getByLabelText('4 stars')).toBeInTheDocument();
   });
@@ -55,7 +56,9 @@ describe('the Body tab', () => {
       ]);
     });
 
-    expect(await screen.findByText('81 kg')).toBeInTheDocument();
+    // The headline, and the reading in the list under it.
+    // Two live queries fill these; wait for both, not the first to land.
+    await waitFor(() => expect(screen.getAllByText('81 kg')).toHaveLength(2));
     // The span is the one the entries actually cover, not the window
     // asked for: eight days, on the average line, and no word about
     // whether down is good ([[Health]] H5).
@@ -68,13 +71,15 @@ describe('the Body tab', () => {
       await h.db.rows('step_days').put({ harvestDay: '2026-09-19', steps: 9500, lastCounter: null, updatedAt: '' });
     });
 
-    expect(await screen.findByText('9,500')).toBeInTheDocument();
-    expect(screen.getByText('of 8,000')).toBeInTheDocument();
+    // Today, and the week's average of the one day there is.
+    await waitFor(() => expect(screen.getAllByText('9,500')).toHaveLength(2));
+    expect(screen.getByText('Goal met')).toBeInTheDocument();
     expect(screen.getByText(/counted by the phone/i)).toBeInTheDocument();
   });
 
-  it('says where a night is written when there are none', async () => {
+  it('offers to write last night down when there are none', async () => {
     await bodyWith(async () => {});
-    expect(await screen.findByText(/a night is written from bed/i)).toBeInTheDocument();
+    expect(await screen.findByText('Not written down')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Log last night' })).toBeInTheDocument();
   });
 });
