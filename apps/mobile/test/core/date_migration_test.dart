@@ -25,7 +25,7 @@ void main() {
 
     await verifier.testWithDataIntegrity(
       oldVersion: 17,
-      newVersion: 21,
+      newVersion: 22,
       createOld: v17.DatabaseAtV17.new,
       createNew: HarvestDatabase.forTesting,
       openTestedDatabase: HarvestDatabase.forTesting,
@@ -66,11 +66,16 @@ void main() {
         expect(tick.loggedAt.toUtc(), logged);
 
         // And the spelling, once, so the format is not a guess: sqlite
-        // writes UTC with no offset, which drift reads as UTC.
+        // writes UTC with no offset, and v22 puts it on the local
+        // clock with its offset, the way the app writes a date.
         final raw = await db
             .customSelect('SELECT created_at FROM commitments')
             .getSingle();
-        expect(raw.read<String>('created_at'), '2026-03-14 09:26:53');
+        expect(
+          raw.read<String>('created_at'),
+          db.typeMapping.mapToSqlVariable(logged.toLocal()),
+        );
+        expect(seed.createdAt.isUtc, isFalse);
       },
     );
   });

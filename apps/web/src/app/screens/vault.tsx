@@ -4,13 +4,14 @@ import {
   CircleCheckIcon,
   HandCoinsIcon,
   MinusIcon,
+  PartyPopperIcon,
   PiggyBankIcon,
   PlusIcon,
   Trash2Icon,
   TriangleAlertIcon,
   WalletIcon,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -28,10 +29,10 @@ import { formatDate, formatDay, formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '../components/bits';
 import { DebtDialog } from '../components/debt-dialog';
-import { Balances } from '../components/money-bits';
+import { Balances, moneyError } from '../components/money-bits';
 import { MoneyDialog } from '../components/money-dialog';
 import { MoveFilterBar, MovesLedger } from '../components/money-ledger';
-import { useHarvest } from '../context';
+import { useHarvest, useHarvestDay } from '../context';
 import { readSetting, settingKeys } from '../data/settings';
 import {
   type Account,
@@ -119,29 +120,75 @@ function DebtCard({ view, onPay, onRemovePayment }: { view: DebtView; onPay: () 
           {t('vault.debtPay')}
         </Button>
       </div>
-      {expanded && payments.length > 0 && (
-        <ul id={panel} className="flex flex-col divide-y border-t pt-1">
-          {payments.map((payment) => (
-            <li key={payment.uuid} className="flex items-center gap-3 py-1.5">
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="text-sm font-bold">{formatDay(payment.harvestDay)}</span>
-                <span className="text-xs text-muted-foreground">{formatDate(payment.loggedAt, { timeStyle: 'short' })}</span>
-              </span>
-              <span className="font-extrabold tabular" dir="ltr">
-                −{formatMoney(payment.amountMinor, debt.currency)}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t('vault.removePayment', { amount: formatMoney(payment.amountMinor, debt.currency) })}
-                onClick={() => onRemovePayment(payment)}
-              >
-                <Trash2Icon />
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {expanded && payments.length > 0 && <PaymentsList id={panel} payments={payments} currency={debt.currency} onRemove={onRemovePayment} />}
+    </li>
+  );
+}
+
+/**
+ * A debt's payments, newest first, each one removable: a payment logged
+ * by mistake goes, and a debt it had settled reopens ([[Audit-v2-Beta]]
+ * N-01). The same list sits under an open debt and a settled one.
+ */
+function PaymentsList({ id, payments, currency, onRemove }: { id: string; payments: DebtPaymentRow[]; currency: string; onRemove: (payment: DebtPaymentRow) => void }) {
+  const { t } = useTranslation();
+  return (
+    <ul id={id} className="flex flex-col divide-y border-t pt-1">
+      {payments.map((payment) => (
+        <li key={payment.uuid} className="flex items-center gap-3 py-1.5">
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-sm font-bold">{formatDay(payment.harvestDay)}</span>
+            <span className="text-xs text-muted-foreground">{formatDate(payment.loggedAt, { timeStyle: 'short' })}</span>
+          </span>
+          <span className="font-extrabold tabular" dir="ltr">
+            −{formatMoney(payment.amountMinor, currency)}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t('vault.removePayment', { amount: formatMoney(payment.amountMinor, currency) })}
+            onClick={() => onRemove(payment)}
+          >
+            <Trash2Icon />
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * A settled debt, folded into the quiet list: what it was, and its
+ * payments one tap away, so a mistaken last payment can still be taken
+ * back. [cheer] plays the small celebration the moment it settles.
+ */
+function SettledDebt({ view, cheer, onRemovePayment }: { view: DebtView; cheer: boolean; onRemovePayment: (payment: DebtPaymentRow) => void }) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const { debt, payments } = view;
+  const panel = `payments-${debt.uuid}`;
+  return (
+    <li className="flex flex-col px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="relative flex">
+          {cheer && <span className="absolute inset-0 rounded-full bg-success/50 motion-safe:animate-ping" aria-hidden />}
+          <CircleCheckIcon className="relative size-4 shrink-0 text-success" aria-hidden />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate font-bold">{debt.person}</span>
+          <span className="text-xs text-muted-foreground">{t('vault.settled')}</span>
+        </span>
+        <span className="font-extrabold text-muted-foreground tabular" dir="ltr">
+          {formatMoney(debt.amountMinor, debt.currency)}
+        </span>
+        {payments.length > 0 && (
+          <Button variant="ghost" size="sm" aria-expanded={expanded} aria-controls={panel} onClick={() => setExpanded(!expanded)}>
+            <ChevronDownIcon className={cn('transition-transform', expanded && 'rotate-180')} />
+            {t('vault.showPayments', { count: payments.length })}
+          </Button>
+        )}
+      </div>
+      {expanded && payments.length > 0 && <PaymentsList id={panel} payments={payments} currency={debt.currency} onRemove={onRemovePayment} />}
     </li>
   );
 }
@@ -163,7 +210,15 @@ export function VaultPanel() {
   const [filter, setFilter] = useState<MoveFilter>(emptyFilter);
   const [open, setOpen] = useState<Open>(null);
   const [removing, setRemoving] = useState<DebtPaymentRow | null>(null);
-  const vault = useLiveQuery(() => readVault(db), [db]);
+  // The debt that just settled, for the moment its check lights up.
+  const [cheering, setCheering] = useState<string | null>(null);
+  useEffect(() => {
+    if (cheering === null) return;
+    const timer = setTimeout(() => setCheering(null), 2000);
+    return () => clearTimeout(timer);
+  }, [cheering]);
+  const today = useHarvestDay();
+  const vault = useLiveQuery(() => readVault(db, today), [db, today.key]);
   const budget = useLiveQuery(async () => Number((await readSetting(db, settingKeys.monthlyBudget)) ?? 0), [db]);
   if (!vault) return null;
 
@@ -187,6 +242,34 @@ export function VaultPanel() {
   const pot = section === 'savings' ? savings : wallet;
   const moves = pot?.movements ?? [];
   const shown = moves.filter((row) => matchesFilter(filter, row));
+
+  /** Money in or out of the wallet by hand, said so, with the way back ([[Finances]] The Vault). */
+  async function moveWallet(deltaMinor: number, currency: string, note: string | null) {
+    const uuid = await repository.moveWallet(deltaMinor, currency, note);
+    const amount = formatMoney(Math.abs(deltaMinor), currency);
+    const undo = () => repository.removeMove(uuid).catch((failure: unknown) => void toast.error(moneyError(t, failure)));
+    toast.success(t(deltaMinor > 0 ? 'vaultWeb.walletAdded' : 'vaultWeb.walletTaken', { amount }), {
+      action: { label: t('common.undo'), onClick: () => void undo() },
+    });
+  }
+
+  /**
+   * A payment, and when it is the last one the small celebration the
+   * spec promises: the debt folds into Settled with its check lit.
+   */
+  async function pay(view: DebtView, minor: number, fromWallet: boolean, note: string | null) {
+    await repository.payDebt(view.debt.uuid, minor, fromWallet, note);
+    const amount = formatMoney(minor, view.debt.currency);
+    if (minor >= view.leftMinor) {
+      setCheering(view.debt.uuid);
+      toast.success(t('vaultWeb.debtSettled', { person: view.debt.person }), {
+        icon: <PartyPopperIcon className="size-4 text-sun" />,
+        duration: 6000,
+      });
+    } else {
+      toast.success(t('vaultWeb.debtPaid', { amount, person: view.debt.person }));
+    }
+  }
 
   async function removePayment(payment: DebtPaymentRow) {
     await repository.removePayment(payment.uuid);
@@ -318,17 +401,8 @@ export function VaultPanel() {
                 {t('vault.debtSettledSection')}
               </h2>
               <ul className="flex flex-col divide-y rounded-xl border bg-card">
-                {settled.map(({ debt }) => (
-                  <li key={debt.uuid} className="flex items-center gap-3 px-4 py-2.5">
-                    <CircleCheckIcon className="size-4 shrink-0 text-success" aria-hidden />
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate font-bold">{debt.person}</span>
-                      <span className="text-xs text-muted-foreground">{t('vault.settled')}</span>
-                    </span>
-                    <span className="font-extrabold text-muted-foreground tabular" dir="ltr">
-                      {formatMoney(debt.amountMinor, debt.currency)}
-                    </span>
-                  </li>
+                {settled.map((view) => (
+                  <SettledDebt key={view.debt.uuid} view={view} cheer={view.debt.uuid === cheering} onRemovePayment={setRemoving} />
                 ))}
               </ul>
             </section>
@@ -342,17 +416,21 @@ export function VaultPanel() {
           initialCurrency={open.kind === 'walletTake' && !(currency in walletBalances) ? (Object.keys(walletBalances)[0] ?? currency) : currency}
           // Taking out more than the wallet holds is a typo, not a wish.
           maxMinor={open.kind === 'walletTake' ? walletBalances : undefined}
-          onSubmit={(entry) => repository.moveWallet(open.kind === 'walletAdd' ? entry.minor : -entry.minor, entry.currency, entry.note)}
+          description={t(open.kind === 'walletAdd' ? 'vaultWeb.walletAddLead' : 'vaultWeb.walletTakeLead')}
+          onSubmit={(entry) => moveWallet(open.kind === 'walletAdd' ? entry.minor : -entry.minor, entry.currency, entry.note)}
           onClose={() => setOpen(null)}
         />
       )}
       {open?.kind === 'deposit' && (
         <MoneyDialog
           title={t('vault.savingsDeposit')}
-          description={t('vault.savings')}
+          description={t('vaultWeb.depositLead')}
           initialCurrency={currency}
           walletBalances={walletBalances}
-          onSubmit={(entry) => repository.depositSavings(entry.minor, entry.currency, entry.fromWallet, entry.note)}
+          onSubmit={async (entry) => {
+            await repository.depositSavings(entry.minor, entry.currency, entry.fromWallet, entry.note);
+            toast.success(t('vaultWeb.saved', { amount: formatMoney(entry.minor, entry.currency) }));
+          }}
           onClose={() => setOpen(null)}
         />
       )}
@@ -363,7 +441,10 @@ export function VaultPanel() {
           initialCurrency={currency in savingsBalances ? currency : (Object.keys(savingsBalances)[0] ?? currency)}
           lockCurrency={Object.keys(savingsBalances).length === 1}
           maxMinor={savingsBalances}
-          onSubmit={(entry) => repository.withdrawSavings(entry.minor, entry.currency, entry.note)}
+          onSubmit={async (entry) => {
+            await repository.withdrawSavings(entry.minor, entry.currency, entry.note);
+            toast.success(t('vaultWeb.withdrawn', { amount: formatMoney(entry.minor, entry.currency) }));
+          }}
           onClose={() => setOpen(null)}
         />
       )}
@@ -375,7 +456,8 @@ export function VaultPanel() {
           initialMinor={open.debt.leftMinor}
           maxMinor={{ [open.debt.debt.currency]: open.debt.leftMinor }}
           walletBalances={walletBalances}
-          onSubmit={(entry) => repository.payDebt(open.debt.debt.uuid, entry.minor, entry.fromWallet, entry.note)}
+          description={t('vaultWeb.payLead', { amount: formatMoney(open.debt.leftMinor, open.debt.debt.currency) })}
+          onSubmit={(entry) => pay(open.debt, entry.minor, entry.fromWallet, entry.note)}
           onClose={() => setOpen(null)}
         />
       )}

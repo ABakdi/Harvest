@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatNumber } from '@/lib/format';
 import { useHarvest } from '../../context';
 import { useAllExercises, useCatalogue, type Exercise } from '../../data/exercises';
 import { useBusy } from '../../components/use-busy';
@@ -26,7 +27,10 @@ function ChipRow({
   onSelect: (value: string | null) => void;
 }) {
   return (
-    <div role="group" aria-label={label} className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+    // shrink-0: in a dialog capped at the screen's height a scrolling row
+    // may otherwise be squeezed and cut its chips off at the bottom; the
+    // padding keeps room for the focus ring.
+    <div role="group" aria-label={label} className="-mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 py-1">
       {values.map((value) => (
         <Button
           key={value}
@@ -151,7 +155,7 @@ export function ExercisePicker({ title, onPick, onClose }: { title?: string; onP
             </>
           )}
           <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span aria-live="polite">{all ? t('gym.exerciseCount', { count: matches.length }) : t('gym.catalogueLoading')}</span>
+            <span aria-live="polite">{all ? t('gym.exerciseCount', { count: matches.length, replace: { count: formatNumber(matches.length) } }) : t('gym.catalogueLoading')}</span>
             {!adding && (
               <Button type="button" size="sm" variant="ghost" onClick={() => setAdding(true)}>
                 <PlusIcon />
@@ -207,7 +211,7 @@ export function ExercisePicker({ title, onPick, onClose }: { title?: string; onP
               </ul>
             )}
             {matches.length > shownAtOnce && (
-              <p className="py-3 text-center text-xs text-muted-foreground">{t('gym.moreExercises', { count: matches.length - shownAtOnce })}</p>
+              <p className="py-3 text-center text-xs text-muted-foreground">{t('gym.moreExercises', { count: matches.length - shownAtOnce, replace: { count: formatNumber(matches.length - shownAtOnce) } })}</p>
             )}
           </div>
         </DialogContent>

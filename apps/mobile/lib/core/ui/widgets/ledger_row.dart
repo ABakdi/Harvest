@@ -124,7 +124,13 @@ class LedgerDayHeader extends StatelessWidget {
         HarvestSpacing.xs,
       ),
       child: Text(
-        dayLabel(context, day),
+        // A day still to come holds what was logged ahead; it is marked,
+        // as it counts on its day and not before ([[Finances]]).
+        day.compareTo(HarvestDay.today()) > 0
+            ? AppLocalizations.of(
+                context,
+              ).ledgerDayUpcoming(dayLabel(context, day))
+            : dayLabel(context, day),
         style: theme.textTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w800,
           letterSpacing: 0.6,

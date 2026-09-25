@@ -63,7 +63,7 @@ import { parseWeight } from '../../data/health';
 import type { PhotoPrompt } from '../../data/programs';
 import { ExercisePicker } from './exercise-picker';
 import { useBusy } from '../../components/use-busy';
-import { RestField, useAsker, useLoad, useTargetText, useUnit, type Asker } from './shared';
+import { RestField, SetText, loadField, useAsker, useLoad, useSeededField, useTargetText, useUnit, useUnitKnown, type Asker } from './shared';
 
 // ---------------------------------------------------------------- the seed
 
@@ -217,20 +217,37 @@ function SeedCard({ tree, asker }: { tree: ProgramTree; asker: Asker }) {
 
 // ------------------------------------------------------------- target sets
 
-/** Editing one target: a weight or a percentage, reps, and whether it is open. */
+/**
+ * Editing one target: a weight or a percentage, reps, and whether it is
+ * open. Nothing is drawn until the unit is read — a weight seeded in
+ * kilograms under a pound label is saved back as pounds.
+ */
 function EditSetDialog({ set, onClose }: { set: TargetSetRow; onClose: () => void }) {
+  return useUnitKnown() ? <EditSetForm set={set} onClose={onClose} /> : null;
+}
+
+function EditSetForm({ set, onClose }: { set: TargetSetRow; onClose: () => void }) {
   const { t } = useTranslation();
   const { programs } = useHarvest();
   const unit = useUnit();
+  const load = useLoad();
   const id = useId();
   const [percentage, setPercentage] = useState(set.percentTenths !== null);
-  const [value, setValue] = useState(
-    set.percentTenths !== null ? String(set.percentTenths / 10) : set.weightGrams !== null ? loadFieldValue(set.weightGrams, unit) : '',
+  const [value, setValue] = useSeededField((shown) =>
+    set.percentTenths !== null ? String(set.percentTenths / 10) : set.weightGrams !== null ? loadField(set.weightGrams, shown) : '',
   );
   const [reps, setReps] = useState(set.reps === null ? '' : String(set.reps));
   const [open, setOpen] = useState(set.openEnded);
   const [busy, once] = useBusy();
   const number = parseWeight(value);
+  // What the typed load will be kept as, shown before it is saved rather
+  // than changed behind my back: 61.3 kg is 61.25 kg on a bar (Y8).
+  const rounded = !percentage && number !== null ? roundLoad(weightToGrams(unit, number), unit) : null;
+  const roundedAway = rounded !== null && Number(loadFieldValue(rounded, unit)) !== number;
+  // Rounded on leaving the field, the hint stays until the next keystroke:
+  // were it to vanish, Save would jump up under the pointer mid-click.
+  const [kept, setKept] = useState<number | null>(null);
+  const hint = roundedAway ? rounded : kept;
   const repsNumber = reps.trim() === '' ? null : Number(reps);
   const validReps = repsNumber === null || (Number.isInteger(repsNumber) && repsNumber >= 0);
 
@@ -246,12 +263,15 @@ function EditSetDialog({ set, onClose }: { set: TargetSetRow; onClose: () => voi
           onSubmit={(event) => {
             event.preventDefault();
             if (number === null || !validReps) return;
+            // A load left as it was shown is the load it was: 60 kg read as
+            // 132.25 lb and saved untouched stays 60 kg, not 59.99.
+            const untouched = !percentage && set.percentTenths === null && set.weightGrams !== null && value === loadField(set.weightGrams, unit);
             void once(() =>
               programs.updateTargetSet(set.uuid, {
                 reps: repsNumber,
                 openEnded: open,
                 percentTenths: percentage ? Math.round(number * 10) : null,
-                weightGrams: percentage ? null : roundLoad(weightToGrams(unit, number), unit),
+                weightGrams: percentage ? null : untouched ? set.weightGrams : roundLoad(weightToGrams(unit, number), unit),
               }),
             ).then(onClose);
           }}
@@ -276,7 +296,26 @@ function EditSetDialog({ set, onClose }: { set: TargetSetRow; onClose: () => voi
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-load`}>{percentage ? t('gym.percent') : t('gym.weight')}</Label>
-              <Input id={`${id}-load`} inputMode="decimal" value={value} onChange={(event) => setValue(event.target.value)} />
+              <Input
+                id={`${id}-load`}
+                inputMode="decimal"
+                value={value}
+                aria-describedby={hint !== null ? `${id}-rounded` : undefined}
+                onChange={(event) => {
+                  setKept(null);
+                  setValue(event.target.value);
+                }}
+                onBlur={() => {
+                  if (!roundedAway || rounded === null) return;
+                  setKept(rounded);
+                  setValue(loadFieldValue(rounded, unit));
+                }}
+              />
+              {hint !== null && (
+                <p id={`${id}-rounded`} className="text-xs font-bold text-muted-foreground" aria-live="polite">
+                  {t('gymWeb.roundsTo', { load: load(hint) })}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-reps`}>{t('gym.reps')}</Label>
@@ -332,8 +371,16 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
   const [editing, setEditing] = useState<TargetSetRow | null>(null);
   if (tree !== undefined && !slot) return null;
 
-  const add = (input: { reps: number; percentTenths: number | null; openEnded: boolean }) =>
-    slot && void programs.addTargetSet(slot.row.uuid, { weightGrams: null, ...input });
+  // A new set starts as the last plain one, as on the phone (`nextTargetSet`):
+  // the fifth set of five is rarely a different weight from the fourth.
+  const add = (input: { reps: number; percentTenths: number | null; openEnded: boolean }) => {
+    if (!slot) return;
+    const last = [...slot.sets].reverse().find((set) => !set.openEnded && !input.openEnded);
+    void programs.addTargetSet(
+      slot.row.uuid,
+      last ? { weightGrams: last.weightGrams, reps: last.reps, percentTenths: last.percentTenths, openEnded: false } : { weightGrams: null, ...input },
+    );
+  };
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -354,7 +401,7 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
                     aria-label={t('gym.editSetNamed', { set: targetText(set, set.weightGrams) })}
                     onClick={() => setEditing(set)}
                   >
-                    {targetText(set, set.weightGrams)}
+                    <SetText>{targetText(set, set.weightGrams)}</SetText>
                   </button>
                   <Button variant="ghost" size="icon-sm" aria-label={t('gym.removeSetNamed', { set: targetText(set, set.weightGrams) })} onClick={() => void programs.removeTargetSet(set.uuid)}>
                     <XIcon />
@@ -475,9 +522,9 @@ function SlotRow({
         ) : (
           <span className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
             {slot.sets.map((set) => (
-              <span key={set.uuid} className={cn(set.openEnded && 'font-extrabold text-primary')}>
+              <SetText key={set.uuid} className={cn(set.openEnded && 'font-extrabold text-primary')}>
                 {targetText(set, resolveTarget(set, trainingMaxGrams, unit))}
-              </span>
+              </SetText>
             ))}
           </span>
         )}
@@ -537,7 +584,7 @@ function DayCard({
   };
 
   async function rename() {
-    const name = await asker.prompt({ title: t('gym.rename'), label: t('gym.dayName'), initial: day.row.name });
+    const name = await asker.prompt({ title: t('gym.rename'), body: t('gymWeb.dayNameLead'), label: t('gym.dayName'), placeholder: t('gym.dayNameHint'), initial: day.row.name });
     if (name?.trim()) await programs.updateDay(day.row.uuid, { name });
   }
 
@@ -649,12 +696,23 @@ function MaxRow({ programUuid, exerciseId, grams }: { programUuid: string; exerc
   const load = useLoad();
   const id = useId();
   const exercise = useExercise(db, exerciseId);
-  const [text, setText] = useState(grams === undefined ? '' : loadFieldValue(grams, unit));
+  const [text, setText] = useSeededField((shown) => (grams === undefined ? '' : loadField(grams, shown)));
+  const typed = parseWeight(text);
+  const rounded = typed === null ? null : roundLoad(weightToGrams(unit, typed), unit);
+  const roundedAway = rounded !== null && Number(loadFieldValue(rounded, unit)) !== typed;
+  // The hint outlives the rounding until the next keystroke, so the
+  // dialog does not shift under a click on its way out.
+  const [kept, setKept] = useState<number | null>(null);
+  const hint = roundedAway ? rounded : kept;
   const save = () => {
-    const value = parseWeight(text);
-    if (value === null) return;
-    const next = roundLoad(weightToGrams(unit, value), unit);
-    if (next !== grams) void programs.setTrainingMax(programUuid, exerciseId, next);
+    // Leaving the field as it was shown changes nothing: 60 kg read as
+    // 132.25 lb is not re-saved as the 59.99 kg those pounds are.
+    if (rounded === null || (grams !== undefined && text === loadField(grams, unit))) return;
+    if (roundedAway) setKept(rounded);
+    // The field shows what was kept, not what was typed — and, no longer
+    // typing, it follows the unit again.
+    setText(loadFieldValue(rounded, unit), false);
+    if (rounded !== grams) void programs.setTrainingMax(programUuid, exerciseId, rounded);
   };
   return (
     <li className="flex flex-wrap items-center gap-3">
@@ -665,14 +723,23 @@ function MaxRow({ programUuid, exerciseId, grams }: { programUuid: string; exerc
         <span className={cn('text-xs', grams === undefined ? 'text-destructive' : 'text-muted-foreground')}>
           {grams === undefined ? t('gym.noTrainingMax') : load(grams)}
         </span>
+        {hint !== null && (
+          <span id={`${id}-rounded`} className="text-xs font-bold text-muted-foreground" aria-live="polite">
+            {t('gymWeb.roundsTo', { load: load(hint) })}
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <Input
           id={id}
           inputMode="decimal"
           className="w-24 text-center"
+          aria-describedby={hint !== null ? `${id}-rounded` : undefined}
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => {
+            setKept(null);
+            setText(event.target.value);
+          }}
           onBlur={save}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
@@ -693,6 +760,7 @@ function MaxRow({ programUuid, exerciseId, grams }: { programUuid: string; exerc
  */
 function TrainingMaxDialog({ tree, maxes, onClose }: { tree: ProgramTree; maxes: Map<string, number>; onClose: () => void }) {
   const { t } = useTranslation();
+  const known = useUnitKnown();
   const needed = percentageExercises(tree);
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -704,7 +772,8 @@ function TrainingMaxDialog({ tree, maxes, onClose }: { tree: ProgramTree; maxes:
         {needed.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('gym.noPercentSets')}</p>
         ) : (
-          <ul className="flex flex-col gap-3">
+          // The rows wait for the unit: a max seeded in kilograms under a pound label is saved as pounds.
+          known && <ul className="flex flex-col gap-3">
             {needed.map((exerciseId) => (
               <MaxRow key={exerciseId} programUuid={tree.program.uuid} exerciseId={exerciseId} grams={maxes.get(exerciseId)} />
             ))}

@@ -1,4 +1,4 @@
-import type { Release } from '@harvest/contracts';
+import type { PublishedRelease, Release } from '@harvest/contracts';
 import { z } from 'zod';
 import { HttpError } from '../http/errors.js';
 
@@ -9,6 +9,8 @@ const githubReleaseSchema = z.object({
   published_at: z.string().nullable().optional(),
   html_url: z.string(),
   body: z.string().nullable().optional(),
+  draft: z.boolean().default(false),
+  prerelease: z.boolean().default(false),
   assets: z
     .array(
       z.object({
@@ -21,6 +23,8 @@ const githubReleaseSchema = z.object({
     )
     .default([]),
 });
+
+type GitHubRelease = z.infer<typeof githubReleaseSchema>;
 
 export type Fetch = typeof fetch;
 
@@ -38,9 +42,23 @@ export interface ReleaseSourceOptions {
   now?: () => number;
 }
 
+function published(release: GitHubRelease): PublishedRelease {
+  const apk = release.assets.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
+  return {
+    tag: release.tag_name,
+    name: release.name ?? null,
+    publishedAt: release.published_at ?? null,
+    htmlUrl: release.html_url,
+    notes: release.body?.trim() || null,
+    apk: apk ? { name: apk.name, url: apk.browser_download_url, size: apk.size, sha256: sha256Of(apk.digest) } : null,
+  };
+}
+
 /**
  * The newest APK, for the web's download page ([[Web]]), proxied from
- * GitHub's "latest release" and cached for an hour. The cache is what
+ * GitHub's release list and cached for an hour: the newest release that
+ * is not a pre-release (GitHub's "latest"), and the newest pre-release
+ * when one came after it. One request answers both. The cache is what
  * keeps the page inside GitHub's anonymous rate limit (60 an hour per
  * address), and it is also what the page falls back on when GitHub is
  * down: an hour-old answer beats an error.
@@ -70,7 +88,7 @@ export class ReleaseSource {
   private async load(): Promise<Release> {
     let response: Response;
     try {
-      response = await this.fetch(`https://api.github.com/repos/${this.options.repo}/releases/latest`, {
+      response = await this.fetch(`https://api.github.com/repos/${this.options.repo}/releases?per_page=20`, {
         headers: {
           accept: 'application/vnd.github+json',
           'user-agent': 'harvest-server',
@@ -85,20 +103,15 @@ export class ReleaseSource {
     if (response.status === 404) throw new HttpError('not_found', 'There is no release yet');
     if (!response.ok) return this.stale();
 
-    const parsed = githubReleaseSchema.safeParse(await response.json().catch(() => null));
+    const parsed = z.array(githubReleaseSchema).safeParse(await response.json().catch(() => null));
     if (!parsed.success) return this.stale();
 
-    const apk = parsed.data.assets.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
-    const release: Release = {
-      tag: parsed.data.tag_name,
-      name: parsed.data.name ?? null,
-      publishedAt: parsed.data.published_at ?? null,
-      htmlUrl: parsed.data.html_url,
-      notes: parsed.data.body?.trim() || null,
-      apk: apk
-        ? { name: apk.name, url: apk.browser_download_url, size: apk.size, sha256: sha256Of(apk.digest) }
-        : null,
-    };
+    // Newest first, as GitHub lists them; drafts are not releases yet.
+    const out = parsed.data.filter((release) => !release.draft);
+    const stable = out.findIndex((release) => !release.prerelease);
+    if (stable === -1) throw new HttpError('not_found', 'There is no release yet');
+    const beta = out.slice(0, stable).find((release) => release.prerelease);
+    const release: Release = { ...published(out[stable]!), prerelease: beta ? published(beta) : null };
     this.cached = { release, at: this.now() };
     return release;
   }

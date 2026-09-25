@@ -1,6 +1,7 @@
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 import type * as React from 'react';
 import { buttonVariants } from '@/components/ui/button';
+import { settleFocus } from '@/lib/focus';
 import { cn } from '@/lib/utils';
 
 function AlertDialog(props: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
@@ -11,7 +12,7 @@ function AlertDialogTrigger(props: React.ComponentProps<typeof AlertDialogPrimit
   return <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />;
 }
 
-function AlertDialogContent({ className, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
+function AlertDialogContent({ className, onCloseAutoFocus, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
   return (
     <AlertDialogPrimitive.Portal>
       <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
@@ -21,6 +22,10 @@ function AlertDialogContent({ className, ...props }: React.ComponentProps<typeof
           'fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border bg-popover p-6 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           className,
         )}
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event);
+          if (!event.defaultPrevented) settleFocus();
+        }}
         {...props}
       />
     </AlertDialogPrimitive.Portal>

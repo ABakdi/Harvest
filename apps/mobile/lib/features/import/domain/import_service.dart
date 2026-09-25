@@ -501,8 +501,12 @@ class ImportService {
 
   // ------------------------------------------------------------ helpers
 
+  /// On the local clock, the spelling the app writes: an older export
+  /// spelled some times in UTC with a `Z`.
   static DateTime? _time(String? value) =>
-      value == null || value.isEmpty ? null : DateTime.tryParse(value);
+      value == null || value.isEmpty
+      ? null
+      : DateTime.tryParse(value)?.toLocal();
 
   static double? _double(String? value) {
     if (value == null || value.isEmpty) return null;

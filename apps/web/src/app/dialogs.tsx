@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ExpenseEditor } from './components/expense-editor';
 import { SearchDialog } from './components/search-dialog';
 import { SeedEditor, type SeedPrefill } from './components/seed-editor';
@@ -25,7 +25,8 @@ export function useDialogs(): Dialogs {
   return dialogs;
 }
 
-type SeedState = { mode: 'plant'; prefill: SeedPrefill } | { mode: 'edit'; seed: SeedRow } | null;
+/** [request] numbers each opening, so the editor is keyed by the press that opened it. */
+type SeedState = ({ mode: 'plant'; prefill: SeedPrefill } | { mode: 'edit'; seed: SeedRow }) & { request: number };
 type ExpenseState = { mode: 'log' } | { mode: 'edit'; expense: ExpenseRow } | null;
 type WishlistState = { mode: 'add'; list: WishlistList } | { mode: 'edit'; item: WishlistRow } | null;
 
@@ -35,20 +36,19 @@ type WishlistState = { mode: 'add'; list: WishlistList } | { mode: 'edit'; item:
  * screen opens the same one.
  */
 export function DialogsProvider({ children }: { children: ReactNode }) {
-  const [seed, setSeed] = useState<SeedState>(null);
+  const [seed, setSeed] = useState<SeedState | null>(null);
   const [expense, setExpense] = useState<ExpenseState>(null);
   const [wishlist, setWishlist] = useState<WishlistState>(null);
   const [search, setSearch] = useState(false);
   // Each opening gets a fresh editor, so no half-typed state leaks from the last one.
   const [generation, setGeneration] = useState(0);
 
+  const seedRequests = useRef(0);
   const plantSeed = useCallback((prefill: SeedPrefill = {}) => {
-    setGeneration((n) => n + 1);
-    setSeed({ mode: 'plant', prefill });
+    setSeed({ mode: 'plant', prefill: { ...prefill }, request: ++seedRequests.current });
   }, []);
   const editSeed = useCallback((row: SeedRow) => {
-    setGeneration((n) => n + 1);
-    setSeed({ mode: 'edit', seed: row });
+    setSeed({ mode: 'edit', seed: row, request: ++seedRequests.current });
   }, []);
   const logExpense = useCallback(() => {
     setGeneration((n) => n + 1);
@@ -76,7 +76,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
   return (
     <DialogsContext.Provider value={value}>
       {children}
-      {seed && <SeedEditor key={`seed-${generation}`} state={seed} onClose={() => setSeed(null)} />}
+      {seed && <SeedEditor key={`seed-${seed.request}`} state={seed} onClose={() => setSeed(null)} />}
       {expense && (
         <ExpenseEditor
           key={`expense-${generation}`}

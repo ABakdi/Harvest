@@ -21,7 +21,39 @@ const names = catalogue as Record<string, string>;
 export const catalogueSize = Object.keys(names).length;
 
 export function catalogueName(id: string): string | null {
-  return names[id] ?? null;
+  const name = names[id];
+  return name === undefined ? null : titleCase(name);
+}
+
+const smallWords = new Set(['a', 'an', 'and', 'at', 'by', 'for', 'in', 'of', 'on', 'or', 'the', 'to', 'with', 'vs', 'v.']);
+
+/**
+ * `barbell full squat (side pov)` → `Barbell Full Squat (Side POV)`, as
+ * the phone shows the catalogue (`Exercise.displayName`): each word
+ * raised after a space, a hyphen, a slash or a bracket, the small words
+ * left small unless they lead. Display only: the catalogue keeps its
+ * own spelling, and my own exercises keep mine.
+ */
+export function titleCase(text: string): string {
+  return text
+    .split(' ')
+    .map((word, index) => (index > 0 && smallWords.has(word) ? word : raise(word)))
+    .join(' ');
+}
+
+/**
+ * The catalogue's initialisms, written as they are said: the JM press,
+ * the EZ and SZ bars, a squat seen from the back POV. Only true
+ * initialisms — `ab`, `up` and `on` are words, and single letters (the
+ * V-bar, the T-bar row) are raised anyway.
+ */
+const initialisms = new Set(['ez', 'jm', 'pov', 'sz']);
+
+function raise(word: string): string {
+  // Each piece between a hyphen, a slash or a bracket starts a word of its own.
+  return word.replace(/[^-/()]+/g, (piece) =>
+    initialisms.has(piece.toLowerCase()) ? piece.toUpperCase() : piece.charAt(0).toUpperCase() + piece.slice(1),
+  );
 }
 
 /**
@@ -83,7 +115,7 @@ export function loadCatalogue(): Promise<Catalogue> {
     const all = (JSON.parse(raw) as RawExercise[]).map(
       (entry): Exercise => ({
         id: entry.id,
-        name: entry.name,
+        name: titleCase(entry.name),
         bodyPart: entry.bodyPart ?? null,
         equipment: entry.equipment ?? null,
         target: entry.target ?? null,

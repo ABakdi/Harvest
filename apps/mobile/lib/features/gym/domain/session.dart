@@ -153,6 +153,29 @@ class WorkoutSession {
 
   Duration get elapsed => elapsedAt(DateTime.now());
 
+  /// Still running past its own Harvest Day: started, never finished,
+  /// and left behind — the app killed on a Monday and opened again on
+  /// a Thursday. It resumes (rule Y3), but finishing it now would check
+  /// the habit in on a day it no longer looks like, so it is asked
+  /// about first.
+  bool staleOn(HarvestDay today) => running && day.compareTo(today) < 0;
+
+  /// When a stale session is taken to have ended: the last set I
+  /// ticked, or the pause, or — with nothing logged — the moment it
+  /// started. Not now: the eleven days it sat open were not training.
+  DateTime get lastActivity {
+    var last = startedAt;
+    final pause = pausedAt;
+    if (pause != null && pause.isAfter(last)) last = pause;
+    for (final exercise in exercises) {
+      for (final set in exercise.sets) {
+        final at = set.loggedAt;
+        if (set.done && at != null && at.isAfter(last)) last = at;
+      }
+    }
+    return last;
+  }
+
   int get doneSets =>
       exercises.fold(0, (sum, exercise) => sum + exercise.doneSets);
 
@@ -268,4 +291,16 @@ List<RecordKind> recordsBeatenBy(WorkoutSet set, ExerciseRecords records) {
     beaten.add(RecordKind.estimated);
   }
   return beaten;
+}
+
+/// The session clock: `4:05` under an hour, `1:04:05` past it. Minutes
+/// alone read a session left open for eleven days as `15977:10`.
+String formatSessionClock(Duration elapsed) {
+  final whole = elapsed.isNegative ? 0 : elapsed.inSeconds;
+  final hours = whole ~/ 3600;
+  final minutes = (whole % 3600) ~/ 60;
+  final seconds = (whole % 60).toString().padLeft(2, '0');
+  return hours == 0
+      ? '$minutes:$seconds'
+      : '$hours:${minutes.toString().padLeft(2, '0')}:$seconds';
 }

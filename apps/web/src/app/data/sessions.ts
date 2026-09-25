@@ -253,13 +253,14 @@ export class SessionsRepository {
    * Starting checks nothing in, abandoning checks nothing in, and
    * finishing twice pays once — the check-in is once a day anyway.
    */
-  async finish(uuid: string): Promise<FinishOutcome> {
+  async finish(uuid: string, endedAt: string | null = null): Promise<FinishOutcome> {
     const session = await this.writer.run(async (tx) => {
       const row = await tx.get('workout_sessions', uuid);
       if (!row) return null;
       const now = tx.now();
       // Finished while paused, it ends at the pause: the minutes since were not training.
-      const next = { ...row, endedAt: row.pausedAt ?? now, pausedAt: null, updatedAt: now };
+      // [endedAt] ends a session left running past its day at its last set, not now (Y3).
+      const next = { ...row, endedAt: endedAt ?? row.pausedAt ?? now, pausedAt: null, updatedAt: now };
       await tx.put('workout_sessions', next);
       return next;
     });

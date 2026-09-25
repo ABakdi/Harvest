@@ -115,7 +115,7 @@ class _ArchivedCard extends ConsumerWidget {
                     switch (commitment.type) {
                       CommitmentType.habit => Icons.repeat,
                       CommitmentType.project => Icons.flag,
-                      CommitmentType.todo => Icons.check_circle_outline,
+                      CommitmentType.todo => Icons.event_note_outlined,
                     },
                     color: scheme.onSurfaceVariant,
                   ),

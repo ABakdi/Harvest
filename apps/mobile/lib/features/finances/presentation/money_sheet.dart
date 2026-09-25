@@ -154,13 +154,13 @@ class _MoneySheetState extends State<_MoneySheet> {
               fontWeight: FontWeight.w800,
               color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
             ),
-            prefixText: '${_currency.symbol} ',
+            prefixText: _currency.symbol,
             prefixStyle: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
               color: theme.colorScheme.onSurfaceVariant,
             ),
             errorText: _overCap
-                ? '${l10n.amountLabel} ≤ ${_currency.symbol}${formatMinor(_cap!)}'
+                ? '${l10n.amountLabel} ≤ ${formatMoney(_cap!, _currency)}'
                 : null,
           ),
         ),
@@ -181,7 +181,7 @@ class _MoneySheetState extends State<_MoneySheet> {
           Padding(
             padding: const EdgeInsets.only(top: HarvestSpacing.sm),
             child: Text(
-              '${_currency.symbol}${formatMinor(_cap!)}',
+              formatMoney(_cap!, _currency),
               style: theme.textTheme.labelMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                 fontWeight: FontWeight.w700,
@@ -196,10 +196,16 @@ class _MoneySheetState extends State<_MoneySheet> {
             subtitle: Text(
               _minor != null && !_walletCanCover
                   ? l10n.walletShort
-                  : l10n.walletHas(formatAmount(_walletBalance, _currency)),
+                  : l10n.walletHas(formatMoney(_walletBalance, _currency)),
             ),
-            value: _useWallet,
-            onChanged: _walletCanCover
+            // Before an amount is typed the row already answers: the
+            // choice is made up front and applied once the wallet is
+            // known to cover it. A row that ignored taps until then read
+            // as a label that does nothing.
+            value: _minor == null
+                ? (_fromWallet ?? true) && _walletBalance > 0
+                : _useWallet,
+            onChanged: (_minor == null ? _walletBalance > 0 : _walletCanCover)
                 ? (value) => setState(() => _fromWallet = value)
                 : null,
           ),

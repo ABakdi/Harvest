@@ -180,6 +180,8 @@ interface Drawn {
   saved: SavedPlaceRow[];
   selected: string | null;
   here: { latitude: number; longitude: number } | null;
+  /** The point being saved, marked while its form is open. */
+  draft: { latitude: number; longitude: number } | null;
 }
 
 type GeoData = GeoJSONSourceSpecification['data'];
@@ -202,7 +204,7 @@ function point(longitude: number, latitude: number) {
  * adds what a fresh style lacks and refreshes what is there, so it
  * serves both a change of data and a change of base.
  */
-function drawMap(instance: MapLibreMap, { day, saved, selected, here }: Drawn): void {
+function drawMap(instance: MapLibreMap, { day, saved, selected, here, draft }: Drawn): void {
   feed(instance, 'trail', {
     type: 'Feature',
     properties: {},
@@ -344,6 +346,23 @@ function drawMap(instance: MapLibreMap, { day, saved, selected, here }: Drawn): 
     for (const id of ['here-ring', 'here-dot']) if (instance.getLayer(id)) instance.removeLayer(id);
     if (instance.getSource('here')) instance.removeSource('here');
   }
+
+  // The point a right-click picked, in the saved places' red, hollow
+  // until it is kept: the form sits beside the map, never over it.
+  if (draft) {
+    feed(instance, 'draft', { type: 'Feature', properties: {}, geometry: point(draft.longitude, draft.latitude) });
+    if (!instance.getLayer('draft')) {
+      instance.addLayer({
+        id: 'draft',
+        type: 'circle',
+        source: 'draft',
+        paint: { 'circle-radius': 8, 'circle-color': '#FFFFFF', 'circle-stroke-color': savedColor, 'circle-stroke-width': 3 },
+      });
+    }
+  } else {
+    if (instance.getLayer('draft')) instance.removeLayer('draft');
+    if (instance.getSource('draft')) instance.removeSource('draft');
+  }
 }
 
 interface DayMapProps extends Drawn {
@@ -371,7 +390,7 @@ interface DayMapProps extends Drawn {
  * Without one the tiles stay blank and the timeline below still lists
  * everything, because all of it is local ([[Places]]).
  */
-function DayMap({ day, saved, base, selected, here, spanKey, onSelect, onPlace, onSave, onLocate, onBaseChange }: DayMapProps) {
+function DayMap({ day, saved, base, selected, here, draft, spanKey, onSelect, onPlace, onSave, onLocate, onBaseChange }: DayMapProps) {
   const { t } = useTranslation();
   const holder = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
@@ -446,9 +465,9 @@ function DayMap({ day, saved, base, selected, here, spanKey, onSelect, onPlace, 
   useEffect(() => {
     const instance = map.current;
     if (!instance) return;
-    redraw.current = () => drawMap(instance, { day, saved, selected, here });
+    redraw.current = () => drawMap(instance, { day, saved, selected, here, draft });
     if (ready.current) redraw.current();
-  }, [day, saved, selected, here]);
+  }, [day, saved, selected, here, draft]);
 
   // Where to look: the pin a link or a tap named, else the whole span
   // once when it first shows, and the dot when I asked for it.
@@ -640,33 +659,38 @@ function PlaceForm({
     onSave(name.trim(), notes.trim(), Math.round(radiusM));
   };
   return (
-    <div className="absolute inset-x-3 bottom-3 z-10 rounded-2xl border bg-card p-4 shadow-lg">
+    // Beside the map, not over it: a card laid on the map hid most of it
+    // and the very point being saved. The point stays marked above.
+    <div className="rounded-2xl border bg-card p-3 shadow-sm">
       <form
         onSubmit={(event) => {
           event.preventDefault();
           submit();
         }}
+        aria-label={initial ? t('places.editPlace') : t('places.savePlace')}
         className="flex flex-col gap-2"
       >
         <LabelText>{initial ? t('places.editPlace') : t('places.savePlace')}</LabelText>
-        <Input
-          autoFocus
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder={t('places.placeNameHint')}
-          aria-label={t('places.placeName')}
-          aria-invalid={tried && !name.trim()}
-          className={cn(tried && !name.trim() && 'ring-2 ring-destructive')}
-        />
-        <Textarea
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          placeholder={t('places.placeNotesHint')}
-          aria-label={t('places.placeNotes')}
-          rows={2}
-          className="resize-none"
-        />
-        <label className="flex items-center gap-2 text-sm">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Input
+            autoFocus
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder={t('places.placeNameHint')}
+            aria-label={t('places.placeName')}
+            aria-invalid={tried && !name.trim()}
+            className={cn(tried && !name.trim() && 'ring-2 ring-destructive')}
+          />
+          <Textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder={t('places.placeNotesHint')}
+            aria-label={t('places.placeNotes')}
+            rows={1}
+            className="min-h-9 resize-none"
+          />
+        </div>
+        <label className="flex flex-wrap items-center gap-2 text-sm">
           <span className="font-bold">{t('places.radius')}</span>
           <Input
             type="number"
@@ -919,6 +943,7 @@ export function PlacesScreen() {
               onSave={onSave}
               onLocate={onLocate}
               onBaseChange={setBase}
+              draft={draft && !draft.edit ? draft : null}
             />
             {card && (
               <PlaceCard
@@ -941,26 +966,26 @@ export function PlacesScreen() {
                 }}
               />
             )}
-            {draft && (
-              <PlaceForm
-                key={draft.edit?.uuid ?? `${draft.latitude},${draft.longitude}`}
-                initial={draft.edit ?? null}
-                onCancel={() => setDraft(null)}
-                onSave={(name, notes, radiusM) => {
-                  const saving = draft.edit
-                    ? repo.update(draft.edit.uuid, { name, notes, radiusM }).then(() => t('places.placeUpdated'))
-                    : repo
-                        .add({ name, latitude: draft.latitude, longitude: draft.longitude, notes, radiusM })
-                        .then(() => t('places.placeSaved'));
-                  saving.then(
-                    (message) => toast(message),
-                    () => toast.error(t('common.saveFailed')),
-                  );
-                  setDraft(null);
-                }}
-              />
-            )}
           </div>
+          {draft && (
+            <PlaceForm
+              key={draft.edit?.uuid ?? `${draft.latitude},${draft.longitude}`}
+              initial={draft.edit ?? null}
+              onCancel={() => setDraft(null)}
+              onSave={(name, notes, radiusM) => {
+                const saving = draft.edit
+                  ? repo.update(draft.edit.uuid, { name, notes, radiusM }).then(() => t('places.placeUpdated'))
+                  : repo
+                      .add({ name, latitude: draft.latitude, longitude: draft.longitude, notes, radiusM })
+                      .then(() => t('places.placeSaved'));
+                saving.then(
+                  (message) => toast(message),
+                  () => toast.error(t('common.saveFailed')),
+                );
+                setDraft(null);
+              }}
+            />
+          )}
           {noTrail ? (
             <EmptyState icon={<MapPinIcon />} title={t('places.emptyTitle')} body={t('places.emptyBody')} />
           ) : (

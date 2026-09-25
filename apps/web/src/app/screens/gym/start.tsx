@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useHarvest } from '../../context';
 import { albumForPicture, nextDayOf, readPrograms, readRunning, readTrainingMaxes, type DayTree, type ProgramTree } from '../../data/gym';
 import type { PictureState } from './picture-offer';
-import { useUnit } from './shared';
+import { useUnit, useUnitKnown } from './shared';
 import type { SeedRow } from '../../data/seeds';
 
 /** `2 exercises · 9 sets`. */
@@ -49,6 +49,7 @@ export function StartDialog({ only, onClose }: { only?: ProgramTree; onClose: ()
   const navigate = useNavigate();
   const summary = useDaySummary();
   const unit = useUnit();
+  const known = useUnitKnown();
   const [busy, setBusy] = useState(false);
   const choices = useLiveQuery(async () => {
     const programs = (await readPrograms(db)).filter(
@@ -58,7 +59,8 @@ export function StartDialog({ only, onClose }: { only?: ProgramTree; onClose: ()
   }, [db, only?.program.uuid]);
 
   async function start(tree: ProgramTree, day: DayTree) {
-    if (busy) return;
+    // A session started before the unit is read would label its sets in kilograms (Y8).
+    if (busy || !known) return;
     // Several awaits sit between the click and the session; a second
     // click in that window waits for the first rather than racing it.
     setBusy(true);
@@ -94,7 +96,7 @@ export function StartDialog({ only, onClose }: { only?: ProgramTree; onClose: ()
             {next && (
               <button
                 type="button"
-                disabled={busy}
+                disabled={busy || !known}
                 onClick={() => void start(tree, next)}
                 className="flex items-center gap-3 rounded-xl bg-secondary p-3 text-start text-secondary-foreground outline-none hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
               >
@@ -115,7 +117,7 @@ export function StartDialog({ only, onClose }: { only?: ProgramTree; onClose: ()
                   <li key={day.row.uuid}>
                     <button
                       type="button"
-                      disabled={busy}
+                      disabled={busy || !known}
                       onClick={() => void start(tree, day)}
                       className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
                     >

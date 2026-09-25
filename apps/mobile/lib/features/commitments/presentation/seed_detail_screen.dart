@@ -147,6 +147,17 @@ class SeedDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+          // A project is a distance, so its page says how far: 20 of
+          // 100, not only a streak ([[Commitments]]).
+          if (commitment.type == CommitmentType.project &&
+              (commitment.totalTarget ?? 0) > 0) ...[
+            const SizedBox(height: HarvestSpacing.md),
+            _ProjectProgress(
+              logged: total,
+              target: commitment.totalTarget!,
+              daily: commitment.dailyCommitment ?? 0,
+            ),
+          ],
           const SizedBox(height: HarvestSpacing.md),
           _RunStrip(
             days: {for (final entry in done) entry.day},
@@ -170,6 +181,72 @@ class SeedDetailScreen extends ConsumerWidget {
             for (final entry in timeline)
               _DayRow(entry: entry, commitment: commitment),
         ],
+      ),
+    );
+  }
+}
+
+/// How far a project has come toward its total.
+class _ProjectProgress extends StatelessWidget {
+  const _ProjectProgress({
+    required this.logged,
+    required this.target,
+    required this.daily,
+  });
+
+  final int logged;
+  final int target;
+  final int daily;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final left = target - logged;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(HarvestSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.projectProgressOf(logged, target),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${(logged * 100 / target).clamp(0, 100).floor()}%',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: scheme.secondary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: HarvestSpacing.sm),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(HarvestRadii.chip),
+              child: LinearProgressIndicator(
+                value: (logged / target).clamp(0, 1).toDouble(),
+                minHeight: 8,
+                backgroundColor: scheme.onSurface.withValues(alpha: 0.08),
+              ),
+            ),
+            const SizedBox(height: HarvestSpacing.sm),
+            Text(
+              left > 0 ? l10n.projectLeft(left) : l10n.projectReached,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -327,7 +327,7 @@ describe('the catalogue', () => {
     expect(web).toBe(phone);
     const book = await loadCatalogue();
     expect(book.all).toHaveLength(1324);
-    expect(book.byId.get('0001')?.name).toBe('3/4 sit-up');
+    expect(book.byId.get('0001')?.name).toBe('3/4 Sit-Up');
     expect(book.bodyParts).toContain('back');
   });
 
@@ -338,5 +338,15 @@ describe('the catalogue', () => {
     expect(await outboxFor(h, 'exercises')).toHaveLength(1);
     await h.exercises.remove(mine.id);
     expect((await h.db.rows('exercises').get(mine.id))!.deletedAt).not.toBeNull();
+  });
+});
+
+describe('exercise names as the phone shows them', () => {
+  it('raises each word, after hyphens, slashes and brackets, and leaves small words small', async () => {
+    const { titleCase } = await import('@/app/data/exercises');
+    expect(titleCase('barbell full squat (side pov)')).toBe('Barbell Full Squat (Side POV)');
+    expect(titleCase('3/4 sit-up')).toBe('3/4 Sit-Up');
+    expect(titleCase('squat to box with a band')).toBe('Squat to Box with a Band');
+    expect(titleCase('the bench')).toBe('The Bench');
   });
 });

@@ -69,4 +69,27 @@ void main() {
     expect(rateFetchedAt(null), isNull);
     expect(rateFetchedAt('not a time'), isNull);
   });
+
+  testWidgets('says the dinar rates are typed by hand, next to them', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          rateSettingsProvider.overrideWith(
+            (ref) => Stream.value(const {RateKeys.usdPerEur: '1.08'}),
+          ),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SingleChildScrollView(child: RatesCard())),
+        ),
+      ),
+    );
+    await tester.pump();
+    // Fetched EUR→USD, empty DZD fields — and the reason on screen.
+    expect(find.textContaining('typed by hand'), findsOneWidget);
+    expect(find.textContaining('Fetch only updates EUR → USD'), findsOneWidget);
+  });
 }

@@ -13,7 +13,7 @@ import { CalendarScreen } from '@/app/screens/calendar';
 import { FarmerScreen } from '@/app/screens/farmer';
 import { FieldScreen } from '@/app/screens/field';
 import { FakeServer } from './fake-server';
-import { device } from './helpers';
+import { device, testUser } from './helpers';
 
 // A Saturday; tomorrow is the Sunday that ends the week.
 const today = HarvestDay.parse('2026-09-19');
@@ -188,6 +188,8 @@ describe('the field', () => {
     expect(gauges.budgetLeft).toBe(100000);
     expect(gauges.sleepOwed).toBeNull();
 
+    // With the passphrase: a browser without it holds only part of the spending.
+    await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     renderIn(h, <FieldScreen tab="today" />);
     expect(await screen.findByRole('link', { name: /left today/ })).toHaveAttribute('href', '/app/granary');
   });

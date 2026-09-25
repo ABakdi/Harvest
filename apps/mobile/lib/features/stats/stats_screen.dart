@@ -12,6 +12,7 @@ import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/stat_tile.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/commitments/presentation/seed_providers.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
@@ -41,6 +42,11 @@ class StatsScreen extends ConsumerWidget {
     final streaks = ref.watch(commitmentStreaksProvider).value ?? const {};
     final weekXp = ref.watch(weeklyXpProvider).value ?? 0;
     final weekSpending = ref.watch(weekByCategoryProvider);
+    final archived = ref.watch(archivedCommitmentsProvider).value ?? const [];
+    final since = firstSeedDay(
+      [for (final seed in [...commitments, ...archived]) seed.startDay],
+      activity.keys,
+    );
 
     final projects = commitments
         .where((c) => c.type == CommitmentType.project)
@@ -80,6 +86,7 @@ class StatsScreen extends ConsumerWidget {
                   weekXp: weekXp,
                   activity: activity,
                   weekSpending: weekSpending,
+                  since: since,
                 ),
                 SectionHeader(
                   l10n.statsActivity,
@@ -225,11 +232,38 @@ class _HeatMap extends StatelessWidget {
     final activeDays = activity.values.where((n) => n > 0).length;
     final theme = Theme.of(context);
 
-    // Scrolls horizontally; latest weeks are visible first.
+    // Scrolls horizontally; latest weeks are visible first. The window
+    // is a whole number of week columns wide, so the oldest visible
+    // column is never sliced through — a month name sitting on it used
+    // to lose its first letters ("ay").
     return Semantics(
-      label: AppLocalizations.of(context)
-          .activitySemantics(activeDays, weeks.length),
-      child: SingleChildScrollView(
+      label: AppLocalizations.of(context).activitySemantics(
+        activeDays,
+        AppLocalizations.of(context).activityLastWeeks(weeks.length),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final fit = constraints.maxWidth.isFinite
+              ? (constraints.maxWidth / _columnWidth).floor() * _columnWidth
+              : null;
+          return Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: SizedBox(width: fit, child: _weeks(weeks, locale, theme, scheme)),
+          );
+        },
+      ),
+    );
+  }
+
+  /// One week's column: a 14-point square with 1.5 either side.
+  static const double _columnWidth = 17;
+
+  Widget _weeks(
+    List<List<HarvestDay?>> weeks,
+    String locale,
+    ThemeData theme,
+    ColorScheme scheme,
+  ) => SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         reverse: true,
         child: Row(
@@ -241,7 +275,7 @@ class _HeatMap extends StatelessWidget {
                 children: [
                   SizedBox(
                     height: 16,
-                    width: 17,
+                    width: _columnWidth,
                     child: _monthLabel(weeks, w, locale, theme),
                   ),
                   for (final cell in weeks[w])
@@ -266,9 +300,7 @@ class _HeatMap extends StatelessWidget {
               ),
           ],
         ),
-      ),
-    );
-  }
+      );
 
   /// The month's short name over the first week that starts in it.
   Widget? _monthLabel(
@@ -281,11 +313,20 @@ class _HeatMap extends StatelessWidget {
     if (first == null) return null;
     final previous = index == 0 ? null : weeks[index - 1].first;
     if (previous != null && previous.month == first.month) return null;
-    return Text(
-      DateFormat.MMM(locale).format(first.toDateTime()),
-      style: theme.textTheme.labelSmall,
-      overflow: TextOverflow.visible,
-      softWrap: false,
+    // A name is wider than its column and runs on over the next ones;
+    // over the newest column there is nothing to run on to, so it
+    // ends at the column's end instead of being cut at the edge.
+    final last = index >= weeks.length - 1;
+    return OverflowBox(
+      maxWidth: double.infinity,
+      alignment: last
+          ? AlignmentDirectional.centerEnd
+          : AlignmentDirectional.centerStart,
+      child: Text(
+        DateFormat.MMM(locale).format(first.toDateTime()),
+        style: theme.textTheme.labelSmall,
+        softWrap: false,
+      ),
     );
   }
 
@@ -294,7 +335,9 @@ class _HeatMap extends StatelessWidget {
     // how much was done on them: they are simply on.
     if (inStreak) return scheme.secondary;
     if (count == 0) return scheme.onSurface.withValues(alpha: 0.06);
-    final intensity = (count / goal).clamp(0.25, 0.55);
+    // Kept well short of solid, so a busy day off the streak never
+    // passes for a streak square beside a "No streak running" line.
+    final intensity = (count / goal).clamp(0.2, 0.4);
     return scheme.secondary.withValues(alpha: intensity);
   }
 }
@@ -334,7 +377,7 @@ class _HeatMapLegend extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              swatch(scheme.secondary.withValues(alpha: 0.35)),
+              swatch(scheme.secondary.withValues(alpha: 0.3)),
               Text(l10n.legendActive),
             ],
           ),
@@ -376,11 +419,16 @@ class _WeeklyReportCard extends StatelessWidget {
     required this.weekXp,
     required this.activity,
     required this.weekSpending,
+    required this.since,
   });
 
   final int weekXp;
   final Map<String, int> activity;
   final Map<String, int> weekSpending;
+
+  /// The first day anything grew: the quietest day is only looked for
+  /// from there on.
+  final HarvestDay? since;
 
   @override
   Widget build(BuildContext context) {
@@ -399,9 +447,7 @@ class _WeeklyReportCard extends StatelessWidget {
     String weekdayName(HarvestDay d) =>
         DateFormat.EEEE(locale).format(DateTime(d.year, d.month, d.day));
     final best = counts.entries.reduce((a, b) => b.value > a.value ? b : a).key;
-    final worst = counts.entries
-        .reduce((a, b) => b.value < a.value ? b : a)
-        .key;
+    final worst = quietestDay(counts, since: since);
 
     String? topCategory;
     var topAmount = -1;
@@ -432,7 +478,7 @@ class _WeeklyReportCard extends StatelessWidget {
             ),
             const SizedBox(height: HarvestSpacing.sm),
             Text(l10n.weeklyBestDay(weekdayName(best))),
-            if (counts.length > 1)
+            if (worst != null)
               Text(l10n.weeklyWorstDay(weekdayName(worst))),
             if (topCategory != null)
               Text(
@@ -445,4 +491,36 @@ class _WeeklyReportCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The first Harvest Day anything grew here: the day the first seed was
+/// planted, or an earlier day with a check-in (an import can bring
+/// those). Null before the first seed.
+@visibleForTesting
+HarvestDay? firstSeedDay(
+  Iterable<HarvestDay> seedStarts,
+  Iterable<String> activeDays,
+) {
+  HarvestDay? first;
+  for (final day in [
+    ...seedStarts,
+    for (final key in activeDays) ?HarvestDay.tryParse(key),
+  ]) {
+    if (first == null || day.compareTo(first) < 0) first = day;
+  }
+  return first;
+}
+
+/// The week's quietest elapsed day — only counting days from [since]
+/// on, because the days before the first seed were not quiet, they
+/// were not yet. The first one wins a tie; null when fewer than two
+/// days are left to compare.
+@visibleForTesting
+HarvestDay? quietestDay(Map<HarvestDay, int> counts, {HarvestDay? since}) {
+  final lived = [
+    for (final entry in counts.entries)
+      if (since == null || entry.key.compareTo(since) >= 0) entry,
+  ];
+  if (lived.length < 2) return null;
+  return lived.reduce((a, b) => b.value < a.value ? b : a).key;
 }

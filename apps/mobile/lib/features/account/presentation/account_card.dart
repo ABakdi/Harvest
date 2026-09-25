@@ -39,6 +39,36 @@ String accountError(AppLocalizations l10n, Object error) => switch (error) {
   _ => l10n.accountErrorOther(error.runtimeType.toString()),
 };
 
+/// What is wrong with the sign-in form before it is sent, in words, or
+/// null when it may go: the same checks the server's contract makes —
+/// an http(s) server, an address with an @ and a dot after it, a
+/// password (ten characters or more for a new account).
+@visibleForTesting
+String? signInProblem(
+  AppLocalizations l10n, {
+  required String server,
+  required String email,
+  required String password,
+  required bool creating,
+}) {
+  final url = Uri.tryParse(server.trim());
+  if (url == null ||
+      !(url.isScheme('http') || url.isScheme('https')) ||
+      url.host.isEmpty) {
+    return l10n.accountServerInvalid;
+  }
+  final address = email.trim();
+  if (address.isEmpty) return l10n.accountEmailMissing;
+  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(address) ||
+      address.length > 254) {
+    return l10n.accountEmailInvalid;
+  }
+  if (password.isEmpty) return l10n.accountPasswordMissing;
+  if (creating && password.length < 10) return l10n.accountPasswordShort;
+  if (password.length > 256) return l10n.accountPasswordLong;
+  return null;
+}
+
 class _SignedOut extends ConsumerStatefulWidget {
   const _SignedOut({required this.serverUrl});
 
@@ -68,6 +98,19 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
+    // The server's own checks, asked first: an empty form is a thing
+    // to say, not a request to send ([[Accounts]]).
+    final problem = signInProblem(
+      l10n,
+      server: _server.text,
+      email: _email.text,
+      password: _password.text,
+      creating: _creating,
+    );
+    if (problem != null) {
+      setState(() => _error = problem);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -119,6 +162,10 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
                 decoration: InputDecoration(
                   labelText: l10n.accountServer,
                   hintText: l10n.accountServerHint,
+                  // The hint only shows on an empty, focused field; the
+                  // example stays in view underneath.
+                  helperText: l10n.accountServerExample,
+                  helperMaxLines: 2,
                 ),
               ),
               const SizedBox(height: HarvestSpacing.sm),
@@ -170,7 +217,11 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
               TextButton(
                 onPressed: _busy
                     ? null
-                    : () => setState(() => _creating = !_creating),
+                    // One form's complaint is not the other's.
+                    : () => setState(() {
+                        _creating = !_creating;
+                        _error = null;
+                      }),
                 child: Text(
                   _creating ? l10n.accountHaveOne : l10n.accountNeedOne,
                 ),
@@ -467,9 +518,11 @@ class _PassphraseSheetState extends ConsumerState<_PassphraseSheet> {
   Future<void> _save() async {
     setState(() => _working = true);
     final navigator = Navigator.of(context);
+    // Read before the sheet goes: its ref dies with it.
+    final sync = ref.read(syncControllerProvider.notifier);
     await ref.read(syncPassphraseProvider.notifier).set(_first.text);
     navigator.pop();
-    unawaited(ref.read(syncControllerProvider.notifier).syncNow());
+    unawaited(sync.syncNow());
   }
 
   @override

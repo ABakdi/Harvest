@@ -151,8 +151,10 @@ class TableCodec {
   Variable<Object> _toSql(GeneratedColumn<Object> column, Object? value) {
     if (value == null) return const Variable(null);
     return switch (column.type) {
+      // Kept on the local clock, the spelling the app writes, so a
+      // pulled time reads back as the time it was here.
       DriftSqlType.dateTime => Variable<DateTime>(
-        DateTime.parse(value as String),
+        DateTime.parse(value as String).toLocal(),
       ),
       DriftSqlType.bool => Variable<bool>(value as bool),
       // Mongo hands 212.0 back as 212: a real is a real either way.
@@ -163,14 +165,15 @@ class TableCodec {
   }
 }
 
-/// Drift keeps dates as epoch seconds unless told otherwise.
+/// Drift keeps dates as epoch seconds unless told otherwise; as text,
+/// a date with no zone is UTC ([readUtcText]).
 DateTime _dateOf(Object value) => switch (value) {
   final DateTime date => date,
   final int seconds => DateTime.fromMillisecondsSinceEpoch(
     seconds * 1000,
     isUtc: true,
   ),
-  final String text => DateTime.parse(text),
+  final String text => readUtcText(text),
   _ => throw ArgumentError('Not a date: $value'),
 };
 

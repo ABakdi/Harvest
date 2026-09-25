@@ -112,7 +112,9 @@ class _RatesCardState extends ConsumerState<RatesCard> {
     setState(() => _fetching = false);
     messenger.showSnackBar(
       SnackBar(
-        content: Text(rate == null ? l10n.ratesFetchFailed : l10n.rateSaved),
+        content: Text(
+          rate == null ? l10n.ratesFetchFailed : l10n.ratesFetchedEurUsd,
+        ),
       ),
     );
   }
@@ -178,6 +180,16 @@ class _RatesCardState extends ConsumerState<RatesCard> {
                   ),
                 ),
               ],
+            ),
+            // The dinar has no free rate to fetch ([[Finances]]): both
+            // DZD legs are mine to type, and Fetch never touches them.
+            // Said here, so empty fields after a fetch don't look broken.
+            const SizedBox(height: HarvestSpacing.xs),
+            Text(
+              l10n.ratesDzdManual,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: HarvestSpacing.sm),
             Row(

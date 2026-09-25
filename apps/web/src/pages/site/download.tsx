@@ -140,6 +140,26 @@ export function DownloadPage() {
               <ExternalLinkIcon className="size-4" aria-hidden />
               {t('download.onGitHub')}
             </a>
+            {release.data.prerelease && (
+              // A beta of the next version, newer than the release above:
+              // mentioned, never offered in its place.
+              <section aria-labelledby="beta" className="flex flex-col gap-2 rounded-lg border border-dashed p-4 text-sm">
+                <h2 id="beta" className="font-extrabold">
+                  {t('download.betaOut', { tag: release.data.prerelease.tag })}
+                </h2>
+                <p className="text-muted-foreground">{t('download.betaBody')}</p>
+                <a
+                  href={release.data.prerelease.apk?.url ?? release.data.prerelease.htmlUrl}
+                  {...(release.data.prerelease.apk ? { download: true } : { target: '_blank', rel: 'noreferrer noopener' })}
+                  className="flex w-fit items-center gap-1 font-bold text-primary underline-offset-4 hover:underline"
+                >
+                  {release.data.prerelease.apk ? <DownloadIcon className="size-4" aria-hidden /> : <ExternalLinkIcon className="size-4" aria-hidden />}
+                  {release.data.prerelease.apk
+                    ? t('download.betaApk', { name: release.data.prerelease.apk.name })
+                    : t('download.betaPage', { tag: release.data.prerelease.tag })}
+                </a>
+              </section>
+            )}
           </CardContent>
         </Card>
       )}

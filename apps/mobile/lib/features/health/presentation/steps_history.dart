@@ -7,6 +7,7 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/features/health/domain/steps.dart';
+import 'package:harvest/features/health/domain/steps_sync.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -42,11 +43,19 @@ class StepsHistory extends ConsumerWidget {
         .toList();
 
     if (counted.isEmpty) {
+      // Asking to tap Connect only makes sense before it was tapped;
+      // once the phone is reading steps, the empty month is just new.
+      final outcome = ref.watch(stepsPullProvider).value?.outcome;
       return Card(
         child: EmptyState(
           icon: Icons.directions_walk,
           title: l10n.stepsNoDays,
-          body: l10n.stepsNoDaysBody,
+          body: switch (outcome) {
+            StepsSyncOutcome.needsPermission => l10n.stepsNoDaysBody,
+            StepsSyncOutcome.synced ||
+            StepsSyncOutcome.failed => l10n.stepsNoDaysConnectedBody,
+            _ => null,
+          },
           compact: true,
           color: scheme.secondary,
         ),

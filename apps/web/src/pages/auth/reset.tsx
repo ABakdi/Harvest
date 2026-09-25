@@ -51,7 +51,17 @@ export function ResetPage() {
 
   return (
     <AuthCard title={t('auth.resetTitle')} lead={t('auth.resetLead')}>
-      <form noValidate onSubmit={(event) => void submit(event)} className="flex flex-col gap-4">
+      <form
+        noValidate
+        // A server's answer is about the values it was sent: an edit or
+        // a new try clears it, even one the form itself then refuses.
+        onChange={() => setFailure(null)}
+        onSubmit={(event) => {
+          setFailure(null);
+          void submit(event);
+        }}
+        className="flex flex-col gap-4"
+      >
         <FormField
           label={t('auth.newPassword')}
           type="password"

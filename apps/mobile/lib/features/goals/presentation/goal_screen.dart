@@ -210,6 +210,8 @@ class GoalScreen extends ConsumerWidget {
         navigator.pop();
         messenger.showSnackBar(
           SnackBar(
+            // An action is an offer for a few seconds, not a fixture.
+            persist: false,
             content: Text(l10n.goalDeleted),
             action: SnackBarAction(
               label: l10n.undo,
@@ -295,6 +297,8 @@ class _ItemListState extends ConsumerState<_ItemList> {
         await repository.deleteItem(item.uuid);
         messenger.showSnackBar(
           SnackBar(
+            // An action is an offer for a few seconds, not a fixture.
+            persist: false,
             content: Text(l10n.goalItemRemoved),
             action: SnackBarAction(
               label: l10n.undo,
@@ -365,7 +369,7 @@ class _ItemListState extends ConsumerState<_ItemList> {
                         ),
                       PopupMenuItem(
                         value: _ItemAction.delete,
-                        child: Text(l10n.goalItemRemoved),
+                        child: Text(l10n.removeAction),
                       ),
                     ],
                   ),

@@ -160,7 +160,7 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
                   icon: Icons.payments,
                   color: theme.colorScheme.primary,
                   label: l10n.totalSpent,
-                  value: formatAmount(total, currency),
+                  value: formatMoney(total, currency),
                 ),
               ),
               const SizedBox(width: HarvestSpacing.sm),
@@ -169,7 +169,7 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
                   icon: Icons.today,
                   color: theme.colorScheme.tertiary,
                   label: l10n.avgPerDay(''),
-                  value: formatAmount(average, currency),
+                  value: formatMoney(average, currency),
                 ),
               ),
             ],
@@ -319,7 +319,7 @@ class _DailyBars extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
                 return Text(
-                  formatAmount(amount, currency),
+                  formatMoney(amount, currency),
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: theme.colorScheme.onSurface,
@@ -358,7 +358,7 @@ class _DailyBars extends StatelessWidget {
               final day = days[group.x];
               return BarTooltipItem(
                 '${formatDay(context, day)}\n'
-                '${formatAmount(rod.toY.round(), currency)}',
+                '${formatMoney(rod.toY.round(), currency)}',
                 theme.textTheme.labelMedium!.copyWith(
                   color: theme.colorScheme.onInverseSurface,
                   fontWeight: FontWeight.w800,
@@ -477,7 +477,7 @@ class _CategoryDonut extends StatelessWidget {
                             Text(
                               l10n.shareOfSpending(
                                 (entries[i].value * 100 / total).round(),
-                                formatAmount(entries[i].value, currency),
+                                formatMoney(entries[i].value, currency),
                               ),
                               style: theme.textTheme.labelMedium?.copyWith(
                                 fontWeight: FontWeight.w800,

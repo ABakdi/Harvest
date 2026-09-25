@@ -114,7 +114,7 @@ describe('a session in the browser', () => {
     await h.sessions.logSet(session.exercises[0]!.sets[0]!.uuid, { weightGrams: 100_000, reps: 5, done: true });
     renderAt(h, `/app/body/gym/sessions/${session.session.uuid}`);
 
-    await openMenu('Options for barbell bench press');
+    await openMenu('Options for Barbell Bench Press');
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Skip it' }));
     const reason = await screen.findByLabelText('Reason');
     await userEvent.type(reason, 'shoulder{Enter}');
@@ -146,12 +146,12 @@ describe('a session in the browser', () => {
     const { session } = await aSession(h);
     renderAt(h, `/app/body/gym/sessions/${session.session.uuid}`);
 
-    await openMenu('Options for barbell bench press');
+    await openMenu('Options for Barbell Bench Press');
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Swap it out' }));
     const picker = await screen.findByRole('dialog');
     await userEvent.type(within(picker).getByLabelText('Search by name, muscle or kit'), 'incline bench barbell');
-    await userEvent.click(await within(picker).findByRole('button', { name: /^barbell incline bench press/ }, { timeout: 5000 }));
-    expect(await screen.findByText('instead of barbell bench press')).toBeInTheDocument();
+    await userEvent.click(await within(picker).findByRole('button', { name: /^Barbell Incline Bench Press/ }, { timeout: 5000 }));
+    expect(await screen.findByText('instead of Barbell Bench Press')).toBeInTheDocument();
     expect((await readSession(h.db, session.session.uuid))!.exercises[0]!.row).toMatchObject({ exerciseId: '0047', plannedExerciseId: '0025' });
   });
 
@@ -163,8 +163,9 @@ describe('a session in the browser', () => {
     const next = await h.sessions.start({ day: (await readProgram(h.db, session.session.programUuid!))!.days[0]!, programUuid: session.session.programUuid!, trainingMaxes: new Map() });
     renderAt(h, `/app/body/gym/sessions/${next.session.session.uuid}`);
 
-    expect(await screen.findByText('Last time: 100 kg×5')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'barbell bench press' }));
+    // The set is its own left-to-right island inside the sentence (Y8).
+    expect(await screen.findByText((_, element) => element?.tagName === 'SPAN' && element.textContent === 'Last time: 100 kg×5')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Barbell Bench Press' }));
     const detail = await screen.findByRole('dialog');
     expect(within(detail).getByText('Personal records')).toBeInTheDocument();
     // The heaviest set, and the history's one outing.
@@ -242,7 +243,7 @@ describe('the program editor', () => {
     await waitFor(async () => expect((await readProgram(h.db, tree.program.uuid))!.days).toHaveLength(3));
 
     await userEvent.click(screen.getByRole('button', { name: 'Training maxes' }));
-    const input = await screen.findByLabelText('barbell bench press', {}, { timeout: 5000 });
+    const input = await screen.findByLabelText('Barbell Bench Press', {}, { timeout: 5000 });
     await userEvent.type(input, '111{Enter}');
     await waitFor(async () => expect((await h.db.rows('training_maxes').toArray())[0]?.grams).toBe(111_000));
   });

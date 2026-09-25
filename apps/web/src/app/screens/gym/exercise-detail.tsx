@@ -1,7 +1,7 @@
 import { weightIn } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Trash2Icon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,9 @@ import { formatDay } from '@/lib/format';
 import { useHarvest } from '../../context';
 import { useExercise } from '../../data/exercises';
 import { exerciseHistory, exerciseRecords, type ExerciseOuting } from '../../data/gym';
-import { useAsker, useLoad, useUnit } from './shared';
+import { SetList, SetText, useAsker, useLoad, useUnit } from './shared';
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <div className="flex min-w-0 flex-col">
       <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -156,7 +156,7 @@ export function ExerciseDetailDialog({ exerciseId, onClose }: { exerciseId: stri
           ) : (
             <>
               <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {records.heaviest && <Stat label={t('gym.heaviestLabel')} value={`${load(records.heaviest.weightGrams)}×${records.heaviest.reps}`} />}
+                {records.heaviest && <Stat label={t('gym.heaviestLabel')} value={<SetText>{`${load(records.heaviest.weightGrams)}×${records.heaviest.reps}`}</SetText>} />}
                 {records.bestSetEstimate !== null && (
                   <Stat label={t('gym.estimatedLabel')} value={load(records.bestSetEstimate)} hint={t('gym.estimatedHint')} />
                 )}
@@ -171,7 +171,7 @@ export function ExerciseDetailDialog({ exerciseId, onClose }: { exerciseId: stri
                   <li key={`${outing.day}-${index}`} className="flex items-baseline gap-3">
                     <span className="w-20 shrink-0 text-muted-foreground">{formatDay(outing.day)}</span>
                     <span className="min-w-0 flex-1 tabular" dir="ltr">
-                      {outing.sets.map((set) => `${load(set.weightGrams)}×${set.reps}`).join('  ')}
+                      <SetList labels={outing.sets.map((set) => `${load(set.weightGrams)}×${set.reps}`)} />
                     </span>
                     {outing.bestEstimate !== null && (
                       <span className="font-bold text-primary tabular" title={t('gym.estimatedLabel')}>

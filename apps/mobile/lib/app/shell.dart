@@ -42,6 +42,31 @@ class HarvestShell extends ConsumerStatefulWidget {
 
 class _HarvestShellState extends ConsumerState<HarvestShell> {
   @override
+  void didUpdateWidget(HarvestShell old) {
+    super.didUpdateWidget(old);
+    // A snack bar belongs to the tab it was said on: "Moved to the
+    // trash · Undo" followed me to the next tab and sat over its
+    // buttons. Cleared after the frame, since the messenger is an
+    // ancestor mid-build.
+    if (old.navigationShell.currentIndex !=
+        widget.navigationShell.currentIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ScaffoldMessenger.maybeOf(context)?.clearSnackBars();
+      });
+    }
+  }
+
+  /// Back closes what is open first — a drawer, a sheet, a pushed
+  /// screen, all of which the branch's own navigator pops before this
+  /// is asked — then goes home to the field, and only from the field
+  /// leaves the app. Every tab but the field was a way out in one tap.
+  void _onBack(bool didPop, Object? _) {
+    if (didPop) return;
+    unawaited(HarvestHaptics.tick());
+    widget.navigationShell.goBranch(ShellBranch.field);
+  }
+
+  @override
   void initState() {
     super.initState();
     // A widget button that fired while the app was closed is already
@@ -128,30 +153,34 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
     // keyboard shuts the instant it opens.
     final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
 
-    return Scaffold(
-      body: widget.navigationShell,
-      bottomNavigationBar: typing
-          ? null
-          : NavigationBar(
-              selectedIndex: current < 0 ? 0 : current,
-              onDestinationSelected: (index) {
-                unawaited(HarvestHaptics.tick());
-                final branch = tabs[index].branch;
-                widget.navigationShell.goBranch(
-                  branch,
-                  initialLocation:
-                      branch == widget.navigationShell.currentIndex,
-                );
-              },
-              destinations: [
-                for (final tab in tabs)
-                  NavigationDestination(
-                    icon: Icon(tab.icon),
-                    selectedIcon: Icon(tab.active),
-                    label: tab.label,
-                  ),
-              ],
-            ),
+    return PopScope(
+      canPop: widget.navigationShell.currentIndex == ShellBranch.field,
+      onPopInvokedWithResult: _onBack,
+      child: Scaffold(
+        body: widget.navigationShell,
+        bottomNavigationBar: typing
+            ? null
+            : NavigationBar(
+                selectedIndex: current < 0 ? 0 : current,
+                onDestinationSelected: (index) {
+                  unawaited(HarvestHaptics.tick());
+                  final branch = tabs[index].branch;
+                  widget.navigationShell.goBranch(
+                    branch,
+                    initialLocation:
+                        branch == widget.navigationShell.currentIndex,
+                  );
+                },
+                destinations: [
+                  for (final tab in tabs)
+                    NavigationDestination(
+                      icon: Icon(tab.icon),
+                      selectedIcon: Icon(tab.active),
+                      label: tab.label,
+                    ),
+                ],
+              ),
+      ),
     );
   }
 }

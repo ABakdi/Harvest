@@ -233,7 +233,11 @@ export function FarmerScreen() {
                     {seed.archiveNote ? ` · ${seed.archiveNote}` : ''}
                   </span>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => void seeds.restore(seed.uuid)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void seeds.restore(seed.uuid).then(() => toast.success(t('farmer.restoredToField', { title: seed.title })))}
+                >
                   <ArchiveRestoreIcon />
                   {t('farmer.restore')}
                 </Button>
@@ -358,7 +362,10 @@ function StatsSection() {
       <p className="text-xs text-muted-foreground">{t('stats.streakSquares', { count: stats.currentStreak })}</p>
       <Heat stats={stats} />
       <p className="text-xs text-muted-foreground tabular">
-        {t('stats.lifetime', { checkIns: formatNumber(stats.checkIns), days: formatNumber(stats.activeDays) })}
+        {t('stats.lifetimeCounted', {
+          checkIns: t('stats.checkInCount', { count: stats.checkIns, formatted: formatNumber(stats.checkIns) }),
+          days: t('stats.dayCount', { count: stats.activeDays, formatted: formatNumber(stats.activeDays) }),
+        })}
       </p>
       {stats.projects.length > 0 && (
         <section aria-labelledby="projects-heading" className="flex flex-col gap-2">

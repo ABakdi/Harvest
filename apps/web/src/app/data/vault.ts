@@ -56,21 +56,41 @@ export interface VaultView {
   rates: Rates;
 }
 
-export async function readVault(db: HarvestDB, movementLimit = 60): Promise<VaultView> {
+/**
+ * Whether a movement is logged ahead: dated after [today], it counts on
+ * its day, not before, so no pot's balance holds it yet ([[Finances]]).
+ */
+export function isUpcoming(row: Pick<TxnRow, 'harvestDay'>, today: HarvestDay | string): boolean {
+  return row.harvestDay > (typeof today === 'string' ? today : today.key);
+}
+
+/**
+ * Movements newest first by the day each counts on, then by when they
+ * were logged: one logged ahead sits on top, under its own day
+ * (`VaultRepository.watchTxns`).
+ */
+export function byDayNewestFirst(a: TxnRow, b: TxnRow): number {
+  return b.harvestDay.localeCompare(a.harvestDay) || b.loggedAt.localeCompare(a.loggedAt);
+}
+
+/**
+ * Every pot, its balances as of [today] (a movement logged ahead is left
+ * out until its day, as `watchBalances(asOf:)` does) and its ledger.
+ */
+export async function readVault(db: HarvestDB, today: HarvestDay = HarvestDay.today(), movementLimit = 60): Promise<VaultView> {
   const [txns, debts, payments, rates] = await Promise.all([
     db.rows('money_txns').toArray(),
     db.rows('debts').toArray(),
     db.rows('debt_payments').toArray(),
     readRates(db),
   ]);
-  const live = txns
-    .filter((row) => row.deletedAt === null)
-    .sort((a, b) => b.loggedAt.localeCompare(a.loggedAt));
+  const live = txns.filter((row) => row.deletedAt === null).sort(byDayNewestFirst);
 
   const pots = accounts.map((account) => {
     const mine = live.filter((row) => row.account === account);
     const sums = new Map<CurrencyCode, number>();
     for (const row of mine) {
+      if (isUpcoming(row, today)) continue;
       const code = currencyOf(row.currency);
       sums.set(code, (sums.get(code) ?? 0) + row.deltaMinor);
     }
@@ -187,11 +207,12 @@ export async function writeMove(tx: Tx, input: MoveInput): Promise<string> {
   return uuid;
 }
 
-/** What one pot holds in one currency, deleted rows aside. */
+/** What one pot holds in one currency today, deleted rows and upcoming ones aside. */
 async function balanceOf(tx: Tx, account: Account, currency: string): Promise<number> {
+  const today = HarvestDay.of(tx.clockNow());
   const rows = await tx.rows('money_txns').where('account').equals(account).toArray();
   return rows
-    .filter((row) => row.deletedAt === null && row.currency === currency)
+    .filter((row) => row.deletedAt === null && row.currency === currency && !isUpcoming(row, today))
     .reduce((sum, row) => sum + row.deltaMinor, 0);
 }
 
@@ -283,7 +304,8 @@ export class VaultRepository {
       if (!row || row.deletedAt !== null || row.kind !== 'manual') return false;
       // Taking back money that has since been spent would leave the pot
       // below zero, the one thing a pot never is.
-      await refuseBelowZero(tx, row.account as Account, row.currency, -row.deltaMinor);
+      // One still upcoming was never in the balance to take back.
+      if (!isUpcoming(row, HarvestDay.of(tx.clockNow()))) await refuseBelowZero(tx, row.account as Account, row.currency, -row.deltaMinor);
       await tx.put('money_txns', { ...row, deletedAt: tx.now(), updatedAt: tx.now() });
       return true;
     });
@@ -294,7 +316,7 @@ export class VaultRepository {
     return this.writer.run(async (tx) => {
       const row = await tx.get('money_txns', uuid);
       if (!row || row.deletedAt === null) return;
-      await refuseBelowZero(tx, row.account as Account, row.currency, row.deltaMinor);
+      if (!isUpcoming(row, HarvestDay.of(tx.clockNow()))) await refuseBelowZero(tx, row.account as Account, row.currency, row.deltaMinor);
       await tx.put('money_txns', { ...row, deletedAt: null, updatedAt: tx.now() });
     });
   }
@@ -502,6 +524,6 @@ export async function readInsights(db: HarvestDB, range: DayRange): Promise<Insi
   }
   const moves = txns
     .filter((row) => row.deletedAt === null && row.harvestDay >= range.from.key && row.harvestDay <= range.to.key)
-    .sort((a, b) => b.loggedAt.localeCompare(a.loggedAt));
+    .sort(byDayNewestFirst);
   return { rates, dayTotals, byCategory: [...byCategory.entries()].sort((a, b) => b[1] - a[1]), total, moves };
 }

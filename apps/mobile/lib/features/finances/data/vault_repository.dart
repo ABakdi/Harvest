@@ -19,9 +19,17 @@ class VaultRepository {
 
   // ---------------------------------------------------------------- money
 
-  /// All balances per account+currency.
-  Stream<Map<(MoneyAccount, Currency), int>> watchBalances() {
-    final query = _db.select(_db.moneyTxns)..where((t) => t.deletedAt.isNull());
+  /// All balances per account+currency, as of [asOf] (the Harvest Day
+  /// by default): a movement dated after it is logged ahead and counts
+  /// on its day, not before ([[Finances]]).
+  Stream<Map<(MoneyAccount, Currency), int>> watchBalances({
+    HarvestDay? asOf,
+  }) {
+    final today = (asOf ?? HarvestDay.today()).key;
+    final query = _db.select(_db.moneyTxns)
+      ..where(
+        (t) => t.deletedAt.isNull() & t.harvestDay.isSmallerOrEqualValue(today),
+      );
     return query.watch().map((rows) {
       final balances = <(MoneyAccount, Currency), int>{};
       for (final row in rows) {
@@ -39,12 +47,14 @@ class VaultRepository {
     });
   }
 
-  /// Movements newest first — one pot's ledger when [account] is given,
-  /// every pot otherwise.
+  /// Movements newest first, by the day each counts on (one logged
+  /// ahead sits on top, under its own day) — one pot's ledger when
+  /// [account] is given, every pot otherwise.
   Stream<List<MoneyTxn>> watchTxns({MoneyAccount? account, int limit = 60}) {
     final query = _db.select(_db.moneyTxns)
       ..where((t) => t.deletedAt.isNull())
       ..orderBy([
+        (t) => OrderingTerm.desc(t.harvestDay),
         (t) => OrderingTerm.desc(t.loggedAt),
         (t) => OrderingTerm.desc(t.rowId),
       ])
@@ -66,6 +76,7 @@ class VaultRepository {
             t.deletedAt.isNull(),
       )
       ..orderBy([
+        (t) => OrderingTerm.desc(t.harvestDay),
         (t) => OrderingTerm.desc(t.loggedAt),
         (t) => OrderingTerm.desc(t.rowId),
       ]);

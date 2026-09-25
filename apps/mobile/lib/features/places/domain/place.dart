@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:meta/meta.dart';
 
 /// Where the phone was, once.
@@ -67,6 +69,42 @@ class Geotag {
 }
 
 enum GeotagState { pending, fixed, unavailable }
+
+/// A few words on what a geotag points at, for the timeline. Money is
+/// kept as money so the screen writes it the way the Granary does
+/// ("DA4 · Food"), not as a bare number and a category key.
+sealed class GeotagDetail {
+  const GeotagDetail();
+}
+
+/// A note's title, a seed's name, an album's name.
+final class GeotagText extends GeotagDetail {
+  const GeotagText(this.text);
+
+  final String text;
+}
+
+/// An expense: its amount, and its note or else its category key.
+final class GeotagExpense extends GeotagDetail {
+  const GeotagExpense({
+    required this.amountMinor,
+    required this.currency,
+    required this.category,
+    this.note,
+  });
+
+  final int amountMinor;
+  final Currency currency;
+  final String category;
+  final String? note;
+}
+
+/// A movement on the wallet or savings.
+final class GeotagMove extends GeotagDetail {
+  const GeotagMove(this.txn);
+
+  final MoneyTxn txn;
+}
 
 /// A stay I gave a name.
 @immutable

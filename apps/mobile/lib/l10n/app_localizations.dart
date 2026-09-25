@@ -2093,8 +2093,14 @@ abstract class AppLocalizations {
   /// No description provided for @activitySemantics.
   ///
   /// In en, this message translates to:
-  /// **'{days} active days in the last {weeks} weeks'**
-  String activitySemantics(int days, int weeks);
+  /// **'{days, plural, =0{No active days in {span}} =1{1 active day in {span}} other{{days} active days in {span}}}'**
+  String activitySemantics(int days, String span);
+
+  /// No description provided for @activityLastWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{weeks, plural, =1{the last week} other{the last {weeks} weeks}}'**
+  String activityLastWeeks(int weeks);
 
   /// No description provided for @cropDone.
   ///
@@ -3449,13 +3455,13 @@ abstract class AppLocalizations {
   /// No description provided for @obExtrasTitle.
   ///
   /// In en, this message translates to:
-  /// **'Two more, if you want them'**
+  /// **'A few more, if you want them'**
   String get obExtrasTitle;
 
   /// No description provided for @obExtrasBody.
   ///
   /// In en, this message translates to:
-  /// **'Both stay hidden unless you say yes. You can change your mind in Settings at any time.'**
+  /// **'Each stays hidden unless you switch it on. You can change your mind in Settings at any time.'**
   String get obExtrasBody;
 
   /// No description provided for @albumReminderBody.
@@ -4229,7 +4235,7 @@ abstract class AppLocalizations {
   /// No description provided for @weightEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap Log a weight. The line has a shape from the third one.'**
+  /// **'Your first weight starts the line; it takes a shape from the third.'**
   String get weightEmptyBody;
 
   /// No description provided for @weightHistory.
@@ -5027,8 +5033,8 @@ abstract class AppLocalizations {
   /// No description provided for @gymFinishIncompleteBody.
   ///
   /// In en, this message translates to:
-  /// **'{left} of {total} sets are not ticked. The session ends here and the gym habit is checked in as done for today.'**
-  String gymFinishIncompleteBody(int left, int total);
+  /// **'{left} of {total} sets are not ticked. The session ends here and the gym habit is checked in as done for {day}.'**
+  String gymFinishIncompleteBody(int left, int total, String day);
 
   /// No description provided for @gymBestLine.
   ///
@@ -7087,6 +7093,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next set.'**
   String get gymRestOverBody;
+
+  /// No description provided for @stepsDeniedHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed yet. Health Connect\'s settings can always allow it: open them, allow Steps for Harvest, and come back.'**
+  String get stepsDeniedHealthConnect;
+
+  /// No description provided for @ratesDzdManual.
+  ///
+  /// In en, this message translates to:
+  /// **'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.'**
+  String get ratesDzdManual;
+
+  /// No description provided for @ratesFetchedEurUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'EUR → USD updated. The dinar rates stay as you typed them.'**
+  String get ratesFetchedEurUsd;
+
+  /// No description provided for @accountServerExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Harvest server\'s address, like https://harvest.example.com'**
+  String get accountServerExample;
+
+  /// No description provided for @accountServerInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the server\'s address, starting with https://'**
+  String get accountServerInvalid;
+
+  /// No description provided for @accountEmailMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email.'**
+  String get accountEmailMissing;
+
+  /// No description provided for @accountEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get accountEmailInvalid;
+
+  /// No description provided for @accountPasswordMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password.'**
+  String get accountPasswordMissing;
+
+  /// No description provided for @accountPasswordShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters.'**
+  String get accountPasswordShort;
+
+  /// No description provided for @accountPasswordLong.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 256 characters.'**
+  String get accountPasswordLong;
+
+  /// No description provided for @expensesUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get expensesUpcoming;
+
+  /// No description provided for @expensesUpcomingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 expense logged ahead. It counts on its day, not before.} other{{count} expenses logged ahead. Each counts on its day, not before.}}'**
+  String expensesUpcomingBody(int count);
+
+  /// No description provided for @debtReopened.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment removed. The debt is open again.'**
+  String get debtReopened;
+
+  /// No description provided for @debtSettledWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled with {person}. Nothing left to pay!'**
+  String debtSettledWith(String person);
+
+  /// No description provided for @debtPaymentRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove payment'**
+  String get debtPaymentRemove;
+
+  /// No description provided for @cropCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in {title}'**
+  String cropCheckIn(String title);
+
+  /// No description provided for @gymDayToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get gymDayToday;
+
+  /// No description provided for @gymStaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still open from {day}'**
+  String gymStaleTitle(String day);
+
+  /// No description provided for @gymStaleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets logged. Finish it and it counts for {day}: the gym habit is checked in on that day, not today. Or drop it.'**
+  String gymStaleBody(int done, int total, String day);
+
+  /// No description provided for @gymStaleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get gymStaleLater;
+
+  /// No description provided for @gymStaleFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish as of {day}'**
+  String gymStaleFinish(String day);
+
+  /// No description provided for @gymCheckedInOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in for {day} · +{xp} XP'**
+  String gymCheckedInOn(String day, int xp);
+
+  /// No description provided for @gymClockDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String gymClockDays(int days);
+
+  /// No description provided for @gymPlates.
+  ///
+  /// In en, this message translates to:
+  /// **'Plates'**
+  String get gymPlates;
+
+  /// No description provided for @logCut.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged {logged}; {dropped} over the cap left out'**
+  String logCut(int logged, int dropped);
+
+  /// No description provided for @dailyOverTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be more than the total target'**
+  String get dailyOverTotal;
+
+  /// No description provided for @projectLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go'**
+  String projectLeft(int left);
+
+  /// No description provided for @projectReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Target reached'**
+  String get projectReached;
+
+  /// No description provided for @notesNoFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'No folder'**
+  String get notesNoFolder;
+
+  /// No description provided for @ledgerDayUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · upcoming'**
+  String ledgerDayUpcoming(String day);
+
+  /// No description provided for @projectDoneCut.
+  ///
+  /// In en, this message translates to:
+  /// **'{logged} logged; {dropped} over the target left out.'**
+  String projectDoneCut(int logged, int dropped);
+
+  /// No description provided for @stepsNoDaysConnectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each day\'s count lands here once the day is over.'**
+  String get stepsNoDaysConnectedBody;
 }
 
 class _AppLocalizationsDelegate

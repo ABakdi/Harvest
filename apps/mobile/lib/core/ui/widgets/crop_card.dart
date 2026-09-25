@@ -4,8 +4,11 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// One commitment on the field: title, context line, and either a
-/// check circle (habits/to-dos) or a progress ring (projects). Tap
-/// checks in; the overflow button (or a long press) opens the options.
+/// check circle (habits/to-dos) or a progress ring (projects). The
+/// round button checks in; with [onOpen], the rest of the card opens
+/// the seed, the way the web's title links to it — a seed's page was
+/// three taps away behind ⋮ → History. Without it, a tap anywhere
+/// checks in. The overflow button (or a long press) opens the options.
 class CropCard extends StatelessWidget {
   const CropCard({
     required this.title,
@@ -13,6 +16,7 @@ class CropCard extends StatelessWidget {
     required this.icon,
     required this.done,
     required this.onTap,
+    this.onOpen,
     this.onOptions,
     this.progress,
     this.urgent = false,
@@ -29,6 +33,9 @@ class CropCard extends StatelessWidget {
   final IconData icon;
   final bool done;
   final VoidCallback onTap;
+
+  /// Opens the seed's own page; the check-in moves to the round button.
+  final VoidCallback? onOpen;
 
   /// Opens the crop's options (edit, pause, archive, focus).
   final VoidCallback? onOptions;
@@ -62,15 +69,18 @@ class CropCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final muted = scheme.onSurfaceVariant;
 
+    final open = onOpen;
+    final trailing = _Trailing(done: done, progress: progress);
+
     return Semantics(
       button: true,
-      enabled: !busy,
+      enabled: open != null || !busy,
       label: '$title, ${done ? l10n.cropDone : l10n.cropPending}',
       hint: [subtitle, note, dayNote].nonNulls.join('. '),
       child: Card(
         margin: const EdgeInsets.only(bottom: HarvestSpacing.sm + 4),
         child: InkWell(
-          onTap: busy ? null : onTap,
+          onTap: open ?? (busy ? null : onTap),
           onLongPress: onOptions,
           borderRadius: BorderRadius.circular(HarvestRadii.card),
           child: Padding(
@@ -135,7 +145,24 @@ class CropCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: HarvestSpacing.sm),
-                _Trailing(done: done, progress: progress),
+                if (open == null)
+                  trailing
+                else
+                  // Its own target, a full 48 across, so a check-in is
+                  // never a near miss on the card around it.
+                  Semantics(
+                    button: true,
+                    enabled: !busy,
+                    label: l10n.cropCheckIn(title),
+                    child: InkResponse(
+                      onTap: busy ? null : onTap,
+                      radius: HarvestSpacing.tap / 2,
+                      child: SizedBox.square(
+                        dimension: HarvestSpacing.tap,
+                        child: Center(child: trailing),
+                      ),
+                    ),
+                  ),
                 if (onOptions != null)
                   IconButton(
                     tooltip: l10n.cropOptions,

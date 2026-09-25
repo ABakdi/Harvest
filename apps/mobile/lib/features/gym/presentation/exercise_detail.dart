@@ -34,7 +34,7 @@ class _ExerciseDetail extends StatelessWidget {
     final scheme = theme.colorScheme;
 
     return HarvestSheet(
-      title: exercise.name,
+      title: exercise.displayName,
       subtitle: [
         ?exercise.bodyPart,
         ?exercise.equipment,

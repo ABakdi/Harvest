@@ -39,8 +39,13 @@ class SessionFinisher {
   final CommitmentsRepository _commitments;
   final CheckInService _checkIns;
 
-  Future<FinishOutcome> finish(WorkoutSession session) async {
-    await _sessions.finish(session.uuid);
+  /// [endedAt] is for a session left running past its day, which ends
+  /// at its last set rather than now (rule Y3).
+  Future<FinishOutcome> finish(
+    WorkoutSession session, {
+    DateTime? endedAt,
+  }) async {
+    await _sessions.finish(session.uuid, at: endedAt);
 
     final programUuid = session.programUuid;
     if (programUuid == null) return (xpEarned: 0, albumUuid: null);

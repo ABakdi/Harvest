@@ -733,12 +733,20 @@
   },
   "removeAction": "Remove",
   "checkInFailed": "That did not save. Try again.",
-  "activitySemantics": "{days} active days in the last {weeks} weeks",
+  "activitySemantics": "{days, plural, =0{No active days in {span}} =1{1 active day in {span}} other{{days} active days in {span}}}",
   "@activitySemantics": {
     "placeholders": {
       "days": {
         "type": "int"
       },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "activityLastWeeks": "{weeks, plural, =1{the last week} other{the last {weeks} weeks}}",
+  "@activityLastWeeks": {
+    "placeholders": {
       "weeks": {
         "type": "int"
       }
@@ -1085,8 +1093,8 @@
   "featureGalleryHint": "Albums of photos over time, playable as a run. A scheduled album becomes a seed on your field.",
   "featureGallerySize": "Using {size}",
   "@featureGallerySize": { "placeholders": { "size": { "type": "String" } } },
-  "obExtrasTitle": "Two more, if you want them",
-  "obExtrasBody": "Both stay hidden unless you say yes. You can change your mind in Settings at any time.",
+  "obExtrasTitle": "A few more, if you want them",
+  "obExtrasBody": "Each stays hidden unless you switch it on. You can change your mind in Settings at any time.",
   "albumReminderBody": "Today's picture is still missing.",
   "exportPreparing": "Reading everything…",
   "exportProgress": "{done} of {total}",
@@ -1236,7 +1244,7 @@
   "weightNote": "Note",
   "weightNoteHint": "After the flu, new scale…",
   "weightEmpty": "No weights yet",
-  "weightEmptyBody": "Tap Log a weight. The line has a shape from the third one.",
+  "weightEmptyBody": "Your first weight starts the line; it takes a shape from the third.",
   "weightHistory": "Every reading",
   "weightWindow": "Over",
   "weightDays": "{days} days",
@@ -1401,8 +1409,8 @@
   "gymNextDay": "Next: {day}",
   "@gymNextDay": { "placeholders": { "day": { "type": "String" } } },
   "gymFinishIncompleteTitle": "Finish with sets left?",
-  "gymFinishIncompleteBody": "{left} of {total} sets are not ticked. The session ends here and the gym habit is checked in as done for today.",
-  "@gymFinishIncompleteBody": { "placeholders": { "left": { "type": "int" }, "total": { "type": "int" } } },
+  "gymFinishIncompleteBody": "{left} of {total} sets are not ticked. The session ends here and the gym habit is checked in as done for {day}.",
+  "@gymFinishIncompleteBody": { "placeholders": { "left": { "type": "int" }, "total": { "type": "int" }, "day": { "type": "String" } } },
   "gymBestLine": "Best: {sets}",
   "@gymBestLine": { "placeholders": { "sets": { "type": "String" } } },
   "gymBestEstimate": "est. {weight}",
@@ -1787,5 +1795,49 @@
   "gymChartVolume": "Session volume",
   "gymResting": "Resting",
   "gymRestOverTitle": "Rest is up",
-  "gymRestOverBody": "Next set."
+  "gymRestOverBody": "Next set.",
+  "stepsDeniedHealthConnect": "Not allowed yet. Health Connect's settings can always allow it: open them, allow Steps for Harvest, and come back.",
+  "ratesDzdManual": "The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.",
+  "ratesFetchedEurUsd": "EUR → USD updated. The dinar rates stay as you typed them.",
+  "accountServerExample": "Your Harvest server's address, like https://harvest.example.com",
+  "accountServerInvalid": "Enter the server's address, starting with https://",
+  "accountEmailMissing": "Enter your email.",
+  "accountEmailInvalid": "That doesn't look like an email address.",
+  "accountPasswordMissing": "Enter your password.",
+  "accountPasswordShort": "At least 10 characters.",
+  "accountPasswordLong": "At most 256 characters.",
+  "expensesUpcoming": "Upcoming",
+  "expensesUpcomingBody": "{count, plural, =1{1 expense logged ahead. It counts on its day, not before.} other{{count} expenses logged ahead. Each counts on its day, not before.}}",
+  "@expensesUpcomingBody": {"placeholders": {"count": {"type": "int"}}},
+  "debtReopened": "Payment removed. The debt is open again.",
+  "debtSettledWith": "Settled with {person}. Nothing left to pay!",
+  "@debtSettledWith": {"placeholders": {"person": {"type": "String"}}},
+  "debtPaymentRemove": "Remove payment",
+  "cropCheckIn": "Check in {title}",
+  "@cropCheckIn": {"placeholders": {"title": {"type": "String"}}},
+  "gymDayToday": "today",
+  "gymStaleTitle": "Still open from {day}",
+  "@gymStaleTitle": {"placeholders": {"day": {"type": "String"}}},
+  "gymStaleBody": "{done} of {total} sets logged. Finish it and it counts for {day}: the gym habit is checked in on that day, not today. Or drop it.",
+  "@gymStaleBody": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}, "day": {"type": "String"}}},
+  "gymStaleLater": "Not now",
+  "gymStaleFinish": "Finish as of {day}",
+  "@gymStaleFinish": {"placeholders": {"day": {"type": "String"}}},
+  "gymCheckedInOn": "Checked in for {day} · +{xp} XP",
+  "@gymCheckedInOn": {"placeholders": {"day": {"type": "String"}, "xp": {"type": "int"}}},
+  "gymClockDays": "{days, plural, =1{1 day} other{{days} days}}",
+  "@gymClockDays": {"placeholders": {"days": {"type": "int"}}},
+  "gymPlates": "Plates",
+  "logCut": "Logged {logged}; {dropped} over the cap left out",
+  "@logCut": {"placeholders": {"logged": {"type": "int"}, "dropped": {"type": "int"}}},
+  "dailyOverTotal": "Can't be more than the total target",
+  "projectLeft": "{left} to go",
+  "@projectLeft": {"placeholders": {"left": {"type": "int"}}},
+  "projectReached": "Target reached",
+  "notesNoFolder": "No folder",
+  "ledgerDayUpcoming": "{day} · upcoming",
+  "@ledgerDayUpcoming": {"placeholders": {"day": {"type": "String"}}},
+  "projectDoneCut": "{logged} logged; {dropped} over the target left out.",
+  "@projectDoneCut": {"placeholders": {"logged": {"type": "int"}, "dropped": {"type": "int"}}},
+  "stepsNoDaysConnectedBody": "Each day's count lands here once the day is over."
 }

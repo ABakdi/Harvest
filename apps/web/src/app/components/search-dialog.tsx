@@ -51,7 +51,8 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         id: seed.uuid,
         title: seed.title,
         detail: seed.archivedAt ? t('search.archivedSeed') : t(`seed.type.${seed.type}`),
-        to: seed.archivedAt ? '/app/farmer' : '/app/field',
+        // Its own page, archived or not: the history is there either way.
+        to: `/app/field/seed/${seed.uuid}`,
       });
     }
     for (const goal of everything.goals) {

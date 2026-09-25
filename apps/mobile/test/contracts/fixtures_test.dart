@@ -154,7 +154,9 @@ void main() {
             schedule: type == CommitmentType.habit
                 ? const DailySchedule()
                 : null,
-            totalTarget: type == CommitmentType.project ? 1000 : null,
+            totalTarget: type == CommitmentType.project
+                ? (c['totalTarget'] as int? ?? 1000)
+                : null,
             dailyCommitment: daily,
           );
           final day = HarvestDay.parse('2026-09-19');
@@ -170,6 +172,21 @@ void main() {
                 ),
               );
           final loggedToday = c['loggedToday'] as int;
+          // What was logged on the seed before today, on the day before.
+          final earlier =
+              (c['totalLogged'] as int? ?? loggedToday) - loggedToday;
+          if (earlier > 0) {
+            await db
+                .into(db.checkIns)
+                .insert(
+                  CheckInsCompanion.insert(
+                    uuid: 'before-$i',
+                    commitmentUuid: commitment.uuid,
+                    harvestDay: day.previous.key,
+                    quantity: Value(earlier),
+                  ),
+                );
+          }
           if (loggedToday > 0) {
             await db
                 .into(db.checkIns)
@@ -264,9 +281,10 @@ void main() {
     });
 
     test('the settings allow-list is the same list', () {
-      final prefixes = (_read('$_contracts/portable-settings.json')['prefixes']
-              as List<dynamic>)
-          .cast<String>();
+      final prefixes =
+          (_read('$_contracts/portable-settings.json')['prefixes']
+                  as List<dynamic>)
+              .cast<String>();
       expect(prefixes, importableSettingPrefixes);
     });
 

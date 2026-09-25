@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/action_snack_bar.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
@@ -103,7 +104,8 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
     final trashed = await repository.trashFolder(folder);
     await folders.forget(folder);
     messenger.showSnackBar(
-      SnackBar(
+      actionSnackBar(
+        messenger,
         content: Text(l10n.notesFolderTrashed(folder, trashed.length)),
         action: SnackBarAction(
           label: l10n.undo,

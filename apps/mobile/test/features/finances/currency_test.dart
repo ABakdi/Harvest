@@ -55,7 +55,7 @@ void main() {
         currency: Currency.usd,
         rates: bare,
       );
-      expect(text, r'$8');
+      expect(text, ltrIsolate(r'$8'));
     });
   });
 

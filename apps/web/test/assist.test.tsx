@@ -57,6 +57,7 @@ describe('the assist in a note', () => {
       dailyLimit: 50,
     });
     const h = await device(new FakeServer());
+    await h.settings.setString('features.notes', 'true');
     const note = await h.notes.create({ title: 'Bread' });
     await h.notes.update(note.uuid, { body: 'Bread rises twice.' });
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useHarvest } from '../context';
+import { useSetting } from '../hooks';
 import { type WeightRow, type WeightUnit, healthKeys, parseWeight, weightFieldValue } from '../data/health';
 import { useBusy } from './use-busy';
 
@@ -17,7 +18,13 @@ import { useBusy } from './use-busy';
  * weigh-in of a day pays +5 XP; a second is a second fact, not a
  * second payment.
  */
-export function WeightEditor({ weight, unit, onClose }: { weight: WeightRow | null; unit: WeightUnit; onClose: () => void }) {
+export function WeightEditor(props: { weight: WeightRow | null; unit: WeightUnit; onClose: () => void }) {
+  // Drawn once the unit is read: a weight filled in as kilograms under a
+  // pound label would be saved back as pounds ([[Health]] H4).
+  return useSetting(healthKeys.weightUnit) === undefined ? null : <WeightForm {...props} />;
+}
+
+function WeightForm({ weight, unit, onClose }: { weight: WeightRow | null; unit: WeightUnit; onClose: () => void }) {
   const { t } = useTranslation();
   const { health, settings } = useHarvest();
   const id = useId();

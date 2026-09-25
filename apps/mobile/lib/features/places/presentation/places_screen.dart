@@ -12,6 +12,9 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
+import 'package:harvest/features/finances/presentation/expense_sheet.dart';
+import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/finances/presentation/moves_ledger.dart';
 import 'package:harvest/features/places/data/location_gateway.dart';
 import 'package:harvest/features/places/data/places_repository.dart';
 import 'package:harvest/features/places/domain/place.dart';
@@ -24,6 +27,113 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 
 /// How much of the calendar the map shows at once.
 enum PlacesRange { day, week, month }
+
+/// The closest the map goes. The streets' tiles stop at 14 and are
+/// stretched past it; left unbounded, a fit around points that all sit
+/// in one spot asked for zoom 25, where the stretched buildings took the
+/// phone's memory in seconds and no tile was ever drawn.
+const placesMaxZoom = 19.0;
+
+/// How close the map comes to a single spot, or to points too near
+/// each other to be worth a box around them.
+const placesSpotZoom = 15.0;
+
+/// Points closer together than this, in degrees (about 150 m), are one
+/// spot: the map centres on them rather than fitting a box.
+const placesSpotSpan = 0.0015;
+
+/// Whether the map has ever been shown on this phone, so Records only
+/// lands on Places when it can ([[Places]]). Bookkeeping, local to the
+/// phone: a `places.` key would be synced and exported.
+abstract final class PlacesMapHealth {
+  static const key = 'records.placesMap';
+
+  /// Written as the map is brought up; still there on the next launch,
+  /// it means the map never got as far as drawing.
+  static const opening = 'opening';
+
+  /// Written once the map has drawn and gone idle.
+  static const shown = 'shown';
+}
+
+/// Where the camera goes to show [points]: centred on one spot, or
+/// fitted around them with room left for the timeline sheet.
+CameraUpdate placesCameraFor(List<LatLng> points) {
+  var south = points.first.latitude;
+  var north = south;
+  var west = points.first.longitude;
+  var east = west;
+  for (final p in points) {
+    south = math.min(south, p.latitude);
+    north = math.max(north, p.latitude);
+    west = math.min(west, p.longitude);
+    east = math.max(east, p.longitude);
+  }
+  // Every pin in one place — a day spent at home — has no box to fit.
+  if (north - south < placesSpotSpan && east - west < placesSpotSpan) {
+    return CameraUpdate.newLatLngZoom(
+      LatLng((south + north) / 2, (west + east) / 2),
+      placesSpotZoom,
+    );
+  }
+  return CameraUpdate.newLatLngBounds(
+    LatLngBounds(
+      southwest: LatLng(south, west),
+      northeast: LatLng(north, east),
+    ),
+    left: 48,
+    top: 48,
+    right: 48,
+    bottom: 220,
+  );
+}
+
+/// The source and layer the saved places' names are drawn from. Their
+/// own, not symbol annotations: those pass the font per feature, which
+/// the native map refuses ("text-font must be literals") and draws no
+/// name at all.
+const placeNamesSource = 'harvest-place-names';
+const placeNamesLayer = 'harvest-place-names-text';
+
+/// The saved places as GeoJSON points, each with its uuid as the
+/// feature id (what a tap on its name hands back) and its name.
+Map<String, dynamic> placeNamesGeoJson(List<SavedPlace> places) => {
+  'type': 'FeatureCollection',
+  'features': [
+    for (final place in places)
+      {
+        'type': 'Feature',
+        'id': place.uuid,
+        'properties': {'place': place.uuid, 'name': place.name},
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [place.longitude, place.latitude],
+        },
+      },
+  ],
+};
+
+/// How the names look: dark text on a white halo under the red dot. The
+/// font is one literal for every name — the one font OpenFreeMap serves
+/// that every base can reach; the default stack names fonts it does not
+/// have, and draws nothing.
+SymbolLayerProperties placeNamesProperties() => const SymbolLayerProperties(
+  textField: [Expressions.get, 'name'],
+  textFont: [
+    Expressions.literal,
+    ['Noto Sans Regular'],
+  ],
+  textSize: 12.5,
+  textColor: '#202124',
+  textHaloColor: '#FFFFFF',
+  textHaloWidth: 1.5,
+  textAnchor: 'top',
+  textOffset: [
+    Expressions.literal,
+    [0, 0.4],
+  ],
+  textAllowOverlap: true,
+);
 
 /// Where I went, and what I did there ([[Places]]): a date strip, the
 /// map with the trail and a pin per action, and the day as a timeline.
@@ -79,9 +189,15 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     ),
   };
 
+  /// The map has drawn and gone idle once on this screen.
+  var _shown = false;
+
   @override
   void initState() {
     super.initState();
+    // Marked before the map comes up: if it takes the app down with it,
+    // Records opens on Notes next time instead of here again.
+    unawaited(_markMap(PlacesMapHealth.opening));
     // The blue dot is the phone's last known fix, remembered locally —
     // the map never asks the platform engines that the geotags refuse
     // ([[ADR-010-Maps]]).
@@ -223,6 +339,21 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
                 if (style != null)
                   MapLibreMap(
                     styleString: styleString,
+                    // No symbol annotations: names are a layer of their
+                    // own, and the plugin's symbol layer asks for its
+                    // font per feature, which the map rejects.
+                    annotationOrder: const [
+                      AnnotationType.line,
+                      AnnotationType.circle,
+                    ],
+                    annotationConsumeTapEvents: const [
+                      AnnotationType.line,
+                      AnnotationType.circle,
+                    ],
+                    minMaxZoomPreference: const MinMaxZoomPreference(
+                      null,
+                      placesMaxZoom,
+                    ),
                     initialCameraPosition: const CameraPosition(
                       target: LatLng(36.75, 3.06),
                       zoom: 11,
@@ -230,13 +361,14 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
                     onMapCreated: (controller) {
                       _map = controller;
                       controller.onCircleTapped.add(_onPinTapped);
-                      controller.onSymbolTapped.add(_onPlaceTapped);
+                      controller.onFeatureTapped.add(_onFeatureTapped);
                     },
                     onMapLongClick: (_, coordinates) =>
                         unawaited(_savePlaceAt(coordinates)),
                     onStyleLoadedCallback: () {
                       setState(() => _styleReady = true);
                     },
+                    onMapIdle: _onIdle,
                     attributionButtonPosition:
                         AttributionButtonPosition.bottomLeft,
                   ),
@@ -297,7 +429,43 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
 
   var _drawn = '';
 
+  /// The draw in flight. Draws run one after another: two interleaved
+  /// would clear each other's pins halfway and double the rest.
+  Future<void> _drawing = Future.value();
+
   Future<void> _draw(
+    List<TrailPoint> trail,
+    List<Geotag> pins,
+    List<Stay> stays,
+    List<SavedPlace> saved,
+    Fix? here,
+  ) => _drawing = _drawing
+      .then((_) => _drawNow(trail, pins, stays, saved, here))
+      .catchError((Object error) {
+        debugPrint('[places] map not drawn: ${error.runtimeType}');
+      });
+
+  /// Drawn and idle: the map works on this phone, and Records may land
+  /// here again.
+  void _onIdle() {
+    if (_shown || !_styleReady || !mounted) return;
+    _shown = true;
+    unawaited(_markMap(PlacesMapHealth.shown));
+  }
+
+  /// Bookkeeping only: a mark that cannot be written costs nothing but
+  /// one landing on Notes.
+  Future<void> _markMap(String value) async {
+    try {
+      await ref
+          .read(settingsRepositoryProvider)
+          .setString(PlacesMapHealth.key, value);
+    } on Object catch (error) {
+      debugPrint('[places] map mark not kept: ${error.runtimeType}');
+    }
+  }
+
+  Future<void> _drawNow(
     List<TrailPoint> trail,
     List<Geotag> pins,
     List<Stay> stays,
@@ -305,12 +473,15 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     Fix? here,
   ) async {
     final map = _map;
-    if (map == null) return;
+    if (map == null || !mounted) return;
     // Same data, same picture: rebuilds that change nothing on the map
     // must not flicker it.
     final signature =
         '${trail.length}:${trail.lastOrNull?.uuid}:${pins.length}:'
-        '${pins.lastOrNull?.uuid}:${stays.length}:${saved.length}:'
+        '${pins.lastOrNull?.uuid}:${stays.length}:'
+        '${Object.hashAll([
+          for (final p in saved) ...[p.uuid, p.name, p.latitude, p.longitude],
+        ])}:'
         '${here?.latitude},${here?.longitude}:$_selected';
     if (signature == _drawn) return;
     _drawn = signature;
@@ -318,7 +489,6 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     final scheme = Theme.of(context).colorScheme;
     await map.clearLines();
     await map.clearCircles();
-    await map.clearSymbols();
 
     if (trail.length > 1) {
       await map.addLine(
@@ -346,20 +516,8 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     }
     // The places I kept, as red pins with their names — the map's own
     // legend, drawn under everything that happened on a day.
+    await _drawPlaceNames(map, saved);
     for (final place in saved) {
-      await map.addSymbol(
-        SymbolOptions(
-          geometry: LatLng(place.latitude, place.longitude),
-          textField: place.name,
-          textSize: 12.5,
-          textColor: '#202124',
-          textHaloColor: '#FFFFFF',
-          textHaloWidth: 1.5,
-          textAnchor: 'top',
-          textOffset: const Offset(0, 0.4),
-        ),
-        {'place': place.uuid},
-      );
       await map.addCircle(
         CircleOptions(
           geometry: LatLng(place.latitude, place.longitude),
@@ -411,34 +569,8 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
       for (final tag in pins) LatLng(tag.latitude!, tag.longitude!),
     ];
     if (points.isNotEmpty && _selected == null) {
-      await map.animateCamera(_fit(points));
+      await map.animateCamera(placesCameraFor(points));
     }
-  }
-
-  CameraUpdate _fit(List<LatLng> points) {
-    if (points.length == 1) {
-      return CameraUpdate.newLatLngZoom(points.single, 15);
-    }
-    var south = points.first.latitude;
-    var north = south;
-    var west = points.first.longitude;
-    var east = west;
-    for (final p in points) {
-      south = math.min(south, p.latitude);
-      north = math.max(north, p.latitude);
-      west = math.min(west, p.longitude);
-      east = math.max(east, p.longitude);
-    }
-    return CameraUpdate.newLatLngBounds(
-      LatLngBounds(
-        southwest: LatLng(south, west),
-        northeast: LatLng(north, east),
-      ),
-      left: 48,
-      top: 48,
-      right: 48,
-      bottom: 220,
-    );
   }
 
   void _onPinTapped(Circle circle) {
@@ -453,9 +585,40 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
     if (place != null) unawaited(_showPlace(place));
   }
 
-  void _onPlaceTapped(Symbol symbol) {
-    final uuid = symbol.data?['place'] as String?;
-    if (uuid != null) unawaited(_showPlace(uuid));
+  /// A tap on a saved place's name opens its card, as its dot does.
+  void _onFeatureTapped(
+    math.Point<double> point,
+    LatLng coordinates,
+    String id,
+    String layerId,
+    Annotation? annotation,
+  ) {
+    if (layerId != placeNamesLayer || id.isEmpty) return;
+    unawaited(_showPlace(id));
+  }
+
+  /// The saved places' names, on their own source and layer. A style
+  /// load or a switch of base drops both, so they are added again when
+  /// missing and only refilled otherwise.
+  Future<void> _drawPlaceNames(
+    MapLibreMapController map,
+    List<SavedPlace> saved,
+  ) async {
+    final geojson = placeNamesGeoJson(saved);
+    final sources = await map.getSourceIds();
+    if (!sources.contains(placeNamesSource)) {
+      await map.addGeoJsonSource(placeNamesSource, geojson);
+    } else {
+      await map.setGeoJsonSource(placeNamesSource, geojson);
+    }
+    final layers = await map.getLayerIds();
+    if (!layers.contains(placeNamesLayer)) {
+      await map.addSymbolLayer(
+        placeNamesSource,
+        placeNamesLayer,
+        placeNamesProperties(),
+      );
+    }
   }
 
   /// One saved place, on a card: its name, its note, and what to do
@@ -533,13 +696,15 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
       ),
     );
     if (draft == null || !mounted) return;
-    await ref.read(placesRepositoryProvider).savePlace(
-      name: draft.name,
-      latitude: coordinates.latitude,
-      longitude: coordinates.longitude,
-      radiusM: draft.radiusM,
-      notes: draft.notes,
-    );
+    await ref
+        .read(placesRepositoryProvider)
+        .savePlace(
+          name: draft.name,
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+          radiusM: draft.radiusM,
+          notes: draft.notes,
+        );
     messenger.showSnackBar(SnackBar(content: Text(l10n.placesPlaceSaved)));
   }
 
@@ -701,6 +866,8 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
         if (on && access != LocationAccess.always) {
           messenger.showSnackBar(
             SnackBar(
+              // An action is an offer for a few seconds, not a fixture.
+              persist: false,
               content: Text(l10n.placesTrailRefused),
               action: SnackBarAction(
                 label: l10n.placesOpenSettings,
@@ -731,6 +898,8 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
         final at = await repository.deleteDay(day);
         messenger.showSnackBar(
           SnackBar(
+            // An action is an offer for a few seconds, not a fixture.
+            persist: false,
             content: Text(l10n.placesDayDeleted),
             action: SnackBarAction(
               label: l10n.undo,
@@ -796,6 +965,20 @@ Color geotagColor(String table, ColorScheme scheme) => switch (table) {
   'goal_items' => (icon: Icons.checklist, label: l10n.geoGoalItem),
   _ => (icon: Icons.place_outlined, label: table),
 };
+
+/// A pin's line on the timeline, money written as the Granary writes
+/// it: "DA4 · Food", "+DA200 · Added to the wallet".
+String? geotagDetailText(AppLocalizations l10n, GeotagDetail? detail) =>
+    switch (detail) {
+      null => null,
+      GeotagText(:final text) => text,
+      GeotagExpense(:final amountMinor, :final currency, :final category, :final note) =>
+        '${formatMoney(amountMinor, currency)} · '
+            '${note ?? categoryLabel(l10n, category)}',
+      GeotagMove(:final txn) =>
+        '${formatMoneySigned(txn.deltaMinor, txn.currency)} · '
+            '${txn.note ?? moveTitle(l10n, txn)}',
+    };
 
 /// Where tapping a pin goes, for the actions that have a screen.
 String? geotagRoute(Geotag tag) => switch (tag.targetTable) {
@@ -1055,7 +1238,7 @@ class _GeotagTile extends ConsumerWidget {
             : scheme.outline,
       ),
       title: Text(
-        detail ?? kind.label,
+        geotagDetailText(l10n, detail) ?? kind.label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),

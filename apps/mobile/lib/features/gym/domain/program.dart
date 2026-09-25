@@ -270,3 +270,18 @@ List<String> reorderedUuids(List<String> uuids, int from, int to) {
   next.insert(to, moved);
   return next;
 }
+
+/// What a new plain target set starts as: a copy of the last plain set
+/// there is — five sets of 100 × 5 is one number typed, not five — or
+/// five reps of nothing yet. The open set is never copied; there is
+/// one of those.
+({int reps, int? weightGrams, int? percentTenths}) nextTargetSet(
+  Iterable<TargetSet> sets,
+) {
+  final last = sets.where((set) => !set.openEnded).lastOrNull;
+  return (
+    reps: last?.reps ?? 5,
+    weightGrams: last?.weightGrams,
+    percentTenths: last?.percentTenths,
+  );
+}

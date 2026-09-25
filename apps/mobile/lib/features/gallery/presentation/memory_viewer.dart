@@ -104,6 +104,8 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
     navigator.pop();
     messenger.showSnackBar(
       SnackBar(
+        // An action is an offer for a few seconds, not a fixture.
+        persist: false,
         content: Text(l10n.galleryMovedToTrash),
         action: SnackBarAction(
           label: l10n.undoAction,

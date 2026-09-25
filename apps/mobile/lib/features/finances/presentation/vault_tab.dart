@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/celebration.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/hero_card.dart';
@@ -82,7 +83,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   icon: Icons.account_balance_wallet,
                   color: scheme.primary,
                   label: l10n.walletTitle,
-                  value: formatAmount(totals.wallet, defaultCurrency),
+                  value: formatMoney(totals.wallet, defaultCurrency),
                   selected: _section == VaultSection.wallet,
                   onTap: () => _select(VaultSection.wallet),
                 ),
@@ -93,7 +94,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   icon: Icons.savings,
                   color: savingsColor,
                   label: l10n.savingsSectionTitle,
-                  value: formatAmount(totals.savings, defaultCurrency),
+                  value: formatMoney(totals.savings, defaultCurrency),
                   selected: _section == VaultSection.savings,
                   onTap: () => _select(VaultSection.savings),
                 ),
@@ -104,7 +105,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
                   icon: Icons.handshake,
                   color: scheme.tertiary,
                   label: l10n.vaultOwed,
-                  value: formatAmount(totals.owed, defaultCurrency),
+                  value: formatMoney(totals.owed, defaultCurrency),
                   selected: _section == VaultSection.debts,
                   onTap: () => _select(VaultSection.debts),
                 ),
@@ -601,13 +602,20 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
               child: Column(
                 children: [
                   for (final debt in settled)
-                    LedgerRow(
-                      icon: Icons.check_circle,
-                      color: scheme.secondary,
-                      title: debt.person,
-                      subtitle: l10n.debtSettled,
-                      amount: formatAmount(debt.amountMinor, debt.currency),
-                      amountColor: scheme.onSurface.withValues(alpha: 0.55),
+                    _SettledDebt(
+                      debt: debt,
+                      payments: payments
+                          .where((p) => p.debtUuid == debt.uuid)
+                          .toList(),
+                      expanded: _expanded.contains(debt.uuid),
+                      onToggle: () => setState(() {
+                        if (!_expanded.remove(debt.uuid)) {
+                          _expanded.add(debt.uuid);
+                        }
+                      }),
+                      onRemovePayment: (payment) => unawaited(
+                        _removePayment(context, payment, settled: true),
+                      ),
                     ),
                 ],
               ),
@@ -620,7 +628,13 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
 
   /// A payment logged by mistake goes the way an expense does: ask,
   /// remove, offer Undo ([[Audit-v2-Beta]] N-01).
-  Future<void> _removePayment(BuildContext context, DebtPayment payment) async {
+  /// On a settled debt ([settled]) the removal reopens it, and the bar
+  /// says so.
+  Future<void> _removePayment(
+    BuildContext context,
+    DebtPayment payment, {
+    bool settled = false,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final actions = ref.read(financeActionsProvider);
@@ -628,7 +642,7 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
       context,
       title: l10n.debtPaymentRemoveTitle,
       body: l10n.debtPaymentRemoveBody,
-      confirmLabel: l10n.deleteAction,
+      confirmLabel: l10n.removeAction,
       destructive: true,
     );
     if (!ok) return;
@@ -637,7 +651,9 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(l10n.deleted),
+          // An action is an offer for a few seconds, not a fixture.
+          persist: false,
+          content: Text(settled ? l10n.debtReopened : l10n.deleted),
           action: SnackBarAction(
             label: l10n.undoAction,
             onPressed: () => actions.restorePayment(payment.uuid).ignore(),
@@ -661,7 +677,8 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
       walletBalances: ref.read(accountBalancesProvider(MoneyAccount.wallet)),
     );
     if (entry == null || !context.mounted) return;
-    await runGuarded(
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await runGuarded(
       context,
       ref
           .read(financeActionsProvider)
@@ -671,6 +688,127 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
             fromWallet: entry.fromWallet,
             note: entry.note,
           ),
+    );
+    // The last payment gets the small celebration [[Finances]]
+    // promises: a burst over the vault and a line that says it is done.
+    if (!ok || entry.minor < debt.remainingMinor || !context.mounted) return;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box != null && box.hasSize) {
+      showCheckInBurst(
+        context,
+        box.localToGlobal(box.size.topCenter(const Offset(0, 48))),
+        icon: Icons.celebration,
+        color: scheme.secondary,
+        particles: 12,
+      );
+    }
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(l10n.debtSettledWith(debt.person))),
+      );
+  }
+}
+
+/// A settled debt in the quiet list: who, how much, and its payments
+/// one tap away — a mistaken last payment can still be taken back, and
+/// taking it back reopens the debt ([[Audit-v2-Beta]] N-01).
+class _SettledDebt extends StatelessWidget {
+  const _SettledDebt({
+    required this.debt,
+    required this.payments,
+    required this.expanded,
+    required this.onToggle,
+    required this.onRemovePayment,
+  });
+
+  final Debt debt;
+  final List<DebtPayment> payments;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final ValueChanged<DebtPayment> onRemovePayment;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LedgerRow(
+          icon: Icons.check_circle,
+          color: scheme.secondary,
+          title: debt.person,
+          subtitle: l10n.debtSettled,
+          amount: formatMoney(debt.amountMinor, debt.currency),
+          amountColor: scheme.onSurface.withValues(alpha: 0.55),
+          onTap: payments.isEmpty ? null : onToggle,
+        ),
+        if (payments.isNotEmpty)
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton.icon(
+              onPressed: onToggle,
+              icon: Icon(
+                expanded ? Icons.expand_less : Icons.expand_more,
+                size: 18,
+              ),
+              label: Text('${l10n.debtPayments} · ${payments.length}'),
+            ),
+          ),
+        if (expanded && payments.isNotEmpty)
+          _PaymentsList(
+            payments: payments,
+            currency: debt.currency,
+            onRemove: onRemovePayment,
+          ),
+      ],
+    );
+  }
+}
+
+/// A debt's payments, each removable by its own button (or a long
+/// press, the way an expense goes). The same list sits under an open
+/// debt and a settled one.
+class _PaymentsList extends StatelessWidget {
+  const _PaymentsList({
+    required this.payments,
+    required this.currency,
+    required this.onRemove,
+  });
+
+  final List<DebtPayment> payments;
+  final Currency currency;
+  final ValueChanged<DebtPayment> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final locale = Localizations.localeOf(context).toString();
+    return Column(
+      children: [
+        for (final payment in payments)
+          Row(
+            children: [
+              Expanded(
+                child: LedgerRow(
+                  icon: Icons.payments,
+                  color: scheme.secondary,
+                  title: dayLabel(context, payment.day),
+                  subtitle: DateFormat.jm(locale).format(payment.loggedAt),
+                  amount: formatMoneySigned(-payment.amountMinor, currency),
+                  onLongPress: () => onRemove(payment),
+                ),
+              ),
+              IconButton(
+                tooltip: l10n.debtPaymentRemove,
+                icon: Icon(Icons.delete_outline, color: scheme.onSurfaceVariant),
+                onPressed: () => onRemove(payment),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }
@@ -742,7 +880,7 @@ class _DebtCard extends StatelessWidget {
                 ),
                 const SizedBox(width: HarvestSpacing.sm),
                 Text(
-                  formatAmount(debt.remainingMinor, debt.currency),
+                  formatMoney(debt.remainingMinor, debt.currency),
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: scheme.tertiary,
@@ -766,8 +904,8 @@ class _DebtCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.debtPaidOf(
-                      formatAmount(debt.paidMinor, debt.currency),
-                      formatAmount(debt.amountMinor, debt.currency),
+                      formatMoney(debt.paidMinor, debt.currency),
+                      formatMoney(debt.amountMinor, debt.currency),
                     ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.onSurface.withValues(alpha: 0.65),
@@ -798,15 +936,11 @@ class _DebtCard extends StatelessWidget {
             ),
             if (expanded && payments.isNotEmpty) ...[
               const Divider(height: HarvestSpacing.md),
-              for (final payment in payments)
-                LedgerRow(
-                  icon: Icons.payments,
-                  color: scheme.secondary,
-                  title: dayLabel(context, payment.day),
-                  subtitle: DateFormat.jm(locale).format(payment.loggedAt),
-                  amount: formatSigned(-payment.amountMinor, debt.currency),
-                  onLongPress: () => onRemovePayment(payment),
-                ),
+              _PaymentsList(
+                payments: payments,
+                currency: debt.currency,
+                onRemove: onRemovePayment,
+              ),
             ],
           ],
         ),
@@ -841,7 +975,7 @@ class _Balances extends StatelessWidget {
       });
     if (entries.isEmpty) {
       return Text(
-        formatAmount(0, defaultCurrency),
+        formatMoney(0, defaultCurrency),
         style: theme.textTheme.displaySmall?.copyWith(
           fontWeight: FontWeight.w800,
           fontFeatures: const [FontFeature.tabularFigures()],
@@ -859,7 +993,7 @@ class _Balances extends StatelessWidget {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Text(
-                  formatAmount(entries[i].value, entries[i].key),
+                  formatMoney(entries[i].value, entries[i].key),
                   style:
                       (i == 0
                               ? theme.textTheme.displaySmall

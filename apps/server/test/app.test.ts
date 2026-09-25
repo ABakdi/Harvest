@@ -126,7 +126,7 @@ describe('the latest release', () => {
     return { fetch, calls };
   }
 
-  const ok = () => Response.json(github);
+  const ok = () => Response.json([github]);
 
   it('answers with the APK, and asks GitHub once an hour', async () => {
     const gh = fakeGitHub([ok]);
@@ -144,9 +144,39 @@ describe('the latest release', () => {
         size: 48_000_000,
         sha256: 'ab'.repeat(32),
       },
+      prerelease: null,
     });
     await request(h.app).get('/v1/releases/latest').expect(200);
-    expect(gh.calls).toEqual(['https://api.github.com/repos/ABakdi/Harvest/releases/latest']);
+    expect(gh.calls).toEqual(['https://api.github.com/repos/ABakdi/Harvest/releases?per_page=20']);
+  });
+
+  it('names the newest beta beside the latest release, and never a draft or an older beta', async () => {
+    const release = (tag: string, flags: { prerelease?: boolean; draft?: boolean } = {}) => ({
+      ...github,
+      tag_name: tag,
+      name: `Harvest ${tag}`,
+      html_url: `https://github.com/ABakdi/Harvest/releases/tag/${tag}`,
+      assets: [{ name: `harvest-${tag}.apk`, browser_download_url: `https://example/harvest-${tag}.apk`, size: 1 }],
+      ...flags,
+    });
+    const list = [
+      release('v3.0.0-beta.3', { draft: true, prerelease: true }),
+      release('v3.0.0-beta.2', { prerelease: true }),
+      release('v3.0.0-beta.1', { prerelease: true }),
+      release('v2.0.0'),
+      release('v2.0.0-beta.4', { prerelease: true }),
+    ];
+    const source = new ReleaseSource({ repo: 'ABakdi/Harvest', fetch: fakeGitHub([() => Response.json(list)]).fetch });
+    const latest = await source.latest();
+    expect(latest.tag).toBe('v2.0.0');
+    expect(latest.prerelease?.tag).toBe('v3.0.0-beta.2');
+    expect(latest.prerelease?.apk?.url).toBe('https://example/harvest-v3.0.0-beta.2.apk');
+
+    const none = new ReleaseSource({ repo: 'ABakdi/Harvest', fetch: fakeGitHub([() => Response.json([release('v2.0.0'), release('v2.0.0-beta.4', { prerelease: true })])]).fetch });
+    expect((await none.latest()).prerelease).toBeNull();
+
+    const onlyBetas = new ReleaseSource({ repo: 'ABakdi/Harvest', fetch: fakeGitHub([() => Response.json([release('v1.0.0-beta.1', { prerelease: true })])]).fetch });
+    await expect(onlyBetas.latest()).rejects.toMatchObject({ code: 'not_found' });
   });
 
   it('asks again after the hour, and serves the old answer if GitHub is down', async () => {

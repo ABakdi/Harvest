@@ -14,6 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { currencies, formatAmountInput, formatMoney } from '@/lib/format';
 import { useHarvest, useHarvestDay } from '../context';
 import { presetCategories, type ExpenseRow } from '../data/money';
+import { isUpcoming } from '../data/vault';
 import { useDefaultCurrency, usePrivateKey } from '../hooks';
 import { categoryLabel } from './category';
 import { AmountField, CategoryIcon, SwitchRow, useCustomCategories } from './money-bits';
@@ -63,12 +64,15 @@ function ExpenseForm({ expense, onClose }: { expense: ExpenseRow | null; onClose
   const custom = useCustomCategories();
   const wallet = useLiveQuery(async () => {
     const moves = await db.rows('money_txns').where('account').equals('wallet').toArray();
+    // What the wallet holds today, without this expense's own movement:
+    // it is given back only when the balance took it, and one still
+    // upcoming never was (`walletBalanceFor`, [[Finances]]).
     const balance = moves
-      .filter((move) => move.deletedAt === null && move.currency === chosenCurrency && move.linkUuid !== expense?.uuid)
+      .filter((move) => move.deletedAt === null && move.currency === chosenCurrency && move.linkUuid !== expense?.uuid && !isUpcoming(move, today))
       .reduce((sum, move) => sum + move.deltaMinor, 0);
     const linked = expense ? moves.some((move) => move.linkUuid === expense.uuid && move.deletedAt === null) : false;
     return { balance, linked };
-  }, [db, chosenCurrency, expense?.uuid]);
+  }, [db, chosenCurrency, expense?.uuid, today.key]);
 
   // A number or a sum: `120+30` logs 150 ([[Finances]] Quick-log).
   const minor = evaluateAmountToMinor(amount);
@@ -136,7 +140,11 @@ function ExpenseForm({ expense, onClose }: { expense: ExpenseRow | null; onClose
             id={`${id}-amount`}
             label={t('money.amount')}
             value={amount}
-            onChange={setAmount}
+            onChange={(value) => {
+              setAmount(value);
+              // A sum that works answers the complaint: it goes as soon as it is true.
+              if (evaluateAmountToMinor(value) !== null) setError(null);
+            }}
             currency={chosenCurrency}
             autoFocus
             invalid={error !== null && minor === null}
@@ -182,7 +190,17 @@ function ExpenseForm({ expense, onClose }: { expense: ExpenseRow | null; onClose
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${id}-day`}>{t('money.day')}</Label>
-            <Input id={`${id}-day`} type="date" value={day} min={today.addDays(-365).key} max={today.addDays(365).key} onChange={(event) => setDay(event.target.value)} />
+            <Input
+              id={`${id}-day`}
+              type="date"
+              value={day}
+              min={today.addDays(-365).key}
+              max={today.addDays(365).key}
+              onChange={(event) => {
+                setDay(event.target.value);
+                if (event.target.value) setError(null);
+              }}
+            />
           </div>
         </div>
 

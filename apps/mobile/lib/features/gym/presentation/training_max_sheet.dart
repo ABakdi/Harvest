@@ -38,7 +38,8 @@ class _TrainingMaxSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
     final program = ref.watch(programProvider(programUuid)).value;
-    final maxes = ref.watch(trainingMaxesProvider(programUuid)).value ?? const {};
+    final maxes =
+        ref.watch(trainingMaxesProvider(programUuid)).value ?? const {};
     final needed = program?.percentageExercises.toList() ?? const <String>[];
 
     return HarvestSheet(
@@ -90,9 +91,11 @@ class _MaxRow extends ConsumerWidget {
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(exercise?.name ?? l10n.gymUnknownExercise),
+      title: Text(exercise?.displayName ?? l10n.gymUnknownExercise),
       subtitle: Text(
-        grams == null ? l10n.gymNoTrainingMax : formatLoad(context, grams!, unit),
+        grams == null
+            ? l10n.gymNoTrainingMax
+            : formatLoad(context, grams!, unit),
         style: theme.textTheme.bodyMedium?.copyWith(
           fontWeight: FontWeight.w700,
           color: grams == null
@@ -101,7 +104,7 @@ class _MaxRow extends ConsumerWidget {
         ),
       ),
       trailing: const Icon(Icons.edit_outlined, size: 18),
-      onTap: () => unawaited(_edit(context, ref, exercise?.name)),
+      onTap: () => unawaited(_edit(context, ref, exercise?.displayName)),
     );
   }
 
@@ -114,7 +117,7 @@ class _MaxRow extends ConsumerWidget {
     final entered = await promptForText(
       context,
       title: name ?? l10n.gymTrainingMaxes,
-      initial: grams == null ? '' : loadFieldValue(grams!, unit),
+      initial: grams == null ? '' : loadField(grams!, unit),
       hint: unitLabel(context, unit),
     );
     if (entered == null) return;

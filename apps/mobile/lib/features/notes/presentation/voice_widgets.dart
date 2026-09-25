@@ -248,9 +248,15 @@ class _RecordingPlayerState extends ConsumerState<RecordingPlayer> {
     final total = widget.attachment.duration ?? Duration.zero;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+      margin: const EdgeInsets.symmetric(vertical: HarvestSpacing.xs),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: HarvestSpacing.sm),
+        // Room above the name, which had sat on the card's top edge.
+        padding: const EdgeInsets.fromLTRB(
+          HarvestSpacing.sm,
+          HarvestSpacing.sm,
+          HarvestSpacing.sm,
+          HarvestSpacing.xs,
+        ),
         child: StreamBuilder<PlayerState>(
           stream: _player.playerStateStream,
           builder: (context, state) {

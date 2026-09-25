@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/platform/notifications.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
@@ -53,10 +56,79 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     ),
   );
 
+  /// Whether the left-behind question has been asked on this visit.
+  var _askedStale = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // A session left running past its day is asked about the moment it
+    // is opened, before a set is ticked onto the wrong day (rule Y3).
+    ref.listenManual(sessionProvider(widget.uuid), (_, next) {
+      final session = next.value;
+      if (session == null || _askedStale) return;
+      if (!session.staleOn(ref.read(currentHarvestDayProvider))) return;
+      _askedStale = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_settleStale(session));
+      });
+    }, fireImmediately: true);
+  }
+
   @override
   void dispose() {
     _rest.dispose();
     super.dispose();
+  }
+
+  /// `today`, or the day itself when it is not today: a message about
+  /// a check-in names the day it lands on.
+  String _dayName(HarvestDay day) => day == ref.read(currentHarvestDayProvider)
+      ? AppLocalizations.of(context).gymDayToday
+      : formatDay(context, day, weekday: true);
+
+  /// Finish it as of its own day, drop it, or leave it for now.
+  Future<void> _settleStale(WorkoutSession session) async {
+    final choice = await _askStale(session);
+    if (!mounted) return;
+    switch (choice) {
+      case _Stale.finish:
+        await _complete(session, endedAt: session.lastActivity);
+      case _Stale.discard:
+        await _discard(session, asked: true);
+      case null:
+        break;
+    }
+  }
+
+  Future<_Stale?> _askStale(WorkoutSession session) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final day = _dayName(session.day);
+    return showDialog<_Stale>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.gymStaleTitle(day)),
+        content: Text(
+          l10n.gymStaleBody(session.doneSets, session.totalSets, day),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.gymStaleLater),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: scheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(_Stale.discard),
+            child: Text(l10n.gymDiscardSession),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(_Stale.finish),
+            child: Text(l10n.gymStaleFinish(day)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -199,8 +271,13 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   }
 
   Future<void> _finish(WorkoutSession session) async {
+    // Left running past its day: the question is which day, not
+    // whether the sets are all ticked.
+    if (session.staleOn(ref.read(currentHarvestDayProvider))) {
+      await _settleStale(session);
+      return;
+    }
     final l10n = AppLocalizations.of(context);
-    final navigator = Navigator.of(context);
     // Sets on exercises I skipped were never going to happen; the
     // rest are the ones worth a question.
     final planned = session.exercises
@@ -221,14 +298,31 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       final ok = await confirm(
         context,
         title: l10n.gymFinishIncompleteTitle,
-        body: l10n.gymFinishIncompleteBody(left, planned),
+        body: l10n.gymFinishIncompleteBody(
+          left,
+          planned,
+          _dayName(session.day),
+        ),
         confirmLabel: l10n.gymFinish,
       );
       if (!ok) return;
     }
+    if (!mounted) return;
+    await _complete(session);
+  }
+
+  /// Writes the finish, checks the habit in on the session's own day,
+  /// and says which day that was.
+  Future<void> _complete(WorkoutSession session, {DateTime? endedAt}) async {
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+    final day = _dayName(session.day);
+    final today = session.day == ref.read(currentHarvestDayProvider);
     // Finishing is the only thing that checks the habit in: starting
     // is an intention and abandoning is a Tuesday ([[Gym]] rule Y4).
-    final outcome = await ref.read(sessionFinisherProvider).finish(session);
+    final outcome = await ref
+        .read(sessionFinisherProvider)
+        .finish(session, endedAt: endedAt);
     // The album is looked up while `ref` still works: the picture is
     // offered after this screen has gone.
     final album = outcome.albumUuid == null
@@ -246,7 +340,13 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(l10n.gymCheckedIn(outcome.xpEarned))),
+          SnackBar(
+            content: Text(
+              today
+                  ? l10n.gymCheckedIn(outcome.xpEarned)
+                  : l10n.gymCheckedInOn(day, outcome.xpEarned),
+            ),
+          ),
         );
     }
     if (album != null) {
@@ -280,17 +380,21 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     await showCaptureSheet(navigator.context, album: album);
   }
 
-  Future<void> _discard(WorkoutSession session) async {
+  /// Drops the session. [asked] when the question has already been put
+  /// once — the left-behind prompt is itself the first asking.
+  Future<void> _discard(WorkoutSession session, {bool asked = false}) async {
     final l10n = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
-    final ok = await confirm(
-      context,
-      title: l10n.gymDiscardSession,
-      body: l10n.gymDiscardBody(session.doneSets),
-      confirmLabel: l10n.gymDiscardSession,
-      destructive: true,
-    );
-    if (!ok) return;
+    if (!asked) {
+      final ok = await confirm(
+        context,
+        title: l10n.gymDiscardSession,
+        body: l10n.gymDiscardBody(session.doneSets),
+        confirmLabel: l10n.gymDiscardSession,
+        destructive: true,
+      );
+      if (!ok) return;
+    }
     // Asked twice, but only when there is something to lose: a second
     // dialog about an empty session is a dialog about nothing
     // ([[Gym]], [[Audit-v2]] P3-02).
@@ -348,13 +452,15 @@ class _ClockState extends State<_Clock> {
 
   @override
   Widget build(BuildContext context) {
-    final elapsed = widget.session.elapsed;
-    final minutes = elapsed.inMinutes;
-    final seconds = elapsed.inSeconds % 60;
-    return Text(
-      '$minutes:${seconds.toString().padLeft(2, '0')}',
-      style: widget.style,
-    );
+    final session = widget.session;
+    final today = HarvestDay.today();
+    // Days are the only honest unit for a session left open that long.
+    final text = session.staleOn(today)
+        ? AppLocalizations.of(context).gymClockDays(
+            session.day.daysUntil(today),
+          )
+        : formatSessionClock(session.elapsed);
+    return Text(text, style: widget.style);
   }
 }
 
@@ -520,7 +626,7 @@ class _ExerciseCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        named?.name ?? l10n.gymUnknownExercise,
+                        named?.displayName ?? l10n.gymUnknownExercise,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: exercise.skipped
@@ -537,7 +643,7 @@ class _ExerciseCard extends ConsumerWidget {
                       // meant to be (rule Y7).
                       if (planned != null)
                         Text(
-                          l10n.gymInsteadOf(planned.name),
+                          l10n.gymInsteadOf(planned.displayName),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
@@ -686,7 +792,11 @@ class _ExerciseCard extends ConsumerWidget {
       // precision it does not have.
       if (records.bestSetEstimate != null)
         l10n.gymBestEstimate(
-          formatLoad(context, roundLoad(records.bestSetEstimate!, unit: unit), unit),
+          formatLoad(
+            context,
+            roundLoad(records.bestSetEstimate!, unit: unit),
+            unit,
+          ),
         ),
     ];
     return l10n.gymBestLine(parts.join(' · '));
@@ -817,3 +927,6 @@ class _SetHeader extends StatelessWidget {
     );
   }
 }
+
+/// What a session left running past its day becomes.
+enum _Stale { finish, discard }

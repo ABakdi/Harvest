@@ -59,6 +59,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatBytes, formatDate } from '@/lib/format';
 import { Markdown } from '@/lib/markdown';
+import { dropDraft, keepDraft, leftDrafts } from '@/lib/note-drafts';
 import { registerPendingEdit } from '@/lib/pending-edits';
 import { cn } from '@/lib/utils';
 import { AssistDialog, type AssistTarget } from '../components/assist-dialog';
@@ -71,12 +72,13 @@ import { RecordingDialog } from '../components/notes/recording-dialog';
 import { Recordings } from '../components/notes/recordings';
 import { canSpeak, localDictation, recordingFormat, type Recognition } from '../components/notes/voice';
 import { useHarvest } from '../context';
-import { RecordsTabs } from './records';
+import { RecordsOff, RecordsTabs, useRecordsOff } from './records';
 import { assistStatus } from '../data/assist';
 import { placeTranscript } from '../data/transcribe';
 import { attachmentFileName, audioEmbed, audioExtensionOf, voiceNoteTitle } from '../data/attachments';
 import { FileTooLargeError } from '../data/files';
-import { decodeFolders, folderTree, linksIn, normalizeFolder, notePreview, type NoteRow } from '../data/notes';
+import type { HarvestDB } from '../data/db';
+import { decodeFolders, folderTree, linksIn, normalizeFolder, notePreview, type NoteRow, type NotesRepository } from '../data/notes';
 import { settingKeys, settingText } from '../data/settings';
 
 type Sort = 'edited' | 'created' | 'title';
@@ -432,7 +434,7 @@ function applyFormat(area: HTMLTextAreaElement, format: { wrap?: [string, string
 
 function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
   const { t, i18n } = useTranslation();
-  const { notes, attachments, files } = useHarvest();
+  const { notes, attachments, files, clock } = useHarvest();
   const location = useLocation();
   // The assist is the server's or nothing: a key pasted into a browser
   // is a key in everyone's browser ([[ADR-013-Assist-Providers]]).
@@ -444,7 +446,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
   const [body, setBody] = useState(note.body);
   const [mode, setMode] = useState<'write' | 'read'>(note.body ? 'read' : 'write');
   const area = useRef<HTMLTextAreaElement>(null);
-  const pending = useRef<{ title: string; folder: string; body: string } | null>(null);
+  const pending = useRef<{ title: string; folder: string; body: string; at: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const seen = useRef(note.updatedAt);
   const [inTable, setInTable] = useState(false);
@@ -462,7 +464,9 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
     const changes = pending.current;
     pending.current = null;
     if (!changes) return;
-    await notes.update(note.uuid, changes);
+    const { at, ...edit } = changes;
+    await notes.update(note.uuid, edit);
+    dropDraft(note.uuid, at);
     // A recording whose line was deleted goes to the trash with this save (N7).
     await attachments.reconcile(note.uuid, changes.body);
   }, [notes, attachments, note.uuid]);
@@ -481,8 +485,12 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
   }, [i18n.language]);
 
   // Autosave, debounced: there is no Save button to miss ([[Notes]]).
+  // Each keystroke is also kept at once where a reload cannot lose it
+  // (W4-02): the debounce and a pagehide write both lose that race.
   const schedule = (next: { title: string; folder: string; body: string }) => {
-    pending.current = next;
+    const at = clock().toISOString();
+    pending.current = { ...next, at };
+    keepDraft(note.uuid, { ...next, at });
     clearTimeout(timer.current);
     timer.current = setTimeout(() => void flush(), 600);
   };
@@ -1009,6 +1017,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
 function Trash({ vault }: { vault: Vault }) {
   const { t } = useTranslation();
   const { notes } = useHarvest();
+  const navigate = useNavigate();
   return (
     <section className="flex flex-col gap-3" aria-labelledby="trash-heading">
       <div className="flex items-center gap-2">
@@ -1050,7 +1059,17 @@ function Trash({ vault }: { vault: Vault }) {
                 <span className="truncate font-bold">{note.title || t('notes.untitled')}</span>
                 <span className="truncate text-xs text-muted-foreground">{notePreview(note.body)}</span>
               </div>
-              <Button variant="outline" size="sm" onClick={() => void notes.restore(note.uuid)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  void notes.restore(note.uuid).then(() =>
+                    toast(t('notes.restoredToast', { title: note.title || t('notes.untitled') }), {
+                      action: { label: t('notes.openRestored'), onClick: () => void navigate(`/app/records/${note.uuid}`) },
+                    }),
+                  )
+                }
+              >
                 <RotateCcwIcon />
                 {t('notes.restore')}
               </Button>
@@ -1065,6 +1084,23 @@ function Trash({ vault }: { vault: Vault }) {
   );
 }
 
+/**
+ * Puts drafts left in `localStorage` back into their notes: only one
+ * typed after the note last changed — a newer save, here or from another
+ * device, already holds it or overrules it. A draft for a note this
+ * account does not have stays for the account that does.
+ */
+async function restoreDrafts(db: HarvestDB, notes: NotesRepository): Promise<void> {
+  for (const [uuid, draft] of leftDrafts()) {
+    const row = await db.rows('notes').get(uuid);
+    if (!row) continue;
+    if (row.deletedAt === null && draft.at > row.updatedAt) {
+      await notes.update(uuid, { title: draft.title, folder: draft.folder, body: draft.body });
+    }
+    dropDraft(uuid, draft.at);
+  }
+}
+
 /** Records: the notes vault, with the sidebar beside the note ([[Notes]]). */
 export function NotesScreen({ trash = false }: { trash?: boolean }) {
   const { t } = useTranslation();
@@ -1073,7 +1109,19 @@ export function NotesScreen({ trash = false }: { trash?: boolean }) {
   const { uuid } = useParams();
   const vault = useLiveQuery(() => loadVault(db), [db]);
   const [folder, setFolder] = useState('');
-  if (!vault) return null;
+  const off = useRecordsOff();
+  // Typing a reload cut off before it was saved goes back in first, so
+  // no note opens without it — nor as an empty "Untitled" (W4-02).
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void restoreDrafts(db, notes).finally(() => live && setRestored(true));
+    return () => {
+      live = false;
+    };
+  }, [db, notes]);
+  if (!vault || off === undefined || !restored) return null;
+  if (off) return <RecordsOff />;
   const note = uuid ? vault.notes.find((row) => row.uuid === uuid) : undefined;
   const detail = trash || uuid !== undefined;
 

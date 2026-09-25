@@ -28,10 +28,18 @@ final class CheckInSuccess extends CheckInResult {
 
 /// The over-log cap (business rule #2) refused part or all of the quantity.
 final class CheckInCapped extends CheckInResult {
-  const CheckInCapped({required this.quantityLogged, required this.xpEarned});
+  const CheckInCapped({
+    required this.quantityLogged,
+    required this.xpEarned,
+    this.dropped = 0,
+  });
 
   final int quantityLogged;
   final int xpEarned;
+
+  /// The units asked for that the cap refused, so the message can say
+  /// both halves: logged 5, 25 over the cap.
+  final int dropped;
 }
 
 /// Writes check-ins with validation, XP ledger entries, and outbox rows —
@@ -59,7 +67,12 @@ class CheckInService {
       final loggedToday = await _loggedOn(commitment.uuid, harvestDay);
 
       if (commitment.type == CommitmentType.project) {
-        final room = commitment.maxUnitsPerDay - loggedToday;
+        // Both caps in one rule: twice the commitment today, and what
+        // is left of the target ever ([[Business-Rules]] #2).
+        final room = commitment.roomToday(
+          loggedToday,
+          totalLogged: await _loggedEver(commitment.uuid),
+        );
         if (toLog > room) {
           toLog = room.clamp(0, quantity);
           capped = true;
@@ -103,7 +116,11 @@ class CheckInService {
         await _tickGoalItems(commitment.uuid, done: true);
       }
       return capped
-          ? CheckInCapped(quantityLogged: toLog, xpEarned: xp)
+          ? CheckInCapped(
+              quantityLogged: toLog,
+              xpEarned: xp,
+              dropped: quantity - toLog,
+            )
           : CheckInSuccess(quantityLogged: toLog, xpEarned: xp);
     });
 
@@ -169,6 +186,18 @@ class CheckInService {
       ..where(
         _db.checkIns.commitmentUuid.equals(commitmentUuid) &
             _db.checkIns.harvestDay.equals(day.key) &
+            _db.checkIns.deletedAt.isNull(),
+      );
+    final row = await query.getSingle();
+    return row.read(quantity) ?? 0;
+  }
+
+  Future<int> _loggedEver(String commitmentUuid) async {
+    final quantity = _db.checkIns.quantity.sum();
+    final query = _db.selectOnly(_db.checkIns)
+      ..addColumns([quantity])
+      ..where(
+        _db.checkIns.commitmentUuid.equals(commitmentUuid) &
             _db.checkIns.deletedAt.isNull(),
       );
     final row = await query.getSingle();

@@ -130,6 +130,8 @@ describe('over-log.json', () => {
     cases: {
       type: DueCommitment['type'];
       dailyCommitment?: number;
+      totalTarget?: number;
+      totalLogged?: number;
       loggedToday: number;
       quantity: number;
       quantityLogged: number;
@@ -140,8 +142,9 @@ describe('over-log.json', () => {
 
   it.each(data.cases)(
     '$type: $quantity on top of $loggedToday logs $quantityLogged',
-    ({ type, dailyCommitment, loggedToday, quantity, quantityLogged, xpEarned, capped }) => {
-      expect(planCheckIn({ type, dailyCommitment: dailyCommitment ?? null }, loggedToday, quantity)).toEqual({
+    ({ type, dailyCommitment, totalTarget, totalLogged, loggedToday, quantity, quantityLogged, xpEarned, capped }) => {
+      const seed = { type, dailyCommitment: dailyCommitment ?? null, totalTarget: totalTarget ?? null };
+      expect(planCheckIn(seed, loggedToday, quantity, totalLogged ?? loggedToday)).toEqual({
         quantityLogged,
         xpEarned,
         capped,

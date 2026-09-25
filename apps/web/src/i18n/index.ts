@@ -17,7 +17,7 @@ export function resolveLocale(): Locale {
 function applyDirection(locale: string): void {
   if (typeof document === 'undefined') return;
   document.documentElement.lang = locale;
-  document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.dir = locale.startsWith('ar') ? 'rtl' : 'ltr';
 }
 
 void i18n.use(initReactI18next).init({

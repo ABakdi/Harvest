@@ -7,8 +7,8 @@ import {
   globalStreakScope,
   isDueOn,
   isOverdueOn,
-  maxUnitsPerDay,
   productiveActions,
+  roomToday,
   dailyGoalFromJson,
   type DueCommitment,
   type HarvestDay,
@@ -102,7 +102,7 @@ export async function loadField(db: HarvestDB, day: HarvestDay): Promise<FieldVi
       total,
       doneDaysThisWeek,
       done,
-      room: Math.max(maxUnitsPerDay(commitment) - today, 0),
+      room: roomToday({ type: row.type, dailyCommitment: row.dailyCommitment, totalTarget: row.totalTarget }, today, total),
       streak: row.type === 'habit' ? (streakBy.get(row.uuid)?.current ?? 0) : null,
     });
   }
@@ -191,6 +191,15 @@ export interface FieldGauges {
   budgetLeft: number | null;
   /** Minutes of sleep owed; only when Health is switched on and something is owed. */
   sleepOwed: number | null;
+}
+
+/**
+ * Whether expenses are still sealed here (no passphrase yet, or one that
+ * does not open them). A budget worked out without them would be wrong,
+ * so the field says it is locked instead of showing a number.
+ */
+export async function readMoneySealed(db: HarvestDB): Promise<boolean> {
+  return (await db.sealed.where('table').equals('expenses').count()) > 0;
 }
 
 /**

@@ -114,6 +114,27 @@ export function maxUnitsPerDay(commitment: Pick<DueCommitment, 'type' | 'dailyCo
   return commitment.type === 'project' ? 2 * (commitment.dailyCommitment ?? 0) : 1;
 }
 
+/**
+ * The most units a check-in can still write on this Harvest Day: a
+ * project takes no more than twice its daily commitment on one day
+ * (business rule #2) **and** no more than what is left of its total
+ * target, so 100 of 100 is done and never 160 of 100 ([[Business-Rules]]
+ * #2). A habit or a to-do has one unit, or none once it is in.
+ * [totalLogged] is every live unit ever logged, today's included.
+ */
+export function roomToday(
+  commitment: Pick<DueCommitment, 'type' | 'dailyCommitment'> & { readonly totalTarget?: number | null },
+  loggedToday: number,
+  totalLogged = 0,
+): number {
+  if (commitment.type !== 'project') return loggedToday > 0 ? 0 : 1;
+  let room = maxUnitsPerDay(commitment) - loggedToday;
+  if (commitment.totalTarget !== undefined && commitment.totalTarget !== null) {
+    room = Math.min(room, commitment.totalTarget - totalLogged);
+  }
+  return Math.max(room, 0);
+}
+
 export interface CheckInPlan {
   /** Units that will actually be written; 0 means nothing is. */
   readonly quantityLogged: number;
@@ -124,21 +145,23 @@ export interface CheckInPlan {
 
 /**
  * What a check-in of [quantity] units does when [loggedToday] units are
- * already on the day. Mirrors `CheckInService.checkIn`, including its
- * quirks: a habit asked for three units logs one and is not "capped",
- * and a second tap on a done habit is capped at zero.
+ * already on the day and [totalLogged] on the seed ever. Mirrors
+ * `CheckInService.checkIn`, including its quirks: a habit asked for
+ * three units logs one and is not "capped", and a second tap on a done
+ * habit is capped at zero. A project is cut to [roomToday].
  */
 export function planCheckIn(
-  commitment: Pick<DueCommitment, 'type' | 'dailyCommitment'>,
+  commitment: Pick<DueCommitment, 'type' | 'dailyCommitment'> & { readonly totalTarget?: number | null },
   loggedToday: number,
   quantity = 1,
+  totalLogged = 0,
 ): CheckInPlan {
   let toLog = quantity;
   let capped = false;
   if (commitment.type === 'project') {
-    const room = maxUnitsPerDay(commitment) - loggedToday;
+    const room = roomToday(commitment, loggedToday, totalLogged);
     if (toLog > room) {
-      toLog = Math.min(Math.max(room, 0), quantity);
+      toLog = Math.min(room, quantity);
       capped = true;
     }
   } else {

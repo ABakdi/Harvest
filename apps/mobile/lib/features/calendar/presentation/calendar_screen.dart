@@ -120,73 +120,84 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         children: [
           Card(
             margin: const EdgeInsets.all(HarvestSpacing.md),
-            child: TableCalendar<void>(
-              locale: locale,
-              firstDay: today.addDays(-planningHorizon.inDays).toDateTime(),
-              lastDay: today.addDays(planningHorizon.inDays).toDateTime(),
-              focusedDay: _focused,
-              selectedDayPredicate: (day) => isSameDay(day, _selected),
-              onDaySelected: (selected, focused) => setState(() {
-                _selected = selected;
-                _focused = focused;
-              }),
-              onPageChanged: (focused) => setState(() => _focused = focused),
-              startingDayOfWeek: StartingDayOfWeek.monday,
-              availableCalendarFormats: {
-                CalendarFormat.month: l10n.rangeMonth,
-              },
-              eventLoader: (day) => List<void>.filled(
-                counts[HarvestDay.fromDate(day)] ?? 0,
-                null,
-              ),
-              calendarBuilders: CalendarBuilders(
-                // A count badge reads better than a pile of dots (P1).
-                markerBuilder: (context, day, events) {
-                  if (events.isEmpty) return null;
-                  return PositionedDirectional(
-                    bottom: 2,
-                    end: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${events.length}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 10,
+            // Room under the last row, so its badges sit inside the
+            // card's rounded corners rather than being cut by them.
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+              child: TableCalendar<void>(
+                locale: locale,
+                firstDay: today.addDays(-planningHorizon.inDays).toDateTime(),
+                lastDay: today.addDays(planningHorizon.inDays).toDateTime(),
+                focusedDay: _focused,
+                selectedDayPredicate: (day) => isSameDay(day, _selected),
+                onDaySelected: (selected, focused) => setState(() {
+                  _selected = selected;
+                  _focused = focused;
+                }),
+                onPageChanged: (focused) => setState(() => _focused = focused),
+                startingDayOfWeek: StartingDayOfWeek.monday,
+                availableCalendarFormats: {
+                  CalendarFormat.month: l10n.rangeMonth,
+                },
+                eventLoader: (day) => List<void>.filled(
+                  counts[HarvestDay.fromDate(day)] ?? 0,
+                  null,
+                ),
+                calendarBuilders: CalendarBuilders(
+                  // A count badge reads better than a pile of dots (P1).
+                  markerBuilder: (context, day, events) {
+                    if (events.isEmpty) return null;
+                    return PositionedDirectional(
+                      bottom: 2,
+                      end: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${events.length}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onPrimary,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              headerStyle: HeaderStyle(
-                formatButtonVisible: false,
-                titleCentered: true,
-                titleTextStyle: theme.textTheme.titleMedium!.copyWith(
-                  fontWeight: FontWeight.w800,
+                    );
+                  },
                 ),
-              ),
-              calendarStyle: CalendarStyle(
-                defaultTextStyle: theme.textTheme.bodyMedium!,
-                weekendTextStyle: theme.textTheme.bodyMedium!,
-                outsideTextStyle: theme.textTheme.bodyMedium!.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  titleTextStyle: theme.textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-                todayDecoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withValues(alpha: 0.35),
-                  shape: BoxShape.circle,
-                ),
-                selectedDecoration: BoxDecoration(
-                  gradient: theme.primaryGradient,
-                  shape: BoxShape.circle,
+                calendarStyle: CalendarStyle(
+                  defaultTextStyle: theme.textTheme.bodyMedium!,
+                  weekendTextStyle: theme.textTheme.bodyMedium!,
+                  outsideTextStyle: theme.textTheme.bodyMedium!.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  todayDecoration: BoxDecoration(
+                    color: theme.colorScheme.secondary.withValues(alpha: 0.35),
+                    shape: BoxShape.circle,
+                  ),
+                  // Today in the page's own ink on its pale green: the
+                  // default white on it could barely be read.
+                  todayTextStyle: theme.textTheme.bodyMedium!.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  selectedDecoration: BoxDecoration(
+                    gradient: theme.primaryGradient,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),
@@ -235,7 +246,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   CommitmentType.habit => Icons.repeat,
                                   CommitmentType.project => Icons.flag_outlined,
                                   CommitmentType.todo =>
-                                    Icons.check_circle_outline,
+                                    Icons.event_note_outlined,
                                 },
                           color: entry.isDeadline
                               ? theme.colorScheme.error

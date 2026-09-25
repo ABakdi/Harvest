@@ -8,6 +8,7 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gym/data/exercises_repository.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
+import 'package:harvest/features/gym/presentation/plate_sheet.dart';
 import 'package:harvest/features/gym/presentation/rest_field.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
@@ -51,9 +52,11 @@ class _TargetSetSheet extends ConsumerWidget {
 
     final exercise = ref.watch(exerciseByIdProvider(slot.exerciseId)).value;
     final repository = ref.read(programsRepositoryProvider);
+    final usesBar = exercise?.usesBar ?? false;
+    final next = nextTargetSet(slot.sets);
 
     return HarvestSheet(
-      title: exercise?.name ?? l10n.gymUnknownExercise,
+      title: exercise?.displayName ?? l10n.gymUnknownExercise,
       subtitle: l10n.gymSetsSubtitle,
       children: [
         for (final set in slot.sets)
@@ -62,6 +65,15 @@ class _TargetSetSheet extends ConsumerWidget {
             unit: unit,
             onEdit: () => unawaited(_edit(context, ref, set)),
             onRemove: () => unawaited(repository.removeTargetSet(set.uuid)),
+            onPlates: usesBar && set.weightGrams != null
+                ? () => unawaited(
+                    showPlates(
+                      context,
+                      targetGrams: set.weightGrams!,
+                      barGrams: slot.barGrams,
+                    ),
+                  )
+                : null,
           ),
         const SizedBox(height: HarvestSpacing.xs),
         Wrap(
@@ -71,7 +83,12 @@ class _TargetSetSheet extends ConsumerWidget {
               avatar: const Icon(Icons.add, size: 16),
               label: Text(l10n.gymAddSet),
               onPressed: () => unawaited(
-                repository.addTargetSet(slot.uuid, reps: 5),
+                repository.addTargetSet(
+                  slot.uuid,
+                  reps: next.reps,
+                  weightGrams: next.weightGrams,
+                  percentTenths: next.percentTenths,
+                ),
               ),
             ),
             ActionChip(
@@ -224,12 +241,16 @@ class _SetRow extends StatelessWidget {
     required this.unit,
     required this.onEdit,
     required this.onRemove,
+    this.onPlates,
   });
 
   final TargetSet set;
   final WeightUnit unit;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
+
+  /// The plate calculator for this set's load; null without a bar.
+  final VoidCallback? onPlates;
 
   @override
   Widget build(BuildContext context) {
@@ -264,10 +285,21 @@ class _SetRow extends StatelessWidget {
       ),
       title: Text(label),
       onTap: onEdit,
-      trailing: IconButton(
-        tooltip: AppLocalizations.of(context).removeAction,
-        icon: const Icon(Icons.close, size: 18),
-        onPressed: onRemove,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (onPlates != null)
+            IconButton(
+              tooltip: AppLocalizations.of(context).gymPlates,
+              icon: const Icon(Icons.calculate_outlined, size: 18),
+              onPressed: onPlates,
+            ),
+          IconButton(
+            tooltip: AppLocalizations.of(context).removeAction,
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: onRemove,
+          ),
+        ],
       ),
     );
   }
@@ -297,7 +329,7 @@ class _EditSetState extends ConsumerState<_EditSet> {
     if (set.percentTenths != null) return (set.percentTenths! / 10).toString();
     if (set.weightGrams != null) {
       final unit = ref.read(weightUnitSettingProvider).value ?? WeightUnit.kg;
-      return loadFieldValue(set.weightGrams!, unit);
+      return loadField(set.weightGrams!, unit);
     }
     return '';
   }

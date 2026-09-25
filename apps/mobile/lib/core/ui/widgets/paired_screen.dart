@@ -33,6 +33,7 @@ class PairedScreen<T extends Enum> extends ConsumerStatefulWidget {
     required this.builder,
     this.initial,
     this.rememberKey,
+    this.recallable,
     super.key,
   });
 
@@ -51,6 +52,10 @@ class PairedScreen<T extends Enum> extends ConsumerStatefulWidget {
   /// it was last left rather than always on its first half
   /// ([[Checkpoint-7]]). An explicit [initial] still wins.
   final String? rememberKey;
+
+  /// Whether the remembered half may be landed on now. A half that says
+  /// no is passed over for the first one, and stays a tap away.
+  final Future<bool> Function(T half)? recallable;
 
   @override
   ConsumerState<PairedScreen<T>> createState() => _PairedScreenState<T>();
@@ -114,7 +119,12 @@ class _PairedScreenState<T extends Enum> extends ConsumerState<PairedScreen<T>>
     final name = await ref.read(settingsRepositoryProvider).getString(key);
     if (!mounted || _touched || name == null) return;
     final index = _on.indexWhere((half) => half.value.name == name);
-    if (index >= 0 && index != _tabs.index) _tabs.index = index;
+    if (index < 0 || index == _tabs.index) return;
+    final recallable = widget.recallable;
+    if (recallable != null && !await recallable(_on[index].value)) return;
+    if (!mounted || _touched) return;
+    final now = _on.indexWhere((half) => half.value.name == name);
+    if (now >= 0 && now != _tabs.index) _tabs.index = now;
   }
 
   void _onTab() {

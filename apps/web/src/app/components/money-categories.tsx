@@ -51,7 +51,7 @@ export function CategoryCreator({ onClose, onCreated }: { onClose: () => void; o
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('money.newCategory')}</DialogTitle>
-          <DialogDescription className="sr-only">{t('money.newCategory')}</DialogDescription>
+          <DialogDescription>{t('moneyWeb.categoryLead')}</DialogDescription>
         </DialogHeader>
         <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">

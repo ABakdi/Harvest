@@ -57,8 +57,13 @@ class _GranaryScreenState extends State<GranaryScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.granaryTitle),
+        // Four tabs do not fit a phone's width in Arabic ("قائمة
+        // الأمنيات" was cut at the edge): they scroll, centred while
+        // they fit.
         bottom: TabBar(
           controller: _tabs,
+          isScrollable: true,
+          tabAlignment: TabAlignment.center,
           tabs: [
             Tab(text: l10n.todayTab),
             Tab(text: l10n.vaultTab),
@@ -100,6 +105,7 @@ class _TodayTab extends ConsumerWidget {
     final expenses = ref.watch(todayExpensesProvider).value ?? const [];
     final suggestion = ref.watch(repeatSuggestionProvider).value;
     final customs = ref.watch(customCategoriesProvider).value ?? const [];
+    final upcoming = ref.watch(upcomingExpensesProvider).value ?? const [];
 
     var todayTotal = 0;
     for (final expense in expenses) {
@@ -127,7 +133,7 @@ class _TodayTab extends ConsumerWidget {
           trailing: expenses.isEmpty
               ? null
               : Text(
-                  formatAmount(todayTotal, defaultCurrency),
+                  formatMoney(todayTotal, defaultCurrency),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: theme.colorScheme.primary,
@@ -163,6 +169,34 @@ class _TodayTab extends ConsumerWidget {
               ),
             ),
           ),
+        // Logged ahead: listed, openable, and counted by no total until
+        // their day comes.
+        if (upcoming.isNotEmpty) ...[
+          SectionHeader(
+            l10n.expensesUpcoming,
+            subtitle: l10n.expensesUpcomingBody(upcoming.length),
+          ),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: HarvestSpacing.sm,
+                vertical: HarvestSpacing.xs,
+              ),
+              child: Column(
+                children: [
+                  for (final expense in upcoming)
+                    _ExpenseRow(
+                      expense: expense,
+                      rates: ratesValue,
+                      customs: customs,
+                      showDay: true,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -173,11 +207,15 @@ class _ExpenseRow extends ConsumerWidget {
     required this.expense,
     required this.rates,
     required this.customs,
+    this.showDay = false,
   });
 
   final Expense expense;
   final Rates rates;
   final List<CustomCategory> customs;
+
+  /// Names the day instead of the time — for a row logged ahead.
+  final bool showDay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -203,6 +241,8 @@ class _ExpenseRow extends ConsumerWidget {
         unawaited(actions.removeExpense(expense.uuid));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            // An action is an offer for a few seconds, not a fixture.
+            persist: false,
             content: Text(l10n.deleted),
             action: SnackBarAction(
               label: l10n.undoAction,
@@ -215,10 +255,14 @@ class _ExpenseRow extends ConsumerWidget {
         icon: categoryIcon(expense.category, customs: customs),
         color: scheme.secondary,
         title: categoryLabel(l10n, expense.category),
-        subtitle: expense.note == null || expense.note!.isEmpty
-            ? formatTime(context, expense.loggedAt)
-            : expense.note,
-        amount: formatSigned(-expense.amountMinor, expense.currency),
+        subtitle: [
+          if (showDay)
+            formatDay(context, expense.day, weekday: true)
+          else if (expense.note == null || expense.note!.isEmpty)
+            formatTime(context, expense.loggedAt),
+          if (expense.note != null && expense.note!.isNotEmpty) expense.note!,
+        ].join(' · '),
+        amount: formatMoneySigned(-expense.amountMinor, expense.currency),
         caption: conversionCaption(
           minor: expense.amountMinor,
           currency: expense.currency,
@@ -282,8 +326,8 @@ class _BudgetCard extends ConsumerWidget {
                 size: 92,
                 strokeWidth: 9,
                 semanticsLabel: leftToday >= 0
-                    ? l10n.budgetLeftToday(formatAmount(leftToday, currency))
-                    : l10n.budgetOverToday(formatAmount(-leftToday, currency)),
+                    ? l10n.budgetLeftToday(formatMoney(leftToday, currency))
+                    : l10n.budgetOverToday(formatMoney(-leftToday, currency)),
                 child: Icon(Icons.payments, size: 28, color: color),
               ),
               const SizedBox(width: HarvestSpacing.md),
@@ -296,7 +340,7 @@ class _BudgetCard extends ConsumerWidget {
                       fit: BoxFit.scaleDown,
                       alignment: AlignmentDirectional.centerStart,
                       child: Text(
-                        formatAmount(snap.spentToday, currency),
+                        formatMoney(snap.spentToday, currency),
                         style: theme.textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: color,
@@ -308,10 +352,10 @@ class _BudgetCard extends ConsumerWidget {
                     Text(
                       leftToday >= 0
                           ? l10n.budgetLeftToday(
-                              formatAmount(leftToday, currency),
+                              formatMoney(leftToday, currency),
                             )
                           : l10n.budgetOverToday(
-                              formatAmount(-leftToday, currency),
+                              formatMoney(-leftToday, currency),
                             ),
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
@@ -343,14 +387,14 @@ class _BudgetCard extends ConsumerWidget {
           Text(
             leftMonth >= 0
                 ? l10n.budgetMonthLine(
-                    formatAmount(snap.spentThisMonth, currency),
-                    formatAmount(snap.monthlyBudget, currency),
-                    formatAmount(leftMonth, currency),
+                    formatMoney(snap.spentThisMonth, currency),
+                    formatMoney(snap.monthlyBudget, currency),
+                    formatMoney(leftMonth, currency),
                   )
                 : l10n.budgetMonthOver(
-                    formatAmount(snap.spentThisMonth, currency),
-                    formatAmount(snap.monthlyBudget, currency),
-                    formatAmount(-leftMonth, currency),
+                    formatMoney(snap.spentThisMonth, currency),
+                    formatMoney(snap.monthlyBudget, currency),
+                    formatMoney(-leftMonth, currency),
                   ),
             style: theme.textTheme.labelMedium?.copyWith(
               color: leftMonth >= 0 ? scheme.onSurfaceVariant : scheme.error,
@@ -422,7 +466,7 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
           ),
           decoration: InputDecoration(
             labelText: l10n.budgetAmountLabel,
-            prefixText: '${currency.symbol} ',
+            prefixText: currency.symbol,
           ),
         ),
         const SizedBox(height: HarvestSpacing.sm),

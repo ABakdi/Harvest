@@ -1194,8 +1194,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checkInFailed => 'لم يُحفظ ذلك. حاول مجددًا.';
 
   @override
-  String activitySemantics(int days, int weeks) {
-    return '$days أيام نشطة في آخر $weeks أسبوعًا';
+  String activitySemantics(int days, String span) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم نشط في $span',
+      many: '$days يومًا نشطًا في $span',
+      few: '$days أيام نشطة في $span',
+      two: 'يومان نشطان في $span',
+      one: 'يوم نشط واحد في $span',
+      zero: 'لا أيام نشطة في $span',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String activityLastWeeks(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: 'آخر $weeks أسبوع',
+      many: 'آخر $weeks أسبوعًا',
+      few: 'آخر $weeks أسابيع',
+      two: 'الأسبوعين الأخيرين',
+      one: 'الأسبوع الأخير',
+      zero: 'الأسابيع الأخيرة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1403,7 +1428,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'ملاحظة جديدة كل يوم. ملاحظة الأمس تبقى في السجلّ.';
 
   @override
-  String get seedNoteHint => 'توقّفت عند صفحة ١٤٣';
+  String get seedNoteHint => 'توقّفت عند صفحة 143';
 
   @override
   String noteForDay(String day) {
@@ -2041,11 +2066,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get obExtrasTitle => 'اثنتان أخريان، إن أردتهما';
+  String get obExtrasTitle => 'إضافات أخرى، إن أردتها';
 
   @override
   String get obExtrasBody =>
-      'كلتاهما مخفية حتى توافق. ويمكنك تغيير رأيك في الإعدادات متى شئت.';
+      'كل واحدة منها مخفية حتى تشغّلها. ويمكنك تغيير رأيك في الإعدادات متى شئت.';
 
   @override
   String get albumReminderBody => 'صورة اليوم ما زالت ناقصة.';
@@ -2362,7 +2387,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stepsToday => 'خطوات اليوم';
 
   @override
-  String get stepsWeekAverage => 'متوسط ٧ أيام';
+  String get stepsWeekAverage => 'متوسط 7 أيام';
 
   @override
   String stepsOfGoal(int steps, int goal) {
@@ -2494,7 +2519,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weightEmpty => 'لا أوزان بعد';
 
   @override
-  String get weightEmptyBody => 'اضغط سجّل وزنًا. يصير للخط شكل من الثالث.';
+  String get weightEmptyBody => 'أول وزن يبدأ الخط، ويأخذ شكلًا من الثالث.';
 
   @override
   String get weightHistory => 'كل القراءات';
@@ -2534,7 +2559,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weightLegendEntries => 'القراءات';
 
   @override
-  String get weightLegendTrend => 'متوسط ٧ أيام';
+  String get weightLegendTrend => 'متوسط 7 أيام';
 
   @override
   String get weightLegendTarget => 'الهدف';
@@ -2697,7 +2722,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gymDayNameHint => 'اليوم ٤، دفع، علوي أ…';
+  String get gymDayNameHint => 'اليوم 4، دفع، علوي أ…';
 
   @override
   String get gymNoDays => 'لا أيام بعد';
@@ -3012,8 +3037,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gymFinishIncompleteTitle => 'إنهاء ومجموعات متبقية؟';
 
   @override
-  String gymFinishIncompleteBody(int left, int total) {
-    return '$left من $total مجموعة غير مؤشَّرة. تنتهي الجلسة هنا وتُسجَّل عادة التمرين كمنجزة لليوم.';
+  String gymFinishIncompleteBody(int left, int total, String day) {
+    return '$left من $total مجموعة غير مؤشَّرة. تنتهي الجلسة هنا وتُسجَّل عادة التمرين كمنجزة عن $day.';
   }
 
   @override
@@ -4208,4 +4233,148 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gymRestOverBody => 'المجموعة التالية.';
+
+  @override
+  String get stepsDeniedHealthConnect =>
+      'لم يُسمح بعد. يمكن السماح دائماً من إعدادات Health Connect: افتحها، واسمح بالخطوات لـ Harvest، ثم عُد.';
+
+  @override
+  String get ratesDzdManual =>
+      'أسعار الدينار تُكتب يدوياً: لا يوجد مصدر مجاني لسعر الدينار في السوق. الجلب يحدّث اليورو ← الدولار فقط.';
+
+  @override
+  String get ratesFetchedEurUsd =>
+      'حُدّث سعر اليورو ← الدولار. تبقى أسعار الدينار كما كتبتها.';
+
+  @override
+  String get accountServerExample =>
+      'عنوان خادم Harvest الخاص بك، مثل https://harvest.example.com';
+
+  @override
+  String get accountServerInvalid => 'أدخل عنوان الخادم، يبدأ بـ https://';
+
+  @override
+  String get accountEmailMissing => 'أدخل بريدك الإلكتروني.';
+
+  @override
+  String get accountEmailInvalid => 'لا يبدو هذا عنوان بريد إلكتروني.';
+
+  @override
+  String get accountPasswordMissing => 'أدخل كلمة المرور.';
+
+  @override
+  String get accountPasswordShort => 'عشرة أحرف على الأقل.';
+
+  @override
+  String get accountPasswordLong => '256 حرفاً على الأكثر.';
+
+  @override
+  String get expensesUpcoming => 'القادمة';
+
+  @override
+  String expensesUpcomingBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مصروف مسجّل مسبقاً. يُحتسب كلٌّ في يومه لا قبله.',
+      many: '$count مصروفاً مسجّلاً مسبقاً. يُحتسب كلٌّ في يومه لا قبله.',
+      few: '$count مصاريف مسجّلة مسبقاً. يُحتسب كلٌّ في يومه لا قبله.',
+      two: 'مصروفان مسجّلان مسبقاً. يُحتسب كلٌّ في يومه لا قبله.',
+      one: 'مصروف واحد مسجّل مسبقاً. يُحتسب في يومه لا قبله.',
+      zero: 'لا مصاريف مسجّلة مسبقاً.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get debtReopened => 'أُزيلت الدفعة. الدَّين مفتوح من جديد.';
+
+  @override
+  String debtSettledWith(String person) {
+    return 'تمّت التسوية مع $person. لم يبقَ شيء للدفع!';
+  }
+
+  @override
+  String get debtPaymentRemove => 'إزالة الدفعة';
+
+  @override
+  String cropCheckIn(String title) {
+    return 'سجّل $title';
+  }
+
+  @override
+  String get gymDayToday => 'اليوم';
+
+  @override
+  String gymStaleTitle(String day) {
+    return 'ما زالت مفتوحة منذ $day';
+  }
+
+  @override
+  String gymStaleBody(int done, int total, String day) {
+    return '$done من $total مجموعة مسجّلة. إن أنهيتها تُحسب ليوم $day: تُسجَّل عادة التمرين في ذلك اليوم لا اليوم. أو تخلَّ عنها.';
+  }
+
+  @override
+  String get gymStaleLater => 'ليس الآن';
+
+  @override
+  String gymStaleFinish(String day) {
+    return 'أنهِها ليوم $day';
+  }
+
+  @override
+  String gymCheckedInOn(String day, int xp) {
+    return 'سُجّل الحضور ليوم $day · +$xp نقطة';
+  }
+
+  @override
+  String gymClockDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+      zero: '0 يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymPlates => 'الأقراص';
+
+  @override
+  String logCut(int logged, int dropped) {
+    return 'سُجّل $logged؛ وتُرك $dropped فوق الحد';
+  }
+
+  @override
+  String get dailyOverTotal => 'لا يمكن أن يتجاوز الهدف الكلي';
+
+  @override
+  String projectLeft(int left) {
+    return 'بقي $left';
+  }
+
+  @override
+  String get projectReached => 'بلغتَ الهدف';
+
+  @override
+  String get notesNoFolder => 'بلا مجلد';
+
+  @override
+  String ledgerDayUpcoming(String day) {
+    return '$day · قادم';
+  }
+
+  @override
+  String projectDoneCut(int logged, int dropped) {
+    return 'سُجّل $logged؛ وتُرك $dropped فوق الهدف.';
+  }
+
+  @override
+  String get stepsNoDaysConnectedBody => 'يظهر عدد كل يوم هنا بعد انتهائه.';
 }

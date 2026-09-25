@@ -196,6 +196,20 @@ class HarvestStepsPlugin :
             return
         }
         when {
+            // From Android 14 the health permissions are ordinary
+            // runtime permissions, and the library's contract turns into
+            // androidx's request-permissions intent — one only an
+            // ActivityResultRegistry can answer. Started by hand it finds
+            // no activity, so no dialog ever showed and the card said
+            // "not allowed" straight away. Ask the platform directly.
+            healthConnectAvailable() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+                permissionResult = result
+                ActivityCompat.requestPermissions(
+                    activity,
+                    healthPermissions().toTypedArray(),
+                    REQUEST_HEALTH,
+                )
+            }
             healthConnectAvailable() -> {
                 permissionResult = result
                 try {
@@ -238,6 +252,18 @@ class HarvestStepsPlugin :
         permissions: Array<out String>,
         grantResults: IntArray,
     ): Boolean {
+        if (requestCode == REQUEST_HEALTH) {
+            // Only the read permission decides; background reads are a
+            // bonus the phone may not offer.
+            val result = permissionResult
+            permissionResult = null
+            val index = permissions.indexOf(stepsPermission)
+            result?.success(
+                index >= 0 && index < grantResults.size &&
+                    grantResults[index] == PackageManager.PERMISSION_GRANTED,
+            )
+            return true
+        }
         if (requestCode != REQUEST_ACTIVITY) return false
         val result = permissionResult
         permissionResult = null

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, RepeatIcon, WalletIcon } from 'lucide-react';
+import { CalendarClockIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, RepeatIcon, WalletIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -97,11 +97,65 @@ function RepeatCard() {
   );
 }
 
-/** Today's spending and the month's, day by day ([[Finances]]). */
+/**
+ * Expenses grouped under their days, each one a tap from its editor.
+ * [label] names a day's heading; the month's list and the upcoming one
+ * share it.
+ */
+function DayGroups({ rows, label, idPrefix, nested = false }: { rows: ExpenseRow[]; label: (day: string) => string; idPrefix: string; nested?: boolean }) {
+  const Heading = nested ? 'h3' : 'h2';
+  const dialogs = useDialogs();
+  const { t } = useTranslation();
+  const days = [...new Set(rows.map((row) => row.harvestDay))];
+  return (
+    <div className="flex flex-col gap-4">
+      {days.map((day) => {
+        const entries = rows.filter((row) => row.harvestDay === day);
+        return (
+          <section key={day} aria-labelledby={`${idPrefix}-${day}`} className="flex flex-col gap-1">
+            <div className="flex items-baseline justify-between gap-2 px-1">
+              <Heading id={`${idPrefix}-${day}`} className="text-sm font-extrabold text-muted-foreground">
+                {label(day)}
+              </Heading>
+              <span className="text-sm font-bold">
+                <Totals rows={entries} empty="" />
+              </span>
+            </div>
+            <ul className="flex flex-col divide-y rounded-xl border bg-card">
+              {entries.map((row) => (
+                <li key={row.uuid} className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => dialogs.editExpense(row)}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="font-bold">{categoryLabel(t, row.category)}</span>
+                      {row.note && <span className="truncate text-xs text-muted-foreground">{row.note}</span>}
+                    </span>
+                    <span className="font-extrabold tabular" dir="ltr">
+                      {formatMoney(row.amountMinor, row.currency)}
+                    </span>
+                  </button>
+                  <LocationNote table="expenses" uuid={row.uuid} className="px-4 pb-1.5" />
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Today's spending and the month's, day by day ([[Finances]]). The
+ * month counts up to today; an expense logged ahead waits for its day
+ * under Upcoming, where it can still be opened, changed or removed.
+ */
 function ExpensesPanel() {
   const { t } = useTranslation();
   const { db } = useHarvest();
-  const dialogs = useDialogs();
   const today = useHarvestDay();
   const current = today.key.slice(0, 7);
   const [month, setMonth] = useState(current);
@@ -109,7 +163,7 @@ function ExpensesPanel() {
   const rows = useLiveQuery(
     async () =>
       (await db.rows('expenses').toArray())
-        .filter((row) => row.deletedAt === null && (row.harvestDay.startsWith(month) || row.harvestDay === today.key))
+        .filter((row) => row.deletedAt === null && (row.harvestDay.startsWith(month) || row.harvestDay >= today.key))
         .sort((a, b) => b.harvestDay.localeCompare(a.harvestDay) || b.loggedAt.localeCompare(a.loggedAt)),
     [db, month, today.key],
   );
@@ -117,9 +171,13 @@ function ExpensesPanel() {
   if (!rows) return null;
 
   const todays = rows.filter((row) => row.harvestDay === today.key);
-  const monthRows = rows.filter((row) => row.harvestDay.startsWith(month));
-  const days = [...new Set(monthRows.map((row) => row.harvestDay))];
+  const monthRows = rows.filter((row) => row.harvestDay.startsWith(month) && row.harvestDay <= today.key);
+  // Soonest first: what comes next is what I want to see.
+  const upcoming = rows
+    .filter((row) => row.harvestDay > today.key)
+    .sort((a, b) => a.harvestDay.localeCompare(b.harvestDay) || b.loggedAt.localeCompare(a.loggedAt));
   const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  const dayLabel = (day: string) => (day === today.key ? t('money.todayLabel') : formatDay(day, { weekday: 'long', day: 'numeric', month: 'short' }));
 
   return (
     <div className="flex flex-col gap-4">
@@ -157,46 +215,23 @@ function ExpensesPanel() {
         </div>
       </section>
 
-      {days.length === 0 ? (
+      {upcoming.length > 0 && (
+        <section aria-labelledby="expenses-upcoming" className="flex flex-col gap-2">
+          <div className="flex flex-col px-1">
+            <h2 id="expenses-upcoming" className="flex items-center gap-1.5 text-base font-extrabold">
+              <CalendarClockIcon className="size-4 text-muted-foreground" aria-hidden />
+              {t('moneyWeb.upcoming')}
+            </h2>
+            <p className="text-xs text-muted-foreground">{t('moneyWeb.upcomingBody', { count: upcoming.length })}</p>
+          </div>
+          <DayGroups rows={upcoming} label={dayLabel} idPrefix="ahead" nested />
+        </section>
+      )}
+
+      {monthRows.length === 0 ? (
         <EmptyState icon={<WalletIcon />} title={t('money.emptyTitle')} body={t('money.emptyBody')} />
       ) : (
-        <div className="flex flex-col gap-4">
-          {days.map((day) => {
-            const entries = monthRows.filter((row) => row.harvestDay === day);
-            return (
-              <section key={day} aria-labelledby={`day-${day}`} className="flex flex-col gap-1">
-                <div className="flex items-baseline justify-between gap-2 px-1">
-                  <h2 id={`day-${day}`} className="text-sm font-extrabold text-muted-foreground">
-                    {day === today.key ? t('money.todayLabel') : formatDay(day, { weekday: 'long', day: 'numeric', month: 'short' })}
-                  </h2>
-                  <span className="text-sm font-bold">
-                    <Totals rows={entries} empty="" />
-                  </span>
-                </div>
-                <ul className="flex flex-col divide-y rounded-xl border bg-card">
-                  {entries.map((row) => (
-                    <li key={row.uuid} className="flex flex-col">
-                      <button
-                        type="button"
-                        onClick={() => dialogs.editExpense(row)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="font-bold">{categoryLabel(t, row.category)}</span>
-                          {row.note && <span className="truncate text-xs text-muted-foreground">{row.note}</span>}
-                        </span>
-                        <span className="font-extrabold tabular" dir="ltr">
-                          {formatMoney(row.amountMinor, row.currency)}
-                        </span>
-                      </button>
-                      <LocationNote table="expenses" uuid={row.uuid} className="px-4 pb-1.5" />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
-        </div>
+        <DayGroups rows={monthRows} label={dayLabel} idPrefix="day" />
       )}
     </div>
   );

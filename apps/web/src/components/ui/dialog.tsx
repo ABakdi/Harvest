@@ -2,6 +2,7 @@ import { XIcon } from 'lucide-react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import type * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { settleFocus } from '@/lib/focus';
 import { cn } from '@/lib/utils';
 
 function Dialog(props: React.ComponentProps<typeof DialogPrimitive.Root>) {
@@ -33,6 +34,7 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { showCloseButton?: boolean }) {
   const { t } = useTranslation();
@@ -45,6 +47,10 @@ function DialogContent({
           'fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-2xl border bg-popover p-6 text-popover-foreground shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           className,
         )}
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event);
+          if (!event.defaultPrevented) settleFocus();
+        }}
         {...props}
       >
         {children}

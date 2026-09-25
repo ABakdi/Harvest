@@ -60,22 +60,28 @@ class _DebtSheetState extends ConsumerState<_DebtSheet> {
     final minor = parseToMinor(_amountController.text)!;
     final person = _personController.text.trim();
     final note = _noteController.text.trim();
+    final remindAt = _remindAt;
+    // Everything the save needs is read before the sheet closes: once it
+    // is popped its ref is gone, and reaching for it after the awaits
+    // below threw "Using ref when a widget is unmounted".
+    final vault = ref.read(vaultRepositoryProvider);
+    final notifications = ref.read(notificationServiceProvider);
+    final planner = ref.read(notificationPlannerProvider);
     Navigator.of(context).pop();
-    await ref
-        .read(vaultRepositoryProvider)
-        .createDebt(
-          person: person,
-          amountMinor: minor,
-          currency: _currency,
-          payOffBy: _payOffBy,
-          remindAt: _remindAt == null
-              ? null
-              : '${_remindAt!.hour}:'
-                    '${_remindAt!.minute.toString().padLeft(2, '0')}',
-          note: note.isEmpty ? null : note,
-        );
-    await ref.read(notificationServiceProvider).requestPermission();
-    await ref.read(notificationPlannerProvider).planToday();
+    await vault.createDebt(
+      person: person,
+      amountMinor: minor,
+      currency: _currency,
+      payOffBy: _payOffBy,
+      remindAt: remindAt == null
+          ? null
+          : '${remindAt.hour}:${remindAt.minute.toString().padLeft(2, '0')}',
+      note: note.isEmpty ? null : note,
+    );
+    // Only a debt with a reminder has anything to ring for; asking to
+    // notify about one without is a question with no reason behind it.
+    if (remindAt != null) await notifications.requestPermission();
+    await planner.planToday();
   }
 
   @override
@@ -108,7 +114,7 @@ class _DebtSheetState extends ConsumerState<_DebtSheet> {
           ),
           decoration: InputDecoration(
             labelText: l10n.amountLabel,
-            prefixText: '${_currency.symbol} ',
+            prefixText: _currency.symbol,
           ),
         ),
         const SizedBox(height: HarvestSpacing.sm),

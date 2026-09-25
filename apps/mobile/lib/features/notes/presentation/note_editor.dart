@@ -7,7 +7,6 @@ import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 import 'package:harvest/features/notes/domain/note.dart';
-import 'package:harvest/features/notes/domain/voice.dart';
 import 'package:harvest/features/notes/presentation/editing_focus.dart';
 import 'package:harvest/features/notes/presentation/live_markdown_controller.dart';
 import 'package:harvest/features/notes/presentation/notes_providers.dart';
@@ -221,18 +220,27 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
     }
 
     final links = _linksOnLine(widget.controller.text);
-    // Recordings show in the order the body embeds them, and only while
-    // it does: the embed line is the truth (N7).
-    final embedded = audioEmbedsIn(widget.controller.text);
+    // Recordings show where the body embeds them, and only while it
+    // does: the embed line is the truth (N7).
     final stored = {
       for (final attachment
           in ref.watch(noteAttachmentsProvider(widget.uuid)).value ??
               const <NoteAttachment>[])
         attachment.fileName.toLowerCase(): attachment,
     };
-    final recordings = [
-      for (final name in embedded) ?stored[name.toLowerCase()],
-    ];
+    // Each recording is drawn where its embed line is, in the flow of
+    // the note — not under sixteen blank lines at the foot of the page.
+    widget.controller.embedBuilder = (name) {
+      final recording = stored[name.toLowerCase()];
+      if (recording == null) return null;
+      return RecordingPlayer(
+        key: ValueKey(recording.uuid),
+        attachment: recording,
+        onTranscribe: widget.onTranscribe == null
+            ? null
+            : () => widget.onTranscribe!(recording),
+      );
+    };
 
     return Column(
       children: [
@@ -279,17 +287,6 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
                   hintText: l10n.notesBodyHint,
                 ),
               ),
-              if (recordings.isNotEmpty) ...[
-                const SizedBox(height: HarvestSpacing.md),
-                for (final recording in recordings)
-                  RecordingPlayer(
-                    key: ValueKey(recording.uuid),
-                    attachment: recording,
-                    onTranscribe: widget.onTranscribe == null
-                        ? null
-                        : () => widget.onTranscribe!(recording),
-                  ),
-              ],
               if (links.isNotEmpty) ...[
                 const SizedBox(height: HarvestSpacing.sm),
                 Wrap(

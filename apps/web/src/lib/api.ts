@@ -26,9 +26,11 @@ import { fileIvHeader, filePlainBytesHeader } from '@harvest/contracts';
  * from IndexedDB (W1); this is for signing in, the account, and sync.
  *
  * The session follows [[Accounts]]: the access token lives in this
- * module's memory and nowhere else, and the refresh token is an
- * HttpOnly cookie on `/v1/auth` that no script can read. A reload
- * therefore starts with no access token, and gets one by refreshing.
+ * module's memory only — never in storage a script injected into the
+ * page could read — and the refresh token is an HttpOnly cookie on
+ * `/v1/auth` that no script can read either. So a reload refreshes; a
+ * refresh the server turns away (429, 5xx) opens the app from what the
+ * browser already holds, as offline does, rather than failing to start.
  *
  * Refresh tokens rotate, and presenting one twice revokes the whole
  * family (AC4). Two tabs refreshing at once would do exactly that with
@@ -60,6 +62,15 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * An answer that says nothing about the session: too many requests, or
+ * the server failing. It is read like no answer at all — the app keeps
+ * who is signed in and tries again later; only a 401 signs out.
+ */
+export function isServerTrouble(error: unknown): error is ApiError {
+  return error instanceof ApiError && (error.isNetwork || error.status === 429 || error.status >= 500);
+}
+
 interface Access {
   token: string;
   /** Epoch ms after which the token is not worth sending. */
@@ -71,6 +82,14 @@ interface Access {
 let access: Access | null = null;
 let currentUser: Me | null = null;
 let inflight: Promise<AuthResult | null> | null = null;
+/**
+ * A refresh the server turned away for now (429, or a 5xx): the same
+ * answer until then, without asking again, so a sync kicked every minute
+ * and on every focus backs off instead of hammering the limit. It
+ * doubles from five seconds to five minutes, or waits what the server
+ * said with `Retry-After`.
+ */
+let refreshPause: { until: number; delayMs: number; error: ApiError } | null = null;
 
 type SessionListener = (user: Me | null) => void;
 const sessionListeners = new Set<SessionListener>();
@@ -108,9 +127,11 @@ channel?.addEventListener('message', (event: MessageEvent<AuthMessage>) => {
   }
 });
 
+
 function remember(result: AuthResult, broadcast = true): void {
   const now = Date.now();
   access = { token: result.accessToken, expiresAt: now + result.expiresIn * 1000, receivedAt: now };
+  refreshPause = null;
   if (broadcast) channel?.postMessage({ kind: 'signed-in', result, at: now } satisfies AuthMessage);
   announce(result.user);
 }
@@ -119,6 +140,19 @@ function forget(broadcast = true): void {
   access = null;
   if (broadcast) channel?.postMessage({ kind: 'signed-out' } satisfies AuthMessage);
   announce(null);
+}
+
+/**
+ * The session this tab already holds in memory, without asking the
+ * server: an access token still good for more than half a minute. Null
+ * when a refresh is needed — always, after a reload. A session ended
+ * elsewhere meanwhile shows up at the first request, whose 401 refreshes
+ * and, finding no session, signs out.
+ */
+export function resumeSession(): AuthResult | null {
+  const now = Date.now();
+  if (!access || !currentUser || access.expiresAt <= now + 30_000) return null;
+  return { accessToken: access.token, expiresIn: Math.floor((access.expiresAt - now) / 1000), user: currentUser };
 }
 
 // -------------------------------------------------------------- fetching
@@ -157,7 +191,17 @@ function jsonInit(method: string, body: unknown, token: string | null, signal?: 
 }
 
 async function parse<T>(response: Response): Promise<T> {
-  if (response.status === 204 || response.status === 202) return undefined as T;
+  if (response.status === 204 || response.status === 202) {
+    // Read to its (empty) end: a body left unread is cancelled when the
+    // response is collected, and the browser then logs a finished
+    // request as aborted (net::ERR_ABORTED).
+    try {
+      await response.text();
+    } catch {
+      // Nothing to read, and nothing lost.
+    }
+    return undefined as T;
+  }
   return (await response.json()) as T;
 }
 
@@ -174,12 +218,21 @@ async function refreshOnce(requestedAt: number): Promise<AuthResult | null> {
       user: currentUser,
     };
   }
+  if (refreshPause && Date.now() < refreshPause.until) throw refreshPause.error;
   const response = await send('/v1/auth/refresh', jsonInit('POST', {}, null));
   if (response.status === 401) {
+    refreshPause = null;
     forget();
     return null;
   }
-  if (!response.ok) throw await toError(response);
+  if (!response.ok) {
+    const error = await toError(response);
+    if (isServerTrouble(error)) {
+      const delayMs = error.retryAfter !== null ? error.retryAfter * 1000 : Math.min((refreshPause?.delayMs ?? 2_500) * 2, 5 * 60_000);
+      refreshPause = { until: Date.now() + delayMs, delayMs, error };
+    }
+    throw error;
+  }
   const result = await parse<AuthResult>(response);
   remember(result);
   return result;
@@ -400,9 +453,10 @@ export const api = {
   pull: (after: number, limit: number) => request<PullResult>(`/v1/sync/pull?after=${after}&limit=${limit}`),
 };
 
-/** For tests: start from a clean, signed-out module. */
+/** For tests: start from a clean, signed-out module, as a reload does. */
 export function resetApiForTests(): void {
   access = null;
   currentUser = null;
   inflight = null;
+  refreshPause = null;
 }

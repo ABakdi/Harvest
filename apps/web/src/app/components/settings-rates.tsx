@@ -32,8 +32,8 @@ function ManualRate({ settingKey, label, stored }: { settingKey: string; label: 
   const { t } = useTranslation();
   const { settings } = useHarvest();
   const id = useId();
-  const save = async (raw: string) => {
-    const text = raw.trim();
+  const save = async (field: HTMLInputElement) => {
+    const text = field.value.trim();
     if (text === (stored ?? '')) return;
     if (text === '') {
       await settings.remove(settingKey);
@@ -42,6 +42,9 @@ function ManualRate({ settingKey, label, stored }: { settingKey: string; label: 
     }
     const value = parseRate(text);
     if (value === null) {
+      // What was typed is not a rate, so it does not stay looking like one:
+      // the field goes back to the rate still in use.
+      field.value = stored ?? '';
       toast.error(t('ratesWeb.invalid'));
       return;
     }
@@ -58,9 +61,9 @@ function ManualRate({ settingKey, label, stored }: { settingKey: string; label: 
         dir="ltr"
         className="tabular"
         defaultValue={stored ?? ''}
-        onBlur={(event) => void save(event.target.value)}
+        onBlur={(event) => void save(event.target)}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') void save(event.currentTarget.value);
+          if (event.key === 'Enter') void save(event.currentTarget);
         }}
       />
     </div>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:harvest/features/notes/domain/markdown.dart';
+import 'package:harvest/features/notes/domain/voice.dart';
 
 /// The editor's one mode: markdown, rendered, with the syntax showing
 /// only on the line the caret is on.
@@ -42,6 +43,13 @@ class LiveMarkdownController extends TextEditingController {
   }
 
   Set<String> get knownTitles => _knownTitles;
+
+  /// Draws a recording embedded on a line of its own — the player, not
+  /// a stray `!` and a dashed link to a file name ([[Notes]] N7). Null,
+  /// or a null answer for a name, leaves the line as text.
+  Widget? Function(String fileName)? embedBuilder;
+
+  static final _embedLine = RegExp(r'^\s*!\[\[([^\[\]\n]+?)\]\]\s*$');
 
   /// Whether [title] points at a note that exists.
   bool isWritten(String title) =>
@@ -141,18 +149,40 @@ class LiveMarkdownController extends TextEditingController {
         ? shown.copyWith(color: scheme.onSurfaceVariant)
         : shown.merge(_folded);
 
+    // A recording on its own line is the player, in its place in the
+    // note. The player stands in for the line's first character and
+    // the rest is folded, so every offset still matches the string —
+    // the one widget span this editor allows, because it costs nothing.
+    // With the caret on the line it is text again, to edit or delete.
+    final embed = editing ? null : _embedLine.firstMatch(line);
+    final name = embed?.group(1)?.trim();
+    if (name != null && audioEmbedsIn(line).isNotEmpty) {
+      final player = embedBuilder?.call(name);
+      if (player != null) {
+        return [
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: SizedBox(width: double.infinity, child: player),
+          ),
+          TextSpan(text: line.substring(1), style: base.merge(_folded)),
+        ];
+      }
+    }
+
     // Headings: the hashes fold away and the line takes the size they
     // asked for.
     final heading = RegExp(r'^(#{1,6})\s+').firstMatch(line);
     if (heading != null) {
       final level = heading.group(1)!.length;
       final style = base.copyWith(
-        fontSize: (base.fontSize ?? 16) * switch (level) {
-          1 => 1.6,
-          2 => 1.35,
-          3 => 1.18,
-          _ => 1.06,
-        },
+        fontSize:
+            (base.fontSize ?? 16) *
+            switch (level) {
+              1 => 1.6,
+              2 => 1.35,
+              3 => 1.18,
+              _ => 1.06,
+            },
         fontWeight: FontWeight.w800,
         height: 1.4,
       );

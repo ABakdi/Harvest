@@ -9,6 +9,17 @@ export async function loggedOn(tx: Tx, seedUuid: string, dayKey: string): Promis
   return rows.reduce((sum, row) => (row.deletedAt === null ? sum + row.quantity : sum), 0);
 }
 
+/** Every live unit ever logged on one seed. */
+async function loggedEver(tx: Tx, seedUuid: string): Promise<number> {
+  const rows = await tx.rows('check_ins').where('commitmentUuid').equals(seedUuid).toArray();
+  return rows.reduce((sum, row) => (row.deletedAt === null ? sum + row.quantity : sum), 0);
+}
+
+/** What is left of a project's target after [logged] units; never below zero. */
+export function projectLeft(seed: Pick<SeedRow, 'totalTarget'>, logged: number): number {
+  return Math.max((seed.totalTarget ?? 0) - logged, 0);
+}
+
 /**
  * A planted to-do ticks the goal item it came from, and an undone
  * check-in un-ticks it ([[Goals]] GL3): the only change an item gets
@@ -33,7 +44,11 @@ export class CheckInsRepository {
 
   checkIn(seed: SeedRow, day: HarvestDay, quantity = 1): Promise<CheckInPlan> {
     return this.writer.run(async (tx) => {
-      const plan = planCheckIn(seed, await loggedOn(tx, seed.uuid, day.key), quantity);
+      // One rule for both caps (`roomToday`): twice the daily
+      // commitment on a day, and no more than what is left of the
+      // target — 50 of 50 is done, never 160 of 50.
+      const ever = seed.type === 'project' ? await loggedEver(tx, seed.uuid) : 0;
+      const plan = planCheckIn(seed, await loggedOn(tx, seed.uuid, day.key), quantity, ever);
       if (plan.quantityLogged <= 0) return plan;
       const now = tx.now();
       const uuid = crypto.randomUUID();

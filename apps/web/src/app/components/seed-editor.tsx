@@ -122,6 +122,7 @@ export function SeedEditor({
     const daily = positiveInt(dailyCommitment);
     if (type === 'project' && !total) found.totalTarget = t('seed.error.positive');
     if (type === 'project' && !daily) found.dailyCommitment = t('seed.error.positive');
+    else if (type === 'project' && total && daily && daily > total) found.dailyCommitment = t('seed.error.dailyOverTotal');
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 

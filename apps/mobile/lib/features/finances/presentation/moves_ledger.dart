@@ -67,6 +67,27 @@ class MovesLedger extends ConsumerWidget {
   }
 }
 
+/// What a movement was, in words: "Added to the wallet", "Expense ·
+/// Food", "Paid Sam". The ledger's row title, and a Places pin's.
+String moveTitle(AppLocalizations l10n, MoneyTxn txn) {
+  final deposit = txn.isDeposit;
+  final wallet = txn.account == MoneyAccount.wallet;
+  return switch (txn.kind) {
+    TxnKind.manual =>
+      wallet
+          ? (deposit ? l10n.txnAdded : l10n.txnTaken)
+          : (deposit ? l10n.txnSaved : l10n.txnWithdrawn),
+    TxnKind.transfer =>
+      wallet
+          ? (deposit ? l10n.txnFromSavings : l10n.txnToSavings)
+          : (deposit ? l10n.txnFromWallet : l10n.txnToWallet),
+    TxnKind.expense =>
+      '${l10n.txnExpense} · '
+          '${categoryLabel(l10n, txn.reference ?? ExpenseCategory.other.name)}',
+    TxnKind.debt => l10n.txnDebtPayment(txn.reference ?? ''),
+  };
+}
+
 class MoveRow extends StatelessWidget {
   const MoveRow({
     required this.txn,
@@ -85,33 +106,19 @@ class MoveRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context).toString();
     final deposit = txn.isDeposit;
-    final wallet = txn.account == MoneyAccount.wallet;
 
-    final (IconData icon, Color color, String title) = switch (txn.kind) {
+    final title = moveTitle(l10n, txn);
+    final (IconData icon, Color color) = switch (txn.kind) {
       TxnKind.manual => (
         deposit ? Icons.add_circle : Icons.remove_circle,
         deposit ? scheme.secondary : scheme.onSurface.withValues(alpha: 0.7),
-        wallet
-            ? (deposit ? l10n.txnAdded : l10n.txnTaken)
-            : (deposit ? l10n.txnSaved : l10n.txnWithdrawn),
       ),
-      TxnKind.transfer => (
-        Icons.swap_horiz,
-        scheme.primary,
-        wallet
-            ? (deposit ? l10n.txnFromSavings : l10n.txnToSavings)
-            : (deposit ? l10n.txnFromWallet : l10n.txnToWallet),
-      ),
+      TxnKind.transfer => (Icons.swap_horiz, scheme.primary),
       TxnKind.expense => (
         categoryIcon(txn.reference ?? '', customs: customs),
         scheme.error,
-        '${l10n.txnExpense} · ${categoryLabel(l10n, txn.reference ?? ExpenseCategory.other.name)}',
       ),
-      TxnKind.debt => (
-        Icons.handshake,
-        scheme.tertiary,
-        l10n.txnDebtPayment(txn.reference ?? ''),
-      ),
+      TxnKind.debt => (Icons.handshake, scheme.tertiary),
     };
 
     return LedgerRow(
@@ -119,7 +126,7 @@ class MoveRow extends StatelessWidget {
       color: color,
       title: title,
       subtitle: txn.note ?? DateFormat.jm(locale).format(txn.loggedAt),
-      amount: formatSigned(txn.deltaMinor, txn.currency),
+      amount: formatMoneySigned(txn.deltaMinor, txn.currency),
       amountColor: deposit ? scheme.secondary : null,
       caption: conversionCaption(
         minor: txn.deltaMinor.abs(),

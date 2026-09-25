@@ -148,8 +148,9 @@ export function WishlistPanel() {
                     <span className="truncate text-xs text-muted-foreground">{rowSubtitle(row, today, t)}</span>
                   )}
                 </button>
+                {/* An estimate, not money owed: plain ink, so it never reads like a debt. */}
                 {row.priceMinor !== null && (
-                  <span className="font-extrabold tabular text-primary" dir="ltr">
+                  <span className="font-extrabold tabular text-foreground" dir="ltr">
                     {formatMoney(row.priceMinor, row.currency)}
                   </span>
                 )}

@@ -412,8 +412,13 @@ final geotagDetailProvider = GeotagDetailFamily._();
 /// A few words on what a pin is: a note's title, an expense's amount.
 
 final class GeotagDetailProvider
-    extends $FunctionalProvider<AsyncValue<String?>, String?, FutureOr<String?>>
-    with $FutureModifier<String?>, $FutureProvider<String?> {
+    extends
+        $FunctionalProvider<
+          AsyncValue<GeotagDetail?>,
+          GeotagDetail?,
+          FutureOr<GeotagDetail?>
+        >
+    with $FutureModifier<GeotagDetail?>, $FutureProvider<GeotagDetail?> {
   /// A few words on what a pin is: a note's title, an expense's amount.
   GeotagDetailProvider._({
     required GeotagDetailFamily super.from,
@@ -438,11 +443,12 @@ final class GeotagDetailProvider
 
   @$internal
   @override
-  $FutureProviderElement<String?> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<GeotagDetail?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<String?> create(Ref ref) {
+  FutureOr<GeotagDetail?> create(Ref ref) {
     final argument = this.argument as ({String table, String uuid});
     return geotagDetail(ref, argument);
   }
@@ -458,14 +464,14 @@ final class GeotagDetailProvider
   }
 }
 
-String _$geotagDetailHash() => r'55815cc0c19b9e0f881562b1b68e98581c34a58e';
+String _$geotagDetailHash() => r'fa96e4c0da4a2ace86bee73c15ce03efa3c56da1';
 
 /// A few words on what a pin is: a note's title, an expense's amount.
 
 final class GeotagDetailFamily extends $Family
     with
         $FunctionalFamilyOverride<
-          FutureOr<String?>,
+          FutureOr<GeotagDetail?>,
           ({String table, String uuid})
         > {
   GeotagDetailFamily._()

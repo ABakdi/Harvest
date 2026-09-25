@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/places/domain/place.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -224,36 +226,59 @@ class PlacesRepository {
   });
 
   /// A few words about what a geotag points at, for the timeline: a
-  /// note's title, a seed's name, an expense's note or category. Null
-  /// when the row is gone or has nothing to say.
-  Future<String?> detailFor(String table, String uuid) async {
+  /// note's title, a seed's name, an expense or a movement as money.
+  /// Null when the row is gone or has nothing to say.
+  Future<GeotagDetail?> detailFor(String table, String uuid) async {
+    GeotagDetail? text(String? value) =>
+        value == null || value.isEmpty ? null : GeotagText(value);
     switch (table) {
       case 'expenses':
         final row = await (_db.select(
           _db.expenses,
         )..where((e) => e.uuid.equals(uuid))).getSingleOrNull();
         if (row == null) return null;
-        final amount =
-            '${(row.amountMinor / 100).toStringAsFixed(2)} ${row.currency}';
-        return row.note == null || row.note!.isEmpty
-            ? '$amount · ${row.category}'
-            : '$amount · ${row.note}';
+        return GeotagExpense(
+          amountMinor: row.amountMinor,
+          currency: Currency.fromCode(row.currency),
+          category: row.category,
+          note: row.note == null || row.note!.isEmpty ? null : row.note,
+        );
+      case 'money_txns':
+        final row = await (_db.select(
+          _db.moneyTxns,
+        )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+        if (row == null) return null;
+        return GeotagMove(
+          MoneyTxn(
+            uuid: row.uuid,
+            account: MoneyAccount.values.byName(row.account),
+            deltaMinor: row.deltaMinor,
+            currency: Currency.fromCode(row.currency),
+            day:
+                HarvestDay.tryParse(row.harvestDay) ??
+                HarvestDay.of(row.loggedAt),
+            loggedAt: row.loggedAt,
+            kind: TxnKind.fromName(row.kind),
+            reference: row.reference,
+            note: row.note,
+          ),
+        );
       case 'notes':
-        return (await (_db.select(
+        return text((await (_db.select(
           _db.notes,
-        )..where((n) => n.uuid.equals(uuid))).getSingleOrNull())?.title;
+        )..where((n) => n.uuid.equals(uuid))).getSingleOrNull())?.title);
       case 'commitments':
-        return _seedTitle(uuid);
+        return text(await _seedTitle(uuid));
       case 'check_ins':
         final row = await (_db.select(
           _db.checkIns,
         )..where((c) => c.uuid.equals(uuid))).getSingleOrNull();
-        return row == null ? null : _seedTitle(row.commitmentUuid);
+        return row == null ? null : text(await _seedTitle(row.commitmentUuid));
       case 'seed_notes':
         final row = await (_db.select(
           _db.seedNotes,
         )..where((n) => n.uuid.equals(uuid))).getSingleOrNull();
-        return row == null ? null : _seedTitle(row.commitmentUuid);
+        return row == null ? null : text(await _seedTitle(row.commitmentUuid));
       case 'memories':
         final row = await (_db.select(
           _db.memories,
@@ -262,19 +287,19 @@ class PlacesRepository {
         final album = await (_db.select(
           _db.albums,
         )..where((a) => a.uuid.equals(row.albumUuid))).getSingleOrNull();
-        return album?.name;
+        return text(album?.name);
       case 'goals':
-        return (await (_db.select(
+        return text((await (_db.select(
           _db.goals,
-        )..where((g) => g.uuid.equals(uuid))).getSingleOrNull())?.title;
+        )..where((g) => g.uuid.equals(uuid))).getSingleOrNull())?.title);
       case 'goal_items':
-        return (await (_db.select(
+        return text((await (_db.select(
           _db.goalItems,
-        )..where((i) => i.uuid.equals(uuid))).getSingleOrNull())?.body;
+        )..where((i) => i.uuid.equals(uuid))).getSingleOrNull())?.body);
       case 'workout_sessions':
-        return (await (_db.select(
+        return text((await (_db.select(
           _db.workoutSessions,
-        )..where((w) => w.uuid.equals(uuid))).getSingleOrNull())?.title;
+        )..where((w) => w.uuid.equals(uuid))).getSingleOrNull())?.title);
     }
     return null;
   }

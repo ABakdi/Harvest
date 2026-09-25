@@ -66,6 +66,7 @@ describe('Transcribe on a recording', () => {
       dailyLimit: 50,
     });
     const h = await device(new FakeServer());
+    await h.settings.setString('features.notes', 'true');
     const note = await h.notes.create({ title: 'Groceries' });
     const bytes = new Uint8Array(size);
     bytes.set([1, 2, 3].slice(0, size));

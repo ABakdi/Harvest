@@ -73,7 +73,7 @@ class SessionTile extends StatelessWidget {
         ),
         subtitle: Text(
           '${formatDay(context, session.day)} · '
-          '${l10n.gymSessionSummary(session.doneSets, formatLoad(context, session.volumeGrams, unit))}',
+          '${l10n.gymSessionSummary(session.doneSets, formatVolume(context, [for (final e in session.exercises) ...e.sets], unit))}',
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => Navigator.of(context).push(
@@ -114,7 +114,7 @@ class SessionDetailScreen extends ConsumerWidget {
         children: [
           Text(
             '${formatDay(context, session.day)} · '
-            '${l10n.gymSessionSummary(session.doneSets, formatLoad(context, session.volumeGrams, unit))}',
+            '${l10n.gymSessionSummary(session.doneSets, formatVolume(context, [for (final e in session.exercises) ...e.sets], unit))}',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -159,7 +159,7 @@ class _DoneExercise extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final name =
-        ref.watch(exerciseByIdProvider(exercise.exerciseId)).value?.name ??
+        ref.watch(exerciseByIdProvider(exercise.exerciseId)).value?.displayName ??
         l10n.gymUnknownExercise;
     final done = exercise.sets.where((set) => set.done).toList();
 

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/features/gym/domain/program.dart';
+import 'package:harvest/features/gym/domain/session.dart';
 import 'package:harvest/features/health/domain/body_weight.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -17,9 +18,58 @@ String unitLabel(BuildContext context, WeightUnit unit) {
 /// no separate setting for the gym, because nobody weighs themselves in
 /// kilos and lifts in pounds. Both the number and the unit are written
 /// in the language on screen ([[Audit-v2]] U3-18).
+///
+/// A pound load reads to its quarter pound, so 60 kg shows as 132.25 lb
+/// — the number the target label says — and never 132.28 ([[Gym]] rule
+/// Y8).
 String formatLoad(BuildContext context, int grams, WeightUnit unit) =>
-    '${formatNumber(context, unit.from(grams), decimals: 2)} '
+    '${formatNumber(context, unit.from(shownGrams(grams, unit)), decimals: 2)} '
     '${unitLabel(context, unit)}';
+
+/// A session's volume in the unit on screen, added up from the loads
+/// as the rows show them: in pounds each done set's load is rounded to
+/// its quarter first, so five sets of 132.25 lb come to 661.25 lb and
+/// not the 661.5 lb the stored grams round to ([[Gym]] rule Y8).
+double shownVolume(Iterable<WorkoutSet> sets, WeightUnit unit) {
+  var total = 0.0;
+  for (final set in sets) {
+    if (!set.done) continue;
+    // Exact quarters, not the grams of one: those read back a hair
+    // under (132.2485), and five of them round down to 661.24.
+    final load = unit == WeightUnit.lb
+        ? quarterPounds(set.weightGrams) / 4
+        : unit.from(set.weightGrams);
+    total += load * set.reps;
+  }
+  return total;
+}
+
+/// [shownVolume] as text: `661.25 lb`.
+String formatVolume(
+  BuildContext context,
+  Iterable<WorkoutSet> sets,
+  WeightUnit unit,
+) =>
+    '${formatNumber(context, shownVolume(sets, unit), decimals: 2)} '
+    '${unitLabel(context, unit)}';
+
+/// The grams a load is shown as: a pound load rounded to its quarter
+/// pound by the shared rule ([roundLoad]); kilos as stored, since they
+/// were rounded when they were set. One rule with the web's
+/// `shownGrams`.
+int shownGrams(int grams, WeightUnit unit) =>
+    unit == WeightUnit.lb ? roundLoad(grams, unit: unit) : grams;
+
+/// A load as it goes into a field, rounded the way it reads, so the
+/// box and the label never disagree: pounds to their quarter, kilos
+/// to two places the way a session's label keeps them.
+String loadField(int grams, WeightUnit unit) => unit == WeightUnit.lb
+    ? loadFieldValue(shownGrams(grams, unit), unit)
+    : unit
+          .from(grams)
+          .toStringAsFixed(2)
+          .replaceFirst(RegExp(r'0+$'), '')
+          .replaceFirst(RegExp(r'\.$'), '');
 
 /// The same weight, but as it goes into a text field.
 ///

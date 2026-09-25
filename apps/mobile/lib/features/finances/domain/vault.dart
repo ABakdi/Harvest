@@ -55,6 +55,11 @@ class MoneyTxn {
   final String? note;
 
   bool get isDeposit => deltaMinor >= 0;
+
+  /// Dated after [today]: logged ahead, it counts on its day, not
+  /// before — not in the pot's balance, not in the wallet's overdraw
+  /// guard ([[Finances]]).
+  bool isUpcoming(HarvestDay today) => day.compareTo(today) > 0;
 }
 
 /// A debt: an amount owed to someone, no interest.

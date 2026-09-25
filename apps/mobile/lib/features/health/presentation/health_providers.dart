@@ -125,7 +125,17 @@ class StepsPull extends _$StepsPull {
 
   Future<StepsState> _pull() async {
     final source = ref.read(stepsSourceProvider);
-    final goal = await ref.read(stepGoalProvider.future);
+    // Read from the settings, not from [stepGoalProvider]: nothing
+    // listens to that one on a resume, so it is disposed while still
+    // loading and its future fails with a StateError.
+    final goal =
+        int.tryParse(
+          await ref
+                  .read(settingsRepositoryProvider)
+                  .getString(HealthKeys.stepGoal) ??
+              '',
+        ) ??
+        0;
     final outcome = await ref
         .read(stepsSyncProvider)
         .sync(today: ref.read(currentHarvestDayProvider), goal: goal);

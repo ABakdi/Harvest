@@ -303,10 +303,10 @@ class _TemplatesPage extends StatelessWidget {
       'meditate': l10n.tmplMeditate,
       'journal': l10n.tmplJournal,
     };
-    return Padding(
+    final scheme = theme.colorScheme;
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(HarvestSpacing.xl),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
@@ -323,19 +323,30 @@ class _TemplatesPage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: HarvestSpacing.lg),
-          Wrap(
-            spacing: HarvestSpacing.sm,
-            runSpacing: HarvestSpacing.sm,
-            alignment: WrapAlignment.center,
-            children: [
-              for (final entry in labels.entries)
-                FilterChip(
-                  label: Text(entry.value),
-                  selected: picked.contains(entry.key),
-                  onSelected: (_) => onToggle(entry.key),
+          // One full row each, with a tick that says so: a row of chips
+          // told picked from not by a faint tint, and a tap between two
+          // of them landed on the neighbour.
+          for (final entry in labels.entries)
+            Card(
+              margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+              color: picked.contains(entry.key)
+                  ? scheme.secondaryContainer
+                  : null,
+              child: CheckboxListTile(
+                value: picked.contains(entry.key),
+                onChanged: (_) => onToggle(entry.key),
+                title: Text(
+                  entry.value,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: picked.contains(entry.key)
+                        ? scheme.onSecondaryContainer
+                        : null,
+                  ),
                 ),
-            ],
-          ),
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+            ),
         ],
       ),
     );
@@ -445,10 +456,13 @@ class _RemindersPage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: HarvestSpacing.lg),
-          SwitchListTile(
-            title: Text(l10n.remindersMaster),
-            value: enabled,
-            onChanged: onChanged,
+          // The whole row is the switch, label included.
+          Card(
+            child: SwitchListTile(
+              title: Text(l10n.remindersMaster),
+              value: enabled,
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),
@@ -459,7 +473,7 @@ class _RemindersPage extends StatelessWidget {
 /// The last question: the parts of the app that stay hidden unless
 /// asked for.
 ///
-/// All four are off under the switch, and saying no here costs nothing
+/// All five are off under the switch, and saying no here costs nothing
 /// — Settings has them forever after. Someone who came for a streak
 /// tracker leaves this page with exactly the app they came for.
 class _ExtrasPage extends StatelessWidget {

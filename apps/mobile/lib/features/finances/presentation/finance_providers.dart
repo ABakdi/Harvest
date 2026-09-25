@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show StreamProvider;
+import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
@@ -21,6 +23,28 @@ abstract final class FinanceKeys {
 @riverpod
 Stream<List<Expense>> todayExpenses(Ref ref) =>
     ref.watch(financesRepositoryProvider).watchDay(HarvestDay.today());
+
+/// Expenses logged on a day still to come — the bill I know is coming
+/// ([[Finances]] Quick-log), soonest first. They count on their own day
+/// and not before, so no total reads them; this list is how they stay
+/// reachable to open, change or remove.
+final StreamProvider<List<Expense>> upcomingExpensesProvider = StreamProvider.autoDispose<List<Expense>>((
+  ref,
+) {
+  final today = HarvestDay.today();
+  return ref
+      .watch(financesRepositoryProvider)
+      .watchRange(today.next, today.addDays(366))
+      .map(soonestFirst);
+});
+
+/// [expenses] by day, soonest first, and within a day in the order
+/// they were logged.
+List<Expense> soonestFirst(List<Expense> expenses) => [...expenses]
+  ..sort((a, b) {
+    final byDay = a.day.compareTo(b.day);
+    return byDay != 0 ? byDay : a.loggedAt.compareTo(b.loggedAt);
+  });
 
 @riverpod
 Stream<List<Expense>> monthExpenses(Ref ref) =>
@@ -84,9 +108,12 @@ Rates ratesOrDefault(Ref ref) =>
 
 // ------------------------------------------------------------------ vault
 
+/// The pots as of the Harvest Day: movements logged ahead wait for
+/// their day, and join the balance when it comes.
 @riverpod
-Stream<Map<(MoneyAccount, Currency), int>> vaultBalances(Ref ref) =>
-    ref.watch(vaultRepositoryProvider).watchBalances();
+Stream<Map<(MoneyAccount, Currency), int>> vaultBalances(Ref ref) => ref
+    .watch(vaultRepositoryProvider)
+    .watchBalances(asOf: ref.watch(currentHarvestDayProvider));
 
 @riverpod
 Stream<List<MoneyTxn>> recentTxns(Ref ref) =>

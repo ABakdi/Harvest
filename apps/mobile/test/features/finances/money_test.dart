@@ -79,7 +79,7 @@ void main() {
         currency: Currency.usd,
         rates: rates,
       );
-      expect(caption, '≈DA1,080');
+      expect(caption, ltrIsolate('≈DA1,080'));
     });
 
     test('says nothing for the default currency or a missing rate', () {
@@ -95,6 +95,20 @@ void main() {
         ),
         isNull,
       );
+    });
+  });
+
+  group('money on screen', () {
+    test('groups thousands with no space after the symbol', () {
+      expect(formatMoney(500000, Currency.dzd), ltrIsolate('DA5,000'));
+      expect(formatMoney(0, Currency.dzd), ltrIsolate('DA0'));
+    });
+
+    test('holds the sign before the number, left to right, in Arabic too', () {
+      final text = formatMoneySigned(-26000, Currency.dzd);
+      expect(text, '\u2066−DA260\u2069');
+      expect(text.startsWith('\u2066'), isTrue);
+      expect(text.endsWith('\u2069'), isTrue);
     });
   });
 }

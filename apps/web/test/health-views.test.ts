@@ -102,7 +102,7 @@ describe('the gym, read', () => {
     expect(view?.days.map((day) => day.row.name)).toEqual(['Upper', 'Lower']);
     expect(view?.days[0]?.slots.map((slot) => slot.row.exerciseId)).toEqual(['0001', '0025']);
     // The catalogue is bundled, not synced, so the reader has its names.
-    expect(catalogueName('0001')).toBe('3/4 sit-up');
+    expect(catalogueName('0001')).toBe('3/4 Sit-Up');
     expect(catalogueName('nope')).toBeNull();
   });
 

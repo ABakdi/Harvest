@@ -193,7 +193,7 @@ class _WishlistEditorSheetState extends ConsumerState<_WishlistEditorSheet> {
           decoration: InputDecoration(
             labelText: l10n.wishlistEstimateLabel,
             hintText: l10n.wishlistEstimateHint,
-            prefixText: '${_currency.symbol} ',
+            prefixText: _currency.symbol,
             errorText: _amountInvalid ? l10n.wishlistEstimateInvalid : null,
           ),
         ),
@@ -201,9 +201,10 @@ class _WishlistEditorSheetState extends ConsumerState<_WishlistEditorSheet> {
         SegmentedButton<Currency>(
           segments: [
             for (final currency in Currency.values)
+              // The same pills as the expense sheet: DA, $, €.
               ButtonSegment(
                 value: currency,
-                label: Text(currency.code),
+                label: Text(currency.symbol),
               ),
           ],
           selected: {_currency},

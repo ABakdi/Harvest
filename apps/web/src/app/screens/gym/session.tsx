@@ -1,8 +1,8 @@
 import {
+  HarvestDay,
   defaultRestSeconds,
   estimatedOneRepMax,
   finishQuestion,
-  loadFieldValue,
   recordsBeatenBy,
   roundLoad,
   sessionElapsedSeconds,
@@ -23,10 +23,19 @@ import {
   TrophyIcon,
   XIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
@@ -39,7 +48,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '../../components/bits';
-import { useHarvest } from '../../context';
+import { useHarvest, useHarvestDay } from '../../context';
+import { formatDay } from '@/lib/format';
 import { useExercise } from '../../data/exercises';
 import { albumForPicture, exerciseRecords, lastTime, readSession, type ExerciseInSession, type SessionRow, type SetRow } from '../../data/gym';
 import { ExerciseDetailDialog } from './exercise-detail';
@@ -47,7 +57,7 @@ import { ExercisePicker } from './exercise-picker';
 import { usePictureOffer, type PictureState } from './picture-offer';
 import { PlatesDialog } from './plates';
 import { SetBadge } from './program-editor';
-import { RestField, clockText, prettyStoredLabel, useAsker, useLoad, useUnit, type Asker } from './shared';
+import { RestField, SetList, SetText, around, clockText, loadField, sessionClockText, prettyStoredLabel, useAsker, useLoad, useUnit, type Asker } from './shared';
 
 // -------------------------------------------------------------------- rest
 
@@ -142,11 +152,11 @@ function RestBar({ rest }: { rest: RestTimer }) {
 }
 
 /** The clock, which is also the pause button: a queue for the rack is not training. */
-function ClockButton({ session, onToggle }: { session: SessionRow; onToggle: () => void }) {
+function ClockButton({ session, staleDays, onToggle }: { session: SessionRow; staleDays: number; onToggle: () => void }) {
   const { t } = useTranslation();
   const { clock } = useHarvest();
   const paused = session.pausedAt !== null;
-  useTick(!paused);
+  useTick(!paused && staleDays === 0);
   const seconds = sessionElapsedSeconds(session, clock());
   return (
     <button
@@ -161,7 +171,8 @@ function ClockButton({ session, onToggle }: { session: SessionRow; onToggle: () 
     >
       {paused ? <PlayIcon className="size-5" aria-hidden /> : <PauseIcon className="size-5 text-muted-foreground" aria-hidden />}
       <span className="text-xl font-extrabold tabular" aria-live="off">
-        {clockText(seconds)}
+        {/* Days are the only honest unit for a session left open that long. */}
+        {staleDays > 0 ? t('gym.clockDays', { count: staleDays }) : sessionClockText(seconds)}
       </span>
       {paused && <span className="text-xs font-extrabold">{t('gym.paused')}</span>}
     </button>
@@ -204,7 +215,7 @@ function SetLine({
   const { db, sessions } = useHarvest();
   const unit = useUnit();
   const load = useLoad();
-  const fieldOf = (grams: number) => (grams === 0 ? '' : loadFieldValue(grams, unit));
+  const fieldOf = (grams: number) => (grams === 0 ? '' : loadField(grams, unit));
   const [weight, setWeight] = useState(fieldOf(set.weightGrams));
   const [reps, setReps] = useState(set.reps === 0 ? '' : String(set.reps));
   // The store is the truth, but it must not fight the keyboard: a field
@@ -214,9 +225,9 @@ function SetLine({
   if (seen.weightGrams !== set.weightGrams || seen.unit !== unit || seen.reps !== set.reps) {
     // A field still showing the row is re-read from the row, not from its
     // two decimals: 135 lb shown first as 61.24 kg stays 135 lb (Y8).
-    const untouched = weight === (seen.weightGrams === 0 ? '' : loadFieldValue(seen.weightGrams, seen.unit));
+    const untouched = weight === (seen.weightGrams === 0 ? '' : loadField(seen.weightGrams, seen.unit));
     if (seen.unit !== unit) setWeight(fieldOf(untouched ? set.weightGrams : parseLoad(weight, seen.unit)));
-    else if (seen.weightGrams !== set.weightGrams && weight === (seen.weightGrams === 0 ? '' : loadFieldValue(seen.weightGrams, unit))) {
+    else if (seen.weightGrams !== set.weightGrams && weight === (seen.weightGrams === 0 ? '' : loadField(seen.weightGrams, unit))) {
       setWeight(fieldOf(set.weightGrams));
     }
     if (seen.reps !== set.reps && reps === (seen.reps === 0 ? '' : String(seen.reps))) setReps(set.reps === 0 ? '' : String(set.reps));
@@ -330,15 +341,25 @@ function SetLine({
 // --------------------------------------------------------------- exercises
 
 /** `Best: 100 kg×5 · est. 116.75 kg` — the estimate named as one (Y6), rounded like a load (Y8). */
-function useRecordsLine(): (records: ExerciseRecords<SetRow>) => string {
+function useRecordsLine(): (records: ExerciseRecords<SetRow>) => ReactNode {
   const { t } = useTranslation();
   const load = useLoad();
   const unit = useUnit();
   return (records) => {
     const heaviest = records.heaviest!;
-    const parts = [`${load(heaviest.weightGrams)}×${heaviest.reps}`];
-    if (records.bestSetEstimate !== null) parts.push(t('gym.bestEstimate', { weight: load(roundLoad(records.bestSetEstimate, unit)) }));
-    return t('gym.bestLine', { sets: parts.join(' · ') });
+    const estimate = records.bestSetEstimate;
+    const parts = (
+      <>
+        <SetText>{`${load(heaviest.weightGrams)}×${heaviest.reps}`}</SetText>
+        {estimate !== null && (
+          <>
+            {' · '}
+            {around((weight) => t('gym.bestEstimate', { weight }), <SetText>{load(roundLoad(estimate, unit))}</SetText>)}
+          </>
+        )}
+      </>
+    );
+    return around((sets) => t('gym.bestLine', { sets }), parts);
   };
 }
 
@@ -403,7 +424,7 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
           {replaced && <span className="text-xs text-muted-foreground">{t('gym.insteadOf', { name: planned?.name ?? t('gym.unknownExercise') })}</span>}
           {last && last.length > 0 && (
             <span className="truncate text-xs text-muted-foreground" dir="auto">
-              {t('gym.lastTime', { sets: last.map((set) => `${load(set.weightGrams)}×${set.reps}`).join('  ') })}
+              {around((sets) => t('gym.lastTime', { sets }), <SetList labels={last.map((set) => `${load(set.weightGrams)}×${set.reps}`)} />)}
             </span>
           )}
           {records?.heaviest && <span className="truncate text-xs font-bold text-primary">{recordsLine(records)}</span>}
@@ -485,6 +506,21 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
 // ------------------------------------------------------------------ screen
 
 /**
+ * When a session left running past its day is taken to have ended
+ * (`WorkoutSession.lastActivity`): the last set ticked, or the pause,
+ * or with nothing logged the start — never now.
+ */
+export function lastActivity(tree: { session: SessionRow; exercises: readonly { sets: readonly SetRow[] }[] }): string {
+  let last = tree.session.startedAt;
+  const later = (at: string | null) => {
+    if (at !== null && Date.parse(at) > Date.parse(last)) last = at;
+  };
+  later(tree.session.pausedAt);
+  for (const exercise of tree.exercises) for (const set of exercise.sets) if (set.done) later(set.loggedAt);
+  return last;
+}
+
+/**
  * The workout, in progress (`session_screen.dart`), in a browser. Every
  * set is written the moment it is ticked (Y3), so leaving is not
  * discarding: the gym offers the session back, here or on the phone.
@@ -500,6 +536,14 @@ export function SessionScreen() {
   const [adding, setAdding] = useState(false);
   // The picture before the first set, when the program asks for one then.
   const picture = usePictureOffer();
+  const today = useHarvestDay();
+  // Left running past its own Harvest Day (Y3 resumes it): asked about
+  // the moment it is opened, before a set is ticked onto the wrong day.
+  const stale = tree?.session.endedAt === null && tree.session.harvestDay < today.key;
+  // Open on arrival until answered or closed; Finish opens it again.
+  const [staleClosed, setStaleClosed] = useState(false);
+  const staleOpen = stale && !staleClosed;
+  const setStaleOpen = (open: boolean) => setStaleClosed(!open);
 
   const back = (
     <Button asChild variant="ghost" size="sm" className="self-start">
@@ -528,7 +572,14 @@ export function SessionScreen() {
     );
   }
 
+  /** `today`, or the day itself: a message about a check-in names the day it lands on. */
+  const dayName = (key: string) => (key === today.key ? t('gym.dayToday') : formatDay(key));
+
   async function finish() {
+    if (stale) {
+      setStaleOpen(true);
+      return;
+    }
     const question = finishQuestion(tree!.exercises.map((exercise) => ({ skipped: exercise.row.skipped, sets: exercise.sets })));
     if (question.kind === 'empty') {
       const ok = await asker.confirm({ title: t('gym.finishEmptyTitle'), body: t('gym.finishEmptyBody'), action: t('gym.finish') });
@@ -537,27 +588,42 @@ export function SessionScreen() {
       // Finish is the check-in, so leaving sets behind is chosen with the eyes open (Y10).
       const ok = await asker.confirm({
         title: t('gym.finishIncompleteTitle'),
-        body: t('gym.finishIncompleteBody', { left: question.left, total: question.planned }),
+        body: t('gym.finishIncompleteBody', { left: question.left, total: question.planned, day: dayName(session.harvestDay) }),
         action: t('gym.finish'),
       });
       if (!ok) return;
     }
+    await complete(null);
+  }
+
+  /** Writes the finish, checks the habit in on the session's own day, and says which day. */
+  async function complete(endedAt: string | null) {
     rest.stop();
-    const outcome = await sessions.finish(uuid);
-    if (outcome.xpEarned > 0) toast.success(t('gym.checkedIn', { xp: outcome.xpEarned }));
+    const onToday = session.harvestDay === today.key;
+    const outcome = await sessions.finish(uuid, endedAt);
+    if (outcome.xpEarned > 0) {
+      toast.success(
+        onToday
+          ? t('gym.checkedIn', { xp: outcome.xpEarned })
+          : t('gym.checkedInOn', { day: dayName(session.harvestDay), xp: outcome.xpEarned }),
+      );
+    }
     // The picture on the way out is offered by the gym, once this screen has gone.
     const album = await albumForPicture(db, outcome.albumUuid);
     void navigate('/app/body/gym', album ? { state: { gymPicture: album } satisfies PictureState } : undefined);
   }
 
-  async function discard() {
-    const ok = await asker.confirm({
-      title: t('gym.discardSession'),
-      body: t('gym.discardBody', { count: tree!.doneSets }),
-      action: t('gym.discardSession'),
-      destructive: true,
-    });
-    if (!ok) return;
+  /** Drops the session; [asked] when the left-behind question was already the first asking. */
+  async function discard(asked = false) {
+    if (!asked) {
+      const ok = await asker.confirm({
+        title: t('gym.discardSession'),
+        body: t('gym.discardBody', { count: tree!.doneSets }),
+        action: t('gym.discardSession'),
+        destructive: true,
+      });
+      if (!ok) return;
+    }
     // Asked twice, but only when there is something to lose.
     if (tree!.doneSets > 0) {
       const sure = await asker.confirm({
@@ -624,7 +690,7 @@ export function SessionScreen() {
       <div className="sticky bottom-24 z-20 flex flex-col gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur md:bottom-4">
         <RestBar rest={rest} />
         <div className="flex items-center justify-between gap-2">
-          <ClockButton session={session} onToggle={() => void (session.pausedAt === null ? sessions.pause(uuid) : sessions.resume(uuid))} />
+          <ClockButton session={session} staleDays={stale ? HarvestDay.parse(session.harvestDay).daysUntil(today) : 0} onToggle={() => void (session.pausedAt === null ? sessions.pause(uuid) : sessions.resume(uuid))} />
           <Button onClick={() => void finish()}>
             <FlagIcon />
             {t('gym.finish')}
@@ -639,6 +705,39 @@ export function SessionScreen() {
             void sessions.addExercise(uuid, picked.id);
           }}
         />
+      )}
+      {staleOpen && (
+        <AlertDialog open onOpenChange={(open) => !open && setStaleOpen(false)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('gym.staleTitle', { day: dayName(session.harvestDay) })}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('gym.staleBody', { done: tree.doneSets, total: tree.totalSets, day: dayName(session.harvestDay) })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('gym.staleLater')}</AlertDialogCancel>
+              <Button
+                variant="outline"
+                className="text-destructive"
+                onClick={() => {
+                  setStaleOpen(false);
+                  void discard(true);
+                }}
+              >
+                {t('gym.discardSession')}
+              </Button>
+              <Button
+                onClick={() => {
+                  setStaleOpen(false);
+                  void complete(lastActivity(tree));
+                }}
+              >
+                {t('gym.staleFinish', { day: dayName(session.harvestDay) })}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
       {asking}
       {picture}

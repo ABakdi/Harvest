@@ -136,9 +136,27 @@ export async function readStats(db: HarvestDB, today: HarvestDay, weeks = 17): P
     streakDays: streakDaysOf(global),
     currentStreak: global?.current ?? 0,
     bestStreak: global?.best ?? 0,
-    week: weekReport(today, checkIns, ledger, expenses, rates),
+    week: weekReport(today, checkIns, ledger, expenses, rates, firstSeedDay(rows, checkIns)),
     projects,
   };
+}
+
+/**
+ * The first Harvest Day anything grew here: the day the first seed was
+ * planted, or an earlier check-in's day if one came in from an import.
+ * Null before the first seed.
+ */
+export function firstSeedDay(
+  seeds: readonly { createdAt: string }[],
+  checkIns: readonly { harvestDay: string }[],
+): HarvestDay | null {
+  let first: string | null = null;
+  for (const seed of seeds) {
+    const key = HarvestDay.of(new Date(seed.createdAt)).key;
+    if (first === null || key < first) first = key;
+  }
+  for (const row of checkIns) if (first === null || row.harvestDay < first) first = row.harvestDay;
+  return first === null ? null : HarvestDay.parse(first);
 }
 
 /**
@@ -154,6 +172,8 @@ export function weekReport(
   ledger: readonly { kind: string; delta: number; harvestDay: string }[],
   expenses: readonly { harvestDay: string; deletedAt: string | null; category: string; currency: string; amountMinor: number }[],
   rates: Rates,
+  /** The first day with any seed: days before it were not quiet, they were not yet. */
+  since: HarvestDay | null = null,
 ): WeekReport {
   const start = today.weekStart;
   const xp = ledger.reduce(
@@ -172,7 +192,8 @@ export function weekReport(
     elapsed.push({ day, count: seedsOn.get(day.key)?.size ?? 0 });
   }
   const best = elapsed.reduce((a, b) => (b.count > a.count ? b : a));
-  const worst = elapsed.reduce((a, b) => (b.count < a.count ? b : a));
+  const lived = since === null ? elapsed : elapsed.filter((entry) => entry.day.compareTo(since) >= 0);
+  const worst = lived.length > 0 ? lived.reduce((a, b) => (b.count < a.count ? b : a)) : null;
 
   const week = new Set(start.weekDays.map((day) => day.key));
   const byCategory = new Map<string, number>();
@@ -189,5 +210,5 @@ export function weekReport(
       topCategory = category;
     }
   }
-  return { xp, best: best.day, worst: elapsed.length > 1 ? worst.day : null, topCategory };
+  return { xp, best: best.day, worst: worst !== null && lived.length > 1 ? worst.day : null, topCategory };
 }

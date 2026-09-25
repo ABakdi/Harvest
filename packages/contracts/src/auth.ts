@@ -171,7 +171,7 @@ export type Session = z.infer<typeof sessionSchema>;
 export const sessionsResultSchema = z.object({ sessions: z.array(sessionSchema) });
 export type SessionsResult = z.infer<typeof sessionsResultSchema>;
 
-export const releaseSchema = z.object({
+const publishedReleaseSchema = z.object({
   tag: z.string(),
   name: z.string().nullable(),
   publishedAt: isoInstant.nullable(),
@@ -188,7 +188,17 @@ export const releaseSchema = z.object({
     })
     .nullable(),
 });
+
+/**
+ * The newest release that is not a pre-release, and beside it the newest
+ * pre-release when one is newer (a beta of the next version), so the
+ * download page can mention it. Absent from servers older than it.
+ */
+export const releaseSchema = publishedReleaseSchema.extend({
+  prerelease: publishedReleaseSchema.nullable().optional(),
+});
 export type Release = z.infer<typeof releaseSchema>;
+export type PublishedRelease = z.infer<typeof publishedReleaseSchema>;
 
 export const healthSchema = z.object({ status: z.literal('ok') });
 export type Health = z.infer<typeof healthSchema>;

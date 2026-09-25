@@ -2,7 +2,7 @@ import { barIn, platesFor } from '@harvest/core';
 import { InfoIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useLoad, useUnit, useUnitKnown } from './shared';
+import { SetText, useLoad, useUnit, useUnitKnown } from './shared';
 
 /**
  * What goes on each side of the bar (`plate_sheet.dart`): arithmetic
@@ -36,7 +36,9 @@ export function PlatesDialog({ targetGrams, barGrams, onClose }: { targetGrams: 
           <ul aria-label={t('gym.perSideList')} className="flex flex-wrap gap-2">
             {plan.stacks.map((stack) => (
               <li key={stack.grams} className="rounded-lg bg-secondary px-4 py-2 text-lg font-extrabold text-secondary-foreground tabular">
-                {stack.perSide} × {load(stack.grams)}
+                <SetText>
+                  {stack.perSide} × {load(stack.grams)}
+                </SetText>
               </li>
             ))}
           </ul>

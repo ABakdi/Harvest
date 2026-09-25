@@ -38,6 +38,23 @@ String formatAmount(int minor, Currency currency) =>
 String formatSigned(int minor, Currency currency) =>
     '${minor >= 0 ? '+' : '−'}${formatAmount(minor.abs(), currency)}';
 
+/// Holds [text] left-to-right inside whatever paragraph it lands in
+/// (Unicode's LRI … PDI). An amount is Latin digits and a Latin symbol
+/// ([[Finances]]), so in an Arabic line it must still read "−DA260" —
+/// without the isolate the bidi rules push a leading sign to the far
+/// side of the number ("DA260−").
+String ltrIsolate(String text) => '\u2066$text\u2069';
+
+/// [formatAmount] for the screen: grouped, no space after the symbol,
+/// and held left-to-right so it reads the same in Arabic.
+String formatMoney(int minor, Currency currency) =>
+    ltrIsolate(formatAmount(minor, currency));
+
+/// [formatSigned] for the screen, held left-to-right like
+/// [formatMoney] so the sign stays in front of the symbol.
+String formatMoneySigned(int minor, Currency currency) =>
+    ltrIsolate(formatSigned(minor, currency));
+
 /// Arabic-Indic and extended Arabic-Indic digits → ASCII, so a number
 /// typed on an Arabic keyboard parses like any other.
 String _latinDigits(String input) {
@@ -95,7 +112,7 @@ String? conversionCaption({
   if (currency == rates.defaultCurrency) return null;
   final converted = rates.toDefault(minor, currency);
   if (converted == null) return null;
-  return '≈${formatAmount(converted, rates.defaultCurrency)}';
+  return ltrIsolate('≈${formatAmount(converted, rates.defaultCurrency)}');
 }
 
 /// The amount in its own currency, with the default-currency
@@ -105,7 +122,7 @@ String amountWithConversion({
   required Currency currency,
   required Rates rates,
 }) {
-  final base = formatAmount(minor, currency);
+  final base = formatMoney(minor, currency);
   final caption = conversionCaption(
     minor: minor,
     currency: currency,

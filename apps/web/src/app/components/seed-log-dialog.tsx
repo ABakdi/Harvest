@@ -1,4 +1,4 @@
-import { commitmentFromRow, maxUnitsPerDay } from '@harvest/core';
+import { commitmentFromRow, roomToday } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArchiveIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -24,13 +24,14 @@ async function readUnits(db: HarvestDB, seed: SeedRow, dayKey: string) {
     total += row.quantity;
     if (row.harvestDay === dayKey) today += row.quantity;
   }
-  let cap: number;
+  let room: number;
   try {
-    cap = maxUnitsPerDay(commitmentFromRow(seed));
+    // Under today's cap and never past the target: the shared rule, the phone's too.
+    room = roomToday(commitmentFromRow(seed), today, total);
   } catch {
-    cap = 0; // an unreadable seed takes nothing more
+    room = 0; // an unreadable seed takes nothing more
   }
-  return { today, total, room: Math.max(cap - today, 0) };
+  return { today, total, room };
 }
 
 /**
@@ -58,13 +59,20 @@ export function SeedLogDialog({ seed, onClose }: { seed: SeedRow; onClose: () =>
     if (!valid || !units) return;
     const plan = await checkIns.checkIn(seed, day, value);
     const total = units.total + plan.quantityLogged;
+    // A cut log says what went in and what did not (`logCut`): "Daily cap
+    // reached" after typing 30 leaves me to work out the 10 that stuck —
+    // and the total cutting it on the way to 100% is still a cut ([[Audit-v3-Beta]] X4-02).
+    const dropped = value - plan.quantityLogged;
+    const cut = plan.quantityLogged > 0 && dropped > 0 ? t('field.logCut', { logged: plan.quantityLogged, dropped }) : null;
     if (plan.quantityLogged > 0 && total >= (seed.totalTarget ?? 0)) {
       setFinished(total);
+      if (cut) toast(cut);
       return;
     }
     onClose();
-    if (plan.quantityLogged > 0) toast.success(t('field.xpEarned', { count: plan.xpEarned }));
-    if (plan.capped) toast(t('field.capped'));
+    if (cut) toast.success(`${cut} · ${t('field.xpEarned', { count: plan.xpEarned })}`);
+    else if (plan.quantityLogged > 0) toast.success(t('field.xpEarned', { count: plan.xpEarned }));
+    else if (plan.capped) toast(t('field.capped'));
   }
 
   // The dialog closes however it closes; the project goes to the barn.

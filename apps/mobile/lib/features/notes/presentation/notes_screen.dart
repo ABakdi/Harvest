@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:harvest/app/router.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/action_snack_bar.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/assist/data/assist_settings.dart';
 import 'package:harvest/features/assist/domain/assist.dart';
 import 'package:harvest/features/assist/domain/prompts.dart';
 import 'package:harvest/features/assist/presentation/assist_sheet.dart';
@@ -189,6 +193,15 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   /// Assist on this note: pick an action, see what is sent, then
   /// Insert, Replace or Copy ([[Notes]] N8, N9).
   Future<void> _assist() async {
+    // Asked before anything is picked: choosing an action only to be
+    // told there is nobody to send it to was a dead end. The same
+    // question the sheet would ask, asked sooner.
+    final provider = await ref.read(assistProviderInUseProvider.future);
+    if (!mounted) return;
+    if (provider == null) {
+      await _assistNeedsSetup();
+      return;
+    }
     final value = _body.value;
     final selection = value.selection;
     final hasSelection = selection.isValid && !selection.isCollapsed;
@@ -227,6 +240,30 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     } else {
       _insertAtCaret(outcome.text, ownLine: true);
     }
+  }
+
+  /// Where the assist is set up, with the way there.
+  Future<void> _assistNeedsSetup() {
+    final l10n = AppLocalizations.of(context);
+    return showHarvestSheet<void>(
+      context,
+      builder: (sheetContext) => HarvestSheet(
+        title: l10n.assistTitle,
+        children: [
+          Text(l10n.assistNeedsSetup),
+          const SizedBox(height: HarvestSpacing.md),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(sheetContext).pop();
+              context.go(AppRoutes.settings);
+            },
+            icon: const Icon(Icons.settings_outlined),
+            label: Text(l10n.assistOpenSettings),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+        ],
+      ),
+    );
   }
 
   /// Sends one recording to the assist and puts its words under it, as
@@ -283,10 +320,9 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   }
 
   Future<void> _moveToFolder(Note note) async {
-    final known = ref.read(noteFolderTreeProvider);
     final folder = await showHarvestSheet<String>(
       context,
-      builder: (_) => _FolderSheet(initial: note.folder, known: known),
+      builder: (_) => NoteFolderSheet(initial: note.folder),
     );
     if (folder == null) return;
     await ref
@@ -327,7 +363,8 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
+        actionSnackBar(
+          messenger,
           content: Text(l10n.notesMovedToTrash),
           action: SnackBarAction(
             label: l10n.undoAction,
@@ -556,24 +593,31 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   }
 }
 
-/// Where a note lives: typed, or picked from the folders that exist.
+/// Where a note lives: picked from the folders that exist, or a new
+/// one named.
+///
+/// A list first, because moving a note is nearly always moving it to a
+/// folder that is already there, and typing a path to get there was
+/// the only way in. The folders are watched rather than read once: a
+/// read of the tree before anything had listened to it came back
+/// empty, and the sheet offered nothing but the text box.
 ///
 /// A sheet rather than a dialog because it may be a long list, and its
 /// own widget because it owns a controller — one disposed the instant
 /// the sheet's future completes is still attached to a route that is
 /// mid-animation, and Flutter is right to complain about that.
-class _FolderSheet extends StatefulWidget {
-  const _FolderSheet({required this.initial, required this.known});
+class NoteFolderSheet extends ConsumerStatefulWidget {
+  const NoteFolderSheet({required this.initial, super.key});
 
   final String initial;
-  final List<String> known;
 
   @override
-  State<_FolderSheet> createState() => _FolderSheetState();
+  ConsumerState<NoteFolderSheet> createState() => _NoteFolderSheetState();
 }
 
-class _FolderSheetState extends State<_FolderSheet> {
-  late final _controller = TextEditingController(text: widget.initial);
+class _NoteFolderSheetState extends ConsumerState<NoteFolderSheet> {
+  final _controller = TextEditingController();
+  var _naming = false;
 
   @override
   void dispose() {
@@ -584,40 +628,53 @@ class _FolderSheetState extends State<_FolderSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final known = ref.watch(noteFolderTreeProvider);
+
+    Widget choice(String path, String label, IconData icon) {
+      final here = normalizeFolder(widget.initial) == path;
+      return ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(icon),
+        title: Text(label),
+        trailing: here ? Icon(Icons.check, color: scheme.secondary) : null,
+        selected: here,
+        onTap: () => Navigator.of(context).pop(path),
+      );
+    }
+
     return HarvestSheet(
-      title: l10n.notesFolder,
-      subtitle: l10n.notesFolderHint,
-      actionLabel: l10n.save,
-      onAction: () => Navigator.of(context).pop(_controller.text),
+      title: l10n.notesMoveToFolder,
+      actionLabel: _naming ? l10n.save : null,
+      onAction: _naming && _controller.text.trim().isNotEmpty
+          ? () => Navigator.of(context).pop(_controller.text)
+          : null,
       children: [
-        TextField(
-          controller: _controller,
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            labelText: l10n.notesFolder,
-            hintText: l10n.notesFolderNameHint,
+        choice('', l10n.notesNoFolder, Icons.inbox_outlined),
+        for (final path in known) choice(path, path, Icons.folder_outlined),
+        const Divider(),
+        if (!_naming)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.create_new_folder_outlined),
+            title: Text(l10n.notesNewFolder),
+            onTap: () => setState(() => _naming = true),
+          )
+        else
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (value) {
+              if (value.trim().isNotEmpty) Navigator.of(context).pop(value);
+            },
+            decoration: InputDecoration(
+              labelText: l10n.notesNewFolder,
+              hintText: l10n.notesFolderNameHint,
+              helperText: l10n.notesFolderHint,
+            ),
           ),
-        ),
-        if (widget.known.isNotEmpty) ...[
-          const SizedBox(height: HarvestSpacing.md),
-          Wrap(
-            spacing: HarvestSpacing.xs,
-            runSpacing: HarvestSpacing.xs,
-            children: [
-              ActionChip(
-                label: Text(l10n.notesAllFolders),
-                onPressed: () => Navigator.of(context).pop(''),
-              ),
-              for (final path in widget.known)
-                ActionChip(
-                  avatar: const Icon(Icons.folder_outlined, size: 15),
-                  label: Text(path),
-                  onPressed: () => Navigator.of(context).pop(path),
-                ),
-            ],
-          ),
-        ],
       ],
     );
   }

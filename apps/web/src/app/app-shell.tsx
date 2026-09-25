@@ -35,6 +35,7 @@ import { ProgramEditorScreen } from './screens/gym/program-editor';
 import { SessionScreen } from './screens/gym/session';
 import { NotesScreen } from './screens/notes';
 import { PomodoroScreen } from './screens/pomodoro';
+import { RecordsView } from './screens/records';
 import { SeedScreen } from './screens/seed';
 
 // The map is most of a megabyte of MapLibre, and most days nobody
@@ -189,7 +190,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             </Button>
           </div>
         </header>
-        <main id="app-main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-3 py-4 md:px-6">
+        <main id="app-main" tabIndex={-1} className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-3 py-4 outline-none md:px-6">
           <Banners startedOffline={startedOffline} />
           <OnboardingGate />
           <Routes>
@@ -207,13 +208,22 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             <Route path="body/gym/programs/:uuid" element={<ProgramEditorScreen />} />
             <Route path="body/gym/sessions/:uuid" element={<SessionScreen />} />
             <Route path="records" element={<NotesScreen />} />
-            <Route path="records/gallery" element={<GalleryScreen />} />
+            <Route
+              path="records/gallery"
+              element={
+                <RecordsView feature="gallery">
+                  <GalleryScreen />
+                </RecordsView>
+              }
+            />
             <Route
               path="records/places"
               element={
-                <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
-                  <PlacesScreen />
-                </Suspense>
+                <RecordsView feature="places">
+                  <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
+                    <PlacesScreen />
+                  </Suspense>
+                </RecordsView>
               }
             />
             <Route path="records/trash" element={<NotesScreen trash />} />

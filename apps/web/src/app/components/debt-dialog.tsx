@@ -68,7 +68,7 @@ export function DebtDialog({ onClose }: { onClose: () => void }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('vault.addDebt')}</DialogTitle>
-          <DialogDescription className="sr-only">{t('vault.addDebt')}</DialogDescription>
+          <DialogDescription>{t('vaultWeb.debtLead')}</DialogDescription>
         </DialogHeader>
         <form onSubmit={(event) => void once(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">

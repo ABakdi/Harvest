@@ -339,4 +339,64 @@ void main() {
     expect(segments, hasLength(2));
     expect(segments.last.selected, {WishlistList.wish});
   });
+
+  testWidgets('the list follows writes even while provider watches are '
+      'paused, as after a sheet and a permission prompt', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [wishlistRepositoryProvider.overrideWith((ref) => repo)],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          // Tickers off is what pauses a ConsumerWidget's watches.
+          home: TickerMode(enabled: false, child: Scaffold(body: WishlistTab())),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Nothing to buy'), findsOneWidget);
+
+    await repo.add(list: WishlistList.buy, title: 'Kettle');
+    await tester.pump();
+    expect(find.text('Kettle'), findsOneWidget);
+    expect(find.text('Nothing to buy'), findsNothing);
+
+    await repo.setBought(repo.items.single.uuid, bought: true);
+    await tester.pump();
+    expect(find.textContaining('bought'), findsOneWidget);
+  });
+
+  testWidgets('an estimate reads in the plain text colour, not the accent', (
+    tester,
+  ) async {
+    repo.seed(item('Kettle', price: 85000));
+    await tester.pumpWidget(tab());
+    await tester.pump();
+
+    final price = tester.widget<Text>(
+      find.descendant(
+        of: find.byType(ListTile),
+        matching: find.textContaining('850'),
+      ),
+    );
+    final context = tester.element(find.byType(WishlistTab));
+    final scheme = Theme.of(context).colorScheme;
+    expect(price.style?.color, scheme.onSurface);
+    expect(price.style?.color, isNot(scheme.primary));
+  });
+
+  testWidgets('the editor offers the same currency pills as the expense '
+      'sheet', (tester) async {
+    await tester.pumpWidget(tab());
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    for (final currency in Currency.values) {
+      expect(find.text(currency.symbol), findsWidgets);
+    }
+    expect(find.text('DZD'), findsNothing);
+    expect(find.text('USD'), findsNothing);
+    expect(find.text('EUR'), findsNothing);
+  });
 }

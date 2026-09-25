@@ -48,8 +48,8 @@ class Commitments extends Table {
   /// only thing the archive can tell me later that the title cannot.
   TextColumn get archiveNote => text().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -66,9 +66,9 @@ class CheckIns extends Table {
 
   /// Units logged: 1 for habits/todos, page/minute counts for projects.
   IntColumn get quantity => integer().withDefault(const Constant(1))();
-  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get loggedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -85,9 +85,9 @@ class SeedNotes extends Table {
   /// The Harvest Day this note belongs to.
   TextColumn get harvestDay => text()();
   TextColumn get body => text()();
-  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get loggedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -103,8 +103,8 @@ class Notes extends Table {
   /// Folder path, "" for the root. Slash-separated, created by naming.
   TextColumn get folder => text().withDefault(const Constant(''))();
   TextColumn get body => text().withDefault(const Constant(''))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -143,8 +143,8 @@ class Albums extends Table {
   /// "HH:mm" reminder, on days the album is due.
   TextColumn get remindAt => text().nullable()();
   TextColumn get note => text().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -181,8 +181,8 @@ class Memories extends Table {
   /// which is every file until sync is switched on.
   TextColumn get fileHash => text().nullable()();
 
-  DateTimeColumn get capturedAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get capturedAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   /// In the trash since. Null is a memory I still have.
   DateTimeColumn get deletedAt => dateTime().nullable()();
@@ -209,7 +209,7 @@ class StepDays extends Table {
   /// The sensor's own since-boot count at the last sync. Null before
   /// the first reading of the day.
   IntColumn get lastCounter => integer().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {harvestDay};
@@ -229,8 +229,8 @@ class BodyWeights extends Table {
 
   /// More than one a day is allowed — morning and evening are
   /// different facts.
-  DateTimeColumn get measuredAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get measuredAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -252,8 +252,8 @@ class Exercises extends Table {
   TextColumn get equipment => text().nullable()();
   TextColumn get target => text().nullable()();
   TextColumn get note => text().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -280,8 +280,8 @@ class Programs extends Table {
 
   /// `after` | `before` | `never` — when the picture is asked for.
   TextColumn get photoPrompt => text().withDefault(const Constant('after'))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -355,7 +355,7 @@ class TrainingMaxes extends Table {
   TextColumn get programUuid => text().references(Programs, #uuid)();
   TextColumn get exerciseId => text()();
   IntColumn get grams => integer()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {programUuid, exerciseId};
@@ -371,7 +371,7 @@ class WorkoutSessions extends Table {
   /// Kept as text so a session survives its program being deleted.
   TextColumn get title => text().nullable()();
   TextColumn get harvestDay => text()();
-  DateTimeColumn get startedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get startedAt => dateTime().clientDefault(DateTime.now)();
 
   /// Null while the session is still running — which is how an
   /// interrupted workout is found and resumed ([[Gym]] rule Y3).
@@ -384,7 +384,7 @@ class WorkoutSessions extends Table {
 
   /// Every pause that has already ended, added up.
   IntColumn get pausedSeconds => integer().withDefault(const Constant(0))();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -441,7 +441,7 @@ class WorkoutSets extends Table {
   /// answerable a year later without the program still existing.
   TextColumn get targetLabel => text().nullable()();
   BoolColumn get openEnded => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get loggedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -456,7 +456,7 @@ class Streaks extends Table {
   IntColumn get best => integer().withDefault(const Constant(0))();
   TextColumn get lastEarnedDay => text().nullable()();
   IntColumn get freezesStored => integer().withDefault(const Constant(0))();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {scope};
@@ -471,7 +471,7 @@ class Ledger extends Table {
   IntColumn get delta => integer()();
   TextColumn get reason => text()();
   TextColumn get harvestDay => text()();
-  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get loggedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -486,7 +486,7 @@ class Quests extends Table {
   IntColumn get progress => integer().withDefault(const Constant(0))();
   IntColumn get target => integer()();
   DateTimeColumn get claimedAt => dateTime().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -521,9 +521,9 @@ class Expenses extends Table {
   TextColumn get category => text()();
   TextColumn get note => text().nullable()();
   TextColumn get harvestDay => text()();
-  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get loggedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -556,9 +556,9 @@ class MoneyTxns extends Table {
   /// or deleting that row carries the movement with it (schema v8).
   TextColumn get linkUuid => text().nullable()();
   TextColumn get harvestDay => text()();
-  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get loggedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -578,9 +578,9 @@ class Debts extends Table {
   TextColumn get remindAt => text().nullable()();
   TextColumn get note => text().nullable()();
   DateTimeColumn get settledAt => dateTime().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -593,7 +593,7 @@ class DebtPayments extends Table {
   TextColumn get debtUuid => text().references(Debts, #uuid)();
   IntColumn get amountMinor => integer()();
   TextColumn get harvestDay => text()();
-  DateTimeColumn get loggedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get loggedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -617,7 +617,7 @@ class ExpenseCategories extends Table {
   /// sorts by [updatedAt] instead.
   DateTimeColumn get createdAt => dateTime().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {uuid};
@@ -631,14 +631,14 @@ class Outbox extends Table {
 
   /// `insert` | `update` | `delete`.
   TextColumn get op => text()();
-  DateTimeColumn get queuedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get queuedAt => dateTime().clientDefault(DateTime.now)();
 }
 
 /// Simple key-value store for app settings (theme, locale, goal, times).
 class KvSettings extends Table {
   TextColumn get key => text()();
   TextColumn get valueJson => text()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
 
   @override
   Set<Column<Object>> get primaryKey => {key};
@@ -667,8 +667,8 @@ class SleepSessions extends Table {
   /// 1-5. Null is a legitimate answer at 6 AM.
   IntColumn get restedStars => integer().nullable()();
   TextColumn get note => text().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -697,8 +697,8 @@ class Goals extends Table {
 
   /// Order on the board.
   IntColumn get position => integer().withDefault(const Constant(0))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -723,8 +723,8 @@ class GoalItems extends Table {
 
   /// The seed this item was planted as, if it was.
   TextColumn get commitmentUuid => text().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -756,8 +756,8 @@ class WishlistItems extends Table {
 
   /// Order within one list.
   IntColumn get position => integer().withDefault(const Constant(0))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -777,7 +777,7 @@ class LocationPoints extends Table {
   RealColumn get accuracyM => real().nullable()();
   RealColumn get speedMps => real().nullable()();
   RealColumn get altitudeM => real().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -803,7 +803,7 @@ class Geotags extends Table {
 
   /// `pending` | `fixed` | `unavailable`.
   TextColumn get state => text().withDefault(const Constant('pending'))();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -822,8 +822,8 @@ class SavedPlaces extends Table {
   /// Whatever I want to remember about this place.
   TextColumn get notes => text().nullable()();
 
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -856,8 +856,8 @@ class NoteAttachments extends Table {
   /// which is every file until sync is switched on.
   TextColumn get fileHash => text().nullable()();
 
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
@@ -945,7 +945,7 @@ class HarvestDatabase extends _$HarvestDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1083,8 +1083,60 @@ class HarvestDatabase extends _$HarvestDatabase {
       if (from < 19) {
         await m.createTable(wishlistItems);
       }
+      // A stamp now comes from the phone's clock, not sqlite's: the SQL
+      // default wrote UTC with no zone, which read back as a UTC clock
+      // and put every default-stamped time an hour early in Algiers.
+      // Dropping a column default means rebuilding the table; then
+      // every date that is not already in the app's own spelling is
+      // rewritten, keeping its instant.
+      if (from < 22) {
+        await customStatement('PRAGMA foreign_keys = OFF');
+        for (final table in allTables) {
+          final stamped = table.$columns.any(
+            (c) => c.type == DriftSqlType.dateTime && c.clientDefault != null,
+          );
+          if (stamped) {
+            await m.alterTable(TableMigration(table));
+          }
+          await _datesToLocal(table);
+        }
+        await customStatement('PRAGMA foreign_keys = ON');
+      }
     },
   );
+
+  /// Rewrites one table's UTC dates in the spelling the app writes: the
+  /// local clock with its offset, `2026-09-25T16:21:00.000 +01:00`.
+  ///
+  /// Two spellings are UTC. sqlite's own clock — the old column
+  /// default, and the v18 rewrite — writes `2026-09-25 15:21:00`; a
+  /// pulled row wrote a `Z`. Both read back as a UTC `DateTime`, whose
+  /// clock is the wrong one to show. A date that already carries an
+  /// offset was written by the app and is left as it is.
+  Future<void> _datesToLocal(TableInfo<Table, Object?> table) async {
+    final name = table.actualTableName;
+    for (final column in table.$columns) {
+      if (column.type != DriftSqlType.dateTime) continue;
+      final col = '"${column.name}"';
+      final rows = await customSelect(
+        'SELECT rowid AS r, $col AS v FROM "$name" '
+        "WHERE typeof($col) = 'text' AND ($col GLOB '*Z' OR $col GLOB "
+        "'[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] "
+        "[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')",
+      ).get();
+      if (rows.isEmpty) continue;
+      await batch((b) {
+        for (final row in rows) {
+          b.customStatement('UPDATE "$name" SET $col = ? WHERE rowid = ?', [
+            typeMapping.mapToSqlVariable(
+              readUtcText(row.read<String>('v')).toLocal(),
+            ),
+            row.read<int>('r'),
+          ]);
+        }
+      });
+    }
+  }
 
   /// Rewrites one table's date columns from unix seconds to text.
   ///
@@ -1185,3 +1237,13 @@ String geotagUuid(String table, String rowUuid) =>
     const Uuid().v5(Namespace.url.value, 'harvest:geotag:$table:$rowUuid');
 
 String harvestDayKeyOf(DateTime moment) => HarvestDay.of(moment).key;
+
+/// The instant a stored date names, read as drift reads it: an offset
+/// or a `Z` says which clock it is, and a date with neither is
+/// sqlite's clock, which is UTC — never the local clock
+/// [DateTime.parse] would assume for it.
+DateTime readUtcText(String text) {
+  final zoned =
+      text.endsWith('Z') || RegExp(r' ?[-+]\d\d(:?\d\d)?$').hasMatch(text);
+  return DateTime.parse(zoned ? text : '${text}Z');
+}

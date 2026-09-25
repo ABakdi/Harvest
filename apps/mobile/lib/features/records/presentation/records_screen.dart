@@ -36,6 +36,15 @@ class RecordsScreen extends ConsumerWidget {
       // Where I was last — a note or the albums — is the more useful
       // place to land than the notes list, always ([[Checkpoint-7]]).
       rememberKey: SettingKeys.recordsTab,
+      // The map is only landed on once it has been seen to work here: a
+      // map that took the app down must not do it again on every visit
+      // to Records. Notes opens instead; Places is still a tap away.
+      recallable: (tab) async =>
+          tab != RecordsTab.places ||
+          await ref
+                  .read(settingsRepositoryProvider)
+                  .getString(PlacesMapHealth.key) ==
+              PlacesMapHealth.shown,
       halves: [
         (
           value: RecordsTab.notes,

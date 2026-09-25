@@ -422,7 +422,7 @@ class _SlotRow extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    exercise?.name ?? l10n.gymUnknownExercise,
+                    exercise?.displayName ?? l10n.gymUnknownExercise,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),

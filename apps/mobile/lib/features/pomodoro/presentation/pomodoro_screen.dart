@@ -246,6 +246,16 @@ class PomodoroScreen extends ConsumerWidget {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.xpEarned(result.xpEarned))),
           );
+        } else if (result
+            case CheckInCapped(
+              :final quantityLogged,
+              :final dropped,
+            )
+            when quantityLogged > 0) {
+          // What went in and what the cap refused, both.
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.logCut(quantityLogged, dropped))),
+          );
         }
       } else {
         // A gym seed is checked in by a session, even after a focus
@@ -277,6 +287,16 @@ class PomodoroScreen extends ConsumerWidget {
         if (result is CheckInSuccess) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.xpEarned(result.xpEarned))),
+          );
+        } else if (result
+            case CheckInCapped(
+              :final quantityLogged,
+              :final dropped,
+            )
+            when quantityLogged > 0) {
+          // What went in and what the cap refused, both.
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.logCut(quantityLogged, dropped))),
           );
         }
       }

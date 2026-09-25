@@ -8,6 +8,18 @@ import 'package:intl/intl.dart';
 String localeTag(BuildContext context) =>
     Localizations.localeOf(context).toString();
 
+/// Every date, time and number in Western digits, Arabic included: intl
+/// writes Arabic dates in Arabic-Indic digits by default, which sat
+/// "٦:٤٩ م" beside money's "DA5,000" on one screen. Money's digits are
+/// Western ([[Finances]]); so is everything else. Called once, before
+/// the first frame. (Numbers already are: intl's `ar` symbols count in
+/// Western digits.)
+void useWesternDigits() {
+  for (final locale in const ['ar', 'ar_DZ', 'ar_EG']) {
+    DateFormat.useNativeDigitsByDefaultFor(locale, false);
+  }
+}
+
 /// "8:43 PM" in the current locale.
 String formatTime(BuildContext context, DateTime moment) =>
     DateFormat.jm(localeTag(context)).format(moment);

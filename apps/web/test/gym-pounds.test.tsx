@@ -93,7 +93,7 @@ describe('a pound gym', () => {
     const tree = await inPounds(h);
     renderAt(h, `/app/body/gym/programs/${tree.program.uuid}`);
 
-    await userEvent.click(await screen.findByText('barbell bench press', {}, { timeout: 5000 }));
+    await userEvent.click(await screen.findByText('Barbell Bench Press', {}, { timeout: 5000 }));
     const bars = await screen.findByRole('radiogroup', { name: 'The bar' });
     // The unit is a setting, read as the dialog opens.
     await within(bars).findByRole('radio', { name: '45 lb' }, { timeout: 5000 });

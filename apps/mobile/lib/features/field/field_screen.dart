@@ -51,8 +51,9 @@ import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
-/// Clearance under the list so the floating action never covers a crop.
-const _fabClearance = 96.0;
+/// Clearance under the list so the floating action never covers a crop
+/// — or the Plan button on the card at the foot, which it did at 96.
+const _fabClearance = 128.0;
 
 class FieldScreen extends ConsumerStatefulWidget {
   const FieldScreen({super.key});
@@ -381,7 +382,7 @@ class _CropTile extends ConsumerWidget {
         CommitmentType.habit when program != null => Icons.fitness_center,
         CommitmentType.habit => Icons.repeat,
         CommitmentType.project => Icons.flag,
-        CommitmentType.todo => Icons.check_circle_outline,
+        CommitmentType.todo => Icons.event_note_outlined,
       },
       done: item.isDone,
       busy: busy,
@@ -389,6 +390,9 @@ class _CropTile extends ConsumerWidget {
           ? item.projectProgress
           : null,
       onTap: () => unawaited(_onTap(context, ref, program)),
+      onOpen: () => unawaited(
+        context.push('${AppRoutes.seed}/${commitment.uuid}'),
+      ),
       onOptions: () => unawaited(showCropOptions(context, commitment)),
     );
   }
@@ -584,14 +588,29 @@ class _CropTile extends ConsumerWidget {
         logged > 0 &&
         item.totalLogged + logged >= (commitment.totalTarget ?? 0);
     if (completed) {
-      await _celebrateCompletion(ref, navigator, item.totalLogged + logged);
+      // The dialog takes the snackbar's place, so it says what the cut
+      // left out too.
+      final dropped = switch (result) {
+        CheckInCapped(:final dropped) => dropped,
+        CheckInSuccess() => 0,
+      };
+      await _celebrateCompletion(
+        ref,
+        navigator,
+        item.totalLogged + logged,
+        logged: logged,
+        dropped: dropped,
+      );
       return;
     }
+    // A cut log says what went in and what did not: "Daily cap
+    // reached" after typing 30 left me to work out the 10 that stuck.
     final message = switch (result) {
       CheckInSuccess(:final xpEarned) => l10n.xpEarned(xpEarned),
       CheckInCapped(quantityLogged: 0) => l10n.cappedMessage,
-      CheckInCapped(:final xpEarned) =>
-        '${l10n.xpEarned(xpEarned)} · ${l10n.cappedMessage}',
+      CheckInCapped(:final xpEarned, :final quantityLogged, :final dropped) =>
+        '${l10n.logCut(quantityLogged, dropped)} · '
+            '${l10n.xpEarned(xpEarned)}',
     };
     messenger.showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
@@ -603,8 +622,10 @@ class _CropTile extends ConsumerWidget {
   Future<void> _celebrateCompletion(
     WidgetRef ref,
     NavigatorState navigator,
-    int total,
-  ) async {
+    int total, {
+    int logged = 0,
+    int dropped = 0,
+  }) async {
     // Taken before the dialog: the tile may be gone by the time it
     // closes, and its `ref` with it.
     final editor = ref.read(commitmentEditorProvider.notifier);
@@ -615,7 +636,15 @@ class _CropTile extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.projectDoneTitle),
-        content: Text(l10n.projectDoneBody(item.commitment.title, total)),
+        content: Text(
+          projectDoneMessage(
+            l10n,
+            title: item.commitment.title,
+            total: total,
+            logged: logged,
+            dropped: dropped,
+          ),
+        ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -626,6 +655,21 @@ class _CropTile extends ConsumerWidget {
     );
     await editor.archive(item.commitment.uuid);
   }
+}
+
+/// What the completion dialog says: the project grown, and — when the
+/// last log went past the target — how much of it was left out.
+@visibleForTesting
+String projectDoneMessage(
+  AppLocalizations l10n, {
+  required String title,
+  required int total,
+  required int logged,
+  required int dropped,
+}) {
+  final body = l10n.projectDoneBody(title, total);
+  if (dropped <= 0) return body;
+  return '$body\n\n${l10n.projectDoneCut(logged, dropped)}';
 }
 
 /// Tomorrow at a glance, and the way into the evening plan — a card at

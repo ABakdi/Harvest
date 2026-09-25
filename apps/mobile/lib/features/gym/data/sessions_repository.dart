@@ -657,7 +657,9 @@ class SessionsRepository {
     await _outbox(uuid, 'update');
   }
 
-  Future<void> finish(String uuid) => _db.transaction(() async {
+  /// Ends the session. [at] ends it at a moment of my choosing: a session left running
+  /// for days ends at its last set, not at the tap that closed it.
+  Future<void> finish(String uuid, {DateTime? at}) => _db.transaction(() async {
     // A session finished while paused ends at the pause: the minutes
     // between were not training.
     final row = await _row(uuid);
@@ -666,7 +668,7 @@ class SessionsRepository {
       _db.workoutSessions,
     )..where((s) => s.uuid.equals(uuid))).write(
       WorkoutSessionsCompanion(
-        endedAt: Value(pausedAt ?? DateTime.now()),
+        endedAt: Value(at ?? pausedAt ?? DateTime.now()),
         pausedAt: const Value(null),
         updatedAt: Value(DateTime.now()),
       ),

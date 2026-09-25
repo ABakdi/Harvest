@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/format.dart';
@@ -94,15 +95,20 @@ Future<void> showExpenseSheet(BuildContext context, {Expense? existing}) =>
     );
 
 /// What the wallet would hold in [currency] without the expense being
-/// edited: its own movement ([linked]) is given back before comparing.
+/// edited: its own movement ([linked]) is given back before comparing —
+/// unless it is still upcoming on [today], when the balance never took
+/// it ([[Finances]]).
 @visibleForTesting
 int walletBalanceFor(
   Map<Currency, int> balances,
   Currency currency, {
   MoneyTxn? linked,
+  HarvestDay? today,
 }) {
   final balance = balances[currency] ?? 0;
-  return linked != null && linked.currency == currency
+  return linked != null &&
+          linked.currency == currency &&
+          !linked.isUpcoming(today ?? HarvestDay.today())
       ? balance - linked.deltaMinor
       : balance;
 }
@@ -188,6 +194,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     ref.watch(accountBalancesProvider(MoneyAccount.wallet)),
     _effectiveCurrency,
     linked: _linked,
+    today: ref.watch(currentHarvestDayProvider),
   );
 
   bool get _walletCanCover =>
@@ -286,7 +293,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       context,
       title: l10n.deleteExpenseTitle,
       body: l10n.deleteExpenseBody(
-        formatAmount(existing.amountMinor, existing.currency),
+        formatMoney(existing.amountMinor, existing.currency),
       ),
       confirmLabel: l10n.deleteAction,
       destructive: true,
@@ -296,6 +303,8 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     await actions.removeExpense(existing.uuid);
     messenger.showSnackBar(
       SnackBar(
+        // An action is an offer for a few seconds, not a fixture.
+        persist: false,
         content: Text(l10n.deleted),
         action: SnackBarAction(
           label: l10n.undoAction,
@@ -341,7 +350,8 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
               icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
               onPressed: () => unawaited(_delete()),
             ),
-      actionLabel: l10n.log,
+      // Editing saves what is already logged; only a new one is logged.
+      actionLabel: widget.existing == null ? l10n.log : l10n.save,
       onAction: _amountMinor == null ? null : () => unawaited(_log()),
       children: [
         // Read-only to the system: the keypad below is the keyboard,
@@ -362,13 +372,13 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
           ),
           decoration: InputDecoration(
             labelText: l10n.amountLabel,
-            prefixText: '${currency.symbol} ',
+            prefixText: currency.symbol,
             // What the sum comes to, live, so Log never logs a surprise.
             helperText: !_isSum
                 ? null
                 : _amountMinor == null
                 ? l10n.amountSumIncomplete
-                : l10n.amountSum(formatAmount(_amountMinor!, currency)),
+                : l10n.amountSum(formatMoney(_amountMinor!, currency)),
             helperStyle: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w800,
               color: _amountMinor == null
@@ -453,11 +463,15 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
             _amountMinor != null && !_walletCanCover
                 ? l10n.walletShort
                 : l10n.walletHas(
-                    formatAmount(_walletBalance, _effectiveCurrency),
+                    formatMoney(_walletBalance, _effectiveCurrency),
                   ),
           ),
-          value: _fromWallet,
-          onChanged: _walletCanCover
+          // Choosable before the amount is in, like the vault's sheets.
+          value: _amountMinor == null
+              ? (_walletChoice ?? true) && _walletBalance > 0
+              : _fromWallet,
+          onChanged:
+              (_amountMinor == null ? _walletBalance > 0 : _walletCanCover)
               ? (value) => setState(() => _walletChoice = value)
               : null,
         ),

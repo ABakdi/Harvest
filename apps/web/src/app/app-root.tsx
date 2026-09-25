@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useLocation } from 'react-router';
 import { HarvestMark } from '@/components/brand';
 import { Button } from '@/components/ui/button';
-import { api, ApiError, onSessionChange, refreshSession } from '@/lib/api';
+import { api, isServerTrouble, onSessionChange, refreshSession, resumeSession } from '@/lib/api';
 import { AppShell } from './app-shell';
 import { createHarvest, HarvestContext, type Harvest } from './context';
 import { getMeta, HarvestDB, metaKeys, setMeta } from './data/db';
@@ -29,7 +29,7 @@ export async function wipeLocal(): Promise<void> {
   database = null;
 }
 
-type Boot =
+export type Boot =
   | { kind: 'loading' }
   | { kind: 'leaving' }
   | { kind: 'left' }
@@ -39,23 +39,25 @@ type Boot =
   | { kind: 'failed' };
 
 /**
- * Opens the session and the store. Online, the refresh cookie says who
- * is signed in. Offline, the account this browser last saw is trusted,
- * so the app opens from IndexedDB with no connection at all (W1); the
- * next sync settles whether the session still stands.
+ * Opens the session and the store. An access token this tab still holds
+ * from before a reload says who is signed in; failing that, the refresh
+ * cookie does. Offline — or with the server turning the refresh away
+ * for now (429, 5xx) — the account this browser last saw is trusted, so
+ * the app opens from IndexedDB all the same (W1); the next sync settles
+ * whether the session still stands. Only a 401 means signed out.
  */
-async function boot(): Promise<Boot> {
+export async function boot(): Promise<Boot> {
   let db = localDb();
   await db.open();
   const known = (await getMeta<Me>(db, metaKeys.user)) ?? null;
   let user: Me;
   let offline = false;
   try {
-    const result = await refreshSession();
+    const result = resumeSession() ?? (await refreshSession());
     if (!result) return { kind: 'signedOut' };
     user = result.user;
   } catch (error) {
-    if (!(error instanceof ApiError) || !error.isNetwork) return { kind: 'failed' };
+    if (!isServerTrouble(error)) return { kind: 'failed' };
     if (!known) return { kind: 'offlineEmpty' };
     user = known;
     offline = true;

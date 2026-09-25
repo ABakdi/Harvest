@@ -329,8 +329,14 @@ final class RatesOrDefaultProvider
 
 String _$ratesOrDefaultHash() => r'cc08eb6f481dea021d811ec2d321bae51216a653';
 
+/// The pots as of the Harvest Day: movements logged ahead wait for
+/// their day, and join the balance when it comes.
+
 @ProviderFor(vaultBalances)
 final vaultBalancesProvider = VaultBalancesProvider._();
+
+/// The pots as of the Harvest Day: movements logged ahead wait for
+/// their day, and join the balance when it comes.
 
 final class VaultBalancesProvider
     extends
@@ -342,6 +348,8 @@ final class VaultBalancesProvider
     with
         $FutureModifier<Map<(MoneyAccount, Currency), int>>,
         $StreamProvider<Map<(MoneyAccount, Currency), int>> {
+  /// The pots as of the Harvest Day: movements logged ahead wait for
+  /// their day, and join the balance when it comes.
   VaultBalancesProvider._()
     : super(
         from: null,
@@ -368,7 +376,7 @@ final class VaultBalancesProvider
   }
 }
 
-String _$vaultBalancesHash() => r'7a9de6e29db6d72381e2a52f5c0d90b93ca800a7';
+String _$vaultBalancesHash() => r'8ceae1bab8ab02ef9c29c15196e39cfe9915bca5';
 
 @ProviderFor(recentTxns)
 final recentTxnsProvider = RecentTxnsProvider._();

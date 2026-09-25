@@ -10,6 +10,7 @@ import {
   EllipsisVerticalIcon,
   FlameIcon,
   HistoryIcon,
+  LockIcon,
   MoonIcon,
   NotebookPenIcon,
   PauseIcon,
@@ -51,16 +52,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { farmerRankForXp, type Schedule } from '@harvest/core';
 import { formatDay, formatMoney, formatNumber } from '@/lib/format';
+import { renderInline } from '@/lib/markdown';
 import { cn } from '@/lib/utils';
 import { EmptyState, ProgressRing, StreakChip } from '../components/bits';
 import { SeedLogDialog } from '../components/seed-log-dialog';
 import { SeedNoteDialog } from '../components/seed-note-dialog';
 import { StreakDialog } from './farmer';
 import { useHarvest, useHarvestDay } from '../context';
-import { loadField, readFieldGauges, readTomorrow, type FieldSeed } from '../data/field';
+import { loadField, readFieldGauges, readMoneySealed, readTomorrow, type FieldSeed } from '../data/field';
+import { notePreview } from '../data/notes';
 import { notesOn } from '../data/seed-notes';
 import type { SeedRow } from '../data/seeds';
-import { useDefaultCurrency } from '../hooks';
+import { useDefaultCurrency, usePrivateKey } from '../hooks';
 import { useDialogs } from '../dialogs';
 import { useShortcuts } from '../shortcuts';
 import { GoalsBoard } from './goals-board';
@@ -201,11 +204,11 @@ function SeedCard({
         <span className={cn('truncate text-xs text-muted-foreground', seed.overdue && !seed.done && 'font-bold text-destructive')}>
           {subtitle}
         </span>
-        {row.note && <span className="truncate text-xs text-muted-foreground">{row.note}</span>}
+        {row.note && <span className="truncate text-xs text-muted-foreground">{renderInline(notePreview(row.note))}</span>}
         {dayNote && (
           <span className="flex items-center gap-1 truncate text-xs text-foreground/80">
             <NotebookPenIcon className="size-3 shrink-0" aria-label={t('seedDetail.todaysNote')} />
-            <span className="truncate">{dayNote}</span>
+            <span className="truncate">{renderInline(notePreview(dayNote))}</span>
           </span>
         )}
       </div>
@@ -246,7 +249,15 @@ function SeedCard({
             </DropdownMenuItem>
           )}
           {row.type === 'habit' && (
-            <DropdownMenuItem onSelect={() => void seeds.setPaused(row.uuid, !paused)}>
+            <DropdownMenuItem
+              onSelect={() =>
+                void seeds.setPaused(row.uuid, !paused).then(() =>
+                  toast(paused ? t('field.resumedToast', { title: row.title }) : t('field.pausedToast', { title: row.title }), {
+                    action: { label: t('common.undo'), onClick: () => void seeds.setPaused(row.uuid, paused) },
+                  }),
+                )
+              }
+            >
               {paused ? <PlayIcon /> : <PauseIcon />}
               {paused ? t('field.resume') : t('field.pause')}
             </DropdownMenuItem>
@@ -389,6 +400,11 @@ function TodayView() {
 
   if (!view) return null;
   const rank = farmerRankForXp(view.totalXp);
+  // Past the goal it is met, not "4 of 3": the count stays, the fraction goes.
+  const goalLine =
+    view.goal > 0 && view.actions >= view.goal
+      ? t('field.goalMet', { count: view.actions })
+      : t('field.goalProgress', { actions: view.actions, goal: view.goal });
 
   return (
     <div className="flex flex-col gap-4">
@@ -396,11 +412,11 @@ function TodayView() {
         <ProgressRing
           ratio={view.goal > 0 ? view.actions / view.goal : 0}
           size={56}
-          label={t('field.goalProgress', { actions: view.actions, goal: view.goal })}
+          label={goalLine}
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="text-xl font-extrabold">{formatDay(day.key, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
-          <p className="text-sm text-muted-foreground">{t('field.goalProgress', { actions: view.actions, goal: view.goal })}</p>
+          <p className="text-sm text-muted-foreground">{goalLine}</p>
         </div>
         <dl className="flex flex-wrap gap-2 text-sm">
           <div className="flex items-center rounded-full bg-muted font-extrabold">
@@ -450,7 +466,8 @@ function TodayView() {
       ) : (
         <section aria-labelledby="today-heading" className="flex flex-col gap-2">
           <h2 id="today-heading" className="text-sm font-extrabold text-muted-foreground">
-            {t('field.dueToday', { count: view.today.length + albums.length })}
+            {/* A paused habit shown for a check-in it already had is resting, not due. */}
+            {t('field.dueToday', { count: view.today.filter((seed) => seed.row.pausedAt === null).length + albums.length })}
           </h2>
           {view.today.length === 0 && albums.length === 0 ? (
             <p className="rounded-xl bg-muted p-4 text-sm">{t('field.nothingDue')}</p>
@@ -543,12 +560,25 @@ function Gauges() {
   const day = useHarvestDay();
   const currency = useDefaultCurrency();
   const gauges = useLiveQuery(() => readFieldGauges(db, day), [db, day.key]);
+  const sealed = useLiveQuery(() => readMoneySealed(db), [db]);
+  const unlocked = usePrivateKey();
   if (!gauges || (gauges.budgetLeft === null && gauges.sleepOwed === null)) return null;
+  // Without the passphrase this browser holds only part of the spending:
+  // no number rather than a wrong one.
+  const locked = unlocked === false || sealed === true;
+  if (unlocked === undefined || sealed === undefined) return null;
   const line =
     'flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-extrabold outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring';
   return (
     <div className="flex w-full flex-col gap-1 border-t pt-2">
-      {gauges.budgetLeft !== null && (
+      {gauges.budgetLeft !== null && locked && (
+        <Link to="/app/granary" className={cn(line, 'font-semibold text-muted-foreground')}>
+          <LockIcon className="size-4" aria-hidden />
+          <span className="flex-1">{t('field.budgetLocked')}</span>
+          <ChevronRightIcon className="size-4 rtl:rotate-180" aria-hidden />
+        </Link>
+      )}
+      {gauges.budgetLeft !== null && !locked && (
         <Link to="/app/granary" className={line}>
           <WalletIcon className={cn('size-4', gauges.budgetLeft >= 0 ? 'text-success' : 'text-destructive')} aria-hidden />
           <span className="flex-1">

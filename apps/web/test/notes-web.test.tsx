@@ -119,6 +119,7 @@ describe('the notes screen', () => {
   async function open(path: string, setup?: (h: Awaited<ReturnType<typeof device>>) => Promise<void>) {
     vi.spyOn(api, 'assistStatus').mockResolvedValue({ available: false, model: null, usedToday: 0, dailyLimit: 50 });
     const h = await device(new FakeServer());
+    await h.settings.setString('features.notes', 'true');
     await setup?.(h);
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(

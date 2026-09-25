@@ -459,7 +459,7 @@ final class StepsPullProvider
   StepsPull create() => StepsPull();
 }
 
-String _$stepsPullHash() => r'3a266d67ccd1ddc1164875438f390b8999ea421f';
+String _$stepsPullHash() => r'898caeda0bb81859b3050517efa8a0c4ece546f6';
 
 /// The steps, pulled from the phone.
 ///

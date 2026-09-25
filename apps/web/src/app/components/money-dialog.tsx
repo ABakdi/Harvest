@@ -85,10 +85,11 @@ export function MoneyDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      {/* No lead, no description: a hidden copy of the title would only be read twice. */}
+      <DialogContent {...(description ? {} : { 'aria-describedby': undefined })}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description ? <DialogDescription>{description}</DialogDescription> : <DialogDescription className="sr-only">{title}</DialogDescription>}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
           <AmountField

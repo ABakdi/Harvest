@@ -280,7 +280,7 @@ Stream<bool> placesHighAccuracy(Ref ref) => ref
 
 /// A few words on what a pin is: a note's title, an expense's amount.
 @riverpod
-Future<String?> geotagDetail(Ref ref, ({String table, String uuid}) target) =>
+Future<GeotagDetail?> geotagDetail(Ref ref, ({String table, String uuid}) target) =>
     ref.watch(placesRepositoryProvider).detailFor(target.table, target.uuid);
 
 /// The geotag of one action, for the "where was it" line under it.

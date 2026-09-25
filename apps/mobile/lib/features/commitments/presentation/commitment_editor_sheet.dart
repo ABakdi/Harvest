@@ -166,13 +166,19 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     if (_type == CommitmentType.project) {
       final total = int.tryParse(_totalController.text) ?? 0;
       final daily = int.tryParse(_dailyController.text) ?? 0;
-      return total > 0 && daily > 0;
+      return Commitment.validProjectTargets(total, daily);
     }
     if (_type == CommitmentType.habit &&
         _scheduleKind == _ScheduleKind.weekly) {
       return _weekdays.isNotEmpty;
     }
     return true;
+  }
+
+  bool get _dailyOverTotal {
+    final total = int.tryParse(_totalController.text) ?? 0;
+    final daily = int.tryParse(_dailyController.text) ?? 0;
+    return total > 0 && daily > total;
   }
 
   Future<void> _save() async {
@@ -298,7 +304,9 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
               ButtonSegment(
                 value: CommitmentType.todo,
                 label: Text(l10n.typeTodo),
-                icon: const Icon(Icons.check),
+                // Not a tick: the tick is what marks the chosen type,
+                // and a to-do wearing one looked chosen when it was not.
+                icon: const Icon(Icons.event_note_outlined),
               ),
             ],
             selected: {_type},
@@ -426,6 +434,8 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
       onChanged: (_) => setState(() {}),
       decoration: InputDecoration(
         labelText: l10n.dailyCommitmentLabel,
+        // More a day than in all could never be kept.
+        errorText: _dailyOverTotal ? l10n.dailyOverTotal : null,
       ),
     ),
   ];

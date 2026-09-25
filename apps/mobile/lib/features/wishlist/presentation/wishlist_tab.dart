@@ -14,7 +14,6 @@ import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/wishlist/data/wishlist_repository.dart';
 import 'package:harvest/features/wishlist/domain/wishlist.dart';
 import 'package:harvest/features/wishlist/presentation/wishlist_editor_sheet.dart';
-import 'package:harvest/features/wishlist/presentation/wishlist_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// The Wishlist tab of the Granary ([[Wishlist]]): the buy list and the
@@ -30,10 +29,38 @@ class WishlistTab extends ConsumerStatefulWidget {
 class _WishlistTabState extends ConsumerState<WishlistTab> {
   WishlistList _list = WishlistList.buy;
 
+  /// The live list, held by the tab itself.
+  ///
+  /// It used to come through a provider watch, and after a sheet and a
+  /// system permission prompt had come and gone over the Granary that
+  /// watch could stay paused: writes landed in the database while the
+  /// tab kept saying "Nothing to buy" until the Granary tab was switched.
+  /// A subscription of the tab's own follows every write for as long as
+  /// the tab is on screen, whatever else was shown over it.
+  WishlistRepository? _repository;
+  StreamSubscription<List<WishlistItem>>? _subscription;
+  List<WishlistItem> _items = const [];
+
+  void _follow(WishlistRepository repository) {
+    if (identical(repository, _repository)) return;
+    _repository = repository;
+    unawaited(_subscription?.cancel());
+    _subscription = repository.watchAll().listen((items) {
+      if (mounted) setState(() => _items = items);
+    });
+  }
+
+  @override
+  void dispose() {
+    unawaited(_subscription?.cancel());
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final all = ref.watch(wishlistItemsProvider).value ?? const [];
+    _follow(ref.watch(wishlistRepositoryProvider));
+    final all = _items;
     final current = [
       for (final item in all)
         if (item.list == _list) item,
@@ -157,29 +184,28 @@ class _WishlistTabState extends ConsumerState<WishlistTab> {
     }
     if (sums.isEmpty) return '';
     return sums.entries
-        .map((entry) => formatAmount(entry.value, entry.key))
+        .map((entry) => formatMoney(entry.value, entry.key))
         .join(AppLocalizations.of(context).wishlistTotalsSeparator);
   }
 
   void _add() {
     unawaited(
       showWishlistEditor(context, initialList: _list).then((draft) {
-        if (draft == null) return;
+        if (draft == null || !mounted) return;
         setState(() => _list = draft.list);
       }),
     );
   }
 
-  Future<void> _move(WishlistItem item) async {
-    final repository = ref.read(wishlistRepositoryProvider);
-    await repository.move(item.uuid, _other(item.list));
-    setState(() {});
-  }
+  // No rebuild by hand after a write: the subscription above brings
+  // the new list, and a setState after the await could land on a tab
+  // that has already gone.
+  Future<void> _move(WishlistItem item) =>
+      ref.read(wishlistRepositoryProvider).move(item.uuid, _other(item.list));
 
   Future<void> _buy(WishlistItem item, bool bought) async {
     unawaited(HarvestHaptics.tick());
     await ref.read(wishlistRepositoryProvider).setBought(item.uuid, bought: bought);
-    setState(() {});
   }
 
   WishlistList _other(WishlistList list) => switch (list) {
@@ -277,6 +303,8 @@ Future<void> _deleteRow(
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
+      // An action is an offer for a few seconds, not a fixture.
+      persist: false,
       content: Text(AppLocalizations.of(context).wishlistRemoved),
       action: SnackBarAction(
         label: AppLocalizations.of(context).undoAction,
@@ -331,11 +359,13 @@ class _Row extends StatelessWidget {
         children: [
           if (item.priceMinor != null)
             Text(
-              formatAmount(item.priceMinor!, item.currency),
+              formatMoney(item.priceMinor!, item.currency),
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w800,
                 fontFeatures: const [FontFeature.tabularFigures()],
-                color: scheme.primary,
+                // A plan, not a debt: plain text, not the accent that
+                // reads as money owed.
+                color: scheme.onSurface,
               ),
             ),
           PopupMenuButton<_ItemAction>(
@@ -440,7 +470,7 @@ class _BoughtRow extends StatelessWidget {
       trailing: item.priceMinor == null
           ? null
           : Text(
-              formatAmount(item.priceMinor!, item.currency),
+              formatMoney(item.priceMinor!, item.currency),
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: scheme.onSurfaceVariant,

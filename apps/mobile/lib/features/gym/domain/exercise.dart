@@ -55,6 +55,12 @@ class Exercise {
   final String? mediaId;
   final bool mine;
 
+  /// The name as it is read: the catalogue writes every name in lower
+  /// case (`barbell full squat`), which is a database's idea of a title.
+  /// Only the display changes — the stored name, the id and the search
+  /// all keep what is there. Mine are shown as I typed them.
+  String get displayName => mine ? name : titleCase(name);
+
   /// `0001-2gPfomN` — the stem the thumbnail and the animation share.
   String? get mediaStem => mediaId == null ? null : '$id-$mediaId';
 
@@ -141,4 +147,60 @@ List<Exercise> filterExercises(List<Exercise> all, ExerciseFilter filter) {
     return a.name.toLowerCase().compareTo(b.name.toLowerCase());
   });
   return matched;
+}
+
+/// Small words that stay small inside a title.
+const _smallWords = {
+  'a',
+  'an',
+  'and',
+  'at',
+  'by',
+  'for',
+  'in',
+  'of',
+  'on',
+  'or',
+  'the',
+  'to',
+  'with',
+  'vs',
+  'v.',
+};
+
+/// Initialisms in the catalogue's names, written in capitals whole:
+/// `jm` (the JM press), `ez` and `sz` (the curl bars), `pov` (the
+/// camera's point of view). Words as short as these (`up`, `on`, `ab`)
+/// are words, and stay out. One list with the web's `titleCase`.
+const titleInitialisms = {'ez', 'jm', 'pov', 'sz'};
+
+/// `barbell full squat (side pov)` → `Barbell Full Squat (Side POV)`:
+/// each word's first letter raised — after a space, a hyphen, a slash
+/// or a bracket — the small words left small unless they lead, and the
+/// [titleInitialisms] in capitals.
+String titleCase(String text) {
+  final words = text.split(' ');
+  return [
+    for (final (index, word) in words.indexed)
+      if (index > 0 && _smallWords.contains(word)) word else _raise(word),
+  ].join(' ');
+}
+
+String _raise(String word) {
+  final out = StringBuffer();
+  // Each piece between a hyphen, a slash or a bracket, with its
+  // separator: `(sz-bar)` is `(`, `sz-`, `bar)`.
+  for (final piece in RegExp('[^-/(]*[-/(]?').allMatches(word)) {
+    final text = piece.group(0)!;
+    if (text.isEmpty) continue;
+    final core = text.replaceAll(RegExp('[^a-z]'), '');
+    if (titleInitialisms.contains(core)) {
+      out.write(text.toUpperCase());
+    } else {
+      out
+        ..write(text[0].toUpperCase())
+        ..write(text.substring(1));
+    }
+  }
+  return out.toString();
 }

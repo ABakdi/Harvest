@@ -174,7 +174,7 @@ class $CommitmentsTable extends Commitments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -186,7 +186,7 @@ class $CommitmentsTable extends Commitments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -1058,7 +1058,7 @@ class $CheckInsTable extends CheckIns
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -1081,7 +1081,7 @@ class $CheckInsTable extends CheckIns
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -1531,7 +1531,7 @@ class $SeedNotesTable extends SeedNotes
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -1554,7 +1554,7 @@ class $SeedNotesTable extends SeedNotes
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -1999,7 +1999,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -2011,7 +2011,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -2777,7 +2777,7 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, AlbumRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -2789,7 +2789,7 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, AlbumRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -3320,7 +3320,7 @@ class $MemoriesTable extends Memories
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -3332,7 +3332,7 @@ class $MemoriesTable extends Memories
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -3900,7 +3900,7 @@ class $StepDaysTable extends StepDays
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -4231,7 +4231,7 @@ class $BodyWeightsTable extends BodyWeights
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -4243,7 +4243,7 @@ class $BodyWeightsTable extends BodyWeights
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -4717,7 +4717,7 @@ class $ExercisesTable extends Exercises
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -4729,7 +4729,7 @@ class $ExercisesTable extends Exercises
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -5285,7 +5285,7 @@ class $ProgramsTable extends Programs
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -5297,7 +5297,7 @@ class $ProgramsTable extends Programs
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -7267,7 +7267,7 @@ class $TrainingMaxesTable extends TrainingMaxes
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -7610,7 +7610,7 @@ class $WorkoutSessionsTable extends WorkoutSessions
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _endedAtMeta = const VerificationMeta(
     'endedAt',
@@ -7665,7 +7665,7 @@ class $WorkoutSessionsTable extends WorkoutSessions
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -9076,7 +9076,7 @@ class $WorkoutSetsTable extends WorkoutSets
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -9634,7 +9634,7 @@ class $SleepSessionsTable extends SleepSessions
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -9646,7 +9646,7 @@ class $SleepSessionsTable extends SleepSessions
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -10244,7 +10244,7 @@ class $StreaksTable extends Streaks with TableInfo<$StreaksTable, StreakRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -10659,7 +10659,7 @@ class $LedgerTable extends Ledger with TableInfo<$LedgerTable, LedgerData> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -11083,7 +11083,7 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -11982,7 +11982,7 @@ class $ExpensesTable extends Expenses
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -12005,7 +12005,7 @@ class $ExpensesTable extends Expenses
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -12536,7 +12536,7 @@ class $ExpenseCategoriesTable extends ExpenseCategories
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -13001,7 +13001,7 @@ class $MoneyTxnsTable extends MoneyTxns
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -13024,7 +13024,7 @@ class $MoneyTxnsTable extends MoneyTxns
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -13703,7 +13703,7 @@ class $DebtsTable extends Debts with TableInfo<$DebtsTable, DebtRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -13726,7 +13726,7 @@ class $DebtsTable extends Debts with TableInfo<$DebtsTable, DebtRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -14324,7 +14324,7 @@ class $DebtPaymentsTable extends DebtPayments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -14744,7 +14744,7 @@ class $OutboxTable extends Outbox with TableInfo<$OutboxTable, OutboxData> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -15075,7 +15075,7 @@ class $KvSettingsTable extends KvSettings
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   @override
   List<GeneratedColumn> get $columns => [key, valueJson, updatedAt];
@@ -15399,7 +15399,7 @@ class $GoalsTable extends Goals with TableInfo<$GoalsTable, GoalRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -15411,7 +15411,7 @@ class $GoalsTable extends Goals with TableInfo<$GoalsTable, GoalRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -16060,7 +16060,7 @@ class $GoalItemsTable extends GoalItems
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -16072,7 +16072,7 @@ class $GoalItemsTable extends GoalItems
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -16732,7 +16732,7 @@ class $WishlistItemsTable extends WishlistItems
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -16744,7 +16744,7 @@ class $WishlistItemsTable extends WishlistItems
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -17431,7 +17431,7 @@ class $LocationPointsTable extends LocationPoints
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -18056,7 +18056,7 @@ class $GeotagsTable extends Geotags with TableInfo<$GeotagsTable, GeotagRow> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -18688,7 +18688,7 @@ class $SavedPlacesTable extends SavedPlaces
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -18700,7 +18700,7 @@ class $SavedPlacesTable extends SavedPlaces
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
@@ -19274,7 +19274,7 @@ class $NoteAttachmentsTable extends NoteAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -19286,7 +19286,7 @@ class $NoteAttachmentsTable extends NoteAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
+    clientDefault: DateTime.now,
   );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',

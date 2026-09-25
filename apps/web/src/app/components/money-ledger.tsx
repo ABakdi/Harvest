@@ -19,10 +19,10 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatDay, formatMoney, formatNumber } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { LocationNote } from './location-note';
-import { useHarvest } from '../context';
+import { useHarvest, useHarvestDay } from '../context';
 import type { CategoryRow } from '../data/categories';
 import { type ExpenseRow, presetCategories } from '../data/money';
-import { type MoveFilter, type TxnRow, activeFilters, emptyFilter, txnKinds } from '../data/vault';
+import { type MoveFilter, type TxnRow, activeFilters, emptyFilter, isUpcoming, txnKinds } from '../data/vault';
 import { categoryLabel } from './category';
 import { ExpenseEditor } from './expense-editor';
 import { CategoryIcon, conversionCaption, moneyError, useCustomCategories } from './money-bits';
@@ -160,12 +160,15 @@ function MoveIcon({ row, customs }: { row: TxnRow; customs: readonly CategoryRow
 /**
  * Movements grouped by day (`MovesLedger`), shared by the Vault's pots
  * and the Insights page. An expense's movement opens its expense; a
- * hand-made one can be removed, with Undo.
+ * hand-made one can be removed, with Undo. One logged ahead sits on top
+ * under its own day, marked upcoming: it counts on that day, not before
+ * ([[Finances]]).
  */
 export function MovesLedger({ rows, total, rates, empty }: { rows: TxnRow[]; total: number; rates: Rates; empty: string }) {
   const { t } = useTranslation();
   const { db, vault } = useHarvest();
   const customs = useCustomCategories();
+  const today = useHarvestDay();
   const [editing, setEditing] = useState<ExpenseRow | null>(null);
 
   if (rows.length === 0) {
@@ -203,7 +206,11 @@ export function MovesLedger({ rows, total, rates, empty }: { rows: TxnRow[]; tot
     <div className="flex flex-col gap-3">
       {days.map((day) => (
         <section key={day} className="flex flex-col gap-1">
-          <h3 className="px-1 text-xs font-extrabold text-muted-foreground">{formatDay(day, { weekday: 'long', day: 'numeric', month: 'short' })}</h3>
+          <h3 className="px-1 text-xs font-extrabold text-muted-foreground">
+            {isUpcoming({ harvestDay: day }, today)
+              ? t('vault.ledgerDayUpcoming', { day: formatDay(day, { weekday: 'long', day: 'numeric', month: 'short' }) })
+              : formatDay(day, { weekday: 'long', day: 'numeric', month: 'short' })}
+          </h3>
           <ul className="flex flex-col divide-y rounded-xl border bg-card">
             {rows
               .filter((row) => row.harvestDay === day)

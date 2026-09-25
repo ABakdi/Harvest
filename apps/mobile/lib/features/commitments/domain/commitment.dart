@@ -81,6 +81,26 @@ class Commitment {
   int get maxUnitsPerDay =>
       type == CommitmentType.project ? 2 * (dailyCommitment ?? 0) : 1;
 
+  /// The most units a check-in can still write on a day with
+  /// [loggedToday] on it and [totalLogged] on the seed ever (today's
+  /// included): twice the daily commitment on one day, and never more
+  /// than what is left of the total — 100 of 100 is done, not 160 of
+  /// 100 (business rule #2). One rule with `roomToday` in
+  /// `@harvest/core`, pinned by `over-log.json`.
+  int roomToday(int loggedToday, {int totalLogged = 0}) {
+    if (type != CommitmentType.project) return loggedToday > 0 ? 0 : 1;
+    var room = maxUnitsPerDay - loggedToday;
+    if (totalTarget != null && totalTarget! - totalLogged < room) {
+      room = totalTarget! - totalLogged;
+    }
+    return room < 0 ? 0 : room;
+  }
+
+  /// A project asks for no more a day than it asks for in all: a daily
+  /// commitment over the total could never be kept.
+  static bool validProjectTargets(int total, int daily) =>
+      total > 0 && daily > 0 && daily <= total;
+
   Commitment copyWith({
     String? title,
     Schedule? schedule,

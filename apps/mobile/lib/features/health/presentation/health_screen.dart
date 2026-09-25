@@ -101,6 +101,13 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 body: l10n.weightEmptyBody,
                 compact: true,
                 color: Theme.of(context).colorScheme.tertiary,
+                // The action is here, where the card sends me — the
+                // floating button is last night's until it is logged.
+                action: FilledButton.tonalIcon(
+                  onPressed: () => showWeightSheet(context).ignore(),
+                  icon: const Icon(Icons.monitor_weight_outlined),
+                  label: Text(l10n.weightLog),
+                ),
               ),
             )
           else
@@ -425,7 +432,14 @@ class _StepsSourceRow extends ConsumerWidget {
               spacing: HarvestSpacing.sm,
               children: [
                 FilledButton.tonalIcon(
-                  onPressed: () => unawaited(_connect(context, notifier)),
+                  onPressed: () => unawaited(
+                    _connect(
+                      context,
+                      notifier,
+                      source,
+                      healthConnect: healthConnect,
+                    ),
+                  ),
                   icon: const Icon(Icons.link, size: 18),
                   label: Text(l10n.stepsConnect),
                 ),
@@ -456,16 +470,46 @@ class _StepsSourceRow extends ConsumerWidget {
     }
   }
 
-  Future<void> _connect(BuildContext context, StepsPull notifier) async {
+  /// A refusal — or a phone that answers without ever showing the
+  /// question — points at Health Connect's own settings, where the
+  /// permission can always be given by hand, instead of sending me
+  /// round the same Connect button again.
+  Future<void> _connect(
+    BuildContext context,
+    StepsPull notifier,
+    StepsSource source, {
+    required bool healthConnect,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final ok = await notifier.connect();
     if (ok) return;
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(l10n.stepsDenied)));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            healthConnect ? l10n.stepsDeniedHealthConnect : l10n.stepsDenied,
+          ),
+          // An action is an offer for a few seconds, not a fixture.
+          persist: false,
+          action: healthConnect
+              ? SnackBarAction(
+                  label: l10n.stepsOpenHealthConnect,
+                  onPressed: () => unawaited(source.openHealthConnect()),
+                )
+              : null,
+        ),
+      );
   }
 }
+
+/// The colour of the weight's one-line trend. Too few readings is a
+/// fact, not a warning: it reads in the plain secondary text colour
+/// until there is a trend to show.
+@visibleForTesting
+Color weightTrendColor(ColorScheme scheme, {required bool hasTrend}) =>
+    hasTrend ? scheme.primary : scheme.onSurfaceVariant;
 
 /// The chart, the sentence, and the window the sentence reads over.
 class _WeightCard extends ConsumerWidget {
@@ -537,7 +581,7 @@ class _WeightCard extends ConsumerWidget {
                   : l10n.weightUp(amount(trend.gramsChanged), trend.days),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: scheme.primary,
+                color: weightTrendColor(scheme, hasTrend: trend != null),
               ),
             ),
             if (target != null) ...[
@@ -652,6 +696,8 @@ class _WeightRow extends ConsumerWidget {
     await repository.removeWeight(weight.uuid);
     messenger.showSnackBar(
       SnackBar(
+        // An action is an offer for a few seconds, not a fixture.
+        persist: false,
         content: Text(l10n.deleted),
         action: SnackBarAction(
           label: l10n.undoAction,

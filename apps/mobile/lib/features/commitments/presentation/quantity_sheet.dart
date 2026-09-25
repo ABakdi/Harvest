@@ -17,7 +17,10 @@ Future<CheckInResult?> showQuantitySheet(
   required FieldItem item,
 }) {
   final commitment = item.commitment;
-  final remaining = commitment.maxUnitsPerDay - item.loggedToday;
+  final remaining = commitment.roomToday(
+    item.loggedToday,
+    totalLogged: item.totalLogged,
+  );
   return showHarvestSheet<CheckInResult>(
     context,
     builder: (sheetContext) => _QuantitySheet(

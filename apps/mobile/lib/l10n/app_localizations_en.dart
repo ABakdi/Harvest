@@ -1188,8 +1188,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkInFailed => 'That did not save. Try again.';
 
   @override
-  String activitySemantics(int days, int weeks) {
-    return '$days active days in the last $weeks weeks';
+  String activitySemantics(int days, String span) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days active days in $span',
+      one: '1 active day in $span',
+      zero: 'No active days in $span',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String activityLastWeeks(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: 'the last $weeks weeks',
+      one: 'the last week',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2036,11 +2054,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get obExtrasTitle => 'Two more, if you want them';
+  String get obExtrasTitle => 'A few more, if you want them';
 
   @override
   String get obExtrasBody =>
-      'Both stay hidden unless you say yes. You can change your mind in Settings at any time.';
+      'Each stays hidden unless you switch it on. You can change your mind in Settings at any time.';
 
   @override
   String get albumReminderBody => 'Today\'s picture is still missing.';
@@ -2490,7 +2508,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weightEmptyBody =>
-      'Tap Log a weight. The line has a shape from the third one.';
+      'Your first weight starts the line; it takes a shape from the third.';
 
   @override
   String get weightHistory => 'Every reading';
@@ -3003,8 +3021,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gymFinishIncompleteTitle => 'Finish with sets left?';
 
   @override
-  String gymFinishIncompleteBody(int left, int total) {
-    return '$left of $total sets are not ticked. The session ends here and the gym habit is checked in as done for today.';
+  String gymFinishIncompleteBody(int left, int total, String day) {
+    return '$left of $total sets are not ticked. The session ends here and the gym habit is checked in as done for $day.';
   }
 
   @override
@@ -4200,4 +4218,143 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gymRestOverBody => 'Next set.';
+
+  @override
+  String get stepsDeniedHealthConnect =>
+      'Not allowed yet. Health Connect\'s settings can always allow it: open them, allow Steps for Harvest, and come back.';
+
+  @override
+  String get ratesDzdManual =>
+      'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.';
+
+  @override
+  String get ratesFetchedEurUsd =>
+      'EUR → USD updated. The dinar rates stay as you typed them.';
+
+  @override
+  String get accountServerExample =>
+      'Your Harvest server\'s address, like https://harvest.example.com';
+
+  @override
+  String get accountServerInvalid =>
+      'Enter the server\'s address, starting with https://';
+
+  @override
+  String get accountEmailMissing => 'Enter your email.';
+
+  @override
+  String get accountEmailInvalid => 'That doesn\'t look like an email address.';
+
+  @override
+  String get accountPasswordMissing => 'Enter your password.';
+
+  @override
+  String get accountPasswordShort => 'At least 10 characters.';
+
+  @override
+  String get accountPasswordLong => 'At most 256 characters.';
+
+  @override
+  String get expensesUpcoming => 'Upcoming';
+
+  @override
+  String expensesUpcomingBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count expenses logged ahead. Each counts on its day, not before.',
+      one: '1 expense logged ahead. It counts on its day, not before.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get debtReopened => 'Payment removed. The debt is open again.';
+
+  @override
+  String debtSettledWith(String person) {
+    return 'Settled with $person. Nothing left to pay!';
+  }
+
+  @override
+  String get debtPaymentRemove => 'Remove payment';
+
+  @override
+  String cropCheckIn(String title) {
+    return 'Check in $title';
+  }
+
+  @override
+  String get gymDayToday => 'today';
+
+  @override
+  String gymStaleTitle(String day) {
+    return 'Still open from $day';
+  }
+
+  @override
+  String gymStaleBody(int done, int total, String day) {
+    return '$done of $total sets logged. Finish it and it counts for $day: the gym habit is checked in on that day, not today. Or drop it.';
+  }
+
+  @override
+  String get gymStaleLater => 'Not now';
+
+  @override
+  String gymStaleFinish(String day) {
+    return 'Finish as of $day';
+  }
+
+  @override
+  String gymCheckedInOn(String day, int xp) {
+    return 'Checked in for $day · +$xp XP';
+  }
+
+  @override
+  String gymClockDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymPlates => 'Plates';
+
+  @override
+  String logCut(int logged, int dropped) {
+    return 'Logged $logged; $dropped over the cap left out';
+  }
+
+  @override
+  String get dailyOverTotal => 'Can\'t be more than the total target';
+
+  @override
+  String projectLeft(int left) {
+    return '$left to go';
+  }
+
+  @override
+  String get projectReached => 'Target reached';
+
+  @override
+  String get notesNoFolder => 'No folder';
+
+  @override
+  String ledgerDayUpcoming(String day) {
+    return '$day · upcoming';
+  }
+
+  @override
+  String projectDoneCut(int logged, int dropped) {
+    return '$logged logged; $dropped over the target left out.';
+  }
+
+  @override
+  String get stepsNoDaysConnectedBody =>
+      'Each day\'s count lands here once the day is over.';
 }

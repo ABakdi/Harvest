@@ -203,7 +203,11 @@ class WidgetService {
     final rates = await _rates();
     final rows =
         await (_db.select(_db.moneyTxns)..where(
-              (t) => t.account.equals('wallet') & t.deletedAt.isNull(),
+              (t) =>
+                  t.account.equals('wallet') &
+                  t.deletedAt.isNull() &
+                  // Logged ahead: it counts on its day ([[Finances]]).
+                  t.harvestDay.isSmallerOrEqualValue(HarvestDay.today().key),
             ))
             .get();
     var total = 0;
