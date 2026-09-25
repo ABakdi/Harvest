@@ -47,10 +47,13 @@ A synced row travels as a **record**:
   snake_case). `data` holds **every** column of the row in camelCase,
   its key and clocks included, with every timestamp as ISO-8601 UTC
   ending in `Z` and money in minor units, as in the export
-  ([[ADR-006-Export-Format]]). A column missing, a column unknown, or a
+  ([[ADR-006-Export-Format]]). A column unknown, or a
   `uuid`/`updatedAt`/`deletedAt` that disagrees with the row's own
   makes the record invalid — so the server ships before any phone
-  schema change, never after.
+  schema change, never after. A column **missing** is invalid too,
+  except one added after v3.0.0-beta.1 (`saved_places.notes` so far):
+  a device that has not upgraded yet sends rows without it, and they
+  read as null rather than vanish.
 - **Keys that are not uuids** travel in the `uuid` field all the same:
   `step_days` by its day, `streaks` by its scope, `kv_settings` by its
   key (and only an allow-listed one), `training_maxes` as

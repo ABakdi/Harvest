@@ -3,13 +3,13 @@
 *Cultivate your day. Harvest your potential.*
 
 Harvest is a gamified life-management app I'm building with Flutter,
-with a web version and a sync server on the way. It
+with a web version and a sync server of its own. It
 takes the streak psychology that keeps people coming back to Duolingo and
 points it at the pillars of an ordinary day — what you get done, what you
 spend, and in time what you do with your body and your attention — while
 staying minimalist, local-first, and entirely under my control. No
 telemetry, and nothing leaves the phone unless I ask: the account and
-sync coming in Phase 6 are optional forever.
+sync are optional forever.
 
 The whole idea is one streak, fed by everything. Duolingo asks for a
 lesson a day and that single anchor is enough to pull people back for
@@ -17,13 +17,16 @@ years — but it only covers one narrow slice of a life, and the bar never
 moves. Here the bar is mine to raise, and the streak is fed by whatever
 I decide matters this month.
 
-**Status: v2.0 — the body half, shipped.** The productivity core, the
-finances, a markdown vault and photo albums are in daily use behind an
-optional lock, and v2 adds a training log — programs, sessions,
-personal records — with sleep, steps and body weight beside it. Grab
-it from the [releases page](https://github.com/ABakdi/Harvest/releases).
+**Status: v3.0 in beta — the phone, the web and the server.** On top
+of v2's training log, sleep, steps and body weight, Phase 5 added a
+goals board, a trail with every action pinned on a free map, and voice
+notes; Phase 6 added an optional account, sync with the money and the
+places end-to-end encrypted, and the whole app in a browser — which
+now writes everything the phone writes, except what needs the phone
+itself (alarms, steps, the trail, the widget, the lock). The latest
+build is on the [releases page](https://github.com/ABakdi/Harvest/releases).
 
-It went through four betas first: [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
+v2.0 went through four betas first: [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
 is the first week's findings, fixed, and the
 [second audit](docs/06-Audit/Audit-v2-Beta.md) read the whole of the
 new half and fixed what it found;
@@ -32,12 +35,11 @@ the next days asked for; [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md)
 closes the day's steps on its own. The
 [third audit](docs/06-Audit/Audit-v2.md) read v2.0.0 after release.
 
-**Next:** [Phase 5](docs/03-Planning/Phase-5-Goals-Places-and-Voice.md)
-adds a goals board, a trail with every action pinned on a free map,
-and voice notes. Then [Phase 6](docs/03-Planning/Phase-6-Sync-Accounts-and-Web.md)
-brings an optional account, sync, and the whole app on the web. The
-repository is a monorepo for it: `apps/mobile` (Flutter), `apps/web`
-(React), `apps/server` (Express), and the shared `packages/`.
+**Next:** `v3.0.0` proper once the beta has been lived in, then
+[Phase 7](docs/03-Planning/Phase-7-Screen-Time.md), screen time. The
+repository is a monorepo: `apps/mobile` (Flutter), `apps/web`
+(React), `apps/server` (Express), the shared `packages/`, and
+`deploy/` to run it all.
 
 ## Table of contents
 
@@ -160,6 +162,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Notes](docs/01-Specification/Notes.md) | Markdown notes with links between them (Phase 3) |
 | [Gallery](docs/01-Specification/Gallery.md) | Albums, the daily picture, the timelapse (Phase 3) |
 | [Finances](docs/01-Specification/Finances.md) | Expense logging, budgets, the vault |
+| [Wishlist](docs/01-Specification/Wishlist.md) | To buy vs. someday: two lists with estimated prices (Phase 6) |
 | [Health](docs/01-Specification/Health.md) | Sleep, steps and body weight (Phase 4) |
 | [Gym](docs/01-Specification/Gym.md) | Programs, sessions, sets and personal records (Phase 4) |
 | [Goals](docs/01-Specification/Goals.md) | The board on the field: what it takes, and the seeds that get me there (Phase 5) |
@@ -211,6 +214,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md) | Steps that count, one way to split a screen, and a gym that knows what day it is |
 | [Checkpoint 7](docs/05-Checkpoints/Checkpoint-7.md) | Finish where the thumb is, a record's moment, and settings as a place |
 | [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md) | The day's steps written down at 3 AM, and an expense on the day it belongs to |
+| [Checkpoint 9](docs/05-Checkpoints/Checkpoint-9.md) | The Wishlist, the web writing everything the phone writes, and a deployment I can run |
 
 ### Audit
 
@@ -248,7 +252,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 - **fl_chart** for charts · **table_calendar** for the calendar
 - **flutter_local_notifications** + **workmanager** for reminders and the 3 AM reset
 - **English + Arabic** with full RTL support via gen-l10n
-- Local-first forever; server sync (MongoDB) arrives in Phase 6
+- Local-first forever; sync through my own server (MongoDB) is optional, with the private tier sealed on the device
 - **Web:** React 19, Vite, TypeScript, Tailwind + shadcn/ui, Dexie (IndexedDB), a PWA
 - **Server:** Express 5, TypeScript, zod, MongoDB, argon2id, JWT with rotating refresh tokens
 - **Maps:** MapLibre on OpenFreeMap tiles, no Google anywhere
@@ -277,6 +281,15 @@ pnpm test         # every package
 pnpm typecheck
 ```
 
+To run the whole thing on a server of my own — database, API and the
+site behind Caddy with its certificate — see
+[Deployment](docs/02-Architecture/Deployment.md):
+
+```sh
+cp deploy/.env.example deploy/.env
+docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+```
+
 Schema changes follow the migration workflow in
 [Local Database](docs/02-Architecture/Local-Database.md): bump the
 version, write the step, dump and generate the schema, add the upgrade
@@ -300,8 +313,9 @@ keyAlias=harvest
 keyPassword=…
 ```
 
-Without the file, release builds fall back to the debug key with a
-warning (fine for a dev machine, never for distribution). Release builds
+Without the file, a release build stops rather than go out on the
+debug key; `-PallowDebugSigning=true` lets a local release run through
+anyway (never for distribution). Release builds
 shrink and obfuscate; keep the symbol map with the tag you ship:
 
 ```sh
@@ -323,16 +337,17 @@ apps/
                     finances, calendar, stats, settings, security, export,
                     import, widget, onboarding, notes, gallery, records,
                     body, health, gym, farmer, goals, places, assist,
-                    sync, account
+                    sync, account, wishlist
       l10n/         ARB files (en, ar)
     packages/harvest_steps/   the Health Connect / step-sensor plugin
-    drift_schemas/  exported schema snapshots (v1 … v15)
+    drift_schemas/  exported schema snapshots (v1 … v21)
     test/           unit, widget, migration and golden tests
   web/              the React web app and PWA
   server/           the Express sync and accounts API
 packages/
   contracts/        zod schemas for every API body and synced table
   core/             the domain rules in TypeScript
+deploy/             Compose + Caddy: the database, the server and the site
 docs/               the Obsidian vault
 ```
 

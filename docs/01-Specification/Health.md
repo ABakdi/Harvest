@@ -206,7 +206,7 @@ that is a different app and I am not writing it.
 | H3 | Steps are passive: they never check a seed in and never break a streak. |
 | H4 | Weight is stored in grams, integer. Units are a display choice. |
 | H5 | The weight chart shows the trend, not just the dots — and never judges the direction. |
-| H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. |
+| H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. On the web the two ends are typed as clock times and read with the phone's slider ranges: asleep from 8 PM the evening before to 11 AM, awake up to 3 PM. Correcting a night keeps the target it was first judged against (#3). |
 | H7 | Sleep is not a seed: it checks nothing in, breaks no streak, and never appears on the field. |
 | H8 | A night is filed under the Harvest Day I **woke up on**, because that is the day it decides. |
 | H9 | The day that ended gets its step goal paid by whichever pull sees it first — the 3 AM job or the next open — and once only ([[Checkpoint-8]]). A pull pays every day since the last one paid, so a weekend without an open is paid on Monday ([[Audit-v2]] B3-02). |

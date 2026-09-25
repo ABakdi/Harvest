@@ -92,6 +92,25 @@ A geotag is its own row (`target_table`, `target_uuid`, time,
 coordinates, accuracy, state), never a column added to thirty
 tables. That way a table I add later is geotagged by being on one list.
 
+## The location chip
+
+Every geotagged action shows where it happened, as one small chip
+beside its row — the pin icon, then the place and the time:
+
+- the **saved place's name**, when the point falls inside one;
+- otherwise the **coordinates**, four decimals each (`36.7000,
+  3.0500`);
+- a muted *"no location recorded"* once the geotag has settled without
+  a fix (PL3: the action stands without a place). While the phone is
+  still looking, it shows nothing; a browser never has a pending geotag
+  of its own, and shows a muted *"finding the place…"* only for one the
+  phone has not resolved yet.
+
+A tap on the chip opens Places on that action's day, with its pin
+selected on the map. With Places turned off the chip is not a link. The chip appears beside every geotagged action:
+expenses and transfers, pictures, notes, check-ins, sets and sessions
+(PL8).
+
 ## The map
 
 **Records** gains a third tab: **Notes · Gallery · Places** (the tab
@@ -108,8 +127,22 @@ row as in [[Notes]] N6).
 - **Stays**: stretches of ten minutes or more within 100 m of one spot.
   They are drawn as circles and listed in the timeline as
   *"08:10–17:45 · 9 h 35 min"*. I can name a stay ("Home", "Office",
-  "Gym"). The name is kept as a **saved place** with a radius, and
-  every later stay inside that radius takes the name.
+  "Gym").
+- **Saved places**: the names I give to stays are kept as **saved
+  places** — a pin, a name, a radius, and an optional **note** ("the
+  bench by the old olive tree"). Saved places are drawn on the map in
+  the saved colour over whatever day is shown, with their **name
+  label** beside the pin, and they name any later stay or action that
+  falls inside their radius. A saved place can be made without staying:
+  a **right-click** on the web map (or a **long-press** on the phone)
+  drops a pin, and the little card that opens saves it or, in the
+  timeline, edits its name, note and radius (10 to 5,000 m, the same on
+  the phone and the web) or **forgets** it. Forgetting removes the pin,
+  with an undo; it does not touch the trail.
+- **Map base**: streets (OpenFreeMap) or **satellite** (Esri World
+  Imagery). One setting, `places.mapBase`, with the same key on the
+  phone and the browser so the choice follows across devices
+  ([[ADR-010-Maps]]).
 - **Range view**: a week or a month with the trails together. This is
   the travel view; any span of days and clustered pins come later.
 - **Filters** (later): pins by feature, so the day's expenses can be
@@ -126,8 +159,10 @@ timeline and stays still list everything, because they are local.
 - **Export** carries the `LocationPoints`, `Geotags` and
   `SavedPlaces` sheets ([[Business-Rules]] #11). The archive screen says
   so beside the switch that leaves them out of a given export.
-- **The map tiles** are fetched from OpenFreeMap. They learn which
-  area of the map I am looking at, never the trail ([[ADR-010-Maps]]).
+- **The map tiles** are fetched from OpenFreeMap, and the satellite
+  layer from Esri World Imagery with their attribution shown. They
+  learn which area of the map I am looking at, never the trail
+  ([[ADR-010-Maps]]).
 - **Turning Places off** stops the service at once and stops
   geotagging. It deletes nothing. *Delete all location history* is a
   separate button, confirmed, and not undoable.
@@ -137,11 +172,13 @@ timeline and stays still list everything, because they are local.
 | # | Rule |
 | :-- | :--- |
 | PL1 | Places is off by default. The trail needs "all the time" permission and a visible foreground notification, and without them it does not run. |
-| PL2 | Every insert into an action table gets a geotag when Places is on. The list of action tables is one constant, and a new feature joins by being added to it. |
-| PL3 | A missing location never blocks, delays or fails an action. The geotag is marked unavailable and the action stands. |
+| PL2 | Every insert into an action table gets a geotag when Places is on. The list of action tables is one constant, and a new feature joins by being added to it. In a browser this is opt-in: `web.geotagging`, off by default and never synced, uses the browser's own location, and resolves only the geotags that browser queued ([[Web]]). |
+| PL3 | A missing location never blocks, delays or fails an action. The geotag is marked unavailable and the action stands. The phone gives where it is *now* only to a geotag from the last ten minutes; an older one — left by an app closed before its fix, or brought by sync — takes the trail point recorded at its own time if there is one, and is otherwise unavailable. A browser writes a geotag only once it is resolved, so nothing pending ever leaves it; a tab closed before the fix leaves the action untagged. An imported row is never geotagged. |
 | PL4 | Points are append-only. A day's trail can be deleted whole; a point can never be moved. |
 | PL5 | Stays are derived from points, never stored, except the names I give them, which are saved places. |
 | PL6 | Location data is private-tier: end-to-end encrypted in sync, exported only with my say-so per export, and never sent anywhere else. |
 | PL7 | No location is ever shared with another person, sent to a geocoder in the background, or used to suggest anything. |
+| PL8 | Every geotagged action shows a location chip — the saved place's name or the coordinates, and the time — that opens that day's map with its pin selected. A geotag without a fix still shows the chip, muted, so the action is not mistaken for a located one. |
+| PL9 | The map base is one setting, `places.mapBase` (streets or satellite), shared between the phone and the browser. Satellite tiles come from Esri World Imagery; both bases show their required attribution. |
 
 Related: [[ADR-010-Maps]] · [[Gallery]] · [[Finances]] · [[Sync-Strategy]] · [[Phase-5-Goals-Places-and-Voice]]

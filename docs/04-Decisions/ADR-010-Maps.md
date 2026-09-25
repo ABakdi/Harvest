@@ -43,14 +43,42 @@ at an advertising company, or on a quota that ends with a bill.
   an open service (Photon or Nominatim) called with care, never a
   background job that sends my whole trail away.
 
+## Addendum — the satellite base is Esri World Imagery
+
+One map is not enough for a travel view: over a city or in the
+mountains, the street map stops carrying the day. The map therefore
+offers a second base, **satellite**, drawn on the same MapLibre
+canvas (2026-09-23).
+
+- **Tiles: Esri World Imagery**, the free raster tileset
+  (`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}`).
+  No key, no account, no quota to bill, and it is the de-facto open
+  satellite set behind most of the free web maps. The alternative —
+  OSM's aerial imagery or a commercial geocoder — is worse on the
+  same axes that ruled out Google.
+- **Attribution** is required and always shown: *"Esri, Maxar,
+  Earthstar Geographics, and the GIS User Community"* (plus the
+  OpenStreetMap/OpenFreeMap attribution on the streets base).
+- **The choice is one setting**, `places.mapBase` (`streets` |
+  `satellite`), with the same key name on the phone and the browser so
+  it syncs between them, defaulting to `streets`. The style URL
+  setting above stays as-is: the satellite style is bundled in the
+  app, not loaded from a changing server.
+- **The satellite style carries OpenFreeMap's glyphs**, so the saved
+  places' names draw over it too, in `Noto Sans Regular`; the imagery
+  has no labels of its own.
+- **Nothing else changes.** It is still MapLibre, still no Google, and
+  the trail and pins are drawn by the app over whichever base shows.
+
 ## Consequences
 
 - Viewing the map needs a connection for tiles. The trail and the
   pins are local, so they are still listed without one.
-- Tiles are fetched from a third party. They learn *which areas of the
-  map I look at*, not my trail: the trail is drawn on the phone and
-  never sent. That leak is the same one any map app has, and it is
-  written down here so the privacy tier in [[Sync-Strategy]] stays
+- Tiles are fetched from a third party — OpenFreeMap on the streets
+  base, Esri World Imagery on the satellite base. They learn *which
+  areas of the map I look at*, not my trail: the trail is drawn on the
+  phone and never sent. That leak is the same one any map app has, and
+  it is written down here so the privacy tier in [[Sync-Strategy]] stays
   honest.
 
 Related: [[Places]] · [[ADR-012-Web-Client]]

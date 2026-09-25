@@ -29,6 +29,8 @@ flowchart LR
     D --> H[M6.8 Private tier & files]
     G --> H
     H --> I[M6.9 Server assist & release]
+    I --> J[M6.10 Wishlist]
+    J --> K[M6.11 The web does what the phone does]
 ```
 
 ## M6.1 — Contracts and core
@@ -140,7 +142,61 @@ flowchart LR
 - [x] Deployment notes ([[Deployment]]): the server's two-stage
   image, built and run against a real MongoDB to prove it serves; the
   static web bundle, and the two things its host must do.
-- [ ] The checkpoint and `v3.0.0`.
+
+## M6.10 — Wishlist ([[Wishlist]])
+A fourth Granary tab carrying two lists — **to buy** (day to day) and
+**wishlist** (future planning) — with an estimated price, note and
+planned purchase day on each item. One `wishlist_items` table, plain
+sync, its own export sheet: planned (W1–W7), and shipped on both
+clients before the checkpoint.
+- [x] Schema: `wishlist_items` (v19), listed in the contract registry
+  with a plain fixture, so the phone and the browser agree on columns.
+- [x] Phone: repository (add, edit, move, reorder, mark bought, soft
+  delete, purge), the tab with its two segments and per-currency
+  totals, the editor sheet, `gen-l10n` strings in both languages.
+- [x] Web: Dexie store + repository, the panel and editor, the
+  Granary's fourth tab opened without the passphrase gate (the money
+  tabs keep theirs).
+- [x] Wishlist sheet in the workbook: read, write and import, with the
+  Summary counting it and the totals leaving estimates out.
+- [x] Migration test v18 → v19 and the schema dump; feature, export and
+  web tests.
+- [x] Saved places take a note (v20), every geotagged action shows
+  where it happened ([[Places]] PL8), and the map has a satellite base
+  (PL9, [[ADR-010-Maps]]).
+
+## M6.11 — The web does what the phone does
+Until here the web read most of the app and wrote a third of it. The
+rule from now on: anything the phone writes that does not need the
+phone's own hardware, the browser writes too ([[Web]]).
+- [x] Field: a seed's own page (the run, the eight weeks, the
+  timeline) and its daily notes, the focus timer, tomorrow's plan, the
+  project-done moment, the calendar's quick to-do, a freeze bought
+  with coins, the weekly report; scheduled albums on the field.
+- [x] Granary: wallet and savings moves, debts and their payments, the
+  budget set and cleared, categories, sums in an amount (one rule in
+  `packages/core`, pinned by a fixture both sides read), the repeat
+  card, and the Insights tab.
+- [x] Body: nights and weights written, the steps goal and stride; the
+  program editor, exercise records and the plate calculator (the gym's
+  rules in `packages/core/gym.ts`, with a fixture), and a session run
+  in the browser from start to finish.
+- [x] Files: pictures and recordings uploaded, sealed, from the
+  browser. Gallery: albums with schedules, pictures, the viewer, trash,
+  compare and the timelapse. Notes: folders, tables, recordings, read
+  aloud, print.
+- [x] Places: week and month, a stay named, a place edited or
+  forgotten, location history deleted, and opt-in geotags from the
+  browser.
+- [x] Settings as on the phone (the daily cycle, features, rates, the
+  focus lengths), the first run, and the archive exported and imported
+  in the phone's format — a web zip imports on the phone and the
+  other way round, pinned by two fixtures.
+- [x] Deployment: `deploy/compose.yaml` runs the database, the server
+  and Caddy serving the site, with the headers in `deploy/Caddyfile`
+  ([[Deployment]]).
+- [x] The checkpoint ([[Checkpoint-9]]) and `v3.0.0-beta.2`.
+- [ ] `v3.0.0`, once the beta has been lived in.
 
 **Exit:** the phone and the browser converge on the same day's
 field, the same notes and the same month of expenses, with the private

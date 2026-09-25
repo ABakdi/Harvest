@@ -98,6 +98,11 @@ The rules that make it an archive rather than a dump:
    that export ([[Places]] PL6). The settings sheet carries only the
    preferences an import would accept ([[Audit-v2]] S3-05).
 
+The web writes and reads this same archive ([[Web]]). Its timestamps
+are UTC with a `Z`; the phone's carry no offset and are read as local
+time, as they always were. `packages/contracts/fixtures/archive` holds
+one archive from each side, and each side's tests import the other's.
+
 ## Consequences
 
 **Good.** The data finally has a second home it can come back from.

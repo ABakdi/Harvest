@@ -12,8 +12,9 @@ It has two faces:
 I spend half the day at a laptop. Logging an expense or checking a
 seed in should not mean reaching for the phone, and a note is simply
 better written on a keyboard. The phone stays the primary device,
-because the alarms, the steps, the trail and the camera are all
-there. The web is where the typing happens.
+because the alarms, the steps and the trail are there. The web is
+where the typing happens, and anything the phone can do that does not
+need the phone's own hardware, the web does too.
 
 ## The public site
 
@@ -66,13 +67,15 @@ wide screen:
 | :--- | :--- |
 | M6.5 | Public site, install, accounts, the app shell, settings, sync status |
 | M6.6 | Field (today, check-ins, undo), seeds (plant, edit, archive), Goals board, Notes (editor, folders, links, search), expenses (log, edit, the month) |
-| M6.7 | Vault, budgets, calendar, stats, farmer and streak details, Gallery, Body (sleep, weight, steps view), Gym (programs, history; sessions stay phone-first), Places (the map, day and range views) |
+| M6.7 | Vault, budgets, calendar, stats, farmer and streak details, Gallery, Body, Gym, Places (the map, day and range views) — first as views |
 | M6.8 | Pictures and recordings, fetched by the name of their own bytes and opened with the sync passphrase ([[Sync-API]], files) |
+| M6.10 | The Wishlist, the Granary's fourth tab ([[Wishlist]]) |
+| M6.11 | Everything the phone writes, written here too: a seed's own page and its notes, the focus timer, tomorrow's plan, a freeze bought with coins, the weekly report; the vault's moves, debts, the budget, categories, sums in an amount and the Insights tab; nights and weights; the program editor and a whole session run in the browser; albums, pictures uploaded and the timelapse; folders, tables, recordings, read aloud and print in notes; week and month on the map, a stay named, location history deleted; every setting the phone syncs, the first run, and the archive, exported and imported |
 
-Some things stay **phone-only by nature**: the alarms, the steps
-source, the trail recorder, the camera flow, the home-screen widget
-and the app lock. The web shows their data, and says where it came
-from.
+Some things stay **phone-only by nature**: the alarms and reminders,
+the steps source, the trail recorder, the home-screen widget and the
+app lock. The web shows their data, and Settings lists them under
+*On the phone* rather than leaving them out without a word.
 
 ## Look and language
 
@@ -99,6 +102,55 @@ from.
   because the public pages read them and must not open IndexedDB (W3).
   Preferences with meaning beyond the look — the daily goal, the default
   currency, note folders — are synced settings.
+- **Buying a freeze is allowed on the web; spending one is not.** A
+  freeze is spent by the 3 AM judging, which stays on the phone.
+- **The focus timer runs per device.** A running timer is kept in
+  `pomodoro.active`, a key that never syncs; the finished blocks are
+  `pomodoro_sessions` rows like the phone's. A block ends with a
+  notice on the page, not a system notification.
+- **One gym session at a time, across devices.** Starting one refuses
+  while another is running, even one the phone began. Two devices that
+  both start offline can still end up with two; the gym then shows the
+  newest. The exercise catalogue is bundled, as on the phone; its
+  animations are not fetched.
+- **Money is written here too**, behind the same passphrase gate, and
+  the guards live in the repositories rather than the dialogs: a pot
+  cannot be overdrawn, a debt cannot be overpaid, currencies never
+  mix.
+- **Feature switches hide the web's tabs.** Body shows while Health or
+  the Gym is on, Records while Notes, the Gallery or Places is.
+- **The first run is asked once, and only of an empty account**: after
+  the first sync, with no `onboarding.done` and no seeds at all, so a
+  new browser on an old account is never asked.
+- **Geotags from the browser are opt-in and device-local.**
+  `web.geotagging` is off by default, needs Places on, and uses the
+  browser's own location, and writes a geotag only once it has a place
+  or knows it has none, so nothing pending ever reaches the phone
+  ([[Places]] PL3). Switching Places on from the browser asks for no
+  permission: the phone asks when it next needs a location, and until
+  then its trail stays off.
+- **A gym program's picture is offered here too**, before or after the
+  session as the program says, with *Not now*.
+- **Settings are written the way the phone writes them**, down to the
+  encoding: the time rates were fetched is local time with no offset,
+  as the phone stores it.
+- **Reading aloud and dictation stay on the computer.** Read aloud uses
+  local voices only; dictation shows only where the browser recognises
+  speech on the device, never through a vendor's server
+  ([[Business-Rules]] #13).
+- **Transcribe goes through the server's assist.** A recording in a
+  note has *Transcribe* on its player when the server offers an assist.
+  The dialog first says the recording goes to the server's model, and
+  nothing is sent until I press *Send*; the words come back as they are
+  written and go under the recording as a quote when I choose *Insert*.
+  A recording over 8 MB, or a day's assist already spent, is refused
+  before anything leaves ([[Notes]] N10).
+- **Pictures are uploaded like the phone's**: resized to a 1600 px long
+  edge, hashed, sealed and sent; the row learns the file's name only
+  once the server has it. On the web, *Share* is a download.
+- **The archive is the phone's archive.** The same zip and the same
+  sheets, in both directions; the web writes its timestamps in UTC.
+  Whether an export carries the location sheets is chosen per browser.
 - **Token refreshes are serialised across tabs** with the Web Locks API:
   a refresh token used twice revokes the session everywhere
   ([[Accounts]] AC4).

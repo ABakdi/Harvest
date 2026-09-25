@@ -8,6 +8,26 @@ Nothing here is required to *use* Harvest. The phone works alone, as
 it always has ([[Business-Rules]] #5); this is only for the account
 that ties a phone to a browser.
 
+## All of it, in one go
+
+`deploy/` holds the whole of it as one Compose file: MongoDB, the
+server, and Caddy serving the site with `/v1` handed to the server on
+the same origin. Caddy fetches its own certificate for the name in
+`HARVEST_DOMAIN`.
+
+```sh
+cp deploy/.env.example deploy/.env      # the domain, the key pair, SMTP
+docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+```
+
+Compose refuses to start without the domain, the key pair and
+`SMTP_HOST`, for the same reasons the server does (below). The
+database lives in the `mongo-data` volume, and that volume is what
+gets backed up.
+
+The rest of this note is the same thing taken apart, for a host that
+already has a database or a proxy of its own.
+
 ## The server
 
 `apps/server/Dockerfile` builds it in two stages. The first installs
@@ -75,7 +95,23 @@ Two things the host must do:
    stolen token useless from another site — and what makes a separate
    API domain more trouble than it is worth.
 
-With Caddy that is six lines:
+`apps/web/Dockerfile` builds the bundle and serves it from Caddy with
+`deploy/Caddyfile`, which does both, and also:
+- sends a **Content-Security-Policy** naming the only hosts the site
+  may reach: OpenFreeMap and Esri for the map, `api.frankfurter.dev`
+  for the rates I ask for ([[Business-Rules]] #13) — anything else is
+  refused by the browser before it leaves;
+- lets hashed assets be cached for a year, and makes the browser ask
+  again for `index.html` and the service worker, so a deploy reaches
+  an open tab;
+- keeps the source maps on the build machine.
+
+A proxy of my own must let a request of about 15 MB through to
+`/v1/assist`: a recording to transcribe travels in the body, base64,
+up to 8 MB before encoding. Caddy sets no limit; nginx's default of
+1 MB would refuse most of them (`client_max_body_size 16m`).
+
+The bare minimum, with Caddy, is six lines:
 
 ```
 harvest.example.org {

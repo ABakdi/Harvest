@@ -20,6 +20,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Notes]] — markdown notes with links (Phase 3)
 - [[Gallery]] — albums, the daily photo, the timelapse (Phase 3)
 - [[Finances]] — expense logging and budgets
+- [[Wishlist]] — to buy vs. someday: two lists with estimated prices
 - [[Health]] — sleep, steps and body weight
 - [[Gym]] — programs, sessions, sets and personal records
 - [[Goals]] — the board on the field: what it takes, and the seeds that get me there
@@ -49,9 +50,9 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-2-Finances]]
 - [[Phase-3-Notes-and-Gallery]]
 - [[Phase-4-Health-and-Gym]]
-- [[Phase-5-Goals-Places-and-Voice]] ← **next**
+- [[Phase-5-Goals-Places-and-Voice]]
 - [[Phase-6-Sync-Accounts-and-Web]]
-- [[Phase-7-Screen-Time]]
+- [[Phase-7-Screen-Time]] ← **next**
 - [[Phase-8-Social-and-Reach]]
 
 ### 🏁 Checkpoints
@@ -63,6 +64,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-6]] — steps that count, and a gym that knows what day it is
 - [[Checkpoint-7]] — Finish where the thumb is, and settings as a place
 - [[Checkpoint-8]] — the day closes on its own
+- [[Checkpoint-9]] — the browser does what the phone does
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board

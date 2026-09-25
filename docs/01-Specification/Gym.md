@@ -63,7 +63,7 @@ A **program** is what I follow: *nSuns 5/3/1*, *Push Pull Legs*,
 | **Day** | One session's worth: *Week 1 · Day 4*, or just *Push* |
 | **Slot** | One exercise in a day, in order, with its targets and rest |
 | **Target set** | What I am *meant* to do: reps, and a weight or a % |
-| **Bar** | What the bar itself weighs — per exercise, 20 kg unless changed |
+| **Bar** | What the bar itself weighs — per exercise, 20 kg unless changed (45 lb when I lift in pounds) |
 
 A target set says one of three things:
 
@@ -73,9 +73,10 @@ A target set says one of three things:
   5/3/1 usable at all, and it is why a program carries a **training
   max per exercise** that I set and bump.
 
-  Resolved weights are **rounded to the nearest 0.25 kg**. `75%` of a
-  111 kg training max is `83.25`, not `83.25000000000001`, and not a
-  number nobody can load.
+  Resolved weights are **rounded to the nearest quarter of the unit I
+  lift in** — 0.25 kg, or 0.25 lb. `75%` of a 111 kg training max is
+  `83.25`, not `83.25000000000001`, and not a number nobody can load;
+  `75%` of 225 lb is `168.75 lb`.
 - **An open set** — `1+`, `AMRAP`: as many as I can. The screenshot
   case, marked so it is obvious which set is the one that matters.
 
@@ -242,15 +243,16 @@ skipping it costs nothing.
 | :-- | :--- |
 | Y1 | The gym is off until switched on, and switching it off hides it without deleting a session. |
 | Y2 | The catalogue is reference data: read-only, never synced, never exported. A log refers to an exercise by id. |
-| Y3 | A set is written when it is ticked, not when the session ends. An interrupted workout resumes. |
+| Y3 | A set is written when it is ticked, not when the session ends. An interrupted workout resumes — on either device: a session running on the phone or the web stops another from starting on the other, and its pause travels with it. Two devices that both start offline can still end up with two; the newest is the one shown. |
 | Y4 | Finishing a session checks the gym habit in — once, like any other seed. Starting one checks nothing in. |
 | Y5 | Records are derived from the log and recomputed, never the only copy of a number. |
 | Y6 | Estimated 1RM is labelled as an estimate wherever it appears, with the formula named. |
 | Y7 | A replaced or skipped exercise is recorded as such. History must be able to say what the day was meant to be. |
-| Y8 | Weights round to 0.25 kg. A number nobody can load onto a bar is a bug. |
+| Y8 | Weights round in the unit I read them in: 0.25 kg, or 0.25 lb. Storage stays whole grams; a pound load is kept as the whole grams of its quarter pound, so 135 lb reads back as 135 and never 135.03, and a percentage resolves and rounds in that unit too. The session's target label still keeps kilos to two places, as it always has, and reads back in my unit. Pounds are a pound gym: a 45 lb bar unless I set another (35 and 45 lb to choose from; a slot still on the 20 kg default is the 45 lb bar), and 45, 35, 25, 10, 5 and 2.5 lb plates. A target lighter than the bar says so — the bar alone is so much over — rather than showing *just the bar* as if it were what I asked for. A number nobody can load onto a bar is a bug. One rule, `roundLoad` and `platesFor`, pinned by a fixture both clients read. |
 | Y9 | The bar weight and the plate calculator belong to exercises that have a bar. A dumbbell asks no such question ([[Checkpoint-6]]). |
 | Y10 | Finish asks before leaving un-skipped sets behind, because Finish is what checks the habit in ([[Checkpoint-6]]). |
 | Y11 | A program's days go round: the day after the last one finished is up next, wrapping at the end, and any other day is one deliberate tap further ([[Checkpoint-6]]). |
-| Y12 | A gym seed is checked in by a session and nothing else. The hand tick from the field is a bare session — *went, no numbers* — so the streak and the log always agree ([[Checkpoint-7]]). |
+| Y12 | A gym seed is checked in by a session and nothing else. The hand tick from the field is a bare session — *went, no numbers* — so the streak and the log always agree ([[Checkpoint-7]]). The same question is asked wherever a gym seed would be ticked, the end of a focus block included. |
+| Y13 | A new day, slot, set or target set goes after the highest position there is, never at the count: a dropped set leaves a gap, not a twin. One rule, `nextPosition`, pinned by a fixture both clients read ([[Checkpoint-9]]). |
 
 Related: [[Health]] · [[Gallery]] · [[Gamification]] · [[Productivity-Engine]] · [[ADR-008-Exercise-Catalogue]]

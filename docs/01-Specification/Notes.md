@@ -133,7 +133,10 @@ typing is impossible or slow. So a note can hold **recordings**:
   on-device recogniser. No audio is kept.
 - **Transcribe**, on a recording's menu, sends the audio to the assist
   (below). The text is inserted under the player as a quote, and the
-  audio stays.
+  audio stays. In the browser it is on each recording's player and goes
+  through the server's assist, the only one the web has; it is there
+  only when the server offers one, and a recording past the server's
+  cap (8 MB) is refused before anything is sent.
 - **Deleting the embed line never deletes the file.** A recording no
   body mentions any more goes to the trash with its note's next save,
   and is purged with the trash, like everything else.
@@ -180,10 +183,10 @@ an account, the assist entry says what it needs and links to Settings
 | N4 | No feature may require Harvest to read the note back. If it cannot survive being edited in a text editor, it does not belong. |
 | N5 | The editor draws markdown by styling it, never by rewriting it. What is rendered and what is stored are the same string, character for character. |
 | N6 | Under the Records tab the tab row stays whether a note is open or not; an open note shows its folder under the title ([[Checkpoint-8]]). |
-| N7 | A recording is a file beside the note and an Obsidian embed line in its body, `![[name.m4a]]`. The export writes the file next to the `.md`, so the pair opens anywhere. |
+| N7 | A recording is a file beside the note and an Obsidian embed line in its body, `![[name.m4a]]`. The export writes the file next to the `.md`, so the pair opens anywhere. Its name is made safe the way an import makes one — no path characters, 120 at most — and a stored path that is not safe is refused, on either device. |
 | N8 | Nothing in a note is sent anywhere without a tap on an assist action that names what it sends and to whom. There is no background assist and no indexing. |
 | N9 | The assist proposes; I dispose. Its answer changes a note only through Insert or Replace. |
-| N10 | Read aloud and dictation use the phone's own engines. Only Transcribe and the assist actions ever send audio or text off the device. |
+| N10 | Read aloud and dictation use the device's own engines. Only Transcribe and the assist actions ever send audio or text off the device. In a browser, read aloud uses local voices only, and dictation is offered only where the browser recognises speech on the device itself; Transcribe works there too, through the server's assist, with the same request as the phone's and only after the dialog has said the recording goes to it. |
 
 A note also goes out as a **PDF**, rendered rather than dumped, through
 the system share sheet.
