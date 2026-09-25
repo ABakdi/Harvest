@@ -1,7 +1,7 @@
 name: harvest
 description: "A new Flutter project."
 publish_to: 'none'
-version: 3.0.0-beta.1+16
+version: 3.0.0-beta.2+17
 
 environment:
   sdk: ^3.13.2
