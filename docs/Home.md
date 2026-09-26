@@ -20,7 +20,8 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Notes]] — markdown notes with links (Phase 3)
 - [[Gallery]] — albums, the daily photo, the timelapse (Phase 3)
 - [[Finances]] — expense logging and budgets
-- [[Wishlist]] — to buy vs. someday: two lists with estimated prices
+- [[Lists]] — one place for every list: to buy, someday, to read, to watch
+- [[Wishlist]] — where Lists began: to buy vs. someday
 - [[Health]] — sleep, steps and body weight
 - [[Gym]] — programs, sessions, sets and personal records
 - [[Goals]] — the board on the field: what it takes, and the seeds that get me there

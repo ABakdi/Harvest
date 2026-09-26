@@ -71,6 +71,8 @@ wide screen:
 | M6.8 | Pictures and recordings, fetched by the name of their own bytes and opened with the sync passphrase ([[Sync-API]], files) |
 | M6.10 | The Wishlist, the Granary's fourth tab ([[Wishlist]]) |
 | M6.11 | Everything the phone writes, written here too: a seed's own page and its notes, the focus timer, tomorrow's plan, a freeze bought with coins, the weekly report; the vault's moves, debts, the budget, categories, sums in an amount and the Insights tab; nights and weights; the program editor and a whole session run in the browser; albums, pictures uploaded and the timelapse; folders, tables, recordings, read aloud and print in notes; week and month on the map, a stay named, location history deleted; every setting the phone syncs, the first run, and the archive, exported and imported |
+| M6.12 | Records → Lists: every list in one place, a pasted link filling itself in, and the Granary's Wishlist tab folded into it ([[Lists]]); items reorder with Alt+↑/↓ |
+| M6.13 | Goals with requirements, tasks and subtasks ([[Goals]]): Alt+↑/↓ moves an item within its section or its task, *Move under…* nests one; Records reads *Notes · Lists · Gallery · Places* |
 
 Some things stay **phone-only by nature**: the alarms and reminders,
 the steps source, the trail recorder, the home-screen widget and the

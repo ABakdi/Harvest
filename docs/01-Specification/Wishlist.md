@@ -1,5 +1,10 @@
 # Wishlist
 
+> **Grown into [[Lists]]** (M6.12). The two lists below are now the
+> built-in *To buy* and *Wishlist* shopping lists in Records → Lists,
+> and their rules W1–W7 carry on there as L2–L7. This note stays as the
+> history of how the first two lists were decided.
+
 A fourth tab in the Granary, before the checkpoint ([Phase-6][]:
 `v3.0.0`). Two lists for the things I am not buying *yet*: the **buy
 list** for what comes out of the wallet soon, and the **wishlist** for

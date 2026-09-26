@@ -31,6 +31,8 @@ flowchart LR
     H --> I[M6.9 Server assist & release]
     I --> J[M6.10 Wishlist]
     J --> K[M6.11 The web does what the phone does]
+    K --> L[M6.12 Lists]
+    L --> M[M6.13 Goals: tasks and subtasks]
 ```
 
 ## M6.1 — Contracts and core
@@ -197,6 +199,28 @@ phone's own hardware, the browser writes too ([[Web]]).
   ([[Deployment]]).
 - [x] The checkpoint ([[Checkpoint-9]]) and `v3.0.0-beta.2`.
 - [x] A fourth audit, by hand on both clients ([[Audit-v3-Beta]]), fixed and retested; `v3.0.0-beta.3`.
+
+## M6.12 — Lists ([[Lists]])
+The Wishlist grows into one place for every list — to buy, someday,
+to read, to watch, and any list I make — in Records, before `v3.0.0`.
+- [x] Schema: a `lists` table with the four built-in lists on fixed
+  ids, item columns for kind, link, creator, type, progress and rating,
+  the Wishlist's items moved into *To buy* and *Wishlist*; the contract,
+  the web store and the archive, both ways.
+- [x] Records → Lists on the phone and the web: list chips, the three
+  kinds, custom lists, done folded; the Granary's *Planned purchases*
+  line in place of its Wishlist tab.
+- [x] Share to Harvest on Android; a pasted link on the web.
+- [x] Plant an item as a seed; bought offers the expense sheet; write
+  about it in a note.
+
+## M6.13 — Goals with tasks and subtasks ([[Goals]])
+- [x] Requirements and Tasks by name, and subtasks one level deep
+  (`goal_items.parent_uuid`, schema v24), on the phone and the web, in
+  sync and in the archive.
+- [x] Records reads *Notes · Lists · Gallery · Places*.
+- [x] `v3.0.0-beta.4`.
+
 - [ ] `v3.0.0`, once the beta has been lived in.
 
 **Exit:** the phone and the browser converge on the same day's

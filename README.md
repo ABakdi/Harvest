@@ -162,7 +162,8 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Notes](docs/01-Specification/Notes.md) | Markdown notes with links between them (Phase 3) |
 | [Gallery](docs/01-Specification/Gallery.md) | Albums, the daily picture, the timelapse (Phase 3) |
 | [Finances](docs/01-Specification/Finances.md) | Expense logging, budgets, the vault |
-| [Wishlist](docs/01-Specification/Wishlist.md) | To buy vs. someday: two lists with estimated prices (Phase 6) |
+| [Lists](docs/01-Specification/Lists.md) | One place for every list: to buy, someday, to read, to watch (Phase 6) |
+| [Wishlist](docs/01-Specification/Wishlist.md) | Where Lists began: to buy vs. someday |
 | [Health](docs/01-Specification/Health.md) | Sleep, steps and body weight (Phase 4) |
 | [Gym](docs/01-Specification/Gym.md) | Programs, sessions, sets and personal records (Phase 4) |
 | [Goals](docs/01-Specification/Goals.md) | The board on the field: what it takes, and the seeds that get me there (Phase 5) |

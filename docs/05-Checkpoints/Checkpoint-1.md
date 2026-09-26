@@ -148,7 +148,7 @@ source. Quests come back when there's a proper idea for them.
       savings warning + charts, money icons, 5 gradient themes, custom
       categories incl. delete-fallback, bounce physics, bursts and
       status colors — plus the over-budget red gauge caught live)
-- [x] All tests green, analyzer clean, migrations v1→v4 verified
+- [x] All tests green, analyzer clean, migrations v1→v4 verifiedn
 - [x] Dark pass done across new surfaces (all verification ran in dark); RTL re-verified at v0.2.1 and new screens use directional APIs only
 - [x] Docs updated (specs reflect what shipped), phases ticked
 - [x] Tagged v0.9.0 and release APK built
