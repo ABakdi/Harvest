@@ -25,6 +25,8 @@ Future<Commitment?> showCommitmentEditor(
   String? initialTitle,
   CommitmentType? initialType,
   String? goalUuid,
+  int? initialTotal,
+  int? initialDaily,
 }) => showHarvestSheet<Commitment>(
   context,
   builder: (_) => _EditorSheet(
@@ -32,6 +34,8 @@ Future<Commitment?> showCommitmentEditor(
     initialTitle: initialTitle,
     initialType: initialType,
     goalUuid: goalUuid,
+    initialTotal: initialTotal,
+    initialDaily: initialDaily,
   ),
 );
 
@@ -46,6 +50,8 @@ class _EditorSheet extends ConsumerStatefulWidget {
     this.initialTitle,
     this.initialType,
     this.goalUuid,
+    this.initialTotal,
+    this.initialDaily,
   });
 
   /// Non-null puts the sheet in edit mode: type is fixed, fields are
@@ -55,6 +61,11 @@ class _EditorSheet extends ConsumerStatefulWidget {
   final String? initialTitle;
   final CommitmentType? initialType;
   final String? goalUuid;
+
+  /// A project's suggested size, typed over at will: a book planted
+  /// from a list starts at "300 pages, 10 a day" ([[Lists]]).
+  final int? initialTotal;
+  final int? initialDaily;
 
   @override
   ConsumerState<_EditorSheet> createState() => _EditorSheetState();
@@ -93,6 +104,8 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
     if (existing == null) {
       _titleController.text = widget.initialTitle ?? '';
       _type = widget.initialType ?? _type;
+      _totalController.text = '${widget.initialTotal ?? ''}';
+      _dailyController.text = '${widget.initialDaily ?? ''}';
       return;
     }
     _type = existing.type;

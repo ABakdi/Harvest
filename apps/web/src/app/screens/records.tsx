@@ -6,17 +6,22 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '../components/bits';
 import { useFeatures, useFeaturesOrOff } from '../components/settings-bits';
+import type { FeatureSwitches } from '../data/settings';
 
-/** Whether Notes, the Gallery and Places are all switched off; undefined until read. */
+/** Whether Notes, the Gallery, Places and Lists are all switched off; undefined until read. */
 export function useRecordsOff(): boolean | undefined {
   const switches = useFeatures();
-  return switches && !switches.notes && !switches.gallery && !switches.places;
+  return switches && allOff(switches);
 }
 
-type RecordsFeature = 'gallery' | 'places';
+function allOff(switches: FeatureSwitches): boolean {
+  return !switches.notes && !switches.gallery && !switches.places && !switches.lists;
+}
+
+type RecordsFeature = 'gallery' | 'places' | 'lists';
 
 /**
- * Records opened by link with all three views switched off: says so,
+ * Records opened by link with all four views switched off: says so,
  * and where to switch one on, as the Body does with both halves off.
  * With [feature], just that view is off — opened by a link to it — and
  * the tabs still lead to the others.
@@ -41,9 +46,10 @@ export function RecordsOff({ feature }: { feature?: RecordsFeature }) {
 }
 
 /**
- * Notes, the Gallery and Places under one roof, as on the phone
- * ([[Notes]] N6): three views of what I wrote, took and walked. A view
- * whose feature is switched off is not offered.
+ * Notes, Lists, the Gallery and Places under one roof, in the phone's
+ * order ([[Notes]] N6, [[Lists]]): what I wrote, what I have not got to
+ * yet, and what I took and walked. A view whose feature is switched off
+ * is not offered.
  */
 export function RecordsTabs() {
   const { t } = useTranslation();
@@ -58,6 +64,11 @@ export function RecordsTabs() {
       {on.notes && (
         <NavLink to="/app/records" end className={tab}>
           {t('nav.notes')}
+        </NavLink>
+      )}
+      {on.lists && (
+        <NavLink to="/app/records/lists" className={tab}>
+          {t('lists.title')}
         </NavLink>
       )}
       {on.gallery && (
@@ -82,6 +93,6 @@ export function RecordsTabs() {
 export function RecordsView({ feature, children }: { feature: RecordsFeature; children: ReactNode }) {
   const switches = useFeatures();
   if (!switches) return null;
-  if (!switches.notes && !switches.gallery && !switches.places) return <RecordsOff />;
+  if (allOff(switches)) return <RecordsOff />;
   return switches[feature] ? children : <RecordsOff feature={feature} />;
 }

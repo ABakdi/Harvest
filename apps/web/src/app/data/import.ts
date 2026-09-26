@@ -1,4 +1,4 @@
-import { instantMicros, isPortableSetting, tables, tierOf, type SyncedTable } from '@harvest/contracts';
+import { instantMicros, isPortableSetting, listUuidOfItem, tables, tierOf, type SyncedTable } from '@harvest/contracts';
 import { unzipSync } from 'fflate';
 import {
   ArchiveInvalid,
@@ -42,6 +42,11 @@ import type { Writer } from './writer';
  * Q3-01). A row the contract refuses is left out and counted, where
  * the phone would have stored it as it came.
  */
+
+/** A rating the contract takes, 1–5; anything else reads as none, as on the phone. */
+function ratingOf(stars: number | null): number | null {
+  return stars !== null && stars >= 1 && stars <= 5 ? stars : null;
+}
 
 /** A Harvest archive, opened. */
 export interface ArchiveBundle {
@@ -235,6 +240,26 @@ const specs: Spec<SyncedTable>[] = [
       doneAt: at(row.DoneAt),
       position: intOf(row.Position) ?? 0,
       commitmentUuid: text(row.CommitmentUuid),
+      // An archive from before v24 has no column, and its items come in
+      // top-level (GL6).
+      parentUuid: text(row.ParentUuid),
+      createdAt: at(row.CreatedAt) ?? now,
+      updatedAt: at(row.UpdatedAt) ?? now,
+      deletedAt: at(row.DeletedAt),
+    }),
+  }),
+  spec({
+    sheet: 'lists',
+    table: 'lists',
+    keyOf: uuidOf,
+    stamp: updated,
+    build: (row, { now }) => ({
+      uuid: row.Uuid,
+      name: row.Name ?? '',
+      kind: row.Kind ?? 'plain',
+      icon: text(row.Icon),
+      position: intOf(row.Position) ?? 0,
+      builtIn: text(row.BuiltIn),
       createdAt: at(row.CreatedAt) ?? now,
       updatedAt: at(row.UpdatedAt) ?? now,
       deletedAt: at(row.DeletedAt),
@@ -248,11 +273,21 @@ const specs: Spec<SyncedTable>[] = [
     build: (row, { now }) => ({
       uuid: row.Uuid,
       list: row.List ?? 'buy',
+      // An archive from before lists has no ListUuid; its List names the
+      // shopping list, as the phone reads it.
+      listUuid: text(row.ListUuid) ?? listUuidOfItem({ list: row.List ?? 'buy' }),
       title: row.Title ?? '',
       priceMinor: intOf(row.PriceMinor),
       currency: row.Currency ?? 'DZD',
       note: text(row.Note),
       targetDay: dayOf(row.TargetDay),
+      mediaType: text(row.MediaType),
+      link: text(row.Link),
+      creator: text(row.Creator),
+      startedAt: at(row.StartedAt),
+      rating: ratingOf(intOf(row.Rating)),
+      seedUuid: text(row.SeedUuid),
+      noteUuid: text(row.NoteUuid),
       boughtAt: at(row.BoughtAt),
       position: intOf(row.Position) ?? 0,
       createdAt: at(row.CreatedAt) ?? now,

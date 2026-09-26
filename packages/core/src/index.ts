@@ -10,3 +10,4 @@ export * from './places.js';
 export * from './body.js';
 export * from './assist.js';
 export * from './gym.js';
+export * from './lists.js';

@@ -12,6 +12,7 @@ import type { HarvestDB } from './data/db';
 import { Geotagger } from './data/geotags';
 import { GoalsRepository } from './data/goals';
 import { HealthRepository } from './data/health';
+import { ListsRepository } from './data/lists';
 import { MoneyRepository } from './data/money';
 import { NotesRepository } from './data/notes';
 import { PomodoroRepository } from './data/pomodoro';
@@ -50,6 +51,7 @@ export interface Harvest {
   categories: CategoriesRepository;
   settings: SettingsRepository;
   wishlist: WishlistRepository;
+  lists: ListsRepository;
   geotags: Geotagger;
   user: Me;
   clock: Clock;
@@ -89,6 +91,7 @@ export function createHarvest(
     categories: new CategoriesRepository(writer),
     settings: new SettingsRepository(writer),
     wishlist: new WishlistRepository(writer),
+    lists: new ListsRepository(writer),
     geotags: new Geotagger(db, writer, clock),
     user,
     clock,

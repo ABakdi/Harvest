@@ -10,7 +10,7 @@ import { buildArchive } from '@/app/data/export';
 import { harvestSheets, SheetNames, sheetHeaders, sheetOrder, type ExportData } from '@/app/data/export-sheets';
 import { sha256Of } from '@/app/data/files';
 import { applyImport, openArchive, previewImport, totalOf } from '@/app/data/import';
-import { syncedTables, type SyncedTable } from '@harvest/contracts';
+import { builtInLists, readListId, wishListId, syncedTables, type SyncedTable } from '@harvest/contracts';
 import { FakeServer } from './fake-server';
 import { device, testClock } from './helpers';
 
@@ -116,6 +116,7 @@ async function seed(h: Device): Promise<void> {
       doneAt: later,
       position: 0,
       commitmentUuid: null,
+      parentUuid: null,
       createdAt: at,
       updatedAt: later,
       deletedAt: null,
@@ -123,15 +124,56 @@ async function seed(h: Device): Promise<void> {
     await tx.put('wishlist_items', {
       uuid: 'wish-1',
       list: 'wish',
+      listUuid: wishListId,
       title: 'Reading lamp',
       priceMinor: 350000,
       currency: 'DZD',
       note: null,
       targetDay: null,
+      mediaType: null,
+      link: null,
+      creator: null,
+      startedAt: null,
+      rating: null,
+      seedUuid: null,
+      noteUuid: null,
       boughtAt: null,
       position: 0,
       createdAt: at,
       updatedAt: at,
+      deletedAt: null,
+    });
+    await tx.put('lists', {
+      uuid: 'list-1',
+      name: 'Packing',
+      kind: 'plain',
+      icon: 'luggage',
+      position: 4,
+      builtIn: null,
+      createdAt: at,
+      updatedAt: at,
+      deletedAt: null,
+    });
+    await tx.put('wishlist_items', {
+      uuid: 'read-1',
+      list: 'wish',
+      listUuid: readListId,
+      title: 'The Left Hand of Darkness',
+      priceMinor: null,
+      currency: 'DZD',
+      note: 'Everyone keeps mentioning it',
+      targetDay: null,
+      mediaType: 'book',
+      link: 'https://example.com/books/left-hand-of-darkness',
+      creator: 'Ursula K. Le Guin',
+      startedAt: at,
+      rating: 5,
+      seedUuid: 'seed-1',
+      noteUuid: 'note-1',
+      boughtAt: later,
+      position: 0,
+      createdAt: at,
+      updatedAt: later,
       deletedAt: null,
     });
     await tx.put('expenses', {
@@ -461,7 +503,7 @@ describe('the archive the web writes', () => {
     expect(summary).toContain('<f>SUMIFS(Ledger!C:C,Ledger!B:B,&quot;xp&quot;)</f>');
     // The month rows exist for each month with spending, bounded exactly.
     expect(summary).toMatch(/SUMPRODUCT\(\(LEFT\(Expenses!\$B\$2:\$B\$3,7\)/);
-    const expenses = decode('xl/worksheets/sheet8.xml');
+    const expenses = decode('xl/worksheets/sheet9.xml');
     expect(expenses).toContain('<f>E2/100</f>');
     expect(expenses).toContain('<v>125050</v>');
     expect(decode('xl/workbook.xml')).toContain('fullCalcOnLoad="1"');
@@ -528,9 +570,11 @@ describe('an archive coming back', () => {
     expect(await snapshot(target)).toEqual(await snapshot(source, bookkeeping));
     // The files are in this browser, under the names of their bytes.
     expect(await target.db.files.count()).toBe(2);
-    // And sync hears of every row.
+    // And sync hears of every row — but the built-in lists, which this
+    // browser made itself and the archive carried unchanged.
     const queued = new Set((await target.db.outbox.toArray()).map((entry) => `${entry.table}/${entry.key}`));
-    expect(queued).toEqual(new Set(Object.keys(await snapshot(target))));
+    const builtIns = new Set(builtInLists.map((list) => `lists/${list.uuid}`));
+    expect(queued).toEqual(new Set(Object.keys(await snapshot(target)).filter((key) => !builtIns.has(key))));
   });
 
   it('a second import of the same archive changes nothing', async () => {

@@ -119,6 +119,20 @@ void main() {
               updatedAt: Value(at),
             ),
           );
+      // A subtask carries its parent across ([[Goals]] GL6, v24).
+      await source
+          .into(source.goalItems)
+          .insert(
+            GoalItemsCompanion.insert(
+              uuid: 'i2',
+              goalUuid: 'g1',
+              kind: const Value('need'),
+              body: 'Try them on',
+              parentUuid: const Value('i1'),
+              createdAt: Value(at),
+              updatedAt: Value(at),
+            ),
+          );
       await source
           .into(source.commitments)
           .insert(
@@ -146,8 +160,32 @@ void main() {
         await source.select(source.goalItems).get(),
       );
       expect(preview.tables[SheetNames.goals]!.added, 2);
-      expect(preview.tables[SheetNames.goalItems]!.added, 1);
+      expect(preview.tables[SheetNames.goalItems]!.added, 2);
       expect(await outboxTables(), containsAll(['goals', 'goal_items']));
+    });
+
+    test('an archive from before subtasks brings every item top-level', () async {
+      await seedGoals();
+      final bundle = readArchive(await archiveBytes());
+      final older = ArchiveBundle(
+        sheets: {
+          ...bundle.sheets,
+          SheetNames.goalItems: [
+            for (final row in bundle.sheet(SheetNames.goalItems))
+              {...row}..remove('ParentUuid'),
+          ],
+        },
+        files: bundle.files,
+      );
+      expect(
+        bundle.sheet(SheetNames.goalItems).map((r) => r['ParentUuid']),
+        contains('i1'),
+      );
+      await importer.apply(older);
+
+      final items = await target.select(target.goalItems).get();
+      expect(items.map((i) => i.uuid), unorderedEquals(['i1', 'i2']));
+      expect(items.every((i) => i.parentUuid == null), isTrue);
     });
 
     test("a seed's goal survives the trip", () async {

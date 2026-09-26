@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:harvest/core/db/built_in_lists.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/features/export/data/export_repository.dart';
 import 'package:harvest/features/export/domain/archive_service.dart';
@@ -123,6 +124,20 @@ void main() {
         for (final row in await db.select(db.kvSettings).get()) row.key,
       };
       expect(keys, contains('themeMode'));
+
+      // Lists: the web's own list, and a media item with every field.
+      final list = await (db.select(
+        db.lists,
+      )..where((t) => t.uuid.equals('list-1'))).getSingle();
+      expect((list.name, list.kind), ('Packing', 'plain'));
+      final book = await (db.select(
+        db.wishlistItems,
+      )..where((t) => t.uuid.equals('read-1'))).getSingle();
+      expect(book.listUuid, BuiltInList.read.uuid);
+      expect(book.mediaType, 'book');
+      expect(book.creator, 'Ursula K. Le Guin');
+      expect(book.rating, 5);
+      expect(book.startedAt, isNotNull);
     });
 
     test('a second import of it changes nothing', () async {
@@ -170,6 +185,7 @@ ExportData _empty() => (
   seedNotes: const [],
   goals: const [],
   goalItems: const [],
+  lists: const [],
   wishlistItems: const [],
   expenses: const [],
   categories: const [],
@@ -286,6 +302,40 @@ Future<void> _seed(
           uuid: 'p-wish-1',
           title: 'Kettlebell',
           priceMinor: const Value(450000),
+          listUuid: Value(BuiltInList.buy.uuid),
+          createdAt: Value(at),
+          updatedAt: Value(at),
+        ),
+      );
+  await db
+      .into(db.lists)
+      .insert(
+        ListsCompanion.insert(
+          uuid: 'p-list-1',
+          name: 'Podcasts',
+          kind: const Value('media'),
+          icon: const Value('headphones'),
+          position: const Value(4),
+          createdAt: Value(at),
+          updatedAt: Value(at),
+        ),
+      );
+  await db
+      .into(db.wishlistItems)
+      .insert(
+        WishlistItemsCompanion.insert(
+          uuid: 'p-read-1',
+          title: 'Dune',
+          list: const Value('wish'),
+          listUuid: Value(BuiltInList.read.uuid),
+          mediaType: const Value('book'),
+          link: const Value('https://example.com/dune'),
+          creator: const Value('Frank Herbert'),
+          startedAt: Value(at),
+          rating: const Value(4),
+          seedUuid: const Value('p-seed-1'),
+          noteUuid: const Value('p-note-1'),
+          boughtAt: Value(at),
           createdAt: Value(at),
           updatedAt: Value(at),
         ),

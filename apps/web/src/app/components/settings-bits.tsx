@@ -1,6 +1,6 @@
 import { formatClock, parseClock, type Clock } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { DumbbellIcon, FileTextIcon, HeartPulseIcon, ImagesIcon, MapIcon, MinusIcon, PlusIcon, type LucideIcon } from 'lucide-react';
+import { DumbbellIcon, FileTextIcon, HeartPulseIcon, ImagesIcon, ListChecksIcon, MapIcon, MinusIcon, PlusIcon, type LucideIcon } from 'lucide-react';
 import { useId, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { formatDate } from '@/lib/format';
 import { useHarvest } from '../context';
 import { type Feature, type FeatureSwitches, features, readFeatures } from '../data/settings';
 
-const allOff: FeatureSwitches = { notes: false, gallery: false, health: false, gym: false, places: false };
+const allOff: FeatureSwitches = { notes: false, gallery: false, health: false, gym: false, places: false, lists: false };
 
 /**
  * Which optional features are on, live (`featureSwitchesProvider`).
@@ -32,10 +32,11 @@ const featureIcons: Record<Feature, LucideIcon> = {
   health: HeartPulseIcon,
   gym: DumbbellIcon,
   places: MapIcon,
+  lists: ListChecksIcon,
 };
 
 /**
- * The five switches, as the Extras card and the last onboarding page
+ * The six switches, as the Extras card and the last onboarding page
  * both show them: a name, what it is, and a switch that hides a tab
  * and never deletes a thing (N1, G1, H1, Y1, PL1).
  */

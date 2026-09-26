@@ -60,6 +60,9 @@ abstract final class AppRoutes {
   /// and the pin to land on come through the focus request.
   static const places = '/records/places';
 
+  /// Records → Lists; `?list=<uuid>` opens one list ([[Lists]]).
+  static const lists = '/records/lists';
+
   /// An album's own screen; append the album's uuid.
   static const gallery = '/records/album';
 }
@@ -218,6 +221,13 @@ GoRouter router(Ref ref) {
                     path: 'places',
                     builder: (context, state) =>
                         const RecordsScreen(initial: RecordsTab.places),
+                  ),
+                  GoRoute(
+                    path: 'lists',
+                    builder: (context, state) => RecordsScreen(
+                      initial: RecordsTab.lists,
+                      listUuid: state.uri.queryParameters['list'],
+                    ),
                   ),
                   GoRoute(
                     path: 'album/:uuid',

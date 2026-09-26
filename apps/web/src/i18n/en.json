@@ -526,7 +526,11 @@
     "achieved_one": "Achieved ({{count}})",
     "achieved_other": "Achieved ({{count}})",
     "addNeed": "Add something it takes",
+    "addRequirement": "Add a requirement",
     "addStep": "Add a step",
+    "addSubtask": "Add a subtask",
+    "addSubtaskTo": "Add a subtask to “{{body}}”",
+    "addTask": "Add a task",
     "addWhatItTakes": "Add what it takes",
     "archivedSeed": "archived",
     "back": "Back to goals",
@@ -553,13 +557,23 @@
     "itemNote": "Note (optional)",
     "itemOptions": "Options for “{{body}}”",
     "itemRemoved": "Removed",
+    "itemRemovedWithSubtasks_one": "Removed, with its subtask",
+    "itemRemovedWithSubtasks_other": "Removed, with its {{count}} subtasks",
     "itemText": "Item",
+    "liftNeed": "Make it a requirement of its own",
+    "liftTask": "Make it a task of its own",
     "markAchieved": "Mark achieved",
     "moveDown": "Move “{{title}}” down",
+    "moveUnder": "Move under another item…",
+    "moveUnderBody": "It becomes a subtask there, and takes that item’s section.",
+    "moveUnderNone": "There is no other item to move it under.",
+    "moveUnderTitle": "Move “{{body}}” under…",
     "moveUp": "Move “{{title}}” up",
+    "movedUnder": "Moved under “{{body}}”",
     "needs": "What it takes",
     "new": "New goal",
     "next": "Next:",
+    "nextIn": "{{body}} · in “{{parent}}”",
     "noSeeds": "No seeds serve it yet. Plant an item, or pick this goal in a seed’s “Serves”.",
     "noTarget": "No target day",
     "noWhy": "No why written yet.",
@@ -571,6 +585,7 @@
     "plantedGone": "Its seed is gone",
     "progress": "{{done}} of {{total}} done",
     "reopen": "Reopen",
+    "requirements": "Requirements — what it takes",
     "seeds": "Seeds",
     "status": {
       "achieved": "Achieved",
@@ -578,7 +593,11 @@
       "dropped": "Dropped"
     },
     "steps": "Steps",
+    "subtaskCount": "{{done}} of {{total}}",
+    "subtaskCountLabel": "Subtasks: {{done}} of {{total}} done",
+    "subtasksOf": "Subtasks of “{{body}}”",
     "targetDay": "Target day",
+    "tasks": "Tasks",
     "title": "What I’m working toward",
     "titleHint": "Run a half marathon",
     "up": "Move up",
@@ -902,6 +921,129 @@
     "to": "To",
     "total": "Total",
     "week": "Week"
+  },
+  "lists": {
+    "add": "Add",
+    "addHint": "Add an item, or paste a link",
+    "addLabel": "New item in {{name}}",
+    "builtIn": {
+      "buy": "To buy",
+      "read": "To read",
+      "watch": "To watch",
+      "wish": "Wishlist"
+    },
+    "chipLabel_one": "{{name}}, {{count}} open",
+    "chipLabel_other": "{{name}}, {{count}} open",
+    "chips": "Lists",
+    "clearLink": "Remove the link",
+    "creatorLabel": "Author or creator",
+    "deleteList": "Delete list",
+    "details": "Add with details",
+    "doneFold": {
+      "media_one": "{{count}} finished",
+      "media_other": "{{count}} finished",
+      "plain_one": "{{count}} done",
+      "plain_other": "{{count}} done",
+      "shopping_one": "{{count}} bought",
+      "shopping_other": "{{count}} bought"
+    },
+    "doneOn": {
+      "media": "Finished on {{day}}",
+      "plain": "Done on {{day}}",
+      "shopping": "Bought on {{day}}"
+    },
+    "editItem": "Edit item",
+    "editorLead": {
+      "media": "Nothing is fetched: the title is what you type, and the link opens only when you click it.",
+      "plain": "A title and, if you like, a note.",
+      "shopping": "An estimate is a plan, not money: nothing here touches the wallet."
+    },
+    "emptyBody": {
+      "media": "Add what you want to read, watch or listen to. Pasting a link is enough.",
+      "plain": "Write down what you mean to get to, and tick it off when it is done.",
+      "shopping": "Add what you mean to buy, with an estimate if you have one in mind."
+    },
+    "emptyTitle": "Nothing on this list",
+    "finish": "Finish “{{title}}”",
+    "finishShort": "Finish",
+    "finishToo": {
+      "media": "Mark finished too",
+      "plain": "Mark done too",
+      "shopping": "Mark bought too"
+    },
+    "inProgress": "In progress",
+    "kind": {
+      "media": "Media",
+      "plain": "Plain",
+      "shopping": "Shopping"
+    },
+    "kindHint": {
+      "media": "A type, a link and who made it. Want, then in progress, then finished, with a rating if you like.",
+      "plain": "A title and a note, ticked when done.",
+      "shopping": "An estimated price, its currency and a planned day. Bought when done; nothing touches the wallet."
+    },
+    "kindLabel": "Kind",
+    "linkInvalid": "A link starts with http:// or https://.",
+    "linkIsTitle": "is the title until you type one",
+    "linkLabel": "Link",
+    "listDeleted": "“{{name}}” deleted, with its items",
+    "listLabel": "List",
+    "listMenu": "Options for the list “{{name}}”",
+    "mark": {
+      "media": "Mark “{{title}}” finished",
+      "plain": "Mark “{{title}}” done",
+      "shopping": "Mark “{{title}}” bought"
+    },
+    "mediaType": {
+      "article": "Article",
+      "book": "Book",
+      "film": "Film",
+      "other": "Other",
+      "podcast": "Podcast",
+      "show": "Show",
+      "video": "Video"
+    },
+    "mediaTypeLabel": "Type",
+    "mediaTypeNone": "Not set",
+    "moveEarlier": "Move earlier",
+    "moveLater": "Move later",
+    "moveTo": "Move to {{name}}",
+    "moved": "Moved to {{name}}",
+    "nameHint": "e.g. Packing, Gift ideas, Podcasts",
+    "nameLabel": "Name",
+    "newItem": "New item",
+    "newList": "New list",
+    "newListLead": "A list has one kind, and its kind decides what its items carry.",
+    "noLists": "No lists yet",
+    "notStarted": "Not started yet",
+    "openLink": "Open the link for “{{title}}” in a new tab",
+    "openNote": "Open its note",
+    "planned": "Planned purchases",
+    "plant": "Plant as a seed",
+    "rate_one": "{{count}} star",
+    "rate_other": "{{count}} stars",
+    "ratingOf": "Rating for “{{title}}”",
+    "rename": "Rename",
+    "renameLead": "Only the name changes; the items stay as they are.",
+    "renameTitle": "Rename list",
+    "seedDone": "Its seed is done",
+    "seedPlanted": "Planted as a seed",
+    "seedProject": "Seed: {{done}} of {{total}}",
+    "start": "Start “{{title}}”",
+    "startShort": "Start",
+    "title": "Lists",
+    "titleHint": {
+      "media": "e.g. Dune, a talk someone sent you",
+      "plain": "e.g. Call the plumber, passport photos",
+      "shopping": "e.g. Winter coat, kettle, espresso machine"
+    },
+    "titleLabel": "Title",
+    "unmark": {
+      "media": "Unmark “{{title}}” finished",
+      "plain": "Unmark “{{title}}” done",
+      "shopping": "Unmark “{{title}}” bought"
+    },
+    "writeAbout": "Write about it"
   },
   "money": {
     "amount": "Amount",
@@ -1297,9 +1439,10 @@
   },
   "recordsWeb": {
     "offBody": "Switch any of them on in Settings, under Extras, and this tab fills in.",
-    "offTitle": "Notes, the Gallery and Places are switched off",
+    "offTitle": "Notes, the Gallery, Places and Lists are switched off",
     "viewOff": {
       "gallery": "The Gallery is switched off",
+      "lists": "Lists are switched off",
       "places": "Places are switched off"
     },
     "viewOffBody": "Switch it on in Settings, under Extras, and it opens here."
@@ -1472,6 +1615,8 @@
       "gymHint": "Programs, sessions and personal records. A gym habit lands on your field like any other seed.",
       "health": "Health",
       "healthHint": "Sleep, steps read from the phone's own health store, and a body weight whenever you stand on the scale.",
+      "lists": "Lists",
+      "listsHint": "To buy, to read, to watch, and any list you make. An item can become a seed; nothing on a list pays or costs anything.",
       "notes": "Notes",
       "notesHint": "Markdown notes in folders, linked to each other.",
       "places": "Places",

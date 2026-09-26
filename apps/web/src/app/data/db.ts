@@ -1,5 +1,6 @@
 import type { EncEnvelope, Issue, SyncedTable, TableData } from '@harvest/contracts';
-import Dexie, { type IndexableType, type Table } from 'dexie';
+import { builtInLists, builtInListsStampedAt, listUuidOfItem } from '@harvest/contracts';
+import Dexie, { type IndexableType, type Table, type Transaction } from 'dexie';
 
 /**
  * The browser's copy of Harvest ([[ADR-012-Web-Client]]): one IndexedDB
@@ -37,6 +38,7 @@ export const tableSchemas: Record<SyncedTable, string> = {
   pomodoro_sessions: 'uuid, harvestDay',
   goals: 'uuid',
   goal_items: 'uuid, goalUuid, commitmentUuid',
+  lists: 'uuid',
   wishlist_items: 'uuid',
   kv_settings: 'key',
   expenses: 'uuid, harvestDay',
@@ -107,7 +109,7 @@ export class HarvestDB extends Dexie {
     // A store that joins later gets a version of its own: a browser that
     // already opened an earlier version never re-reads the first one, so
     // a table added there would simply not exist for it.
-    const { wishlist_items: wishlistItems, ...firstTables } = tableSchemas;
+    const { wishlist_items: wishlistItems, lists, ...firstTables } = tableSchemas;
     this.version(1).stores({
       ...firstTables,
       outbox: '++seq, [table+key], table',
@@ -118,6 +120,14 @@ export class HarvestDB extends Dexie {
     this.version(2).stores({ files: 'sha256' });
     // The Wishlist ([[Wishlist]]), v19 on the phone.
     this.version(3).stores({ wishlist_items: wishlistItems });
+    // Lists ([[Lists]]), v23 on the phone: the Wishlist's items are told
+    // which list they are in, and someone who kept a Wishlist finds the
+    // feature on. The four built-in lists themselves are made on every
+    // open ([[seedBuiltInLists]]), so a fresh store has them too.
+    this.version(4)
+      .stores({ lists })
+      .upgrade((trans) => upgradeToLists(trans));
+    this.on('ready', (db) => seedBuiltInLists(db as HarvestDB));
   }
 
   rows<T extends SyncedTable>(table: T): Table<Row<T>, IndexableType> {
@@ -148,6 +158,63 @@ export function recordKeyOf(table: SyncedTable, row: Record<string, unknown>): s
     default:
       return row.uuid as string;
   }
+}
+
+// ----------------------------------------------------------------- lists
+
+/** `FeatureKeys.lists`: Records' fourth tab, off until switched on. */
+export const listsFeatureKey = 'features.lists';
+
+/**
+ * Makes the built-in lists that are missing, and leaves the ones that
+ * are there — renamed, reordered — alone ([[Lists]] L10). Their ids are
+ * fixed and their stamp is old, so the same rows from another device
+ * merge into these instead of beside them; nothing is queued, since
+ * every device makes them itself (the phone's `seedBuiltInLists`).
+ */
+export async function seedBuiltInLists(db: HarvestDB): Promise<void> {
+  await db.transaction('rw', db.rows('lists'), async () => {
+    const table = db.rows('lists');
+    for (const list of builtInLists) {
+      if ((await table.get(list.uuid)) !== undefined) continue;
+      await table.add({
+        uuid: list.uuid,
+        name: list.name,
+        kind: list.kind,
+        icon: null,
+        position: list.position,
+        builtIn: list.key,
+        createdAt: builtInListsStampedAt,
+        updatedAt: builtInListsStampedAt,
+        deletedAt: null,
+      });
+    }
+  });
+}
+
+/**
+ * The store's v4, the phone's v23: each item gets the list its old
+ * column names, and the new columns as empty — a local rewrite, not an
+ * edit, so no stamp moves and nothing is queued. If any item is live,
+ * `features.lists` starts on, and that preference is queued like any
+ * other so the other devices hear it.
+ */
+async function upgradeToLists(trans: Transaction): Promise<void> {
+  const items = trans.table('wishlist_items');
+  let live = 0;
+  await items.toCollection().modify((row: Record<string, unknown>) => {
+    row.listUuid = listUuidOfItem(row as { list: string; listUuid?: string | null });
+    for (const column of ['mediaType', 'link', 'creator', 'startedAt', 'rating', 'seedUuid', 'noteUuid']) {
+      row[column] ??= null;
+    }
+    if (row.deletedAt === null) live++;
+  });
+  if (live === 0) return;
+  const now = new Date().toISOString();
+  const settings = trans.table('kv_settings');
+  if ((await settings.get(listsFeatureKey)) !== undefined) return;
+  await settings.put({ key: listsFeatureKey, valueJson: JSON.stringify('true'), updatedAt: now });
+  await trans.table('outbox').add({ table: 'kv_settings', key: listsFeatureKey, op: 'upsert', queuedAt: now } satisfies OutboxRow);
 }
 
 // ------------------------------------------------------------------ meta

@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import i18n from '@/i18n';
 import { useHarvest, useHarvestDay } from '../context';
-import type { SeedInput, SeedRow, SeedType } from '../data/seeds';
+import { plantSeed, type SeedInput, type SeedRow, type SeedType } from '../data/seeds';
 import { useBusy } from './use-busy';
 
 export interface SeedPrefill {
@@ -21,6 +21,8 @@ export interface SeedPrefill {
   goalUuid?: string | null;
   /** The goal item this seed is planted from; linked on save. */
   linkItem?: string;
+  /** The list item this seed is planted from; linked in the same write ([[Lists]]: Plant as a seed). */
+  linkListItem?: string;
   dueDay?: string | null;
 }
 
@@ -61,7 +63,7 @@ export function SeedEditor({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { db, seeds } = useHarvest();
+  const { db, seeds, writer } = useHarvest();
   const today = useHarvestDay();
   const id = useId();
   const editing = state.mode === 'edit' ? state.seed : null;
@@ -143,7 +145,15 @@ export function SeedEditor({
         await seeds.edit(editing.uuid, input);
         toast.success(t('seed.saved'));
       } else {
-        await seeds.plant(input, prefill.linkItem);
+        const listItem = prefill.linkListItem;
+        if (listItem) {
+          await writer.run(async (tx) => {
+            const planted = await plantSeed(tx, input, prefill.linkItem);
+            await tx.patch('wishlist_items', listItem, { seedUuid: planted.uuid, updatedAt: tx.now() });
+          });
+        } else {
+          await seeds.plant(input, prefill.linkItem);
+        }
         toast.success(t('seed.planted', { title: title.trim() }));
       }
       onClose();

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { builtInListKeys, listKinds, mediaTypes } from './lists.js';
 import { isHarvestDayKey, isoInstantSchema } from './time.js';
 
 /**
@@ -431,22 +432,53 @@ export const tables = {
       doneAt: instant.nullable(),
       position: int,
       commitmentUuid: id.nullable(),
+      // Added in v24: the task a subtask belongs to ([[Goals]] GL8).
+      // Older clients omit it, and their items read as top-level.
+      parentUuid: added(id),
       createdAt: instant,
       updatedAt: instant,
       deletedAt: instant.nullable(),
     }),
   ),
 
-  // ----------------------------------------------------------- wishlist
+  // -------------------------------------------------------------- lists
+  lists: plain(
+    z.strictObject({
+      uuid: id,
+      name: text,
+      kind: z.enum(listKinds),
+      icon: text.nullable(),
+      position: int,
+      builtIn: z.enum(builtInListKeys).nullable(),
+      createdAt: instant,
+      updatedAt: instant,
+      deletedAt: instant.nullable(),
+    }),
+  ),
+  // The table keeps the Wishlist's name so the beta devices and archives
+  // out there keep working; its rows are every list's items ([[Lists]]).
   wishlist_items: plain(
     z.strictObject({
       uuid: id,
+      // Before lists, which of the two shopping lists; still written
+      // (`buy` for To buy, `wish` for every other list) for beta clients.
       list: z.enum(['buy', 'wish']),
+      // The rest arrived with lists (v23), after v3.0.0-beta.3 had synced
+      // items without them. A null list is read from `list`.
+      listUuid: added(id),
       title: text,
       priceMinor: int.nullable(),
       currency: text,
       note: text.nullable(),
       targetDay: day.nullable(),
+      mediaType: added(z.enum(mediaTypes)),
+      link: added(text),
+      creator: added(text),
+      startedAt: added(instant),
+      rating: added(z.int().min(1).max(5)),
+      seedUuid: added(id),
+      noteUuid: added(id),
+      // Done, for every kind: bought, finished or ticked.
       boughtAt: instant.nullable(),
       position: int,
       createdAt: instant,

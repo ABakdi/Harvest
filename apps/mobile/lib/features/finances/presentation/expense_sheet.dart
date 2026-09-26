@@ -86,13 +86,28 @@ String categoryLabel(AppLocalizations l10n, String key) {
   };
 }
 
+/// What a new expense starts from when something else suggests it: a
+/// list item just bought offers its title and estimate ([[Lists]] L4).
+/// Only a suggestion — typed over, or the sheet dismissed, and nothing
+/// is logged.
+typedef ExpensePrefill = ({
+  int? amountMinor,
+  Currency? currency,
+  String? note,
+  String? category,
+});
+
 /// The sub-5-second quick-log: amount, category chip, optional note.
-/// Pass [existing] to edit a same-day entry in place.
-Future<void> showExpenseSheet(BuildContext context, {Expense? existing}) =>
-    showHarvestSheet<void>(
-      context,
-      builder: (_) => _ExpenseSheet(existing: existing),
-    );
+/// Pass [existing] to edit a same-day entry in place, or [prefill] to
+/// start a new one from a suggestion.
+Future<void> showExpenseSheet(
+  BuildContext context, {
+  Expense? existing,
+  ExpensePrefill? prefill,
+}) => showHarvestSheet<void>(
+  context,
+  builder: (_) => _ExpenseSheet(existing: existing, prefill: prefill),
+);
 
 /// What the wallet would hold in [currency] without the expense being
 /// edited: its own movement ([linked]) is given back before comparing —
@@ -125,9 +140,10 @@ bool paysFromWallet({
     amountMinor != null && walletBalance >= amountMinor && (choice ?? true);
 
 class _ExpenseSheet extends ConsumerStatefulWidget {
-  const _ExpenseSheet({this.existing});
+  const _ExpenseSheet({this.existing, this.prefill});
 
   final Expense? existing;
+  final ExpensePrefill? prefill;
 
   @override
   ConsumerState<_ExpenseSheet> createState() => _ExpenseSheetState();
@@ -162,6 +178,15 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
     // lesson the note editor's toolbar taught ([[Checkpoint-5]]).
     _amountController.addListener(_onAmountChanged);
     final existing = widget.existing;
+    final prefill = widget.prefill;
+    if (existing == null && prefill != null) {
+      if (prefill.amountMinor case final minor?) {
+        _amountController.text = formatMinor(minor);
+      }
+      _noteController.text = prefill.note ?? '';
+      _category = prefill.category ?? _category;
+      _currency = prefill.currency;
+    }
     if (existing != null) {
       _amountController.text = formatMinor(existing.amountMinor);
       _noteController.text = existing.note ?? '';

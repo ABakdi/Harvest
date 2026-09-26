@@ -1,0 +1,11 @@
+{
+  "why": "The built-in lists' fixed ids: uuid v5 of lists/<key> under the namespace, itself the v5 of harvest:lists under the URL namespace. Both clients are held to these numbers.",
+  "namespace": "41156d84-936a-5a92-bd30-68dd604b6acb",
+  "lists": [
+    { "key": "buy", "uuid": "c4de613f-e027-5f99-bf47-f64aca9d6dfd", "kind": "shopping", "name": "To buy", "position": 0 },
+    { "key": "wish", "uuid": "c89712ef-e04a-50a7-841f-0f698b7ec26c", "kind": "shopping", "name": "Wishlist", "position": 1 },
+    { "key": "read", "uuid": "f09ec3ec-5479-525d-9c50-5dd509700907", "kind": "media", "name": "To read", "position": 2 },
+    { "key": "watch", "uuid": "6711774e-0b76-5b66-81cd-09ce52a56399", "kind": "media", "name": "To watch", "position": 3 }
+  ],
+  "stampedAt": "2020-01-01T00:00:00.000Z"
+}

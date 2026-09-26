@@ -316,9 +316,9 @@ describe('a records view opened by link while it is off', () => {
     expect(screen.queryByText('the map')).toBeNull();
   });
 
-  it('says all three are off, as /app/records does', async () => {
+  it('says all four are off, as /app/records does', async () => {
     await at('/app/records/places', {});
-    expect(await screen.findByText('Notes, the Gallery and Places are switched off')).toBeInTheDocument();
+    expect(await screen.findByText('Notes, the Gallery, Places and Lists are switched off')).toBeInTheDocument();
   });
 
   it('opens the view while it is on', async () => {

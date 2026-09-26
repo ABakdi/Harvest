@@ -7,6 +7,8 @@ import {
   farmerRankForXp,
   freezeCost,
   goalProgress,
+  nextGoalItem,
+  parentDoneAt,
   isDueOn,
   isOverdueOn,
   maxFreezesStored,
@@ -186,5 +188,21 @@ describe('goals.json', () => {
 
   it.each(data.cases.map((c, i) => ({ ...c, name: label(c.why, `#${i}`) })))('$name', ({ items, progress }) => {
     expect(goalProgress(items)).toEqual(progress);
+  });
+
+  const parents = fixture<{
+    parentDone: { subtasks: GoalItemLike[]; derived: boolean; doneAt?: string | null; why?: string }[];
+  }>('goals.json').parentDone;
+
+  it.each(parents.map((c, i) => ({ ...c, name: label(c.why, `parent #${i}`) })))('$name', ({ subtasks, derived, doneAt }) => {
+    expect(parentDoneAt(subtasks)).toBe(derived ? doneAt : undefined);
+  });
+
+  const next = fixture<{ next: { items: (GoalItemLike & { uuid: string })[]; next: string | null; why?: string }[] }>(
+    'goals.json',
+  ).next;
+
+  it.each(next.map((c, i) => ({ ...c, name: label(c.why, `next #${i}`) })))('$name', ({ items, next }) => {
+    expect(nextGoalItem(items)?.uuid ?? null).toBe(next);
   });
 });

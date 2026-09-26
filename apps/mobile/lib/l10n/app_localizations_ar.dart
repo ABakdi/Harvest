@@ -3430,19 +3430,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get goalNeeds => 'ما يتطلبه';
+  String get goalNeeds => 'المتطلبات — ما يتطلبه';
 
   @override
-  String get goalSteps => 'الخطوات';
+  String get goalSteps => 'المهام';
 
   @override
   String get goalSeeds => 'البذور';
 
   @override
-  String get goalAddNeed => 'أضف شيئًا يتطلبه';
+  String get goalAddNeed => 'أضف متطلبًا';
 
   @override
-  String get goalAddStep => 'أضف خطوة';
+  String get goalAddStep => 'أضف مهمة';
 
   @override
   String get goalAddWhatItTakes => 'أضف ما يتطلبه';
@@ -3516,6 +3516,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get goalItemOptions => 'خيارات البند';
+
+  @override
+  String get goalAddSubtask => 'أضف مهمة فرعية';
+
+  @override
+  String goalSubtaskProgress(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get goalLiftStep => 'اجعلها مهمة قائمة بذاتها';
+
+  @override
+  String get goalLiftNeed => 'اجعلها متطلبًا قائمًا بذاته';
+
+  @override
+  String get goalMoveUnder => 'انقل تحت…';
+
+  @override
+  String get goalMoveUnderTitle => 'اجعلها مهمة فرعية من';
+
+  @override
+  String goalItemRemovedWithSubtasks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُزيل مع مهامه الفرعية الـ$count',
+      many: 'أُزيل مع مهامه الفرعية الـ$count',
+      few: 'أُزيل مع مهامه الفرعية الـ$count',
+      two: 'أُزيل مع مهمتيه الفرعيتين',
+      one: 'أُزيل مع مهمته الفرعية',
+      zero: 'أُزيل',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get navPlaces => 'الأماكن';
@@ -3736,7 +3771,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get geoGoal => 'هدف';
 
   @override
-  String get geoGoalItem => 'خطوة هدف';
+  String get geoGoalItem => 'مهمة هدف';
 
   @override
   String get geoAlbum => 'ألبوم';
@@ -4377,4 +4412,256 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stepsNoDaysConnectedBody => 'يظهر عدد كل يوم هنا بعد انتهائه.';
+
+  @override
+  String get navLists => 'القوائم';
+
+  @override
+  String get featureLists => 'القوائم';
+
+  @override
+  String get featureListsHint =>
+      'للشراء وللقراءة وللمشاهدة، وأي قائمة تصنعها. شارك رابطًا من تطبيق آخر ليُحفظ هنا.';
+
+  @override
+  String get listsToRead => 'للقراءة';
+
+  @override
+  String get listsToWatch => 'للمشاهدة';
+
+  @override
+  String get listsKindPlain => 'بسيطة';
+
+  @override
+  String get listsKindShopping => 'مشتريات';
+
+  @override
+  String get listsKindMedia => 'وسائط';
+
+  @override
+  String get listsKindPlainHint => 'أشياء تُشطب: أفكار، أغراض السفر، يومًا ما.';
+
+  @override
+  String get listsKindShoppingHint =>
+      'أشياء للشراء، بسعر تقديري ويوم مخطط. السعر التقديري خطة، وليس مصروفًا أبدًا.';
+
+  @override
+  String get listsKindMediaHint =>
+      'كتب ومقالات ومسلسلات وأفلام وفيديوهات وبودكاست: أريده، قيد التقدم، انتهيت.';
+
+  @override
+  String get listsNew => 'قائمة جديدة';
+
+  @override
+  String get listsNameLabel => 'الاسم';
+
+  @override
+  String get listsNameHint => 'مثلًا: أغراض السفر، أفكار هدايا';
+
+  @override
+  String get listsOptions => 'خيارات القائمة';
+
+  @override
+  String get listsRename => 'إعادة التسمية';
+
+  @override
+  String get listsMoveEarlier => 'نقل إلى اليمين';
+
+  @override
+  String get listsMoveLater => 'نقل إلى اليسار';
+
+  @override
+  String get listsDelete => 'حذف القائمة';
+
+  @override
+  String listsDeleted(String name) {
+    return 'حُذفت «$name»';
+  }
+
+  @override
+  String get listsEmptyTitle => 'لا شيء في هذه القائمة';
+
+  @override
+  String get listsEmptyBody => 'اكتبه حين يخطر ببالك.';
+
+  @override
+  String get listsReadEmptyTitle => 'لا شيء للقراءة';
+
+  @override
+  String get listsWatchEmptyTitle => 'لا شيء للمشاهدة';
+
+  @override
+  String get listsShareHint =>
+      'أضف واحدًا هنا، أو شارك رابطًا إلى Harvest من أي تطبيق.';
+
+  @override
+  String listsDoneCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منجز',
+      many: '$count منجزًا',
+      few: '$count منجزة',
+      two: 'اثنان منجزان',
+      one: 'واحد منجز',
+      zero: 'لا شيء منجز',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String listsFinishedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتهٍ',
+      many: '$count منتهيًا',
+      few: '$count منتهية',
+      two: 'اثنان منتهيان',
+      one: 'واحد منتهٍ',
+      zero: 'لا شيء منتهٍ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String listsDoneOn(String day) {
+    return 'أُنجز في $day';
+  }
+
+  @override
+  String listsFinishedOn(String day) {
+    return 'انتهى في $day';
+  }
+
+  @override
+  String get listsInProgress => 'قيد التقدم';
+
+  @override
+  String get listsStart => 'ابدأ';
+
+  @override
+  String get listsFinish => 'أنهِ';
+
+  @override
+  String get listsNewItem => 'عنصر جديد';
+
+  @override
+  String get listsListLabel => 'القائمة';
+
+  @override
+  String get listsTypeLabel => 'النوع';
+
+  @override
+  String get listsCreatorLabel => 'المؤلف أو الصانع';
+
+  @override
+  String get listsLinkLabel => 'الرابط';
+
+  @override
+  String get listsLinkInNote =>
+      'هذه القائمة لا تحفظ الروابط: سيُحفظ في الملاحظة.';
+
+  @override
+  String get listsNoteHint => 'أي شيء يستحق التذكر';
+
+  @override
+  String get listsTitleHintPlain => 'مثلًا: جواز السفر، الشاحن';
+
+  @override
+  String get listsTitleHintMedia => 'مثلًا: كثيب';
+
+  @override
+  String get listsMoveTo => 'نقل إلى…';
+
+  @override
+  String get listsMoveToTitle => 'إلى أي قائمة؟';
+
+  @override
+  String get listsOpenLink => 'فتح الرابط';
+
+  @override
+  String get listsLinkFailed => 'تعذّر فتح الرابط.';
+
+  @override
+  String get listsPlant => 'ازرعه بذرة';
+
+  @override
+  String get listsWriteAbout => 'اكتب عنه';
+
+  @override
+  String get listsOpenNote => 'افتح الملاحظة';
+
+  @override
+  String get listsSeedGrowing => 'زُرع بذرة';
+
+  @override
+  String listsSeedProgress(int logged, int total) {
+    return 'البذرة · $logged من $total';
+  }
+
+  @override
+  String get listsSeedDone => 'اكتملت بذرته';
+
+  @override
+  String get listsMarkFinished => 'علّمه منتهيًا';
+
+  @override
+  String get listsRateTitle => 'انتهيت — كيف كان؟';
+
+  @override
+  String get listsRateSkip => 'بلا تقييم';
+
+  @override
+  String listsRatingStars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نجمة',
+      many: '$count نجمة',
+      few: '$count نجوم',
+      two: 'نجمتان',
+      one: 'نجمة واحدة',
+      zero: 'بلا نجوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get listsPlannedPurchases => 'مشتريات مخططة';
+
+  @override
+  String get listsShareTitle => 'احفظ في قائمة';
+
+  @override
+  String get listsSharePickList => 'اختر القائمة التي يذهب إليها.';
+
+  @override
+  String listsShareSaved(String list) {
+    return 'حُفظ في $list';
+  }
+
+  @override
+  String get listsShareOpen => 'افتح';
+
+  @override
+  String get mediaBook => 'كتاب';
+
+  @override
+  String get mediaArticle => 'مقال';
+
+  @override
+  String get mediaShow => 'مسلسل';
+
+  @override
+  String get mediaFilm => 'فيلم';
+
+  @override
+  String get mediaVideo => 'فيديو';
+
+  @override
+  String get mediaPodcast => 'بودكاست';
+
+  @override
+  String get mediaOther => 'آخر';
 }

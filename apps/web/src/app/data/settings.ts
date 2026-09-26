@@ -27,7 +27,7 @@ export const settingKeys = {
 /**
  * The parts of the app that stay out of the way until asked for
  * (`FeatureKeys`). Every one is off until switched on (N1, G1, H1, Y1,
- * PL1), and switching one off hides its tab and never deletes a thing.
+ * PL1, [[Lists]]), and switching one off hides its tab and never deletes a thing.
  */
 export const featureKeys = {
   notes: 'features.notes',
@@ -35,6 +35,7 @@ export const featureKeys = {
   health: 'features.health',
   gym: 'features.gym',
   places: 'features.places',
+  lists: 'features.lists',
 } as const;
 export type Feature = keyof typeof featureKeys;
 export const features = Object.keys(featureKeys) as Feature[];

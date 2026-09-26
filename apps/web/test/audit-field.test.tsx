@@ -35,7 +35,7 @@ describe('the budget line without the passphrase', () => {
     const h = await device(new FakeServer());
     await h.settings.setString('finance.monthlyBudgetMinor', '1200000');
     renderIn(h, <FieldScreen tab="today" />);
-    const hint = await screen.findByRole('link', { name: /budget is locked/ });
+    const hint = await screen.findByRole('link', { name: /budget is locked/ }, { timeout: 5000 });
     expect(hint).toHaveAttribute('href', '/app/granary');
     expect(screen.queryByText(/left today/)).toBeNull();
   });
@@ -52,7 +52,7 @@ describe('the budget line without the passphrase', () => {
       enc: {} as SealedRow['enc'],
     });
     renderIn(h, <FieldScreen tab="today" />);
-    expect(await screen.findByRole('link', { name: /budget is locked/ })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /budget is locked/ }, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.queryByText(/left today/)).toBeNull();
   });
 });

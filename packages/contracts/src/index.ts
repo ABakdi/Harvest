@@ -3,6 +3,7 @@ export * from './auth.js';
 export * from './settings.js';
 export * from './time.js';
 export * from './tables.js';
+export * from './lists.js';
 export * from './sync.js';
 export * from './crypto.js';
 export * from './files.js';

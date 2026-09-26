@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ExpenseEditor } from './components/expense-editor';
+import { ExpenseEditor, type ExpensePrefill } from './components/expense-editor';
 import { SearchDialog } from './components/search-dialog';
 import { SeedEditor, type SeedPrefill } from './components/seed-editor';
-import { WishlistEditor } from './components/wishlist-editor';
+import { ListItemEditor, type ListItemPrefill } from './components/list-item-editor';
 import type { ExpenseRow } from './data/money';
 import type { SeedRow } from './data/seeds';
-import type { WishlistList, WishlistRow } from './data/wishlist';
+import { listOfItem, type ListItemRow } from './data/lists';
 
 export interface Dialogs {
   plantSeed: (prefill?: SeedPrefill) => void;
@@ -13,8 +13,10 @@ export interface Dialogs {
   logExpense: () => void;
   editExpense: (expense: ExpenseRow) => void;
   openSearch: () => void;
-  addWishlistItem: (list: WishlistList) => void;
-  editWishlistItem: (item: WishlistRow) => void;
+  /** The expense sheet with a suggestion typed in, as a bought list item offers it ([[Lists]] L4). */
+  suggestExpense: (prefill: ExpensePrefill) => void;
+  addListItem: (listUuid: string, prefill?: ListItemPrefill) => void;
+  editListItem: (item: ListItemRow) => void;
 }
 
 const DialogsContext = createContext<Dialogs | null>(null);
@@ -27,8 +29,8 @@ export function useDialogs(): Dialogs {
 
 /** [request] numbers each opening, so the editor is keyed by the press that opened it. */
 type SeedState = ({ mode: 'plant'; prefill: SeedPrefill } | { mode: 'edit'; seed: SeedRow }) & { request: number };
-type ExpenseState = { mode: 'log' } | { mode: 'edit'; expense: ExpenseRow } | null;
-type WishlistState = { mode: 'add'; list: WishlistList } | { mode: 'edit'; item: WishlistRow } | null;
+type ExpenseState = { mode: 'log'; prefill?: ExpensePrefill } | { mode: 'edit'; expense: ExpenseRow } | null;
+type ListItemState = { mode: 'add'; listUuid: string; prefill: ListItemPrefill } | { mode: 'edit'; item: ListItemRow } | null;
 
 /**
  * The editors that open from anywhere: from a button, from a goal item,
@@ -38,7 +40,7 @@ type WishlistState = { mode: 'add'; list: WishlistList } | { mode: 'edit'; item:
 export function DialogsProvider({ children }: { children: ReactNode }) {
   const [seed, setSeed] = useState<SeedState | null>(null);
   const [expense, setExpense] = useState<ExpenseState>(null);
-  const [wishlist, setWishlist] = useState<WishlistState>(null);
+  const [listItem, setListItem] = useState<ListItemState>(null);
   const [search, setSearch] = useState(false);
   // Each opening gets a fresh editor, so no half-typed state leaks from the last one.
   const [generation, setGeneration] = useState(0);
@@ -59,18 +61,22 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
     setExpense({ mode: 'edit', expense: row });
   }, []);
   const openSearch = useCallback(() => setSearch(true), []);
-  const addWishlistItem = useCallback((list: WishlistList) => {
+  const suggestExpense = useCallback((prefill: ExpensePrefill) => {
     setGeneration((n) => n + 1);
-    setWishlist({ mode: 'add', list });
+    setExpense({ mode: 'log', prefill });
   }, []);
-  const editWishlistItem = useCallback((item: WishlistRow) => {
+  const addListItem = useCallback((listUuid: string, prefill: ListItemPrefill = {}) => {
     setGeneration((n) => n + 1);
-    setWishlist({ mode: 'edit', item });
+    setListItem({ mode: 'add', listUuid, prefill });
+  }, []);
+  const editListItem = useCallback((item: ListItemRow) => {
+    setGeneration((n) => n + 1);
+    setListItem({ mode: 'edit', item });
   }, []);
 
   const value = useMemo(
-    () => ({ plantSeed, editSeed, logExpense, editExpense, openSearch, addWishlistItem, editWishlistItem }),
-    [plantSeed, editSeed, logExpense, editExpense, openSearch, addWishlistItem, editWishlistItem],
+    () => ({ plantSeed, editSeed, logExpense, editExpense, openSearch, suggestExpense, addListItem, editListItem }),
+    [plantSeed, editSeed, logExpense, editExpense, openSearch, suggestExpense, addListItem, editListItem],
   );
 
   return (
@@ -81,15 +87,17 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
         <ExpenseEditor
           key={`expense-${generation}`}
           expense={expense.mode === 'edit' ? expense.expense : null}
+          prefill={expense.mode === 'log' ? expense.prefill : undefined}
           onClose={() => setExpense(null)}
         />
       )}
-      {wishlist && (
-        <WishlistEditor
-          key={`wishlist-${generation}`}
-          item={wishlist.mode === 'edit' ? wishlist.item : null}
-          list={wishlist.mode === 'add' ? wishlist.list : wishlist.item.list}
-          onClose={() => setWishlist(null)}
+      {listItem && (
+        <ListItemEditor
+          key={`list-item-${generation}`}
+          item={listItem.mode === 'edit' ? listItem.item : null}
+          listUuid={listItem.mode === 'add' ? listItem.listUuid : listOfItem(listItem.item)}
+          prefill={listItem.mode === 'add' ? listItem.prefill : undefined}
+          onClose={() => setListItem(null)}
         />
       )}
       <SearchDialog open={search} onOpenChange={setSearch} />

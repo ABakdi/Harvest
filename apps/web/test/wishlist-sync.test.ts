@@ -35,7 +35,7 @@ describe('the browser store', () => {
     const name = `upgrade-${Date.now()}`;
     // The store as the first release left it: versions 1 and 2, no wishlist.
     const old = new Dexie(name);
-    const { wishlist_items: _wishlist, ...firstTables } = tableSchemas;
+    const { wishlist_items: _wishlist, lists: _lists, ...firstTables } = tableSchemas;
     old.version(1).stores({
       ...firstTables,
       outbox: '++seq, [table+key], table',
@@ -49,9 +49,10 @@ describe('the browser store', () => {
 
     const db = new HarvestDB(name);
     await db.open();
-    expect(db.verno).toBe(3);
+    expect(db.verno).toBe(4);
     expect(await db.meta.get('kept')).toEqual({ key: 'kept', value: 42 });
-    await db.rows('wishlist_items').put({
+    // A row as a v3 store held it, before lists.
+    await db.table('wishlist_items').put({
       uuid: 'coat',
       list: 'buy',
       title: 'Winter coat',

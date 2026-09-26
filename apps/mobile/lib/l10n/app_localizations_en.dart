@@ -3411,19 +3411,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get goalNeeds => 'What it takes';
+  String get goalNeeds => 'Requirements — what it takes';
 
   @override
-  String get goalSteps => 'Steps';
+  String get goalSteps => 'Tasks';
 
   @override
   String get goalSeeds => 'Seeds';
 
   @override
-  String get goalAddNeed => 'Add something it takes';
+  String get goalAddNeed => 'Add a requirement';
 
   @override
-  String get goalAddStep => 'Add a step';
+  String get goalAddStep => 'Add a task';
 
   @override
   String get goalAddWhatItTakes => 'Add what it takes';
@@ -3498,6 +3498,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalItemOptions => 'Item options';
+
+  @override
+  String get goalAddSubtask => 'Add a subtask';
+
+  @override
+  String goalSubtaskProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get goalLiftStep => 'Make it a task of its own';
+
+  @override
+  String get goalLiftNeed => 'Make it a requirement of its own';
+
+  @override
+  String get goalMoveUnder => 'Move under…';
+
+  @override
+  String get goalMoveUnderTitle => 'Make it a subtask of';
+
+  @override
+  String goalItemRemovedWithSubtasks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removed, with its $count subtasks',
+      one: 'Removed, with its subtask',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get navPlaces => 'Places';
@@ -3718,7 +3749,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get geoGoal => 'Goal';
 
   @override
-  String get geoGoalItem => 'Goal step';
+  String get geoGoalItem => 'Goal task';
 
   @override
   String get geoAlbum => 'Album';
@@ -4357,4 +4388,244 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get stepsNoDaysConnectedBody =>
       'Each day\'s count lands here once the day is over.';
+
+  @override
+  String get navLists => 'Lists';
+
+  @override
+  String get featureLists => 'Lists';
+
+  @override
+  String get featureListsHint =>
+      'To buy, to read, to watch, and any list you make. Share a link from another app to save it here.';
+
+  @override
+  String get listsToRead => 'To read';
+
+  @override
+  String get listsToWatch => 'To watch';
+
+  @override
+  String get listsKindPlain => 'Plain';
+
+  @override
+  String get listsKindShopping => 'Shopping';
+
+  @override
+  String get listsKindMedia => 'Media';
+
+  @override
+  String get listsKindPlainHint =>
+      'Things to tick off: ideas, packing, someday.';
+
+  @override
+  String get listsKindShoppingHint =>
+      'Things to buy, with an estimate and a planned day. An estimate is a plan, never an expense.';
+
+  @override
+  String get listsKindMediaHint =>
+      'Books, articles, shows, films, videos and podcasts: want, in progress, finished.';
+
+  @override
+  String get listsNew => 'New list';
+
+  @override
+  String get listsNameLabel => 'Name';
+
+  @override
+  String get listsNameHint => 'e.g. Packing, gift ideas';
+
+  @override
+  String get listsOptions => 'List options';
+
+  @override
+  String get listsRename => 'Rename';
+
+  @override
+  String get listsMoveEarlier => 'Move left';
+
+  @override
+  String get listsMoveLater => 'Move right';
+
+  @override
+  String get listsDelete => 'Delete list';
+
+  @override
+  String listsDeleted(String name) {
+    return '“$name” deleted';
+  }
+
+  @override
+  String get listsEmptyTitle => 'Nothing on this list';
+
+  @override
+  String get listsEmptyBody => 'Write it down while you think of it.';
+
+  @override
+  String get listsReadEmptyTitle => 'Nothing to read';
+
+  @override
+  String get listsWatchEmptyTitle => 'Nothing to watch';
+
+  @override
+  String get listsShareHint =>
+      'Add one here, or share a link to Harvest from any app.';
+
+  @override
+  String listsDoneCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count done',
+      one: '1 done',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String listsFinishedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count finished',
+      one: '1 finished',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String listsDoneOn(String day) {
+    return 'Done on $day';
+  }
+
+  @override
+  String listsFinishedOn(String day) {
+    return 'Finished on $day';
+  }
+
+  @override
+  String get listsInProgress => 'In progress';
+
+  @override
+  String get listsStart => 'Start';
+
+  @override
+  String get listsFinish => 'Finish';
+
+  @override
+  String get listsNewItem => 'New item';
+
+  @override
+  String get listsListLabel => 'List';
+
+  @override
+  String get listsTypeLabel => 'Type';
+
+  @override
+  String get listsCreatorLabel => 'Author or creator';
+
+  @override
+  String get listsLinkLabel => 'Link';
+
+  @override
+  String get listsLinkInNote => 'This list keeps no link: it goes in the note.';
+
+  @override
+  String get listsNoteHint => 'Anything worth remembering';
+
+  @override
+  String get listsTitleHintPlain => 'e.g. Passport, charger';
+
+  @override
+  String get listsTitleHintMedia => 'e.g. Dune';
+
+  @override
+  String get listsMoveTo => 'Move to…';
+
+  @override
+  String get listsMoveToTitle => 'Move to which list?';
+
+  @override
+  String get listsOpenLink => 'Open link';
+
+  @override
+  String get listsLinkFailed => 'Couldn\'t open the link.';
+
+  @override
+  String get listsPlant => 'Plant as a seed';
+
+  @override
+  String get listsWriteAbout => 'Write about it';
+
+  @override
+  String get listsOpenNote => 'Open the note';
+
+  @override
+  String get listsSeedGrowing => 'Planted as a seed';
+
+  @override
+  String listsSeedProgress(int logged, int total) {
+    return 'Seed · $logged of $total';
+  }
+
+  @override
+  String get listsSeedDone => 'Its seed is done';
+
+  @override
+  String get listsMarkFinished => 'Mark finished';
+
+  @override
+  String get listsRateTitle => 'Finished — how was it?';
+
+  @override
+  String get listsRateSkip => 'No rating';
+
+  @override
+  String listsRatingStars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stars',
+      one: '1 star',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get listsPlannedPurchases => 'Planned purchases';
+
+  @override
+  String get listsShareTitle => 'Save to a list';
+
+  @override
+  String get listsSharePickList => 'Pick the list it goes in.';
+
+  @override
+  String listsShareSaved(String list) {
+    return 'Saved to $list';
+  }
+
+  @override
+  String get listsShareOpen => 'Open';
+
+  @override
+  String get mediaBook => 'Book';
+
+  @override
+  String get mediaArticle => 'Article';
+
+  @override
+  String get mediaShow => 'Show';
+
+  @override
+  String get mediaFilm => 'Film';
+
+  @override
+  String get mediaVideo => 'Video';
+
+  @override
+  String get mediaPodcast => 'Podcast';
+
+  @override
+  String get mediaOther => 'Other';
 }

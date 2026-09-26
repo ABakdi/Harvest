@@ -1,5 +1,6 @@
 import { planCheckIn, type CheckInPlan, type HarvestDay } from '@harvest/core';
 import type { SeedRow } from './seeds';
+import { tickGoalItem } from './goals';
 import { onCheckIn, onUndo } from './streaks';
 import type { Tx, Writer } from './writer';
 
@@ -23,14 +24,18 @@ export function projectLeft(seed: Pick<SeedRow, 'totalTarget'>, logged: number):
 /**
  * A planted to-do ticks the goal item it came from, and an undone
  * check-in un-ticks it ([[Goals]] GL3): the only change an item gets
- * without my hand, in the check-in's own transaction.
+ * without my hand, in the check-in's own transaction. A planted subtask
+ * settles its parent, which it may complete; a planted parent takes its
+ * subtasks with it, as my hand would (GL8).
  */
 async function tickGoalItems(tx: Tx, seedUuid: string, done: boolean): Promise<void> {
   const items = await tx.rows('goal_items').where('commitmentUuid').equals(seedUuid).toArray();
-  const now = tx.now();
-  for (const item of items) {
-    if (item.deletedAt !== null || (item.doneAt !== null) === done) continue;
-    await tx.put('goal_items', { ...item, doneAt: done ? now : null, updatedAt: now });
+  // Re-read each one: ticking one may have settled another (a subtask
+  // and its parent planted as the same seed), and a stale copy would
+  // write the older tick back.
+  for (const { uuid } of items) {
+    const item = await tx.get('goal_items', uuid);
+    if (item) await tickGoalItem(tx, item, done);
   }
 }
 

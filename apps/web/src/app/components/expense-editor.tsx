@@ -27,7 +27,14 @@ import { PassphrasePrompt } from './passphrase-prompt';
  * the wallet. Without the passphrase this browser cannot keep money
  * rows in step with the other devices, so it asks for it first.
  */
-export function ExpenseEditor({ expense, onClose }: { expense: ExpenseRow | null; onClose: () => void }) {
+/** A suggestion typed into a new expense: a bought list item's title and estimate ([[Lists]] L4). */
+export interface ExpensePrefill {
+  note?: string;
+  amountMinor?: number | null;
+  currency?: string;
+}
+
+export function ExpenseEditor({ expense, prefill, onClose }: { expense: ExpenseRow | null; prefill?: ExpensePrefill | undefined; onClose: () => void }) {
   const { t } = useTranslation();
   const unlocked = usePrivateKey();
   return (
@@ -38,22 +45,24 @@ export function ExpenseEditor({ expense, onClose }: { expense: ExpenseRow | null
           <DialogDescription>{t('money.editorLead')}</DialogDescription>
         </DialogHeader>
         {unlocked === false && <PassphrasePrompt />}
-        {unlocked === true && <ExpenseForm expense={expense} onClose={onClose} />}
+        {unlocked === true && <ExpenseForm expense={expense} prefill={prefill} onClose={onClose} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function ExpenseForm({ expense, onClose }: { expense: ExpenseRow | null; onClose: () => void }) {
+function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow | null; prefill?: ExpensePrefill | undefined; onClose: () => void }) {
   const { t } = useTranslation();
   const { db, money } = useHarvest();
   const today = useHarvestDay();
   const defaultCurrency = useDefaultCurrency();
   const id = useId();
-  const [amount, setAmount] = useState(expense ? formatAmountInput(expense.amountMinor) : '');
-  const [currency, setCurrency] = useState<string | null>(expense?.currency ?? null);
+  const [amount, setAmount] = useState(
+    expense ? formatAmountInput(expense.amountMinor) : typeof prefill.amountMinor === 'number' ? formatAmountInput(prefill.amountMinor) : '',
+  );
+  const [currency, setCurrency] = useState<string | null>(expense?.currency ?? prefill.currency ?? null);
   const [category, setCategory] = useState(expense?.category ?? 'food');
-  const [note, setNote] = useState(expense?.note ?? '');
+  const [note, setNote] = useState(expense?.note ?? prefill.note ?? '');
   const [day, setDay] = useState(expense?.harvestDay ?? today.key);
   const [fromWallet, setFromWallet] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);

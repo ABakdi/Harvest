@@ -67,7 +67,7 @@ void main() {
     expect(on(), isFalse);
   });
 
-  testWidgets('the last page does not say two when it lists five', (
+  testWidgets('the last page does not say two when it lists six', (
     tester,
   ) async {
     await pumpOnboarding(tester);
@@ -75,6 +75,6 @@ void main() {
       await next(tester);
     }
     expect(find.textContaining('Two more'), findsNothing);
-    expect(find.byType(SwitchListTile), findsNWidgets(5));
+    expect(find.byType(SwitchListTile), findsNWidgets(6));
   });
 }

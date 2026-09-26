@@ -87,6 +87,14 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Share to Harvest ([[Lists]]): a link or a line of text
+                 shared from another app lands in the Save to a list
+                 sheet. Nothing shared is fetched (L9). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
             <!-- Health Connect on Android 13 and below opens the app
                  here when the user asks why it wants their steps. -->
             <intent-filter>
@@ -176,6 +184,16 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- A list item's link opens in whichever app handles it, on
+             my tap only ([[Lists]] L9). -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
         </intent>
         <!-- Package visibility: without these the camera and the
              document picker cannot even be resolved on Android 11+. -->

@@ -211,10 +211,13 @@ describe('the gym panel', () => {
     renderAt(h, '/app/body/gym');
 
     expect(await screen.findByText(/Next: Day 1/)).toBeInTheDocument();
+    // Start waits for the weight unit, so a load is never offered in the wrong one.
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Start a session' })).toBeEnabled());
     await userEvent.click(screen.getByRole('button', { name: 'Start a session' }));
     const pick = await screen.findByRole('dialog');
-    expect(within(pick).getByText('Up next', { exact: false })).toBeInTheDocument();
-    await userEvent.click(within(pick).getByRole('button', { name: /Day 1/ }));
+    // The days load into the dialog after it opens.
+    expect(await within(pick).findByText('Up next', { exact: false })).toBeInTheDocument();
+    await userEvent.click(await within(pick).findByRole('button', { name: /Day 1/ }));
     expect(await screen.findByLabelText('Weight in kg, set 1')).toBeInTheDocument();
     expect((await readRunning(h.db))?.session.title).toBe('Day 1');
   });

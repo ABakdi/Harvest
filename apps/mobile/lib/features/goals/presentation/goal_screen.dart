@@ -21,9 +21,10 @@ import 'package:harvest/l10n/app_localizations.dart';
 
 enum _GoalAction { edit, achieve, reopen, drop, delete }
 
-enum _ItemAction { edit, plant, delete }
+enum _ItemAction { edit, plant, addSubtask, moveUnder, lift, delete }
 
-/// One goal, whole: why, what it takes, the steps, and the seeds.
+/// One goal, whole: why, its requirements, its tasks with their
+/// subtasks, and the seeds.
 class GoalScreen extends ConsumerWidget {
   const GoalScreen({required this.uuid, super.key});
 
@@ -131,15 +132,13 @@ class GoalScreen extends ConsumerWidget {
           ],
           SectionHeader(l10n.goalNeeds),
           _ItemList(
-            goal: goal,
-            items: view.needs.toList(),
+            view: view,
             kind: GoalItemKind.need,
             addLabel: l10n.goalAddNeed,
           ),
           SectionHeader(l10n.goalSteps),
           _ItemList(
-            goal: goal,
-            items: view.steps.toList(),
+            view: view,
             kind: GoalItemKind.step,
             addLabel: l10n.goalAddStep,
           ),
@@ -223,18 +222,17 @@ class GoalScreen extends ConsumerWidget {
   }
 }
 
-/// One section of a goal: its items, ticked and reordered in place, and
-/// a line at the foot to add one more.
+/// One section of a goal: its items, ticked and reordered in place,
+/// each with its subtasks indented beneath it (GL8), and a line at the
+/// foot to add one more.
 class _ItemList extends ConsumerStatefulWidget {
   const _ItemList({
-    required this.goal,
-    required this.items,
+    required this.view,
     required this.kind,
     required this.addLabel,
   });
 
-  final Goal goal;
-  final List<GoalItem> items;
+  final GoalView view;
   final GoalItemKind kind;
   final String addLabel;
 
@@ -245,6 +243,12 @@ class _ItemList extends ConsumerStatefulWidget {
 class _ItemListState extends ConsumerState<_ItemList> {
   final _add = TextEditingController();
   final _focus = FocusNode();
+
+  /// The item whose "Add a subtask" line was asked for from its menu,
+  /// before it has any subtask to keep the line open.
+  String? _adding;
+
+  Goal get _goal => widget.view.goal;
 
   @override
   void dispose() {
@@ -259,7 +263,7 @@ class _ItemListState extends ConsumerState<_ItemList> {
     _add.clear();
     await ref
         .read(goalsRepositoryProvider)
-        .addItem(widget.goal.uuid, body: body, kind: widget.kind);
+        .addItem(_goal.uuid, body: body, kind: widget.kind);
     // Keep the keyboard up: a list is written a line after another.
     _focus.requestFocus();
   }
@@ -288,18 +292,31 @@ class _ItemListState extends ConsumerState<_ItemList> {
           initialType: item.kind == GoalItemKind.step
               ? CommitmentType.todo
               : CommitmentType.habit,
-          goalUuid: widget.goal.uuid,
+          goalUuid: _goal.uuid,
         );
         if (seed == null) return;
         await repository.linkItem(item.uuid, seed.uuid);
         messenger.showSnackBar(SnackBar(content: Text(l10n.goalPlanted)));
+      case _ItemAction.addSubtask:
+        setState(() => _adding = item.uuid);
+      case _ItemAction.moveUnder:
+        final parent = await _pickParent(item);
+        if (parent == null) return;
+        await repository.moveUnder(item.uuid, parent.uuid);
+      case _ItemAction.lift:
+        await repository.liftItem(item.uuid);
       case _ItemAction.delete:
+        final subtasks = widget.view.subtasksOf(item.uuid).length;
         await repository.deleteItem(item.uuid);
         messenger.showSnackBar(
           SnackBar(
             // An action is an offer for a few seconds, not a fixture.
             persist: false,
-            content: Text(l10n.goalItemRemoved),
+            content: Text(
+              subtasks == 0
+                  ? l10n.goalItemRemoved
+                  : l10n.goalItemRemovedWithSubtasks(subtasks),
+            ),
             action: SnackBarAction(
               label: l10n.undo,
               onPressed: () => unawaited(repository.restoreItem(item.uuid)),
@@ -309,12 +326,165 @@ class _ItemListState extends ConsumerState<_ItemList> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  /// The items of this section [item] could go under: every other one
+  /// at the top level.
+  List<GoalItem> _parentsFor(GoalItem item) => [
+    for (final other in widget.view.outline.top(widget.kind))
+      if (other.uuid != item.uuid && other.parentUuid == null) other,
+  ];
+
+  Future<GoalItem?> _pickParent(GoalItem item) {
+    final l10n = AppLocalizations.of(context);
+    return showDialog<GoalItem>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(l10n.goalMoveUnderTitle),
+        children: [
+          for (final other in _parentsFor(item))
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(other),
+              child: Text(other.body),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tile(GoalItem item, {required int index}) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final repository = ref.read(goalsRepositoryProvider);
-    final items = widget.items;
+    final view = widget.view;
+    // A subtask whose parent is gone is drawn at the top, and can
+    // still be lifted to stand there for good.
+    final isSubtask = item.parentUuid != null;
+    final subtasks = view.subtasksOf(item.uuid);
+    final done = view.isDone(item);
+    final details = [
+      if (subtasks.isNotEmpty)
+        l10n.goalSubtaskProgress(
+          subtasks.where((s) => s.isDone).length,
+          subtasks.length,
+        ),
+      if (item.isPlanted) l10n.goalPlanted,
+    ];
+    return ListTile(
+      key: ValueKey(item.uuid),
+      contentPadding: EdgeInsets.zero,
+      dense: isSubtask,
+      leading: Checkbox(
+        value: done,
+        onChanged: (value) {
+          unawaited(HarvestHaptics.tick());
+          unawaited(repository.setDone(item.uuid, done: value ?? false));
+        },
+      ),
+      title: Text(
+        item.body,
+        style: done
+            ? theme.textTheme.bodyLarge?.copyWith(
+                decoration: TextDecoration.lineThrough,
+                color: theme.colorScheme.onSurfaceVariant,
+              )
+            : null,
+      ),
+      subtitle: details.isEmpty ? null : Text(details.join(' · ')),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PopupMenuButton<_ItemAction>(
+            tooltip: l10n.goalItemOptions,
+            onSelected: (action) => unawaited(_onAction(item, action)),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: _ItemAction.edit,
+                child: Text(l10n.goalEditItem),
+              ),
+              if (!item.isPlanted)
+                PopupMenuItem(
+                  value: _ItemAction.plant,
+                  child: Text(l10n.goalPlant),
+                ),
+              if (!isSubtask)
+                PopupMenuItem(
+                  value: _ItemAction.addSubtask,
+                  child: Text(l10n.goalAddSubtask),
+                ),
+              if (!isSubtask &&
+                  subtasks.isEmpty &&
+                  _parentsFor(item).isNotEmpty)
+                PopupMenuItem(
+                  value: _ItemAction.moveUnder,
+                  child: Text(l10n.goalMoveUnder),
+                ),
+              if (isSubtask)
+                PopupMenuItem(
+                  value: _ItemAction.lift,
+                  child: Text(
+                    widget.kind == GoalItemKind.step
+                        ? l10n.goalLiftStep
+                        : l10n.goalLiftNeed,
+                  ),
+                ),
+              PopupMenuItem(
+                value: _ItemAction.delete,
+                child: Text(l10n.removeAction),
+              ),
+            ],
+          ),
+          ReorderableDragStartListener(
+            index: index,
+            child: const Padding(
+              padding: EdgeInsets.all(HarvestSpacing.sm),
+              child: Icon(Icons.drag_handle),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// An item's subtasks, dragged among themselves only, and the line
+  /// that adds one more.
+  Widget _subtasks(GoalItem item) {
+    final repository = ref.read(goalsRepositoryProvider);
+    final subtasks = widget.view.subtasksOf(item.uuid);
+    final adding = _adding == item.uuid;
+    if (subtasks.isEmpty && !adding) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: HarvestSpacing.xl),
+      child: Column(
+        children: [
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: subtasks.length,
+            onReorderItem: (from, to) {
+              final uuids = [for (final s in subtasks) s.uuid];
+              final moved = uuids.removeAt(from);
+              uuids.insert(to, moved);
+              unawaited(repository.reorderItems(uuids));
+            },
+            itemBuilder: (context, i) => _tile(subtasks[i], index: i),
+          ),
+          _SubtaskField(
+            key: ValueKey('add-${item.uuid}'),
+            parentUuid: item.uuid,
+            autofocus: adding,
+            onDone: () {
+              if (_adding == item.uuid) setState(() => _adding = null);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final repository = ref.read(goalsRepositoryProvider);
+    final items = widget.view.outline.top(widget.kind);
 
     return Column(
       children: [
@@ -331,57 +501,10 @@ class _ItemListState extends ConsumerState<_ItemList> {
           },
           itemBuilder: (context, i) {
             final item = items[i];
-            return ListTile(
+            return Column(
               key: ValueKey(item.uuid),
-              contentPadding: EdgeInsets.zero,
-              leading: Checkbox(
-                value: item.isDone,
-                onChanged: (done) {
-                  unawaited(HarvestHaptics.tick());
-                  unawaited(repository.setDone(item.uuid, done: done ?? false));
-                },
-              ),
-              title: Text(
-                item.body,
-                style: item.isDone
-                    ? theme.textTheme.bodyLarge?.copyWith(
-                        decoration: TextDecoration.lineThrough,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      )
-                    : null,
-              ),
-              subtitle: item.isPlanted ? Text(l10n.goalPlanted) : null,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PopupMenuButton<_ItemAction>(
-                    tooltip: l10n.goalItemOptions,
-                    onSelected: (action) => unawaited(_onAction(item, action)),
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: _ItemAction.edit,
-                        child: Text(l10n.goalEditItem),
-                      ),
-                      if (!item.isPlanted)
-                        PopupMenuItem(
-                          value: _ItemAction.plant,
-                          child: Text(l10n.goalPlant),
-                        ),
-                      PopupMenuItem(
-                        value: _ItemAction.delete,
-                        child: Text(l10n.removeAction),
-                      ),
-                    ],
-                  ),
-                  ReorderableDragStartListener(
-                    index: i,
-                    child: const Padding(
-                      padding: EdgeInsets.all(HarvestSpacing.sm),
-                      child: Icon(Icons.drag_handle),
-                    ),
-                  ),
-                ],
-              ),
+              mainAxisSize: MainAxisSize.min,
+              children: [_tile(item, index: i), _subtasks(item)],
             );
           },
         ),
@@ -400,6 +523,74 @@ class _ItemListState extends ConsumerState<_ItemList> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The line under an item's subtasks that adds one more.
+class _SubtaskField extends ConsumerStatefulWidget {
+  const _SubtaskField({
+    required this.parentUuid,
+    required this.autofocus,
+    required this.onDone,
+    super.key,
+  });
+
+  final String parentUuid;
+  final bool autofocus;
+
+  /// Called once a subtask was added, or the line was left empty.
+  final VoidCallback onDone;
+
+  @override
+  ConsumerState<_SubtaskField> createState() => _SubtaskFieldState();
+}
+
+class _SubtaskFieldState extends ConsumerState<_SubtaskField> {
+  final _controller = TextEditingController();
+  final _focus = FocusNode();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final body = _controller.text.trim();
+    if (body.isEmpty) {
+      widget.onDone();
+      return;
+    }
+    _controller.clear();
+    await ref
+        .read(goalsRepositoryProvider)
+        .addSubtask(widget.parentUuid, body: body);
+    widget.onDone();
+    // A task is broken down a line after another.
+    _focus.requestFocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return TextField(
+      controller: _controller,
+      focusNode: _focus,
+      autofocus: widget.autofocus,
+      maxLength: 200,
+      textCapitalization: TextCapitalization.sentences,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => unawaited(_submit()),
+      style: Theme.of(context).textTheme.bodyMedium,
+      decoration: InputDecoration(
+        counterText: '',
+        isDense: true,
+        prefixIcon: const Icon(Icons.subdirectory_arrow_right, size: 18),
+        hintText: l10n.goalAddSubtask,
+        border: InputBorder.none,
+      ),
     );
   }
 }

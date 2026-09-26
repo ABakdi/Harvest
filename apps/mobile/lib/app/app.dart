@@ -12,6 +12,7 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
 import 'package:harvest/features/health/presentation/health_rationale_screen.dart';
+import 'package:harvest/features/lists/data/share_inbox.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/security/domain/app_lock.dart';
@@ -84,6 +85,7 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
     ref.read(currentHarvestDayProvider.notifier).refresh();
     unawaited(_catchUp());
     unawaited(_answerHealthConnect());
+    unawaited(ref.read(shareInboxProvider.notifier).check());
   }
 
   /// Health Connect can send someone here mid-question, either on the

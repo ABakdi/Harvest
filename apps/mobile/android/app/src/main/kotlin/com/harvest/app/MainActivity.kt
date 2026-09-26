@@ -29,18 +29,49 @@ class MainActivity : FlutterFragmentActivity() {
      */
     private var rationaleAsked = false
 
+    /**
+     * What another app shared with *Share → Harvest* ([[Lists]]): the
+     * subject and the text, kept until Dart takes them. Kept rather than
+     * pushed for the same reason as the rationale flag — on a cold start
+     * the engine is not up yet — and nudged at Dart as well when the app
+     * is already running, so a share into an open app is not left
+     * waiting for the next resume.
+     */
+    private var shared: Map<String, String?>? = null
+    private var shareChannel: MethodChannel? = null
+
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
         readRationale(intent)
+        // A share is read once: a recreated activity (a rotation, a
+        // theme change) must not offer to save it again.
+        if (savedInstanceState == null) readShare(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         readRationale(intent)
+        if (readShare(intent)) shareChannel?.invokeMethod("shared", null)
     }
 
     private fun readRationale(intent: Intent?) {
         if (intent?.action in RATIONALE_ACTIONS) rationaleAsked = true
+    }
+
+    /** Takes a text share off [intent]; true when there was one. */
+    private fun readShare(intent: Intent?): Boolean {
+        if (intent == null || intent.action != Intent.ACTION_SEND) return false
+        if (intent.type?.startsWith("text/") != true) return false
+        // Reopened from recents after the process died: Android hands
+        // the old share back, already saved or dismissed once.
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return false
+        val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+        val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+        if (text.isNullOrBlank() && subject.isNullOrBlank()) return false
+        shared = mapOf("subject" to subject, "text" to text)
+        // Handled: a later resume must not see it as a new share.
+        intent.action = Intent.ACTION_MAIN
+        return true
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -62,6 +93,18 @@ class MainActivity : FlutterFragmentActivity() {
                         rationaleAsked = false
                     }
                     else -> result.notImplemented()
+                }
+            }
+        shareChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SHARE_CHANNEL)
+            .apply {
+                setMethodCallHandler { call, result ->
+                    when (call.method) {
+                        "takeShared" -> {
+                            result.success(shared)
+                            shared = null
+                        }
+                        else -> result.notImplemented()
+                    }
                 }
             }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SECURITY_CHANNEL)
@@ -170,6 +213,7 @@ class MainActivity : FlutterFragmentActivity() {
         const val DOWNLOADS_CHANNEL = "harvest/downloads"
         const val SECURITY_CHANNEL = "harvest/security"
         const val HEALTH_CHANNEL = "harvest/health"
+        const val SHARE_CHANNEL = "harvest/share"
 
         /** Android 13 and below, then Android 14+. */
         val RATIONALE_ACTIONS = setOf(

@@ -72,6 +72,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   var _healthOn = false;
   var _gymOn = false;
   var _placesOn = false;
+  var _listsOn = false;
   var _finishing = false;
 
   static const _pages = 5;
@@ -145,6 +146,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await settings.setBool(FeatureKeys.gallery, value: _galleryOn);
     await settings.setBool(FeatureKeys.health, value: _healthOn);
     await settings.setBool(FeatureKeys.gym, value: _gymOn);
+    await settings.setBool(FeatureKeys.lists, value: _listsOn);
     // Places asks the phone for location first ([[Places]] PL1), so it
     // goes through its controller; a no is still written down.
     if (_placesOn) {
@@ -202,11 +204,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     health: _healthOn,
                     gym: _gymOn,
                     places: _placesOn,
+                    lists: _listsOn,
                     onNotes: (on) => setState(() => _notesOn = on),
                     onGallery: (on) => setState(() => _galleryOn = on),
                     onHealth: (on) => setState(() => _healthOn = on),
                     onGym: (on) => setState(() => _gymOn = on),
                     onPlaces: (on) => setState(() => _placesOn = on),
+                    onLists: (on) => setState(() => _listsOn = on),
                   ),
                 ],
               ),
@@ -484,11 +488,13 @@ class _ExtrasPage extends StatelessWidget {
     required this.health,
     required this.gym,
     required this.places,
+    required this.lists,
     required this.onNotes,
     required this.onGallery,
     required this.onHealth,
     required this.onGym,
     required this.onPlaces,
+    required this.onLists,
   });
 
   final AppLocalizations l10n;
@@ -497,11 +503,13 @@ class _ExtrasPage extends StatelessWidget {
   final bool health;
   final bool gym;
   final bool places;
+  final bool lists;
   final ValueChanged<bool> onNotes;
   final ValueChanged<bool> onGallery;
   final ValueChanged<bool> onHealth;
   final ValueChanged<bool> onGym;
   final ValueChanged<bool> onPlaces;
+  final ValueChanged<bool> onLists;
 
   @override
   Widget build(BuildContext context) {
@@ -572,6 +580,14 @@ class _ExtrasPage extends StatelessWidget {
                   subtitle: Text(l10n.featurePlacesHint),
                   value: places,
                   onChanged: onPlaces,
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.checklist),
+                  title: Text(l10n.featureLists),
+                  subtitle: Text(l10n.featureListsHint),
+                  value: lists,
+                  onChanged: onLists,
                 ),
               ],
             ),

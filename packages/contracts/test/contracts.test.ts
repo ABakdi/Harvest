@@ -102,8 +102,9 @@ describe('instants', () => {
 });
 
 describe('the registry', () => {
-  it('knows 35 tables, and not the outbox or quests', () => {
-    expect(syncedTables).toHaveLength(35);
+  it('knows 36 tables, and not the outbox or quests', () => {
+    expect(syncedTables).toHaveLength(36);
+    expect(syncedTables).toContain('lists');
     expect(syncedTables).toContain('wishlist_items');
     expect(syncedTables).not.toContain('outbox');
     expect(syncedTables).not.toContain('quests');
@@ -160,6 +161,26 @@ describe('columns added after a release', () => {
     const made = '2026-08-28T18:30:00.000Z';
     expect(tables.expense_categories.data.parse({ ...category, createdAt: made }).createdAt).toBe(made);
     expect(tables.expense_categories.data.safeParse({ ...category, createdAt: 'yesterday' }).success).toBe(false);
+  });
+
+  it('reads a goal item synced before subtasks existed as top-level', () => {
+    const item = {
+      uuid: 'a8c3f6e1-7d4b-4a9c-b2e5-9d6a3c8f1e45',
+      goalUuid: '4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38',
+      kind: 'step',
+      body: 'Register for the 10 km',
+      note: null,
+      doneAt: null,
+      position: 0,
+      commitmentUuid: null,
+      createdAt: '2026-09-01T07:03:00.000Z',
+      updatedAt: '2026-09-01T07:03:00.000Z',
+      deletedAt: null,
+    };
+    expect(tables.goal_items.data.parse(item).parentUuid).toBeNull();
+    const parent = '5f1c3a8e-2b7d-4e9a-9c6b-3d8e1f4a7b20';
+    expect(tables.goal_items.data.parse({ ...item, parentUuid: parent }).parentUuid).toBe(parent);
+    expect(tables.goal_items.data.safeParse({ ...item, parentUuid: 7 }).success).toBe(false);
   });
 });
 

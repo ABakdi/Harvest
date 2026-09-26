@@ -12,6 +12,7 @@ typedef ExportData = ({
   List<List<Object?>> seedNotes,
   List<List<Object?>> goals,
   List<List<Object?>> goalItems,
+  List<List<Object?>> lists,
   List<List<Object?>> wishlistItems,
   List<List<Object?>> expenses,
   List<List<Object?>> categories,
@@ -69,6 +70,10 @@ abstract final class SheetNames {
   static const seedNotes = 'SeedNotes';
   static const goals = 'Goals';
   static const goalItems = 'GoalItems';
+
+  /// The lists themselves ([[Lists]]); their items are the Wishlist
+  /// sheet, which kept its name for the archives already out there.
+  static const lists = 'Lists';
   static const wishlist = 'Wishlist';
   static const expenses = 'Expenses';
 
@@ -221,6 +226,9 @@ List<ExportSheet> harvestSheets(ExportData data) {
       'DoneAt',
       'Position',
       'CommitmentUuid',
+      // From v24 ([[Goals]] GL6): the item a subtask belongs to. An
+      // older archive has no such column, and its items are top-level.
+      'ParentUuid',
       'CreatedAt',
       'UpdatedAt',
       'DeletedAt',
@@ -229,16 +237,40 @@ List<ExportSheet> harvestSheets(ExportData data) {
     derived: const [(header: 'Goal', template: _goalTitle)],
   );
 
+  final lists = ExportSheet(
+    name: SheetNames.lists,
+    headers: const [
+      'Uuid',
+      'Name',
+      'Kind',
+      'Icon',
+      'Position',
+      'BuiltIn',
+      'CreatedAt',
+      'UpdatedAt',
+      'DeletedAt',
+    ],
+    rows: data.lists,
+  );
+
   final wishlistItems = ExportSheet(
     name: SheetNames.wishlist,
     headers: const [
       'Uuid',
       'List',
+      'ListUuid',
       'Title',
       'PriceMinor',
       'Currency',
       'Note',
       'TargetDay',
+      'MediaType',
+      'Link',
+      'Creator',
+      'StartedAt',
+      'Rating',
+      'SeedUuid',
+      'NoteUuid',
       'BoughtAt',
       'Position',
       'CreatedAt',
@@ -730,6 +762,7 @@ List<ExportSheet> harvestSheets(ExportData data) {
     seedNotes,
     goals,
     goalItems,
+    lists,
     wishlistItems,
     expenses,
     categories,

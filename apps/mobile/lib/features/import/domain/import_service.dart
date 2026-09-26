@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:harvest/core/db/built_in_lists.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/db/portable_settings.dart';
@@ -46,6 +47,7 @@ const Map<String, String> _syncedTables = {
   SheetNames.seedNotes: 'seed_notes',
   SheetNames.goals: 'goals',
   SheetNames.goalItems: 'goal_items',
+  SheetNames.lists: 'lists',
   SheetNames.wishlist: 'wishlist_items',
   SheetNames.expenses: 'expenses',
   SheetNames.categories: 'expense_categories',
@@ -624,6 +626,30 @@ class ImportService {
               doneAt: Value(_time(row['DoneAt'])),
               position: Value(_int(row['Position']) ?? 0),
               commitmentUuid: Value(row['CommitmentUuid']),
+              // Absent before v24: every item is top-level.
+              parentUuid: Value(row['ParentUuid']),
+              createdAt: Value(_time(row['CreatedAt']) ?? _now()),
+              updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
+              deletedAt: Value(_time(row['DeletedAt'])),
+            ),
+          ),
+    ),
+    _Table(
+      sheet: SheetNames.lists,
+      keyOf: _uuid,
+      stampColumn: 'UpdatedAt',
+      localStamps: (db) =>
+          _stamps(db, db.lists, (r) => r.uuid, (r) => r.updatedAt),
+      insert: (db, row) => db
+          .into(db.lists)
+          .insertOnConflictUpdate(
+            ListsCompanion.insert(
+              uuid: row['Uuid']!,
+              name: row['Name'] ?? '',
+              kind: Value(row['Kind'] ?? 'plain'),
+              icon: Value(row['Icon']),
+              position: Value(_int(row['Position']) ?? 0),
+              builtIn: Value(row['BuiltIn']),
               createdAt: Value(_time(row['CreatedAt']) ?? _now()),
               updatedAt: Value(_time(row['UpdatedAt']) ?? _now()),
               deletedAt: Value(_time(row['DeletedAt'])),
@@ -642,11 +668,27 @@ class ImportService {
             WishlistItemsCompanion.insert(
               uuid: row['Uuid']!,
               list: Value(row['List'] ?? 'buy'),
+              // An archive from before lists has no ListUuid; its List
+              // names the shopping list, as a pulled row's would.
+              listUuid: Value(
+                row['ListUuid'] ??
+                    listUuidOfItem(list: row['List'] ?? 'buy'),
+              ),
               title: row['Title'] ?? '',
               priceMinor: Value(_int(row['PriceMinor'])),
               currency: Value(row['Currency'] ?? 'DZD'),
               note: Value(row['Note']),
               targetDay: Value(row['TargetDay']),
+              mediaType: Value(row['MediaType']),
+              link: Value(row['Link']),
+              creator: Value(row['Creator']),
+              startedAt: Value(_time(row['StartedAt'])),
+              rating: Value(switch (_int(row['Rating'])) {
+                final stars? when stars >= 1 && stars <= 5 => stars,
+                _ => null,
+              }),
+              seedUuid: Value(row['SeedUuid']),
+              noteUuid: Value(row['NoteUuid']),
               boughtAt: Value(_time(row['BoughtAt'])),
               position: Value(_int(row['Position']) ?? 0),
               createdAt: Value(_time(row['CreatedAt']) ?? _now()),

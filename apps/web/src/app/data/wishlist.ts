@@ -1,9 +1,10 @@
-import type { Row } from './db';
-import type { Tx, Writer } from './writer';
+import { buyListId, wishListId } from '@harvest/contracts';
+import { ListsRepository, listOfItem, type ListItemRow } from './lists';
+import type { Writer } from './writer';
 
-export type WishlistRow = Row<'wishlist_items'>;
+export type WishlistRow = ListItemRow;
 /** Which list an item sits in (W1): the buy list is day to day and the wishlist is future planning. Same rows, two moods. */
-export type WishlistList = WishlistRow['list'];
+export type WishlistList = 'buy' | 'wish';
 
 export interface WishlistInput {
   title: string;
@@ -13,45 +14,35 @@ export interface WishlistInput {
   targetDay?: string | null;
 }
 
-/** One past the last live item of [list]; deleted rows hold no place. */
-async function nextPosition(tx: Tx, list: WishlistList): Promise<number> {
-  const live = (await tx.rows('wishlist_items').toArray()).filter(
-    (row) => row.list === list && row.deletedAt === null,
-  );
-  return live.reduce((max, row) => Math.max(max, row.position), -1) + 1;
+/** The built-in list each of the two is now ([[Lists]]). */
+export const wishlistListIds: Record<WishlistList, string> = { buy: buyListId, wish: wishListId };
+
+/** Which of the two lists [row] is in, or null for any other list's item. */
+export function wishlistListOf(row: WishlistRow): WishlistList | null {
+  const list = listOfItem(row);
+  if (list === buyListId) return 'buy';
+  if (list === wishListId) return 'wish';
+  return null;
 }
 
 /**
- * The two lists of the Granary's Wishlist tab, mirroring the phone's
- * WishlistRepository ([[Wishlist]]). Nothing here touches money: an
- * estimated price is a plan (W2), so no wallet movement, no ledger row
- * and no XP are ever written. Only the list, the order and the bought
- * stamp change.
+ * The two lists of the Granary's Wishlist tab, which are now the
+ * built-in *To buy* and *Wishlist* shopping lists ([[Lists]]). A thin
+ * door onto [ListsRepository], as the phone's WishlistRepository is,
+ * until Records → Lists replaces the tab. Nothing here touches money:
+ * an estimated price is a plan (W2).
  */
 export class WishlistRepository {
-  constructor(private readonly writer: Writer) {}
+  private readonly lists: ListsRepository;
 
-  add(input: { list: WishlistList } & WishlistInput): Promise<WishlistRow> {
-    return this.writer.run(async (tx) => {
-      const position = await nextPosition(tx, input.list);
-      const now = tx.now();
-      const row: WishlistRow = {
-        uuid: crypto.randomUUID(),
-        list: input.list,
-        title: input.title.trim(),
-        priceMinor: input.priceMinor ?? null,
-        currency: input.currency ?? 'DZD',
-        note: input.note?.trim() || null,
-        targetDay: input.targetDay ?? null,
-        boughtAt: null,
-        position,
-        createdAt: now,
-        updatedAt: now,
-        deletedAt: null,
-      };
-      await tx.put('wishlist_items', row);
-      return row;
-    });
+  constructor(private readonly writer: Writer) {
+    this.lists = new ListsRepository(writer);
+  }
+
+  async add(input: { list: WishlistList } & WishlistInput): Promise<WishlistRow> {
+    await this.lists.ensureBuiltIns();
+    const { list, ...fields } = input;
+    return this.lists.addItem(wishlistListIds[list], fields);
   }
 
   /**
@@ -60,74 +51,44 @@ export class WishlistRepository {
    */
   edit(uuid: string, input: WishlistInput, to?: WishlistList): Promise<void> {
     return this.writer.run(async (tx) => {
-      const row = await tx.rows('wishlist_items').get(uuid);
-      const moving = to !== undefined && row !== undefined && row.list !== to;
-      await tx.patch('wishlist_items', uuid, {
-        title: input.title.trim(),
-        priceMinor: input.priceMinor ?? null,
-        currency: input.currency ?? 'DZD',
-        note: input.note?.trim() || null,
-        targetDay: input.targetDay ?? null,
-        ...(moving ? { list: to, position: await nextPosition(tx, to) } : {}),
-        updatedAt: tx.now(),
-      });
+      await this.lists.editItemIn(tx, uuid, input);
+      if (to !== undefined) await this.lists.moveItemIn(tx, uuid, wishlistListIds[to]);
     });
   }
 
   /**
    * A mood, not a copy (W4): the row keeps its price, note, target day
-   * and history, and joins the bottom of the other list so it never
-   * collides with an order already there — as the phone does.
+   * and history, and joins the bottom of the other list.
    */
-  move(uuid: string, to: WishlistList): Promise<void> {
-    return this.writer.run(async (tx) => {
-      const row = await tx.rows('wishlist_items').get(uuid);
-      if (!row || row.list === to) return;
-      const position = await nextPosition(tx, to);
-      await tx.patch('wishlist_items', uuid, { list: to, position, updatedAt: tx.now() });
-    });
+  async move(uuid: string, to: WishlistList): Promise<void> {
+    await this.lists.moveItem(uuid, wishlistListIds[to]);
   }
 
   /** One list's order, as arranged. */
   reorder(list: WishlistList, uuids: string[]): Promise<void> {
-    return this.writer.run(async (tx) => {
-      for (const [position, uuid] of uuids.entries()) {
-        await tx.patch('wishlist_items', uuid, { list, position, updatedAt: tx.now() });
-      }
-    });
+    return this.lists.reorderItems(wishlistListIds[list], uuids);
   }
 
   /**
    * Marks it bought; un-buying brings it back if the purchase fell
-   * through (W3). The stamp is not a transaction.
+   * through (W3). A wish is moved to the buy list before it is bought
+   * (W7). The stamp is not a transaction.
    */
-  setBought(uuid: string, bought: boolean): Promise<void> {
-    return this.write(uuid, { boughtAt: bought ? this.writer.clock().toISOString() : null });
+  async setBought(uuid: string, bought: boolean): Promise<void> {
+    await this.lists.setDone(uuid, bought);
   }
 
   /** Soft delete, like the rest of the table (W6); [restore] undoes it. */
   delete(uuid: string): Promise<void> {
-    return this.write(uuid, { deletedAt: this.writer.clock().toISOString() });
+    return this.lists.deleteItem(uuid);
   }
 
   restore(uuid: string): Promise<void> {
-    return this.write(uuid, { deletedAt: null });
+    return this.lists.restoreItem(uuid);
   }
 
-  /** Hard-deletes rows soft-deleted longer than [olderThanMs] ago — "delete" must eventually mean gone. */
+  /** Hard-deletes rows soft-deleted longer than [olderThanMs] ago — every list's, since the items share one table. */
   purgeDeleted(olderThanMs: number): Promise<void> {
-    return this.writer.run(async (tx) => {
-      const cutoff = new Date(tx.clockNow().getTime() - olderThanMs).toISOString();
-      const stale = (await tx.rows('wishlist_items').toArray()).filter(
-        (row) => row.deletedAt !== null && row.deletedAt < cutoff,
-      );
-      for (const row of stale) await tx.purge('wishlist_items', row.uuid);
-    });
-  }
-
-  private write(uuid: string, changes: Partial<WishlistRow>): Promise<void> {
-    return this.writer.run(async (tx) => {
-      await tx.patch('wishlist_items', uuid, { ...changes, updatedAt: tx.now() });
-    });
+    return this.lists.purgeDeleted(olderThanMs);
   }
 }

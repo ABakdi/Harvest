@@ -47,12 +47,12 @@ async function openRecords(at: string, setup: (h: Awaited<ReturnType<typeof devi
   return h;
 }
 
-describe('records with all three views off', () => {
+describe('records with all four views off', () => {
   it('says they are switched off, as the Body does, instead of opening Notes', async () => {
     await openRecords('/app/records', async (h) => {
       await h.notes.create({ title: 'Kept anyway' });
     });
-    expect(await screen.findByText('Notes, the Gallery and Places are switched off')).toBeInTheDocument();
+    expect(await screen.findByText('Notes, the Gallery, Places and Lists are switched off')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open Settings' })).toHaveAttribute('href', '/app/settings');
     expect(screen.queryByText('Kept anyway')).toBeNull();
   });

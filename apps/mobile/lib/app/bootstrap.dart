@@ -9,6 +9,8 @@ import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/lists/data/lists_repository.dart';
+import 'package:harvest/features/lists/data/share_inbox.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -16,7 +18,6 @@ import 'package:harvest/features/pomodoro/presentation/pomodoro_controller.dart'
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/features/widget/domain/widget_actions.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
-import 'package:harvest/features/wishlist/data/wishlist_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'bootstrap.g.dart';
@@ -104,6 +105,9 @@ Future<void> appBootstrap(Ref ref) async {
       ref.read(pendingWidgetActionProvider.notifier).listen,
     ),
   );
+  // Share → Harvest: a share that launched the app is already waiting
+  // on the activity ([[Lists]]).
+  unawaited(step('share', ref.read(shareInboxProvider.notifier).listen));
   unawaited(
     step('purge', () async {
       await ref
@@ -116,7 +120,7 @@ Future<void> appBootstrap(Ref ref) async {
           .read(vaultRepositoryProvider)
           .purgeDeleted(olderThan: purgeAfter);
       await ref
-          .read(wishlistRepositoryProvider)
+          .read(listsRepositoryProvider)
           .purgeDeleted(olderThan: purgeAfter);
       await ref.read(databaseProvider).capOutbox();
       // Recordings trashed a month ago, and any whose note is gone.

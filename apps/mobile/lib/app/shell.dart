@@ -7,6 +7,8 @@ import 'package:harvest/app/router.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
+import 'package:harvest/features/lists/data/share_inbox.dart';
+import 'package:harvest/features/lists/presentation/share_flow.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/widget/domain/widget_actions.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -71,7 +73,18 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
     super.initState();
     // A widget button that fired while the app was closed is already
     // waiting by the time the shell exists.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _drain());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_drain());
+      unawaited(_drainShare());
+    });
+  }
+
+  /// Opens *Save to a list* for what another app shared ([[Lists]]),
+  /// whether it launched the app or arrived while it was open.
+  Future<void> _drainShare() async {
+    final draft = ref.read(shareInboxProvider.notifier).take();
+    if (draft == null || !mounted) return;
+    await saveShared(context, ref, draft);
   }
 
   /// Carries out whatever the widget asked for: the shell is the first
@@ -92,9 +105,13 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    ref.listen(pendingWidgetActionProvider, (_, next) {
-      if (next != null) unawaited(_drain());
-    });
+    ref
+      ..listen(pendingWidgetActionProvider, (_, next) {
+        if (next != null) unawaited(_drain());
+      })
+      ..listen(shareInboxProvider, (_, next) {
+        if (next != null) unawaited(_drainShare());
+      });
 
     // Five, and five is the ceiling. Four optional features fit under
     // two tabs: notes and pictures share Records, sleep and training
@@ -115,7 +132,8 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
       ),
       if (ref.watch(notesEnabledProvider) ||
           ref.watch(galleryEnabledProvider) ||
-          ref.watch(placesEnabledProvider))
+          ref.watch(placesEnabledProvider) ||
+          ref.watch(listsEnabledProvider))
         (
           branch: ShellBranch.records,
           icon: Icons.auto_stories_outlined,

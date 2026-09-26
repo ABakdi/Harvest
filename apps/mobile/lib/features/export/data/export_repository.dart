@@ -71,6 +71,7 @@ class ExportRepository {
     final setRows = await _db.select(_db.workoutSets).get();
     final goalRows = await _db.select(_db.goals).get();
     final goalItemRows = await _db.select(_db.goalItems).get();
+    final listRows = await _db.select(_db.lists).get();
     final wishlistRows = await _db.select(_db.wishlistItems).get();
     final categoryRows = await _db.select(_db.expenseCategories).get();
     final attachmentRows = await _db.select(_db.noteAttachments).get();
@@ -249,6 +250,21 @@ class ExportRepository {
             _at(row.doneAt),
             row.position,
             row.commitmentUuid,
+            row.parentUuid,
+            _at(row.createdAt),
+            _at(row.updatedAt),
+            _at(row.deletedAt),
+          ],
+      ],
+      lists: [
+        for (final row in listRows)
+          [
+            row.uuid,
+            row.name,
+            row.kind,
+            row.icon,
+            row.position,
+            row.builtIn,
             _at(row.createdAt),
             _at(row.updatedAt),
             _at(row.deletedAt),
@@ -259,11 +275,19 @@ class ExportRepository {
           [
             row.uuid,
             row.list,
+            row.listUuid,
             row.title,
             row.priceMinor,
             row.currency,
             row.note,
             row.targetDay,
+            row.mediaType,
+            row.link,
+            row.creator,
+            _at(row.startedAt),
+            row.rating,
+            row.seedUuid,
+            row.noteUuid,
             _at(row.boughtAt),
             row.position,
             _at(row.createdAt),

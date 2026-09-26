@@ -24,6 +24,7 @@ class FeaturesCard extends ConsumerWidget {
     final health = ref.watch(healthEnabledProvider);
     final gym = ref.watch(gymEnabledProvider);
     final places = ref.watch(placesEnabledProvider);
+    final lists = ref.watch(listsEnabledProvider);
 
     Future<void> set(String key, {required bool on}) async {
       await HarvestHaptics.tick();
@@ -78,6 +79,14 @@ class FeaturesCard extends ConsumerWidget {
               final controller = ref.read(placesControllerProvider.notifier);
               await (on ? controller.enable() : controller.disable());
             },
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            secondary: const Icon(Icons.checklist),
+            title: Text(l10n.featureLists),
+            subtitle: Text(l10n.featureListsHint),
+            value: lists,
+            onChanged: (on) => set(FeatureKeys.lists, on: on),
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import { buyListId } from '@harvest/contracts';
 import { HarvestDay } from '@harvest/core';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -5,7 +6,7 @@ import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { ExpenseEditor } from '@/app/components/expense-editor';
-import { WishlistEditor } from '@/app/components/wishlist-editor';
+import { ListItemEditor } from '@/app/components/list-item-editor';
 import { HarvestContext } from '@/app/context';
 import { DialogsProvider } from '@/app/dialogs';
 import { readBudget, readVault } from '@/app/data/vault';
@@ -177,13 +178,13 @@ describe('an expense’s wallet movement', () => {
   });
 });
 
-describe('the wishlist editor', () => {
+describe('the list item editor on a shopping list', () => {
   it('reads "12,50" as twelve and a half, in the default currency once it is known', async () => {
     const h = await device(new FakeServer());
     await h.db.rows('kv_settings').put({ key: 'finance.defaultCurrency', valueJson: '"EUR"', updatedAt: '' });
-    show(h, <WishlistEditor item={null} list="buy" onClose={() => {}} />);
-    await userEvent.type(screen.getByLabelText('What'), 'Kettle');
-    await userEvent.type(screen.getByLabelText('Estimated price'), '12,50');
+    show(h, <ListItemEditor item={null} listUuid={buyListId} onClose={() => {}} />);
+    await userEvent.type(screen.getByLabelText('Title'), 'Kettle');
+    await userEvent.type(await screen.findByLabelText('Estimated price'), '12,50');
     await userEvent.click(screen.getByRole('button', { name: 'Add' }));
 
     await waitFor(async () => expect(await h.db.rows('wishlist_items').count()).toBe(1));

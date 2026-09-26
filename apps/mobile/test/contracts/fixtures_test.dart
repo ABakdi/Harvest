@@ -14,6 +14,7 @@ import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/goals/domain/goal.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/domain/sleep.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
@@ -256,6 +257,57 @@ void main() {
     for (final c in _list(data, 'ranks')) {
       test('${c['xp']} XP is ${c['rank']}', () {
         expect(FarmerRank.forXp(c['xp'] as int).name, c['rank']);
+      });
+    }
+  });
+
+  group('core/goals.json', () {
+    final data = _read('$_core/goals.json');
+
+    /// The live items of a case, as the repository hands them over:
+    /// deleted ones are never read.
+    List<GoalItem> live(List<Map<String, dynamic>> items) => [
+      for (final (i, c) in items.indexed)
+        if (c['deletedAt'] == null)
+          GoalItem(
+            uuid: c['uuid'] as String? ?? 'i$i',
+            goalUuid: 'g',
+            kind: GoalItemKind.values.byName(c['kind'] as String? ?? 'step'),
+            body: c['uuid'] as String? ?? 'i$i',
+            doneAt: DateTime.tryParse(c['doneAt'] as String? ?? ''),
+            position: c['position'] as int? ?? 0,
+            parentUuid: c['parentUuid'] as String?,
+            createdAt: DateTime.tryParse(c['createdAt'] as String? ?? ''),
+          ),
+    ];
+
+    for (final (i, c) in _list(data, 'cases').indexed) {
+      test(_label(c, 'progress case $i'), () {
+        final tally = goalTally(live(_list(c, 'items')));
+        final expected = c['progress'] as Map<String, dynamic>?;
+        if (expected == null) {
+          expect(tally, isNull);
+          return;
+        }
+        expect(tally!.done, expected['done']);
+        expect(tally.total, expected['total']);
+        expect(tally.ratio, (expected['ratio'] as num).toDouble());
+        expect(tally.complete, expected['complete']);
+      });
+    }
+
+    for (final (i, c) in _list(data, 'parentDone').indexed) {
+      test(_label(c, 'parent done case $i'), () {
+        final drawn = parentDoneAt(live(_list(c, 'subtasks')));
+        expect(drawn.derived, c['derived']);
+        final at = c['doneAt'] as String?;
+        expect(drawn.doneAt?.toUtc(), at == null ? null : DateTime.parse(at));
+      });
+    }
+
+    for (final (i, c) in _list(data, 'next').indexed) {
+      test(_label(c, 'next case $i'), () {
+        expect(GoalOutline(live(_list(c, 'items'))).next?.uuid, c['next']);
       });
     }
   });

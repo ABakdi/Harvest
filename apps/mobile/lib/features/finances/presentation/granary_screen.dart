@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:harvest/app/router.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
@@ -23,14 +25,18 @@ import 'package:harvest/features/finances/presentation/finance_charts.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/finances/presentation/vault_tab.dart';
+import 'package:harvest/features/lists/domain/lists.dart';
+import 'package:harvest/features/lists/presentation/list_labels.dart';
+import 'package:harvest/features/lists/presentation/lists_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
-import 'package:harvest/features/wishlist/presentation/wishlist_tab.dart';
+import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// The Granary: Today (gauge + quick log), Vault (wallet, savings,
-/// debts), Insights (charts) and Wishlist (to buy vs. someday). The
-/// expense action floats on Today only — the other tabs carry their
-/// own actions.
+/// debts) and Insights (charts). The expense action floats on Today
+/// only — the other tabs carry their own actions. What I mean to buy
+/// lives in Records → Lists now; Today keeps one line of it
+/// ([[Lists]]).
 class GranaryScreen extends StatefulWidget {
   const GranaryScreen({super.key});
 
@@ -40,7 +46,7 @@ class GranaryScreen extends StatefulWidget {
 
 class _GranaryScreenState extends State<GranaryScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 4, vsync: this)
+  late final TabController _tabs = TabController(length: 3, vsync: this)
     ..addListener(() => setState(() {}));
 
   @override
@@ -57,9 +63,8 @@ class _GranaryScreenState extends State<GranaryScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.granaryTitle),
-        // Four tabs do not fit a phone's width in Arabic ("قائمة
-        // الأمنيات" was cut at the edge): they scroll, centred while
-        // they fit.
+        // Tabs that do not fit a phone's width in Arabic scroll,
+        // centred while they fit.
         bottom: TabBar(
           controller: _tabs,
           isScrollable: true,
@@ -68,7 +73,6 @@ class _GranaryScreenState extends State<GranaryScreen>
             Tab(text: l10n.todayTab),
             Tab(text: l10n.vaultTab),
             Tab(text: l10n.insightsTab),
-            Tab(text: l10n.wishlistTitle),
           ],
         ),
       ),
@@ -83,7 +87,38 @@ class _GranaryScreenState extends State<GranaryScreen>
       ),
       body: TabBarView(
         controller: _tabs,
-        children: const [_TodayTab(), VaultTab(), InsightsTab(), WishlistTab()],
+        children: const [_TodayTab(), VaultTab(), InsightsTab()],
+      ),
+    );
+  }
+}
+
+/// *Planned purchases · DA18,850*: the shopping lists' open estimates,
+/// per currency — a plan, summed into nothing else (L3). It opens the
+/// lists on *To buy*; the money stays here, the lists in Records.
+class _PlannedPurchases extends ConsumerWidget {
+  const _PlannedPurchases();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(listsEnabledProvider)) return const SizedBox.shrink();
+    final totals = ref.watch(plannedPurchasesProvider).value ?? const {};
+    if (totals.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: HarvestSpacing.md),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: const Icon(Icons.shopping_cart_outlined),
+          title: Text(
+            '${l10n.listsPlannedPurchases} · ${formatTotals(l10n, totals)}',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.go(
+            '${AppRoutes.lists}?list=${BuiltInList.buy.uuid}',
+          ),
+        ),
       ),
     );
   }
@@ -127,6 +162,7 @@ class _TodayTab extends ConsumerWidget {
           const SizedBox(height: HarvestSpacing.md),
           _RepeatCard(suggestion: suggestion, rates: ratesValue),
         ],
+        const _PlannedPurchases(),
         SectionHeader(
           l10n.todaySpending,
           subtitle: l10n.expensesToday(expenses.length),

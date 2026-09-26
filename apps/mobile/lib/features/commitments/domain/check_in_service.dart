@@ -4,6 +4,7 @@ import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/goals/data/goals_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -207,7 +208,9 @@ class CheckInService {
   /// A to-do planted from a goal ticks the item it came from, and an
   /// undone check-in un-ticks it ([[Goals]] GL3). The only thing that
   /// ever changes an item without my hand, and it runs inside the
-  /// check-in's own transaction so the two cannot disagree.
+  /// check-in's own transaction so the two cannot disagree. It ticks
+  /// the way my hand would: a subtask's tick can complete its parent,
+  /// and a parent's ticks its subtasks (GL8).
   Future<void> _tickGoalItems(
     String commitmentUuid, {
     required bool done,
@@ -219,18 +222,10 @@ class CheckInService {
                   i.deletedAt.isNull(),
             ))
             .get();
-    final now = DateTime.now();
+    final goals = GoalsRepository(_db);
     for (final item in items) {
       if ((item.doneAt != null) == done) continue;
-      await (_db.update(
-        _db.goalItems,
-      )..where((i) => i.uuid.equals(item.uuid))).write(
-        GoalItemsCompanion(
-          doneAt: Value(done ? now : null),
-          updatedAt: Value(now),
-        ),
-      );
-      await _db.logChange('goal_items', item.uuid, 'update');
+      await goals.setDone(item.uuid, done: done);
     }
   }
 

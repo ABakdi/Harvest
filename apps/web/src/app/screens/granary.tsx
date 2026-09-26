@@ -1,7 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { CalendarClockIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, RepeatIcon, WalletIcon } from 'lucide-react';
+import { buyListId } from '@harvest/contracts';
+import { CalendarClockIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, RepeatIcon, ShoppingBagIcon, WalletIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,15 +11,16 @@ import { formatDate, formatDay, formatMoney } from '@/lib/format';
 import { EmptyState } from '../components/bits';
 import { categoryLabel } from '../components/category';
 import { LocationNote } from '../components/location-note';
+import { useFeaturesOrOff } from '../components/settings-bits';
 import { PassphrasePrompt } from '../components/passphrase-prompt';
 import { useHarvest, useHarvestDay } from '../context';
+import { readPlannedPurchases } from '../data/list-views';
 import { type ExpenseRow, readRepeatSuggestion } from '../data/money';
 import { useDialogs } from '../dialogs';
 import { usePrivateKey } from '../hooks';
 import { BudgetPanel } from './budget';
 import { InsightsPanel } from './insights';
 import { VaultPanel } from './vault';
-import { WishlistPanel } from './wishlist';
 
 /** Sums per currency: amounts in different currencies are never added together. */
 function totals(rows: ExpenseRow[]): [string, number][] {
@@ -153,6 +156,34 @@ function DayGroups({ rows, label, idPrefix, nested = false }: { rows: ExpenseRow
  * month counts up to today; an expense logged ahead waits for its day
  * under Upcoming, where it can still be opened, changed or removed.
  */
+/**
+ * What the open shopping items are expected to cost, per currency, as
+ * one line that opens *To buy* ([[Lists]] L3): a plan beside the money,
+ * never in it. Only while Lists is on and something has an estimate.
+ */
+function PlannedPurchases() {
+  const { t } = useTranslation();
+  const { db } = useHarvest();
+  const on = useFeaturesOrOff();
+  const planned = useLiveQuery(() => readPlannedPurchases(db), [db]);
+  if (!on.lists || !planned || planned.length === 0) return null;
+  const totals = planned.map(([currency, minor]) => formatMoney(minor, currency)).join(' · ');
+  return (
+    <Link
+      to={`/app/records/lists/${buyListId}`}
+      className="flex items-center gap-2 rounded-xl border bg-card px-4 py-3 text-sm font-bold outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <ShoppingBagIcon className="size-4 text-muted-foreground" aria-hidden />
+      <span className="text-muted-foreground">{t('lists.planned')}</span>
+      <span aria-hidden>·</span>
+      <span className="tabular" dir="ltr">
+        {totals}
+      </span>
+      <ChevronRightIcon className="ms-auto size-4 text-muted-foreground rtl:rotate-180" aria-hidden />
+    </Link>
+  );
+}
+
 function ExpensesPanel() {
   const { t } = useTranslation();
   const { db } = useHarvest();
@@ -182,6 +213,7 @@ function ExpensesPanel() {
   return (
     <div className="flex flex-col gap-4">
       <RepeatCard />
+      <PlannedPurchases />
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
           <span className="text-sm font-bold text-muted-foreground">{t('money.today')}</span>
@@ -239,13 +271,12 @@ function ExpensesPanel() {
 
 /**
  * The Granary, in four views of the same home: what I spent, what I
- * have, what the month allows — and the Wishlist, what I plan to buy
- * ([[Finances]], [[Wishlist]]).
+ * have, what the month allows, and where it went ([[Finances]]). What I
+ * plan to buy lives in Records → Lists now; the Expenses tab keeps one
+ * line of it ([[Lists]]).
  *
- * The private tier is asked for once, here, because the three money
- * tabs read rows that are sealed on the wire ([[Sync-Strategy]]). The
- * wishlist is a plain table, so it renders even while the passphrase
- * is missing.
+ * The private tier is asked for once, here, because the money tabs read
+ * rows that are sealed on the wire ([[Sync-Strategy]]).
  */
 export function GranaryScreen() {
   const { t } = useTranslation();
@@ -272,11 +303,7 @@ export function GranaryScreen() {
           <TabsTrigger value="vault">{t('vault.title')}</TabsTrigger>
           <TabsTrigger value="insights">{t('insights.title')}</TabsTrigger>
           <TabsTrigger value="budget">{t('budget.title')}</TabsTrigger>
-          <TabsTrigger value="wishlist">{t('wishlist.title')}</TabsTrigger>
         </TabsList>
-        <TabsContent value="wishlist">
-          <WishlistPanel />
-        </TabsContent>
         {unlocked ? (
           <>
             <TabsContent value="expenses">
@@ -293,11 +320,9 @@ export function GranaryScreen() {
             </TabsContent>
           </>
         ) : (
-          tab !== 'wishlist' && (
-            <div className="rounded-2xl border bg-card p-5">
-              <PassphrasePrompt />
-            </div>
-          )
+          <div className="rounded-2xl border bg-card p-5">
+            <PassphrasePrompt />
+          </div>
         )}
       </Tabs>
     </div>

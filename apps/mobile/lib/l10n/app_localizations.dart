@@ -5633,13 +5633,13 @@ abstract class AppLocalizations {
   /// No description provided for @goalNeeds.
   ///
   /// In en, this message translates to:
-  /// **'What it takes'**
+  /// **'Requirements — what it takes'**
   String get goalNeeds;
 
   /// No description provided for @goalSteps.
   ///
   /// In en, this message translates to:
-  /// **'Steps'**
+  /// **'Tasks'**
   String get goalSteps;
 
   /// No description provided for @goalSeeds.
@@ -5651,13 +5651,13 @@ abstract class AppLocalizations {
   /// No description provided for @goalAddNeed.
   ///
   /// In en, this message translates to:
-  /// **'Add something it takes'**
+  /// **'Add a requirement'**
   String get goalAddNeed;
 
   /// No description provided for @goalAddStep.
   ///
   /// In en, this message translates to:
-  /// **'Add a step'**
+  /// **'Add a task'**
   String get goalAddStep;
 
   /// No description provided for @goalAddWhatItTakes.
@@ -5797,6 +5797,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Item options'**
   String get goalItemOptions;
+
+  /// No description provided for @goalAddSubtask.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a subtask'**
+  String get goalAddSubtask;
+
+  /// No description provided for @goalSubtaskProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String goalSubtaskProgress(int done, int total);
+
+  /// No description provided for @goalLiftStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a task of its own'**
+  String get goalLiftStep;
+
+  /// No description provided for @goalLiftNeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a requirement of its own'**
+  String get goalLiftNeed;
+
+  /// No description provided for @goalMoveUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'Move under…'**
+  String get goalMoveUnder;
+
+  /// No description provided for @goalMoveUnderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a subtask of'**
+  String get goalMoveUnderTitle;
+
+  /// No description provided for @goalItemRemovedWithSubtasks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removed, with its subtask} other{Removed, with its {count} subtasks}}'**
+  String goalItemRemovedWithSubtasks(int count);
 
   /// No description provided for @navPlaces.
   ///
@@ -6203,7 +6245,7 @@ abstract class AppLocalizations {
   /// No description provided for @geoGoalItem.
   ///
   /// In en, this message translates to:
-  /// **'Goal step'**
+  /// **'Goal task'**
   String get geoGoalItem;
 
   /// No description provided for @geoAlbum.
@@ -7285,6 +7327,408 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Each day\'s count lands here once the day is over.'**
   String get stepsNoDaysConnectedBody;
+
+  /// No description provided for @navLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get navLists;
+
+  /// No description provided for @featureLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get featureLists;
+
+  /// No description provided for @featureListsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To buy, to read, to watch, and any list you make. Share a link from another app to save it here.'**
+  String get featureListsHint;
+
+  /// No description provided for @listsToRead.
+  ///
+  /// In en, this message translates to:
+  /// **'To read'**
+  String get listsToRead;
+
+  /// No description provided for @listsToWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'To watch'**
+  String get listsToWatch;
+
+  /// No description provided for @listsKindPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain'**
+  String get listsKindPlain;
+
+  /// No description provided for @listsKindShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get listsKindShopping;
+
+  /// No description provided for @listsKindMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get listsKindMedia;
+
+  /// No description provided for @listsKindPlainHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Things to tick off: ideas, packing, someday.'**
+  String get listsKindPlainHint;
+
+  /// No description provided for @listsKindShoppingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Things to buy, with an estimate and a planned day. An estimate is a plan, never an expense.'**
+  String get listsKindShoppingHint;
+
+  /// No description provided for @listsKindMediaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Books, articles, shows, films, videos and podcasts: want, in progress, finished.'**
+  String get listsKindMediaHint;
+
+  /// No description provided for @listsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New list'**
+  String get listsNew;
+
+  /// No description provided for @listsNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get listsNameLabel;
+
+  /// No description provided for @listsNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Packing, gift ideas'**
+  String get listsNameHint;
+
+  /// No description provided for @listsOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'List options'**
+  String get listsOptions;
+
+  /// No description provided for @listsRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get listsRename;
+
+  /// No description provided for @listsMoveEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Move left'**
+  String get listsMoveEarlier;
+
+  /// No description provided for @listsMoveLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Move right'**
+  String get listsMoveLater;
+
+  /// No description provided for @listsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete list'**
+  String get listsDelete;
+
+  /// No description provided for @listsDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” deleted'**
+  String listsDeleted(String name);
+
+  /// No description provided for @listsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this list'**
+  String get listsEmptyTitle;
+
+  /// No description provided for @listsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write it down while you think of it.'**
+  String get listsEmptyBody;
+
+  /// No description provided for @listsReadEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to read'**
+  String get listsReadEmptyTitle;
+
+  /// No description provided for @listsWatchEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to watch'**
+  String get listsWatchEmptyTitle;
+
+  /// No description provided for @listsShareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one here, or share a link to Harvest from any app.'**
+  String get listsShareHint;
+
+  /// No description provided for @listsDoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 done} other{{count} done}}'**
+  String listsDoneCount(int count);
+
+  /// No description provided for @listsFinishedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 finished} other{{count} finished}}'**
+  String listsFinishedCount(int count);
+
+  /// No description provided for @listsDoneOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Done on {day}'**
+  String listsDoneOn(String day);
+
+  /// No description provided for @listsFinishedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished on {day}'**
+  String listsFinishedOn(String day);
+
+  /// No description provided for @listsInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get listsInProgress;
+
+  /// No description provided for @listsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get listsStart;
+
+  /// No description provided for @listsFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get listsFinish;
+
+  /// No description provided for @listsNewItem.
+  ///
+  /// In en, this message translates to:
+  /// **'New item'**
+  String get listsNewItem;
+
+  /// No description provided for @listsListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get listsListLabel;
+
+  /// No description provided for @listsTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get listsTypeLabel;
+
+  /// No description provided for @listsCreatorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Author or creator'**
+  String get listsCreatorLabel;
+
+  /// No description provided for @listsLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get listsLinkLabel;
+
+  /// No description provided for @listsLinkInNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This list keeps no link: it goes in the note.'**
+  String get listsLinkInNote;
+
+  /// No description provided for @listsNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything worth remembering'**
+  String get listsNoteHint;
+
+  /// No description provided for @listsTitleHintPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Passport, charger'**
+  String get listsTitleHintPlain;
+
+  /// No description provided for @listsTitleHintMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Dune'**
+  String get listsTitleHintMedia;
+
+  /// No description provided for @listsMoveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to…'**
+  String get listsMoveTo;
+
+  /// No description provided for @listsMoveToTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to which list?'**
+  String get listsMoveToTitle;
+
+  /// No description provided for @listsOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open link'**
+  String get listsOpenLink;
+
+  /// No description provided for @listsLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link.'**
+  String get listsLinkFailed;
+
+  /// No description provided for @listsPlant.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant as a seed'**
+  String get listsPlant;
+
+  /// No description provided for @listsWriteAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Write about it'**
+  String get listsWriteAbout;
+
+  /// No description provided for @listsOpenNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the note'**
+  String get listsOpenNote;
+
+  /// No description provided for @listsSeedGrowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Planted as a seed'**
+  String get listsSeedGrowing;
+
+  /// No description provided for @listsSeedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed · {logged} of {total}'**
+  String listsSeedProgress(int logged, int total);
+
+  /// No description provided for @listsSeedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Its seed is done'**
+  String get listsSeedDone;
+
+  /// No description provided for @listsMarkFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark finished'**
+  String get listsMarkFinished;
+
+  /// No description provided for @listsRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished — how was it?'**
+  String get listsRateTitle;
+
+  /// No description provided for @listsRateSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'No rating'**
+  String get listsRateSkip;
+
+  /// No description provided for @listsRatingStars.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 star} other{{count} stars}}'**
+  String listsRatingStars(int count);
+
+  /// No description provided for @listsPlannedPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned purchases'**
+  String get listsPlannedPurchases;
+
+  /// No description provided for @listsShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to a list'**
+  String get listsShareTitle;
+
+  /// No description provided for @listsSharePickList.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the list it goes in.'**
+  String get listsSharePickList;
+
+  /// No description provided for @listsShareSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {list}'**
+  String listsShareSaved(String list);
+
+  /// No description provided for @listsShareOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get listsShareOpen;
+
+  /// No description provided for @mediaBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get mediaBook;
+
+  /// No description provided for @mediaArticle.
+  ///
+  /// In en, this message translates to:
+  /// **'Article'**
+  String get mediaArticle;
+
+  /// No description provided for @mediaShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get mediaShow;
+
+  /// No description provided for @mediaFilm.
+  ///
+  /// In en, this message translates to:
+  /// **'Film'**
+  String get mediaFilm;
+
+  /// No description provided for @mediaVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get mediaVideo;
+
+  /// No description provided for @mediaPodcast.
+  ///
+  /// In en, this message translates to:
+  /// **'Podcast'**
+  String get mediaPodcast;
+
+  /// No description provided for @mediaOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get mediaOther;
 }
 
 class _AppLocalizationsDelegate

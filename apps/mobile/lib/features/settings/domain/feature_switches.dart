@@ -23,6 +23,11 @@ abstract final class FeatureKeys {
   /// Places: the trail and a geotag on every action ([[Places]] PL1).
   static const places = 'features.places';
 
+  /// Lists: Records' fourth tab ([[Lists]]). Off like the rest, except
+  /// for someone who already kept a Wishlist: the v23 upgrade switches
+  /// it on for them.
+  static const lists = 'features.lists';
+
   /// Asked in onboarding; every one of them defaults to no.
   static const Map<String, bool> defaults = {
     notes: false,
@@ -30,6 +35,7 @@ abstract final class FeatureKeys {
     health: false,
     gym: false,
     places: false,
+    lists: false,
   };
 }
 
@@ -68,3 +74,7 @@ bool gymEnabled(Ref ref) =>
 @riverpod
 bool placesEnabled(Ref ref) =>
     ref.watch(featureSwitchesProvider).value?[FeatureKeys.places] ?? false;
+
+@riverpod
+bool listsEnabled(Ref ref) =>
+    ref.watch(featureSwitchesProvider).value?[FeatureKeys.lists] ?? false;

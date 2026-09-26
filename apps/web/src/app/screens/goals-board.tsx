@@ -60,7 +60,7 @@ function GoalCard({ view, index, count, onMove }: { view: GoalView; index: numbe
       {view.next && goal.status === 'active' && (
         <p className="text-sm">
           <span className="font-bold text-muted-foreground">{t('goals.next')} </span>
-          {view.next.body}
+          {view.nextParent ? t('goals.nextIn', { body: view.next.body, parent: view.nextParent.body }) : view.next.body}
         </p>
       )}
       {view.seeds.length > 0 && (

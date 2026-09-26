@@ -16,7 +16,7 @@ import { ProgramEditorScreen } from '@/app/screens/gym/program-editor';
 import { SessionScreen } from '@/app/screens/gym/session';
 import { GranaryScreen } from '@/app/screens/granary';
 import { VaultPanel } from '@/app/screens/vault';
-import { WishlistPanel } from '@/app/screens/wishlist';
+import { ListsScreen } from '@/app/screens/lists';
 import { FakeServer } from './fake-server';
 import { device, testUser } from './helpers';
 
@@ -182,11 +182,17 @@ describe('money inputs', () => {
   });
 });
 
-describe('the wishlist', () => {
+describe('a shopping list', () => {
   it('shows an estimate in plain ink, not the colour of money owed', async () => {
     const h = await device(new FakeServer());
     await h.wishlist.add({ list: 'buy', title: 'Kettle', priceMinor: 30_00, currency: 'DZD' });
-    show(h, <WishlistPanel />);
+    show(
+      h,
+      <Routes>
+        <Route path="/app/records/lists/:listUuid?" element={<ListsScreen />} />
+      </Routes>,
+      '/app/records/lists',
+    );
     await screen.findByText('Kettle');
     for (const price of screen.getAllByText('DA30')) expect(price.className).not.toMatch(/text-(primary|destructive|sun)\b/);
   });

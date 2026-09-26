@@ -1,4 +1,4 @@
-import { HarvestDay, Xp } from '@harvest/core';
+import { HarvestDay, parentDoneAt, Xp } from '@harvest/core';
 import type { Row } from './db';
 import type { Tx, Writer } from './writer';
 
@@ -101,27 +101,30 @@ export class GoalsRepository {
 
   // ------------------------------------------------------------- items
 
+  /** A new item at the end of its section. */
   addItem(goalUuid: string, body: string, kind: GoalItemKind = 'step'): Promise<GoalItemRow> {
     return this.writer.run(async (tx) => {
-      const siblings = (await tx.rows('goal_items').where('goalUuid').equals(goalUuid).toArray()).filter(
-        (item) => item.kind === kind,
-      );
-      const position = siblings.reduce((max, item) => Math.max(max, item.position), -1) + 1;
-      const now = tx.now();
-      const row: GoalItemRow = {
-        uuid: crypto.randomUUID(),
-        goalUuid,
-        kind,
-        body: body.trim(),
-        note: null,
-        doneAt: null,
-        position,
-        commitmentUuid: null,
-        createdAt: now,
-        updatedAt: now,
-        deletedAt: null,
-      };
+      const siblings = (await itemsOf(tx, goalUuid)).filter((item) => parentOf(item) === null && item.kind === kind);
+      const row = newItem(tx, { goalUuid, body, kind, parentUuid: null, siblings });
       await tx.put('goal_items', row);
+      return row;
+    });
+  }
+
+  /**
+   * A new subtask at the end of [parentUuid]'s. It takes its parent's
+   * kind, and a subtask has no subtasks of its own (GL8): asked to give
+   * one some, this adds nothing and returns null. An open subtask
+   * reopens a ticked parent.
+   */
+  addSubtask(parentUuid: string, body: string): Promise<GoalItemRow | null> {
+    return this.writer.run(async (tx) => {
+      const parent = await tx.get('goal_items', parentUuid);
+      if (!parent || parent.deletedAt !== null || parentOf(parent) !== null) return null;
+      const siblings = (await itemsOf(tx, parent.goalUuid)).filter((item) => parentOf(item) === parentUuid);
+      const row = newItem(tx, { goalUuid: parent.goalUuid, body, kind: parent.kind, parentUuid, siblings });
+      await tx.put('goal_items', row);
+      await settleParent(tx, parentUuid);
       return row;
     });
   }
@@ -130,15 +133,18 @@ export class GoalsRepository {
     return this.writeItem(uuid, { body: body.trim(), note: note?.trim() || null });
   }
 
-  /** Ticks or un-ticks by hand. */
+  /**
+   * Ticks or un-ticks by hand. A parent takes all its subtasks with it,
+   * in one transaction, and a subtask settles its parent (GL8).
+   */
   setDone(uuid: string, done: boolean): Promise<void> {
     return this.writer.run(async (tx) => {
-      const now = tx.now();
-      await tx.patch('goal_items', uuid, { doneAt: done ? now : null, updatedAt: now });
+      const item = await tx.get('goal_items', uuid);
+      if (item) await tickGoalItem(tx, item, done);
     });
   }
 
-  /** One section's order, as arranged. */
+  /** One section's order, or one task's subtasks, as arranged. */
   reorderItems(uuids: string[]): Promise<void> {
     return this.writer.run(async (tx) => {
       for (const [position, uuid] of uuids.entries()) {
@@ -147,15 +153,79 @@ export class GoalsRepository {
     });
   }
 
+  /**
+   * A subtask lifted to an item of its own, at the end of its section.
+   * It keeps its tick; the parent it left settles on the rest (GL8).
+   */
+  liftItem(uuid: string): Promise<void> {
+    return this.writer.run(async (tx) => {
+      const item = await tx.get('goal_items', uuid);
+      const from = item ? parentOf(item) : null;
+      if (!item || from === null) return;
+      const items = await itemsOf(tx, item.goalUuid);
+      const position =
+        items
+          .filter((other) => parentOf(other) === null && other.kind === item.kind)
+          .reduce((max, other) => Math.max(max, other.position), -1) + 1;
+      await tx.put('goal_items', { ...item, parentUuid: null, position, updatedAt: tx.now() });
+      await settleParent(tx, from);
+    });
+  }
+
+  /**
+   * An item without subtasks moved under another top-level item of the
+   * same goal, as its last subtask. It takes the parent's kind, and the
+   * parent settles on its subtasks now (GL8). Anything else (a parent,
+   * itself, a subtask, another goal's item) is refused with false.
+   */
+  nestItem(uuid: string, parentUuid: string): Promise<boolean> {
+    return this.writer.run(async (tx) => {
+      const item = await tx.get('goal_items', uuid);
+      const parent = await tx.get('goal_items', parentUuid);
+      if (!item || !parent || uuid === parentUuid) return false;
+      if (item.deletedAt !== null || parent.deletedAt !== null || item.goalUuid !== parent.goalUuid) return false;
+      if (parentOf(parent) !== null) return false;
+      const items = await itemsOf(tx, item.goalUuid);
+      if (items.some((other) => parentOf(other) === uuid && other.deletedAt === null)) return false;
+      const position =
+        items.filter((other) => parentOf(other) === parentUuid).reduce((max, other) => Math.max(max, other.position), -1) + 1;
+      const from = parentOf(item);
+      await tx.put('goal_items', { ...item, kind: parent.kind, parentUuid, position, updatedAt: tx.now() });
+      await settleParent(tx, parentUuid);
+      if (from !== null && from !== parentUuid) await settleParent(tx, from);
+      return true;
+    });
+  }
+
+  /**
+   * Soft delete. A parent takes its live subtasks with it, under the
+   * same stamp (GL7), and [restoreItem] brings exactly those back. A
+   * subtask's parent settles on the ones left.
+   */
   deleteItem(uuid: string): Promise<void> {
     return this.writer.run(async (tx) => {
+      const item = await tx.get('goal_items', uuid);
+      if (!item || item.deletedAt !== null) return;
       const now = tx.now();
-      await tx.patch('goal_items', uuid, { deletedAt: now, updatedAt: now });
+      const subtasks = (await itemsOf(tx, item.goalUuid)).filter((other) => parentOf(other) === uuid && other.deletedAt === null);
+      await tx.put('goal_items', { ...item, deletedAt: now, updatedAt: now });
+      for (const subtask of subtasks) await tx.put('goal_items', { ...subtask, deletedAt: now, updatedAt: now });
+      const parent = parentOf(item);
+      if (parent !== null) await settleParent(tx, parent);
     });
   }
 
   restoreItem(uuid: string): Promise<void> {
-    return this.writeItem(uuid, { deletedAt: null });
+    return this.writer.run(async (tx) => {
+      const item = await tx.get('goal_items', uuid);
+      if (!item || item.deletedAt === null) return;
+      const stamp = item.deletedAt;
+      const now = tx.now();
+      const subtasks = (await itemsOf(tx, item.goalUuid)).filter((other) => parentOf(other) === uuid && other.deletedAt === stamp);
+      await tx.put('goal_items', { ...item, deletedAt: null, updatedAt: now });
+      for (const subtask of subtasks) await tx.put('goal_items', { ...subtask, deletedAt: null, updatedAt: now });
+      await settleParent(tx, parentOf(item) ?? uuid);
+    });
   }
 
   private write(uuid: string, changes: Partial<GoalRow>): Promise<void> {
@@ -169,6 +239,69 @@ export class GoalsRepository {
       await tx.patch('goal_items', uuid, { ...changes, updatedAt: tx.now() });
     });
   }
+}
+
+/** The task a subtask belongs to. A row stored before v24 has no key for it. */
+export const parentOf = (item: GoalItemRow): string | null => item.parentUuid ?? null;
+
+function newItem(
+  tx: Tx,
+  input: { goalUuid: string; body: string; kind: GoalItemKind; parentUuid: string | null; siblings: GoalItemRow[] },
+): GoalItemRow {
+  const now = tx.now();
+  return {
+    uuid: crypto.randomUUID(),
+    goalUuid: input.goalUuid,
+    kind: input.kind,
+    body: input.body.trim(),
+    note: null,
+    doneAt: null,
+    position: input.siblings.reduce((max, item) => Math.max(max, item.position), -1) + 1,
+    commitmentUuid: null,
+    parentUuid: input.parentUuid,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  };
+}
+
+const itemsOf = (tx: Tx, goalUuid: string) => tx.rows('goal_items').where('goalUuid').equals(goalUuid).toArray();
+
+/**
+ * Keeps a parent's stored tick drawn from its live subtasks (GL8): the
+ * latest of their ticks once all are ticked, null while any is open. A
+ * parent with no live subtask keeps its own tick. The phone writes it
+ * the same way, from the same rule in `@harvest/core`.
+ */
+async function settleParent(tx: Tx, uuid: string): Promise<void> {
+  const parent = await tx.get('goal_items', uuid);
+  if (!parent || parent.deletedAt !== null) return;
+  const subtasks = (await itemsOf(tx, parent.goalUuid)).filter((item) => parentOf(item) === uuid);
+  const doneAt = parentDoneAt(subtasks);
+  if (doneAt === undefined || doneAt === parent.doneAt) return;
+  await tx.put('goal_items', { ...parent, doneAt, updatedAt: tx.now() });
+}
+
+/**
+ * Ticks or un-ticks one item, as a hand or a planted to-do's check-in
+ * does (GL3): a parent does the same to every live subtask, and a
+ * subtask settles its parent, which it may complete (GL8). An item
+ * already in that state is left as it is, keeping its stamp.
+ */
+export async function tickGoalItem(tx: Tx, item: GoalItemRow, done: boolean): Promise<void> {
+  if (item.deletedAt !== null) return;
+  const now = tx.now();
+  const subtasks = (await itemsOf(tx, item.goalUuid)).filter((other) => parentOf(other) === item.uuid && other.deletedAt === null);
+  if (subtasks.length > 0) {
+    for (const subtask of subtasks) {
+      if ((subtask.doneAt !== null) !== done) await tx.put('goal_items', { ...subtask, doneAt: done ? now : null, updatedAt: now });
+    }
+    await settleParent(tx, item.uuid);
+    return;
+  }
+  if ((item.doneAt !== null) !== done) await tx.put('goal_items', { ...item, doneAt: done ? now : null, updatedAt: now });
+  const parent = parentOf(item);
+  if (parent !== null) await settleParent(tx, parent);
 }
 
 /** What achieving this goal has paid, net of its mirror rows. */

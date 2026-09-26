@@ -86,7 +86,7 @@ export function OnboardingScreen() {
   const [page, setPage] = useState(0);
   const [picked, setPicked] = useState<Set<TemplateId>>(() => new Set(['read', 'fit']));
   const [goal, setGoal] = useState(defaultDailyHarvestGoal);
-  const [switches, setSwitches] = useState<FeatureSwitches>({ notes: false, gallery: false, health: false, gym: false, places: false });
+  const [switches, setSwitches] = useState<FeatureSwitches>({ notes: false, gallery: false, health: false, gym: false, places: false, lists: false });
   const [finishing, setFinishing] = useState(false);
   // Answers a second press at once, before the disabled buttons are drawn.
   const started = useRef(false);

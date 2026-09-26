@@ -31,6 +31,7 @@ import { FieldScreen } from './screens/field';
 import { GalleryScreen } from './screens/gallery';
 import { GoalScreen } from './screens/goal';
 import { GranaryScreen } from './screens/granary';
+import { ListsScreen } from './screens/lists';
 import { ProgramEditorScreen } from './screens/gym/program-editor';
 import { SessionScreen } from './screens/gym/session';
 import { NotesScreen } from './screens/notes';
@@ -56,7 +57,7 @@ interface Tab {
 
 /**
  * The tabs, with the paired ones only while one of their halves is
- * switched on, as on the phone: Records for notes, pictures or places,
+ * switched on, as on the phone: Records for notes, pictures, places or lists,
  * Body for health or training. A tab switched off still opens by link.
  */
 function useTabs(): Tab[] {
@@ -66,8 +67,15 @@ function useTabs(): Tab[] {
     { to: '/app/field', label: t('nav.field'), icon: SproutIcon, key: 'f' },
     ...(on.health || on.gym ? [{ to: '/app/body', label: t('nav.body'), icon: HeartPulseIcon, key: 'b' }] : []),
     // Records opens on its first half that is on.
-    ...(on.notes || on.gallery || on.places
-      ? [{ to: on.notes ? '/app/records' : on.gallery ? '/app/records/gallery' : '/app/records/places', label: t('nav.records'), icon: BookOpenIcon, key: 'r' }]
+    ...(on.notes || on.gallery || on.places || on.lists
+      ? [
+          {
+            to: on.notes ? '/app/records' : on.lists ? '/app/records/lists' : on.gallery ? '/app/records/gallery' : '/app/records/places',
+            label: t('nav.records'),
+            icon: BookOpenIcon,
+            key: 'r',
+          },
+        ]
       : []),
     { to: '/app/granary', label: t('nav.granary'), icon: WalletIcon, key: 'm' },
     { to: '/app/farmer', label: t('nav.farmer'), icon: UserRoundIcon, key: 'p' },
@@ -223,6 +231,14 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
                   <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
                     <PlacesScreen />
                   </Suspense>
+                </RecordsView>
+              }
+            />
+            <Route
+              path="records/lists/:listUuid?"
+              element={
+                <RecordsView feature="lists">
+                  <ListsScreen />
                 </RecordsView>
               }
             />

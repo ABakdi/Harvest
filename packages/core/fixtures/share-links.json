@@ -1,0 +1,29 @@
+{
+  "about": "Where a shared or pasted link lands (Lists: Saving from anywhere). linkOf(text) is the link when the text is one bare http(s) URL, else null. classify(url) reads only the host (L9: nothing is fetched): a video site goes to To watch as a video; anything else to To read as an article. A host matches a video site itself or any subdomain of it; the case of the host does not matter.",
+  "videoHosts": ["youtube.com", "youtu.be", "vimeo.com", "dailymotion.com", "dai.ly", "twitch.tv", "tiktok.com"],
+  "linkOf": [
+    { "text": "https://example.com/a", "link": "https://example.com/a" },
+    { "why": "spaces around it are trimmed", "text": "  https://example.com/a  ", "link": "https://example.com/a" },
+    { "text": "http://example.com", "link": "http://example.com" },
+    { "why": "a sentence with a link in it is not a bare link", "text": "read this https://example.com/a", "link": null },
+    { "why": "no scheme, no link", "text": "example.com/a", "link": null },
+    { "why": "only http and https", "text": "ftp://example.com/a", "link": null },
+    { "text": "Dune", "link": null },
+    { "text": "", "link": null },
+    { "why": "a scheme and nothing after it", "text": "https://", "link": null }
+  ],
+  "classify": [
+    { "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "list": "watch", "mediaType": "video" },
+    { "url": "https://youtu.be/dQw4w9WgXcQ", "list": "watch", "mediaType": "video" },
+    { "why": "a subdomain of a video site", "url": "https://m.youtube.com/watch?v=x", "list": "watch", "mediaType": "video" },
+    { "url": "https://vimeo.com/76979871", "list": "watch", "mediaType": "video" },
+    { "url": "https://www.dailymotion.com/video/x7tgad0", "list": "watch", "mediaType": "video" },
+    { "url": "https://www.twitch.tv/videos/1", "list": "watch", "mediaType": "video" },
+    { "url": "https://www.tiktok.com/@a/video/1", "list": "watch", "mediaType": "video" },
+    { "why": "the host's case does not matter", "url": "https://WWW.YouTube.COM/watch?v=x", "list": "watch", "mediaType": "video" },
+    { "url": "https://en.wikipedia.org/wiki/Dune_(novel)", "list": "read", "mediaType": "article" },
+    { "url": "http://example.com", "list": "read", "mediaType": "article" },
+    { "why": "a host that only ends in a video site's name is not it", "url": "https://notyoutube.com/watch", "list": "read", "mediaType": "article" },
+    { "why": "the path does not decide, only the host", "url": "https://blog.example.com/youtube.com", "list": "read", "mediaType": "article" }
+  ]
+}

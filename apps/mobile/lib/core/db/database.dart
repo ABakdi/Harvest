@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:harvest/core/db/built_in_lists.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:uuid/uuid.dart';
 
@@ -723,6 +724,11 @@ class GoalItems extends Table {
 
   /// The seed this item was planted as, if it was.
   TextColumn get commitmentUuid => text().nullable()();
+
+  /// For a subtask, the item it belongs to; null for a top-level item
+  /// ([[Goals]] GL8, schema v24). One level deep: a parent never has a
+  /// parent of its own.
+  TextColumn get parentUuid => text().nullable()();
   DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
@@ -731,15 +737,51 @@ class GoalItems extends Table {
   Set<Column<Object>> get primaryKey => {uuid};
 }
 
-/// One thing I want to buy, on the buy list (day to day) or the
-/// wishlist (future planning), with an estimated price at most
-/// ([[Wishlist]]). A plan, not money: nothing here moves a wallet.
+/// One list of things I have not got to yet ([[Lists]]): what to buy,
+/// what to read, whatever I think of next. A new list is a row here,
+/// never a new table (L1).
+@DataClassName('ListRow')
+class Lists extends Table {
+  TextColumn get uuid => text()();
+  TextColumn get name => text()();
+
+  /// `plain` | `shopping` | `media` — which fields its items carry (L2).
+  TextColumn get kind => text().withDefault(const Constant('plain'))();
+
+  /// An icon's key; null shows the kind's own.
+  TextColumn get icon => text().nullable()();
+
+  /// Order among the lists.
+  IntColumn get position => integer().withDefault(const Constant(0))();
+
+  /// `buy` | `wish` | `read` | `watch` for the four every device has,
+  /// under fixed ids; null for a list I made. A built-in list is never
+  /// deleted (L10).
+  TextColumn get builtIn => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(DateTime.now)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {uuid};
+}
+
+/// One item of one list ([[Lists]]). The table kept the Wishlist's
+/// name, so beta devices and archives keep working; it holds every
+/// list's items now. An estimate is a plan, not money (L3): nothing
+/// here moves a wallet.
 @DataClassName('WishlistItemRow')
 class WishlistItems extends Table {
   TextColumn get uuid => text()();
 
-  /// `buy` | `wish`.
+  /// `buy` | `wish`: which of the Wishlist's two lists, from before
+  /// lists. Still written — `buy` for *To buy*, `wish` for every other
+  /// list — for clients that only know this column.
   TextColumn get list => text().withDefault(const Constant('buy'))();
+
+  /// The list it belongs to — the truth since v23. Null on a row from a
+  /// client that only knows [list], which then names the list.
+  TextColumn get listUuid => text().nullable()();
   TextColumn get title => text()();
 
   /// Estimated price in minor units; null while the thing has no number.
@@ -751,7 +793,28 @@ class WishlistItems extends Table {
   /// commitment: nothing reads it to judge or remind.
   TextColumn get targetDay => text().nullable()();
 
-  /// When I marked it bought; bought items fold under the open ones.
+  /// Media items: `book` | `article` | `show` | `film` | `video` |
+  /// `podcast` | `other`.
+  TextColumn get mediaType => text().nullable()();
+
+  /// A link I saved; nothing fetches it (L9).
+  TextColumn get link => text().nullable()();
+
+  /// The author or creator.
+  TextColumn get creator => text().nullable()();
+
+  /// When I started it: a media item in progress.
+  DateTimeColumn get startedAt => dateTime().nullable()();
+
+  /// 1–5, given when finished.
+  IntColumn get rating => integer().nullable()();
+
+  /// The seed it was planted as, and the note written about it.
+  TextColumn get seedUuid => text().nullable()();
+  TextColumn get noteUuid => text().nullable()();
+
+  /// Done, for every kind: bought, finished or ticked. Done items fold
+  /// under the open ones.
   DateTimeColumn get boughtAt => dateTime().nullable()();
 
   /// Order within one list.
@@ -920,6 +983,7 @@ const actionTables = {
     KvSettings,
     Goals,
     GoalItems,
+    Lists,
     WishlistItems,
     LocationPoints,
     Geotags,
@@ -945,10 +1009,14 @@ class HarvestDatabase extends _$HarvestDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+      await seedBuiltInLists();
+    },
     onUpgrade: (m, from, to) async {
       // A table created in this run already carries the newest
       // columns; later addColumn steps must skip it.
@@ -1065,6 +1133,15 @@ class HarvestDatabase extends _$HarvestDatabase {
           'UPDATE expense_categories SET created_at = updated_at',
         );
       }
+      // Subtasks ([[Goals]] GL8, M6.13): an item may belong to another
+      // item. Every existing item stays top-level, so the column starts
+      // null and nothing is rewritten. Same ordering rule as above: a
+      // box created in this run (from < 15) already has it, and from 15
+      // it is added before the v18 and v22 rebuilds, which copy the
+      // table into its current definition.
+      if (from >= 15 && from < 24) {
+        await m.addColumn(goalItems, goalItems.parentUuid);
+      }
       // Every date becomes text, keeping the instant it already held.
       // A table created earlier in this same run is empty and converts
       // to nothing, which costs a statement and no data.
@@ -1073,7 +1150,10 @@ class HarvestDatabase extends _$HarvestDatabase {
         for (final table in allTables) {
           // Tables created later in this run (v19+) do not exist yet;
           // theirs are already text.
-          if (table.actualTableName == wishlistItems.actualTableName) continue;
+          if (table.actualTableName == wishlistItems.actualTableName ||
+              table.actualTableName == lists.actualTableName) {
+            continue;
+          }
           await _datesToText(m, table);
         }
         await customStatement('PRAGMA foreign_keys = ON');
@@ -1089,9 +1169,26 @@ class HarvestDatabase extends _$HarvestDatabase {
       // Dropping a column default means rebuilding the table; then
       // every date that is not already in the app's own spelling is
       // rewritten, keeping its instant.
+      // Lists' item columns ([[Lists]]). A wishlist created earlier in
+      // this run (from < 19) already has them; from 19 they are added
+      // before the v22 rebuild below, which copies each table into its
+      // current definition and would otherwise read columns that are not
+      // there yet.
+      if (from >= 19 && from < 23) {
+        await m.addColumn(wishlistItems, wishlistItems.listUuid);
+        await m.addColumn(wishlistItems, wishlistItems.mediaType);
+        await m.addColumn(wishlistItems, wishlistItems.link);
+        await m.addColumn(wishlistItems, wishlistItems.creator);
+        await m.addColumn(wishlistItems, wishlistItems.startedAt);
+        await m.addColumn(wishlistItems, wishlistItems.rating);
+        await m.addColumn(wishlistItems, wishlistItems.seedUuid);
+        await m.addColumn(wishlistItems, wishlistItems.noteUuid);
+      }
       if (from < 22) {
         await customStatement('PRAGMA foreign_keys = OFF');
         for (final table in allTables) {
+          // `lists` arrives in v23, below, already in today's spelling.
+          if (table.actualTableName == lists.actualTableName) continue;
           final stamped = table.$columns.any(
             (c) => c.type == DriftSqlType.dateTime && c.clientDefault != null,
           );
@@ -1102,8 +1199,69 @@ class HarvestDatabase extends _$HarvestDatabase {
         }
         await customStatement('PRAGMA foreign_keys = ON');
       }
+      // Lists ([[Lists]], M6.12): the Wishlist's two lists become two
+      // of four built-in ones, under ids every device agrees on, and
+      // each item is told which list it is in. Someone who had items
+      // keeps seeing them: the feature starts on for them, and off, as
+      // every feature does, for everyone else.
+      if (from < 23) {
+        await m.createTable(lists);
+        await seedBuiltInLists();
+        await customStatement(
+          'UPDATE wishlist_items SET list_uuid = '
+          "CASE list WHEN 'buy' THEN ? ELSE ? END WHERE list_uuid IS NULL",
+          [BuiltInList.buy.uuid, BuiltInList.wish.uuid],
+        );
+        final items = await customSelect(
+          'SELECT COUNT(*) AS n FROM wishlist_items WHERE deleted_at IS NULL',
+        ).getSingle();
+        if (items.read<int>('n') > 0) {
+          // `FeatureKeys.lists`, and a preference like any other, so it
+          // is queued for the other devices too.
+          await into(kvSettings).insert(
+            KvSettingsCompanion.insert(
+              key: 'features.lists',
+              valueJson: '"true"',
+            ),
+            mode: InsertMode.insertOrIgnore,
+          );
+          await into(outbox).insert(
+            OutboxCompanion.insert(
+              targetTable: 'kv_settings',
+              rowUuid: 'features.lists',
+              op: 'update',
+            ),
+          );
+        }
+      }
     },
   );
+
+  /// Makes the four built-in lists that are missing ([[Lists]] L10),
+  /// and leaves the ones that are there — renamed, reordered — as they
+  /// are. Their ids are fixed and their stamp is old, so the same rows
+  /// made on another device merge into these instead of beside them;
+  /// nothing is queued, since every device makes them itself.
+  Future<void> seedBuiltInLists() async {
+    final stamp = builtInListsStampedAt.toLocal();
+    await batch((b) {
+      for (final list in BuiltInList.values) {
+        b.insert(
+          lists,
+          ListsCompanion.insert(
+            uuid: list.uuid,
+            name: list.defaultName,
+            kind: Value(list.kind),
+            position: Value(list.position),
+            builtIn: Value(list.name),
+            createdAt: Value(stamp),
+            updatedAt: Value(stamp),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+      }
+    });
+  }
 
   /// Rewrites one table's UTC dates in the spelling the app writes: the
   /// local clock with its offset, `2026-09-25T16:21:00.000 +01:00`.
