@@ -108,7 +108,11 @@ const pem = (value: string) => value.replace(/\\n/g, '\n');
  * Production forgives neither.
  */
 export async function loadConfig(source: Record<string, string | undefined> = process.env): Promise<Config> {
-  const parsed = envSchema.safeParse(source);
+  // A variable set to nothing is a variable not set: an .env with
+  // `ASSIST_API_KEY=` left blank, or a compose file passing
+  // `${ASSIST_API_KEY:-}`, means "none", not an invalid empty key.
+  const given = Object.fromEntries(Object.entries(source).filter(([, value]) => value !== undefined && value.trim() !== ''));
+  const parsed = envSchema.safeParse(given);
   if (!parsed.success) {
     const problems = parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
     throw new ConfigError(`Invalid environment:\n  ${problems.join('\n  ')}`);

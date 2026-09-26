@@ -66,6 +66,12 @@ describe('the app', () => {
 });
 
 describe('config', () => {
+  it('reads a variable set to nothing as not set, as a blank line in .env means', async () => {
+    const config = await loadConfig({ NODE_ENV: 'development', ASSIST_API_KEY: '', SMTP_HOST: ' ', GITHUB_TOKEN: '' });
+    expect(config.assist.apiKey).toBeNull();
+    expect(config.smtp).toBeNull();
+  });
+
   it('makes a key pair outside production, and refuses to start production without one', async () => {
     const dev = await loadConfig({ NODE_ENV: 'development' });
     expect(dev.jwt.privateKey).toBeDefined();
