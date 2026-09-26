@@ -1,0 +1,15 @@
+{
+  "table": "seed_notes",
+  "uuid": "c7a2f5e9-3d1b-4a8c-b6e2-9f4d7c1a5b38",
+  "updatedAt": "2026-09-18T22:44:31.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "c7a2f5e9-3d1b-4a8c-b6e2-9f4d7c1a5b38",
+    "commitmentUuid": "6f1c2a9e-4b7d-4e2a-9c1f-2d8b5e7a3c10",
+    "harvestDay": "2026-09-18",
+    "body": "Stopped at page 142, chapter 9.",
+    "loggedAt": "2026-09-18T22:44:31.000Z",
+    "deletedAt": null,
+    "updatedAt": "2026-09-18T22:44:31.000Z"
+  }
+}

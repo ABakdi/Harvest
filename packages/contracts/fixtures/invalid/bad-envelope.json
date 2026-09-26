@@ -1,0 +1,15 @@
+{
+  "why": "the nonce must be 12 bytes",
+  "path": "enc.iv",
+  "record": {
+    "table": "expenses",
+    "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+    "updatedAt": "2026-09-18T13:10:00.000Z",
+    "deletedAt": null,
+    "enc": {
+      "v": 1,
+      "iv": "AAAA",
+      "ct": "AAAA"
+    }
+  }
+}

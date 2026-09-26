@@ -41,6 +41,7 @@ which deriving it from activity would have dropped.
 | Screen time kept under cap | +20 |
 | Daily expenses logged | +10 |
 | Pomodoro session completed | +5 |
+| Goal achieved ([[Goals]] GL4) | +50 |
 
 A gym session earns what a habit earns — **+10, once** — however heavy
 the day was: going is one productive action, and paying by the set
@@ -80,9 +81,21 @@ effort, and writing down what happened is not effort.
 
 ## Harvest Coins
 
-Earned from **streak milestones** (7 / 30 / 100 days) and spent on
-**streak freezes** — that is the whole economy today, and it is the
-whole economy on purpose. Coins for every check-in, coins for a
+Earned from **streak milestones** and spent on **streak freezes** —
+that is the whole economy today, and it is the whole economy on
+purpose.
+
+| What | Coins |
+| :--- | ---: |
+| A 7-day global streak | +50 |
+| A 30-day global streak | +200 |
+| A 100-day global streak | +1,000 |
+| One streak freeze | −100 |
+
+Two freezes at most are stored, and a freeze is spent automatically at
+the 3 AM reset before the streak breaks ([[Business-Rules]] #4). The
+numbers lived only in `streak_service.dart` until now
+([[Audit-v2]] D3-16). Coins for every check-in, coins for a
 rank-up, premium themes and scarecrow skins were in the first draft of
 this page; none of them is built, and the first draft is not a promise
 ([[Audit-v2-Beta]] N-02). They come back, if they come back, the way

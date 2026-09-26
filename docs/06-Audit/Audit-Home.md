@@ -71,6 +71,32 @@ rule 7); there is one list of what counts as activity
 ([[Gamification]]), and everything asks it; and the ledger now takes
 back what a deleted night or a day's last expense paid.
 
+## Audit 3 — v2.0.0 (2026-09-19)
+
+After v2.0.0 shipped, I read what changed since the second audit.
+I also read the screens of the new half, which no audit had covered,
+and checked the specs against the code. The report is [[Audit-v2]].
+
+| Section | High | Medium | Low | Info |
+| :--- | :---: | :---: | :---: | :---: |
+| Business logic (B3-01 … B3-10) | 1 | 5 | 4 | – |
+| Screens (U3-01 … U3-20) | 2 | 12 | 6 | – |
+| Security and platform (S3-01 … S3-09) | – | 1 | 7 | 1 |
+| Code quality (Q3-01 … Q3-04) | – | 1 | 3 | – |
+| Promised, not built (P3-01 … P3-09) | – | – | – | 9 |
+| Spec drift (D3-01 … D3-16) | – | – | – | 16 |
+
+The three that matter most:
+- Closing a note throws, and can lose the last edit (U3-01).
+- The rate card clears a rate I never touched (U3-02).
+- On a phone without Health Connect, the 3 AM steps close is either
+  blind or counts twice (B3-01).
+
+Audit 2's fixes all still hold. One of them, the archive size limits
+(S2-02), trusts sizes the archive declares about itself (S3-01).
+
+**Status:** open. The remediation order is at the foot of the report.
+
 ## Leak check on the public repo (2026-09-04)
 
 The repo is public, and v0.9.5 added both a signing key and a feature

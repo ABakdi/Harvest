@@ -1,0 +1,11 @@
+{
+  "table": "expense_categories",
+  "uuid": "3b7e9a2d-4c1f-4b8e-a6d9-1c4f7b3e9d58",
+  "updatedAt": "2026-09-02T10:00:00.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAD",
+    "ct": "fc+kp5G5vlJ0WjAxXdPy2L/wtHEc7uXZ5eq2VNcvyuJuv2G1XuOATf0phQAWs8AeHp76M539WK11SIIBMjCsYyLN87+q/3RgJ3/lqX+vurXj4Xly317W9YYayF9ahyHWExk0TCCRisbjJDukGW4PD4paINBd/uS0nWVN5X/GOVtypUCKxY0I4iCn5luAhnuX5Ws8t+X3o8XBul/8fivgFnUohAErf6ZxDeiMIugLyhqT0pMfFEH+aSQuCQ=="
+  }
+}

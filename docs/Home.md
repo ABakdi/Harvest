@@ -20,8 +20,14 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Notes]] — markdown notes with links (Phase 3)
 - [[Gallery]] — albums, the daily photo, the timelapse (Phase 3)
 - [[Finances]] — expense logging and budgets
+- [[Lists]] — one place for every list: to buy, someday, to read, to watch
+- [[Wishlist]] — where Lists began: to buy vs. someday
 - [[Health]] — sleep, steps and body weight
 - [[Gym]] — programs, sessions, sets and personal records
+- [[Goals]] — the board on the field: what it takes, and the seeds that get me there
+- [[Places]] — the trail, a geotag on every action, and the map
+- [[Accounts]] — the optional account, and what it holds
+- [[Web]] — the home page, the PWA, and the app in a browser
 - [[Screen-Time]] — usage caps and interventions
 - [[Onboarding]] — first-run experience
 - [[Dashboard-and-Widgets]] — home screen, reports, widgets
@@ -31,7 +37,9 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Architecture-Overview]] — layers, data flow, package layout
 - [[State-Management]] — Riverpod conventions
 - [[Local-Database]] — Drift schema and repositories
-- [[Sync-Strategy]] — local-first now, MongoDB sync later
+- [[Sync-Strategy]] — local-first, with an optional account behind it
+- [[Sync-API]] — the wire contract: records, push, pull, files, errors
+- [[Deployment]] — the server's image, the database, the static site
 - [[Theming-and-Design-System]] — colors, type, motion, dark/light
 - [[Localization]] — English + Arabic, RTL
 - [[Notifications-and-Background]] — scheduling, 3 AM reset, alarms
@@ -43,8 +51,10 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-2-Finances]]
 - [[Phase-3-Notes-and-Gallery]]
 - [[Phase-4-Health-and-Gym]]
-- [[Phase-5-Screen-Time]] ← **next**
-- [[Phase-6-Sync-and-Social]]
+- [[Phase-5-Goals-Places-and-Voice]]
+- [[Phase-6-Sync-Accounts-and-Web]]
+- [[Phase-7-Screen-Time]] ← **next**
+- [[Phase-8-Social-and-Reach]]
 
 ### 🏁 Checkpoints
 - [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list
@@ -55,11 +65,14 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-6]] — steps that count, and a gym that knows what day it is
 - [[Checkpoint-7]] — Finish where the thumb is, and settings as a place
 - [[Checkpoint-8]] — the day closes on its own
+- [[Checkpoint-9]] — the browser does what the phone does
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board
 - [[Security-Audit]] · [[Code-Quality-Audit]] · [[UX-Audit]]
 - [[Audit-v2-Beta]] — the second audit: business logic, what the spec never said, code quality and security on the v2 beta
+- [[Audit-v2]] — the third audit, on v2.0.0: the new code, the screens, the specs against the code
+- [[Audit-v3-Beta]] — the fourth, by hand: the phone on the emulator and the web as deployed
 
 ### ⚖️ Decisions (ADRs)
 - [[ADR-001-State-Management]] — Riverpod over Bloc
@@ -70,6 +83,11 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[ADR-006-Export-Format]] — the workbook is the backup format
 - [[ADR-007-Archive-Format]] — the archive is a zip, and it comes back
 - [[ADR-008-Exercise-Catalogue]] — the exercise list is borrowed, the animations are fetched
+- [[ADR-009-Monorepo]] — one repository for the phone, the web and the server
+- [[ADR-010-Maps]] — MapLibre on OpenFreeMap, never Google
+- [[ADR-011-Backend]] — Express 5, TypeScript, zod, MongoDB
+- [[ADR-012-Web-Client]] — the web is local-first too
+- [[ADR-013-Assist-Providers]] — one interface, my own key first
 
 ## The big picture
 

@@ -103,6 +103,76 @@ A plugin that reads a Harvest export from inside an Obsidian vault is a
 plausible future thing to build, and it needs nothing from this app
 that the export does not already give it.
 
+## Voice, reading aloud, and the assist
+
+*Added for [[Phase-5-Goals-Places-and-Voice]].* Three things that
+leave the page as plain markdown and the vault as plain files, so N4
+still holds.
+
+### Voice notes
+
+Some thoughts come while walking, driving or holding something, when
+typing is impossible or slow. So a note can hold **recordings**:
+- **Record** is on the editor's toolbar, the microphone. A tap starts
+  recording, the bar shows the time and a level, and a second tap
+  stops.
+- **What is written into the body** is an embed on its own line, in
+  Obsidian's own syntax: `![[Voice 2026-09-19 14-32.m4a]]`. The line
+  stays text (N5); under the note, each recording the body embeds is a
+  player (play/pause, a scrubber, the length), in the order the body
+  names them. In any other editor it is a line of text naming a file
+  that sits beside the note in the export.
+- **The file** is AAC in an `.m4a` container, mono, 64 kbps: about
+  half a megabyte a minute. It lives under the app's own storage and is
+  a row in `note_attachments` (note, file name, kind, length, size).
+- **A voice note in one tap.** *New voice note* (the microphone in the
+  Notes app bar) creates a note titled with the time, starts recording
+  at once, and stops on a tap. It is the three-second path.
+- **Dictation** is separate from recording. The toolbar's second mic
+  mode turns speech into text at the caret, live, using the phone's own
+  on-device recogniser. No audio is kept.
+- **Transcribe**, on a recording's menu, sends the audio to the assist
+  (below). The text is inserted under the player as a quote, and the
+  audio stays. In the browser it is on each recording's player and goes
+  through the server's assist, the only one the web has; it is there
+  only when the server offers one, and a recording past the server's
+  cap (8 MB) is refused before anything is sent.
+- **Deleting the embed line never deletes the file.** A recording no
+  body mentions any more goes to the trash with its note's next save,
+  and is purged with the trash, like everything else.
+
+### Read aloud
+
+**Read aloud**, in the note's menu, reads the note with the phone's
+text-to-speech engine:
+- It reads the text as rendered: markdown syntax, link brackets and
+  embeds are skipped.
+- The voice follows the note's script: Arabic text is read in Arabic,
+  and the rest in the app's language.
+- A small player sheet has play/pause, stop, skip paragraph, and speed
+  (0.75×–2×). It keeps reading with the screen off, and stops on a call.
+
+### Assist
+
+A language model can help with a note, **only when asked**
+([[ADR-013-Assist-Providers]]):
+
+| Action | Sends | Returns |
+| :--- | :--- | :--- |
+| Summarise | the note | a short summary, to insert at the top or copy |
+| Rewrite clearer | the selection, or the note | the same meaning in plainer words |
+| Continue | the text up to the caret | a paragraph in my own voice |
+| Fix spelling and grammar | the selection, or the note | the text corrected, nothing else changed |
+| Translate | the selection, or the note | English ↔ Arabic |
+| Ask | the note, and my question | an answer drawn from the note only |
+| Transcribe | one recording | its text |
+
+Every action opens a sheet that names what will be sent and to which
+provider. The answer streams into that sheet. **Insert**, **Replace**
+and **Copy** are the only ways it reaches the note. Without a key or
+an account, the assist entry says what it needs and links to Settings
+→ Assist.
+
 ## Rules
 
 | # | Rule |
@@ -113,6 +183,10 @@ that the export does not already give it.
 | N4 | No feature may require Harvest to read the note back. If it cannot survive being edited in a text editor, it does not belong. |
 | N5 | The editor draws markdown by styling it, never by rewriting it. What is rendered and what is stored are the same string, character for character. |
 | N6 | Under the Records tab the tab row stays whether a note is open or not; an open note shows its folder under the title ([[Checkpoint-8]]). |
+| N7 | A recording is a file beside the note and an Obsidian embed line in its body, `![[name.m4a]]`. The export writes the file next to the `.md`, so the pair opens anywhere. Its name is made safe the way an import makes one — no path characters, 120 at most — and a stored path that is not safe is refused, on either device. A recording on its own line is drawn as its player, in place; with the caret on that line it is text again. |
+| N8 | Nothing in a note is sent anywhere without a tap on an assist action that names what it sends and to whom. There is no background assist and no indexing. |
+| N9 | The assist proposes; I dispose. Its answer changes a note only through Insert or Replace. |
+| N10 | Read aloud and dictation use the device's own engines. Only Transcribe and the assist actions ever send audio or text off the device. In a browser, read aloud uses local voices only, and dictation is offered only where the browser recognises speech on the device itself; Transcribe works there too, through the server's assist, with the same request as the phone's and only after the dialog has said the recording goes to it. |
 
 A note also goes out as a **PDF**, rendered rather than dumped, through
 the system share sheet.

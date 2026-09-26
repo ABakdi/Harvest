@@ -1,0 +1,25 @@
+{
+  "table": "commitments",
+  "uuid": "6f1c2a9e-4b7d-4e2a-9c1f-2d8b5e7a3c10",
+  "updatedAt": "2026-09-18T20:03:10.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "6f1c2a9e-4b7d-4e2a-9c1f-2d8b5e7a3c10",
+    "type": "habit",
+    "title": "Read 20 pages",
+    "scheduleJson": "{\"type\":\"weekly\",\"weekdays\":[1,3,5]}",
+    "totalTarget": null,
+    "dailyCommitment": null,
+    "dueDay": null,
+    "pausedAt": null,
+    "note": "Before bed, not on the phone",
+    "remindAt": "21:30",
+    "deadline": null,
+    "goalUuid": "4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38",
+    "archivedAt": null,
+    "archiveNote": null,
+    "deletedAt": null,
+    "createdAt": "2026-09-01T07:12:44.000Z",
+    "updatedAt": "2026-09-18T20:03:10.000Z"
+  }
+}

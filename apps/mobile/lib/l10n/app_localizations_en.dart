@@ -1,0 +1,4631 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appTitle => 'Harvest';
+
+  @override
+  String get navField => 'Field';
+
+  @override
+  String get navStats => 'Stats';
+
+  @override
+  String get navSettings => 'Settings';
+
+  @override
+  String get fieldEmptyTitle => 'Your field is ready';
+
+  @override
+  String get fieldEmptyBody =>
+      'Plant your first seed — a habit, a project, or a simple to-do.';
+
+  @override
+  String get statsEmptyTitle => 'Nothing to count yet';
+
+  @override
+  String get statsEmptyBody => 'Check in once and the numbers start.';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsSectionHarvestHint =>
+      'The daily goal, the day\'s hours and sleep';
+
+  @override
+  String get settingsSectionFeaturesHint => 'Which parts of the app are on';
+
+  @override
+  String get settingsSectionRemindersHint => 'When the app speaks up';
+
+  @override
+  String get settingsSectionPomodoroHint => 'Focus and break lengths';
+
+  @override
+  String get settingsSectionMoneyHint => 'Currency, categories and rates';
+
+  @override
+  String get settingsSectionPrivacyHint => 'The lock on the app';
+
+  @override
+  String get settingsSectionDataHint => 'Export, import and the widget';
+
+  @override
+  String get settingsSectionAppearanceHint => 'Theme, colours and language';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get langSystem => 'System';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get langArabic => 'العربية';
+
+  @override
+  String get addCommitment => 'Plant a seed';
+
+  @override
+  String get typeHabit => 'Habit';
+
+  @override
+  String get typeProject => 'Project';
+
+  @override
+  String get typeTodo => 'To-Do';
+
+  @override
+  String get titleLabel => 'Title';
+
+  @override
+  String get titleHintHabit => 'e.g. Exercise, Practice Spanish';
+
+  @override
+  String get titleHintProject => 'e.g. Read Atomic Habits';
+
+  @override
+  String get titleHintTodo => 'e.g. Call the dentist';
+
+  @override
+  String get scheduleLabel => 'Schedule';
+
+  @override
+  String get scheduleDaily => 'Daily';
+
+  @override
+  String get scheduleWeekly => 'Specific days';
+
+  @override
+  String get scheduleInterval => 'Every X days';
+
+  @override
+  String get scheduleTimesPerWeek => 'X per week';
+
+  @override
+  String everyDaysLabel(int count) {
+    return 'Every $count days';
+  }
+
+  @override
+  String timesPerWeekLabel(int count) {
+    return '$count times per week';
+  }
+
+  @override
+  String get totalTargetLabel => 'Total target (pages, minutes…)';
+
+  @override
+  String get dailyCommitmentLabel => 'Daily commitment';
+
+  @override
+  String get dueLabel => 'Planned for';
+
+  @override
+  String get dueToday => 'Today';
+
+  @override
+  String get dueTomorrow => 'Tomorrow';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get undoCheckInTitle => 'Undo today\'s check-in?';
+
+  @override
+  String undoCheckInBody(String title) {
+    return 'This removes what you logged for \"$title\" today.';
+  }
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get logProgressTitle => 'Log progress';
+
+  @override
+  String get logQuantityLabel => 'How much did you get done?';
+
+  @override
+  String logRemainingToday(int count) {
+    return 'You can log $count more today';
+  }
+
+  @override
+  String get log => 'Log';
+
+  @override
+  String get cappedMessage => 'Daily cap reached — the field rests too.';
+
+  @override
+  String xpEarned(int count) {
+    return '+$count XP';
+  }
+
+  @override
+  String projectSubtitle(int done, int total, int today, int daily) {
+    return '$done of $total · today $today/$daily';
+  }
+
+  @override
+  String get todoOverdue => 'Overdue';
+
+  @override
+  String get rankSprout => 'Sprout';
+
+  @override
+  String get rankSeedling => 'Seedling';
+
+  @override
+  String get rankGardener => 'Gardener';
+
+  @override
+  String get rankHarvester => 'Harvester';
+
+  @override
+  String get rankMasterFarmer => 'Master Farmer';
+
+  @override
+  String get settingsHarvest => 'Harvest';
+
+  @override
+  String get settingsGoalTitle => 'Daily Harvest Goal';
+
+  @override
+  String get settingsGoalBody =>
+      'Productive actions needed each day to keep your streak alive.';
+
+  @override
+  String goalActions(int count) {
+    return '$count actions a day';
+  }
+
+  @override
+  String get streakSheetTitle => 'Your streak';
+
+  @override
+  String streakCurrent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakBest(int count) {
+    return 'Best: $count';
+  }
+
+  @override
+  String freezesStored(int count, int max) {
+    return 'Streak freezes: $count of $max';
+  }
+
+  @override
+  String get freezeExplainer =>
+      'A freeze protects your streak for one missed day. It\'s used automatically.';
+
+  @override
+  String buyFreeze(int cost) {
+    return 'Buy a freeze · $cost coins';
+  }
+
+  @override
+  String get freezeBought => 'Freeze stored. Rest easy. ❄️';
+
+  @override
+  String get freezeUnavailable => 'Not enough coins, or the shed is full.';
+
+  @override
+  String coinBalance(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count coins',
+      one: '1 coin',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pomodoroTitle => 'Focus';
+
+  @override
+  String get phaseFocus => 'Focus';
+
+  @override
+  String get phaseShortBreak => 'Short break';
+
+  @override
+  String get phaseLongBreak => 'Long break';
+
+  @override
+  String get startFocus => 'Start focus';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
+  String get resume => 'Resume';
+
+  @override
+  String get finishSession => 'Finish session';
+
+  @override
+  String get abandonSession => 'Abandon';
+
+  @override
+  String get abandonBody => 'The field will wait.';
+
+  @override
+  String get freeSession => 'Free focus';
+
+  @override
+  String blocksDone(int count) {
+    return '$count blocks done';
+  }
+
+  @override
+  String get breakOverReady => 'Break over — ready for the next block';
+
+  @override
+  String get plannerTitle => 'Tomorrow\'s plan';
+
+  @override
+  String get plannerHabitsDue => 'Habits due tomorrow';
+
+  @override
+  String get plannerTodos => 'To-dos for tomorrow';
+
+  @override
+  String get plannerAddHint => 'Plant a to-do for tomorrow…';
+
+  @override
+  String get plannerEmpty =>
+      'Nothing planned yet. Add tomorrow\'s seeds tonight and wake up ready.';
+
+  @override
+  String get notifMorningTitle => 'Good morning! ☀️';
+
+  @override
+  String get notifMorningBody =>
+      'Check today\'s harvest plan and log your first seed.';
+
+  @override
+  String get notifEveningTitle => 'The sun is setting 🌙';
+
+  @override
+  String get notifEveningBody => 'Wind down and plant tomorrow\'s plan.';
+
+  @override
+  String get notifStreakTitle => 'Your crops are thirsty! 🔥';
+
+  @override
+  String get notifStreakBody =>
+      'Log your remaining tasks before 3 AM to save your streak.';
+
+  @override
+  String get settingsReminders => 'Reminders';
+
+  @override
+  String get remindersMaster => 'Allow reminders';
+
+  @override
+  String get remindersMorning => 'Morning: today\'s plan';
+
+  @override
+  String get remindersEvening => 'Evening: plan tomorrow';
+
+  @override
+  String get remindersStreak => 'Late streak warning';
+
+  @override
+  String get obWelcomeTitle => 'Welcome to Harvest';
+
+  @override
+  String get obWelcomeBody =>
+      'Your goals are seeds. Your effort is water. Distractions are weeds.\n\nShow up a little every day, keep your streak alive, and harvest the life you\'re growing.';
+
+  @override
+  String get obTemplatesTitle => 'Plant your first seeds';
+
+  @override
+  String get obTemplatesBody =>
+      'Pick a few to start with — you can always plant more.';
+
+  @override
+  String get tmplRead => 'Read a book (300 pages)';
+
+  @override
+  String get tmplFit => 'Exercise';
+
+  @override
+  String get tmplLanguage => 'Practice a language';
+
+  @override
+  String get tmplMeditate => 'Meditate (3× a week)';
+
+  @override
+  String get tmplJournal => 'Journal before bed';
+
+  @override
+  String get obGoalTitle => 'Daily Harvest Goal';
+
+  @override
+  String get obRemindersTitle => 'Gentle reminders';
+
+  @override
+  String get obRemindersBody =>
+      'Harvest nudges, never nags: a morning review, an evening planning ritual, and a heads-up when your streak is at risk.';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get startGrowing => 'Start growing 🌱';
+
+  @override
+  String get statsBestStreak => 'Best streak';
+
+  @override
+  String get statsCheckIns => 'Check-ins';
+
+  @override
+  String get statsActivity => 'Activity';
+
+  @override
+  String get statsProjects => 'Projects';
+
+  @override
+  String get statsHabitStreaks => 'Habit streaks';
+
+  @override
+  String statsStreakOf(int current, int best) {
+    return '$current now · best $best';
+  }
+
+  @override
+  String get navGranary => 'Granary';
+
+  @override
+  String get granaryTitle => 'Granary';
+
+  @override
+  String get logExpense => 'Log an expense';
+
+  @override
+  String get amountLabel => 'Amount';
+
+  @override
+  String amountSum(String value) {
+    return '= $value';
+  }
+
+  @override
+  String get amountSumIncomplete => 'Finish the sum to log it';
+
+  @override
+  String get amountKeyBackspace => 'Delete';
+
+  @override
+  String get amountKeyClear => 'Clear';
+
+  @override
+  String get noteLabel => 'Note (optional)';
+
+  @override
+  String get expenseDayLabel => 'Logged on';
+
+  @override
+  String get catFood => 'Food';
+
+  @override
+  String get catTransport => 'Transport';
+
+  @override
+  String get catBills => 'Bills';
+
+  @override
+  String get catShopping => 'Shopping';
+
+  @override
+  String get catHealth => 'Health';
+
+  @override
+  String get catEntertainment => 'Fun';
+
+  @override
+  String get catOther => 'Other';
+
+  @override
+  String get todaySpending => 'Today';
+
+  @override
+  String get budgetTitle => 'Monthly budget';
+
+  @override
+  String budgetSpentOf(String spent, String budget) {
+    return '$spent of $budget this month';
+  }
+
+  @override
+  String budgetFloating(String spent, String limit) {
+    return '$spent / $limit today';
+  }
+
+  @override
+  String get budgetSet => 'Set a monthly budget';
+
+  @override
+  String get budgetAmountLabel => 'Budget for the month';
+
+  @override
+  String get granaryEmpty => 'Nothing logged today. What did you spend?';
+
+  @override
+  String get repeatSuggestionTitle => 'Same as the last 3 days?';
+
+  @override
+  String get logIt => 'Log it';
+
+  @override
+  String get notifExpenseTitle => 'What did you spend today? 💰';
+
+  @override
+  String get notifExpenseBody =>
+      'Log it in two taps and keep the granary honest.';
+
+  @override
+  String get remindersExpense => 'Expense check-in';
+
+  @override
+  String get statsSpending => 'Spending by category';
+
+  @override
+  String get deleted => 'Removed';
+
+  @override
+  String get editSeed => 'Edit';
+
+  @override
+  String get focusTimer => 'Focus timer';
+
+  @override
+  String get pauseHabit => 'Pause (vacation)';
+
+  @override
+  String get resumeHabit => 'Resume';
+
+  @override
+  String get pausedLabel => 'Paused — resting';
+
+  @override
+  String get archiveAction => 'Archive';
+
+  @override
+  String get archiveConfirmTitle => 'Archive this seed?';
+
+  @override
+  String archiveConfirmBody(String title) {
+    return '\"$title\" is archived. Its history stays.';
+  }
+
+  @override
+  String get projectDoneTitle => 'Harvest complete! 🎉';
+
+  @override
+  String projectDoneBody(String title, int total) {
+    return '\"$title\" is fully grown — $total logged. It is archived with pride.';
+  }
+
+  @override
+  String get toTheBarn => 'Archive';
+
+  @override
+  String get weeklyReport => 'This week';
+
+  @override
+  String weeklyXp(int count) {
+    return '$count XP';
+  }
+
+  @override
+  String weeklyBestDay(String day) {
+    return 'Best: $day';
+  }
+
+  @override
+  String weeklyWorstDay(String day) {
+    return 'Quietest: $day';
+  }
+
+  @override
+  String weeklyTopSpending(String category) {
+    return 'Top spending: $category';
+  }
+
+  @override
+  String get settingsPomodoro => 'Focus timer';
+
+  @override
+  String get pomodoroFocusLen => 'Focus length';
+
+  @override
+  String get pomodoroShortLen => 'Short break';
+
+  @override
+  String get pomodoroLongLen => 'Long break';
+
+  @override
+  String get pomodoroBlocks => 'Blocks before a long break';
+
+  @override
+  String minutesValue(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get settingsStyle => 'Style';
+
+  @override
+  String get presetHarvest => 'Harvest';
+
+  @override
+  String get presetSunrise => 'Sunrise';
+
+  @override
+  String get presetOcean => 'Ocean';
+
+  @override
+  String get presetOrchard => 'Orchard';
+
+  @override
+  String get presetDusk => 'Dusk';
+
+  @override
+  String get advancedOptions => 'Advanced';
+
+  @override
+  String get seedNoteLabel => 'Note';
+
+  @override
+  String get remindMeAt => 'Remind me at';
+
+  @override
+  String get deadlineLabel => 'Accomplish before';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get pickDate => 'Pick a date';
+
+  @override
+  String dueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String overdueBy(String date) {
+    return 'Overdue — was due $date';
+  }
+
+  @override
+  String get taskReminderBody => 'A seed is waiting to be watered.';
+
+  @override
+  String get newCategory => 'New category';
+
+  @override
+  String get categoryName => 'Category name';
+
+  @override
+  String get manageCategories => 'Custom categories';
+
+  @override
+  String get todayTab => 'Today';
+
+  @override
+  String get insightsTab => 'Insights';
+
+  @override
+  String get wishlistTitle => 'Wishlist';
+
+  @override
+  String get wishlistBuyList => 'To buy';
+
+  @override
+  String get wishlistWishlist => 'Wishlist';
+
+  @override
+  String get wishlistBuyEmptyTitle => 'Nothing to buy';
+
+  @override
+  String get wishlistBuyEmptyBody =>
+      'Add what you mean to pick up soon — the buy list is day to day.';
+
+  @override
+  String get wishlistWishEmptyTitle => 'Nothing wished for';
+
+  @override
+  String get wishlistWishEmptyBody =>
+      'Add what you want someday, with at most an estimate in mind.';
+
+  @override
+  String get wishlistAdd => 'Add';
+
+  @override
+  String get wishlistOpen => 'Open';
+
+  @override
+  String wishlistBought(int count) {
+    return '$count bought';
+  }
+
+  @override
+  String get wishlistRemoved => 'Removed';
+
+  @override
+  String get wishlistOptions => 'Options';
+
+  @override
+  String get wishlistEdit => 'Edit';
+
+  @override
+  String get wishlistEditItem => 'Edit item';
+
+  @override
+  String get wishlistMoveToBuy => 'To the buy list';
+
+  @override
+  String get wishlistMoveToWish => 'To the wishlist';
+
+  @override
+  String get wishlistDelete => 'Delete';
+
+  @override
+  String get wishlistNew => 'Something I want';
+
+  @override
+  String get wishlistTitleHint => 'e.g. Winter coat, kettle, espresso machine';
+
+  @override
+  String get wishlistEstimateLabel => 'Estimated price';
+
+  @override
+  String get wishlistEstimateHint => 'What I think it costs';
+
+  @override
+  String get wishlistEstimateInvalid =>
+      'Type a price above zero, or leave it empty.';
+
+  @override
+  String get wishlistNoteLabel => 'Note';
+
+  @override
+  String get wishlistNoteHint => 'Size, model, colour, why';
+
+  @override
+  String get wishlistTargetDay => 'Planned purchase day';
+
+  @override
+  String get wishlistNoTargetDay => 'Some day';
+
+  @override
+  String get wishlistToday => 'Today';
+
+  @override
+  String wishlistInDays(int count) {
+    return 'In $count days';
+  }
+
+  @override
+  String wishlistBoughtOn(String day) {
+    return 'Bought on $day';
+  }
+
+  @override
+  String get wishlistTotalsSeparator => ' · ';
+
+  @override
+  String get savingsLow => 'Savings running low';
+
+  @override
+  String get rangeWeek => 'Week';
+
+  @override
+  String get rangeMonth => 'Month';
+
+  @override
+  String get totalSpent => 'Total';
+
+  @override
+  String avgPerDay(String amount) {
+    return '$amount / day';
+  }
+
+  @override
+  String get noSpendingYet => 'No spending in this range yet.';
+
+  @override
+  String get calendarTitle => 'Calendar';
+
+  @override
+  String get calNothingDue => 'Nothing planted for this day.';
+
+  @override
+  String calDeadline(String title) {
+    return 'Deadline: $title';
+  }
+
+  @override
+  String get calAddForDay => 'Plant a to-do for this day…';
+
+  @override
+  String get defaultCurrencyLabel => 'Default currency';
+
+  @override
+  String get exchangeRates => 'Exchange rates';
+
+  @override
+  String get ratesDzdUsd => 'DZD per 1 USD';
+
+  @override
+  String get ratesDzdEur => 'DZD per 1 EUR';
+
+  @override
+  String get ratesEurUsd => 'EUR → USD (fetched)';
+
+  @override
+  String get fetchNow => 'Fetch';
+
+  @override
+  String ratesUpdated(String when) {
+    return 'Updated $when';
+  }
+
+  @override
+  String get ratesFetchFailed => 'Couldn\'t fetch — check the connection.';
+
+  @override
+  String get vaultTab => 'Balances';
+
+  @override
+  String get walletTitle => 'Wallet';
+
+  @override
+  String get walletAdd => 'Add';
+
+  @override
+  String get walletTake => 'Take';
+
+  @override
+  String get savingsSectionTitle => 'Savings';
+
+  @override
+  String get savingsDeposit => 'Save';
+
+  @override
+  String get savingsWithdraw => 'Withdraw';
+
+  @override
+  String get debtsTitle => 'Debts';
+
+  @override
+  String get addDebt => 'Log a debt';
+
+  @override
+  String get debtPerson => 'Owed to';
+
+  @override
+  String get debtPayOffBy => 'Pay off by';
+
+  @override
+  String get debtRemindAt => 'Daily reminder at';
+
+  @override
+  String get debtPay => 'Pay';
+
+  @override
+  String get debtPaymentRemoveTitle => 'Remove this payment?';
+
+  @override
+  String get debtPaymentRemoveBody =>
+      'What it took from the wallet comes back, and the debt reopens if this had settled it. Undo is in the bar for a moment after.';
+
+  @override
+  String get debtSettled => 'Settled 🎉';
+
+  @override
+  String notifDebtTitle(String person) {
+    return 'Debt to $person';
+  }
+
+  @override
+  String notifDebtBody(String amount) {
+    return '$amount still owed. A settled debt sleeps better.';
+  }
+
+  @override
+  String get dayToday => 'Today';
+
+  @override
+  String get dayYesterday => 'Yesterday';
+
+  @override
+  String get vaultOwed => 'Debts';
+
+  @override
+  String vaultOpenDebts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open debts',
+      one: '1 open debt',
+      zero: 'no open debts',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get debtsEmptyTitle => 'No debts';
+
+  @override
+  String get debtsEmptyBody => 'Nothing owed to anyone. Sleep well.';
+
+  @override
+  String get movesTitle => 'Moves';
+
+  @override
+  String get noMovesYet => 'No moves yet';
+
+  @override
+  String get txnAdded => 'Added';
+
+  @override
+  String get txnTaken => 'Taken out';
+
+  @override
+  String get txnSaved => 'Saved';
+
+  @override
+  String get txnWithdrawn => 'Withdrawn';
+
+  @override
+  String get txnFromSavings => 'From savings';
+
+  @override
+  String get txnToSavings => 'To savings';
+
+  @override
+  String get txnFromWallet => 'From the wallet';
+
+  @override
+  String get txnToWallet => 'To the wallet';
+
+  @override
+  String get txnExpense => 'Expense';
+
+  @override
+  String txnDebtPayment(String person) {
+    return 'Paid $person';
+  }
+
+  @override
+  String debtPaidOf(String paid, String total) {
+    return '$paid of $total paid';
+  }
+
+  @override
+  String get debtPayments => 'Payments';
+
+  @override
+  String get debtOpen => 'Open';
+
+  @override
+  String get debtSettledSection => 'Settled';
+
+  @override
+  String get payFromWallet => 'Pay from the wallet?';
+
+  @override
+  String get budgetSpentToday => 'Spent today';
+
+  @override
+  String get budgetDailyLimit => 'Daily limit';
+
+  @override
+  String budgetLeftToday(String amount) {
+    return '$amount left today';
+  }
+
+  @override
+  String budgetOverToday(String amount) {
+    return '$amount over today';
+  }
+
+  @override
+  String budgetLeftMonth(String amount) {
+    return '$amount left this month';
+  }
+
+  @override
+  String budgetOverMonth(String amount) {
+    return '$amount over budget this month';
+  }
+
+  @override
+  String expensesToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count expenses',
+      one: '1 expense',
+      zero: 'Nothing logged',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get snooze10 => 'In 10 min';
+
+  @override
+  String get snooze60 => 'In 1 hour';
+
+  @override
+  String get snooze180 => 'In 3 hours';
+
+  @override
+  String get tomorrowTitle => 'Tomorrow';
+
+  @override
+  String get tomorrowNothing => 'Nothing planned yet — plant tonight\'s seeds.';
+
+  @override
+  String tomorrowHabits(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count habits due',
+      one: '1 habit due',
+      zero: 'no habits due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tomorrowTodos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count to-dos planned',
+      one: '1 to-do planned',
+      zero: 'no to-dos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planTomorrow => 'Plan';
+
+  @override
+  String get rateSaved => 'Rate saved';
+
+  @override
+  String get rateCleared => 'Rate cleared';
+
+  @override
+  String get rateInvalid => 'That is not a usable rate';
+
+  @override
+  String get ratesExplainer =>
+      'Used to show \$ and € amounts in your default currency.';
+
+  @override
+  String get settingsMoney => 'Money';
+
+  @override
+  String startupProblem(String error) {
+    return 'A startup step failed: $error. Restart the app; if it keeps happening, back up and reinstall.';
+  }
+
+  @override
+  String get channelReminders => 'Reminders';
+
+  @override
+  String get channelStreak => 'Streak';
+
+  @override
+  String get channelPomodoro => 'Focus timer';
+
+  @override
+  String remindersStreakHint(String time) {
+    return 'At $time, only when the day is not yet earned';
+  }
+
+  @override
+  String get decrease => 'Less';
+
+  @override
+  String get increase => 'More';
+
+  @override
+  String get remindersDenied =>
+      'Reminders are blocked for Harvest in system settings.';
+
+  @override
+  String freezeEarnHint(int coins, int days) {
+    return 'Earn $coins coins at a $days-day streak.';
+  }
+
+  @override
+  String streakSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Streak: $count days',
+      one: 'Streak: 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String xpAmount(int xp) {
+    return '$xp XP';
+  }
+
+  @override
+  String get unitDays => 'd';
+
+  @override
+  String get unitHours => 'h';
+
+  @override
+  String get unitMinutes => 'm';
+
+  @override
+  String projectProgressOf(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get cropOptions => 'More';
+
+  @override
+  String get clearValue => 'Clear';
+
+  @override
+  String get scheduleDailyShort => 'Every day';
+
+  @override
+  String scheduleEveryDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count days',
+      one: 'Every day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleTimesShort(int count, int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count× a week',
+      two: 'Twice a week',
+      one: 'Once a week',
+    );
+    return '$_temp0 · $done done';
+  }
+
+  @override
+  String plannedFor(String date) {
+    return 'Planned $date';
+  }
+
+  @override
+  String get removeAction => 'Remove';
+
+  @override
+  String get checkInFailed => 'That did not save. Try again.';
+
+  @override
+  String activitySemantics(int days, String span) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days active days in $span',
+      one: '1 active day in $span',
+      zero: 'No active days in $span',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String activityLastWeeks(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: 'the last $weeks weeks',
+      one: 'the last week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cropDone => 'Done';
+
+  @override
+  String get cropPending => 'Not yet';
+
+  @override
+  String get fromWalletToggle => 'From the wallet';
+
+  @override
+  String walletHas(String amount) {
+    return '$amount in the wallet';
+  }
+
+  @override
+  String get walletShort => 'Not enough in the wallet';
+
+  @override
+  String budgetMonthLine(String spent, String budget, String left) {
+    return '$spent of $budget · $left left';
+  }
+
+  @override
+  String budgetMonthOver(String spent, String budget, String over) {
+    return '$spent of $budget · $over over';
+  }
+
+  @override
+  String get editBudget => 'Edit budget';
+
+  @override
+  String get perDay => 'Per day';
+
+  @override
+  String get todayEmptyBody => 'Tap Log an expense to add the first one.';
+
+  @override
+  String get debtRemindDefault => 'Every day at 7:00 PM until it is paid';
+
+  @override
+  String get undoAction => 'Undo';
+
+  @override
+  String get saveFailed => 'That did not save. Try again.';
+
+  @override
+  String get categoryExists => 'A category with that name already exists';
+
+  @override
+  String get withdrawToWallet => 'To the wallet';
+
+  @override
+  String get budgetExplainer =>
+      'Your daily limit is what\'s left of the month divided by the days left in it.';
+
+  @override
+  String get settingsPrivacy => 'Privacy';
+
+  @override
+  String get appLockTitle => 'Lock Harvest';
+
+  @override
+  String get appLockBody =>
+      'Ask for your fingerprint, PIN or password before opening the app.';
+
+  @override
+  String get appLockUnavailable =>
+      'Set a fingerprint, PIN or password on this device first.';
+
+  @override
+  String get lockTitle => 'Harvest is locked';
+
+  @override
+  String get lockBody => 'Unlock to get back to your field.';
+
+  @override
+  String get lockReason => 'Unlock Harvest';
+
+  @override
+  String get lockUnlockAction => 'Unlock';
+
+  @override
+  String get lockRefused => 'That did not match. Try again.';
+
+  @override
+  String get lockTooManyTries =>
+      'Too many tries. Wait a moment, then try again.';
+
+  @override
+  String get lockUnavailable => 'The device could not show the unlock prompt.';
+
+  @override
+  String get settingsData => 'My data';
+
+  @override
+  String get exportTitle => 'Take an archive';
+
+  @override
+  String get exportBody =>
+      'One .zip: the spreadsheet with its totals as live formulas, your notes as a folder of markdown, and every picture in its album.';
+
+  @override
+  String get exportAction => 'Export to Downloads';
+
+  @override
+  String get exportRunning => 'Building the workbook…';
+
+  @override
+  String exportSaved(String path) {
+    return 'Saved to $path';
+  }
+
+  @override
+  String get exportFailedPermission =>
+      'Harvest was not allowed to write to Downloads.';
+
+  @override
+  String get exportFailedUnsupported =>
+      'Exporting is only available on Android for now.';
+
+  @override
+  String get exportFailed => 'The export did not finish. Try again.';
+
+  @override
+  String get deleteAction => 'Delete';
+
+  @override
+  String get restoreAction => 'Restore';
+
+  @override
+  String reminderRingsIn(String time) {
+    return 'rings in $time';
+  }
+
+  @override
+  String get reminderNow => 'Ringing now';
+
+  @override
+  String get editExpense => 'Edit expense';
+
+  @override
+  String get deleteExpenseTitle => 'Delete this expense?';
+
+  @override
+  String deleteExpenseBody(String amount) {
+    return '$amount will be removed from the day, and any wallet withdrawal it made will be refunded.';
+  }
+
+  @override
+  String get archiveTitle => 'Archive';
+
+  @override
+  String get archiveEmpty => 'Nothing put away yet';
+
+  @override
+  String get archiveEmptyBody =>
+      'Archived seeds land here, with the note that says why.';
+
+  @override
+  String archiveSheetBody(String title) {
+    return 'Put $title away. Its history stays.';
+  }
+
+  @override
+  String get archiveNoteLabel => 'Why are you archiving it?';
+
+  @override
+  String get archiveNoteHint => 'Finished it — on to the next one';
+
+  @override
+  String get archiveKeepsHistory => 'Keeps every check-in';
+
+  @override
+  String archivedOn(String day) {
+    return 'Archived $day';
+  }
+
+  @override
+  String restoredToField(String title) {
+    return '$title is back on the field';
+  }
+
+  @override
+  String get deleteSeedTitle => 'Delete this seed?';
+
+  @override
+  String deleteSeedBody(String title) {
+    return '$title, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.';
+  }
+
+  @override
+  String get deleteSeedSubtitle => 'Gone for good, history and all';
+
+  @override
+  String get seedNotesTitle => 'Notes';
+
+  @override
+  String get seedNotesSubtitle => 'Where you left off today';
+
+  @override
+  String get seedNotesSheetSubtitle => 'Today\'s note, and the last one';
+
+  @override
+  String get seedNotesExplainer =>
+      'A fresh note every day. Yesterday\'s stays in the history.';
+
+  @override
+  String get seedNoteHint => 'Stopped on page 143';
+
+  @override
+  String noteForDay(String day) {
+    return 'Note for $day';
+  }
+
+  @override
+  String lastTimeOn(String day) {
+    return 'Last time · $day';
+  }
+
+  @override
+  String get seedHistoryTitle => 'History';
+
+  @override
+  String get seedHistorySheetSubtitle => 'Every day, and what you wrote';
+
+  @override
+  String seedHistorySubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days on record',
+      one: '1 day on record',
+      zero: 'No days yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get seedHistoryEmpty => 'No history yet';
+
+  @override
+  String get seedHistoryEmptyBody => 'Check in once and this fills up.';
+
+  @override
+  String get seedGone => 'This seed is gone';
+
+  @override
+  String get seedGoneBody =>
+      'It was deleted, so there is nothing left to show.';
+
+  @override
+  String get streakLabel => 'Streak';
+
+  @override
+  String get bestLabel => 'Best';
+
+  @override
+  String get daysLoggedLabel => 'Days';
+
+  @override
+  String get unitsLabel => 'Units';
+
+  @override
+  String get checkInsLabel => 'Check-ins';
+
+  @override
+  String dayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+      zero: 'no days',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String unitsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units logged',
+      one: '1 unit logged',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checkedIn => 'Checked in';
+
+  @override
+  String get noteOnlyDay => 'Note only';
+
+  @override
+  String runStripLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active days in the last eight weeks',
+      one: '1 active day in the last eight weeks',
+      zero: 'No active days in the last eight weeks',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get comebackDay1Title => 'Your field is waiting 🌱';
+
+  @override
+  String get comebackDay1Body =>
+      'One quiet day, that\'s all. Water something and the streak keeps going.';
+
+  @override
+  String get comebackDay3Title => 'Three days without water';
+
+  @override
+  String get comebackDay3Body =>
+      'The soil is still good. Pick the easiest seed and start there.';
+
+  @override
+  String get comebackWeek1Title => 'A week away 🌾';
+
+  @override
+  String get comebackWeek1Body =>
+      'Your best streak is still on record. A single check-in starts the next one.';
+
+  @override
+  String get comebackWeek2Title => 'Two weeks quiet';
+
+  @override
+  String get comebackWeek2Body =>
+      'Nothing here is lost — your history is exactly where you left it.';
+
+  @override
+  String get comebackMonth1Title => 'A month of fallow ground';
+
+  @override
+  String get comebackMonth1Body =>
+      'No guilt, no catching up. Open Harvest and plant one thing for today.';
+
+  @override
+  String get comebackMonth2Title => 'Still here whenever you are';
+
+  @override
+  String get comebackMonth2Body =>
+      'Every seed, every check-in and every number is still on your phone.';
+
+  @override
+  String get widgetTitle => 'Home-screen widget';
+
+  @override
+  String get widgetBody =>
+      'Add it from the launcher\'s widget picker, then pick what it shows.';
+
+  @override
+  String get widgetStreakLabel => 'day streak';
+
+  @override
+  String get widgetTasksLabel => 'today';
+
+  @override
+  String get widgetEmpty => 'Nothing due today';
+
+  @override
+  String get loadingTagline => 'Cultivate your day.';
+
+  @override
+  String get widgetRefresh => 'Refresh it now';
+
+  @override
+  String widgetSpentToday(String amount) {
+    return '$amount today';
+  }
+
+  @override
+  String widgetWallet(String amount) {
+    return '$amount in the wallet';
+  }
+
+  @override
+  String get widgetActionExpense => 'Expense';
+
+  @override
+  String get widgetActionTask => 'Seed';
+
+  @override
+  String get widgetAllDone => 'The field is watered 🌾';
+
+  @override
+  String get widgetSections => 'What it shows';
+
+  @override
+  String get widgetSectionStreak => 'Streak';
+
+  @override
+  String get widgetSectionStreakBody => 'Always shown';
+
+  @override
+  String get widgetSectionMoney => 'Money';
+
+  @override
+  String get widgetSectionMoneyBody => 'Today\'s spend and your wallet balance';
+
+  @override
+  String get widgetSectionMoneyLocked =>
+      'Hidden while the app lock is on — the home screen is not behind it';
+
+  @override
+  String get widgetSectionTasks => 'Today\'s field';
+
+  @override
+  String get widgetSectionTasksBody => 'What\'s still due, as a row of boxes';
+
+  @override
+  String get widgetSectionActions => 'Quick actions';
+
+  @override
+  String get widgetSectionActionsBody =>
+      'Log an expense or plant a seed from the home screen';
+
+  @override
+  String statsStreakSquares(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count green squares are your streak',
+      one: '1 green square is your streak',
+      zero: 'No streak running',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get legendStreak => 'Streak';
+
+  @override
+  String get legendActive => 'Active';
+
+  @override
+  String get legendQuiet => 'Quiet';
+
+  @override
+  String get settingsCycle => 'Daily cycle';
+
+  @override
+  String get settingsCycleHint =>
+      'The app bends to your hours, not the other way round';
+
+  @override
+  String get cycleBedTime => 'I go to sleep at';
+
+  @override
+  String get cycleWakeTime => 'I wake up at';
+
+  @override
+  String cycleGood(String hours) {
+    return '$hours hours of sleep — that\'s the target';
+  }
+
+  @override
+  String cycleBelowTarget(String hours) {
+    return '$hours hours of sleep. Eight is the target.';
+  }
+
+  @override
+  String cycleTooShort(String hours) {
+    return '$hours hours is less than anyone should run on. Eight is the target, five the floor.';
+  }
+
+  @override
+  String cycleClashTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reminders are now in your sleep',
+      one: 'One reminder is now in your sleep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cycleClashBody =>
+      'Move them with your new wake time? Each keeps the same distance from waking.';
+
+  @override
+  String cycleClashMove(String title, String from, String to) {
+    return '$title · $from → $to';
+  }
+
+  @override
+  String cycleClashMore(int count) {
+    return '…and $count more';
+  }
+
+  @override
+  String get cycleClashKeep => 'Leave them';
+
+  @override
+  String get cycleClashShift => 'Move them';
+
+  @override
+  String get movesSearchHint => 'Search notes';
+
+  @override
+  String get movesFilter => 'Filter';
+
+  @override
+  String get movesByKind => 'Form';
+
+  @override
+  String get movesByCategory => 'Category';
+
+  @override
+  String movesShowing(int matches, int total) {
+    return 'Showing $matches of $total';
+  }
+
+  @override
+  String get movesClear => 'Clear';
+
+  @override
+  String get movesNoMatch => 'Nothing matches that';
+
+  @override
+  String get movesNoMatchBody => 'Try a different category, form or word.';
+
+  @override
+  String get kindManual => 'Added or taken';
+
+  @override
+  String get kindTransfer => 'Transfer';
+
+  @override
+  String get kindExpense => 'Expense';
+
+  @override
+  String get kindDebt => 'Debt payment';
+
+  @override
+  String get rangeCustom => 'Custom';
+
+  @override
+  String get rangePick => 'Pick dates';
+
+  @override
+  String rangeOf(String from, String to) {
+    return '$from — $to';
+  }
+
+  @override
+  String get insightsMoves => 'Moves in this range';
+
+  @override
+  String insightsMovesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count movements',
+      one: '1 movement',
+      zero: 'Nothing moved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareOfSpending(int percent, String amount) {
+    return '$percent% ($amount)';
+  }
+
+  @override
+  String get editAction => 'Edit';
+
+  @override
+  String get navNotes => 'Notes';
+
+  @override
+  String get navGallery => 'Gallery';
+
+  @override
+  String get notesTitle => 'Notes';
+
+  @override
+  String get notesNew => 'New note';
+
+  @override
+  String get notesUntitled => 'Untitled';
+
+  @override
+  String get notesTitleHint => 'Title';
+
+  @override
+  String get notesBodyHint =>
+      'Write. Markdown renders as you go and shows its syntax on the line you are on. [[Link]] to another note.';
+
+  @override
+  String get notesSearchHint => 'Search titles and text';
+
+  @override
+  String get notesAllFolders => 'All';
+
+  @override
+  String get notesFolder => 'Folder';
+
+  @override
+  String get notesFolderHint =>
+      'A path, nothing more. Nested folders are made by naming one.';
+
+  @override
+  String get notesSort => 'Sort';
+
+  @override
+  String get notesSortEdited => 'Last edited';
+
+  @override
+  String get notesSortCreated => 'Created';
+
+  @override
+  String get notesSortTitle => 'Title';
+
+  @override
+  String get notesEmpty => 'No notes yet';
+
+  @override
+  String get notesEmptyBody => 'Tap + to keep what you thought about the day.';
+
+  @override
+  String get notesNoMatch => 'Nothing matches that';
+
+  @override
+  String get notesNoMatchBody => 'Try another word, or a different folder.';
+
+  @override
+  String get notesGone => 'This note is gone';
+
+  @override
+  String get notesGoneBody => 'It was deleted, or it never existed.';
+
+  @override
+  String get notesRead => 'Read';
+
+  @override
+  String get notesEdit => 'Edit';
+
+  @override
+  String get notesCreate => 'Create';
+
+  @override
+  String notesCreateLinkTitle(String title) {
+    return 'Write \"$title\"?';
+  }
+
+  @override
+  String get notesCreateLinkBody =>
+      'That note does not exist yet. A link to a note you have not written is normal — this makes it.';
+
+  @override
+  String get notesDeleteTitle => 'Delete this note?';
+
+  @override
+  String get notesDeleteBody =>
+      'It leaves the vault. You can undo this straight away.';
+
+  @override
+  String notesBacklinks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes link here',
+      one: '1 note links here',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galleryTitle => 'Gallery';
+
+  @override
+  String get galleryNewAlbum => 'New album';
+
+  @override
+  String get galleryEditAlbum => 'Edit album';
+
+  @override
+  String get galleryCreateAlbum => 'Create album';
+
+  @override
+  String get galleryAlbumHint =>
+      'A named run of pictures. Give it a schedule and it becomes a seed on your field.';
+
+  @override
+  String get galleryAlbumName => 'Album';
+
+  @override
+  String get galleryAlbumNameHint => 'Gym, Face, The flat';
+
+  @override
+  String get gallerySchedule => 'Schedule';
+
+  @override
+  String get galleryScheduleNone => 'No schedule';
+
+  @override
+  String get gallerySeedHint =>
+      'A scheduled album is due like a habit, checked in by adding a picture, and feeds the same streak.';
+
+  @override
+  String get galleryIsSeed => 'On your field';
+
+  @override
+  String get galleryEmpty => 'No albums yet';
+
+  @override
+  String get galleryEmptyBody =>
+      'Tap + for an album: one picture a day, playable as a run.';
+
+  @override
+  String get galleryAlbumEmpty => 'Nothing in here yet';
+
+  @override
+  String get galleryAlbumEmptyBody =>
+      'Add the first picture. The comparison only gets interesting from the second one.';
+
+  @override
+  String get galleryAlbumGone => 'This album is gone';
+
+  @override
+  String galleryAlbumCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count memories',
+      one: '1 memory',
+      zero: 'Empty',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galleryAdd => 'Add';
+
+  @override
+  String galleryAddTo(String album) {
+    return 'Add to $album';
+  }
+
+  @override
+  String get galleryCheckInHint =>
+      'The first picture today checks this album in.';
+
+  @override
+  String get galleryTakePhoto => 'Camera';
+
+  @override
+  String get galleryPickPhoto => 'Photos';
+
+  @override
+  String get galleryTakeVideo => 'Record';
+
+  @override
+  String get galleryPickVideo => 'Videos';
+
+  @override
+  String get galleryNoCapture => 'Nothing was captured.';
+
+  @override
+  String get galleryMemoryNote => 'Note';
+
+  @override
+  String get galleryMemoryNoteHint =>
+      'What changed, what you weighed, what you were trying';
+
+  @override
+  String get gallerySearchNotes => 'Search notes';
+
+  @override
+  String get gallerySearchHint => 'Search the notes on these pictures';
+
+  @override
+  String get galleryNoMatch => 'No picture has a note like that';
+
+  @override
+  String get galleryPlay => 'Play';
+
+  @override
+  String get gallerySpeed => 'Speed';
+
+  @override
+  String galleryFps(int fps) {
+    return '$fps/s';
+  }
+
+  @override
+  String get galleryCompare => 'Compare';
+
+  @override
+  String get galleryCompareLeft => 'Left';
+
+  @override
+  String get galleryCompareRight => 'Right';
+
+  @override
+  String get galleryDeleteMemoryTitle => 'Delete this memory?';
+
+  @override
+  String get galleryDeleteMemoryBody =>
+      'The file goes with it, for good. There is no undo behind this one.';
+
+  @override
+  String galleryDeleteAlbumTitle(String album) {
+    return 'Delete $album?';
+  }
+
+  @override
+  String get galleryDeleteAlbumBody =>
+      'Every picture in it is deleted with it, files and all. There is no undo.';
+
+  @override
+  String get settingsFeatures => 'Extras';
+
+  @override
+  String get settingsFeaturesHint =>
+      'Parts of the app that stay out of the way until you ask for them. They pair up in the navigation bar, so switching them all on still leaves five tabs.';
+
+  @override
+  String get featureNotes => 'Notes';
+
+  @override
+  String get featureNotesHint =>
+      'Markdown notes in folders, linked to each other.';
+
+  @override
+  String get featureGallery => 'Gallery';
+
+  @override
+  String get featureGalleryHint =>
+      'Albums of photos over time, playable as a run. A scheduled album becomes a seed on your field.';
+
+  @override
+  String featureGallerySize(String size) {
+    return 'Using $size';
+  }
+
+  @override
+  String get obExtrasTitle => 'A few more, if you want them';
+
+  @override
+  String get obExtrasBody =>
+      'Each stays hidden unless you switch it on. You can change your mind in Settings at any time.';
+
+  @override
+  String get albumReminderBody => 'Today\'s picture is still missing.';
+
+  @override
+  String get exportPreparing => 'Reading everything…';
+
+  @override
+  String exportProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get exportStopped => 'Stopped. Nothing was written.';
+
+  @override
+  String get importTitle => 'Bring an archive back';
+
+  @override
+  String get importBody =>
+      'Open a Harvest .zip. You will see exactly what it would change before anything happens, and nothing here is ever deleted for being missing from it.';
+
+  @override
+  String get importAction => 'Choose an archive';
+
+  @override
+  String get importReading => 'Reading…';
+
+  @override
+  String get importApplying => 'Merging…';
+
+  @override
+  String get importConfirm => 'Merge it in';
+
+  @override
+  String importSummary(int added, int updated) {
+    return '$added new, $updated to update';
+  }
+
+  @override
+  String importRowCounts(int added, int updated) {
+    return '+$added · ↻$updated';
+  }
+
+  @override
+  String importFiles(int newFiles, int files) {
+    String _temp0 = intl.Intl.pluralLogic(
+      newFiles,
+      locale: localeName,
+      other: '$newFiles new files of $files in the archive',
+      one: '1 new file of $files in the archive',
+      zero: 'No new files among the $files in the archive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNothingToDo =>
+      'Everything in here is already on this phone.';
+
+  @override
+  String get importNeverDeletes =>
+      'Nothing local is deleted. Rows already here are only touched if the archive\'s copy is newer.';
+
+  @override
+  String importDone(int added, int updated) {
+    return 'Done — $added added, $updated updated.';
+  }
+
+  @override
+  String get importNotHarvest => 'That zip is not a Harvest archive.';
+
+  @override
+  String get importUnreadable => 'That file could not be opened.';
+
+  @override
+  String get importBadWorkbook =>
+      'The spreadsheet inside that archive could not be read.';
+
+  @override
+  String get importFailed => 'The import did not finish.';
+
+  @override
+  String get sheetSeeds => 'Seeds';
+
+  @override
+  String get sheetCheckIns => 'Check-ins';
+
+  @override
+  String get sheetSeedNotes => 'Day notes';
+
+  @override
+  String get sheetExpenses => 'Expenses';
+
+  @override
+  String get sheetMoney => 'Movements';
+
+  @override
+  String get sheetDebts => 'Debts';
+
+  @override
+  String get sheetDebtPayments => 'Debt payments';
+
+  @override
+  String get sheetFocus => 'Focus sessions';
+
+  @override
+  String get sheetLedger => 'XP ledger';
+
+  @override
+  String get sheetSettings => 'Settings';
+
+  @override
+  String get sheetNotes => 'Notes';
+
+  @override
+  String get sheetAlbums => 'Albums';
+
+  @override
+  String get sheetMemories => 'Memories';
+
+  @override
+  String get navRecords => 'Records';
+
+  @override
+  String get shareAction => 'Share';
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get trashEmpty => 'Empty';
+
+  @override
+  String get trashEmptyTitle => 'The trash is empty';
+
+  @override
+  String get trashNotesEmptyBody => 'Deleted notes wait here.';
+
+  @override
+  String get trashGalleryEmptyBody => 'Deleted pictures and albums wait here.';
+
+  @override
+  String get trashKeeps =>
+      'Nothing leaves here on its own. Restore what you want back, or empty the lot.';
+
+  @override
+  String get trashKeepsFiles =>
+      'The files are still on the phone. Emptying the trash is what removes them.';
+
+  @override
+  String get trashRestore => 'Put it back';
+
+  @override
+  String get trashDeleteForever => 'Delete for good';
+
+  @override
+  String get trashDeleteForeverConfirm => 'Delete this for good?';
+
+  @override
+  String get trashDeleteForeverBody => 'There is nothing behind this one.';
+
+  @override
+  String trashEmptyConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Empty the trash — $count items?',
+      one: 'Empty the trash — 1 item?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trashEmptyConfirmBody => 'Everything in the trash goes for good.';
+
+  @override
+  String get trashEmptyFilesBody =>
+      'Every picture in here is deleted from the phone, files and all. There is no undo.';
+
+  @override
+  String get trashWholeAlbum => 'The whole album';
+
+  @override
+  String get notesNewFolder => 'New folder';
+
+  @override
+  String get notesNewSubfolder => 'New folder inside';
+
+  @override
+  String get notesRenameFolder => 'Rename folder';
+
+  @override
+  String get notesDeleteFolder => 'Delete folder';
+
+  @override
+  String get notesDeleteFolderHint => 'Its notes go to the trash';
+
+  @override
+  String get notesFolderOptions => 'Folder options';
+
+  @override
+  String get notesFolderNameHint => 'Health, Work, Reading';
+
+  @override
+  String get notesNewHere => 'New note';
+
+  @override
+  String get notesMoveToFolder => 'Move to folder';
+
+  @override
+  String get notesSharePdf => 'Share as PDF';
+
+  @override
+  String get notesPdfFailed => 'That note could not be turned into a PDF.';
+
+  @override
+  String get notesMovedToTrash => 'Moved to the trash';
+
+  @override
+  String notesFolderTrashed(String folder, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$folder and $count notes moved to the trash',
+      one: '$folder and 1 note moved to the trash',
+      zero: '$folder is gone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mdHeading => 'Heading';
+
+  @override
+  String get mdBold => 'Bold';
+
+  @override
+  String get mdItalic => 'Italic';
+
+  @override
+  String get mdCode => 'Code';
+
+  @override
+  String get mdList => 'List';
+
+  @override
+  String get mdTask => 'Task';
+
+  @override
+  String get mdQuote => 'Quote';
+
+  @override
+  String get mdWikiLink => 'Link a note';
+
+  @override
+  String get mdTable => 'Table';
+
+  @override
+  String get mdTableRow => 'Add a row';
+
+  @override
+  String get mdTableColumn => 'Add a column';
+
+  @override
+  String get mdRowShort => 'Row';
+
+  @override
+  String get mdColumnShort => 'Col';
+
+  @override
+  String get mdHideKeyboard => 'Hide the keyboard';
+
+  @override
+  String get galleryDoneToday => 'Done';
+
+  @override
+  String get galleryMovedToTrash => 'Moved to the trash';
+
+  @override
+  String get galleryFileGone => 'That file is no longer on the phone.';
+
+  @override
+  String get navBody => 'Body';
+
+  @override
+  String get navHealth => 'Health';
+
+  @override
+  String get navGym => 'Gym';
+
+  @override
+  String get navFarmer => 'Farmer';
+
+  @override
+  String get navProgress => 'Progress';
+
+  @override
+  String get featureHealth => 'Health';
+
+  @override
+  String get featureHealthHint =>
+      'Sleep, steps read from the phone\'s own health store, and a body weight whenever you stand on the scale.';
+
+  @override
+  String get featureGym => 'Gym';
+
+  @override
+  String get featureGymHint =>
+      'Programs, sessions and personal records. A gym habit lands on your field like any other seed.';
+
+  @override
+  String get stepsToday => 'Steps today';
+
+  @override
+  String get stepsWeekAverage => '7-day average';
+
+  @override
+  String stepsOfGoal(int steps, int goal) {
+    return '$steps of $goal';
+  }
+
+  @override
+  String get stepsPassive =>
+      'The phone counts these. They never check a seed in and never break a streak.';
+
+  @override
+  String get stepsSource => 'Where the steps come from';
+
+  @override
+  String get stepsFromHealthConnect =>
+      'From Health Connect — the phone\'s own step store, so this matches your health app.';
+
+  @override
+  String get stepsFromSensor =>
+      'From the phone\'s step counter, read when the app is open.';
+
+  @override
+  String get stepsConnect => 'Connect';
+
+  @override
+  String get stepsConnectTitle => 'Read steps from the phone';
+
+  @override
+  String get stepsConnectBody =>
+      'Harvest reads the daily total from the phone\'s own health store. Nothing is sent anywhere and no account is involved.';
+
+  @override
+  String get stepsConnectSensorBody =>
+      'Harvest reads the phone\'s step counter while the app is open. Nothing is sent anywhere.';
+
+  @override
+  String get stepsDenied =>
+      'Not allowed yet. Tap Connect to ask again, or allow it from Health Connect\'s settings.';
+
+  @override
+  String get stepsUnavailable => 'This phone has nowhere to read steps from.';
+
+  @override
+  String get stepsInstallHealthConnect => 'Get Health Connect';
+
+  @override
+  String get stepsOpenHealthConnect => 'Health Connect settings';
+
+  @override
+  String get stepsRefresh => 'Refresh';
+
+  @override
+  String get stepsGoal => 'Daily step goal';
+
+  @override
+  String get stepsGoalHint =>
+      'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.';
+
+  @override
+  String get stepsGoalNone => 'No goal';
+
+  @override
+  String get stepsGoalMet => 'Goal met';
+
+  @override
+  String get stepsSettings => 'Steps';
+
+  @override
+  String get stepsStride => 'Stride length';
+
+  @override
+  String get stepsStrideHint =>
+      'About 0.415 × your height. 75 cm is a fair guess; a tape measure is better.';
+
+  @override
+  String stepsDistanceKm(String value) {
+    return '$value km';
+  }
+
+  @override
+  String stepsDistanceMi(String value) {
+    return '$value mi';
+  }
+
+  @override
+  String get stepsHistory => 'Your steps';
+
+  @override
+  String get stepsNoDays => 'No steps counted yet';
+
+  @override
+  String get stepsNoDaysBody => 'Tap Connect on the steps card.';
+
+  @override
+  String stepsLastDays(int days) {
+    return 'Last $days days';
+  }
+
+  @override
+  String get stepsBestDay => 'Best day';
+
+  @override
+  String stepsCount(String steps) {
+    return '$steps steps';
+  }
+
+  @override
+  String get weightTitle => 'Weight';
+
+  @override
+  String get weightLog => 'Log a weight';
+
+  @override
+  String get weightEdit => 'Edit this weight';
+
+  @override
+  String get weightHint =>
+      'Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.';
+
+  @override
+  String get weightLabel => 'Weight';
+
+  @override
+  String get weightNote => 'Note';
+
+  @override
+  String get weightNoteHint => 'After the flu, new scale…';
+
+  @override
+  String get weightEmpty => 'No weights yet';
+
+  @override
+  String get weightEmptyBody =>
+      'Your first weight starts the line; it takes a shape from the third.';
+
+  @override
+  String get weightHistory => 'Every reading';
+
+  @override
+  String get weightWindow => 'Over';
+
+  @override
+  String weightDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get weightNoTrendYet => 'Not enough readings for a trend yet';
+
+  @override
+  String weightDown(String amount, int days) {
+    return 'Down $amount over $days days';
+  }
+
+  @override
+  String weightUp(String amount, int days) {
+    return 'Up $amount over $days days';
+  }
+
+  @override
+  String weightSteady(int days) {
+    return 'Level over $days days';
+  }
+
+  @override
+  String weightToTarget(String amount, String target) {
+    return '$amount from your target of $target';
+  }
+
+  @override
+  String get weightLegendEntries => 'Readings';
+
+  @override
+  String get weightLegendTrend => '7-day average';
+
+  @override
+  String get weightLegendTarget => 'Target';
+
+  @override
+  String get weightDeleteTitle => 'Delete this reading?';
+
+  @override
+  String get weightDeleteBody =>
+      'It leaves the chart. You can undo this straight away.';
+
+  @override
+  String get gymComingTitle => 'The gym is next';
+
+  @override
+  String get gymComingBody =>
+      'Programs, sessions and personal records are being built. Steps and weight work now.';
+
+  @override
+  String get gymBrowse => 'Browse exercises';
+
+  @override
+  String get gymPickExercise => 'Choose an exercise';
+
+  @override
+  String get gymSearchExercises => 'Search by name, muscle or kit';
+
+  @override
+  String get gymExercisesTitle => 'Exercises';
+
+  @override
+  String get gymProgramsTitle => 'Programs';
+
+  @override
+  String get gymCatalogueLoading => 'Loading the catalogue…';
+
+  @override
+  String get gymCatalogueHint =>
+      'Search by name, muscle or equipment — the question mid-session is usually what else hits this.';
+
+  @override
+  String gymExerciseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exercises',
+      one: '1 exercise',
+      zero: 'No exercises',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNoExercise => 'Nothing matches that';
+
+  @override
+  String get gymNoExerciseBody =>
+      'Try a muscle or a piece of equipment instead of a name.';
+
+  @override
+  String get gymMine => 'Mine';
+
+  @override
+  String get gymHowTo => 'How it goes';
+
+  @override
+  String get gymNoInstructions => 'No instructions for this one.';
+
+  @override
+  String get gymMediaTitle => 'Exercise pictures';
+
+  @override
+  String get gymMediaBody =>
+      'Downloaded the first time you open an exercise, then kept. Names and instructions are already in the app and work without a single picture.';
+
+  @override
+  String get gymNeverFetch => 'Never fetch pictures';
+
+  @override
+  String get gymNeverFetchHint => 'The gym works completely on words alone';
+
+  @override
+  String get gymDownloadAll => 'Download them all';
+
+  @override
+  String gymDownloadAllBody(int count, String size) {
+    return '$count animations, roughly $size. Worth doing on Wi-Fi before a trip.';
+  }
+
+  @override
+  String gymDownloadProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get gymClearMedia => 'Clear';
+
+  @override
+  String get gymClearMediaBody =>
+      'The pictures go; nothing else does. They come back the next time you open an exercise.';
+
+  @override
+  String gymMediaAttribution(String credit) {
+    return 'Exercise images and animations $credit, fetched from the dataset they are published in.';
+  }
+
+  @override
+  String get gymNewProgram => 'New program';
+
+  @override
+  String get gymProgramNameHint => 'nSuns 5/3/1, Push Pull Legs…';
+
+  @override
+  String get gymNoPrograms => 'No programs yet';
+
+  @override
+  String get gymNoProgramsBody => 'Tap + and write the first day.';
+
+  @override
+  String gymProgramSummary(int days, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+      zero: 'No days yet',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+      zero: 'no sets',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymProgramGone => 'This program is gone';
+
+  @override
+  String get gymRename => 'Rename';
+
+  @override
+  String gymDeleteProgram(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get gymDeleteProgramBody =>
+      'Its days and sets go with it. Sessions you already finished stay.';
+
+  @override
+  String get gymAddDay => 'Add a day';
+
+  @override
+  String gymDayNumber(int n) {
+    return 'Day $n';
+  }
+
+  @override
+  String get gymDayNameHint => 'Day 4, Push, Upper A…';
+
+  @override
+  String get gymNoDays => 'No days yet';
+
+  @override
+  String get gymNoDaysBody => 'Tap Add a day. Duplicating it later is one tap.';
+
+  @override
+  String gymDaySummary(int exercises, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      exercises,
+      locale: localeName,
+      other: '$exercises exercises',
+      one: '1 exercise',
+      zero: 'No exercises',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get gymDuplicateDay => 'Duplicate';
+
+  @override
+  String gymDeleteDay(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get gymDeleteDayBody => 'The exercises and sets in it go too.';
+
+  @override
+  String get gymAccessories => 'Recommended accessories';
+
+  @override
+  String get gymAccessoriesHint => 'Back, Abs — a note, not a prescription';
+
+  @override
+  String gymRecommended(String what) {
+    return 'Recommended: $what';
+  }
+
+  @override
+  String get gymAddExercise => 'Add an exercise';
+
+  @override
+  String get gymRemoveExercise => 'Remove this exercise';
+
+  @override
+  String get gymUnknownExercise => 'Unknown exercise';
+
+  @override
+  String get gymNoSetsYet => 'No sets yet';
+
+  @override
+  String get gymSetsSubtitle => 'What this asks of you, set by set.';
+
+  @override
+  String get gymAddSet => 'Set';
+
+  @override
+  String get gymAddPercentSet => '% set';
+
+  @override
+  String get gymAddOpenSet => 'Open set';
+
+  @override
+  String get gymEditSet => 'Edit the set';
+
+  @override
+  String get gymPercentOfMax => '% of max';
+
+  @override
+  String get gymPercent => 'Percent';
+
+  @override
+  String get gymWeight => 'Weight';
+
+  @override
+  String get gymReps => 'Reps';
+
+  @override
+  String get gymOpenSet => 'Open set';
+
+  @override
+  String get gymOpenSetHint =>
+      'As many as you can — the set that decides whether the weight goes up';
+
+  @override
+  String gymOpenReps(int reps) {
+    return '$reps+';
+  }
+
+  @override
+  String get gymBarWeight => 'The bar';
+
+  @override
+  String get gymRest => 'Rest between sets';
+
+  @override
+  String gymRestSeconds(int seconds) {
+    return '$seconds seconds';
+  }
+
+  @override
+  String get gymTrainingMaxes => 'Training maxes';
+
+  @override
+  String get gymTrainingMaxesHint =>
+      'The number your percentages are percentages of. Yours to set and yours to bump — the app does not do your programming.';
+
+  @override
+  String get gymNoTrainingMax => 'Not set — percentage sets cannot resolve';
+
+  @override
+  String get gymNoPercentSets =>
+      'Nothing in this program is a percentage, so there is nothing to set.';
+
+  @override
+  String gymNeedsTrainingMax(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exercises need a training max',
+      one: '1 exercise needs a training max',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymNeedsTrainingMaxBody =>
+      'Until then its percentage sets show a percentage rather than a weight.';
+
+  @override
+  String get gymStart => 'Start';
+
+  @override
+  String get gymResume => 'Carry on';
+
+  @override
+  String get gymRunningSession => 'A session is running';
+
+  @override
+  String gymRunningSessionBody(int done, int total) {
+    return '$done of $total sets done. Finish or drop it before starting another.';
+  }
+
+  @override
+  String get gymPickDay => 'Which day?';
+
+  @override
+  String get gymNoProgramToStart => 'No program to start';
+
+  @override
+  String get gymNoProgramToStartBody =>
+      'Write a program first — a session is a day of one, with the weights already filled in.';
+
+  @override
+  String get gymSession => 'Session';
+
+  @override
+  String get gymSessionGone => 'This session is gone';
+
+  @override
+  String gymSessionProgress(int done, int total) {
+    return '$done of $total sets';
+  }
+
+  @override
+  String get gymSessionNote => 'Note on the session';
+
+  @override
+  String get gymSessionNoteHint => 'Slept badly, belt on, gym was packed…';
+
+  @override
+  String get gymDiscardSession => 'Drop this session';
+
+  @override
+  String gymDiscardBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'The $done sets you logged go with it.',
+      one: 'The one set you logged goes with it.',
+      zero: 'Nothing is logged yet, so nothing is lost.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymFinish => 'Finish';
+
+  @override
+  String get gymFinishEmptyTitle => 'Finish with nothing logged?';
+
+  @override
+  String get gymFinishEmptyBody =>
+      'It is kept as a session you turned up for, which is worth something, but no set counts towards a record.';
+
+  @override
+  String gymInsteadOf(String name) {
+    return 'instead of $name';
+  }
+
+  @override
+  String gymLastTime(String sets) {
+    return 'Last time: $sets';
+  }
+
+  @override
+  String get gymSwap => 'Swap it out';
+
+  @override
+  String get gymSkip => 'Skip it';
+
+  @override
+  String get gymUnskip => 'Put it back';
+
+  @override
+  String get gymNote => 'Note';
+
+  @override
+  String get gymSetColumn => 'Set';
+
+  @override
+  String get gymTargetColumn => 'Target';
+
+  @override
+  String get gymRepsColumn => 'Reps';
+
+  @override
+  String get gymTick => 'Log this set';
+
+  @override
+  String get gymUntick => 'Not done after all';
+
+  @override
+  String gymRecordHeaviest(String load) {
+    return 'Heaviest ever: $load';
+  }
+
+  @override
+  String gymRecordEstimated(String load) {
+    return 'Best set yet — about $load for one';
+  }
+
+  @override
+  String gymRestPlus(int seconds) {
+    return '+${seconds}s';
+  }
+
+  @override
+  String get gymRestSkip => 'Done resting';
+
+  @override
+  String get gymRestCustom => 'Or type it';
+
+  @override
+  String get gymRestCustomHint => 'seconds';
+
+  @override
+  String get gymRestNone => 'No timer';
+
+  @override
+  String get gymPause => 'Pause the clock';
+
+  @override
+  String get gymResumeClock => 'Start the clock';
+
+  @override
+  String get gymPaused => 'Paused';
+
+  @override
+  String get healthLogNight => 'Log last night';
+
+  @override
+  String get gymSeedStart => 'Start the session';
+
+  @override
+  String get gymSeedStartHint => 'The program\'s day, sets and all';
+
+  @override
+  String get gymSeedBare => 'Went, no numbers';
+
+  @override
+  String get gymSeedBareHint => 'Checked in as a session with nothing logged';
+
+  @override
+  String get gymReorderHandle => 'Drag to reorder';
+
+  @override
+  String get gymUpNext => 'Up next';
+
+  @override
+  String get gymOtherDays => 'Or another day';
+
+  @override
+  String gymNextDay(String day) {
+    return 'Next: $day';
+  }
+
+  @override
+  String get gymFinishIncompleteTitle => 'Finish with sets left?';
+
+  @override
+  String gymFinishIncompleteBody(int left, int total, String day) {
+    return '$left of $total sets are not ticked. The session ends here and the gym habit is checked in as done for $day.';
+  }
+
+  @override
+  String gymBestLine(String sets) {
+    return 'Best: $sets';
+  }
+
+  @override
+  String gymBestEstimate(String weight) {
+    return 'est. $weight';
+  }
+
+  @override
+  String gymPerSide(String bar) {
+    return 'Per side, on a $bar bar';
+  }
+
+  @override
+  String get gymJustTheBar => 'Just the bar';
+
+  @override
+  String gymPlateShortfall(String total, String short) {
+    return 'Closest is $total — $short short. A bar loads in pairs, so it cannot make every number.';
+  }
+
+  @override
+  String gymBarOver(String over) {
+    return 'Lighter than the bar: the bar alone is $over over.';
+  }
+
+  @override
+  String get gymMoveDayUp => 'Move up';
+
+  @override
+  String get gymMoveDayDown => 'Move down';
+
+  @override
+  String get gymMineTitle => 'Add my own';
+
+  @override
+  String get gymMineBody =>
+      'One the catalogue is missing. It is yours: it syncs, and it works like any other everywhere.';
+
+  @override
+  String get gymMineName => 'Name';
+
+  @override
+  String get gymMineBodyPart => 'Body part';
+
+  @override
+  String get gymMineEquipment => 'Equipment';
+
+  @override
+  String get gymMineEquipmentHint => 'barbell, cable…';
+
+  @override
+  String get gymMineMuscle => 'Muscle';
+
+  @override
+  String get gymMineAdd => 'Add it';
+
+  @override
+  String get sleepTitle => 'Last night';
+
+  @override
+  String get sleepSubtitle =>
+      'Two times and a feeling. Nothing here was measured by the phone, and none of it is a test.';
+
+  @override
+  String get sleepSave => 'Write it down';
+
+  @override
+  String get sleepFellAsleep => 'Fell asleep';
+
+  @override
+  String get sleepWoke => 'Woke';
+
+  @override
+  String get sleepRested => 'How rested?';
+
+  @override
+  String sleepLength(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get sleepLastNight => 'Last night';
+
+  @override
+  String get sleepNothingYet => 'Not written down';
+
+  @override
+  String get sleepLogIt => 'Log it';
+
+  @override
+  String sleepAverage(int hours, int minutes, int nights) {
+    return '${hours}h ${minutes}m on average, over $nights nights';
+  }
+
+  @override
+  String get sleepDebtLabel => 'Owed to yourself';
+
+  @override
+  String get sleepDebtBody =>
+      'Two weeks of short nights, added up. Long nights pay it back.';
+
+  @override
+  String get sleepSection => 'Sleep';
+
+  @override
+  String get sleepAlarm => 'Wake me';
+
+  @override
+  String get sleepAlarmBody =>
+      'Rings at the wake time your day is already built around.';
+
+  @override
+  String get sleepAlarmExact => 'Allow exact alarms';
+
+  @override
+  String get sleepAlarmExactBody =>
+      'Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.';
+
+  @override
+  String get sleepWindDown => 'Say something before bed';
+
+  @override
+  String get sleepWindDownBody =>
+      'Half an hour before the bedtime your day is built around.';
+
+  @override
+  String get sleepWindDownTitle => 'Half an hour to bed';
+
+  @override
+  String get sleepWindDownText =>
+      'Whatever you are in the middle of will still be there tomorrow.';
+
+  @override
+  String get sleepAlarmTitle => 'Morning';
+
+  @override
+  String get sleepAlarmText =>
+      'Two questions and a feeling, while you still remember it.';
+
+  @override
+  String get sleepNights => 'Your nights';
+
+  @override
+  String get sleepNoNights => 'No nights written down yet';
+
+  @override
+  String get sleepNoNightsBody => 'Tap Log it one morning and the line starts.';
+
+  @override
+  String get sleepOverrides => 'Nights of their own';
+
+  @override
+  String sleepOverrideCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weekdays of their own',
+      one: '1 weekday of its own',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepOverridesBody =>
+      'Saturday is not Tuesday. A weekday set here overrides the hours your day is built around.';
+
+  @override
+  String get sleepSameAsUsual => 'Same as usual';
+
+  @override
+  String sleepNightOf(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get sleepDeleteNight => 'Delete this night?';
+
+  @override
+  String get sleepDeleteNightBody =>
+      'It leaves the line and the debt is worked out again without it.';
+
+  @override
+  String sleepStars(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: '$stars stars',
+      one: '1 star',
+      zero: '',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymPlantProgram => 'Plant this on your field';
+
+  @override
+  String get gymPlantProgramBody =>
+      'It becomes a habit like any other, and finishing a session checks it in.';
+
+  @override
+  String get gymHowOften => 'How often?';
+
+  @override
+  String get gymHowOftenBody =>
+      'Days a week, not which days — the gym is not always on the day you meant.';
+
+  @override
+  String gymTimesPerWeek(int times) {
+    String _temp0 = intl.Intl.pluralLogic(
+      times,
+      locale: localeName,
+      other: '$times× a week',
+      two: 'Twice a week',
+      one: 'Once a week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymEveryDay => 'Every day';
+
+  @override
+  String get gymPlantedNoSchedule => 'No schedule';
+
+  @override
+  String get gymUnplant => 'Unlink from the field';
+
+  @override
+  String get gymUnplantBody =>
+      'The program stops checking anything in. The seed and its streak stay where they are — pull it up on the field if that is what you want.';
+
+  @override
+  String get gymAlbumOffer => 'Keep pictures of it?';
+
+  @override
+  String get gymAlbumOfferBody =>
+      'An album for this program, so a year of sessions has something to show for itself. It hangs off this habit rather than becoming a second one.';
+
+  @override
+  String get gymAlbumYes => 'Make the album';
+
+  @override
+  String get gymPhotoPrompt => 'When to ask for the picture';
+
+  @override
+  String get gymPhotoPromptBody =>
+      'Before is the mirror on the way in; after is the one you actually mean to take and forget.';
+
+  @override
+  String get gymPromptAfter => 'After the session';
+
+  @override
+  String get gymPromptBefore => 'Before the session';
+
+  @override
+  String get gymPromptNever => 'Never ask';
+
+  @override
+  String gymCheckedIn(int xp) {
+    return 'Checked in · +$xp XP';
+  }
+
+  @override
+  String get gymPictureNow => 'Picture?';
+
+  @override
+  String get gymPictureNowBody =>
+      'One for the album, while you are still here.';
+
+  @override
+  String get gymPictureYes => 'Take it';
+
+  @override
+  String get gymHistory => 'History';
+
+  @override
+  String get gymSeeAll => 'See all';
+
+  @override
+  String get gymNoSetsLogged => 'Nothing logged';
+
+  @override
+  String get gymNoHistory => 'No sessions yet';
+
+  @override
+  String get gymNoHistoryBody =>
+      'Tap Start. The records are made of what you log here.';
+
+  @override
+  String gymSessionSummary(int sets, String volume) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+    );
+    return '$_temp0 · $volume';
+  }
+
+  @override
+  String get gymVolume => 'Volume';
+
+  @override
+  String get gymBest => 'Best';
+
+  @override
+  String get gymRecords => 'Personal records';
+
+  @override
+  String get gymNoRecords => 'Nothing logged for this one yet';
+
+  @override
+  String get gymHeaviestLabel => 'Heaviest set';
+
+  @override
+  String get gymEstimatedLabel => 'Best estimated single';
+
+  @override
+  String get gymEstimatedHint =>
+      'Worked out from the weight and the reps, not a single you actually pulled.';
+
+  @override
+  String get fieldTabToday => 'Today';
+
+  @override
+  String get fieldTabGoals => 'Goals';
+
+  @override
+  String get goalsEmptyTitle => 'No goals yet';
+
+  @override
+  String get goalsEmptyBody =>
+      'Tap + to write down something a streak cannot hold.';
+
+  @override
+  String get goalNew => 'New goal';
+
+  @override
+  String get goalEdit => 'Edit goal';
+
+  @override
+  String get goalTitleLabel => 'What I\'m working toward';
+
+  @override
+  String get goalTitleHint => 'Run a half marathon';
+
+  @override
+  String get goalWhyLabel => 'Why';
+
+  @override
+  String get goalWhyHint => 'Because…';
+
+  @override
+  String get goalTargetDay => 'Target day';
+
+  @override
+  String get goalNoTargetDay => 'No target day';
+
+  @override
+  String goalDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+      zero: 'Today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String goalDaysPast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days past',
+      one: '1 day past',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get goalNeeds => 'Requirements — what it takes';
+
+  @override
+  String get goalSteps => 'Tasks';
+
+  @override
+  String get goalSeeds => 'Seeds';
+
+  @override
+  String get goalAddNeed => 'Add a requirement';
+
+  @override
+  String get goalAddStep => 'Add a task';
+
+  @override
+  String get goalAddWhatItTakes => 'Add what it takes';
+
+  @override
+  String goalNext(String step) {
+    return 'Next: $step';
+  }
+
+  @override
+  String get goalMarkAchieved => 'Mark achieved';
+
+  @override
+  String goalAchievedToast(int xp) {
+    return 'Achieved. +$xp XP';
+  }
+
+  @override
+  String get goalReopen => 'Reopen';
+
+  @override
+  String get goalDrop => 'Drop';
+
+  @override
+  String get goalDropTitle => 'Drop this goal?';
+
+  @override
+  String get goalDropBody =>
+      'Its seeds keep going. A line on why, if you like.';
+
+  @override
+  String get goalDropNoteHint => 'Not now, because…';
+
+  @override
+  String get goalDelete => 'Delete goal';
+
+  @override
+  String get goalDeleted => 'Goal deleted';
+
+  @override
+  String get goalItemRemoved => 'Removed';
+
+  @override
+  String get goalPlant => 'Plant as a seed';
+
+  @override
+  String get goalPlanted => 'Planted';
+
+  @override
+  String get goalAchievedSection => 'Achieved';
+
+  @override
+  String get goalDroppedSection => 'Dropped';
+
+  @override
+  String get goalEditItem => 'Edit';
+
+  @override
+  String get goalServes => 'Serves';
+
+  @override
+  String get goalServesNone => 'No goal';
+
+  @override
+  String get goalSeedArchived => 'archived';
+
+  @override
+  String get goalComplete => 'Every item is ticked.';
+
+  @override
+  String get goalOptions => 'Goal options';
+
+  @override
+  String get goalItemOptions => 'Item options';
+
+  @override
+  String get goalAddSubtask => 'Add a subtask';
+
+  @override
+  String goalSubtaskProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get goalLiftStep => 'Make it a task of its own';
+
+  @override
+  String get goalLiftNeed => 'Make it a requirement of its own';
+
+  @override
+  String get goalMoveUnder => 'Move under…';
+
+  @override
+  String get goalMoveUnderTitle => 'Make it a subtask of';
+
+  @override
+  String goalItemRemovedWithSubtasks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removed, with its $count subtasks',
+      one: 'Removed, with its subtask',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navPlaces => 'Places';
+
+  @override
+  String get featurePlaces => 'Places';
+
+  @override
+  String get featurePlacesHint =>
+      'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.';
+
+  @override
+  String get placesDay => 'Day';
+
+  @override
+  String get placesWeek => 'Week';
+
+  @override
+  String get placesMonth => 'Month';
+
+  @override
+  String get placesPrevious => 'Previous';
+
+  @override
+  String get placesNext => 'Next';
+
+  @override
+  String get placesPickDay => 'Pick a day';
+
+  @override
+  String get placesTrailOn => 'Record my trail';
+
+  @override
+  String get placesTrailHint =>
+      'Keeps a point every 50 m while you move, with a notification on screen the whole time.';
+
+  @override
+  String get placesTrailRefused =>
+      'The trail needs location “all the time”. Geotags still work without it.';
+
+  @override
+  String get placesOpenSettings => 'Open settings';
+
+  @override
+  String get placesPause1h => 'Pause for an hour';
+
+  @override
+  String get placesPauseTomorrow => 'Pause until tomorrow';
+
+  @override
+  String get placesResume => 'Resume the trail';
+
+  @override
+  String placesPausedUntil(String time) {
+    return 'Paused until $time';
+  }
+
+  @override
+  String placesRecording(int count) {
+    return 'Recording · $count points today';
+  }
+
+  @override
+  String get placesHighAccuracy => 'High accuracy';
+
+  @override
+  String get placesHighAccuracyHint => 'Sharper trail, more battery.';
+
+  @override
+  String get placesDeleteDay => 'Delete this day\'s trail';
+
+  @override
+  String get placesDayDeleted => 'Trail deleted';
+
+  @override
+  String get placesDeleteAll => 'Delete all location history';
+
+  @override
+  String get placesDeleteAllBody =>
+      'Every point, every geotag and every named place, gone for good. This cannot be undone.';
+
+  @override
+  String get placesNothing => 'Nothing here on this day';
+
+  @override
+  String get placesNothingBody =>
+      'Turn on the trail, or do something with Places on, and it shows up here.';
+
+  @override
+  String placesStay(String duration) {
+    return 'Stayed $duration';
+  }
+
+  @override
+  String get placesNameStay => 'Name this place';
+
+  @override
+  String get placesNameHint => 'Home, Office, Gym…';
+
+  @override
+  String get placesLayers => 'Map views';
+
+  @override
+  String get placesStreets => 'Streets';
+
+  @override
+  String get placesSatellite => 'Satellite';
+
+  @override
+  String get placesLocateMe => 'My location';
+
+  @override
+  String get placesSavePlace => 'Save this place';
+
+  @override
+  String get placesEditPlace => 'Edit place';
+
+  @override
+  String get placesPlaceName => 'Place name';
+
+  @override
+  String get placesPlaceNotes => 'Notes';
+
+  @override
+  String get placesPlaceNotesHint => 'What to remember about here.';
+
+  @override
+  String get placesRadius => 'Reach (m)';
+
+  @override
+  String placesRadiusRange(int min, int max) {
+    return 'Between $min and $max m';
+  }
+
+  @override
+  String get placesPlaceSaved => 'Place saved';
+
+  @override
+  String get placesPlaceUpdated => 'Place updated';
+
+  @override
+  String get placesPlaceForgotten => 'Place forgotten';
+
+  @override
+  String get placesForgetPlace => 'Forget place';
+
+  @override
+  String get placesForgetPlaceBody => 'This removes the pin, not the trail.';
+
+  @override
+  String get placesNoFix => 'Can\'t find your location right now.';
+
+  @override
+  String geoWhere(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get geoUnavailable => 'No location recorded';
+
+  @override
+  String get placesOptions => 'Places options';
+
+  @override
+  String get placesNotificationTitle => 'Harvest';
+
+  @override
+  String get placesNotificationText => 'Recording your trail';
+
+  @override
+  String get placesServiceOff => 'Location is switched off on this phone.';
+
+  @override
+  String placesDistance(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get geoExpense => 'Expense';
+
+  @override
+  String get geoCheckIn => 'Check-in';
+
+  @override
+  String get geoPicture => 'Picture';
+
+  @override
+  String get geoNote => 'Note';
+
+  @override
+  String get geoVoice => 'Voice note';
+
+  @override
+  String get geoSeed => 'Planted a seed';
+
+  @override
+  String get geoSeedNote => 'Seed note';
+
+  @override
+  String get geoMoney => 'Money';
+
+  @override
+  String get geoDebt => 'Debt';
+
+  @override
+  String get geoDebtPayment => 'Debt payment';
+
+  @override
+  String get geoWeight => 'Weight';
+
+  @override
+  String get geoNight => 'Night';
+
+  @override
+  String get geoSession => 'Gym session';
+
+  @override
+  String get geoGoal => 'Goal';
+
+  @override
+  String get geoGoalItem => 'Goal task';
+
+  @override
+  String get geoAlbum => 'Album';
+
+  @override
+  String get voiceNew => 'New voice note';
+
+  @override
+  String get voiceRecord => 'Record';
+
+  @override
+  String get voiceRecording => 'Recording…';
+
+  @override
+  String get voiceStop => 'Stop and keep';
+
+  @override
+  String get voiceDiscard => 'Discard';
+
+  @override
+  String get voiceNoMic => 'Harvest needs the microphone to record.';
+
+  @override
+  String get voiceDictate => 'Dictate';
+
+  @override
+  String get voiceListening => 'Listening…';
+
+  @override
+  String get voiceNoDictation =>
+      'Speech recognition is not available on this phone.';
+
+  @override
+  String get voicePlay => 'Play';
+
+  @override
+  String get voicePause => 'Pause';
+
+  @override
+  String get voiceRecordings => 'Recordings';
+
+  @override
+  String get voiceMissing => 'The file is not on this phone.';
+
+  @override
+  String get voiceTranscribe => 'Transcribe';
+
+  @override
+  String get readAloud => 'Read aloud';
+
+  @override
+  String get readAloudStop => 'Stop';
+
+  @override
+  String get readAloudNext => 'Next paragraph';
+
+  @override
+  String get readAloudSpeed => 'Speed';
+
+  @override
+  String get readAloudEmpty => 'Nothing to read yet.';
+
+  @override
+  String readAloudParagraph(int index, int count) {
+    return 'Paragraph $index of $count';
+  }
+
+  @override
+  String get assistTitle => 'Assist';
+
+  @override
+  String get assistHint =>
+      'Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.';
+
+  @override
+  String get assistProvider => 'Provider';
+
+  @override
+  String get assistGemini => 'Gemini';
+
+  @override
+  String get assistOpenAi => 'OpenAI-compatible';
+
+  @override
+  String get assistModel => 'Model';
+
+  @override
+  String get assistBaseUrl => 'Base URL';
+
+  @override
+  String get assistKey => 'API key';
+
+  @override
+  String get assistKeyHint =>
+      'Kept in the phone\'s keystore, never exported or synced.';
+
+  @override
+  String get assistSave => 'Save';
+
+  @override
+  String get assistTest => 'Test';
+
+  @override
+  String get assistTestOk => 'It answered.';
+
+  @override
+  String get assistSaved => 'Saved';
+
+  @override
+  String get assistNeedsSetup =>
+      'The assist needs a provider and a key. Set it up in Settings → Extras.';
+
+  @override
+  String get assistOpenSettings => 'Settings';
+
+  @override
+  String get assistSummarise => 'Summarise';
+
+  @override
+  String get assistRewrite => 'Rewrite clearer';
+
+  @override
+  String get assistContinue => 'Continue writing';
+
+  @override
+  String get assistFix => 'Fix spelling and grammar';
+
+  @override
+  String get assistTranslate => 'Translate';
+
+  @override
+  String get assistAsk => 'Ask about this note';
+
+  @override
+  String get assistQuestionHint => 'What do you want to know?';
+
+  @override
+  String assistSends(String what, String provider) {
+    return 'Sends $what to $provider.';
+  }
+
+  @override
+  String get assistSendsNote => 'this note';
+
+  @override
+  String get assistSendsSelection => 'the selected text';
+
+  @override
+  String get assistSendsUpToCaret => 'the note up to the cursor';
+
+  @override
+  String assistTranscribeTooLong(int limit) {
+    return 'This recording is too long to transcribe: the server takes recordings up to $limit MB.';
+  }
+
+  @override
+  String get assistTranscribeUnknown =>
+      'This is not a kind of recording the server can transcribe.';
+
+  @override
+  String get assistSendsRecording => 'this recording';
+
+  @override
+  String get assistGo => 'Send';
+
+  @override
+  String get assistInsert => 'Insert';
+
+  @override
+  String get assistReplace => 'Replace';
+
+  @override
+  String get assistCopy => 'Copy';
+
+  @override
+  String get assistCopied => 'Copied';
+
+  @override
+  String get assistBadKey => 'The provider refused the key.';
+
+  @override
+  String get assistQuota =>
+      'Too many requests, or the quota is spent. Try again later.';
+
+  @override
+  String get assistOffline => 'No connection.';
+
+  @override
+  String get assistUnsupported => 'This provider cannot take recordings.';
+
+  @override
+  String assistFailed(String detail) {
+    return 'It did not answer: $detail';
+  }
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get settingsSectionAccountHint =>
+      'Optional: sync with your other devices and the web';
+
+  @override
+  String get accountWhy =>
+      'An account only syncs your data between your phone and the web. Harvest works fully without one, forever.';
+
+  @override
+  String get accountServer => 'Server';
+
+  @override
+  String get accountServerHint => 'https://your-harvest-server';
+
+  @override
+  String get accountEmail => 'Email';
+
+  @override
+  String get accountPassword => 'Password';
+
+  @override
+  String get accountDisplayName => 'Name (optional)';
+
+  @override
+  String get accountSignIn => 'Sign in';
+
+  @override
+  String get accountCreate => 'Create account';
+
+  @override
+  String get accountHaveOne => 'I have an account';
+
+  @override
+  String get accountNeedOne => 'I need an account';
+
+  @override
+  String get accountPasswordRule =>
+      'At least 10 characters, and not a common one.';
+
+  @override
+  String get accountUnverified =>
+      'Check your email for the verification link. Sync starts once it is verified.';
+
+  @override
+  String get accountResend => 'Send the link again';
+
+  @override
+  String get accountResent => 'Sent';
+
+  @override
+  String get accountVerified => 'Verified';
+
+  @override
+  String get accountSyncNow => 'Sync now';
+
+  @override
+  String get accountSyncing => 'Syncing…';
+
+  @override
+  String accountLastSynced(String time) {
+    return 'Last synced $time';
+  }
+
+  @override
+  String get accountNeverSynced => 'Not synced yet';
+
+  @override
+  String accountPending(int count) {
+    return '$count changes waiting';
+  }
+
+  @override
+  String accountRefused(int count) {
+    return '$count changes the server refused';
+  }
+
+  @override
+  String get accountHeldBack => 'Money and places wait for a sync passphrase.';
+
+  @override
+  String get accountDevices => 'Devices';
+
+  @override
+  String get accountThisDevice => 'This device';
+
+  @override
+  String get accountEndSession => 'Sign out there';
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountSignOutBody =>
+      'This phone keeps everything. Sync stops until you sign in again.';
+
+  @override
+  String get accountDelete => 'Delete account';
+
+  @override
+  String get accountDeleteBody =>
+      'Deletes your account and everything on the server, at once. Nothing on this phone is touched.';
+
+  @override
+  String get accountDeleteConfirm => 'Password to confirm';
+
+  @override
+  String get accountErrorOffline => 'Cannot reach the server.';
+
+  @override
+  String get accountErrorWrong => 'That email and password do not match.';
+
+  @override
+  String get accountErrorTaken => 'That email already has an account.';
+
+  @override
+  String accountErrorInvalid(String detail) {
+    return 'Check the fields: $detail';
+  }
+
+  @override
+  String get accountErrorRateLimited => 'Too many tries. Wait a few minutes.';
+
+  @override
+  String accountErrorOther(String code) {
+    return 'Something went wrong ($code).';
+  }
+
+  @override
+  String get passphraseTitle => 'Sync passphrase';
+
+  @override
+  String get passphraseUnset => 'Not set: money and places stay on this phone.';
+
+  @override
+  String get passphraseSet =>
+      'Set: money and places sync end-to-end encrypted.';
+
+  @override
+  String get passphraseSetAction => 'Set the passphrase';
+
+  @override
+  String get passphraseForget => 'Forget it on this device';
+
+  @override
+  String get passphraseBody =>
+      'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.';
+
+  @override
+  String get passphraseField => 'Passphrase';
+
+  @override
+  String get passphraseRepeat => 'The same, again';
+
+  @override
+  String get passphraseMismatch => 'The two do not match.';
+
+  @override
+  String get passphraseShort => 'At least 12 characters.';
+
+  @override
+  String get passphraseWorking => 'Making the key…';
+
+  @override
+  String get passphraseWrong =>
+      'This passphrase does not open what your other devices sent. Enter the one you used there.';
+
+  @override
+  String get exportIncludePlaces => 'Include my location history';
+
+  @override
+  String get exportIncludePlacesHint =>
+      'The trail, the geotags and the named places. Off leaves them out of this export.';
+
+  @override
+  String get sheetGoals => 'Goals';
+
+  @override
+  String get sheetGoalItems => 'Goal items';
+
+  @override
+  String get sheetCategories => 'Categories';
+
+  @override
+  String get sheetRecordings => 'Recordings';
+
+  @override
+  String get sheetSavedPlaces => 'Named places';
+
+  @override
+  String get sheetTrail => 'Trail';
+
+  @override
+  String get sheetGeotags => 'Geotags';
+
+  @override
+  String get stepsDailyAverage => 'Daily average';
+
+  @override
+  String notesDeleteFolderBody(String folder) {
+    return 'Every note in $folder goes to the trash. You can put them back from there, or undo this.';
+  }
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitLb => 'lb';
+
+  @override
+  String get unitCm => 'cm';
+
+  @override
+  String get galleryPhoto => 'Photo';
+
+  @override
+  String get galleryVideo => 'Video';
+
+  @override
+  String get healthWhyTitle => 'Why Harvest reads your steps';
+
+  @override
+  String get healthWhyLead =>
+      'Harvest asks Health Connect for one thing: the number of steps you have taken, day by day.';
+
+  @override
+  String get healthWhyUse =>
+      'That number fills the steps card, pays the daily step goal once a day, and is drawn on the thirty-day chart. Nothing else reads it. Steps never check a seed in and never break a streak.';
+
+  @override
+  String get healthWhyStays =>
+      'The number stays on this phone. Harvest has no account of its own, sends nothing to anyone, and has no third party to send it to. If you turn on syncing to a server of your own, steps travel there and nowhere else.';
+
+  @override
+  String get healthWhyOff =>
+      'You can withdraw the permission in Health Connect at any time, or turn Health off in Harvest. Either one stops the reading; neither deletes a day already counted.';
+
+  @override
+  String get gymSkipWhy => 'Why skip it?';
+
+  @override
+  String get gymSkipHint => 'Shoulder still sore, short on time…';
+
+  @override
+  String gymSkippedBecause(String reason) {
+    return 'Skipped — $reason';
+  }
+
+  @override
+  String get gymDropSet => 'Drop this set';
+
+  @override
+  String get gymSetDropped => 'Set dropped';
+
+  @override
+  String get gymDropSetBody =>
+      'The set goes from this session. What you have already ticked stays.';
+
+  @override
+  String get galleryGymBound =>
+      'The gym habit is the seed for this album, so it has no schedule of its own — two cards on the field for one session would be an accounting error.';
+
+  @override
+  String get gymDiscardAgain => 'Sure? This cannot be undone';
+
+  @override
+  String gymDiscardAgainBody(int done) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'All $done sets are gone for good, and the session with them.',
+      one: 'The set you logged is gone for good, and the session with it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepOwedLine(int hours, int minutes) {
+    return '${hours}h ${minutes}m owed to yourself';
+  }
+
+  @override
+  String get gymBestVolumeLabel => 'Best session';
+
+  @override
+  String get gymBestVolumeHint =>
+      'Weight times reps, added up over one session.';
+
+  @override
+  String get gymChartEstimate => 'Estimated single';
+
+  @override
+  String get gymChartVolume => 'Session volume';
+
+  @override
+  String get gymResting => 'Resting';
+
+  @override
+  String get gymRestOverTitle => 'Rest is up';
+
+  @override
+  String get gymRestOverBody => 'Next set.';
+
+  @override
+  String get stepsDeniedHealthConnect =>
+      'Not allowed yet. Health Connect\'s settings can always allow it: open them, allow Steps for Harvest, and come back.';
+
+  @override
+  String get ratesDzdManual =>
+      'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.';
+
+  @override
+  String get ratesFetchedEurUsd =>
+      'EUR → USD updated. The dinar rates stay as you typed them.';
+
+  @override
+  String get accountServerExample =>
+      'Your Harvest server\'s address, like https://harvest.example.com';
+
+  @override
+  String get accountServerInvalid =>
+      'Enter the server\'s address, starting with https://';
+
+  @override
+  String get accountEmailMissing => 'Enter your email.';
+
+  @override
+  String get accountEmailInvalid => 'That doesn\'t look like an email address.';
+
+  @override
+  String get accountPasswordMissing => 'Enter your password.';
+
+  @override
+  String get accountPasswordShort => 'At least 10 characters.';
+
+  @override
+  String get accountPasswordLong => 'At most 256 characters.';
+
+  @override
+  String get expensesUpcoming => 'Upcoming';
+
+  @override
+  String expensesUpcomingBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count expenses logged ahead. Each counts on its day, not before.',
+      one: '1 expense logged ahead. It counts on its day, not before.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get debtReopened => 'Payment removed. The debt is open again.';
+
+  @override
+  String debtSettledWith(String person) {
+    return 'Settled with $person. Nothing left to pay!';
+  }
+
+  @override
+  String get debtPaymentRemove => 'Remove payment';
+
+  @override
+  String cropCheckIn(String title) {
+    return 'Check in $title';
+  }
+
+  @override
+  String get gymDayToday => 'today';
+
+  @override
+  String gymStaleTitle(String day) {
+    return 'Still open from $day';
+  }
+
+  @override
+  String gymStaleBody(int done, int total, String day) {
+    return '$done of $total sets logged. Finish it and it counts for $day: the gym habit is checked in on that day, not today. Or drop it.';
+  }
+
+  @override
+  String get gymStaleLater => 'Not now';
+
+  @override
+  String gymStaleFinish(String day) {
+    return 'Finish as of $day';
+  }
+
+  @override
+  String gymCheckedInOn(String day, int xp) {
+    return 'Checked in for $day · +$xp XP';
+  }
+
+  @override
+  String gymClockDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get gymPlates => 'Plates';
+
+  @override
+  String logCut(int logged, int dropped) {
+    return 'Logged $logged; $dropped over the cap left out';
+  }
+
+  @override
+  String get dailyOverTotal => 'Can\'t be more than the total target';
+
+  @override
+  String projectLeft(int left) {
+    return '$left to go';
+  }
+
+  @override
+  String get projectReached => 'Target reached';
+
+  @override
+  String get notesNoFolder => 'No folder';
+
+  @override
+  String ledgerDayUpcoming(String day) {
+    return '$day · upcoming';
+  }
+
+  @override
+  String projectDoneCut(int logged, int dropped) {
+    return '$logged logged; $dropped over the target left out.';
+  }
+
+  @override
+  String get stepsNoDaysConnectedBody =>
+      'Each day\'s count lands here once the day is over.';
+
+  @override
+  String get navLists => 'Lists';
+
+  @override
+  String get featureLists => 'Lists';
+
+  @override
+  String get featureListsHint =>
+      'To buy, to read, to watch, and any list you make. Share a link from another app to save it here.';
+
+  @override
+  String get listsToRead => 'To read';
+
+  @override
+  String get listsToWatch => 'To watch';
+
+  @override
+  String get listsKindPlain => 'Plain';
+
+  @override
+  String get listsKindShopping => 'Shopping';
+
+  @override
+  String get listsKindMedia => 'Media';
+
+  @override
+  String get listsKindPlainHint =>
+      'Things to tick off: ideas, packing, someday.';
+
+  @override
+  String get listsKindShoppingHint =>
+      'Things to buy, with an estimate and a planned day. An estimate is a plan, never an expense.';
+
+  @override
+  String get listsKindMediaHint =>
+      'Books, articles, shows, films, videos and podcasts: want, in progress, finished.';
+
+  @override
+  String get listsNew => 'New list';
+
+  @override
+  String get listsNameLabel => 'Name';
+
+  @override
+  String get listsNameHint => 'e.g. Packing, gift ideas';
+
+  @override
+  String get listsOptions => 'List options';
+
+  @override
+  String get listsRename => 'Rename';
+
+  @override
+  String get listsMoveEarlier => 'Move left';
+
+  @override
+  String get listsMoveLater => 'Move right';
+
+  @override
+  String get listsDelete => 'Delete list';
+
+  @override
+  String listsDeleted(String name) {
+    return '“$name” deleted';
+  }
+
+  @override
+  String get listsEmptyTitle => 'Nothing on this list';
+
+  @override
+  String get listsEmptyBody => 'Write it down while you think of it.';
+
+  @override
+  String get listsReadEmptyTitle => 'Nothing to read';
+
+  @override
+  String get listsWatchEmptyTitle => 'Nothing to watch';
+
+  @override
+  String get listsShareHint =>
+      'Add one here, or share a link to Harvest from any app.';
+
+  @override
+  String listsDoneCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count done',
+      one: '1 done',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String listsFinishedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count finished',
+      one: '1 finished',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String listsDoneOn(String day) {
+    return 'Done on $day';
+  }
+
+  @override
+  String listsFinishedOn(String day) {
+    return 'Finished on $day';
+  }
+
+  @override
+  String get listsInProgress => 'In progress';
+
+  @override
+  String get listsStart => 'Start';
+
+  @override
+  String get listsFinish => 'Finish';
+
+  @override
+  String get listsNewItem => 'New item';
+
+  @override
+  String get listsListLabel => 'List';
+
+  @override
+  String get listsTypeLabel => 'Type';
+
+  @override
+  String get listsCreatorLabel => 'Author or creator';
+
+  @override
+  String get listsLinkLabel => 'Link';
+
+  @override
+  String get listsLinkInNote => 'This list keeps no link: it goes in the note.';
+
+  @override
+  String get listsNoteHint => 'Anything worth remembering';
+
+  @override
+  String get listsTitleHintPlain => 'e.g. Passport, charger';
+
+  @override
+  String get listsTitleHintMedia => 'e.g. Dune';
+
+  @override
+  String get listsMoveTo => 'Move to…';
+
+  @override
+  String get listsMoveToTitle => 'Move to which list?';
+
+  @override
+  String get listsOpenLink => 'Open link';
+
+  @override
+  String get listsLinkFailed => 'Couldn\'t open the link.';
+
+  @override
+  String get listsPlant => 'Plant as a seed';
+
+  @override
+  String get listsWriteAbout => 'Write about it';
+
+  @override
+  String get listsOpenNote => 'Open the note';
+
+  @override
+  String get listsSeedGrowing => 'Planted as a seed';
+
+  @override
+  String listsSeedProgress(int logged, int total) {
+    return 'Seed · $logged of $total';
+  }
+
+  @override
+  String get listsSeedDone => 'Its seed is done';
+
+  @override
+  String get listsMarkFinished => 'Mark finished';
+
+  @override
+  String get listsRateTitle => 'Finished — how was it?';
+
+  @override
+  String get listsRateSkip => 'No rating';
+
+  @override
+  String listsRatingStars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stars',
+      one: '1 star',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get listsPlannedPurchases => 'Planned purchases';
+
+  @override
+  String get listsShareTitle => 'Save to a list';
+
+  @override
+  String get listsSharePickList => 'Pick the list it goes in.';
+
+  @override
+  String listsShareSaved(String list) {
+    return 'Saved to $list';
+  }
+
+  @override
+  String get listsShareOpen => 'Open';
+
+  @override
+  String get mediaBook => 'Book';
+
+  @override
+  String get mediaArticle => 'Article';
+
+  @override
+  String get mediaShow => 'Show';
+
+  @override
+  String get mediaFilm => 'Film';
+
+  @override
+  String get mediaVideo => 'Video';
+
+  @override
+  String get mediaPodcast => 'Podcast';
+
+  @override
+  String get mediaOther => 'Other';
+}

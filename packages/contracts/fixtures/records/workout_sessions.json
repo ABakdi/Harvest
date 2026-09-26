@@ -1,0 +1,20 @@
+{
+  "table": "workout_sessions",
+  "uuid": "0e5a9c3d-6b2f-4d8a-8c1e-5b9f3d7a2c86",
+  "updatedAt": "2026-09-17T18:21:40.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "0e5a9c3d-6b2f-4d8a-8c1e-5b9f3d7a2c86",
+    "programUuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
+    "dayUuid": "f2c6a8d4-5e1b-4c9f-b3a7-1d5e9c2f6b34",
+    "title": "Day 1 · Bench",
+    "harvestDay": "2026-09-17",
+    "startedAt": "2026-09-17T17:02:00.000Z",
+    "endedAt": "2026-09-17T18:21:40.000Z",
+    "note": null,
+    "pausedAt": null,
+    "pausedSeconds": 240,
+    "updatedAt": "2026-09-17T18:21:40.000Z",
+    "deletedAt": null
+  }
+}

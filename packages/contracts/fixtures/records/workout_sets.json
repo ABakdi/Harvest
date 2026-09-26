@@ -1,0 +1,17 @@
+{
+  "table": "workout_sets",
+  "uuid": "2a7f5c9e-8b3d-4a1f-9e6c-4d8b2f7a5c63",
+  "updatedAt": "2026-09-17T17:31:12.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "2a7f5c9e-8b3d-4a1f-9e6c-4d8b2f7a5c63",
+    "sessionExerciseUuid": "9c3e7a1f-2d8b-4b6c-a4e9-1f7c5b3d9a24",
+    "position": 2,
+    "weightGrams": 87500,
+    "reps": 4,
+    "done": true,
+    "targetLabel": "1+ @ 95%",
+    "openEnded": true,
+    "loggedAt": "2026-09-17T17:31:12.000Z"
+  }
+}

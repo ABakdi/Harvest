@@ -6,7 +6,7 @@ The first phase after v1.0, and it jumps the queue ahead of gym, screen
 time and sync. Two features and one long-overdue fix.
 
 **Why first.** [[Phase-4-Health-and-Gym]] and
-[[Phase-5-Screen-Time]] both add *more measurement* to an app that
+[[Phase-7-Screen-Time]] both add *more measurement* to an app that
 already measures a lot. These two add the thing measurement cannot
 reach — what I wrote and what I looked like — and they do it while the
 data set is still small enough that the archive rewrite is cheap. Doing

@@ -1,0 +1,1927 @@
+{
+  "@@locale": "en",
+  "appTitle": "Harvest",
+  "navField": "Field",
+  "navStats": "Stats",
+  "navSettings": "Settings",
+  "fieldEmptyTitle": "Your field is ready",
+  "fieldEmptyBody": "Plant your first seed — a habit, a project, or a simple to-do.",
+  "statsEmptyTitle": "Nothing to count yet",
+  "statsEmptyBody": "Check in once and the numbers start.",
+  "settingsAppearance": "Appearance",
+  "settingsSectionHarvestHint": "The daily goal, the day's hours and sleep",
+  "settingsSectionFeaturesHint": "Which parts of the app are on",
+  "settingsSectionRemindersHint": "When the app speaks up",
+  "settingsSectionPomodoroHint": "Focus and break lengths",
+  "settingsSectionMoneyHint": "Currency, categories and rates",
+  "settingsSectionPrivacyHint": "The lock on the app",
+  "settingsSectionDataHint": "Export, import and the widget",
+  "settingsSectionAppearanceHint": "Theme, colours and language",
+  "settingsTheme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "settingsLanguage": "Language",
+  "langSystem": "System",
+  "langEnglish": "English",
+  "langArabic": "العربية",
+  "addCommitment": "Plant a seed",
+  "typeHabit": "Habit",
+  "typeProject": "Project",
+  "typeTodo": "To-Do",
+  "titleLabel": "Title",
+  "titleHintHabit": "e.g. Exercise, Practice Spanish",
+  "titleHintProject": "e.g. Read Atomic Habits",
+  "titleHintTodo": "e.g. Call the dentist",
+  "scheduleLabel": "Schedule",
+  "scheduleDaily": "Daily",
+  "scheduleWeekly": "Specific days",
+  "scheduleInterval": "Every X days",
+  "scheduleTimesPerWeek": "X per week",
+  "everyDaysLabel": "Every {count} days",
+  "@everyDaysLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timesPerWeekLabel": "{count} times per week",
+  "@timesPerWeekLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalTargetLabel": "Total target (pages, minutes…)",
+  "dailyCommitmentLabel": "Daily commitment",
+  "dueLabel": "Planned for",
+  "dueToday": "Today",
+  "dueTomorrow": "Tomorrow",
+  "save": "Save",
+  "cancel": "Cancel",
+  "undoCheckInTitle": "Undo today's check-in?",
+  "undoCheckInBody": "This removes what you logged for \"{title}\" today.",
+  "@undoCheckInBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "undo": "Undo",
+  "logProgressTitle": "Log progress",
+  "logQuantityLabel": "How much did you get done?",
+  "logRemainingToday": "You can log {count} more today",
+  "@logRemainingToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "log": "Log",
+  "cappedMessage": "Daily cap reached — the field rests too.",
+  "xpEarned": "+{count} XP",
+  "@xpEarned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "projectSubtitle": "{done} of {total} · today {today}/{daily}",
+  "@projectSubtitle": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "today": {
+        "type": "int"
+      },
+      "daily": {
+        "type": "int"
+      }
+    }
+  },
+  "todoOverdue": "Overdue",
+  "rankSprout": "Sprout",
+  "rankSeedling": "Seedling",
+  "rankGardener": "Gardener",
+  "rankHarvester": "Harvester",
+  "rankMasterFarmer": "Master Farmer",
+  "settingsHarvest": "Harvest",
+  "settingsGoalTitle": "Daily Harvest Goal",
+  "settingsGoalBody": "Productive actions needed each day to keep your streak alive.",
+  "goalActions": "{count} actions a day",
+  "@goalActions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakSheetTitle": "Your streak",
+  "streakCurrent": "{count, plural, =1{1 day} other{{count} days}}",
+  "@streakCurrent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakBest": "Best: {count}",
+  "@streakBest": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "freezesStored": "Streak freezes: {count} of {max}",
+  "@freezesStored": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "freezeExplainer": "A freeze protects your streak for one missed day. It's used automatically.",
+  "buyFreeze": "Buy a freeze · {cost} coins",
+  "@buyFreeze": {
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "freezeBought": "Freeze stored. Rest easy. ❄️",
+  "freezeUnavailable": "Not enough coins, or the shed is full.",
+  "coinBalance": "{count, plural, =1{1 coin} other{{count} coins}}",
+  "@coinBalance": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pomodoroTitle": "Focus",
+  "phaseFocus": "Focus",
+  "phaseShortBreak": "Short break",
+  "phaseLongBreak": "Long break",
+  "startFocus": "Start focus",
+  "pause": "Pause",
+  "resume": "Resume",
+  "finishSession": "Finish session",
+  "abandonSession": "Abandon",
+  "abandonBody": "The field will wait.",
+  "freeSession": "Free focus",
+  "blocksDone": "{count} blocks done",
+  "@blocksDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "breakOverReady": "Break over — ready for the next block",
+  "plannerTitle": "Tomorrow's plan",
+  "plannerHabitsDue": "Habits due tomorrow",
+  "plannerTodos": "To-dos for tomorrow",
+  "plannerAddHint": "Plant a to-do for tomorrow…",
+  "plannerEmpty": "Nothing planned yet. Add tomorrow's seeds tonight and wake up ready.",
+  "notifMorningTitle": "Good morning! ☀️",
+  "notifMorningBody": "Check today's harvest plan and log your first seed.",
+  "notifEveningTitle": "The sun is setting 🌙",
+  "notifEveningBody": "Wind down and plant tomorrow's plan.",
+  "notifStreakTitle": "Your crops are thirsty! 🔥",
+  "notifStreakBody": "Log your remaining tasks before 3 AM to save your streak.",
+  "settingsReminders": "Reminders",
+  "remindersMaster": "Allow reminders",
+  "remindersMorning": "Morning: today's plan",
+  "remindersEvening": "Evening: plan tomorrow",
+  "remindersStreak": "Late streak warning",
+  "obWelcomeTitle": "Welcome to Harvest",
+  "obWelcomeBody": "Your goals are seeds. Your effort is water. Distractions are weeds.\n\nShow up a little every day, keep your streak alive, and harvest the life you're growing.",
+  "obTemplatesTitle": "Plant your first seeds",
+  "obTemplatesBody": "Pick a few to start with — you can always plant more.",
+  "tmplRead": "Read a book (300 pages)",
+  "tmplFit": "Exercise",
+  "tmplLanguage": "Practice a language",
+  "tmplMeditate": "Meditate (3× a week)",
+  "tmplJournal": "Journal before bed",
+  "obGoalTitle": "Daily Harvest Goal",
+  "obRemindersTitle": "Gentle reminders",
+  "obRemindersBody": "Harvest nudges, never nags: a morning review, an evening planning ritual, and a heads-up when your streak is at risk.",
+  "next": "Next",
+  "skip": "Skip",
+  "startGrowing": "Start growing 🌱",
+  "statsBestStreak": "Best streak",
+  "statsCheckIns": "Check-ins",
+  "statsActivity": "Activity",
+  "statsProjects": "Projects",
+  "statsHabitStreaks": "Habit streaks",
+  "statsStreakOf": "{current} now · best {best}",
+  "@statsStreakOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      }
+    }
+  },
+  "navGranary": "Granary",
+  "granaryTitle": "Granary",
+  "logExpense": "Log an expense",
+  "amountLabel": "Amount",
+  "amountSum": "= {value}",
+  "@amountSum": { "placeholders": { "value": { "type": "String" } } },
+  "amountSumIncomplete": "Finish the sum to log it",
+  "amountKeyBackspace": "Delete",
+  "amountKeyClear": "Clear",
+  "noteLabel": "Note (optional)",
+  "expenseDayLabel": "Logged on",
+  "catFood": "Food",
+  "catTransport": "Transport",
+  "catBills": "Bills",
+  "catShopping": "Shopping",
+  "catHealth": "Health",
+  "catEntertainment": "Fun",
+  "catOther": "Other",
+  "todaySpending": "Today",
+  "budgetTitle": "Monthly budget",
+  "budgetSpentOf": "{spent} of {budget} this month",
+  "@budgetSpentOf": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetFloating": "{spent} / {limit} today",
+  "@budgetFloating": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetSet": "Set a monthly budget",
+  "budgetAmountLabel": "Budget for the month",
+  "granaryEmpty": "Nothing logged today. What did you spend?",
+  "repeatSuggestionTitle": "Same as the last 3 days?",
+  "logIt": "Log it",
+  "notifExpenseTitle": "What did you spend today? 💰",
+  "notifExpenseBody": "Log it in two taps and keep the granary honest.",
+  "remindersExpense": "Expense check-in",
+  "statsSpending": "Spending by category",
+  "deleted": "Removed",
+  "editSeed": "Edit",
+  "focusTimer": "Focus timer",
+  "pauseHabit": "Pause (vacation)",
+  "resumeHabit": "Resume",
+  "pausedLabel": "Paused — resting",
+  "archiveAction": "Archive",
+  "archiveConfirmTitle": "Archive this seed?",
+  "archiveConfirmBody": "\"{title}\" is archived. Its history stays.",
+  "@archiveConfirmBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "projectDoneTitle": "Harvest complete! 🎉",
+  "projectDoneBody": "\"{title}\" is fully grown — {total} logged. It is archived with pride.",
+  "@projectDoneBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "toTheBarn": "Archive",
+  "weeklyReport": "This week",
+  "weeklyXp": "{count} XP",
+  "@weeklyXp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyBestDay": "Best: {day}",
+  "@weeklyBestDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyWorstDay": "Quietest: {day}",
+  "@weeklyWorstDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyTopSpending": "Top spending: {category}",
+  "@weeklyTopSpending": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsPomodoro": "Focus timer",
+  "pomodoroFocusLen": "Focus length",
+  "pomodoroShortLen": "Short break",
+  "pomodoroLongLen": "Long break",
+  "pomodoroBlocks": "Blocks before a long break",
+  "minutesValue": "{count} min",
+  "@minutesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsStyle": "Style",
+  "presetHarvest": "Harvest",
+  "presetSunrise": "Sunrise",
+  "presetOcean": "Ocean",
+  "presetOrchard": "Orchard",
+  "presetDusk": "Dusk",
+  "advancedOptions": "Advanced",
+  "seedNoteLabel": "Note",
+  "remindMeAt": "Remind me at",
+  "deadlineLabel": "Accomplish before",
+  "notSet": "Not set",
+  "clear": "Clear",
+  "pickDate": "Pick a date",
+  "dueOn": "Due {date}",
+  "@dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "overdueBy": "Overdue — was due {date}",
+  "@overdueBy": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "taskReminderBody": "A seed is waiting to be watered.",
+  "newCategory": "New category",
+  "categoryName": "Category name",
+  "manageCategories": "Custom categories",
+  "todayTab": "Today",
+  "insightsTab": "Insights",
+  "wishlistTitle": "Wishlist",
+  "wishlistBuyList": "To buy",
+  "wishlistWishlist": "Wishlist",
+  "wishlistBuyEmptyTitle": "Nothing to buy",
+  "wishlistBuyEmptyBody": "Add what you mean to pick up soon — the buy list is day to day.",
+  "wishlistWishEmptyTitle": "Nothing wished for",
+  "wishlistWishEmptyBody": "Add what you want someday, with at most an estimate in mind.",
+  "wishlistAdd": "Add",
+  "wishlistOpen": "Open",
+  "wishlistBought": "{count} bought",
+  "@wishlistBought": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wishlistRemoved": "Removed",
+  "wishlistOptions": "Options",
+  "wishlistEdit": "Edit",
+  "wishlistEditItem": "Edit item",
+  "wishlistMoveToBuy": "To the buy list",
+  "wishlistMoveToWish": "To the wishlist",
+  "wishlistDelete": "Delete",
+  "wishlistNew": "Something I want",
+  "wishlistTitleHint": "e.g. Winter coat, kettle, espresso machine",
+  "wishlistEstimateLabel": "Estimated price",
+  "wishlistEstimateHint": "What I think it costs",
+  "wishlistEstimateInvalid": "Type a price above zero, or leave it empty.",
+  "wishlistNoteLabel": "Note",
+  "wishlistNoteHint": "Size, model, colour, why",
+  "wishlistTargetDay": "Planned purchase day",
+  "wishlistNoTargetDay": "Some day",
+  "wishlistToday": "Today",
+  "wishlistInDays": "In {count} days",
+  "@wishlistInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wishlistBoughtOn": "Bought on {day}",
+  "@wishlistBoughtOn": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "wishlistTotalsSeparator": " · ",
+  "savingsLow": "Savings running low",
+  "rangeWeek": "Week",
+  "rangeMonth": "Month",
+  "totalSpent": "Total",
+  "avgPerDay": "{amount} / day",
+  "@avgPerDay": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noSpendingYet": "No spending in this range yet.",
+  "calendarTitle": "Calendar",
+  "calNothingDue": "Nothing planted for this day.",
+  "calDeadline": "Deadline: {title}",
+  "@calDeadline": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "calAddForDay": "Plant a to-do for this day…",
+  "defaultCurrencyLabel": "Default currency",
+  "exchangeRates": "Exchange rates",
+  "ratesDzdUsd": "DZD per 1 USD",
+  "ratesDzdEur": "DZD per 1 EUR",
+  "ratesEurUsd": "EUR → USD (fetched)",
+  "fetchNow": "Fetch",
+  "ratesUpdated": "Updated {when}",
+  "@ratesUpdated": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "ratesFetchFailed": "Couldn't fetch — check the connection.",
+  "vaultTab": "Balances",
+  "walletTitle": "Wallet",
+  "walletAdd": "Add",
+  "walletTake": "Take",
+  "savingsSectionTitle": "Savings",
+  "savingsDeposit": "Save",
+  "savingsWithdraw": "Withdraw",
+  "debtsTitle": "Debts",
+  "addDebt": "Log a debt",
+  "debtPerson": "Owed to",
+  "debtPayOffBy": "Pay off by",
+  "debtRemindAt": "Daily reminder at",
+  "debtPay": "Pay",
+  "debtPaymentRemoveTitle": "Remove this payment?",
+  "debtPaymentRemoveBody": "What it took from the wallet comes back, and the debt reopens if this had settled it. Undo is in the bar for a moment after.",
+  "debtSettled": "Settled 🎉",
+  "notifDebtTitle": "Debt to {person}",
+  "@notifDebtTitle": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDebtBody": "{amount} still owed. A settled debt sleeps better.",
+  "@notifDebtBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "dayToday": "Today",
+  "dayYesterday": "Yesterday",
+  "vaultOwed": "Debts",
+  "vaultOpenDebts": "{count, plural, =0{no open debts} =1{1 open debt} other{{count} open debts}}",
+  "@vaultOpenDebts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debtsEmptyTitle": "No debts",
+  "debtsEmptyBody": "Nothing owed to anyone. Sleep well.",
+  "movesTitle": "Moves",
+  "noMovesYet": "No moves yet",
+  "txnAdded": "Added",
+  "txnTaken": "Taken out",
+  "txnSaved": "Saved",
+  "txnWithdrawn": "Withdrawn",
+  "txnFromSavings": "From savings",
+  "txnToSavings": "To savings",
+  "txnFromWallet": "From the wallet",
+  "txnToWallet": "To the wallet",
+  "txnExpense": "Expense",
+  "txnDebtPayment": "Paid {person}",
+  "@txnDebtPayment": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtPaidOf": "{paid} of {total} paid",
+  "@debtPaidOf": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "debtPayments": "Payments",
+  "debtOpen": "Open",
+  "debtSettledSection": "Settled",
+  "payFromWallet": "Pay from the wallet?",
+  "budgetSpentToday": "Spent today",
+  "budgetDailyLimit": "Daily limit",
+  "budgetLeftToday": "{amount} left today",
+  "@budgetLeftToday": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetOverToday": "{amount} over today",
+  "@budgetOverToday": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetLeftMonth": "{amount} left this month",
+  "@budgetLeftMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetOverMonth": "{amount} over budget this month",
+  "@budgetOverMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "expensesToday": "{count, plural, =0{Nothing logged} =1{1 expense} other{{count} expenses}}",
+  "@expensesToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "snooze10": "In 10 min",
+  "snooze60": "In 1 hour",
+  "snooze180": "In 3 hours",
+  "tomorrowTitle": "Tomorrow",
+  "tomorrowNothing": "Nothing planned yet — plant tonight's seeds.",
+  "tomorrowHabits": "{count, plural, =0{no habits due} =1{1 habit due} other{{count} habits due}}",
+  "@tomorrowHabits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tomorrowTodos": "{count, plural, =0{no to-dos} =1{1 to-do planned} other{{count} to-dos planned}}",
+  "@tomorrowTodos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planTomorrow": "Plan",
+  "rateSaved": "Rate saved",
+  "rateCleared": "Rate cleared",
+  "rateInvalid": "That is not a usable rate",
+  "ratesExplainer": "Used to show $ and € amounts in your default currency.",
+  "settingsMoney": "Money",
+  "startupProblem": "A startup step failed: {error}. Restart the app; if it keeps happening, back up and reinstall.",
+  "@startupProblem": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "channelReminders": "Reminders",
+  "channelStreak": "Streak",
+  "channelPomodoro": "Focus timer",
+  "remindersStreakHint": "At {time}, only when the day is not yet earned",
+  "@remindersStreakHint": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decrease": "Less",
+  "increase": "More",
+  "remindersDenied": "Reminders are blocked for Harvest in system settings.",
+  "freezeEarnHint": "Earn {coins} coins at a {days}-day streak.",
+  "@freezeEarnHint": {
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "streakSemantics": "{count, plural, =1{Streak: 1 day} other{Streak: {count} days}}",
+  "@streakSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpAmount": "{xp} XP",
+  "@xpAmount": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "unitDays": "d",
+  "unitHours": "h",
+  "unitMinutes": "m",
+  "projectProgressOf": "{done} of {total}",
+  "@projectProgressOf": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "cropOptions": "More",
+  "clearValue": "Clear",
+  "scheduleDailyShort": "Every day",
+  "scheduleEveryDays": "{count, plural, =1{Every day} other{Every {count} days}}",
+  "@scheduleEveryDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleTimesShort": "{count, plural, =1{Once a week} =2{Twice a week} other{{count}× a week}} · {done} done",
+  "@scheduleTimesShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "plannedFor": "Planned {date}",
+  "@plannedFor": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "removeAction": "Remove",
+  "checkInFailed": "That did not save. Try again.",
+  "activitySemantics": "{days, plural, =0{No active days in {span}} =1{1 active day in {span}} other{{days} active days in {span}}}",
+  "@activitySemantics": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "activityLastWeeks": "{weeks, plural, =1{the last week} other{the last {weeks} weeks}}",
+  "@activityLastWeeks": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "cropDone": "Done",
+  "cropPending": "Not yet",
+  "fromWalletToggle": "From the wallet",
+  "walletHas": "{amount} in the wallet",
+  "@walletHas": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "walletShort": "Not enough in the wallet",
+  "budgetMonthLine": "{spent} of {budget} · {left} left",
+  "@budgetMonthLine": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetMonthOver": "{spent} of {budget} · {over} over",
+  "@budgetMonthOver": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      },
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "editBudget": "Edit budget",
+  "perDay": "Per day",
+  "todayEmptyBody": "Tap Log an expense to add the first one.",
+  "debtRemindDefault": "Every day at 7:00 PM until it is paid",
+  "undoAction": "Undo",
+  "saveFailed": "That did not save. Try again.",
+  "categoryExists": "A category with that name already exists",
+  "withdrawToWallet": "To the wallet",
+  "budgetExplainer": "Your daily limit is what's left of the month divided by the days left in it.",
+  "settingsPrivacy": "Privacy",
+  "appLockTitle": "Lock Harvest",
+  "appLockBody": "Ask for your fingerprint, PIN or password before opening the app.",
+  "appLockUnavailable": "Set a fingerprint, PIN or password on this device first.",
+  "lockTitle": "Harvest is locked",
+  "lockBody": "Unlock to get back to your field.",
+  "lockReason": "Unlock Harvest",
+  "lockUnlockAction": "Unlock",
+  "lockRefused": "That did not match. Try again.",
+  "lockTooManyTries": "Too many tries. Wait a moment, then try again.",
+  "lockUnavailable": "The device could not show the unlock prompt.",
+  "settingsData": "My data",
+  "exportTitle": "Take an archive",
+  "exportBody": "One .zip: the spreadsheet with its totals as live formulas, your notes as a folder of markdown, and every picture in its album.",
+  "exportAction": "Export to Downloads",
+  "exportRunning": "Building the workbook…",
+  "exportSaved": "Saved to {path}",
+  "@exportSaved": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailedPermission": "Harvest was not allowed to write to Downloads.",
+  "exportFailedUnsupported": "Exporting is only available on Android for now.",
+  "exportFailed": "The export did not finish. Try again.",
+  "deleteAction": "Delete",
+  "restoreAction": "Restore",
+  "reminderRingsIn": "rings in {time}",
+  "@reminderRingsIn": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "reminderNow": "Ringing now",
+  "editExpense": "Edit expense",
+  "deleteExpenseTitle": "Delete this expense?",
+  "deleteExpenseBody": "{amount} will be removed from the day, and any wallet withdrawal it made will be refunded.",
+  "@deleteExpenseBody": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "archiveTitle": "Archive",
+  "archiveEmpty": "Nothing put away yet",
+  "archiveEmptyBody": "Archived seeds land here, with the note that says why.",
+  "archiveSheetBody": "Put {title} away. Its history stays.",
+  "@archiveSheetBody": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "archiveNoteLabel": "Why are you archiving it?",
+  "archiveNoteHint": "Finished it — on to the next one",
+  "archiveKeepsHistory": "Keeps every check-in",
+  "archivedOn": "Archived {day}",
+  "@archivedOn": {
+    "placeholders": { "day": { "type": "String" } }
+  },
+  "restoredToField": "{title} is back on the field",
+  "@restoredToField": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "deleteSeedTitle": "Delete this seed?",
+  "deleteSeedBody": "{title}, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.",
+  "@deleteSeedBody": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "deleteSeedSubtitle": "Gone for good, history and all",
+  "seedNotesTitle": "Notes",
+  "seedNotesSubtitle": "Where you left off today",
+  "seedNotesSheetSubtitle": "Today's note, and the last one",
+  "seedNotesExplainer": "A fresh note every day. Yesterday's stays in the history.",
+  "seedNoteHint": "Stopped on page 143",
+  "noteForDay": "Note for {day}",
+  "@noteForDay": {
+    "placeholders": { "day": { "type": "String" } }
+  },
+  "lastTimeOn": "Last time · {day}",
+  "@lastTimeOn": {
+    "placeholders": { "day": { "type": "String" } }
+  },
+  "seedHistoryTitle": "History",
+  "seedHistorySheetSubtitle": "Every day, and what you wrote",
+  "seedHistorySubtitle": "{count, plural, =0{No days yet} =1{1 day on record} other{{count} days on record}}",
+  "@seedHistorySubtitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "seedHistoryEmpty": "No history yet",
+  "seedHistoryEmptyBody": "Check in once and this fills up.",
+  "seedGone": "This seed is gone",
+  "seedGoneBody": "It was deleted, so there is nothing left to show.",
+  "streakLabel": "Streak",
+  "bestLabel": "Best",
+  "daysLoggedLabel": "Days",
+  "unitsLabel": "Units",
+  "checkInsLabel": "Check-ins",
+  "dayCount": "{count, plural, =0{no days} =1{1 day} other{{count} days}}",
+  "@dayCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "unitsLogged": "{count, plural, =1{1 unit logged} other{{count} units logged}}",
+  "@unitsLogged": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "checkedIn": "Checked in",
+  "noteOnlyDay": "Note only",
+  "runStripLabel": "{count, plural, =0{No active days in the last eight weeks} =1{1 active day in the last eight weeks} other{{count} active days in the last eight weeks}}",
+  "@runStripLabel": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "comebackDay1Title": "Your field is waiting 🌱",
+  "comebackDay1Body": "One quiet day, that's all. Water something and the streak keeps going.",
+  "comebackDay3Title": "Three days without water",
+  "comebackDay3Body": "The soil is still good. Pick the easiest seed and start there.",
+  "comebackWeek1Title": "A week away 🌾",
+  "comebackWeek1Body": "Your best streak is still on record. A single check-in starts the next one.",
+  "comebackWeek2Title": "Two weeks quiet",
+  "comebackWeek2Body": "Nothing here is lost — your history is exactly where you left it.",
+  "comebackMonth1Title": "A month of fallow ground",
+  "comebackMonth1Body": "No guilt, no catching up. Open Harvest and plant one thing for today.",
+  "comebackMonth2Title": "Still here whenever you are",
+  "comebackMonth2Body": "Every seed, every check-in and every number is still on your phone.",
+  "widgetTitle": "Home-screen widget",
+  "widgetBody": "Add it from the launcher's widget picker, then pick what it shows.",
+  "widgetStreakLabel": "day streak",
+  "widgetTasksLabel": "today",
+  "widgetEmpty": "Nothing due today",
+  "loadingTagline": "Cultivate your day.",
+  "widgetRefresh": "Refresh it now",
+  "widgetSpentToday": "{amount} today",
+  "@widgetSpentToday": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "widgetWallet": "{amount} in the wallet",
+  "@widgetWallet": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "widgetActionExpense": "Expense",
+  "widgetActionTask": "Seed",
+  "widgetAllDone": "The field is watered 🌾",
+  "widgetSections": "What it shows",
+  "widgetSectionStreak": "Streak",
+  "widgetSectionStreakBody": "Always shown",
+  "widgetSectionMoney": "Money",
+  "widgetSectionMoneyBody": "Today's spend and your wallet balance",
+  "widgetSectionMoneyLocked": "Hidden while the app lock is on — the home screen is not behind it",
+  "widgetSectionTasks": "Today's field",
+  "widgetSectionTasksBody": "What's still due, as a row of boxes",
+  "widgetSectionActions": "Quick actions",
+  "widgetSectionActionsBody": "Log an expense or plant a seed from the home screen",
+  "statsStreakSquares": "{count, plural, =0{No streak running} =1{1 green square is your streak} other{{count} green squares are your streak}}",
+  "@statsStreakSquares": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "legendStreak": "Streak",
+  "legendActive": "Active",
+  "legendQuiet": "Quiet",
+  "settingsCycle": "Daily cycle",
+  "settingsCycleHint": "The app bends to your hours, not the other way round",
+  "cycleBedTime": "I go to sleep at",
+  "cycleWakeTime": "I wake up at",
+  "cycleGood": "{hours} hours of sleep — that's the target",
+  "@cycleGood": { "placeholders": { "hours": { "type": "String" } } },
+  "cycleBelowTarget": "{hours} hours of sleep. Eight is the target.",
+  "@cycleBelowTarget": { "placeholders": { "hours": { "type": "String" } } },
+  "cycleTooShort": "{hours} hours is less than anyone should run on. Eight is the target, five the floor.",
+  "@cycleTooShort": { "placeholders": { "hours": { "type": "String" } } },
+  "cycleClashTitle": "{count, plural, =1{One reminder is now in your sleep} other{{count} reminders are now in your sleep}}",
+  "@cycleClashTitle": { "placeholders": { "count": { "type": "int" } } },
+  "cycleClashBody": "Move them with your new wake time? Each keeps the same distance from waking.",
+  "cycleClashMove": "{title} · {from} → {to}",
+  "@cycleClashMove": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "from": { "type": "String" },
+      "to": { "type": "String" }
+    }
+  },
+  "cycleClashMore": "…and {count} more",
+  "@cycleClashMore": { "placeholders": { "count": { "type": "int" } } },
+  "cycleClashKeep": "Leave them",
+  "cycleClashShift": "Move them",
+  "movesSearchHint": "Search notes",
+  "movesFilter": "Filter",
+  "movesByKind": "Form",
+  "movesByCategory": "Category",
+  "movesShowing": "Showing {matches} of {total}",
+  "@movesShowing": {
+    "placeholders": { "matches": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "movesClear": "Clear",
+  "movesNoMatch": "Nothing matches that",
+  "movesNoMatchBody": "Try a different category, form or word.",
+  "kindManual": "Added or taken",
+  "kindTransfer": "Transfer",
+  "kindExpense": "Expense",
+  "kindDebt": "Debt payment",
+  "rangeCustom": "Custom",
+  "rangePick": "Pick dates",
+  "rangeOf": "{from} — {to}",
+  "@rangeOf": {
+    "placeholders": { "from": { "type": "String" }, "to": { "type": "String" } }
+  },
+  "insightsMoves": "Moves in this range",
+  "insightsMovesCount": "{count, plural, =0{Nothing moved} =1{1 movement} other{{count} movements}}",
+  "@insightsMovesCount": { "placeholders": { "count": { "type": "int" } } },
+  "shareOfSpending": "{percent}% ({amount})",
+  "@shareOfSpending": {
+    "placeholders": { "percent": { "type": "int" }, "amount": { "type": "String" } }
+  },
+  "editAction": "Edit",
+  "navNotes": "Notes",
+  "navGallery": "Gallery",
+
+  "notesTitle": "Notes",
+  "notesNew": "New note",
+  "notesUntitled": "Untitled",
+  "notesTitleHint": "Title",
+  "notesBodyHint": "Write. Markdown renders as you go and shows its syntax on the line you are on. [[Link]] to another note.",
+  "notesSearchHint": "Search titles and text",
+  "notesAllFolders": "All",
+  "notesFolder": "Folder",
+  "notesFolderHint": "A path, nothing more. Nested folders are made by naming one.",
+  "notesSort": "Sort",
+  "notesSortEdited": "Last edited",
+  "notesSortCreated": "Created",
+  "notesSortTitle": "Title",
+  "notesEmpty": "No notes yet",
+  "notesEmptyBody": "Tap + to keep what you thought about the day.",
+  "notesNoMatch": "Nothing matches that",
+  "notesNoMatchBody": "Try another word, or a different folder.",
+  "notesGone": "This note is gone",
+  "notesGoneBody": "It was deleted, or it never existed.",
+  "notesRead": "Read",
+  "notesEdit": "Edit",
+  "notesCreate": "Create",
+  "notesCreateLinkTitle": "Write \"{title}\"?",
+  "@notesCreateLinkTitle": { "placeholders": { "title": { "type": "String" } } },
+  "notesCreateLinkBody": "That note does not exist yet. A link to a note you have not written is normal — this makes it.",
+  "notesDeleteTitle": "Delete this note?",
+  "notesDeleteBody": "It leaves the vault. You can undo this straight away.",
+  "notesBacklinks": "{count, plural, =1{1 note links here} other{{count} notes link here}}",
+  "@notesBacklinks": { "placeholders": { "count": { "type": "int" } } },
+
+  "galleryTitle": "Gallery",
+  "galleryNewAlbum": "New album",
+  "galleryEditAlbum": "Edit album",
+  "galleryCreateAlbum": "Create album",
+  "galleryAlbumHint": "A named run of pictures. Give it a schedule and it becomes a seed on your field.",
+  "galleryAlbumName": "Album",
+  "galleryAlbumNameHint": "Gym, Face, The flat",
+  "gallerySchedule": "Schedule",
+  "galleryScheduleNone": "No schedule",
+  "gallerySeedHint": "A scheduled album is due like a habit, checked in by adding a picture, and feeds the same streak.",
+  "galleryIsSeed": "On your field",
+  "galleryEmpty": "No albums yet",
+  "galleryEmptyBody": "Tap + for an album: one picture a day, playable as a run.",
+  "galleryAlbumEmpty": "Nothing in here yet",
+  "galleryAlbumEmptyBody": "Add the first picture. The comparison only gets interesting from the second one.",
+  "galleryAlbumGone": "This album is gone",
+  "galleryAlbumCount": "{count, plural, =0{Empty} =1{1 memory} other{{count} memories}}",
+  "@galleryAlbumCount": { "placeholders": { "count": { "type": "int" } } },
+  "galleryAdd": "Add",
+  "galleryAddTo": "Add to {album}",
+  "@galleryAddTo": { "placeholders": { "album": { "type": "String" } } },
+  "galleryCheckInHint": "The first picture today checks this album in.",
+  "galleryTakePhoto": "Camera",
+  "galleryPickPhoto": "Photos",
+  "galleryTakeVideo": "Record",
+  "galleryPickVideo": "Videos",
+  "galleryNoCapture": "Nothing was captured.",
+  "galleryMemoryNote": "Note",
+  "galleryMemoryNoteHint": "What changed, what you weighed, what you were trying",
+  "gallerySearchNotes": "Search notes",
+  "gallerySearchHint": "Search the notes on these pictures",
+  "galleryNoMatch": "No picture has a note like that",
+  "galleryPlay": "Play",
+  "gallerySpeed": "Speed",
+  "galleryFps": "{fps}/s",
+  "@galleryFps": { "placeholders": { "fps": { "type": "int" } } },
+  "galleryCompare": "Compare",
+  "galleryCompareLeft": "Left",
+  "galleryCompareRight": "Right",
+  "galleryDeleteMemoryTitle": "Delete this memory?",
+  "galleryDeleteMemoryBody": "The file goes with it, for good. There is no undo behind this one.",
+  "galleryDeleteAlbumTitle": "Delete {album}?",
+  "@galleryDeleteAlbumTitle": { "placeholders": { "album": { "type": "String" } } },
+  "galleryDeleteAlbumBody": "Every picture in it is deleted with it, files and all. There is no undo.",
+  "settingsFeatures": "Extras",
+  "settingsFeaturesHint": "Parts of the app that stay out of the way until you ask for them. They pair up in the navigation bar, so switching them all on still leaves five tabs.",
+  "featureNotes": "Notes",
+  "featureNotesHint": "Markdown notes in folders, linked to each other.",
+  "featureGallery": "Gallery",
+  "featureGalleryHint": "Albums of photos over time, playable as a run. A scheduled album becomes a seed on your field.",
+  "featureGallerySize": "Using {size}",
+  "@featureGallerySize": { "placeholders": { "size": { "type": "String" } } },
+  "obExtrasTitle": "A few more, if you want them",
+  "obExtrasBody": "Each stays hidden unless you switch it on. You can change your mind in Settings at any time.",
+  "albumReminderBody": "Today's picture is still missing.",
+  "exportPreparing": "Reading everything…",
+  "exportProgress": "{done} of {total}",
+  "@exportProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "exportStopped": "Stopped. Nothing was written.",
+  "importTitle": "Bring an archive back",
+  "importBody": "Open a Harvest .zip. You will see exactly what it would change before anything happens, and nothing here is ever deleted for being missing from it.",
+  "importAction": "Choose an archive",
+  "importReading": "Reading…",
+  "importApplying": "Merging…",
+  "importConfirm": "Merge it in",
+  "importSummary": "{added} new, {updated} to update",
+  "@importSummary": { "placeholders": { "added": { "type": "int" }, "updated": { "type": "int" } } },
+  "importRowCounts": "+{added} · ↻{updated}",
+  "@importRowCounts": { "placeholders": { "added": { "type": "int" }, "updated": { "type": "int" } } },
+  "importFiles": "{newFiles, plural, =0{No new files among the {files} in the archive} =1{1 new file of {files} in the archive} other{{newFiles} new files of {files} in the archive}}",
+  "@importFiles": { "placeholders": { "newFiles": { "type": "int" }, "files": { "type": "int" } } },
+  "importNothingToDo": "Everything in here is already on this phone.",
+  "importNeverDeletes": "Nothing local is deleted. Rows already here are only touched if the archive's copy is newer.",
+  "importDone": "Done — {added} added, {updated} updated.",
+  "@importDone": { "placeholders": { "added": { "type": "int" }, "updated": { "type": "int" } } },
+  "importNotHarvest": "That zip is not a Harvest archive.",
+  "importUnreadable": "That file could not be opened.",
+  "importBadWorkbook": "The spreadsheet inside that archive could not be read.",
+  "importFailed": "The import did not finish.",
+  "sheetSeeds": "Seeds",
+  "sheetCheckIns": "Check-ins",
+  "sheetSeedNotes": "Day notes",
+  "sheetExpenses": "Expenses",
+  "sheetMoney": "Movements",
+  "sheetDebts": "Debts",
+  "sheetDebtPayments": "Debt payments",
+  "sheetFocus": "Focus sessions",
+  "sheetLedger": "XP ledger",
+  "sheetSettings": "Settings",
+  "sheetNotes": "Notes",
+  "sheetAlbums": "Albums",
+  "sheetMemories": "Memories",
+  "navRecords": "Records",
+  "shareAction": "Share",
+
+  "trashTitle": "Trash",
+  "trashEmpty": "Empty",
+  "trashEmptyTitle": "The trash is empty",
+  "trashNotesEmptyBody": "Deleted notes wait here.",
+  "trashGalleryEmptyBody": "Deleted pictures and albums wait here.",
+  "trashKeeps": "Nothing leaves here on its own. Restore what you want back, or empty the lot.",
+  "trashKeepsFiles": "The files are still on the phone. Emptying the trash is what removes them.",
+  "trashRestore": "Put it back",
+  "trashDeleteForever": "Delete for good",
+  "trashDeleteForeverConfirm": "Delete this for good?",
+  "trashDeleteForeverBody": "There is nothing behind this one.",
+  "trashEmptyConfirm": "{count, plural, =1{Empty the trash — 1 item?} other{Empty the trash — {count} items?}}",
+  "@trashEmptyConfirm": { "placeholders": { "count": { "type": "int" } } },
+  "trashEmptyConfirmBody": "Everything in the trash goes for good.",
+  "trashEmptyFilesBody": "Every picture in here is deleted from the phone, files and all. There is no undo.",
+  "trashWholeAlbum": "The whole album",
+
+  "notesNewFolder": "New folder",
+  "notesNewSubfolder": "New folder inside",
+  "notesRenameFolder": "Rename folder",
+  "notesDeleteFolder": "Delete folder",
+  "notesDeleteFolderHint": "Its notes go to the trash",
+  "notesFolderOptions": "Folder options",
+  "notesFolderNameHint": "Health, Work, Reading",
+  "notesNewHere": "New note",
+  "notesMoveToFolder": "Move to folder",
+  "notesSharePdf": "Share as PDF",
+  "notesPdfFailed": "That note could not be turned into a PDF.",
+  "notesMovedToTrash": "Moved to the trash",
+  "notesFolderTrashed": "{count, plural, =0{{folder} is gone} =1{{folder} and 1 note moved to the trash} other{{folder} and {count} notes moved to the trash}}",
+  "@notesFolderTrashed": {
+    "placeholders": { "folder": { "type": "String" }, "count": { "type": "int" } }
+  },
+
+  "mdHeading": "Heading",
+  "mdBold": "Bold",
+  "mdItalic": "Italic",
+  "mdCode": "Code",
+  "mdList": "List",
+  "mdTask": "Task",
+  "mdQuote": "Quote",
+  "mdWikiLink": "Link a note",
+  "mdTable": "Table",
+  "mdTableRow": "Add a row",
+  "mdTableColumn": "Add a column",
+  "mdRowShort": "Row",
+  "mdColumnShort": "Col",
+  "mdHideKeyboard": "Hide the keyboard",
+
+  "galleryDoneToday": "Done",
+  "galleryMovedToTrash": "Moved to the trash",
+  "galleryFileGone": "That file is no longer on the phone.",
+  "navBody": "Body",
+  "navHealth": "Health",
+  "navGym": "Gym",
+  "navFarmer": "Farmer",
+  "navProgress": "Progress",
+
+  "featureHealth": "Health",
+  "featureHealthHint": "Sleep, steps read from the phone's own health store, and a body weight whenever you stand on the scale.",
+  "featureGym": "Gym",
+  "featureGymHint": "Programs, sessions and personal records. A gym habit lands on your field like any other seed.",
+
+  "stepsToday": "Steps today",
+  "stepsWeekAverage": "7-day average",
+  "stepsOfGoal": "{steps} of {goal}",
+  "@stepsOfGoal": { "placeholders": { "steps": { "type": "int" }, "goal": { "type": "int" } } },
+  "stepsPassive": "The phone counts these. They never check a seed in and never break a streak.",
+  "stepsSource": "Where the steps come from",
+  "stepsFromHealthConnect": "From Health Connect — the phone's own step store, so this matches your health app.",
+  "stepsFromSensor": "From the phone's step counter, read when the app is open.",
+  "stepsConnect": "Connect",
+  "stepsConnectTitle": "Read steps from the phone",
+  "stepsConnectBody": "Harvest reads the daily total from the phone's own health store. Nothing is sent anywhere and no account is involved.",
+  "stepsConnectSensorBody": "Harvest reads the phone's step counter while the app is open. Nothing is sent anywhere.",
+  "stepsDenied": "Not allowed yet. Tap Connect to ask again, or allow it from Health Connect's settings.",
+  "stepsUnavailable": "This phone has nowhere to read steps from.",
+  "stepsInstallHealthConnect": "Get Health Connect",
+  "stepsOpenHealthConnect": "Health Connect settings",
+  "stepsRefresh": "Refresh",
+  "stepsGoal": "Daily step goal",
+  "stepsGoalHint": "Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.",
+  "stepsGoalNone": "No goal",
+  "stepsGoalMet": "Goal met",
+  "stepsSettings": "Steps",
+  "stepsStride": "Stride length",
+  "stepsStrideHint": "About 0.415 × your height. 75 cm is a fair guess; a tape measure is better.",
+  "stepsDistanceKm": "{value} km",
+  "@stepsDistanceKm": { "placeholders": { "value": { "type": "String" } } },
+  "stepsDistanceMi": "{value} mi",
+  "stepsHistory": "Your steps",
+  "stepsNoDays": "No steps counted yet",
+  "stepsNoDaysBody": "Tap Connect on the steps card.",
+  "stepsLastDays": "Last {days} days",
+  "@stepsLastDays": { "placeholders": { "days": { "type": "int" } } },
+  "stepsBestDay": "Best day",
+  "stepsCount": "{steps} steps",
+  "@stepsCount": { "placeholders": { "steps": { "type": "String" } } },
+  "@stepsDistanceMi": { "placeholders": { "value": { "type": "String" } } },
+
+  "weightTitle": "Weight",
+  "weightLog": "Log a weight",
+  "weightEdit": "Edit this weight",
+  "weightHint": "Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.",
+  "weightLabel": "Weight",
+  "weightNote": "Note",
+  "weightNoteHint": "After the flu, new scale…",
+  "weightEmpty": "No weights yet",
+  "weightEmptyBody": "Your first weight starts the line; it takes a shape from the third.",
+  "weightHistory": "Every reading",
+  "weightWindow": "Over",
+  "weightDays": "{days} days",
+  "@weightDays": { "placeholders": { "days": { "type": "int" } } },
+  "weightNoTrendYet": "Not enough readings for a trend yet",
+  "weightDown": "Down {amount} over {days} days",
+  "@weightDown": { "placeholders": { "amount": { "type": "String" }, "days": { "type": "int" } } },
+  "weightUp": "Up {amount} over {days} days",
+  "@weightUp": { "placeholders": { "amount": { "type": "String" }, "days": { "type": "int" } } },
+  "weightSteady": "Level over {days} days",
+  "@weightSteady": { "placeholders": { "days": { "type": "int" } } },
+  "weightToTarget": "{amount} from your target of {target}",
+  "@weightToTarget": { "placeholders": { "amount": { "type": "String" }, "target": { "type": "String" } } },
+  "weightLegendEntries": "Readings",
+  "weightLegendTrend": "7-day average",
+  "weightLegendTarget": "Target",
+  "weightDeleteTitle": "Delete this reading?",
+  "weightDeleteBody": "It leaves the chart. You can undo this straight away.",
+
+  "gymComingTitle": "The gym is next",
+  "gymComingBody": "Programs, sessions and personal records are being built. Steps and weight work now.",
+  "gymBrowse": "Browse exercises",
+  "gymPickExercise": "Choose an exercise",
+  "gymSearchExercises": "Search by name, muscle or kit",
+  "gymExercisesTitle": "Exercises",
+  "gymProgramsTitle": "Programs",
+  "gymCatalogueLoading": "Loading the catalogue…",
+  "gymCatalogueHint": "Search by name, muscle or equipment — the question mid-session is usually what else hits this.",
+  "gymExerciseCount": "{count, plural, =0{No exercises} =1{1 exercise} other{{count} exercises}}",
+  "@gymExerciseCount": { "placeholders": { "count": { "type": "int" } } },
+  "gymNoExercise": "Nothing matches that",
+  "gymNoExerciseBody": "Try a muscle or a piece of equipment instead of a name.",
+  "gymMine": "Mine",
+  "gymHowTo": "How it goes",
+  "gymNoInstructions": "No instructions for this one.",
+  "gymMediaTitle": "Exercise pictures",
+  "gymMediaBody": "Downloaded the first time you open an exercise, then kept. Names and instructions are already in the app and work without a single picture.",
+  "gymNeverFetch": "Never fetch pictures",
+  "gymNeverFetchHint": "The gym works completely on words alone",
+  "gymDownloadAll": "Download them all",
+  "gymDownloadAllBody": "{count} animations, roughly {size}. Worth doing on Wi-Fi before a trip.",
+  "@gymDownloadAllBody": { "placeholders": { "count": { "type": "int" }, "size": { "type": "String" } } },
+  "gymDownloadProgress": "{done} of {total}",
+  "@gymDownloadProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "gymClearMedia": "Clear",
+  "gymClearMediaBody": "The pictures go; nothing else does. They come back the next time you open an exercise.",
+  "gymMediaAttribution": "Exercise images and animations {credit}, fetched from the dataset they are published in.",
+  "@gymMediaAttribution": { "placeholders": { "credit": { "type": "String" } } },
+  "gymNewProgram": "New program",
+  "gymProgramNameHint": "nSuns 5/3/1, Push Pull Legs…",
+  "gymNoPrograms": "No programs yet",
+  "gymNoProgramsBody": "Tap + and write the first day.",
+  "gymProgramSummary": "{days, plural, =0{No days yet} =1{1 day} other{{days} days}} · {sets, plural, =0{no sets} =1{1 set} other{{sets} sets}}",
+  "@gymProgramSummary": { "placeholders": { "days": { "type": "int" }, "sets": { "type": "int" } } },
+  "gymProgramGone": "This program is gone",
+  "gymRename": "Rename",
+  "gymDeleteProgram": "Delete {name}?",
+  "@gymDeleteProgram": { "placeholders": { "name": { "type": "String" } } },
+  "gymDeleteProgramBody": "Its days and sets go with it. Sessions you already finished stay.",
+
+  "gymAddDay": "Add a day",
+  "gymDayNumber": "Day {n}",
+  "@gymDayNumber": { "placeholders": { "n": { "type": "int" } } },
+  "gymDayNameHint": "Day 4, Push, Upper A…",
+  "gymNoDays": "No days yet",
+  "gymNoDaysBody": "Tap Add a day. Duplicating it later is one tap.",
+  "gymDaySummary": "{exercises, plural, =0{No exercises} =1{1 exercise} other{{exercises} exercises}} · {sets, plural, =1{1 set} other{{sets} sets}}",
+  "@gymDaySummary": { "placeholders": { "exercises": { "type": "int" }, "sets": { "type": "int" } } },
+  "gymDuplicateDay": "Duplicate",
+  "gymDeleteDay": "Delete {name}?",
+  "@gymDeleteDay": { "placeholders": { "name": { "type": "String" } } },
+  "gymDeleteDayBody": "The exercises and sets in it go too.",
+  "gymAccessories": "Recommended accessories",
+  "gymAccessoriesHint": "Back, Abs — a note, not a prescription",
+  "gymRecommended": "Recommended: {what}",
+  "@gymRecommended": { "placeholders": { "what": { "type": "String" } } },
+
+  "gymAddExercise": "Add an exercise",
+  "gymRemoveExercise": "Remove this exercise",
+  "gymUnknownExercise": "Unknown exercise",
+  "gymNoSetsYet": "No sets yet",
+  "gymSetsSubtitle": "What this asks of you, set by set.",
+  "gymAddSet": "Set",
+  "gymAddPercentSet": "% set",
+  "gymAddOpenSet": "Open set",
+  "gymEditSet": "Edit the set",
+  "gymPercentOfMax": "% of max",
+  "gymPercent": "Percent",
+  "gymWeight": "Weight",
+  "gymReps": "Reps",
+  "gymOpenSet": "Open set",
+  "gymOpenSetHint": "As many as you can — the set that decides whether the weight goes up",
+  "gymOpenReps": "{reps}+",
+  "@gymOpenReps": { "placeholders": { "reps": { "type": "int" } } },
+  "gymBarWeight": "The bar",
+  "gymRest": "Rest between sets",
+  "gymRestSeconds": "{seconds} seconds",
+  "@gymRestSeconds": { "placeholders": { "seconds": { "type": "int" } } },
+
+  "gymTrainingMaxes": "Training maxes",
+  "gymTrainingMaxesHint": "The number your percentages are percentages of. Yours to set and yours to bump — the app does not do your programming.",
+  "gymNoTrainingMax": "Not set — percentage sets cannot resolve",
+  "gymNoPercentSets": "Nothing in this program is a percentage, so there is nothing to set.",
+  "gymNeedsTrainingMax": "{count, plural, =1{1 exercise needs a training max} other{{count} exercises need a training max}}",
+  "@gymNeedsTrainingMax": { "placeholders": { "count": { "type": "int" } } },
+  "gymNeedsTrainingMaxBody": "Until then its percentage sets show a percentage rather than a weight.",
+
+  "gymStart": "Start",
+  "gymResume": "Carry on",
+  "gymRunningSession": "A session is running",
+  "gymRunningSessionBody": "{done} of {total} sets done. Finish or drop it before starting another.",
+  "@gymRunningSessionBody": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "gymPickDay": "Which day?",
+  "gymNoProgramToStart": "No program to start",
+  "gymNoProgramToStartBody": "Write a program first — a session is a day of one, with the weights already filled in.",
+  "gymSession": "Session",
+  "gymSessionGone": "This session is gone",
+  "gymSessionProgress": "{done} of {total} sets",
+  "@gymSessionProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "gymSessionNote": "Note on the session",
+  "gymSessionNoteHint": "Slept badly, belt on, gym was packed…",
+  "gymDiscardSession": "Drop this session",
+  "gymDiscardBody": "{done, plural, =0{Nothing is logged yet, so nothing is lost.} =1{The one set you logged goes with it.} other{The {done} sets you logged go with it.}}",
+  "@gymDiscardBody": { "placeholders": { "done": { "type": "int" } } },
+  "gymFinish": "Finish",
+  "gymFinishEmptyTitle": "Finish with nothing logged?",
+  "gymFinishEmptyBody": "It is kept as a session you turned up for, which is worth something, but no set counts towards a record.",
+  "gymInsteadOf": "instead of {name}",
+  "@gymInsteadOf": { "placeholders": { "name": { "type": "String" } } },
+  "gymLastTime": "Last time: {sets}",
+  "@gymLastTime": { "placeholders": { "sets": { "type": "String" } } },
+  "gymSwap": "Swap it out",
+  "gymSkip": "Skip it",
+  "gymUnskip": "Put it back",
+  "gymNote": "Note",
+  "gymSetColumn": "Set",
+  "gymTargetColumn": "Target",
+  "gymRepsColumn": "Reps",
+  "gymTick": "Log this set",
+  "gymUntick": "Not done after all",
+  "gymRecordHeaviest": "Heaviest ever: {load}",
+  "@gymRecordHeaviest": { "placeholders": { "load": { "type": "String" } } },
+  "gymRecordEstimated": "Best set yet — about {load} for one",
+  "@gymRecordEstimated": { "placeholders": { "load": { "type": "String" } } },
+  "gymRestPlus": "+{seconds}s",
+  "@gymRestPlus": { "placeholders": { "seconds": { "type": "int" } } },
+  "gymRestSkip": "Done resting",
+  "gymRestCustom": "Or type it",
+  "gymRestCustomHint": "seconds",
+  "gymRestNone": "No timer",
+  "gymPause": "Pause the clock",
+  "gymResumeClock": "Start the clock",
+  "gymPaused": "Paused",
+  "healthLogNight": "Log last night",
+  "gymSeedStart": "Start the session",
+  "gymSeedStartHint": "The program's day, sets and all",
+  "gymSeedBare": "Went, no numbers",
+  "gymSeedBareHint": "Checked in as a session with nothing logged",
+  "gymReorderHandle": "Drag to reorder",
+  "gymUpNext": "Up next",
+  "gymOtherDays": "Or another day",
+  "gymNextDay": "Next: {day}",
+  "@gymNextDay": { "placeholders": { "day": { "type": "String" } } },
+  "gymFinishIncompleteTitle": "Finish with sets left?",
+  "gymFinishIncompleteBody": "{left} of {total} sets are not ticked. The session ends here and the gym habit is checked in as done for {day}.",
+  "@gymFinishIncompleteBody": { "placeholders": { "left": { "type": "int" }, "total": { "type": "int" }, "day": { "type": "String" } } },
+  "gymBestLine": "Best: {sets}",
+  "@gymBestLine": { "placeholders": { "sets": { "type": "String" } } },
+  "gymBestEstimate": "est. {weight}",
+  "@gymBestEstimate": { "placeholders": { "weight": { "type": "String" } } },
+  "gymPerSide": "Per side, on a {bar} bar",
+  "@gymPerSide": { "placeholders": { "bar": { "type": "String" } } },
+  "gymJustTheBar": "Just the bar",
+  "gymPlateShortfall": "Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.",
+  "@gymPlateShortfall": { "placeholders": { "total": { "type": "String" }, "short": { "type": "String" } } },
+  "gymBarOver": "Lighter than the bar: the bar alone is {over} over.",
+  "@gymBarOver": { "placeholders": { "over": { "type": "String" } } },
+  "gymMoveDayUp": "Move up",
+  "gymMoveDayDown": "Move down",
+  "gymMineTitle": "Add my own",
+  "gymMineBody": "One the catalogue is missing. It is yours: it syncs, and it works like any other everywhere.",
+  "gymMineName": "Name",
+  "gymMineBodyPart": "Body part",
+  "gymMineEquipment": "Equipment",
+  "gymMineEquipmentHint": "barbell, cable…",
+  "gymMineMuscle": "Muscle",
+  "gymMineAdd": "Add it",
+
+
+  "sleepTitle": "Last night",
+  "sleepSubtitle": "Two times and a feeling. Nothing here was measured by the phone, and none of it is a test.",
+  "sleepSave": "Write it down",
+  "sleepFellAsleep": "Fell asleep",
+  "sleepWoke": "Woke",
+  "sleepRested": "How rested?",
+  "sleepLength": "{hours}h {minutes}m",
+  "@sleepLength": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" } } },
+  "sleepLastNight": "Last night",
+  "sleepNothingYet": "Not written down",
+  "sleepLogIt": "Log it",
+  "sleepAverage": "{hours}h {minutes}m on average, over {nights} nights",
+  "@sleepAverage": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" }, "nights": { "type": "int" } } },
+  "sleepDebtLabel": "Owed to yourself",
+  "sleepDebtBody": "Two weeks of short nights, added up. Long nights pay it back.",
+  "sleepSection": "Sleep",
+  "sleepAlarm": "Wake me",
+  "sleepAlarmBody": "Rings at the wake time your day is already built around.",
+  "sleepAlarmExact": "Allow exact alarms",
+  "sleepAlarmExactBody": "Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.",
+  "sleepWindDown": "Say something before bed",
+  "sleepWindDownBody": "Half an hour before the bedtime your day is built around.",
+  "sleepWindDownTitle": "Half an hour to bed",
+  "sleepWindDownText": "Whatever you are in the middle of will still be there tomorrow.",
+  "sleepAlarmTitle": "Morning",
+  "sleepAlarmText": "Two questions and a feeling, while you still remember it.",
+  "sleepNights": "Your nights",
+  "sleepNoNights": "No nights written down yet",
+  "sleepNoNightsBody": "Tap Log it one morning and the line starts.",
+  "sleepOverrides": "Nights of their own",
+  "sleepOverrideCount": "{count, plural, =1{1 weekday of its own} other{{count} weekdays of their own}}",
+  "@sleepOverrideCount": { "placeholders": { "count": { "type": "int" } } },
+  "sleepOverridesBody": "Saturday is not Tuesday. A weekday set here overrides the hours your day is built around.",
+  "sleepSameAsUsual": "Same as usual",
+  "sleepNightOf": "{from} to {to}",
+  "@sleepNightOf": { "placeholders": { "from": { "type": "String" }, "to": { "type": "String" } } },
+  "sleepDeleteNight": "Delete this night?",
+  "sleepDeleteNightBody": "It leaves the line and the debt is worked out again without it.",
+  "sleepStars": "{stars, plural, =0{} =1{1 star} other{{stars} stars}}",
+  "@sleepStars": { "placeholders": { "stars": { "type": "int" } } },
+  "gymPlantProgram": "Plant this on your field",
+  "gymPlantProgramBody": "It becomes a habit like any other, and finishing a session checks it in.",
+  "gymHowOften": "How often?",
+  "gymHowOftenBody": "Days a week, not which days — the gym is not always on the day you meant.",
+  "gymTimesPerWeek": "{times, plural, =1{Once a week} =2{Twice a week} other{{times}× a week}}",
+  "@gymTimesPerWeek": { "placeholders": { "times": { "type": "int" } } },
+  "gymEveryDay": "Every day",
+  "gymPlantedNoSchedule": "No schedule",
+  "gymUnplant": "Unlink from the field",
+  "gymUnplantBody": "The program stops checking anything in. The seed and its streak stay where they are — pull it up on the field if that is what you want.",
+  "gymAlbumOffer": "Keep pictures of it?",
+  "gymAlbumOfferBody": "An album for this program, so a year of sessions has something to show for itself. It hangs off this habit rather than becoming a second one.",
+  "gymAlbumYes": "Make the album",
+  "gymPhotoPrompt": "When to ask for the picture",
+  "gymPhotoPromptBody": "Before is the mirror on the way in; after is the one you actually mean to take and forget.",
+  "gymPromptAfter": "After the session",
+  "gymPromptBefore": "Before the session",
+  "gymPromptNever": "Never ask",
+  "gymCheckedIn": "Checked in · +{xp} XP",
+  "@gymCheckedIn": { "placeholders": { "xp": { "type": "int" } } },
+  "gymPictureNow": "Picture?",
+  "gymPictureNowBody": "One for the album, while you are still here.",
+  "gymPictureYes": "Take it",
+  "gymHistory": "History",
+  "gymSeeAll": "See all",
+  "gymNoSetsLogged": "Nothing logged",
+  "gymNoHistory": "No sessions yet",
+  "gymNoHistoryBody": "Tap Start. The records are made of what you log here.",
+  "gymSessionSummary": "{sets, plural, =1{1 set} other{{sets} sets}} · {volume}",
+  "@gymSessionSummary": { "placeholders": { "sets": { "type": "int" }, "volume": { "type": "String" } } },
+  "gymVolume": "Volume",
+  "gymBest": "Best",
+  "gymRecords": "Personal records",
+  "gymNoRecords": "Nothing logged for this one yet",
+  "gymHeaviestLabel": "Heaviest set",
+  "gymEstimatedLabel": "Best estimated single",
+  "gymEstimatedHint": "Worked out from the weight and the reps, not a single you actually pulled.",
+  "fieldTabToday": "Today",
+  "fieldTabGoals": "Goals",
+  "goalsEmptyTitle": "No goals yet",
+  "goalsEmptyBody": "Tap + to write down something a streak cannot hold.",
+  "goalNew": "New goal",
+  "goalEdit": "Edit goal",
+  "goalTitleLabel": "What I'm working toward",
+  "goalTitleHint": "Run a half marathon",
+  "goalWhyLabel": "Why",
+  "goalWhyHint": "Because…",
+  "goalTargetDay": "Target day",
+  "goalNoTargetDay": "No target day",
+  "goalDaysLeft": "{count, plural, =0{Today} =1{1 day left} other{{count} days left}}",
+  "@goalDaysLeft": { "placeholders": { "count": { "type": "int" } } },
+  "goalDaysPast": "{count, plural, =1{1 day past} other{{count} days past}}",
+  "@goalDaysPast": { "placeholders": { "count": { "type": "int" } } },
+  "goalNeeds": "Requirements — what it takes",
+  "goalSteps": "Tasks",
+  "goalSeeds": "Seeds",
+  "goalAddNeed": "Add a requirement",
+  "goalAddStep": "Add a task",
+  "goalAddWhatItTakes": "Add what it takes",
+  "goalNext": "Next: {step}",
+  "@goalNext": { "placeholders": { "step": { "type": "String" } } },
+  "goalMarkAchieved": "Mark achieved",
+  "goalAchievedToast": "Achieved. +{xp} XP",
+  "@goalAchievedToast": { "placeholders": { "xp": { "type": "int" } } },
+  "goalReopen": "Reopen",
+  "goalDrop": "Drop",
+  "goalDropTitle": "Drop this goal?",
+  "goalDropBody": "Its seeds keep going. A line on why, if you like.",
+  "goalDropNoteHint": "Not now, because…",
+  "goalDelete": "Delete goal",
+  "goalDeleted": "Goal deleted",
+  "goalItemRemoved": "Removed",
+  "goalPlant": "Plant as a seed",
+  "goalPlanted": "Planted",
+  "goalAchievedSection": "Achieved",
+  "goalDroppedSection": "Dropped",
+  "goalEditItem": "Edit",
+  "goalServes": "Serves",
+  "goalServesNone": "No goal",
+  "goalSeedArchived": "archived",
+  "goalComplete": "Every item is ticked.",
+  "goalOptions": "Goal options",
+  "goalItemOptions": "Item options",
+  "goalAddSubtask": "Add a subtask",
+  "goalSubtaskProgress": "{done} of {total}",
+  "@goalSubtaskProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "goalLiftStep": "Make it a task of its own",
+  "goalLiftNeed": "Make it a requirement of its own",
+  "goalMoveUnder": "Move under…",
+  "goalMoveUnderTitle": "Make it a subtask of",
+  "goalItemRemovedWithSubtasks": "{count, plural, =1{Removed, with its subtask} other{Removed, with its {count} subtasks}}",
+  "@goalItemRemovedWithSubtasks": { "placeholders": { "count": { "type": "int" } } },
+  "navPlaces": "Places",
+  "featurePlaces": "Places",
+  "featurePlacesHint": "Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.",
+  "placesDay": "Day",
+  "placesWeek": "Week",
+  "placesMonth": "Month",
+  "placesPrevious": "Previous",
+  "placesNext": "Next",
+  "placesPickDay": "Pick a day",
+  "placesTrailOn": "Record my trail",
+  "placesTrailHint": "Keeps a point every 50 m while you move, with a notification on screen the whole time.",
+  "placesTrailRefused": "The trail needs location “all the time”. Geotags still work without it.",
+  "placesOpenSettings": "Open settings",
+  "placesPause1h": "Pause for an hour",
+  "placesPauseTomorrow": "Pause until tomorrow",
+  "placesResume": "Resume the trail",
+  "placesPausedUntil": "Paused until {time}",
+  "@placesPausedUntil": { "placeholders": { "time": { "type": "String" } } },
+  "placesRecording": "Recording · {count} points today",
+  "@placesRecording": { "placeholders": { "count": { "type": "int" } } },
+  "placesHighAccuracy": "High accuracy",
+  "placesHighAccuracyHint": "Sharper trail, more battery.",
+  "placesDeleteDay": "Delete this day's trail",
+  "placesDayDeleted": "Trail deleted",
+  "placesDeleteAll": "Delete all location history",
+  "placesDeleteAllBody": "Every point, every geotag and every named place, gone for good. This cannot be undone.",
+  "placesNothing": "Nothing here on this day",
+  "placesNothingBody": "Turn on the trail, or do something with Places on, and it shows up here.",
+  "placesStay": "Stayed {duration}",
+  "@placesStay": { "placeholders": { "duration": { "type": "String" } } },
+  "placesNameStay": "Name this place",
+  "placesNameHint": "Home, Office, Gym…",
+  "placesLayers": "Map views",
+  "placesStreets": "Streets",
+  "placesSatellite": "Satellite",
+  "placesLocateMe": "My location",
+  "placesSavePlace": "Save this place",
+  "placesEditPlace": "Edit place",
+  "placesPlaceName": "Place name",
+  "placesPlaceNotes": "Notes",
+  "placesPlaceNotesHint": "What to remember about here.",
+  "placesRadius": "Reach (m)",
+  "placesRadiusRange": "Between {min} and {max} m",
+  "@placesRadiusRange": { "placeholders": { "min": { "type": "int" }, "max": { "type": "int" } } },
+  "placesPlaceSaved": "Place saved",
+  "placesPlaceUpdated": "Place updated",
+  "placesPlaceForgotten": "Place forgotten",
+  "placesForgetPlace": "Forget place",
+  "placesForgetPlaceBody": "This removes the pin, not the trail.",
+  "placesNoFix": "Can't find your location right now.",
+  "geoWhere": "{name} · {time}",
+  "@geoWhere": { "placeholders": { "name": { "type": "String" }, "time": { "type": "String" } } },
+  "geoUnavailable": "No location recorded",
+  "placesOptions": "Places options",
+  "placesNotificationTitle": "Harvest",
+  "placesNotificationText": "Recording your trail",
+  "placesServiceOff": "Location is switched off on this phone.",
+  "placesDistance": "{km} km",
+  "@placesDistance": { "placeholders": { "km": { "type": "String" } } },
+  "geoExpense": "Expense",
+  "geoCheckIn": "Check-in",
+  "geoPicture": "Picture",
+  "geoNote": "Note",
+  "geoVoice": "Voice note",
+  "geoSeed": "Planted a seed",
+  "geoSeedNote": "Seed note",
+  "geoMoney": "Money",
+  "geoDebt": "Debt",
+  "geoDebtPayment": "Debt payment",
+  "geoWeight": "Weight",
+  "geoNight": "Night",
+  "geoSession": "Gym session",
+  "geoGoal": "Goal",
+  "geoGoalItem": "Goal task",
+  "geoAlbum": "Album",
+  "voiceNew": "New voice note",
+  "voiceRecord": "Record",
+  "voiceRecording": "Recording…",
+  "voiceStop": "Stop and keep",
+  "voiceDiscard": "Discard",
+  "voiceNoMic": "Harvest needs the microphone to record.",
+  "voiceDictate": "Dictate",
+  "voiceListening": "Listening…",
+  "voiceNoDictation": "Speech recognition is not available on this phone.",
+  "voicePlay": "Play",
+  "voicePause": "Pause",
+  "voiceRecordings": "Recordings",
+  "voiceMissing": "The file is not on this phone.",
+  "voiceTranscribe": "Transcribe",
+  "readAloud": "Read aloud",
+  "readAloudStop": "Stop",
+  "readAloudNext": "Next paragraph",
+  "readAloudSpeed": "Speed",
+  "readAloudEmpty": "Nothing to read yet.",
+  "readAloudParagraph": "Paragraph {index} of {count}",
+  "@readAloudParagraph": { "placeholders": { "index": { "type": "int" }, "count": { "type": "int" } } },
+  "assistTitle": "Assist",
+  "assistHint": "Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.",
+  "assistProvider": "Provider",
+  "assistGemini": "Gemini",
+  "assistOpenAi": "OpenAI-compatible",
+  "assistModel": "Model",
+  "assistBaseUrl": "Base URL",
+  "assistKey": "API key",
+  "assistKeyHint": "Kept in the phone's keystore, never exported or synced.",
+  "assistSave": "Save",
+  "assistTest": "Test",
+  "assistTestOk": "It answered.",
+  "assistSaved": "Saved",
+  "assistNeedsSetup": "The assist needs a provider and a key. Set it up in Settings → Extras.",
+  "assistOpenSettings": "Settings",
+  "assistSummarise": "Summarise",
+  "assistRewrite": "Rewrite clearer",
+  "assistContinue": "Continue writing",
+  "assistFix": "Fix spelling and grammar",
+  "assistTranslate": "Translate",
+  "assistAsk": "Ask about this note",
+  "assistQuestionHint": "What do you want to know?",
+  "assistSends": "Sends {what} to {provider}.",
+  "@assistSends": { "placeholders": { "what": { "type": "String" }, "provider": { "type": "String" } } },
+  "assistSendsNote": "this note",
+  "assistSendsSelection": "the selected text",
+  "assistSendsUpToCaret": "the note up to the cursor",
+  "assistTranscribeTooLong": "This recording is too long to transcribe: the server takes recordings up to {limit} MB.",
+  "@assistTranscribeTooLong": {
+    "placeholders": {
+      "limit": {"type": "int"}
+    }
+  },
+  "assistTranscribeUnknown": "This is not a kind of recording the server can transcribe.",
+  "assistSendsRecording": "this recording",
+  "assistGo": "Send",
+  "assistInsert": "Insert",
+  "assistReplace": "Replace",
+  "assistCopy": "Copy",
+  "assistCopied": "Copied",
+  "assistBadKey": "The provider refused the key.",
+  "assistQuota": "Too many requests, or the quota is spent. Try again later.",
+  "assistOffline": "No connection.",
+  "assistUnsupported": "This provider cannot take recordings.",
+  "assistFailed": "It did not answer: {detail}",
+  "@assistFailed": { "placeholders": { "detail": { "type": "String" } } },
+  "settingsAccount": "Account",
+  "settingsSectionAccountHint": "Optional: sync with your other devices and the web",
+  "accountWhy": "An account only syncs your data between your phone and the web. Harvest works fully without one, forever.",
+  "accountServer": "Server",
+  "accountServerHint": "https://your-harvest-server",
+  "accountEmail": "Email",
+  "accountPassword": "Password",
+  "accountDisplayName": "Name (optional)",
+  "accountSignIn": "Sign in",
+  "accountCreate": "Create account",
+  "accountHaveOne": "I have an account",
+  "accountNeedOne": "I need an account",
+  "accountPasswordRule": "At least 10 characters, and not a common one.",
+  "accountUnverified": "Check your email for the verification link. Sync starts once it is verified.",
+  "accountResend": "Send the link again",
+  "accountResent": "Sent",
+  "accountVerified": "Verified",
+  "accountSyncNow": "Sync now",
+  "accountSyncing": "Syncing…",
+  "accountLastSynced": "Last synced {time}",
+  "@accountLastSynced": { "placeholders": { "time": { "type": "String" } } },
+  "accountNeverSynced": "Not synced yet",
+  "accountPending": "{count} changes waiting",
+  "@accountPending": { "placeholders": { "count": { "type": "int" } } },
+  "accountRefused": "{count} changes the server refused",
+  "@accountRefused": { "placeholders": { "count": { "type": "int" } } },
+  "accountHeldBack": "Money and places wait for a sync passphrase.",
+  "accountDevices": "Devices",
+  "accountThisDevice": "This device",
+  "accountEndSession": "Sign out there",
+  "accountSignOut": "Sign out",
+  "accountSignOutBody": "This phone keeps everything. Sync stops until you sign in again.",
+  "accountDelete": "Delete account",
+  "accountDeleteBody": "Deletes your account and everything on the server, at once. Nothing on this phone is touched.",
+  "accountDeleteConfirm": "Password to confirm",
+  "accountErrorOffline": "Cannot reach the server.",
+  "accountErrorWrong": "That email and password do not match.",
+  "accountErrorTaken": "That email already has an account.",
+  "accountErrorInvalid": "Check the fields: {detail}",
+  "@accountErrorInvalid": { "placeholders": { "detail": { "type": "String" } } },
+  "accountErrorRateLimited": "Too many tries. Wait a few minutes.",
+  "accountErrorOther": "Something went wrong ({code}).",
+  "@accountErrorOther": { "placeholders": { "code": { "type": "String" } } },
+  "passphraseTitle": "Sync passphrase",
+  "passphraseUnset": "Not set: money and places stay on this phone.",
+  "passphraseSet": "Set: money and places sync end-to-end encrypted.",
+  "passphraseSetAction": "Set the passphrase",
+  "passphraseForget": "Forget it on this device",
+  "passphraseBody": "Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.",
+  "passphraseField": "Passphrase",
+  "passphraseRepeat": "The same, again",
+  "passphraseMismatch": "The two do not match.",
+  "passphraseShort": "At least 12 characters.",
+  "passphraseWorking": "Making the key…",
+  "passphraseWrong": "This passphrase does not open what your other devices sent. Enter the one you used there.",
+  "exportIncludePlaces": "Include my location history",
+  "exportIncludePlacesHint": "The trail, the geotags and the named places. Off leaves them out of this export.",
+  "sheetGoals": "Goals",
+  "sheetGoalItems": "Goal items",
+  "sheetCategories": "Categories",
+  "sheetRecordings": "Recordings",
+  "sheetSavedPlaces": "Named places",
+  "sheetTrail": "Trail",
+  "sheetGeotags": "Geotags",
+  "stepsDailyAverage": "Daily average",
+  "notesDeleteFolderBody": "Every note in {folder} goes to the trash. You can put them back from there, or undo this.",
+  "@notesDeleteFolderBody": { "placeholders": { "folder": { "type": "String" } } },
+  "unitKg": "kg",
+  "unitLb": "lb",
+  "unitCm": "cm",
+  "galleryPhoto": "Photo",
+  "galleryVideo": "Video",
+  "healthWhyTitle": "Why Harvest reads your steps",
+  "healthWhyLead": "Harvest asks Health Connect for one thing: the number of steps you have taken, day by day.",
+  "healthWhyUse": "That number fills the steps card, pays the daily step goal once a day, and is drawn on the thirty-day chart. Nothing else reads it. Steps never check a seed in and never break a streak.",
+  "healthWhyStays": "The number stays on this phone. Harvest has no account of its own, sends nothing to anyone, and has no third party to send it to. If you turn on syncing to a server of your own, steps travel there and nowhere else.",
+  "healthWhyOff": "You can withdraw the permission in Health Connect at any time, or turn Health off in Harvest. Either one stops the reading; neither deletes a day already counted.",
+  "gymSkipWhy": "Why skip it?",
+  "gymSkipHint": "Shoulder still sore, short on time…",
+  "gymSkippedBecause": "Skipped — {reason}",
+  "@gymSkippedBecause": { "placeholders": { "reason": { "type": "String" } } },
+  "gymDropSet": "Drop this set",
+  "gymSetDropped": "Set dropped",
+  "gymDropSetBody": "The set goes from this session. What you have already ticked stays.",
+  "galleryGymBound": "The gym habit is the seed for this album, so it has no schedule of its own — two cards on the field for one session would be an accounting error.",
+  "gymDiscardAgain": "Sure? This cannot be undone",
+  "gymDiscardAgainBody": "{done, plural, =1{The set you logged is gone for good, and the session with it.} other{All {done} sets are gone for good, and the session with them.}}",
+  "@gymDiscardAgainBody": { "placeholders": { "done": { "type": "int" } } },
+  "sleepOwedLine": "{hours}h {minutes}m owed to yourself",
+  "@sleepOwedLine": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" } } },
+  "gymBestVolumeLabel": "Best session",
+  "gymBestVolumeHint": "Weight times reps, added up over one session.",
+  "gymChartEstimate": "Estimated single",
+  "gymChartVolume": "Session volume",
+  "gymResting": "Resting",
+  "gymRestOverTitle": "Rest is up",
+  "gymRestOverBody": "Next set.",
+  "stepsDeniedHealthConnect": "Not allowed yet. Health Connect's settings can always allow it: open them, allow Steps for Harvest, and come back.",
+  "ratesDzdManual": "The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.",
+  "ratesFetchedEurUsd": "EUR → USD updated. The dinar rates stay as you typed them.",
+  "accountServerExample": "Your Harvest server's address, like https://harvest.example.com",
+  "accountServerInvalid": "Enter the server's address, starting with https://",
+  "accountEmailMissing": "Enter your email.",
+  "accountEmailInvalid": "That doesn't look like an email address.",
+  "accountPasswordMissing": "Enter your password.",
+  "accountPasswordShort": "At least 10 characters.",
+  "accountPasswordLong": "At most 256 characters.",
+  "expensesUpcoming": "Upcoming",
+  "expensesUpcomingBody": "{count, plural, =1{1 expense logged ahead. It counts on its day, not before.} other{{count} expenses logged ahead. Each counts on its day, not before.}}",
+  "@expensesUpcomingBody": {"placeholders": {"count": {"type": "int"}}},
+  "debtReopened": "Payment removed. The debt is open again.",
+  "debtSettledWith": "Settled with {person}. Nothing left to pay!",
+  "@debtSettledWith": {"placeholders": {"person": {"type": "String"}}},
+  "debtPaymentRemove": "Remove payment",
+  "cropCheckIn": "Check in {title}",
+  "@cropCheckIn": {"placeholders": {"title": {"type": "String"}}},
+  "gymDayToday": "today",
+  "gymStaleTitle": "Still open from {day}",
+  "@gymStaleTitle": {"placeholders": {"day": {"type": "String"}}},
+  "gymStaleBody": "{done} of {total} sets logged. Finish it and it counts for {day}: the gym habit is checked in on that day, not today. Or drop it.",
+  "@gymStaleBody": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}, "day": {"type": "String"}}},
+  "gymStaleLater": "Not now",
+  "gymStaleFinish": "Finish as of {day}",
+  "@gymStaleFinish": {"placeholders": {"day": {"type": "String"}}},
+  "gymCheckedInOn": "Checked in for {day} · +{xp} XP",
+  "@gymCheckedInOn": {"placeholders": {"day": {"type": "String"}, "xp": {"type": "int"}}},
+  "gymClockDays": "{days, plural, =1{1 day} other{{days} days}}",
+  "@gymClockDays": {"placeholders": {"days": {"type": "int"}}},
+  "gymPlates": "Plates",
+  "logCut": "Logged {logged}; {dropped} over the cap left out",
+  "@logCut": {"placeholders": {"logged": {"type": "int"}, "dropped": {"type": "int"}}},
+  "dailyOverTotal": "Can't be more than the total target",
+  "projectLeft": "{left} to go",
+  "@projectLeft": {"placeholders": {"left": {"type": "int"}}},
+  "projectReached": "Target reached",
+  "notesNoFolder": "No folder",
+  "ledgerDayUpcoming": "{day} · upcoming",
+  "@ledgerDayUpcoming": {"placeholders": {"day": {"type": "String"}}},
+  "projectDoneCut": "{logged} logged; {dropped} over the target left out.",
+  "@projectDoneCut": {"placeholders": {"logged": {"type": "int"}, "dropped": {"type": "int"}}},
+  "stepsNoDaysConnectedBody": "Each day's count lands here once the day is over.",
+  "navLists": "Lists",
+  "featureLists": "Lists",
+  "featureListsHint": "To buy, to read, to watch, and any list you make. Share a link from another app to save it here.",
+  "listsToRead": "To read",
+  "listsToWatch": "To watch",
+  "listsKindPlain": "Plain",
+  "listsKindShopping": "Shopping",
+  "listsKindMedia": "Media",
+  "listsKindPlainHint": "Things to tick off: ideas, packing, someday.",
+  "listsKindShoppingHint": "Things to buy, with an estimate and a planned day. An estimate is a plan, never an expense.",
+  "listsKindMediaHint": "Books, articles, shows, films, videos and podcasts: want, in progress, finished.",
+  "listsNew": "New list",
+  "listsNameLabel": "Name",
+  "listsNameHint": "e.g. Packing, gift ideas",
+  "listsOptions": "List options",
+  "listsRename": "Rename",
+  "listsMoveEarlier": "Move left",
+  "listsMoveLater": "Move right",
+  "listsDelete": "Delete list",
+  "listsDeleted": "“{name}” deleted",
+  "@listsDeleted": {"placeholders": {"name": {"type": "String"}}},
+  "listsEmptyTitle": "Nothing on this list",
+  "listsEmptyBody": "Write it down while you think of it.",
+  "listsReadEmptyTitle": "Nothing to read",
+  "listsWatchEmptyTitle": "Nothing to watch",
+  "listsShareHint": "Add one here, or share a link to Harvest from any app.",
+  "listsDoneCount": "{count, plural, =1{1 done} other{{count} done}}",
+  "@listsDoneCount": {"placeholders": {"count": {"type": "int"}}},
+  "listsFinishedCount": "{count, plural, =1{1 finished} other{{count} finished}}",
+  "@listsFinishedCount": {"placeholders": {"count": {"type": "int"}}},
+  "listsDoneOn": "Done on {day}",
+  "@listsDoneOn": {"placeholders": {"day": {"type": "String"}}},
+  "listsFinishedOn": "Finished on {day}",
+  "@listsFinishedOn": {"placeholders": {"day": {"type": "String"}}},
+  "listsInProgress": "In progress",
+  "listsStart": "Start",
+  "listsFinish": "Finish",
+  "listsNewItem": "New item",
+  "listsListLabel": "List",
+  "listsTypeLabel": "Type",
+  "listsCreatorLabel": "Author or creator",
+  "listsLinkLabel": "Link",
+  "listsLinkInNote": "This list keeps no link: it goes in the note.",
+  "listsNoteHint": "Anything worth remembering",
+  "listsTitleHintPlain": "e.g. Passport, charger",
+  "listsTitleHintMedia": "e.g. Dune",
+  "listsMoveTo": "Move to…",
+  "listsMoveToTitle": "Move to which list?",
+  "listsOpenLink": "Open link",
+  "listsLinkFailed": "Couldn't open the link.",
+  "listsPlant": "Plant as a seed",
+  "listsWriteAbout": "Write about it",
+  "listsOpenNote": "Open the note",
+  "listsSeedGrowing": "Planted as a seed",
+  "listsSeedProgress": "Seed · {logged} of {total}",
+  "@listsSeedProgress": {"placeholders": {"logged": {"type": "int"}, "total": {"type": "int"}}},
+  "listsSeedDone": "Its seed is done",
+  "listsMarkFinished": "Mark finished",
+  "listsRateTitle": "Finished — how was it?",
+  "listsRateSkip": "No rating",
+  "listsRatingStars": "{count, plural, =1{1 star} other{{count} stars}}",
+  "@listsRatingStars": {"placeholders": {"count": {"type": "int"}}},
+  "listsPlannedPurchases": "Planned purchases",
+  "listsShareTitle": "Save to a list",
+  "listsSharePickList": "Pick the list it goes in.",
+  "listsShareSaved": "Saved to {list}",
+  "@listsShareSaved": {"placeholders": {"list": {"type": "String"}}},
+  "listsShareOpen": "Open",
+  "mediaBook": "Book",
+  "mediaArticle": "Article",
+  "mediaShow": "Show",
+  "mediaFilm": "Film",
+  "mediaVideo": "Video",
+  "mediaPodcast": "Podcast",
+  "mediaOther": "Other"
+}

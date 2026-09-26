@@ -1,0 +1,49 @@
+{
+  "about": "body_weight.dart: one point per day between the first and last entry, the average over the trend window back, and the change measured on that line rather than on two raw numbers.",
+  "series": [
+    {
+      "why": "a gap in the middle is a day with no entry, not a closed gap",
+      "window": 7,
+      "entries": [
+        { "harvestDay": "2026-09-01", "grams": 80000 },
+        { "harvestDay": "2026-09-03", "grams": 80200 },
+        { "harvestDay": "2026-09-04", "grams": 79800 }
+      ],
+      "points": [
+        { "day": "2026-09-01", "entry": 80000, "average": 80000 },
+        { "day": "2026-09-02", "entry": null, "average": 80000 },
+        { "day": "2026-09-03", "entry": 80200, "average": 80100 },
+        { "day": "2026-09-04", "entry": 79800, "average": 80000 }
+      ]
+    },
+    {
+      "why": "two readings on one day are one point, their mean",
+      "window": 7,
+      "entries": [
+        { "harvestDay": "2026-09-01", "grams": 80000 },
+        { "harvestDay": "2026-09-01", "grams": 80400 }
+      ],
+      "points": [{ "day": "2026-09-01", "entry": 80200, "average": 80200 }]
+    }
+  ],
+  "trends": [
+    {
+      "why": "the line moved 200 g down across three days",
+      "window": 7,
+      "days": 3,
+      "entries": [
+        { "harvestDay": "2026-09-01", "grams": 80000 },
+        { "harvestDay": "2026-09-02", "grams": 80000 },
+        { "harvestDay": "2026-09-03", "grams": 79400 }
+      ],
+      "trend": { "gramsChanged": -200, "days": 2, "entries": 3 }
+    },
+    {
+      "why": "one entry is not a trend",
+      "window": 7,
+      "days": 30,
+      "entries": [{ "harvestDay": "2026-09-01", "grams": 80000 }],
+      "trend": null
+    }
+  ]
+}

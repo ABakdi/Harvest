@@ -1,0 +1,74 @@
+{
+  "about": "HarvestDay (Business Rules #1). Instants are local wall-clock times with no zone, so both test suites read them in whatever zone they run in and get the same calendar answer. Times that do not exist in some zone (a spring-forward gap) are deliberately avoided.",
+  "of": [
+    { "local": "2026-09-02T02:59:00", "day": "2026-09-01", "why": "2:59 AM belongs to the previous calendar day" },
+    { "local": "2026-09-02T02:59:59.999", "day": "2026-09-01", "why": "the last millisecond before the boundary" },
+    { "local": "2026-09-02T03:00:00", "day": "2026-09-02", "why": "3:00 AM starts the new day" },
+    { "local": "2026-09-01T22:00:00", "day": "2026-09-01", "why": "an evening log" },
+    { "local": "2026-09-02T01:00:00", "day": "2026-09-01", "why": "a 1 AM log shares the evening's day" },
+    { "local": "2026-09-02T00:00:00", "day": "2026-09-01", "why": "midnight is still yesterday" },
+    { "local": "2026-09-02T23:59:59", "day": "2026-09-02", "why": "the end of the calendar day" },
+    { "local": "2027-01-01T00:30:00", "day": "2026-12-31", "why": "the year rolls back" },
+    { "local": "2026-03-01T01:00:00", "day": "2026-02-28", "why": "the month rolls back to February" },
+    { "local": "2028-03-01T02:00:00", "day": "2028-02-29", "why": "a leap year's February" },
+    { "local": "2026-03-29T01:30:00", "day": "2026-03-28", "why": "the night the clocks go forward in Europe" },
+    { "local": "2026-10-25T01:30:00", "day": "2026-10-24", "why": "the night the clocks go back in Europe" },
+    { "local": "2026-11-01T02:30:00", "day": "2026-10-31", "why": "the night the clocks go back in the US" }
+  ],
+  "parse": [
+    { "key": "2026-09-19", "day": "2026-09-19" },
+    { "key": "2024-02-29", "day": "2024-02-29" },
+    { "key": "2026-9-2", "day": "2026-09-02", "why": "the parser is lenient about padding" },
+    { "key": "2025-02-29", "day": null, "why": "not a leap year" },
+    { "key": "2026-02-30", "day": null },
+    { "key": "2026-04-31", "day": null },
+    { "key": "2026-13-01", "day": null },
+    { "key": "2026-00-10", "day": null },
+    { "key": "2026-01-00", "day": null },
+    { "key": "2026-09", "day": null },
+    { "key": "2026-09-19-01", "day": null },
+    { "key": "2026-aa-19", "day": null },
+    { "key": "", "day": null },
+    { "key": "yesterday", "day": null }
+  ],
+  "addDays": [
+    { "day": "2026-09-19", "n": 1, "result": "2026-09-20" },
+    { "day": "2026-09-19", "n": -1, "result": "2026-09-18" },
+    { "day": "2026-09-19", "n": 0, "result": "2026-09-19" },
+    { "day": "2026-12-31", "n": 1, "result": "2027-01-01" },
+    { "day": "2027-01-01", "n": -1, "result": "2026-12-31" },
+    { "day": "2028-02-28", "n": 1, "result": "2028-02-29" },
+    { "day": "2026-02-28", "n": 1, "result": "2026-03-01" },
+    { "day": "2026-03-28", "n": 1, "result": "2026-03-29" },
+    { "day": "2026-03-28", "n": 2, "result": "2026-03-30" },
+    { "day": "2026-10-24", "n": 1, "result": "2026-10-25" },
+    { "day": "2026-10-25", "n": 1, "result": "2026-10-26" },
+    { "day": "2026-01-31", "n": 30, "result": "2026-03-02" },
+    { "day": "2026-09-19", "n": 365, "result": "2027-09-19" },
+    { "day": "2026-09-19", "n": -365, "result": "2025-09-19" }
+  ],
+  "daysUntil": [
+    { "from": "2026-09-19", "to": "2026-09-19", "days": 0 },
+    { "from": "2026-09-19", "to": "2026-09-20", "days": 1 },
+    { "from": "2026-09-20", "to": "2026-09-19", "days": -1 },
+    { "from": "2026-03-28", "to": "2026-03-30", "days": 2, "why": "across a spring-forward night" },
+    { "from": "2026-10-24", "to": "2026-10-26", "days": 2, "why": "across a fall-back night" },
+    { "from": "2026-01-01", "to": "2027-01-01", "days": 365 },
+    { "from": "2028-01-01", "to": "2029-01-01", "days": 366 },
+    { "from": "2026-12-31", "to": "2026-01-01", "days": -364 }
+  ],
+  "weekday": [
+    { "day": "2026-09-14", "weekday": 1 },
+    { "day": "2026-09-19", "weekday": 6 },
+    { "day": "2026-09-20", "weekday": 7 },
+    { "day": "2028-02-29", "weekday": 2 },
+    { "day": "2027-01-01", "weekday": 5 }
+  ],
+  "weekStart": [
+    { "day": "2026-09-14", "weekStart": "2026-09-14", "why": "a Monday is its own week start" },
+    { "day": "2026-09-19", "weekStart": "2026-09-14" },
+    { "day": "2026-09-20", "weekStart": "2026-09-14", "why": "Sunday ends the week, it does not start it" },
+    { "day": "2027-01-01", "weekStart": "2026-12-28", "why": "a week across the new year" },
+    { "day": "2026-03-01", "weekStart": "2026-02-23" }
+  ]
+}

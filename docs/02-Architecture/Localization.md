@@ -17,4 +17,12 @@ Decision record: [[ADR-004-Localization]]. Two launch languages: **English** and
 ## Content notes
 
 - The farming voice ([[Glossary]]) must be *translated as tone, not word-for-word* — Arabic copy gets written natively, not machine-mirrored.
-- Numerals follow locale settings (Western vs. Eastern Arabic numerals) via `intl` number formatting; dates respect the locale but the Harvest Day boundary stays 3 AM local regardless ([[Business-Rules]]).
+- **Digits are Western everywhere**, in both languages. Money is
+  formatted with an explicit `en` pattern ([[Finances]]), and every
+  other measurement goes through one formatter that takes the locale's
+  separators and leaves its digits alone ([[Audit-v2]] D3-09). Arabic
+  reading of Western digits is universal; a weight I cannot compare
+  with the number on the scale is not a kindness.
+- Dates and times respect the locale — including the phone's own
+  12- or 24-hour clock — but the Harvest Day boundary stays 3 AM local
+  regardless ([[Business-Rules]]).

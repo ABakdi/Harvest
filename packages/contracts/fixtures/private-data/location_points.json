@@ -1,0 +1,12 @@
+{
+  "uuid": "8f3a6d2b-9e1c-4b5a-b8d7-6c3f9a2e5d41",
+  "harvestDay": "2026-09-18",
+  "recordedAt": "2026-09-18T17:45:12.000Z",
+  "latitude": 36.7538,
+  "longitude": 3.0588,
+  "accuracyM": 12.5,
+  "speedMps": 1.4,
+  "altitudeM": 212,
+  "updatedAt": "2026-09-18T17:45:12.000Z",
+  "deletedAt": null
+}

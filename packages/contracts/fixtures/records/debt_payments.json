@@ -1,0 +1,11 @@
+{
+  "table": "debt_payments",
+  "uuid": "b4f7a1e8-6c3d-4e9b-a5f2-8c1d4b7e3f16",
+  "updatedAt": "2026-09-12T16:00:00.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAB",
+    "ct": "tck3LEd61pTfu9Kz15QJRvkh33UrNFRM7uc6rYM393sUCnIGxoSM6p+aQ35WlHk+4utAisSoC66Byql84LB7IdUva9EvAvnmOlB4Pkpzw7qVZGkgEGVDo2A9GIjQfywEbxvrJes4gjlMD4Ej3K9Ip53jAS0tWi/JDWm3eklgp2jGsLOXKdBXKWGkCaLZXXI1SRU+J9kNaCsE1EWldmTiwODz/jgZ8VvnrAWDe/dHh08yhFEh93/OhDcMCWEkjolq432DA0vgb8/nTFrNh2L69OhZpFJjxxE="
+  }
+}

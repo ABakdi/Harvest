@@ -1,0 +1,14 @@
+{
+  "table": "ledger",
+  "uuid": "c1f8e4a7-9d2b-4c5f-b8a3-6e1d4c9f7b52",
+  "updatedAt": "2026-09-18T22:41:05.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "c1f8e4a7-9d2b-4c5f-b8a3-6e1d4c9f7b52",
+    "kind": "xp",
+    "delta": 10,
+    "reason": "checkin:b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
+    "harvestDay": "2026-09-18",
+    "loggedAt": "2026-09-18T22:41:05.000Z"
+  }
+}

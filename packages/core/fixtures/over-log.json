@@ -1,0 +1,21 @@
+{
+  "about": "A check-in against the over-log cap (Business Rules #2), and against what is left of a project's total target, as CheckInService.checkIn decides it (totalLogged counts today's units too): what is logged, what it pays, and whether the cap refused some of it.",
+  "cases": [
+    { "type": "habit", "loggedToday": 0, "quantity": 1, "quantityLogged": 1, "xpEarned": 10, "capped": false },
+    { "type": "habit", "loggedToday": 1, "quantity": 1, "quantityLogged": 0, "xpEarned": 0, "capped": true, "why": "a second tap on a done habit" },
+    { "type": "habit", "loggedToday": 0, "quantity": 3, "quantityLogged": 1, "xpEarned": 10, "capped": false, "why": "a habit is once a day, whatever was asked" },
+    { "type": "todo", "loggedToday": 0, "quantity": 1, "quantityLogged": 1, "xpEarned": 10, "capped": false },
+    { "type": "todo", "loggedToday": 1, "quantity": 1, "quantityLogged": 0, "xpEarned": 0, "capped": true },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 0, "quantity": 10, "quantityLogged": 10, "xpEarned": 20, "capped": false },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 0, "quantity": 20, "quantityLogged": 20, "xpEarned": 40, "capped": false, "why": "exactly twice the commitment is allowed" },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 0, "quantity": 25, "quantityLogged": 20, "xpEarned": 40, "capped": true },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 15, "quantity": 10, "quantityLogged": 5, "xpEarned": 10, "capped": true },
+    { "type": "project", "dailyCommitment": 10, "loggedToday": 20, "quantity": 1, "quantityLogged": 0, "xpEarned": 0, "capped": true },
+    { "type": "project", "dailyCommitment": 5, "loggedToday": 3, "quantity": 7, "quantityLogged": 7, "xpEarned": 14, "capped": false },
+    { "type": "project", "dailyCommitment": 10, "totalTarget": 100, "totalLogged": 50, "loggedToday": 0, "quantity": 10, "quantityLogged": 10, "xpEarned": 20, "capped": false },
+    { "type": "project", "dailyCommitment": 10, "totalTarget": 100, "totalLogged": 95, "loggedToday": 0, "quantity": 10, "quantityLogged": 5, "xpEarned": 10, "capped": true, "why": "no more than what is left of the target" },
+    { "type": "project", "dailyCommitment": 10, "totalTarget": 100, "totalLogged": 90, "loggedToday": 15, "quantity": 10, "quantityLogged": 5, "xpEarned": 10, "capped": true, "why": "whichever cap is lower" },
+    { "type": "project", "dailyCommitment": 10, "totalTarget": 100, "totalLogged": 97, "loggedToday": 2, "quantity": 20, "quantityLogged": 3, "xpEarned": 6, "capped": true, "why": "the target bites before twice the commitment" },
+    { "type": "project", "dailyCommitment": 10, "totalTarget": 100, "totalLogged": 100, "loggedToday": 5, "quantity": 1, "quantityLogged": 0, "xpEarned": 0, "capped": true, "why": "a finished project takes nothing more" }
+  ]
+}

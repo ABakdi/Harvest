@@ -93,7 +93,7 @@ Photos are large and this app has been careful about what it keeps.
 | # | Rule |
 | :-- | :--- |
 | G1 | Off until switched on; permissions are asked at that moment, never at first launch. |
-| G2 | Files live in the app's own storage, not the system gallery. Nothing here is written where other apps browse. |
+| G2 | Files live in the app's own storage, not the system gallery. Nothing here is written where other apps browse. In a browser that storage is IndexedDB, and *Share* is a download. |
 | G3 | A scheduled album is a seed: it is due, it is checked in by adding a memory, and it feeds the streak like anything else. |
 | G4 | Images are downscaled on import. Storage is shown, not discovered. |
 | G5 | Deleting moves a memory to the trash; emptying the trash deletes the file, for good. |

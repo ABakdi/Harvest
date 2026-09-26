@@ -1,0 +1,17 @@
+{
+  "table": "lists",
+  "uuid": "f09ec3ec-5479-525d-9c50-5dd509700907",
+  "updatedAt": "2026-09-26T09:00:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "f09ec3ec-5479-525d-9c50-5dd509700907",
+    "name": "Reading pile",
+    "kind": "media",
+    "icon": null,
+    "position": 2,
+    "builtIn": "read",
+    "createdAt": "2020-01-01T00:00:00.000Z",
+    "updatedAt": "2026-09-26T09:00:00.000Z",
+    "deletedAt": null
+  }
+}

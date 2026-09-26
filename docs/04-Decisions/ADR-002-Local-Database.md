@@ -4,7 +4,7 @@
 
 ## Context
 
-All user data is local-first forever ([[Business-Rules]] #5), with MongoDB sync arriving in Phase 5. Requirements: open source, well supported, fast offline queries (streak math over years of check-ins), reactive queries for the UI, and a credible sync path. Candidates considered:
+All user data is local-first forever ([[Business-Rules]] #5), with MongoDB sync arriving in [[Phase-6-Sync-Accounts-and-Web]]. Requirements: open source, well supported, fast offline queries (streak math over years of check-ins), reactive queries for the UI, and a credible sync path. Candidates considered:
 
 | Option | Verdict |
 | :--- | :--- |
@@ -28,4 +28,4 @@ All user data is local-first forever ([[Business-Rules]] #5), with MongoDB sync 
 ## Consequences
 
 - Schema + codegen ceremony per table — offset by migration safety.
-- The document↔row mapping lives in the Phase 5 API layer; kept trivial by designing tables sync-ready from day one ([[Local-Database]]).
+- The document↔row mapping lives in the Phase 6 API layer; kept trivial by designing tables sync-ready from day one ([[Local-Database]]).

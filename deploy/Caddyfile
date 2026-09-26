@@ -1,0 +1,50 @@
+# Harvest on one origin: the web app as static files, /v1 to the server.
+# HARVEST_DOMAIN is the public name (Caddy gets its certificate itself);
+# set it to :80 to serve plain http behind another proxy.
+
+(site_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(self), microphone=(self), geolocation=(self)"
+		# Map tiles and fonts (OpenFreeMap), satellite tiles (Esri), the
+		# rates I ask for; nothing else leaves the page (Business rule 13).
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; font-src 'self' data:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://api.frankfurter.dev; worker-src 'self' blob:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+	}
+}
+
+{$HARVEST_DOMAIN::80} {
+	encode zstd gzip
+
+	handle /v1/* {
+		reverse_proxy {$HARVEST_SERVER:server:8080}
+	}
+
+	# Hashed assets never change. A missing one is a 404, never
+	# index.html cached for a year under a script's name; and the source
+	# maps stay on the build machine.
+	handle /assets/* {
+		import site_headers
+		root * /srv/harvest
+		@maps path *.map
+		respond @maps 404
+		@exists {
+			file
+			not path *.map
+		}
+		header @exists Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# Everything else is the shell, asked for again every time, or a
+	# deploy never reaches an open tab; a path that is not a file is a
+	# page of the app.
+	handle {
+		import site_headers
+		root * /srv/harvest
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

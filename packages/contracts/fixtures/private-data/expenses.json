@@ -1,0 +1,11 @@
+{
+  "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+  "amountMinor": 45000,
+  "currency": "DZD",
+  "category": "Food",
+  "note": "Couscous, Friday",
+  "harvestDay": "2026-09-18",
+  "loggedAt": "2026-09-18T13:10:00.000Z",
+  "deletedAt": null,
+  "updatedAt": "2026-09-18T13:10:00.000Z"
+}

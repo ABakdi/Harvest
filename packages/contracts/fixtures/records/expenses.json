@@ -1,0 +1,11 @@
+{
+  "table": "expenses",
+  "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+  "updatedAt": "2026-09-18T13:10:00.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAE",
+    "ct": "xcTdBkjT3FQW/WgH2w8WU1oIp99dqWaF+jph0otj3i9VUQZrVJyou4MU8831qk0EWS5uyikriF8yXY8OthNc0lybuMc8dYe9NgD/PAqKBIayIB3JLTCbLIkcSEVCUrCRG5CH/aSVH4gofij0JVxxYpTl53fA8ZMEai+xBRdVRYFW/ddQbCZzn0dbOZ788tj0bqagSvExUKrkM7J7yKkg7zUtkG1VOb5Rc1jnPvRk7yUElgp+E9erudiplv7SMX0o9uWUdeWr69Uufhc7SQYsa6s015b6AY49J0h/frgOlpKyS67qX3NDZr7tPQLj/4cC7+H3QCY4vcWTSz8WcaWTB3LGZ3CEdvlW"
+  }
+}

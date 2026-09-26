@@ -161,8 +161,8 @@ One number, whenever I stand on the scale. Not a daily obligation.
   day is allowed — morning and evening are different facts.
 - Units are mine: **kg or lb**, set once, converted for display and
   never for storage. Weight is stored in **grams**, integer, for the
-  same reason money is stored in minor units ([[Business-Rules]] #3):
-  a body weight is not a float.
+  same reason money is stored in minor units ([[Finances]]): a body
+  weight is not a float.
 - Optional **note** on any entry — *"after the flu"*, *"new scale"* —
   because the outlier always has a reason and the reason is what makes
   the chart readable a year later.
@@ -176,8 +176,8 @@ So the chart draws **both**:
 - a **7-day moving average** as the line that actually means something.
 
 Above it, one sentence in plain words: *"Down 1.4 kg over 30 days"* —
-direction, amount, window. The window is mine to change (30 / 90 days /
-all), and the app **never says whether that is good**. It is my body and
+direction, amount, window. The window is mine to change (30 / 90 /
+365 days), and the app **never says whether that is good**. It is my body and
 my goal; the app's job is the arithmetic.
 
 - An optional **target weight** draws a line, and the summary then adds
@@ -206,9 +206,10 @@ that is a different app and I am not writing it.
 | H3 | Steps are passive: they never check a seed in and never break a streak. |
 | H4 | Weight is stored in grams, integer. Units are a display choice. |
 | H5 | The weight chart shows the trend, not just the dots — and never judges the direction. |
-| H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. |
+| H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. On the web the two ends are typed as clock times and read with the phone's slider ranges: asleep from 8 PM the evening before to 11 AM, awake up to 3 PM. Correcting a night keeps the target it was first judged against (#3). |
 | H7 | Sleep is not a seed: it checks nothing in, breaks no streak, and never appears on the field. |
 | H8 | A night is filed under the Harvest Day I **woke up on**, because that is the day it decides. |
-| H9 | The day that ended gets its step goal paid by whichever pull sees it first — the 3 AM job or the next open — and once only ([[Checkpoint-8]]). |
+| H9 | The day that ended gets its step goal paid by whichever pull sees it first — the 3 AM job or the next open — and once only ([[Checkpoint-8]]). A pull pays every day since the last one paid, so a weekend without an open is paid on Monday ([[Audit-v2]] B3-02). |
+| H10 | On the sensor, the 3 AM job closes the ended day only within three hours of 3 AM and only if nothing has read the new day yet. Otherwise — and on most phones, which give a background app no sensor events at all — the evening's steps are written down on the next open, on the new day. Losing where a few hundred steps land is better than counting them twice ([[Audit-v2]] B3-01). |
 
 Related: [[Gym]] · [[Gallery]] · [[Gamification]] · [[Notifications]] · [[Business-Rules]]

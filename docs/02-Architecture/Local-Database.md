@@ -60,12 +60,12 @@ erDiagram
     }
     outbox {
         int seq PK
-        text tableName
+        text targetTable
         text rowUuid
         text op
         datetime queuedAt
     }
-    settings {
+    kv_settings {
         text key PK
         text valueJson
     }
@@ -73,9 +73,14 @@ erDiagram
 
 XP and coins are a **ledger**, not a counter — balances are sums, history is free, and sync conflicts become trivial merges.
 
-Later phases add tables without touching these: `expenses`, `budgets` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets` (Phase 4); `session_exercises` (Phase 4); `screen_goals`, `usage_days` (Phase 5).
+Later phases add tables without touching these: `expenses`, `money_txns`, `debts`, `debt_payments`, `categories` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets`, `session_exercises` (Phase 4); `goals`, `goal_items`, `location_points`, `geotags`, `saved_places`, `note_attachments` (Phase 5); `screen_goals`, `usage_days` (Phase 7).
 
-Phase 4 landed at **schema v13**; [[Checkpoint-6]] took it to **v14**.
+There is **no `budgets` table**: the monthly budget is one setting,
+`finance.monthlyBudgetMinor`, because a single number I change a few
+times a year is not a table ([[Audit-v2]] D3-02).
+
+Phase 4 landed at **schema v13**; [[Checkpoint-6]] took it to **v14**,
+and Phase 5 to **v15**.
 
 **Phase 3 is the first time a row points at a file.** A note's body is
 text in the database, but a memory is a path into the app's own
@@ -99,7 +104,7 @@ can drop the files back under a fresh root and repoint nothing
 
 ## Migrations
 
-Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`; **v11** added `memories.deleted_at`, the gallery's trash ([[Checkpoint-5]]); **v12** and **v13** added the Phase 4 tables, the body in one step and sleep in the next; **v14** added `workout_sessions.paused_at` and `paused_seconds`, the clock that stops for a phone call ([[Checkpoint-6]]).
+Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`; **v11** added `memories.deleted_at`, the gallery's trash ([[Checkpoint-5]]); **v12** and **v13** added the Phase 4 tables, the body in one step and sleep in the next; **v14** added `workout_sessions.paused_at` and `paused_seconds`, the clock that stops for a phone call ([[Checkpoint-6]]); **v15** is Phase 5 in one step — `goals`, `goal_items` and `commitments.goal_uuid` ([[Goals]]), `location_points`, `geotags` and `saved_places` ([[Places]]), and `note_attachments` ([[Notes]] N7); **v16** added `session_exercises.skip_reason`; **v17** added `file_hash` to `memories` and `note_attachments`, the name a file is synced by ([[Sync-API]]); **v18** stores every date as ISO-8601 text, to the microsecond; **v19** added `wishlist_items` ([[Wishlist]]); **v20** added `saved_places.notes` ([[Places]]); **v21** added `expense_categories.created_at`, filled from `updated_at` for the rows I already had, so that the list is ordered by when a category was made and a restored one keeps its place instead of dropping to the end; **v22** stamps a row from the phone's clock rather than sqlite's. `CURRENT_TIMESTAMP` wrote UTC with no zone, drift read that back as a UTC clock, and in Algiers an expense I logged at 4:21 PM showed 3:21. The defaults became client-side (`clientDefault(DateTime.now)`), which means rebuilding every table that had one, and every date still spelled in UTC — sqlite's `2026-09-25 15:21:00` from the old default and the v18 rewrite, or a `Z` from a pulled row — is rewritten on the local clock with its offset (`2026-09-25T16:21:00.000 +01:00`), the spelling the app writes itself, keeping its instant. A date already in that spelling is left alone. Sync reads a date with no zone as UTC, sends it with a `Z`, and stores what it pulls on the local clock. A column added after v18 is added *before* the v18 rewrite when an upgrade crosses both, because the rewrite rebuilds each table from its current definition. **v23** is [[Lists]]: a `lists` table (name, kind — `plain`, `shopping` or `media` —, icon, position, and `built_in` for the four every device has), and `wishlist_items` — which keeps its name so the beta devices and archives out there keep working — gains `list_uuid`, `media_type`, `link`, `creator`, `started_at`, `rating`, `seed_uuid` and `note_uuid`. `bought_at` now means done for every kind. The four built-in lists (*To buy*, *Wishlist*, *To read*, *To watch*) have fixed ids, a uuid v5 of `lists/<key>` written out in `@harvest/contracts`, and a stamp from 2020, so a phone and a browser that upgrade on their own make the same four rows and a late upgrade never outranks a rename; they are made on a fresh install too, and never queued. The upgrade points every item at the list its old `list` column named, and if I had a live item it switches `features.lists` on (and queues that preference), so the Wishlist does not vanish behind a switch I never saw. The old `list` column is still written — `buy` for *To buy*, `wish` for everything else — and a row that arrives without `list_uuid`, from a beta client or an old archive, is read by it. The new columns are added before the v22 rebuild when an upgrade crosses both, for the same reason as above.
 
 A seed's **start day** deliberately has no column: `created_at` already
 says when it was planted, so the rule that nothing is due before then
@@ -111,14 +116,23 @@ app is a soft delete: the row keeps its history and its `updated_at` for
 a future sync. On each launch, rows soft-deleted more than 30 days ago
 are purged for good (`purgeDeleted` on the commitments, finances and
 vault repositories). Nothing about money lingers forever by accident.
+Notes are not in that sweep: their trash is emptied by hand, from the
+trash screen, or a note at a time ([[Notes]], [[Audit-v2]] D3-02).
 
-The one hard delete is `CommitmentsRepository.hardDelete` — the seed I
-planted by mistake, confirmed in the UI first, taking its check-ins, its
-notes and its streak row with it in a single transaction and leaving a
-`delete` outbox row behind ([[Business-Rules]] #8). Its focus sessions
-are detached rather than deleted: the time was still spent. A soft
-delete would have been worse here, not safer — the row would skew the
-stats for thirty days and then be lost anyway.
+**What is hard-deleted, and why each one is** ([[Business-Rules]] #8,
+[[Audit-v2]] D3-01):
+
+| What | Where | Why not soft |
+| :--- | :--- | :--- |
+| A seed planted by mistake | `CommitmentsRepository.hardDelete` | Confirmed in the UI first, and it takes its check-ins, notes and streak row in one transaction. A soft delete would skew the stats for thirty days and then be lost anyway. Its focus sessions are detached rather than deleted: the time was still spent. |
+| A note emptied from the trash | `NotesRepository.purge`, `emptyTrash` | The trash *is* the soft delete; emptying it is the second confirmation. Links out of the note go with it, and links into it become unresolved rather than pointing at nothing. |
+| An album purged | `GalleryRepository.purgeAlbum` | The pictures are files on disk; leaving the rows behind would leave the bytes behind. |
+| A note taken off a seed | `SeedNotesRepository.delete` | A line I am editing, not an event. |
+| A program's days, slots and target sets | `ProgramsRepository` | The plan is a document I edit; the sessions it produced are the history and are untouched. |
+| A set dropped from a session | `SessionsRepository.removeSet` | A set I logged by mistake is not a set I did. |
+
+Every one of them leaves a `delete` row in the outbox, so a sync
+carries the removal rather than resurrecting the row.
 
 **Every table is exportable.** The spreadsheet export
 ([[ADR-006-Export-Format]]) reads each table directly rather than through

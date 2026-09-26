@@ -1,0 +1,28 @@
+{
+  "about": "What things pay (Gamification). goalAchieved has no Dart constant yet, so only the TypeScript suite reads it.",
+  "xp": {
+    "habitOrTodo": 10,
+    "perProjectUnit": 2,
+    "memory": 10,
+    "gymSession": 10,
+    "sleep": 15,
+    "bodyWeight": 5,
+    "stepGoal": 5,
+    "expenseLog": 10,
+    "pomodoroBlock": 5,
+    "goalAchieved": 50
+  },
+  "streakMilestoneCoins": { "7": 50, "30": 200, "100": 1000 },
+  "freezeCost": 100,
+  "maxFreezesStored": 2,
+  "defaultDailyHarvestGoal": 3,
+  "ranks": [
+    { "xp": 0, "rank": "sprout" },
+    { "xp": 999, "rank": "sprout" },
+    { "xp": 1000, "rank": "seedling" },
+    { "xp": 2500, "rank": "gardener" },
+    { "xp": 3999, "rank": "harvester" },
+    { "xp": 4000, "rank": "masterFarmer" },
+    { "xp": 250000, "rank": "masterFarmer" }
+  ]
+}

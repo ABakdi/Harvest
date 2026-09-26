@@ -1,0 +1,1094 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/celebration.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
+import 'package:harvest/core/ui/widgets/empty_state.dart';
+import 'package:harvest/core/ui/widgets/hero_card.dart';
+import 'package:harvest/core/ui/widgets/icon_badge.dart';
+import 'package:harvest/core/ui/widgets/ledger_row.dart';
+import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/core/ui/widgets/stat_tile.dart';
+import 'package:harvest/features/finances/data/vault_repository.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/domain/finance_actions.dart';
+import 'package:harvest/features/finances/domain/move_filter.dart';
+import 'package:harvest/features/finances/domain/vault.dart';
+import 'package:harvest/features/finances/presentation/debt_sheet.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/finances/presentation/guarded.dart';
+import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/finances/presentation/money_sheet.dart';
+import 'package:harvest/features/finances/presentation/move_filter_bar.dart';
+import 'package:harvest/features/finances/presentation/moves_ledger.dart';
+import 'package:harvest/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
+
+export 'package:harvest/features/finances/presentation/debt_sheet.dart'
+    show showDebtSheet;
+
+/// The three pots of the vault (round 4: one clear section each).
+enum VaultSection { wallet, savings, debts }
+
+/// The vault: wallet (meant to be spent), savings (meant to be saved),
+/// and debts — each section with its total and its own atomic moves.
+class VaultTab extends ConsumerStatefulWidget {
+  const VaultTab({super.key});
+
+  @override
+  ConsumerState<VaultTab> createState() => _VaultTabState();
+}
+
+class _VaultTabState extends ConsumerState<VaultTab> {
+  VaultSection _section = VaultSection.wallet;
+
+  /// One filter for the whole tab: narrowing to "food" and then
+  /// switching pot should still be narrowed to food.
+  MoveFilter _filter = MoveFilter.empty;
+
+  void _select(VaultSection section) {
+    if (section == _section) return;
+    unawaited(HarvestHaptics.tick());
+    setState(() => _section = section);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final totals = ref.watch(vaultTotalsProvider);
+    final health = ref.watch(savingsHealthProvider);
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
+    final savingsColor = health == SavingsHealth.low
+        ? scheme.error
+        : scheme.secondary;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        HarvestSpacing.md,
+        HarvestSpacing.sm,
+        HarvestSpacing.md,
+        HarvestSpacing.xl,
+      ),
+      children: [
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: StatTile(
+                  icon: Icons.account_balance_wallet,
+                  color: scheme.primary,
+                  label: l10n.walletTitle,
+                  value: formatMoney(totals.wallet, defaultCurrency),
+                  selected: _section == VaultSection.wallet,
+                  onTap: () => _select(VaultSection.wallet),
+                ),
+              ),
+              const SizedBox(width: HarvestSpacing.sm),
+              Expanded(
+                child: StatTile(
+                  icon: Icons.savings,
+                  color: savingsColor,
+                  label: l10n.savingsSectionTitle,
+                  value: formatMoney(totals.savings, defaultCurrency),
+                  selected: _section == VaultSection.savings,
+                  onTap: () => _select(VaultSection.savings),
+                ),
+              ),
+              const SizedBox(width: HarvestSpacing.sm),
+              Expanded(
+                child: StatTile(
+                  icon: Icons.handshake,
+                  color: scheme.tertiary,
+                  label: l10n.vaultOwed,
+                  value: formatMoney(totals.owed, defaultCurrency),
+                  selected: _section == VaultSection.debts,
+                  onTap: () => _select(VaultSection.debts),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: HarvestSpacing.md),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween(
+                begin: const Offset(0, 0.02),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.topCenter,
+            children: [...previous, ?current],
+          ),
+          child: KeyedSubtree(
+            key: ValueKey(_section),
+            child: switch (_section) {
+              VaultSection.wallet => _WalletSection(
+                filter: _filter,
+                onFilter: (filter) => setState(() => _filter = filter),
+              ),
+              VaultSection.savings => _SavingsSection(
+                filter: _filter,
+                onFilter: (filter) => setState(() => _filter = filter),
+              ),
+              VaultSection.debts => const _DebtsSection(),
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ------------------------------------------------------------------ wallet
+
+class _WalletSection extends ConsumerWidget {
+  const _WalletSection({required this.filter, required this.onFilter});
+
+  final MoveFilter filter;
+  final ValueChanged<MoveFilter> onFilter;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final balances = ref.watch(accountBalancesProvider(MoneyAccount.wallet));
+    final txns =
+        ref.watch(accountTxnsProvider(MoneyAccount.wallet)).value ?? const [];
+    final shown = filter.apply(txns);
+    final rates = ref.watch(ratesOrDefaultProvider);
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HeroCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const IconBadge(
+                    Icons.account_balance_wallet,
+                    color: Colors.white,
+                    size: 36,
+                    iconSize: 20,
+                  ),
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Eyebrow(l10n.walletTitle),
+                ],
+              ),
+              const SizedBox(height: HarvestSpacing.md),
+              _Balances(
+                balances: balances,
+                rates: rates,
+                defaultCurrency: defaultCurrency,
+              ),
+              const SizedBox(height: HarvestSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _HeroAction(
+                      icon: Icons.add,
+                      label: l10n.walletAdd,
+                      onTap: () => unawaited(
+                        _walletMove(
+                          context,
+                          ref,
+                          deposit: true,
+                          currency: defaultCurrency,
+                          balances: balances,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Expanded(
+                    child: _HeroAction(
+                      icon: Icons.remove,
+                      label: l10n.walletTake,
+                      onTap: () => unawaited(
+                        _walletMove(
+                          context,
+                          ref,
+                          deposit: false,
+                          currency: defaultCurrency,
+                          balances: balances,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SectionHeader(l10n.movesTitle),
+        MoveFilterBar(
+          filter: filter,
+          matches: shown.length,
+          total: txns.length,
+          onChanged: onFilter,
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        if (txns.isNotEmpty && shown.isEmpty)
+          Card(
+            child: EmptyState(
+              icon: Icons.search_off,
+              title: l10n.movesNoMatch,
+              body: l10n.movesNoMatchBody,
+              color: theme.colorScheme.tertiary,
+              compact: true,
+            ),
+          )
+        else
+          MovesLedger(
+            txns: shown,
+            rates: rates,
+            emptyTitle: l10n.noMovesYet,
+            emptyIcon: Icons.account_balance_wallet_outlined,
+            color: theme.colorScheme.primary,
+          ),
+      ],
+    );
+  }
+
+  Future<void> _walletMove(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool deposit,
+    required Currency currency,
+    required Map<Currency, int> balances,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final entry = await showMoneySheet(
+      context,
+      title: deposit ? l10n.walletAdd : l10n.walletTake,
+      subtitle: l10n.walletTitle,
+      initialCurrency: currency,
+      // Taking out more than the wallet holds is a typo, not a wish.
+      maxMinor: deposit ? null : balances,
+    );
+    if (entry == null || !context.mounted) return;
+    await runGuarded(
+      context,
+      ref
+          .read(vaultRepositoryProvider)
+          .move(
+            account: MoneyAccount.wallet,
+            deltaMinor: deposit ? entry.minor : -entry.minor,
+            currency: entry.currency,
+            note: entry.note,
+          ),
+    );
+  }
+}
+
+// ----------------------------------------------------------------- savings
+
+class _SavingsSection extends ConsumerWidget {
+  const _SavingsSection({required this.filter, required this.onFilter});
+
+  final MoveFilter filter;
+  final ValueChanged<MoveFilter> onFilter;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final balances = ref.watch(accountBalancesProvider(MoneyAccount.savings));
+    final txns =
+        ref.watch(accountTxnsProvider(MoneyAccount.savings)).value ?? const [];
+    final shown = filter.apply(txns);
+    final rates = ref.watch(ratesOrDefaultProvider);
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
+    final low = ref.watch(savingsHealthProvider) == SavingsHealth.low;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HeroCard(
+          tint: low ? scheme.error : scheme.secondary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  IconBadge(
+                    Icons.savings,
+                    color: low ? scheme.error : scheme.secondary,
+                    size: 36,
+                    iconSize: 20,
+                  ),
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Eyebrow(l10n.savingsSectionTitle),
+                  if (low) ...[
+                    const Spacer(),
+                    Icon(Icons.warning_amber_rounded, color: scheme.error),
+                    const SizedBox(width: HarvestSpacing.xs),
+                    Text(
+                      l10n.savingsLow,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: scheme.error,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: HarvestSpacing.md),
+              _Balances(
+                balances: balances,
+                rates: rates,
+                defaultCurrency: defaultCurrency,
+              ),
+              const SizedBox(height: HarvestSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _HeroAction(
+                      icon: Icons.add,
+                      label: l10n.savingsDeposit,
+                      color: low ? scheme.error : scheme.secondary,
+                      onTap: () => unawaited(
+                        _deposit(context, ref, currency: defaultCurrency),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Expanded(
+                    child: _HeroAction(
+                      icon: Icons.remove,
+                      label: l10n.savingsWithdraw,
+                      color: low ? scheme.error : scheme.secondary,
+                      onTap: balances.isEmpty
+                          ? null
+                          : () => unawaited(
+                              _withdraw(context, ref, balances: balances),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SectionHeader(l10n.movesTitle),
+        MoveFilterBar(
+          filter: filter,
+          matches: shown.length,
+          total: txns.length,
+          onChanged: onFilter,
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        if (txns.isNotEmpty && shown.isEmpty)
+          Card(
+            child: EmptyState(
+              icon: Icons.search_off,
+              title: l10n.movesNoMatch,
+              body: l10n.movesNoMatchBody,
+              color: scheme.tertiary,
+              compact: true,
+            ),
+          )
+        else
+          MovesLedger(
+            txns: shown,
+            rates: rates,
+            emptyTitle: l10n.noMovesYet,
+            emptyIcon: Icons.savings_outlined,
+            color: scheme.secondary,
+          ),
+      ],
+    );
+  }
+
+  /// A deposit comes from the wallet (transfer) or from new money.
+  /// Saving asks one question: how much. Where it comes from is a
+  /// switch inside the same sheet, defaulted to the wallet when the
+  /// wallet can cover it.
+  Future<void> _deposit(
+    BuildContext context,
+    WidgetRef ref, {
+    required Currency currency,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final entry = await showMoneySheet(
+      context,
+      title: l10n.savingsDeposit,
+      subtitle: l10n.savingsSectionTitle,
+      initialCurrency: currency,
+      accent: scheme.secondary,
+      walletBalances: ref.read(accountBalancesProvider(MoneyAccount.wallet)),
+    );
+    if (entry == null || !context.mounted) return;
+    await runGuarded(
+      context,
+      ref
+          .read(financeActionsProvider)
+          .depositSavings(
+            amountMinor: entry.minor,
+            currency: entry.currency,
+            fromWallet: entry.fromWallet,
+            note: entry.note,
+          ),
+    );
+  }
+
+  /// A withdrawal always lands in the wallet. Spending it is a separate,
+  /// ordinary expense — one path for money leaving, not two.
+  Future<void> _withdraw(
+    BuildContext context,
+    WidgetRef ref, {
+    required Map<Currency, int> balances,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final entry = await showMoneySheet(
+      context,
+      title: l10n.savingsWithdraw,
+      subtitle: l10n.withdrawToWallet,
+      initialCurrency: balances.keys.first,
+      lockCurrency: balances.length == 1,
+      maxMinor: balances,
+      accent: scheme.secondary,
+    );
+    if (entry == null || !context.mounted) return;
+    await runGuarded(
+      context,
+      ref
+          .read(financeActionsProvider)
+          .withdrawSavings(
+            amountMinor: entry.minor,
+            currency: entry.currency,
+            note: entry.note,
+          ),
+    );
+  }
+}
+
+// ------------------------------------------------------------------- debts
+
+class _DebtsSection extends ConsumerStatefulWidget {
+  const _DebtsSection();
+
+  @override
+  ConsumerState<_DebtsSection> createState() => _DebtsSectionState();
+}
+
+class _DebtsSectionState extends ConsumerState<_DebtsSection> {
+  final _expanded = <String>{};
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final debts = ref.watch(debtsProvider).value ?? const <Debt>[];
+    final payments =
+        ref.watch(debtPaymentsProvider).value ?? const <DebtPayment>[];
+    final rates = ref.watch(ratesOrDefaultProvider);
+    final defaultCurrency = ref.watch(defaultCurrencyProvider);
+
+    final open = debts.where((d) => !d.isSettled).toList();
+    final settled = debts.where((d) => d.isSettled).toList();
+    final owed = <Currency, int>{};
+    for (final debt in open) {
+      owed.update(
+        debt.currency,
+        (v) => v + debt.remainingMinor,
+        ifAbsent: () => debt.remainingMinor,
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HeroCard(
+          tint: scheme.tertiary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  IconBadge(
+                    Icons.handshake,
+                    color: scheme.tertiary,
+                    size: 36,
+                    iconSize: 20,
+                  ),
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Eyebrow(l10n.vaultOwed),
+                  const Spacer(),
+                  Text(
+                    l10n.vaultOpenDebts(open.length),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: HarvestSpacing.md),
+              _Balances(
+                balances: owed,
+                rates: rates,
+                defaultCurrency: defaultCurrency,
+              ),
+              const SizedBox(height: HarvestSpacing.md),
+              _HeroAction(
+                icon: Icons.add,
+                label: l10n.addDebt,
+                color: scheme.tertiary,
+                onTap: () => unawaited(showDebtSheet(context)),
+              ),
+            ],
+          ),
+        ),
+        if (debts.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: HarvestSpacing.md),
+            child: Card(
+              child: EmptyState(
+                icon: Icons.handshake_outlined,
+                title: l10n.debtsEmptyTitle,
+                body: l10n.debtsEmptyBody,
+                color: scheme.tertiary,
+                compact: true,
+              ),
+            ),
+          ),
+        if (open.isNotEmpty) ...[
+          SectionHeader(l10n.debtOpen),
+          for (final debt in open)
+            Padding(
+              padding: const EdgeInsets.only(bottom: HarvestSpacing.sm + 4),
+              child: _DebtCard(
+                debt: debt,
+                payments: payments
+                    .where((p) => p.debtUuid == debt.uuid)
+                    .toList(),
+                expanded: _expanded.contains(debt.uuid),
+                onToggle: () => setState(() {
+                  if (!_expanded.remove(debt.uuid)) _expanded.add(debt.uuid);
+                }),
+                onPay: () => unawaited(_pay(context, debt)),
+                onRemovePayment: (payment) =>
+                    unawaited(_removePayment(context, payment)),
+              ),
+            ),
+        ],
+        if (settled.isNotEmpty) ...[
+          SectionHeader(l10n.debtSettledSection),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: HarvestSpacing.sm,
+                vertical: HarvestSpacing.xs,
+              ),
+              child: Column(
+                children: [
+                  for (final debt in settled)
+                    _SettledDebt(
+                      debt: debt,
+                      payments: payments
+                          .where((p) => p.debtUuid == debt.uuid)
+                          .toList(),
+                      expanded: _expanded.contains(debt.uuid),
+                      onToggle: () => setState(() {
+                        if (!_expanded.remove(debt.uuid)) {
+                          _expanded.add(debt.uuid);
+                        }
+                      }),
+                      onRemovePayment: (payment) => unawaited(
+                        _removePayment(context, payment, settled: true),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// A payment logged by mistake goes the way an expense does: ask,
+  /// remove, offer Undo ([[Audit-v2-Beta]] N-01).
+  /// On a settled debt ([settled]) the removal reopens it, and the bar
+  /// says so.
+  Future<void> _removePayment(
+    BuildContext context,
+    DebtPayment payment, {
+    bool settled = false,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final actions = ref.read(financeActionsProvider);
+    final ok = await confirm(
+      context,
+      title: l10n.debtPaymentRemoveTitle,
+      body: l10n.debtPaymentRemoveBody,
+      confirmLabel: l10n.removeAction,
+      destructive: true,
+    );
+    if (!ok) return;
+    await actions.removePayment(payment.uuid);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          // An action is an offer for a few seconds, not a fixture.
+          persist: false,
+          content: Text(settled ? l10n.debtReopened : l10n.deleted),
+          action: SnackBarAction(
+            label: l10n.undoAction,
+            onPressed: () => actions.restorePayment(payment.uuid).ignore(),
+          ),
+        ),
+      );
+  }
+
+  Future<void> _pay(BuildContext context, Debt debt) async {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final entry = await showMoneySheet(
+      context,
+      title: l10n.debtPay,
+      subtitle: debt.person,
+      initialCurrency: debt.currency,
+      lockCurrency: true,
+      initialAmountMinor: debt.remainingMinor,
+      maxMinor: {debt.currency: debt.remainingMinor},
+      accent: scheme.tertiary,
+      walletBalances: ref.read(accountBalancesProvider(MoneyAccount.wallet)),
+    );
+    if (entry == null || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await runGuarded(
+      context,
+      ref
+          .read(financeActionsProvider)
+          .payDebt(
+            debtUuid: debt.uuid,
+            amountMinor: entry.minor,
+            fromWallet: entry.fromWallet,
+            note: entry.note,
+          ),
+    );
+    // The last payment gets the small celebration [[Finances]]
+    // promises: a burst over the vault and a line that says it is done.
+    if (!ok || entry.minor < debt.remainingMinor || !context.mounted) return;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box != null && box.hasSize) {
+      showCheckInBurst(
+        context,
+        box.localToGlobal(box.size.topCenter(const Offset(0, 48))),
+        icon: Icons.celebration,
+        color: scheme.secondary,
+        particles: 12,
+      );
+    }
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(l10n.debtSettledWith(debt.person))),
+      );
+  }
+}
+
+/// A settled debt in the quiet list: who, how much, and its payments
+/// one tap away — a mistaken last payment can still be taken back, and
+/// taking it back reopens the debt ([[Audit-v2-Beta]] N-01).
+class _SettledDebt extends StatelessWidget {
+  const _SettledDebt({
+    required this.debt,
+    required this.payments,
+    required this.expanded,
+    required this.onToggle,
+    required this.onRemovePayment,
+  });
+
+  final Debt debt;
+  final List<DebtPayment> payments;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final ValueChanged<DebtPayment> onRemovePayment;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LedgerRow(
+          icon: Icons.check_circle,
+          color: scheme.secondary,
+          title: debt.person,
+          subtitle: l10n.debtSettled,
+          amount: formatMoney(debt.amountMinor, debt.currency),
+          amountColor: scheme.onSurface.withValues(alpha: 0.55),
+          onTap: payments.isEmpty ? null : onToggle,
+        ),
+        if (payments.isNotEmpty)
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton.icon(
+              onPressed: onToggle,
+              icon: Icon(
+                expanded ? Icons.expand_less : Icons.expand_more,
+                size: 18,
+              ),
+              label: Text('${l10n.debtPayments} · ${payments.length}'),
+            ),
+          ),
+        if (expanded && payments.isNotEmpty)
+          _PaymentsList(
+            payments: payments,
+            currency: debt.currency,
+            onRemove: onRemovePayment,
+          ),
+      ],
+    );
+  }
+}
+
+/// A debt's payments, each removable by its own button (or a long
+/// press, the way an expense goes). The same list sits under an open
+/// debt and a settled one.
+class _PaymentsList extends StatelessWidget {
+  const _PaymentsList({
+    required this.payments,
+    required this.currency,
+    required this.onRemove,
+  });
+
+  final List<DebtPayment> payments;
+  final Currency currency;
+  final ValueChanged<DebtPayment> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final locale = Localizations.localeOf(context).toString();
+    return Column(
+      children: [
+        for (final payment in payments)
+          Row(
+            children: [
+              Expanded(
+                child: LedgerRow(
+                  icon: Icons.payments,
+                  color: scheme.secondary,
+                  title: dayLabel(context, payment.day),
+                  subtitle: DateFormat.jm(locale).format(payment.loggedAt),
+                  amount: formatMoneySigned(-payment.amountMinor, currency),
+                  onLongPress: () => onRemove(payment),
+                ),
+              ),
+              IconButton(
+                tooltip: l10n.debtPaymentRemove,
+                icon: Icon(Icons.delete_outline, color: scheme.onSurfaceVariant),
+                onPressed: () => onRemove(payment),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _DebtCard extends StatelessWidget {
+  const _DebtCard({
+    required this.debt,
+    required this.payments,
+    required this.expanded,
+    required this.onToggle,
+    required this.onPay,
+    required this.onRemovePayment,
+  });
+
+  final Debt debt;
+  final List<DebtPayment> payments;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final VoidCallback onPay;
+
+  /// Long-press on a payment: the way an expense is removed.
+  final ValueChanged<DebtPayment> onRemovePayment;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final locale = Localizations.localeOf(context).toString();
+    final payOffBy = debt.payOffBy;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(HarvestSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconBadge(Icons.handshake, color: scheme.tertiary),
+                const SizedBox(width: HarvestSpacing.sm + 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        debt.person,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (payOffBy != null || debt.note != null)
+                        Text(
+                          [
+                            if (payOffBy != null)
+                              '${l10n.debtPayOffBy} ${DateFormat.MMMd(locale).format(
+                                DateTime(payOffBy.year, payOffBy.month, payOffBy.day),
+                              )}',
+                            if (debt.note != null) debt.note!,
+                          ].join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: HarvestSpacing.sm),
+                Text(
+                  formatMoney(debt.remainingMinor, debt.currency),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: scheme.tertiary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: HarvestSpacing.md),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(HarvestRadii.chip),
+              child: LinearProgressIndicator(
+                value: debt.paidFraction,
+                minHeight: 8,
+                backgroundColor: scheme.onSurface.withValues(alpha: 0.08),
+                valueColor: AlwaysStoppedAnimation(scheme.secondary),
+              ),
+            ),
+            const SizedBox(height: HarvestSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.debtPaidOf(
+                      formatMoney(debt.paidMinor, debt.currency),
+                      formatMoney(debt.amountMinor, debt.currency),
+                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.65),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (payments.isNotEmpty)
+                  TextButton.icon(
+                    onPressed: onToggle,
+                    icon: Icon(
+                      expanded ? Icons.expand_less : Icons.expand_more,
+                      size: 18,
+                    ),
+                    label: Text('${l10n.debtPayments} · ${payments.length}'),
+                  ),
+                const SizedBox(width: HarvestSpacing.xs),
+                FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(64, 40),
+                    backgroundColor: scheme.tertiary.withValues(alpha: 0.2),
+                    foregroundColor: scheme.onSurface,
+                  ),
+                  onPressed: onPay,
+                  child: Text(l10n.debtPay),
+                ),
+              ],
+            ),
+            if (expanded && payments.isNotEmpty) ...[
+              const Divider(height: HarvestSpacing.md),
+              _PaymentsList(
+                payments: payments,
+                currency: debt.currency,
+                onRemove: onRemovePayment,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------------- shared bits
+
+/// Per-currency balances inside a hero card: the default currency big,
+/// the rest with their converted caption.
+class _Balances extends StatelessWidget {
+  const _Balances({
+    required this.balances,
+    required this.rates,
+    required this.defaultCurrency,
+  });
+
+  final Map<Currency, int> balances;
+  final Rates rates;
+  final Currency defaultCurrency;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final entries = balances.entries.toList()
+      ..sort((a, b) {
+        if (a.key == defaultCurrency) return -1;
+        if (b.key == defaultCurrency) return 1;
+        return a.key.index.compareTo(b.key.index);
+      });
+    if (entries.isEmpty) {
+      return Text(
+        formatMoney(0, defaultCurrency),
+        style: theme.textTheme.displaySmall?.copyWith(
+          fontWeight: FontWeight.w800,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < entries.length; i++)
+          Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : HarvestSpacing.xs),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  formatMoney(entries[i].value, entries[i].key),
+                  style:
+                      (i == 0
+                              ? theme.textTheme.displaySmall
+                              : theme.textTheme.titleLarge)
+                          ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                ),
+                if (conversionCaption(
+                      minor: entries[i].value,
+                      currency: entries[i].key,
+                      rates: rates,
+                    )
+                    case final caption?) ...[
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Opacity(
+                    opacity: 0.8,
+                    child: Text(
+                      caption,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// A translucent pill button living on a hero card.
+class _HeroAction extends StatelessWidget {
+  const _HeroAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  /// Foreground on tinted cards; white on gradients when null.
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground = color ?? Colors.white;
+    return Opacity(
+      opacity: onTap == null ? 0.45 : 1,
+      child: Material(
+        color: foreground.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(HarvestRadii.button),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap == null
+              ? null
+              : () {
+                  unawaited(HarvestHaptics.tick());
+                  onTap!();
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: HarvestSpacing.md,
+              vertical: HarvestSpacing.sm + 4,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 20, color: foreground),
+                const SizedBox(width: HarvestSpacing.xs + 2),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: foreground,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One pot's ledger, grouped by day, inside a card.

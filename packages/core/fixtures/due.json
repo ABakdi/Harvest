@@ -1,0 +1,105 @@
+{
+  "about": "isDueOn and isOverdueOn for whole seeds (due.dart), including the start-day rule (Business Rules #12). createdAt is a local wall-clock time, as in harvest-day.json. The phone refuses to build a habit without a schedule or a project without a target, so no case here has one.",
+  "cases": [
+    {
+      "why": "a daily habit is due on the day it was planted",
+      "commitment": { "type": "habit", "createdAt": "2026-09-19T08:00:00", "schedule": { "type": "daily" } },
+      "day": "2026-09-19", "due": true, "overdue": false
+    },
+    {
+      "why": "and never before it",
+      "commitment": { "type": "habit", "createdAt": "2026-09-19T08:00:00", "schedule": { "type": "daily" } },
+      "day": "2026-09-18", "due": false, "overdue": false
+    },
+    {
+      "why": "a seed planted at 1 AM starts on the previous Harvest Day",
+      "commitment": { "type": "habit", "createdAt": "2026-09-19T01:00:00", "schedule": { "type": "daily" } },
+      "day": "2026-09-18", "due": true, "overdue": false
+    },
+    {
+      "why": "and not the one before that",
+      "commitment": { "type": "habit", "createdAt": "2026-09-19T01:00:00", "schedule": { "type": "daily" } },
+      "day": "2026-09-17", "due": false, "overdue": false
+    },
+    {
+      "why": "a weekly habit planted mid-week does not claim the week's earlier days",
+      "commitment": { "type": "habit", "createdAt": "2026-09-16T12:00:00", "schedule": { "type": "weekly", "weekdays": [1, 3, 5] } },
+      "day": "2026-09-14", "due": false, "overdue": false
+    },
+    {
+      "commitment": { "type": "habit", "createdAt": "2026-09-16T12:00:00", "schedule": { "type": "weekly", "weekdays": [1, 3, 5] } },
+      "day": "2026-09-18", "due": true, "overdue": false
+    },
+    {
+      "commitment": { "type": "habit", "createdAt": "2026-09-16T12:00:00", "schedule": { "type": "weekly", "weekdays": [1, 3, 5] } },
+      "day": "2026-09-19", "due": false, "overdue": false
+    },
+    {
+      "why": "an interval anchored before the start day still waits for the start day",
+      "commitment": { "type": "habit", "createdAt": "2026-09-15T09:00:00", "schedule": { "type": "interval", "everyDays": 2, "anchorDay": "2026-09-01" } },
+      "day": "2026-09-13", "due": false, "overdue": false
+    },
+    {
+      "commitment": { "type": "habit", "createdAt": "2026-09-15T09:00:00", "schedule": { "type": "interval", "everyDays": 2, "anchorDay": "2026-09-01" } },
+      "day": "2026-09-15", "due": true, "overdue": false
+    },
+    {
+      "commitment": { "type": "habit", "createdAt": "2026-09-15T09:00:00", "schedule": { "type": "interval", "everyDays": 2, "anchorDay": "2026-09-01" } },
+      "day": "2026-09-16", "due": false, "overdue": false
+    },
+    {
+      "why": "a paused habit is never due",
+      "commitment": { "type": "habit", "createdAt": "2026-09-01T09:00:00", "schedule": { "type": "daily" }, "paused": true },
+      "day": "2026-09-19", "due": false, "overdue": false
+    },
+    {
+      "commitment": { "type": "habit", "createdAt": "2026-09-01T09:00:00", "schedule": { "type": "timesPerWeek", "times": 2 } },
+      "day": "2026-09-19", "doneDaysThisWeek": 1, "due": true, "overdue": false
+    },
+    {
+      "commitment": { "type": "habit", "createdAt": "2026-09-01T09:00:00", "schedule": { "type": "timesPerWeek", "times": 2 } },
+      "day": "2026-09-19", "doneDaysThisWeek": 2, "due": false, "overdue": false
+    },
+    {
+      "why": "a project is due until it reaches its target",
+      "commitment": { "type": "project", "createdAt": "2026-09-01T09:00:00", "totalTarget": 300, "dailyCommitment": 10 },
+      "day": "2026-09-19", "totalLogged": 299, "due": true, "overdue": false
+    },
+    {
+      "commitment": { "type": "project", "createdAt": "2026-09-01T09:00:00", "totalTarget": 300, "dailyCommitment": 10 },
+      "day": "2026-09-19", "totalLogged": 300, "due": false, "overdue": false
+    },
+    {
+      "commitment": { "type": "project", "createdAt": "2026-09-10T09:00:00", "totalTarget": 300, "dailyCommitment": 10 },
+      "day": "2026-09-09", "totalLogged": 0, "due": false, "overdue": false
+    },
+    {
+      "why": "a to-do with no day is due from the day it was planted",
+      "commitment": { "type": "todo", "createdAt": "2026-09-10T09:00:00" },
+      "day": "2026-09-19", "due": true, "overdue": false
+    },
+    {
+      "commitment": { "type": "todo", "createdAt": "2026-09-10T09:00:00" },
+      "day": "2026-09-09", "due": false, "overdue": false
+    },
+    {
+      "why": "a to-do planned for later is not due yet",
+      "commitment": { "type": "todo", "createdAt": "2026-09-10T09:00:00", "dueDay": "2026-09-21" },
+      "day": "2026-09-19", "due": false, "overdue": false
+    },
+    {
+      "commitment": { "type": "todo", "createdAt": "2026-09-10T09:00:00", "dueDay": "2026-09-21" },
+      "day": "2026-09-21", "due": true, "overdue": false
+    },
+    {
+      "why": "and past its day it is due and overdue",
+      "commitment": { "type": "todo", "createdAt": "2026-09-10T09:00:00", "dueDay": "2026-09-15" },
+      "day": "2026-09-19", "due": true, "overdue": true
+    },
+    {
+      "why": "a done to-do is neither",
+      "commitment": { "type": "todo", "createdAt": "2026-09-10T09:00:00", "dueDay": "2026-09-15" },
+      "day": "2026-09-19", "totalLogged": 1, "due": false, "overdue": false
+    }
+  ]
+}

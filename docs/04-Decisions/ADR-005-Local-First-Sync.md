@@ -4,11 +4,11 @@
 
 ## Context
 
-Sync and rankings arrive only in Phase 5, on a MongoDB backend — but retrofitting sync onto years of locally-created data is where local-first apps usually die.
+Sync and rankings arrive only in [[Phase-6-Sync-Accounts-and-Web]], on a MongoDB backend — but retrofitting sync onto years of locally-created data is where local-first apps usually die.
 
 ## Decision
 
-Local-first is constitutional ([[Business-Rules]] #5). From schema v1, every table is **sync-ready**: client-generated UUIDs, `updatedAt`/`deletedAt`, and an **outbox** table appended on every write. Phase 5 adds only the drain + pull-merge ([[Sync-Strategy]]).
+Local-first is constitutional ([[Business-Rules]] #5). From schema v1, every table is **sync-ready**: client-generated UUIDs, `updatedAt`/`deletedAt`, and an **outbox** table appended on every write. Phase 6 adds only the drain + pull-merge ([[Sync-Strategy]]).
 
 ## Rationale
 
@@ -18,6 +18,10 @@ Local-first is constitutional ([[Business-Rules]] #5). From schema v1, every tab
 
 ## Consequences
 
-- Outbox grows until Phase 5 — pruned by a size cap until a server exists to drain it.
-- Deletes must be soft (`deletedAt`) everywhere from day one.
-- The sync API contract (batch push/pull by cursor, upsert-by-uuid) is fixed early, which constrains but also clarifies the Phase 5 server design.
+- The outbox is capped at its newest 50,000 rows (`capOutbox`, run with the startup purge). A device's first sync sends a full snapshot of every table ([[Sync-API]]), so the cap can never lose a change: the outbox is an increment, not the only copy.
+- Deletes of anything that happened must be soft (`deletedAt`) from
+  day one. The few things that go for good — a seed planted by
+  mistake, an emptied note, a purged album, structure being edited —
+  are listed in [[Business-Rules]] #8, and each leaves a `delete` row
+  in the outbox.
+- The sync API contract (batch push/pull by cursor, upsert-by-uuid) is fixed early, which constrains but also clarifies the Phase 6 server design ([[Sync-API]]).

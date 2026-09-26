@@ -78,20 +78,48 @@ the **custom categories** live together under Settings › Money.
 ## Quick-log
 
 The whole point is a **sub-5-second log**:
-- **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]])
+- **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]]). The rule lives once, in `packages/core`, and a fixture both the phone and the web are tested against pins it
 - **Logged on** — today unless I say otherwise; a chip takes any day a year either side, for the receipt found in a pocket or the bill I know is coming. The day's +10 follows the day the expense lands on ([[Checkpoint-8]])
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 
-Stored as integer minor units (cents) — never floats. Multi-currency is out of scope for V1; a single currency is chosen in settings.
+Stored as integer minor units (cents) — never floats, and always in
+the currency the money was in. **Three currencies are supported** —
+one default chosen in settings, and any amount logged in another is
+converted for the totals at the rate I last fetched, never rewritten
+([[Audit-v2]] D3-08). An earlier line here called multi-currency out
+of scope; it was out of date the day the Vault shipped.
 
 ## Smart repeats
 
 If the same amount+category (e.g., "Coffee — $5, Food") appears 3 days running, day 4 pre-fills it as a 1-tap confirm card.
 
+## Guards on the wallet
+
+- An expense is paid from the wallet only when the wallet can cover it;
+  the switch turns itself off rather than let the wallet go below zero.
+  Turning it back on in an edit brings back the movement the expense
+  already had, not a second one.
+- Removing a movement, or undoing that removal, never takes a pot below
+  zero; it is refused with the same words as an overdraw.
+- The month's total counts the expenses up to today; one logged ahead
+  waits for its day. It is listed under **Upcoming**, soonest first,
+  where it can be edited or removed like any other. Its wallet movement
+  waits too: a movement dated after today counts in no balance and in
+  no guard until its day, and sits at the top of the ledger marked
+  *upcoming*.
+- A settled debt keeps its payments: removing one — a last payment made
+  by mistake — reopens the debt, with Undo. Settling says so, with a
+  small celebration.
+- The dinar rates are typed by hand; *Fetch* brings only EUR → USD, and
+  the card says so beside the dinar fields.
+- In Arabic an amount is held left to right as one piece, so its sign
+  sits before the number, and every number in the app — amounts, dates,
+  times, counts — uses the same Western digits.
+
 ## Budget logic
 
-- I set a **Monthly Budget**.
+- I set a **Monthly Budget**, and can clear it: no budget is an empty value, which every device reads as none.
 - **Floating Daily Limit** = remaining budget ÷ remaining days in the month — recomputed at each 3 AM reset ([[Business-Rules]]).
 - A real-time gauge: 🟢 under · 🟡 within 15% · 🔴 over.
 
@@ -109,8 +137,13 @@ flowchart LR
 ## Reminders & rewards
 
 - Evening check-in notification (default 8 PM, configurable), suppressed once logged ([[Notifications]]).
-- +10 XP for logging the day's expenses; budget-related daily quests ([[Gamification]]).
+- +10 XP for logging the day's expenses. Budget quests are parked with
+  the rest of the quest system ([[Gamification]], [[Audit-v2]] D3-08).
 
 ## Privacy — non-negotiable
 
-Financial data **never leaves the device** in plaintext. Local-only in Phases 2–4; when [[Phase-6-Sync-and-Social]] arrives, expense records sync end-to-end encrypted or stay local by choice. Never sold, never shared. See [[Business-Rules]].
+Financial data **never leaves the device** in plaintext. Local-only
+through Phase 5; from [[Phase-6-Sync-Accounts-and-Web]] it syncs in
+the **private tier** — encrypted on the phone with a passphrase the
+server never sees ([[Sync-Strategy]]) — or stays local by choice.
+Never sold, never shared. See [[Business-Rules]].

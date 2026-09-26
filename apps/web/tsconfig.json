@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable", "WebWorker.ImportScripts"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "declaration": false,
+    "sourceMap": false,
+    "allowImportingTsExtensions": false,
+    "types": ["node", "vite/client", "vite-plugin-pwa/react", "@testing-library/jest-dom/vitest"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@harvest/contracts": ["../../packages/contracts/src/index.ts"],
+      "@harvest/core": ["../../packages/core/src/index.ts"]
+    }
+  },
+  "include": ["src", "test", "vite.config.ts"]
+}

@@ -1,6 +1,10 @@
 # Core Entities
 
-Six entities cover everything the app tracks today. Three belong to the productivity pillar (MVP), three arrive with later phases — and Phase 3 adds the first things in this app that are *files* rather than rows ([[Notes]], [[Gallery]]).
+The things the app tracks, in the order they arrived. Three belong to
+the productivity pillar (the MVP), and each phase since has added its
+own — Phase 3 the first things in this app that are *files* rather
+than rows ([[Notes]], [[Gallery]]), Phase 5 the vault, goals and the
+map ([[Audit-v2]] D3-12).
 
 ```mermaid
 erDiagram
@@ -120,9 +124,10 @@ failure: it counts for nothing in either direction. Spec: [[Health]].
 
 ## Step Day (Phase 4)
 
-One Harvest Day's step total, summed from the phone's own sensor. A
-passive number: it never checks a seed in and never breaks a streak.
-Spec: [[Health]].
+One Harvest Day's step total, read from the phone's own health store
+where there is one and counted from the step sensor where there is not
+([[Health]] H2). A passive number: it never checks a seed in and never
+breaks a streak. Spec: [[Health]].
 
 ## Weight Entry (Phase 4)
 
@@ -158,13 +163,35 @@ any I add myself. A logged set refers to one by id. The catalogue never
 syncs and never exports; mine do.
 Spec: [[Gym]] · [[ADR-008-Exercise-Catalogue]].
 
-## Screen Goal (Phase 5)
+## Screen Goal (Phase 7)
 
 A daily cap on total usage or a specific app. Spec: [[Screen-Time]].
 
 ## Expense Entry (Phase 2)
 
-Amount + preset category + optional note, contributing to the monthly budget. Spec: [[Finances]].
+Amount in minor units and its currency, a category (preset or one of
+mine), the day it is logged on, and an optional merchant or note. It
+counts against the monthly budget. Spec: [[Finances]].
+
+## Wallet, Savings and Debts (Phase 2)
+
+The vault's three sections. A **money move** is one atomic
+transaction — in, out, or between sections — in the currency it
+happened in; a **debt** is what is owed in either direction, with its
+**payments** against it. Balances are sums of moves, never a stored
+number. Spec: [[Finances]].
+
+## Goal and Goal Item (Phase 5)
+
+What I am aiming at, and the list of what it will take. An item can
+become a seed on the field, and the goal keeps the link. Spec:
+[[Goals]].
+
+## Location Point, Geotag and Saved Place (Phase 5)
+
+Where I was (a trail point), where I was when I did something (a
+geotag against any action row), and a place I have named. Spec:
+[[Places]].
 
 ---
 

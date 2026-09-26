@@ -1,0 +1,16 @@
+{
+  "table": "albums",
+  "uuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
+  "updatedAt": "2026-09-06T17:50:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
+    "name": "Gym",
+    "scheduleJson": "{\"type\":\"interval\",\"everyDays\":7,\"anchorDay\":\"2026-09-06\"}",
+    "remindAt": "18:00",
+    "note": "Same mirror, same light",
+    "createdAt": "2026-09-06T17:50:00.000Z",
+    "updatedAt": "2026-09-06T17:50:00.000Z",
+    "deletedAt": null
+  }
+}

@@ -29,7 +29,7 @@ Six entities structure everything (full spec: [[Core-Entities]]):
 | :--- | :--- | :--- |
 | Productivity Engine | Projects, Habits, To-Dos, daily plan ritual | [[Productivity-Engine]] |
 | Pomodoro | Focus timer attached to tasks | [[Pomodoro]] |
-| Gamification | Streaks, XP, coins, quests, ranks | [[Gamification]] |
+| Gamification | Streaks, XP, coins, ranks (quests are parked) | [[Gamification]] |
 | Financial Granary | Expenses, budgets, floating limit | [[Finances]] |
 | Health (Sleep Sanctuary + Gym) | Alarm, sleep debt, workouts | [[Health]] |
 | Focus Field | Screen caps, weed-pull interventions | [[Screen-Time]] |
@@ -54,15 +54,16 @@ Day reset at 3 AM, over-log cap at 2×, minute-for-minute sleep-debt payment, on
 
 ## 6. Delivery
 
-Built in phases — productivity core first (MVP), then finances. That
-reached **v1.0**. Next comes what a number cannot hold — notes and the
-gallery, with the archive rewritten around them — and then gym &
-health, screen time, and sync. Details and milestones in the
-[[Roadmap]].
+Built in phases. The productivity core and finances reached **v1.0**;
+notes and the gallery, with the archive rewritten around them, made
+**v1.1**; health and the gym made **v2.0**. Next are goals, places and
+voice, then sync, accounts and the web, then screen time. Details and
+milestones in the [[Roadmap]] ([[Audit-v2]] D3-15).
 
 ## 7. Later (post-V1)
 
-- **Server sync + rankings** on MongoDB — [[Phase-6-Sync-and-Social]]
+- **Rankings and guilds** on top of the sync server —
+  [[Phase-8-Social-and-Reach]]
 - **Social guilds:** 2–5 person accountability groups with anonymous streak visibility
 - **Soundscapes:** unlockable ambient nature audio for focus sessions
 - **Insights coach:** weekly personalized summaries correlating sleep, screen and spending data

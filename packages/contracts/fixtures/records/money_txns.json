@@ -1,0 +1,11 @@
+{
+  "table": "money_txns",
+  "uuid": "f9a2d6c3-8e4b-4f1a-b7c5-2d8e6a4f1c73",
+  "updatedAt": "2026-09-18T13:10:00.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAH",
+    "ct": "ir45hGVoMgcqjWUM6DYLQtz49Eh9br2WqAnmqZh7v5a9C5DKPr40SkqkGRA1Mh3mYqvHdVOyqDLeaVrhdKX+8NucTJGfP27/eqsbt8lLRSmYHss6aSvIxz78NdVkbJuxJZgv2DzZCMV++0863NrLl+YaN8CHMsLMtIRUXmoPzadF34DXxesE9UZvNdZ3oa3GpdaoO2zGPZmzdG0J4yHAzZFOsNuU57d78K8XSS892otXIjlShGSBH01MLX1G4AhUfJmMkoQVBxZDZvYmgHHSXZoGYVgnoStaY3E98Fafv2KADdk0Mspbl0w9gQgE5qAkEd9B2kWMMYlSTyreCWV4T/4C3n+Mnu3CWC6v6EvubzinezTPoWWlbmwDkRBlw+2YdTclV2KTyRDcRhc3ccCvPU8VSAFlssBfGLrwlU51kuk3uJ1apwA0RMFfQJ2pw7Ujjg=="
+  }
+}

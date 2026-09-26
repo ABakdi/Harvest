@@ -1,0 +1,7766 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_ar.dart';
+import 'app_localizations_en.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
+    Locale('en'),
+  ];
+
+  /// No description provided for @appTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get appTitle;
+
+  /// No description provided for @navField.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get navField;
+
+  /// No description provided for @navStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get navStats;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navSettings;
+
+  /// No description provided for @fieldEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your field is ready'**
+  String get fieldEmptyTitle;
+
+  /// No description provided for @fieldEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant your first seed — a habit, a project, or a simple to-do.'**
+  String get fieldEmptyBody;
+
+  /// No description provided for @statsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to count yet'**
+  String get statsEmptyTitle;
+
+  /// No description provided for @statsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in once and the numbers start.'**
+  String get statsEmptyBody;
+
+  /// No description provided for @settingsAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearance;
+
+  /// No description provided for @settingsSectionHarvestHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The daily goal, the day\'s hours and sleep'**
+  String get settingsSectionHarvestHint;
+
+  /// No description provided for @settingsSectionFeaturesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Which parts of the app are on'**
+  String get settingsSectionFeaturesHint;
+
+  /// No description provided for @settingsSectionRemindersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When the app speaks up'**
+  String get settingsSectionRemindersHint;
+
+  /// No description provided for @settingsSectionPomodoroHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus and break lengths'**
+  String get settingsSectionPomodoroHint;
+
+  /// No description provided for @settingsSectionMoneyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency, categories and rates'**
+  String get settingsSectionMoneyHint;
+
+  /// No description provided for @settingsSectionPrivacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The lock on the app'**
+  String get settingsSectionPrivacyHint;
+
+  /// No description provided for @settingsSectionDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Export, import and the widget'**
+  String get settingsSectionDataHint;
+
+  /// No description provided for @settingsSectionAppearanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, colours and language'**
+  String get settingsSectionAppearanceHint;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @langSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get langSystem;
+
+  /// No description provided for @langEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get langEnglish;
+
+  /// No description provided for @langArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'العربية'**
+  String get langArabic;
+
+  /// No description provided for @addCommitment.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant a seed'**
+  String get addCommitment;
+
+  /// No description provided for @typeHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit'**
+  String get typeHabit;
+
+  /// No description provided for @typeProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get typeProject;
+
+  /// No description provided for @typeTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'To-Do'**
+  String get typeTodo;
+
+  /// No description provided for @titleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get titleLabel;
+
+  /// No description provided for @titleHintHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Exercise, Practice Spanish'**
+  String get titleHintHabit;
+
+  /// No description provided for @titleHintProject.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Read Atomic Habits'**
+  String get titleHintProject;
+
+  /// No description provided for @titleHintTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Call the dentist'**
+  String get titleHintTodo;
+
+  /// No description provided for @scheduleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get scheduleLabel;
+
+  /// No description provided for @scheduleDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get scheduleDaily;
+
+  /// No description provided for @scheduleWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific days'**
+  String get scheduleWeekly;
+
+  /// No description provided for @scheduleInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Every X days'**
+  String get scheduleInterval;
+
+  /// No description provided for @scheduleTimesPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'X per week'**
+  String get scheduleTimesPerWeek;
+
+  /// No description provided for @everyDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} days'**
+  String everyDaysLabel(int count);
+
+  /// No description provided for @timesPerWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times per week'**
+  String timesPerWeekLabel(int count);
+
+  /// No description provided for @totalTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total target (pages, minutes…)'**
+  String get totalTargetLabel;
+
+  /// No description provided for @dailyCommitmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily commitment'**
+  String get dailyCommitmentLabel;
+
+  /// No description provided for @dueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned for'**
+  String get dueLabel;
+
+  /// No description provided for @dueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dueToday;
+
+  /// No description provided for @dueTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get dueTomorrow;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @undoCheckInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo today\'s check-in?'**
+  String get undoCheckInTitle;
+
+  /// No description provided for @undoCheckInBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes what you logged for \"{title}\" today.'**
+  String undoCheckInBody(String title);
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @logProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log progress'**
+  String get logProgressTitle;
+
+  /// No description provided for @logQuantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'How much did you get done?'**
+  String get logQuantityLabel;
+
+  /// No description provided for @logRemainingToday.
+  ///
+  /// In en, this message translates to:
+  /// **'You can log {count} more today'**
+  String logRemainingToday(int count);
+
+  /// No description provided for @log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get log;
+
+  /// No description provided for @cappedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily cap reached — the field rests too.'**
+  String get cappedMessage;
+
+  /// No description provided for @xpEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} XP'**
+  String xpEarned(int count);
+
+  /// No description provided for @projectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} · today {today}/{daily}'**
+  String projectSubtitle(int done, int total, int today, int daily);
+
+  /// No description provided for @todoOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get todoOverdue;
+
+  /// No description provided for @rankSprout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get rankSprout;
+
+  /// No description provided for @rankSeedling.
+  ///
+  /// In en, this message translates to:
+  /// **'Seedling'**
+  String get rankSeedling;
+
+  /// No description provided for @rankGardener.
+  ///
+  /// In en, this message translates to:
+  /// **'Gardener'**
+  String get rankGardener;
+
+  /// No description provided for @rankHarvester.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvester'**
+  String get rankHarvester;
+
+  /// No description provided for @rankMasterFarmer.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Farmer'**
+  String get rankMasterFarmer;
+
+  /// No description provided for @settingsHarvest.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get settingsHarvest;
+
+  /// No description provided for @settingsGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Harvest Goal'**
+  String get settingsGoalTitle;
+
+  /// No description provided for @settingsGoalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Productive actions needed each day to keep your streak alive.'**
+  String get settingsGoalBody;
+
+  /// No description provided for @goalActions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} actions a day'**
+  String goalActions(int count);
+
+  /// No description provided for @streakSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak'**
+  String get streakSheetTitle;
+
+  /// No description provided for @streakCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String streakCurrent(int count);
+
+  /// No description provided for @streakBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {count}'**
+  String streakBest(int count);
+
+  /// No description provided for @freezesStored.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak freezes: {count} of {max}'**
+  String freezesStored(int count, int max);
+
+  /// No description provided for @freezeExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'A freeze protects your streak for one missed day. It\'s used automatically.'**
+  String get freezeExplainer;
+
+  /// No description provided for @buyFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy a freeze · {cost} coins'**
+  String buyFreeze(int cost);
+
+  /// No description provided for @freezeBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze stored. Rest easy. ❄️'**
+  String get freezeBought;
+
+  /// No description provided for @freezeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough coins, or the shed is full.'**
+  String get freezeUnavailable;
+
+  /// No description provided for @coinBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 coin} other{{count} coins}}'**
+  String coinBalance(int count);
+
+  /// No description provided for @pomodoroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get pomodoroTitle;
+
+  /// No description provided for @phaseFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get phaseFocus;
+
+  /// No description provided for @phaseShortBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Short break'**
+  String get phaseShortBreak;
+
+  /// No description provided for @phaseLongBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Long break'**
+  String get phaseLongBreak;
+
+  /// No description provided for @startFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Start focus'**
+  String get startFocus;
+
+  /// No description provided for @pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pause;
+
+  /// No description provided for @resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resume;
+
+  /// No description provided for @finishSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish session'**
+  String get finishSession;
+
+  /// No description provided for @abandonSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Abandon'**
+  String get abandonSession;
+
+  /// No description provided for @abandonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The field will wait.'**
+  String get abandonBody;
+
+  /// No description provided for @freeSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Free focus'**
+  String get freeSession;
+
+  /// No description provided for @blocksDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} blocks done'**
+  String blocksDone(int count);
+
+  /// No description provided for @breakOverReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Break over — ready for the next block'**
+  String get breakOverReady;
+
+  /// No description provided for @plannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s plan'**
+  String get plannerTitle;
+
+  /// No description provided for @plannerHabitsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits due tomorrow'**
+  String get plannerHabitsDue;
+
+  /// No description provided for @plannerTodos.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos for tomorrow'**
+  String get plannerTodos;
+
+  /// No description provided for @plannerAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant a to-do for tomorrow…'**
+  String get plannerAddHint;
+
+  /// No description provided for @plannerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned yet. Add tomorrow\'s seeds tonight and wake up ready.'**
+  String get plannerEmpty;
+
+  /// No description provided for @notifMorningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning! ☀️'**
+  String get notifMorningTitle;
+
+  /// No description provided for @notifMorningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check today\'s harvest plan and log your first seed.'**
+  String get notifMorningBody;
+
+  /// No description provided for @notifEveningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The sun is setting 🌙'**
+  String get notifEveningTitle;
+
+  /// No description provided for @notifEveningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind down and plant tomorrow\'s plan.'**
+  String get notifEveningBody;
+
+  /// No description provided for @notifStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your crops are thirsty! 🔥'**
+  String get notifStreakTitle;
+
+  /// No description provided for @notifStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log your remaining tasks before 3 AM to save your streak.'**
+  String get notifStreakBody;
+
+  /// No description provided for @settingsReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsReminders;
+
+  /// No description provided for @remindersMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow reminders'**
+  String get remindersMaster;
+
+  /// No description provided for @remindersMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning: today\'s plan'**
+  String get remindersMorning;
+
+  /// No description provided for @remindersEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening: plan tomorrow'**
+  String get remindersEvening;
+
+  /// No description provided for @remindersStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Late streak warning'**
+  String get remindersStreak;
+
+  /// No description provided for @obWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Harvest'**
+  String get obWelcomeTitle;
+
+  /// No description provided for @obWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goals are seeds. Your effort is water. Distractions are weeds.\n\nShow up a little every day, keep your streak alive, and harvest the life you\'re growing.'**
+  String get obWelcomeBody;
+
+  /// No description provided for @obTemplatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant your first seeds'**
+  String get obTemplatesTitle;
+
+  /// No description provided for @obTemplatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a few to start with — you can always plant more.'**
+  String get obTemplatesBody;
+
+  /// No description provided for @tmplRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read a book (300 pages)'**
+  String get tmplRead;
+
+  /// No description provided for @tmplFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise'**
+  String get tmplFit;
+
+  /// No description provided for @tmplLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice a language'**
+  String get tmplLanguage;
+
+  /// No description provided for @tmplMeditate.
+  ///
+  /// In en, this message translates to:
+  /// **'Meditate (3× a week)'**
+  String get tmplMeditate;
+
+  /// No description provided for @tmplJournal.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal before bed'**
+  String get tmplJournal;
+
+  /// No description provided for @obGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Harvest Goal'**
+  String get obGoalTitle;
+
+  /// No description provided for @obRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle reminders'**
+  String get obRemindersTitle;
+
+  /// No description provided for @obRemindersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest nudges, never nags: a morning review, an evening planning ritual, and a heads-up when your streak is at risk.'**
+  String get obRemindersBody;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @startGrowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Start growing 🌱'**
+  String get startGrowing;
+
+  /// No description provided for @statsBestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Best streak'**
+  String get statsBestStreak;
+
+  /// No description provided for @statsCheckIns.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get statsCheckIns;
+
+  /// No description provided for @statsActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get statsActivity;
+
+  /// No description provided for @statsProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get statsProjects;
+
+  /// No description provided for @statsHabitStreaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit streaks'**
+  String get statsHabitStreaks;
+
+  /// No description provided for @statsStreakOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} now · best {best}'**
+  String statsStreakOf(int current, int best);
+
+  /// No description provided for @navGranary.
+  ///
+  /// In en, this message translates to:
+  /// **'Granary'**
+  String get navGranary;
+
+  /// No description provided for @granaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Granary'**
+  String get granaryTitle;
+
+  /// No description provided for @logExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Log an expense'**
+  String get logExpense;
+
+  /// No description provided for @amountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amountLabel;
+
+  /// No description provided for @amountSum.
+  ///
+  /// In en, this message translates to:
+  /// **'= {value}'**
+  String amountSum(String value);
+
+  /// No description provided for @amountSumIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish the sum to log it'**
+  String get amountSumIncomplete;
+
+  /// No description provided for @amountKeyBackspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get amountKeyBackspace;
+
+  /// No description provided for @amountKeyClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get amountKeyClear;
+
+  /// No description provided for @noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get noteLabel;
+
+  /// No description provided for @expenseDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged on'**
+  String get expenseDayLabel;
+
+  /// No description provided for @catFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get catFood;
+
+  /// No description provided for @catTransport.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport'**
+  String get catTransport;
+
+  /// No description provided for @catBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get catBills;
+
+  /// No description provided for @catShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get catShopping;
+
+  /// No description provided for @catHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get catHealth;
+
+  /// No description provided for @catEntertainment.
+  ///
+  /// In en, this message translates to:
+  /// **'Fun'**
+  String get catEntertainment;
+
+  /// No description provided for @catOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get catOther;
+
+  /// No description provided for @todaySpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todaySpending;
+
+  /// No description provided for @budgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly budget'**
+  String get budgetTitle;
+
+  /// No description provided for @budgetSpentOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {budget} this month'**
+  String budgetSpentOf(String spent, String budget);
+
+  /// No description provided for @budgetFloating.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} / {limit} today'**
+  String budgetFloating(String spent, String limit);
+
+  /// No description provided for @budgetSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a monthly budget'**
+  String get budgetSet;
+
+  /// No description provided for @budgetAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget for the month'**
+  String get budgetAmountLabel;
+
+  /// No description provided for @granaryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged today. What did you spend?'**
+  String get granaryEmpty;
+
+  /// No description provided for @repeatSuggestionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as the last 3 days?'**
+  String get repeatSuggestionTitle;
+
+  /// No description provided for @logIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get logIt;
+
+  /// No description provided for @notifExpenseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you spend today? 💰'**
+  String get notifExpenseTitle;
+
+  /// No description provided for @notifExpenseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it in two taps and keep the granary honest.'**
+  String get notifExpenseBody;
+
+  /// No description provided for @remindersExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense check-in'**
+  String get remindersExpense;
+
+  /// No description provided for @statsSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category'**
+  String get statsSpending;
+
+  /// No description provided for @deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get deleted;
+
+  /// No description provided for @editSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editSeed;
+
+  /// No description provided for @focusTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus timer'**
+  String get focusTimer;
+
+  /// No description provided for @pauseHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause (vacation)'**
+  String get pauseHabit;
+
+  /// No description provided for @resumeHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resumeHabit;
+
+  /// No description provided for @pausedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused — resting'**
+  String get pausedLabel;
+
+  /// No description provided for @archiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archiveAction;
+
+  /// No description provided for @archiveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this seed?'**
+  String get archiveConfirmTitle;
+
+  /// No description provided for @archiveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" is archived. Its history stays.'**
+  String archiveConfirmBody(String title);
+
+  /// No description provided for @projectDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest complete! 🎉'**
+  String get projectDoneTitle;
+
+  /// No description provided for @projectDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" is fully grown — {total} logged. It is archived with pride.'**
+  String projectDoneBody(String title, int total);
+
+  /// No description provided for @toTheBarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get toTheBarn;
+
+  /// No description provided for @weeklyReport.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get weeklyReport;
+
+  /// No description provided for @weeklyXp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} XP'**
+  String weeklyXp(int count);
+
+  /// No description provided for @weeklyBestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {day}'**
+  String weeklyBestDay(String day);
+
+  /// No description provided for @weeklyWorstDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Quietest: {day}'**
+  String weeklyWorstDay(String day);
+
+  /// No description provided for @weeklyTopSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Top spending: {category}'**
+  String weeklyTopSpending(String category);
+
+  /// No description provided for @settingsPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus timer'**
+  String get settingsPomodoro;
+
+  /// No description provided for @pomodoroFocusLen.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus length'**
+  String get pomodoroFocusLen;
+
+  /// No description provided for @pomodoroShortLen.
+  ///
+  /// In en, this message translates to:
+  /// **'Short break'**
+  String get pomodoroShortLen;
+
+  /// No description provided for @pomodoroLongLen.
+  ///
+  /// In en, this message translates to:
+  /// **'Long break'**
+  String get pomodoroLongLen;
+
+  /// No description provided for @pomodoroBlocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks before a long break'**
+  String get pomodoroBlocks;
+
+  /// No description provided for @minutesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String minutesValue(int count);
+
+  /// No description provided for @settingsStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get settingsStyle;
+
+  /// No description provided for @presetHarvest.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get presetHarvest;
+
+  /// No description provided for @presetSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunrise'**
+  String get presetSunrise;
+
+  /// No description provided for @presetOcean.
+  ///
+  /// In en, this message translates to:
+  /// **'Ocean'**
+  String get presetOcean;
+
+  /// No description provided for @presetOrchard.
+  ///
+  /// In en, this message translates to:
+  /// **'Orchard'**
+  String get presetOrchard;
+
+  /// No description provided for @presetDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get presetDusk;
+
+  /// No description provided for @advancedOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get advancedOptions;
+
+  /// No description provided for @seedNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get seedNoteLabel;
+
+  /// No description provided for @remindMeAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me at'**
+  String get remindMeAt;
+
+  /// No description provided for @deadlineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accomplish before'**
+  String get deadlineLabel;
+
+  /// No description provided for @notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @pickDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get pickDate;
+
+  /// No description provided for @dueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String dueOn(String date);
+
+  /// No description provided for @overdueBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue — was due {date}'**
+  String overdueBy(String date);
+
+  /// No description provided for @taskReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A seed is waiting to be watered.'**
+  String get taskReminderBody;
+
+  /// No description provided for @newCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get newCategory;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get categoryName;
+
+  /// No description provided for @manageCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom categories'**
+  String get manageCategories;
+
+  /// No description provided for @todayTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayTab;
+
+  /// No description provided for @insightsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insightsTab;
+
+  /// No description provided for @wishlistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishlist'**
+  String get wishlistTitle;
+
+  /// No description provided for @wishlistBuyList.
+  ///
+  /// In en, this message translates to:
+  /// **'To buy'**
+  String get wishlistBuyList;
+
+  /// No description provided for @wishlistWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishlist'**
+  String get wishlistWishlist;
+
+  /// No description provided for @wishlistBuyEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to buy'**
+  String get wishlistBuyEmptyTitle;
+
+  /// No description provided for @wishlistBuyEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what you mean to pick up soon — the buy list is day to day.'**
+  String get wishlistBuyEmptyBody;
+
+  /// No description provided for @wishlistWishEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing wished for'**
+  String get wishlistWishEmptyTitle;
+
+  /// No description provided for @wishlistWishEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what you want someday, with at most an estimate in mind.'**
+  String get wishlistWishEmptyBody;
+
+  /// No description provided for @wishlistAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get wishlistAdd;
+
+  /// No description provided for @wishlistOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get wishlistOpen;
+
+  /// No description provided for @wishlistBought.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bought'**
+  String wishlistBought(int count);
+
+  /// No description provided for @wishlistRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get wishlistRemoved;
+
+  /// No description provided for @wishlistOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get wishlistOptions;
+
+  /// No description provided for @wishlistEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get wishlistEdit;
+
+  /// No description provided for @wishlistEditItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit item'**
+  String get wishlistEditItem;
+
+  /// No description provided for @wishlistMoveToBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'To the buy list'**
+  String get wishlistMoveToBuy;
+
+  /// No description provided for @wishlistMoveToWish.
+  ///
+  /// In en, this message translates to:
+  /// **'To the wishlist'**
+  String get wishlistMoveToWish;
+
+  /// No description provided for @wishlistDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get wishlistDelete;
+
+  /// No description provided for @wishlistNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Something I want'**
+  String get wishlistNew;
+
+  /// No description provided for @wishlistTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Winter coat, kettle, espresso machine'**
+  String get wishlistTitleHint;
+
+  /// No description provided for @wishlistEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated price'**
+  String get wishlistEstimateLabel;
+
+  /// No description provided for @wishlistEstimateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What I think it costs'**
+  String get wishlistEstimateHint;
+
+  /// No description provided for @wishlistEstimateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a price above zero, or leave it empty.'**
+  String get wishlistEstimateInvalid;
+
+  /// No description provided for @wishlistNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get wishlistNoteLabel;
+
+  /// No description provided for @wishlistNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Size, model, colour, why'**
+  String get wishlistNoteHint;
+
+  /// No description provided for @wishlistTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned purchase day'**
+  String get wishlistTargetDay;
+
+  /// No description provided for @wishlistNoTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Some day'**
+  String get wishlistNoTargetDay;
+
+  /// No description provided for @wishlistToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get wishlistToday;
+
+  /// No description provided for @wishlistInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {count} days'**
+  String wishlistInDays(int count);
+
+  /// No description provided for @wishlistBoughtOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought on {day}'**
+  String wishlistBoughtOn(String day);
+
+  /// No description provided for @wishlistTotalsSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' · '**
+  String get wishlistTotalsSeparator;
+
+  /// No description provided for @savingsLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings running low'**
+  String get savingsLow;
+
+  /// No description provided for @rangeWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get rangeWeek;
+
+  /// No description provided for @rangeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get rangeMonth;
+
+  /// No description provided for @totalSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalSpent;
+
+  /// No description provided for @avgPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} / day'**
+  String avgPerDay(String amount);
+
+  /// No description provided for @noSpendingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No spending in this range yet.'**
+  String get noSpendingYet;
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calNothingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planted for this day.'**
+  String get calNothingDue;
+
+  /// No description provided for @calDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline: {title}'**
+  String calDeadline(String title);
+
+  /// No description provided for @calAddForDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant a to-do for this day…'**
+  String get calAddForDay;
+
+  /// No description provided for @defaultCurrencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default currency'**
+  String get defaultCurrencyLabel;
+
+  /// No description provided for @exchangeRates.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange rates'**
+  String get exchangeRates;
+
+  /// No description provided for @ratesDzdUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'DZD per 1 USD'**
+  String get ratesDzdUsd;
+
+  /// No description provided for @ratesDzdEur.
+  ///
+  /// In en, this message translates to:
+  /// **'DZD per 1 EUR'**
+  String get ratesDzdEur;
+
+  /// No description provided for @ratesEurUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'EUR → USD (fetched)'**
+  String get ratesEurUsd;
+
+  /// No description provided for @fetchNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch'**
+  String get fetchNow;
+
+  /// No description provided for @ratesUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {when}'**
+  String ratesUpdated(String when);
+
+  /// No description provided for @ratesFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t fetch — check the connection.'**
+  String get ratesFetchFailed;
+
+  /// No description provided for @vaultTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Balances'**
+  String get vaultTab;
+
+  /// No description provided for @walletTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get walletTitle;
+
+  /// No description provided for @walletAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get walletAdd;
+
+  /// No description provided for @walletTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Take'**
+  String get walletTake;
+
+  /// No description provided for @savingsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get savingsSectionTitle;
+
+  /// No description provided for @savingsDeposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get savingsDeposit;
+
+  /// No description provided for @savingsWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get savingsWithdraw;
+
+  /// No description provided for @debtsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts'**
+  String get debtsTitle;
+
+  /// No description provided for @addDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a debt'**
+  String get addDebt;
+
+  /// No description provided for @debtPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to'**
+  String get debtPerson;
+
+  /// No description provided for @debtPayOffBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay off by'**
+  String get debtPayOffBy;
+
+  /// No description provided for @debtRemindAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder at'**
+  String get debtRemindAt;
+
+  /// No description provided for @debtPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get debtPay;
+
+  /// No description provided for @debtPaymentRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this payment?'**
+  String get debtPaymentRemoveTitle;
+
+  /// No description provided for @debtPaymentRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What it took from the wallet comes back, and the debt reopens if this had settled it. Undo is in the bar for a moment after.'**
+  String get debtPaymentRemoveBody;
+
+  /// No description provided for @debtSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled 🎉'**
+  String get debtSettled;
+
+  /// No description provided for @notifDebtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt to {person}'**
+  String notifDebtTitle(String person);
+
+  /// No description provided for @notifDebtBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} still owed. A settled debt sleeps better.'**
+  String notifDebtBody(String amount);
+
+  /// No description provided for @dayToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dayToday;
+
+  /// No description provided for @dayYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get dayYesterday;
+
+  /// No description provided for @vaultOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts'**
+  String get vaultOwed;
+
+  /// No description provided for @vaultOpenDebts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no open debts} =1{1 open debt} other{{count} open debts}}'**
+  String vaultOpenDebts(int count);
+
+  /// No description provided for @debtsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No debts'**
+  String get debtsEmptyTitle;
+
+  /// No description provided for @debtsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing owed to anyone. Sleep well.'**
+  String get debtsEmptyBody;
+
+  /// No description provided for @movesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves'**
+  String get movesTitle;
+
+  /// No description provided for @noMovesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No moves yet'**
+  String get noMovesYet;
+
+  /// No description provided for @txnAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get txnAdded;
+
+  /// No description provided for @txnTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken out'**
+  String get txnTaken;
+
+  /// No description provided for @txnSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get txnSaved;
+
+  /// No description provided for @txnWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get txnWithdrawn;
+
+  /// No description provided for @txnFromSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'From savings'**
+  String get txnFromSavings;
+
+  /// No description provided for @txnToSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'To savings'**
+  String get txnToSavings;
+
+  /// No description provided for @txnFromWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'From the wallet'**
+  String get txnFromWallet;
+
+  /// No description provided for @txnToWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'To the wallet'**
+  String get txnToWallet;
+
+  /// No description provided for @txnExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get txnExpense;
+
+  /// No description provided for @txnDebtPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {person}'**
+  String txnDebtPayment(String person);
+
+  /// No description provided for @debtPaidOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} of {total} paid'**
+  String debtPaidOf(String paid, String total);
+
+  /// No description provided for @debtPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get debtPayments;
+
+  /// No description provided for @debtOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get debtOpen;
+
+  /// No description provided for @debtSettledSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get debtSettledSection;
+
+  /// No description provided for @payFromWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from the wallet?'**
+  String get payFromWallet;
+
+  /// No description provided for @budgetSpentToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent today'**
+  String get budgetSpentToday;
+
+  /// No description provided for @budgetDailyLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit'**
+  String get budgetDailyLimit;
+
+  /// No description provided for @budgetLeftToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left today'**
+  String budgetLeftToday(String amount);
+
+  /// No description provided for @budgetOverToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over today'**
+  String budgetOverToday(String amount);
+
+  /// No description provided for @budgetLeftMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left this month'**
+  String budgetLeftMonth(String amount);
+
+  /// No description provided for @budgetOverMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over budget this month'**
+  String budgetOverMonth(String amount);
+
+  /// No description provided for @expensesToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing logged} =1{1 expense} other{{count} expenses}}'**
+  String expensesToday(int count);
+
+  /// No description provided for @snooze10.
+  ///
+  /// In en, this message translates to:
+  /// **'In 10 min'**
+  String get snooze10;
+
+  /// No description provided for @snooze60.
+  ///
+  /// In en, this message translates to:
+  /// **'In 1 hour'**
+  String get snooze60;
+
+  /// No description provided for @snooze180.
+  ///
+  /// In en, this message translates to:
+  /// **'In 3 hours'**
+  String get snooze180;
+
+  /// No description provided for @tomorrowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get tomorrowTitle;
+
+  /// No description provided for @tomorrowNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned yet — plant tonight\'s seeds.'**
+  String get tomorrowNothing;
+
+  /// No description provided for @tomorrowHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no habits due} =1{1 habit due} other{{count} habits due}}'**
+  String tomorrowHabits(int count);
+
+  /// No description provided for @tomorrowTodos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no to-dos} =1{1 to-do planned} other{{count} to-dos planned}}'**
+  String tomorrowTodos(int count);
+
+  /// No description provided for @planTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get planTomorrow;
+
+  /// No description provided for @rateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate saved'**
+  String get rateSaved;
+
+  /// No description provided for @rateCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate cleared'**
+  String get rateCleared;
+
+  /// No description provided for @rateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a usable rate'**
+  String get rateInvalid;
+
+  /// No description provided for @ratesExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to show \$ and € amounts in your default currency.'**
+  String get ratesExplainer;
+
+  /// No description provided for @settingsMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get settingsMoney;
+
+  /// No description provided for @startupProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'A startup step failed: {error}. Restart the app; if it keeps happening, back up and reinstall.'**
+  String startupProblem(String error);
+
+  /// No description provided for @channelReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get channelReminders;
+
+  /// No description provided for @channelStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get channelStreak;
+
+  /// No description provided for @channelPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus timer'**
+  String get channelPomodoro;
+
+  /// No description provided for @remindersStreakHint.
+  ///
+  /// In en, this message translates to:
+  /// **'At {time}, only when the day is not yet earned'**
+  String remindersStreakHint(String time);
+
+  /// No description provided for @decrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get decrease;
+
+  /// No description provided for @increase.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get increase;
+
+  /// No description provided for @remindersDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are blocked for Harvest in system settings.'**
+  String get remindersDenied;
+
+  /// No description provided for @freezeEarnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn {coins} coins at a {days}-day streak.'**
+  String freezeEarnHint(int coins, int days);
+
+  /// No description provided for @streakSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Streak: 1 day} other{Streak: {count} days}}'**
+  String streakSemantics(int count);
+
+  /// No description provided for @xpAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{xp} XP'**
+  String xpAmount(int xp);
+
+  /// No description provided for @unitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'d'**
+  String get unitDays;
+
+  /// No description provided for @unitHours.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get unitHours;
+
+  /// No description provided for @unitMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'m'**
+  String get unitMinutes;
+
+  /// No description provided for @projectProgressOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String projectProgressOf(int done, int total);
+
+  /// No description provided for @cropOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get cropOptions;
+
+  /// No description provided for @clearValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearValue;
+
+  /// No description provided for @scheduleDailyShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get scheduleDailyShort;
+
+  /// No description provided for @scheduleEveryDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every day} other{Every {count} days}}'**
+  String scheduleEveryDays(int count);
+
+  /// No description provided for @scheduleTimesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Once a week} =2{Twice a week} other{{count}× a week}} · {done} done'**
+  String scheduleTimesShort(int count, int done);
+
+  /// No description provided for @plannedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned {date}'**
+  String plannedFor(String date);
+
+  /// No description provided for @removeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeAction;
+
+  /// No description provided for @checkInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not save. Try again.'**
+  String get checkInFailed;
+
+  /// No description provided for @activitySemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{No active days in {span}} =1{1 active day in {span}} other{{days} active days in {span}}}'**
+  String activitySemantics(int days, String span);
+
+  /// No description provided for @activityLastWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{weeks, plural, =1{the last week} other{the last {weeks} weeks}}'**
+  String activityLastWeeks(int weeks);
+
+  /// No description provided for @cropDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get cropDone;
+
+  /// No description provided for @cropPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet'**
+  String get cropPending;
+
+  /// No description provided for @fromWalletToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'From the wallet'**
+  String get fromWalletToggle;
+
+  /// No description provided for @walletHas.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} in the wallet'**
+  String walletHas(String amount);
+
+  /// No description provided for @walletShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough in the wallet'**
+  String get walletShort;
+
+  /// No description provided for @budgetMonthLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {budget} · {left} left'**
+  String budgetMonthLine(String spent, String budget, String left);
+
+  /// No description provided for @budgetMonthOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {budget} · {over} over'**
+  String budgetMonthOver(String spent, String budget, String over);
+
+  /// No description provided for @editBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit budget'**
+  String get editBudget;
+
+  /// No description provided for @perDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Per day'**
+  String get perDay;
+
+  /// No description provided for @todayEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Log an expense to add the first one.'**
+  String get todayEmptyBody;
+
+  /// No description provided for @debtRemindDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day at 7:00 PM until it is paid'**
+  String get debtRemindDefault;
+
+  /// No description provided for @undoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undoAction;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not save. Try again.'**
+  String get saveFailed;
+
+  /// No description provided for @categoryExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A category with that name already exists'**
+  String get categoryExists;
+
+  /// No description provided for @withdrawToWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'To the wallet'**
+  String get withdrawToWallet;
+
+  /// No description provided for @budgetExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily limit is what\'s left of the month divided by the days left in it.'**
+  String get budgetExplainer;
+
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get settingsPrivacy;
+
+  /// No description provided for @appLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Harvest'**
+  String get appLockTitle;
+
+  /// No description provided for @appLockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for your fingerprint, PIN or password before opening the app.'**
+  String get appLockBody;
+
+  /// No description provided for @appLockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a fingerprint, PIN or password on this device first.'**
+  String get appLockUnavailable;
+
+  /// No description provided for @lockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest is locked'**
+  String get lockTitle;
+
+  /// No description provided for @lockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to get back to your field.'**
+  String get lockBody;
+
+  /// No description provided for @lockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Harvest'**
+  String get lockReason;
+
+  /// No description provided for @lockUnlockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get lockUnlockAction;
+
+  /// No description provided for @lockRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not match. Try again.'**
+  String get lockRefused;
+
+  /// No description provided for @lockTooManyTries.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a moment, then try again.'**
+  String get lockTooManyTries;
+
+  /// No description provided for @lockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The device could not show the unlock prompt.'**
+  String get lockUnavailable;
+
+  /// No description provided for @settingsData.
+  ///
+  /// In en, this message translates to:
+  /// **'My data'**
+  String get settingsData;
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take an archive'**
+  String get exportTitle;
+
+  /// No description provided for @exportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One .zip: the spreadsheet with its totals as live formulas, your notes as a folder of markdown, and every picture in its album.'**
+  String get exportBody;
+
+  /// No description provided for @exportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Downloads'**
+  String get exportAction;
+
+  /// No description provided for @exportRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Building the workbook…'**
+  String get exportRunning;
+
+  /// No description provided for @exportSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {path}'**
+  String exportSaved(String path);
+
+  /// No description provided for @exportFailedPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest was not allowed to write to Downloads.'**
+  String get exportFailedPermission;
+
+  /// No description provided for @exportFailedUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting is only available on Android for now.'**
+  String get exportFailedUnsupported;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The export did not finish. Try again.'**
+  String get exportFailed;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteAction;
+
+  /// No description provided for @restoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreAction;
+
+  /// No description provided for @reminderRingsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'rings in {time}'**
+  String reminderRingsIn(String time);
+
+  /// No description provided for @reminderNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Ringing now'**
+  String get reminderNow;
+
+  /// No description provided for @editExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit expense'**
+  String get editExpense;
+
+  /// No description provided for @deleteExpenseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this expense?'**
+  String get deleteExpenseTitle;
+
+  /// No description provided for @deleteExpenseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} will be removed from the day, and any wallet withdrawal it made will be refunded.'**
+  String deleteExpenseBody(String amount);
+
+  /// No description provided for @archiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archiveTitle;
+
+  /// No description provided for @archiveEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing put away yet'**
+  String get archiveEmpty;
+
+  /// No description provided for @archiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived seeds land here, with the note that says why.'**
+  String get archiveEmptyBody;
+
+  /// No description provided for @archiveSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Put {title} away. Its history stays.'**
+  String archiveSheetBody(String title);
+
+  /// No description provided for @archiveNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you archiving it?'**
+  String get archiveNoteLabel;
+
+  /// No description provided for @archiveNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished it — on to the next one'**
+  String get archiveNoteHint;
+
+  /// No description provided for @archiveKeepsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps every check-in'**
+  String get archiveKeepsHistory;
+
+  /// No description provided for @archivedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived {day}'**
+  String archivedOn(String day);
+
+  /// No description provided for @restoredToField.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} is back on the field'**
+  String restoredToField(String title);
+
+  /// No description provided for @deleteSeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this seed?'**
+  String get deleteSeedTitle;
+
+  /// No description provided for @deleteSeedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{title}, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.'**
+  String deleteSeedBody(String title);
+
+  /// No description provided for @deleteSeedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gone for good, history and all'**
+  String get deleteSeedSubtitle;
+
+  /// No description provided for @seedNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get seedNotesTitle;
+
+  /// No description provided for @seedNotesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where you left off today'**
+  String get seedNotesSubtitle;
+
+  /// No description provided for @seedNotesSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s note, and the last one'**
+  String get seedNotesSheetSubtitle;
+
+  /// No description provided for @seedNotesExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'A fresh note every day. Yesterday\'s stays in the history.'**
+  String get seedNotesExplainer;
+
+  /// No description provided for @seedNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped on page 143'**
+  String get seedNoteHint;
+
+  /// No description provided for @noteForDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for {day}'**
+  String noteForDay(String day);
+
+  /// No description provided for @lastTimeOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time · {day}'**
+  String lastTimeOn(String day);
+
+  /// No description provided for @seedHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get seedHistoryTitle;
+
+  /// No description provided for @seedHistorySheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day, and what you wrote'**
+  String get seedHistorySheetSubtitle;
+
+  /// No description provided for @seedHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No days yet} =1{1 day on record} other{{count} days on record}}'**
+  String seedHistorySubtitle(int count);
+
+  /// No description provided for @seedHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet'**
+  String get seedHistoryEmpty;
+
+  /// No description provided for @seedHistoryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in once and this fills up.'**
+  String get seedHistoryEmptyBody;
+
+  /// No description provided for @seedGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This seed is gone'**
+  String get seedGone;
+
+  /// No description provided for @seedGoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It was deleted, so there is nothing left to show.'**
+  String get seedGoneBody;
+
+  /// No description provided for @streakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get streakLabel;
+
+  /// No description provided for @bestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get bestLabel;
+
+  /// No description provided for @daysLoggedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get daysLoggedLabel;
+
+  /// No description provided for @unitsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Units'**
+  String get unitsLabel;
+
+  /// No description provided for @checkInsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get checkInsLabel;
+
+  /// No description provided for @dayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no days} =1{1 day} other{{count} days}}'**
+  String dayCount(int count);
+
+  /// No description provided for @unitsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unit logged} other{{count} units logged}}'**
+  String unitsLogged(int count);
+
+  /// No description provided for @checkedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get checkedIn;
+
+  /// No description provided for @noteOnlyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Note only'**
+  String get noteOnlyDay;
+
+  /// No description provided for @runStripLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No active days in the last eight weeks} =1{1 active day in the last eight weeks} other{{count} active days in the last eight weeks}}'**
+  String runStripLabel(int count);
+
+  /// No description provided for @comebackDay1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your field is waiting 🌱'**
+  String get comebackDay1Title;
+
+  /// No description provided for @comebackDay1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'One quiet day, that\'s all. Water something and the streak keeps going.'**
+  String get comebackDay1Body;
+
+  /// No description provided for @comebackDay3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Three days without water'**
+  String get comebackDay3Title;
+
+  /// No description provided for @comebackDay3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'The soil is still good. Pick the easiest seed and start there.'**
+  String get comebackDay3Body;
+
+  /// No description provided for @comebackWeek1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'A week away 🌾'**
+  String get comebackWeek1Title;
+
+  /// No description provided for @comebackWeek1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best streak is still on record. A single check-in starts the next one.'**
+  String get comebackWeek1Body;
+
+  /// No description provided for @comebackWeek2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks quiet'**
+  String get comebackWeek2Title;
+
+  /// No description provided for @comebackWeek2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here is lost — your history is exactly where you left it.'**
+  String get comebackWeek2Body;
+
+  /// No description provided for @comebackMonth1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'A month of fallow ground'**
+  String get comebackMonth1Title;
+
+  /// No description provided for @comebackMonth1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'No guilt, no catching up. Open Harvest and plant one thing for today.'**
+  String get comebackMonth1Body;
+
+  /// No description provided for @comebackMonth2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Still here whenever you are'**
+  String get comebackMonth2Title;
+
+  /// No description provided for @comebackMonth2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Every seed, every check-in and every number is still on your phone.'**
+  String get comebackMonth2Body;
+
+  /// No description provided for @widgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-screen widget'**
+  String get widgetTitle;
+
+  /// No description provided for @widgetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add it from the launcher\'s widget picker, then pick what it shows.'**
+  String get widgetBody;
+
+  /// No description provided for @widgetStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'day streak'**
+  String get widgetStreakLabel;
+
+  /// No description provided for @widgetTasksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get widgetTasksLabel;
+
+  /// No description provided for @widgetEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due today'**
+  String get widgetEmpty;
+
+  /// No description provided for @loadingTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Cultivate your day.'**
+  String get loadingTagline;
+
+  /// No description provided for @widgetRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh it now'**
+  String get widgetRefresh;
+
+  /// No description provided for @widgetSpentToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} today'**
+  String widgetSpentToday(String amount);
+
+  /// No description provided for @widgetWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} in the wallet'**
+  String widgetWallet(String amount);
+
+  /// No description provided for @widgetActionExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get widgetActionExpense;
+
+  /// No description provided for @widgetActionTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed'**
+  String get widgetActionTask;
+
+  /// No description provided for @widgetAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'The field is watered 🌾'**
+  String get widgetAllDone;
+
+  /// No description provided for @widgetSections.
+  ///
+  /// In en, this message translates to:
+  /// **'What it shows'**
+  String get widgetSections;
+
+  /// No description provided for @widgetSectionStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get widgetSectionStreak;
+
+  /// No description provided for @widgetSectionStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown'**
+  String get widgetSectionStreakBody;
+
+  /// No description provided for @widgetSectionMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get widgetSectionMoney;
+
+  /// No description provided for @widgetSectionMoneyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s spend and your wallet balance'**
+  String get widgetSectionMoneyBody;
+
+  /// No description provided for @widgetSectionMoneyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden while the app lock is on — the home screen is not behind it'**
+  String get widgetSectionMoneyLocked;
+
+  /// No description provided for @widgetSectionTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s field'**
+  String get widgetSectionTasks;
+
+  /// No description provided for @widgetSectionTasksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s still due, as a row of boxes'**
+  String get widgetSectionTasksBody;
+
+  /// No description provided for @widgetSectionActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get widgetSectionActions;
+
+  /// No description provided for @widgetSectionActionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log an expense or plant a seed from the home screen'**
+  String get widgetSectionActionsBody;
+
+  /// No description provided for @statsStreakSquares.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No streak running} =1{1 green square is your streak} other{{count} green squares are your streak}}'**
+  String statsStreakSquares(int count);
+
+  /// No description provided for @legendStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get legendStreak;
+
+  /// No description provided for @legendActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get legendActive;
+
+  /// No description provided for @legendQuiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet'**
+  String get legendQuiet;
+
+  /// No description provided for @settingsCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily cycle'**
+  String get settingsCycle;
+
+  /// No description provided for @settingsCycleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The app bends to your hours, not the other way round'**
+  String get settingsCycleHint;
+
+  /// No description provided for @cycleBedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'I go to sleep at'**
+  String get cycleBedTime;
+
+  /// No description provided for @cycleWakeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'I wake up at'**
+  String get cycleWakeTime;
+
+  /// No description provided for @cycleGood.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours of sleep — that\'s the target'**
+  String cycleGood(String hours);
+
+  /// No description provided for @cycleBelowTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours of sleep. Eight is the target.'**
+  String cycleBelowTarget(String hours);
+
+  /// No description provided for @cycleTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours is less than anyone should run on. Eight is the target, five the floor.'**
+  String cycleTooShort(String hours);
+
+  /// No description provided for @cycleClashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One reminder is now in your sleep} other{{count} reminders are now in your sleep}}'**
+  String cycleClashTitle(int count);
+
+  /// No description provided for @cycleClashBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Move them with your new wake time? Each keeps the same distance from waking.'**
+  String get cycleClashBody;
+
+  /// No description provided for @cycleClashMove.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · {from} → {to}'**
+  String cycleClashMove(String title, String from, String to);
+
+  /// No description provided for @cycleClashMore.
+  ///
+  /// In en, this message translates to:
+  /// **'…and {count} more'**
+  String cycleClashMore(int count);
+
+  /// No description provided for @cycleClashKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave them'**
+  String get cycleClashKeep;
+
+  /// No description provided for @cycleClashShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Move them'**
+  String get cycleClashShift;
+
+  /// No description provided for @movesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes'**
+  String get movesSearchHint;
+
+  /// No description provided for @movesFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get movesFilter;
+
+  /// No description provided for @movesByKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Form'**
+  String get movesByKind;
+
+  /// No description provided for @movesByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get movesByCategory;
+
+  /// No description provided for @movesShowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {matches} of {total}'**
+  String movesShowing(int matches, int total);
+
+  /// No description provided for @movesClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get movesClear;
+
+  /// No description provided for @movesNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that'**
+  String get movesNoMatch;
+
+  /// No description provided for @movesNoMatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different category, form or word.'**
+  String get movesNoMatchBody;
+
+  /// No description provided for @kindManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Added or taken'**
+  String get kindManual;
+
+  /// No description provided for @kindTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get kindTransfer;
+
+  /// No description provided for @kindExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get kindExpense;
+
+  /// No description provided for @kindDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt payment'**
+  String get kindDebt;
+
+  /// No description provided for @rangeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get rangeCustom;
+
+  /// No description provided for @rangePick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick dates'**
+  String get rangePick;
+
+  /// No description provided for @rangeOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} — {to}'**
+  String rangeOf(String from, String to);
+
+  /// No description provided for @insightsMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves in this range'**
+  String get insightsMoves;
+
+  /// No description provided for @insightsMovesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing moved} =1{1 movement} other{{count} movements}}'**
+  String insightsMovesCount(int count);
+
+  /// No description provided for @shareOfSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% ({amount})'**
+  String shareOfSpending(int percent, String amount);
+
+  /// No description provided for @editAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editAction;
+
+  /// No description provided for @navNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get navNotes;
+
+  /// No description provided for @navGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get navGallery;
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesTitle;
+
+  /// No description provided for @notesNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get notesNew;
+
+  /// No description provided for @notesUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get notesUntitled;
+
+  /// No description provided for @notesTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notesTitleHint;
+
+  /// No description provided for @notesBodyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write. Markdown renders as you go and shows its syntax on the line you are on. [[Link]] to another note.'**
+  String get notesBodyHint;
+
+  /// No description provided for @notesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search titles and text'**
+  String get notesSearchHint;
+
+  /// No description provided for @notesAllFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get notesAllFolders;
+
+  /// No description provided for @notesFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get notesFolder;
+
+  /// No description provided for @notesFolderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A path, nothing more. Nested folders are made by naming one.'**
+  String get notesFolderHint;
+
+  /// No description provided for @notesSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get notesSort;
+
+  /// No description provided for @notesSortEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Last edited'**
+  String get notesSortEdited;
+
+  /// No description provided for @notesSortCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get notesSortCreated;
+
+  /// No description provided for @notesSortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notesSortTitle;
+
+  /// No description provided for @notesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get notesEmpty;
+
+  /// No description provided for @notesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to keep what you thought about the day.'**
+  String get notesEmptyBody;
+
+  /// No description provided for @notesNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that'**
+  String get notesNoMatch;
+
+  /// No description provided for @notesNoMatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another word, or a different folder.'**
+  String get notesNoMatchBody;
+
+  /// No description provided for @notesGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This note is gone'**
+  String get notesGone;
+
+  /// No description provided for @notesGoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It was deleted, or it never existed.'**
+  String get notesGoneBody;
+
+  /// No description provided for @notesRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get notesRead;
+
+  /// No description provided for @notesEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get notesEdit;
+
+  /// No description provided for @notesCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get notesCreate;
+
+  /// No description provided for @notesCreateLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write \"{title}\"?'**
+  String notesCreateLinkTitle(String title);
+
+  /// No description provided for @notesCreateLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'That note does not exist yet. A link to a note you have not written is normal — this makes it.'**
+  String get notesCreateLinkBody;
+
+  /// No description provided for @notesDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this note?'**
+  String get notesDeleteTitle;
+
+  /// No description provided for @notesDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the vault. You can undo this straight away.'**
+  String get notesDeleteBody;
+
+  /// No description provided for @notesBacklinks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note links here} other{{count} notes link here}}'**
+  String notesBacklinks(int count);
+
+  /// No description provided for @galleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get galleryTitle;
+
+  /// No description provided for @galleryNewAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'New album'**
+  String get galleryNewAlbum;
+
+  /// No description provided for @galleryEditAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit album'**
+  String get galleryEditAlbum;
+
+  /// No description provided for @galleryCreateAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Create album'**
+  String get galleryCreateAlbum;
+
+  /// No description provided for @galleryAlbumHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A named run of pictures. Give it a schedule and it becomes a seed on your field.'**
+  String get galleryAlbumHint;
+
+  /// No description provided for @galleryAlbumName.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get galleryAlbumName;
+
+  /// No description provided for @galleryAlbumNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym, Face, The flat'**
+  String get galleryAlbumNameHint;
+
+  /// No description provided for @gallerySchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get gallerySchedule;
+
+  /// No description provided for @galleryScheduleNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule'**
+  String get galleryScheduleNone;
+
+  /// No description provided for @gallerySeedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A scheduled album is due like a habit, checked in by adding a picture, and feeds the same streak.'**
+  String get gallerySeedHint;
+
+  /// No description provided for @galleryIsSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'On your field'**
+  String get galleryIsSeed;
+
+  /// No description provided for @galleryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No albums yet'**
+  String get galleryEmpty;
+
+  /// No description provided for @galleryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + for an album: one picture a day, playable as a run.'**
+  String get galleryEmptyBody;
+
+  /// No description provided for @galleryAlbumEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in here yet'**
+  String get galleryAlbumEmpty;
+
+  /// No description provided for @galleryAlbumEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the first picture. The comparison only gets interesting from the second one.'**
+  String get galleryAlbumEmptyBody;
+
+  /// No description provided for @galleryAlbumGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This album is gone'**
+  String get galleryAlbumGone;
+
+  /// No description provided for @galleryAlbumCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Empty} =1{1 memory} other{{count} memories}}'**
+  String galleryAlbumCount(int count);
+
+  /// No description provided for @galleryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get galleryAdd;
+
+  /// No description provided for @galleryAddTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to {album}'**
+  String galleryAddTo(String album);
+
+  /// No description provided for @galleryCheckInHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The first picture today checks this album in.'**
+  String get galleryCheckInHint;
+
+  /// No description provided for @galleryTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get galleryTakePhoto;
+
+  /// No description provided for @galleryPickPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get galleryPickPhoto;
+
+  /// No description provided for @galleryTakeVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get galleryTakeVideo;
+
+  /// No description provided for @galleryPickVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get galleryPickVideo;
+
+  /// No description provided for @galleryNoCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was captured.'**
+  String get galleryNoCapture;
+
+  /// No description provided for @galleryMemoryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get galleryMemoryNote;
+
+  /// No description provided for @galleryMemoryNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What changed, what you weighed, what you were trying'**
+  String get galleryMemoryNoteHint;
+
+  /// No description provided for @gallerySearchNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes'**
+  String get gallerySearchNotes;
+
+  /// No description provided for @gallerySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search the notes on these pictures'**
+  String get gallerySearchHint;
+
+  /// No description provided for @galleryNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No picture has a note like that'**
+  String get galleryNoMatch;
+
+  /// No description provided for @galleryPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get galleryPlay;
+
+  /// No description provided for @gallerySpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get gallerySpeed;
+
+  /// No description provided for @galleryFps.
+  ///
+  /// In en, this message translates to:
+  /// **'{fps}/s'**
+  String galleryFps(int fps);
+
+  /// No description provided for @galleryCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get galleryCompare;
+
+  /// No description provided for @galleryCompareLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get galleryCompareLeft;
+
+  /// No description provided for @galleryCompareRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get galleryCompareRight;
+
+  /// No description provided for @galleryDeleteMemoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this memory?'**
+  String get galleryDeleteMemoryTitle;
+
+  /// No description provided for @galleryDeleteMemoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The file goes with it, for good. There is no undo behind this one.'**
+  String get galleryDeleteMemoryBody;
+
+  /// No description provided for @galleryDeleteAlbumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {album}?'**
+  String galleryDeleteAlbumTitle(String album);
+
+  /// No description provided for @galleryDeleteAlbumBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every picture in it is deleted with it, files and all. There is no undo.'**
+  String get galleryDeleteAlbumBody;
+
+  /// No description provided for @settingsFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Extras'**
+  String get settingsFeatures;
+
+  /// No description provided for @settingsFeaturesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts of the app that stay out of the way until you ask for them. They pair up in the navigation bar, so switching them all on still leaves five tabs.'**
+  String get settingsFeaturesHint;
+
+  /// No description provided for @featureNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get featureNotes;
+
+  /// No description provided for @featureNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Markdown notes in folders, linked to each other.'**
+  String get featureNotesHint;
+
+  /// No description provided for @featureGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get featureGallery;
+
+  /// No description provided for @featureGalleryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums of photos over time, playable as a run. A scheduled album becomes a seed on your field.'**
+  String get featureGalleryHint;
+
+  /// No description provided for @featureGallerySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {size}'**
+  String featureGallerySize(String size);
+
+  /// No description provided for @obExtrasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A few more, if you want them'**
+  String get obExtrasTitle;
+
+  /// No description provided for @obExtrasBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each stays hidden unless you switch it on. You can change your mind in Settings at any time.'**
+  String get obExtrasBody;
+
+  /// No description provided for @albumReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s picture is still missing.'**
+  String get albumReminderBody;
+
+  /// No description provided for @exportPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading everything…'**
+  String get exportPreparing;
+
+  /// No description provided for @exportProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String exportProgress(int done, int total);
+
+  /// No description provided for @exportStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped. Nothing was written.'**
+  String get exportStopped;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring an archive back'**
+  String get importTitle;
+
+  /// No description provided for @importBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a Harvest .zip. You will see exactly what it would change before anything happens, and nothing here is ever deleted for being missing from it.'**
+  String get importBody;
+
+  /// No description provided for @importAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an archive'**
+  String get importAction;
+
+  /// No description provided for @importReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading…'**
+  String get importReading;
+
+  /// No description provided for @importApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Merging…'**
+  String get importApplying;
+
+  /// No description provided for @importConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge it in'**
+  String get importConfirm;
+
+  /// No description provided for @importSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{added} new, {updated} to update'**
+  String importSummary(int added, int updated);
+
+  /// No description provided for @importRowCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'+{added} · ↻{updated}'**
+  String importRowCounts(int added, int updated);
+
+  /// No description provided for @importFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{newFiles, plural, =0{No new files among the {files} in the archive} =1{1 new file of {files} in the archive} other{{newFiles} new files of {files} in the archive}}'**
+  String importFiles(int newFiles, int files);
+
+  /// No description provided for @importNothingToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in here is already on this phone.'**
+  String get importNothingToDo;
+
+  /// No description provided for @importNeverDeletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing local is deleted. Rows already here are only touched if the archive\'s copy is newer.'**
+  String get importNeverDeletes;
+
+  /// No description provided for @importDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done — {added} added, {updated} updated.'**
+  String importDone(int added, int updated);
+
+  /// No description provided for @importNotHarvest.
+  ///
+  /// In en, this message translates to:
+  /// **'That zip is not a Harvest archive.'**
+  String get importNotHarvest;
+
+  /// No description provided for @importUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'That file could not be opened.'**
+  String get importUnreadable;
+
+  /// No description provided for @importBadWorkbook.
+  ///
+  /// In en, this message translates to:
+  /// **'The spreadsheet inside that archive could not be read.'**
+  String get importBadWorkbook;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The import did not finish.'**
+  String get importFailed;
+
+  /// No description provided for @sheetSeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeds'**
+  String get sheetSeeds;
+
+  /// No description provided for @sheetCheckIns.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get sheetCheckIns;
+
+  /// No description provided for @sheetSeedNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Day notes'**
+  String get sheetSeedNotes;
+
+  /// No description provided for @sheetExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get sheetExpenses;
+
+  /// No description provided for @sheetMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Movements'**
+  String get sheetMoney;
+
+  /// No description provided for @sheetDebts.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts'**
+  String get sheetDebts;
+
+  /// No description provided for @sheetDebtPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt payments'**
+  String get sheetDebtPayments;
+
+  /// No description provided for @sheetFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus sessions'**
+  String get sheetFocus;
+
+  /// No description provided for @sheetLedger.
+  ///
+  /// In en, this message translates to:
+  /// **'XP ledger'**
+  String get sheetLedger;
+
+  /// No description provided for @sheetSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get sheetSettings;
+
+  /// No description provided for @sheetNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get sheetNotes;
+
+  /// No description provided for @sheetAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get sheetAlbums;
+
+  /// No description provided for @sheetMemories.
+  ///
+  /// In en, this message translates to:
+  /// **'Memories'**
+  String get sheetMemories;
+
+  /// No description provided for @navRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navRecords;
+
+  /// No description provided for @shareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareAction;
+
+  /// No description provided for @trashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trashTitle;
+
+  /// No description provided for @trashEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get trashEmpty;
+
+  /// No description provided for @trashEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The trash is empty'**
+  String get trashEmptyTitle;
+
+  /// No description provided for @trashNotesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted notes wait here.'**
+  String get trashNotesEmptyBody;
+
+  /// No description provided for @trashGalleryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted pictures and albums wait here.'**
+  String get trashGalleryEmptyBody;
+
+  /// No description provided for @trashKeeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing leaves here on its own. Restore what you want back, or empty the lot.'**
+  String get trashKeeps;
+
+  /// No description provided for @trashKeepsFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'The files are still on the phone. Emptying the trash is what removes them.'**
+  String get trashKeepsFiles;
+
+  /// No description provided for @trashRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Put it back'**
+  String get trashRestore;
+
+  /// No description provided for @trashDeleteForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete for good'**
+  String get trashDeleteForever;
+
+  /// No description provided for @trashDeleteForeverConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this for good?'**
+  String get trashDeleteForeverConfirm;
+
+  /// No description provided for @trashDeleteForeverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is nothing behind this one.'**
+  String get trashDeleteForeverBody;
+
+  /// No description provided for @trashEmptyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Empty the trash — 1 item?} other{Empty the trash — {count} items?}}'**
+  String trashEmptyConfirm(int count);
+
+  /// No description provided for @trashEmptyConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in the trash goes for good.'**
+  String get trashEmptyConfirmBody;
+
+  /// No description provided for @trashEmptyFilesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every picture in here is deleted from the phone, files and all. There is no undo.'**
+  String get trashEmptyFilesBody;
+
+  /// No description provided for @trashWholeAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole album'**
+  String get trashWholeAlbum;
+
+  /// No description provided for @notesNewFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get notesNewFolder;
+
+  /// No description provided for @notesNewSubfolder.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder inside'**
+  String get notesNewSubfolder;
+
+  /// No description provided for @notesRenameFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename folder'**
+  String get notesRenameFolder;
+
+  /// No description provided for @notesDeleteFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete folder'**
+  String get notesDeleteFolder;
+
+  /// No description provided for @notesDeleteFolderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Its notes go to the trash'**
+  String get notesDeleteFolderHint;
+
+  /// No description provided for @notesFolderOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder options'**
+  String get notesFolderOptions;
+
+  /// No description provided for @notesFolderNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Health, Work, Reading'**
+  String get notesFolderNameHint;
+
+  /// No description provided for @notesNewHere.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get notesNewHere;
+
+  /// No description provided for @notesMoveToFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to folder'**
+  String get notesMoveToFolder;
+
+  /// No description provided for @notesSharePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as PDF'**
+  String get notesSharePdf;
+
+  /// No description provided for @notesPdfFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That note could not be turned into a PDF.'**
+  String get notesPdfFailed;
+
+  /// No description provided for @notesMovedToTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to the trash'**
+  String get notesMovedToTrash;
+
+  /// No description provided for @notesFolderTrashed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{{folder} is gone} =1{{folder} and 1 note moved to the trash} other{{folder} and {count} notes moved to the trash}}'**
+  String notesFolderTrashed(String folder, int count);
+
+  /// No description provided for @mdHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get mdHeading;
+
+  /// No description provided for @mdBold.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get mdBold;
+
+  /// No description provided for @mdItalic.
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get mdItalic;
+
+  /// No description provided for @mdCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get mdCode;
+
+  /// No description provided for @mdList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get mdList;
+
+  /// No description provided for @mdTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get mdTask;
+
+  /// No description provided for @mdQuote.
+  ///
+  /// In en, this message translates to:
+  /// **'Quote'**
+  String get mdQuote;
+
+  /// No description provided for @mdWikiLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a note'**
+  String get mdWikiLink;
+
+  /// No description provided for @mdTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get mdTable;
+
+  /// No description provided for @mdTableRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a row'**
+  String get mdTableRow;
+
+  /// No description provided for @mdTableColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a column'**
+  String get mdTableColumn;
+
+  /// No description provided for @mdRowShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Row'**
+  String get mdRowShort;
+
+  /// No description provided for @mdColumnShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Col'**
+  String get mdColumnShort;
+
+  /// No description provided for @mdHideKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the keyboard'**
+  String get mdHideKeyboard;
+
+  /// No description provided for @galleryDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get galleryDoneToday;
+
+  /// No description provided for @galleryMovedToTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to the trash'**
+  String get galleryMovedToTrash;
+
+  /// No description provided for @galleryFileGone.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is no longer on the phone.'**
+  String get galleryFileGone;
+
+  /// No description provided for @navBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get navBody;
+
+  /// No description provided for @navHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get navHealth;
+
+  /// No description provided for @navGym.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get navGym;
+
+  /// No description provided for @navFarmer.
+  ///
+  /// In en, this message translates to:
+  /// **'Farmer'**
+  String get navFarmer;
+
+  /// No description provided for @navProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get navProgress;
+
+  /// No description provided for @featureHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get featureHealth;
+
+  /// No description provided for @featureHealthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep, steps read from the phone\'s own health store, and a body weight whenever you stand on the scale.'**
+  String get featureHealthHint;
+
+  /// No description provided for @featureGym.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get featureGym;
+
+  /// No description provided for @featureGymHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs, sessions and personal records. A gym habit lands on your field like any other seed.'**
+  String get featureGymHint;
+
+  /// No description provided for @stepsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps today'**
+  String get stepsToday;
+
+  /// No description provided for @stepsWeekAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day average'**
+  String get stepsWeekAverage;
+
+  /// No description provided for @stepsOfGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{steps} of {goal}'**
+  String stepsOfGoal(int steps, int goal);
+
+  /// No description provided for @stepsPassive.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone counts these. They never check a seed in and never break a streak.'**
+  String get stepsPassive;
+
+  /// No description provided for @stepsSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the steps come from'**
+  String get stepsSource;
+
+  /// No description provided for @stepsFromHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'From Health Connect — the phone\'s own step store, so this matches your health app.'**
+  String get stepsFromHealthConnect;
+
+  /// No description provided for @stepsFromSensor.
+  ///
+  /// In en, this message translates to:
+  /// **'From the phone\'s step counter, read when the app is open.'**
+  String get stepsFromSensor;
+
+  /// No description provided for @stepsConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get stepsConnect;
+
+  /// No description provided for @stepsConnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read steps from the phone'**
+  String get stepsConnectTitle;
+
+  /// No description provided for @stepsConnectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest reads the daily total from the phone\'s own health store. Nothing is sent anywhere and no account is involved.'**
+  String get stepsConnectBody;
+
+  /// No description provided for @stepsConnectSensorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest reads the phone\'s step counter while the app is open. Nothing is sent anywhere.'**
+  String get stepsConnectSensorBody;
+
+  /// No description provided for @stepsDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed yet. Tap Connect to ask again, or allow it from Health Connect\'s settings.'**
+  String get stepsDenied;
+
+  /// No description provided for @stepsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone has nowhere to read steps from.'**
+  String get stepsUnavailable;
+
+  /// No description provided for @stepsInstallHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Health Connect'**
+  String get stepsInstallHealthConnect;
+
+  /// No description provided for @stepsOpenHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect settings'**
+  String get stepsOpenHealthConnect;
+
+  /// No description provided for @stepsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get stepsRefresh;
+
+  /// No description provided for @stepsGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily step goal'**
+  String get stepsGoal;
+
+  /// No description provided for @stepsGoalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.'**
+  String get stepsGoalHint;
+
+  /// No description provided for @stepsGoalNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal'**
+  String get stepsGoalNone;
+
+  /// No description provided for @stepsGoalMet.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal met'**
+  String get stepsGoalMet;
+
+  /// No description provided for @stepsSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get stepsSettings;
+
+  /// No description provided for @stepsStride.
+  ///
+  /// In en, this message translates to:
+  /// **'Stride length'**
+  String get stepsStride;
+
+  /// No description provided for @stepsStrideHint.
+  ///
+  /// In en, this message translates to:
+  /// **'About 0.415 × your height. 75 cm is a fair guess; a tape measure is better.'**
+  String get stepsStrideHint;
+
+  /// No description provided for @stepsDistanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} km'**
+  String stepsDistanceKm(String value);
+
+  /// No description provided for @stepsDistanceMi.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} mi'**
+  String stepsDistanceMi(String value);
+
+  /// No description provided for @stepsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Your steps'**
+  String get stepsHistory;
+
+  /// No description provided for @stepsNoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No steps counted yet'**
+  String get stepsNoDays;
+
+  /// No description provided for @stepsNoDaysBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Connect on the steps card.'**
+  String get stepsNoDaysBody;
+
+  /// No description provided for @stepsLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days'**
+  String stepsLastDays(int days);
+
+  /// No description provided for @stepsBestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Best day'**
+  String get stepsBestDay;
+
+  /// No description provided for @stepsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{steps} steps'**
+  String stepsCount(String steps);
+
+  /// No description provided for @weightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightTitle;
+
+  /// No description provided for @weightLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a weight'**
+  String get weightLog;
+
+  /// No description provided for @weightEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this weight'**
+  String get weightEdit;
+
+  /// No description provided for @weightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.'**
+  String get weightHint;
+
+  /// No description provided for @weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightLabel;
+
+  /// No description provided for @weightNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get weightNote;
+
+  /// No description provided for @weightNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'After the flu, new scale…'**
+  String get weightNoteHint;
+
+  /// No description provided for @weightEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No weights yet'**
+  String get weightEmpty;
+
+  /// No description provided for @weightEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first weight starts the line; it takes a shape from the third.'**
+  String get weightEmptyBody;
+
+  /// No description provided for @weightHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Every reading'**
+  String get weightHistory;
+
+  /// No description provided for @weightWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get weightWindow;
+
+  /// No description provided for @weightDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String weightDays(int days);
+
+  /// No description provided for @weightNoTrendYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough readings for a trend yet'**
+  String get weightNoTrendYet;
+
+  /// No description provided for @weightDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Down {amount} over {days} days'**
+  String weightDown(String amount, int days);
+
+  /// No description provided for @weightUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up {amount} over {days} days'**
+  String weightUp(String amount, int days);
+
+  /// No description provided for @weightSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Level over {days} days'**
+  String weightSteady(int days);
+
+  /// No description provided for @weightToTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} from your target of {target}'**
+  String weightToTarget(String amount, String target);
+
+  /// No description provided for @weightLegendEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings'**
+  String get weightLegendEntries;
+
+  /// No description provided for @weightLegendTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day average'**
+  String get weightLegendTrend;
+
+  /// No description provided for @weightLegendTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get weightLegendTarget;
+
+  /// No description provided for @weightDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this reading?'**
+  String get weightDeleteTitle;
+
+  /// No description provided for @weightDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the chart. You can undo this straight away.'**
+  String get weightDeleteBody;
+
+  /// No description provided for @gymComingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym is next'**
+  String get gymComingTitle;
+
+  /// No description provided for @gymComingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs, sessions and personal records are being built. Steps and weight work now.'**
+  String get gymComingBody;
+
+  /// No description provided for @gymBrowse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse exercises'**
+  String get gymBrowse;
+
+  /// No description provided for @gymPickExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an exercise'**
+  String get gymPickExercise;
+
+  /// No description provided for @gymSearchExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, muscle or kit'**
+  String get gymSearchExercises;
+
+  /// No description provided for @gymExercisesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises'**
+  String get gymExercisesTitle;
+
+  /// No description provided for @gymProgramsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs'**
+  String get gymProgramsTitle;
+
+  /// No description provided for @gymCatalogueLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the catalogue…'**
+  String get gymCatalogueLoading;
+
+  /// No description provided for @gymCatalogueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, muscle or equipment — the question mid-session is usually what else hits this.'**
+  String get gymCatalogueHint;
+
+  /// No description provided for @gymExerciseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No exercises} =1{1 exercise} other{{count} exercises}}'**
+  String gymExerciseCount(int count);
+
+  /// No description provided for @gymNoExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches that'**
+  String get gymNoExercise;
+
+  /// No description provided for @gymNoExerciseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a muscle or a piece of equipment instead of a name.'**
+  String get gymNoExerciseBody;
+
+  /// No description provided for @gymMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get gymMine;
+
+  /// No description provided for @gymHowTo.
+  ///
+  /// In en, this message translates to:
+  /// **'How it goes'**
+  String get gymHowTo;
+
+  /// No description provided for @gymNoInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'No instructions for this one.'**
+  String get gymNoInstructions;
+
+  /// No description provided for @gymMediaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise pictures'**
+  String get gymMediaTitle;
+
+  /// No description provided for @gymMediaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded the first time you open an exercise, then kept. Names and instructions are already in the app and work without a single picture.'**
+  String get gymMediaBody;
+
+  /// No description provided for @gymNeverFetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Never fetch pictures'**
+  String get gymNeverFetch;
+
+  /// No description provided for @gymNeverFetchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym works completely on words alone'**
+  String get gymNeverFetchHint;
+
+  /// No description provided for @gymDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download them all'**
+  String get gymDownloadAll;
+
+  /// No description provided for @gymDownloadAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} animations, roughly {size}. Worth doing on Wi-Fi before a trip.'**
+  String gymDownloadAllBody(int count, String size);
+
+  /// No description provided for @gymDownloadProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String gymDownloadProgress(int done, int total);
+
+  /// No description provided for @gymClearMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get gymClearMedia;
+
+  /// No description provided for @gymClearMediaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The pictures go; nothing else does. They come back the next time you open an exercise.'**
+  String get gymClearMediaBody;
+
+  /// No description provided for @gymMediaAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise images and animations {credit}, fetched from the dataset they are published in.'**
+  String gymMediaAttribution(String credit);
+
+  /// No description provided for @gymNewProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'New program'**
+  String get gymNewProgram;
+
+  /// No description provided for @gymProgramNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'nSuns 5/3/1, Push Pull Legs…'**
+  String get gymProgramNameHint;
+
+  /// No description provided for @gymNoPrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'No programs yet'**
+  String get gymNoPrograms;
+
+  /// No description provided for @gymNoProgramsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + and write the first day.'**
+  String get gymNoProgramsBody;
+
+  /// No description provided for @gymProgramSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{No days yet} =1{1 day} other{{days} days}} · {sets, plural, =0{no sets} =1{1 set} other{{sets} sets}}'**
+  String gymProgramSummary(int days, int sets);
+
+  /// No description provided for @gymProgramGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This program is gone'**
+  String get gymProgramGone;
+
+  /// No description provided for @gymRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get gymRename;
+
+  /// No description provided for @gymDeleteProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String gymDeleteProgram(String name);
+
+  /// No description provided for @gymDeleteProgramBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its days and sets go with it. Sessions you already finished stay.'**
+  String get gymDeleteProgramBody;
+
+  /// No description provided for @gymAddDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a day'**
+  String get gymAddDay;
+
+  /// No description provided for @gymDayNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {n}'**
+  String gymDayNumber(int n);
+
+  /// No description provided for @gymDayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Day 4, Push, Upper A…'**
+  String get gymDayNameHint;
+
+  /// No description provided for @gymNoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No days yet'**
+  String get gymNoDays;
+
+  /// No description provided for @gymNoDaysBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Add a day. Duplicating it later is one tap.'**
+  String get gymNoDaysBody;
+
+  /// No description provided for @gymDaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{exercises, plural, =0{No exercises} =1{1 exercise} other{{exercises} exercises}} · {sets, plural, =1{1 set} other{{sets} sets}}'**
+  String gymDaySummary(int exercises, int sets);
+
+  /// No description provided for @gymDuplicateDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get gymDuplicateDay;
+
+  /// No description provided for @gymDeleteDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String gymDeleteDay(String name);
+
+  /// No description provided for @gymDeleteDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The exercises and sets in it go too.'**
+  String get gymDeleteDayBody;
+
+  /// No description provided for @gymAccessories.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended accessories'**
+  String get gymAccessories;
+
+  /// No description provided for @gymAccessoriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Back, Abs — a note, not a prescription'**
+  String get gymAccessoriesHint;
+
+  /// No description provided for @gymRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended: {what}'**
+  String gymRecommended(String what);
+
+  /// No description provided for @gymAddExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an exercise'**
+  String get gymAddExercise;
+
+  /// No description provided for @gymRemoveExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this exercise'**
+  String get gymRemoveExercise;
+
+  /// No description provided for @gymUnknownExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown exercise'**
+  String get gymUnknownExercise;
+
+  /// No description provided for @gymNoSetsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No sets yet'**
+  String get gymNoSetsYet;
+
+  /// No description provided for @gymSetsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this asks of you, set by set.'**
+  String get gymSetsSubtitle;
+
+  /// No description provided for @gymAddSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get gymAddSet;
+
+  /// No description provided for @gymAddPercentSet.
+  ///
+  /// In en, this message translates to:
+  /// **'% set'**
+  String get gymAddPercentSet;
+
+  /// No description provided for @gymAddOpenSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Open set'**
+  String get gymAddOpenSet;
+
+  /// No description provided for @gymEditSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the set'**
+  String get gymEditSet;
+
+  /// No description provided for @gymPercentOfMax.
+  ///
+  /// In en, this message translates to:
+  /// **'% of max'**
+  String get gymPercentOfMax;
+
+  /// No description provided for @gymPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent'**
+  String get gymPercent;
+
+  /// No description provided for @gymWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get gymWeight;
+
+  /// No description provided for @gymReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps'**
+  String get gymReps;
+
+  /// No description provided for @gymOpenSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Open set'**
+  String get gymOpenSet;
+
+  /// No description provided for @gymOpenSetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As many as you can — the set that decides whether the weight goes up'**
+  String get gymOpenSetHint;
+
+  /// No description provided for @gymOpenReps.
+  ///
+  /// In en, this message translates to:
+  /// **'{reps}+'**
+  String gymOpenReps(int reps);
+
+  /// No description provided for @gymBarWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'The bar'**
+  String get gymBarWeight;
+
+  /// No description provided for @gymRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest between sets'**
+  String get gymRest;
+
+  /// No description provided for @gymRestSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds'**
+  String gymRestSeconds(int seconds);
+
+  /// No description provided for @gymTrainingMaxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Training maxes'**
+  String get gymTrainingMaxes;
+
+  /// No description provided for @gymTrainingMaxesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The number your percentages are percentages of. Yours to set and yours to bump — the app does not do your programming.'**
+  String get gymTrainingMaxesHint;
+
+  /// No description provided for @gymNoTrainingMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set — percentage sets cannot resolve'**
+  String get gymNoTrainingMax;
+
+  /// No description provided for @gymNoPercentSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in this program is a percentage, so there is nothing to set.'**
+  String get gymNoPercentSets;
+
+  /// No description provided for @gymNeedsTrainingMax.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 exercise needs a training max} other{{count} exercises need a training max}}'**
+  String gymNeedsTrainingMax(int count);
+
+  /// No description provided for @gymNeedsTrainingMaxBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Until then its percentage sets show a percentage rather than a weight.'**
+  String get gymNeedsTrainingMaxBody;
+
+  /// No description provided for @gymStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get gymStart;
+
+  /// No description provided for @gymResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry on'**
+  String get gymResume;
+
+  /// No description provided for @gymRunningSession.
+  ///
+  /// In en, this message translates to:
+  /// **'A session is running'**
+  String get gymRunningSession;
+
+  /// No description provided for @gymRunningSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets done. Finish or drop it before starting another.'**
+  String gymRunningSessionBody(int done, int total);
+
+  /// No description provided for @gymPickDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Which day?'**
+  String get gymPickDay;
+
+  /// No description provided for @gymNoProgramToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'No program to start'**
+  String get gymNoProgramToStart;
+
+  /// No description provided for @gymNoProgramToStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a program first — a session is a day of one, with the weights already filled in.'**
+  String get gymNoProgramToStartBody;
+
+  /// No description provided for @gymSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get gymSession;
+
+  /// No description provided for @gymSessionGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This session is gone'**
+  String get gymSessionGone;
+
+  /// No description provided for @gymSessionProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets'**
+  String gymSessionProgress(int done, int total);
+
+  /// No description provided for @gymSessionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note on the session'**
+  String get gymSessionNote;
+
+  /// No description provided for @gymSessionNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Slept badly, belt on, gym was packed…'**
+  String get gymSessionNoteHint;
+
+  /// No description provided for @gymDiscardSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop this session'**
+  String get gymDiscardSession;
+
+  /// No description provided for @gymDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done, plural, =0{Nothing is logged yet, so nothing is lost.} =1{The one set you logged goes with it.} other{The {done} sets you logged go with it.}}'**
+  String gymDiscardBody(int done);
+
+  /// No description provided for @gymFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get gymFinish;
+
+  /// No description provided for @gymFinishEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish with nothing logged?'**
+  String get gymFinishEmptyTitle;
+
+  /// No description provided for @gymFinishEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It is kept as a session you turned up for, which is worth something, but no set counts towards a record.'**
+  String get gymFinishEmptyBody;
+
+  /// No description provided for @gymInsteadOf.
+  ///
+  /// In en, this message translates to:
+  /// **'instead of {name}'**
+  String gymInsteadOf(String name);
+
+  /// No description provided for @gymLastTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time: {sets}'**
+  String gymLastTime(String sets);
+
+  /// No description provided for @gymSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap it out'**
+  String get gymSwap;
+
+  /// No description provided for @gymSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip it'**
+  String get gymSkip;
+
+  /// No description provided for @gymUnskip.
+  ///
+  /// In en, this message translates to:
+  /// **'Put it back'**
+  String get gymUnskip;
+
+  /// No description provided for @gymNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get gymNote;
+
+  /// No description provided for @gymSetColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get gymSetColumn;
+
+  /// No description provided for @gymTargetColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get gymTargetColumn;
+
+  /// No description provided for @gymRepsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps'**
+  String get gymRepsColumn;
+
+  /// No description provided for @gymTick.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this set'**
+  String get gymTick;
+
+  /// No description provided for @gymUntick.
+  ///
+  /// In en, this message translates to:
+  /// **'Not done after all'**
+  String get gymUntick;
+
+  /// No description provided for @gymRecordHeaviest.
+  ///
+  /// In en, this message translates to:
+  /// **'Heaviest ever: {load}'**
+  String gymRecordHeaviest(String load);
+
+  /// No description provided for @gymRecordEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Best set yet — about {load} for one'**
+  String gymRecordEstimated(String load);
+
+  /// No description provided for @gymRestPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'+{seconds}s'**
+  String gymRestPlus(int seconds);
+
+  /// No description provided for @gymRestSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Done resting'**
+  String get gymRestSkip;
+
+  /// No description provided for @gymRestCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type it'**
+  String get gymRestCustom;
+
+  /// No description provided for @gymRestCustomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'seconds'**
+  String get gymRestCustomHint;
+
+  /// No description provided for @gymRestNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No timer'**
+  String get gymRestNone;
+
+  /// No description provided for @gymPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause the clock'**
+  String get gymPause;
+
+  /// No description provided for @gymResumeClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the clock'**
+  String get gymResumeClock;
+
+  /// No description provided for @gymPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get gymPaused;
+
+  /// No description provided for @healthLogNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Log last night'**
+  String get healthLogNight;
+
+  /// No description provided for @gymSeedStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the session'**
+  String get gymSeedStart;
+
+  /// No description provided for @gymSeedStartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The program\'s day, sets and all'**
+  String get gymSeedStartHint;
+
+  /// No description provided for @gymSeedBare.
+  ///
+  /// In en, this message translates to:
+  /// **'Went, no numbers'**
+  String get gymSeedBare;
+
+  /// No description provided for @gymSeedBareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in as a session with nothing logged'**
+  String get gymSeedBareHint;
+
+  /// No description provided for @gymReorderHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get gymReorderHandle;
+
+  /// No description provided for @gymUpNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get gymUpNext;
+
+  /// No description provided for @gymOtherDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Or another day'**
+  String get gymOtherDays;
+
+  /// No description provided for @gymNextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {day}'**
+  String gymNextDay(String day);
+
+  /// No description provided for @gymFinishIncompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish with sets left?'**
+  String get gymFinishIncompleteTitle;
+
+  /// No description provided for @gymFinishIncompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} of {total} sets are not ticked. The session ends here and the gym habit is checked in as done for {day}.'**
+  String gymFinishIncompleteBody(int left, int total, String day);
+
+  /// No description provided for @gymBestLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {sets}'**
+  String gymBestLine(String sets);
+
+  /// No description provided for @gymBestEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'est. {weight}'**
+  String gymBestEstimate(String weight);
+
+  /// No description provided for @gymPerSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Per side, on a {bar} bar'**
+  String gymPerSide(String bar);
+
+  /// No description provided for @gymJustTheBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Just the bar'**
+  String get gymJustTheBar;
+
+  /// No description provided for @gymPlateShortfall.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest is {total} — {short} short. A bar loads in pairs, so it cannot make every number.'**
+  String gymPlateShortfall(String total, String short);
+
+  /// No description provided for @gymBarOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighter than the bar: the bar alone is {over} over.'**
+  String gymBarOver(String over);
+
+  /// No description provided for @gymMoveDayUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get gymMoveDayUp;
+
+  /// No description provided for @gymMoveDayDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get gymMoveDayDown;
+
+  /// No description provided for @gymMineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add my own'**
+  String get gymMineTitle;
+
+  /// No description provided for @gymMineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One the catalogue is missing. It is yours: it syncs, and it works like any other everywhere.'**
+  String get gymMineBody;
+
+  /// No description provided for @gymMineName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get gymMineName;
+
+  /// No description provided for @gymMineBodyPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Body part'**
+  String get gymMineBodyPart;
+
+  /// No description provided for @gymMineEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get gymMineEquipment;
+
+  /// No description provided for @gymMineEquipmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'barbell, cable…'**
+  String get gymMineEquipmentHint;
+
+  /// No description provided for @gymMineMuscle.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle'**
+  String get gymMineMuscle;
+
+  /// No description provided for @gymMineAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add it'**
+  String get gymMineAdd;
+
+  /// No description provided for @sleepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last night'**
+  String get sleepTitle;
+
+  /// No description provided for @sleepSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two times and a feeling. Nothing here was measured by the phone, and none of it is a test.'**
+  String get sleepSubtitle;
+
+  /// No description provided for @sleepSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Write it down'**
+  String get sleepSave;
+
+  /// No description provided for @sleepFellAsleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Fell asleep'**
+  String get sleepFellAsleep;
+
+  /// No description provided for @sleepWoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Woke'**
+  String get sleepWoke;
+
+  /// No description provided for @sleepRested.
+  ///
+  /// In en, this message translates to:
+  /// **'How rested?'**
+  String get sleepRested;
+
+  /// No description provided for @sleepLength.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String sleepLength(int hours, int minutes);
+
+  /// No description provided for @sleepLastNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Last night'**
+  String get sleepLastNight;
+
+  /// No description provided for @sleepNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not written down'**
+  String get sleepNothingYet;
+
+  /// No description provided for @sleepLogIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get sleepLogIt;
+
+  /// No description provided for @sleepAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m on average, over {nights} nights'**
+  String sleepAverage(int hours, int minutes, int nights);
+
+  /// No description provided for @sleepDebtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to yourself'**
+  String get sleepDebtLabel;
+
+  /// No description provided for @sleepDebtBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks of short nights, added up. Long nights pay it back.'**
+  String get sleepDebtBody;
+
+  /// No description provided for @sleepSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get sleepSection;
+
+  /// No description provided for @sleepAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake me'**
+  String get sleepAlarm;
+
+  /// No description provided for @sleepAlarmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings at the wake time your day is already built around.'**
+  String get sleepAlarmBody;
+
+  /// No description provided for @sleepAlarmExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow exact alarms'**
+  String get sleepAlarmExact;
+
+  /// No description provided for @sleepAlarmExactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.'**
+  String get sleepAlarmExactBody;
+
+  /// No description provided for @sleepWindDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Say something before bed'**
+  String get sleepWindDown;
+
+  /// No description provided for @sleepWindDownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Half an hour before the bedtime your day is built around.'**
+  String get sleepWindDownBody;
+
+  /// No description provided for @sleepWindDownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Half an hour to bed'**
+  String get sleepWindDownTitle;
+
+  /// No description provided for @sleepWindDownText.
+  ///
+  /// In en, this message translates to:
+  /// **'Whatever you are in the middle of will still be there tomorrow.'**
+  String get sleepWindDownText;
+
+  /// No description provided for @sleepAlarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get sleepAlarmTitle;
+
+  /// No description provided for @sleepAlarmText.
+  ///
+  /// In en, this message translates to:
+  /// **'Two questions and a feeling, while you still remember it.'**
+  String get sleepAlarmText;
+
+  /// No description provided for @sleepNights.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nights'**
+  String get sleepNights;
+
+  /// No description provided for @sleepNoNights.
+  ///
+  /// In en, this message translates to:
+  /// **'No nights written down yet'**
+  String get sleepNoNights;
+
+  /// No description provided for @sleepNoNightsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Log it one morning and the line starts.'**
+  String get sleepNoNightsBody;
+
+  /// No description provided for @sleepOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Nights of their own'**
+  String get sleepOverrides;
+
+  /// No description provided for @sleepOverrideCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 weekday of its own} other{{count} weekdays of their own}}'**
+  String sleepOverrideCount(int count);
+
+  /// No description provided for @sleepOverridesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday is not Tuesday. A weekday set here overrides the hours your day is built around.'**
+  String get sleepOverridesBody;
+
+  /// No description provided for @sleepSameAsUsual.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as usual'**
+  String get sleepSameAsUsual;
+
+  /// No description provided for @sleepNightOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String sleepNightOf(String from, String to);
+
+  /// No description provided for @sleepDeleteNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this night?'**
+  String get sleepDeleteNight;
+
+  /// No description provided for @sleepDeleteNightBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the line and the debt is worked out again without it.'**
+  String get sleepDeleteNightBody;
+
+  /// No description provided for @sleepStars.
+  ///
+  /// In en, this message translates to:
+  /// **'{stars, plural, =0{} =1{1 star} other{{stars} stars}}'**
+  String sleepStars(int stars);
+
+  /// No description provided for @gymPlantProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant this on your field'**
+  String get gymPlantProgram;
+
+  /// No description provided for @gymPlantProgramBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It becomes a habit like any other, and finishing a session checks it in.'**
+  String get gymPlantProgramBody;
+
+  /// No description provided for @gymHowOften.
+  ///
+  /// In en, this message translates to:
+  /// **'How often?'**
+  String get gymHowOften;
+
+  /// No description provided for @gymHowOftenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Days a week, not which days — the gym is not always on the day you meant.'**
+  String get gymHowOftenBody;
+
+  /// No description provided for @gymTimesPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{times, plural, =1{Once a week} =2{Twice a week} other{{times}× a week}}'**
+  String gymTimesPerWeek(int times);
+
+  /// No description provided for @gymEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get gymEveryDay;
+
+  /// No description provided for @gymPlantedNoSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule'**
+  String get gymPlantedNoSchedule;
+
+  /// No description provided for @gymUnplant.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from the field'**
+  String get gymUnplant;
+
+  /// No description provided for @gymUnplantBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The program stops checking anything in. The seed and its streak stay where they are — pull it up on the field if that is what you want.'**
+  String get gymUnplantBody;
+
+  /// No description provided for @gymAlbumOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep pictures of it?'**
+  String get gymAlbumOffer;
+
+  /// No description provided for @gymAlbumOfferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An album for this program, so a year of sessions has something to show for itself. It hangs off this habit rather than becoming a second one.'**
+  String get gymAlbumOfferBody;
+
+  /// No description provided for @gymAlbumYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the album'**
+  String get gymAlbumYes;
+
+  /// No description provided for @gymPhotoPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'When to ask for the picture'**
+  String get gymPhotoPrompt;
+
+  /// No description provided for @gymPhotoPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Before is the mirror on the way in; after is the one you actually mean to take and forget.'**
+  String get gymPhotoPromptBody;
+
+  /// No description provided for @gymPromptAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After the session'**
+  String get gymPromptAfter;
+
+  /// No description provided for @gymPromptBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before the session'**
+  String get gymPromptBefore;
+
+  /// No description provided for @gymPromptNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never ask'**
+  String get gymPromptNever;
+
+  /// No description provided for @gymCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in · +{xp} XP'**
+  String gymCheckedIn(int xp);
+
+  /// No description provided for @gymPictureNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture?'**
+  String get gymPictureNow;
+
+  /// No description provided for @gymPictureNowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One for the album, while you are still here.'**
+  String get gymPictureNowBody;
+
+  /// No description provided for @gymPictureYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it'**
+  String get gymPictureYes;
+
+  /// No description provided for @gymHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get gymHistory;
+
+  /// No description provided for @gymSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get gymSeeAll;
+
+  /// No description provided for @gymNoSetsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged'**
+  String get gymNoSetsLogged;
+
+  /// No description provided for @gymNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions yet'**
+  String get gymNoHistory;
+
+  /// No description provided for @gymNoHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Start. The records are made of what you log here.'**
+  String get gymNoHistoryBody;
+
+  /// No description provided for @gymSessionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{sets, plural, =1{1 set} other{{sets} sets}} · {volume}'**
+  String gymSessionSummary(int sets, String volume);
+
+  /// No description provided for @gymVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get gymVolume;
+
+  /// No description provided for @gymBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get gymBest;
+
+  /// No description provided for @gymRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal records'**
+  String get gymRecords;
+
+  /// No description provided for @gymNoRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged for this one yet'**
+  String get gymNoRecords;
+
+  /// No description provided for @gymHeaviestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Heaviest set'**
+  String get gymHeaviestLabel;
+
+  /// No description provided for @gymEstimatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best estimated single'**
+  String get gymEstimatedLabel;
+
+  /// No description provided for @gymEstimatedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked out from the weight and the reps, not a single you actually pulled.'**
+  String get gymEstimatedHint;
+
+  /// No description provided for @fieldTabToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get fieldTabToday;
+
+  /// No description provided for @fieldTabGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get fieldTabGoals;
+
+  /// No description provided for @goalsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No goals yet'**
+  String get goalsEmptyTitle;
+
+  /// No description provided for @goalsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to write down something a streak cannot hold.'**
+  String get goalsEmptyBody;
+
+  /// No description provided for @goalNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get goalNew;
+
+  /// No description provided for @goalEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit goal'**
+  String get goalEdit;
+
+  /// No description provided for @goalTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What I\'m working toward'**
+  String get goalTitleLabel;
+
+  /// No description provided for @goalTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Run a half marathon'**
+  String get goalTitleHint;
+
+  /// No description provided for @goalWhyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why'**
+  String get goalWhyLabel;
+
+  /// No description provided for @goalWhyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Because…'**
+  String get goalWhyHint;
+
+  /// No description provided for @goalTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Target day'**
+  String get goalTargetDay;
+
+  /// No description provided for @goalNoTargetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No target day'**
+  String get goalNoTargetDay;
+
+  /// No description provided for @goalDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Today} =1{1 day left} other{{count} days left}}'**
+  String goalDaysLeft(int count);
+
+  /// No description provided for @goalDaysPast.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day past} other{{count} days past}}'**
+  String goalDaysPast(int count);
+
+  /// No description provided for @goalNeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Requirements — what it takes'**
+  String get goalNeeds;
+
+  /// No description provided for @goalSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get goalSteps;
+
+  /// No description provided for @goalSeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeds'**
+  String get goalSeeds;
+
+  /// No description provided for @goalAddNeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a requirement'**
+  String get goalAddNeed;
+
+  /// No description provided for @goalAddStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a task'**
+  String get goalAddStep;
+
+  /// No description provided for @goalAddWhatItTakes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what it takes'**
+  String get goalAddWhatItTakes;
+
+  /// No description provided for @goalNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {step}'**
+  String goalNext(String step);
+
+  /// No description provided for @goalMarkAchieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark achieved'**
+  String get goalMarkAchieved;
+
+  /// No description provided for @goalAchievedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved. +{xp} XP'**
+  String goalAchievedToast(int xp);
+
+  /// No description provided for @goalReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get goalReopen;
+
+  /// No description provided for @goalDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop'**
+  String get goalDrop;
+
+  /// No description provided for @goalDropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop this goal?'**
+  String get goalDropTitle;
+
+  /// No description provided for @goalDropBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its seeds keep going. A line on why, if you like.'**
+  String get goalDropBody;
+
+  /// No description provided for @goalDropNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now, because…'**
+  String get goalDropNoteHint;
+
+  /// No description provided for @goalDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete goal'**
+  String get goalDelete;
+
+  /// No description provided for @goalDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal deleted'**
+  String get goalDeleted;
+
+  /// No description provided for @goalItemRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get goalItemRemoved;
+
+  /// No description provided for @goalPlant.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant as a seed'**
+  String get goalPlant;
+
+  /// No description provided for @goalPlanted.
+  ///
+  /// In en, this message translates to:
+  /// **'Planted'**
+  String get goalPlanted;
+
+  /// No description provided for @goalAchievedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved'**
+  String get goalAchievedSection;
+
+  /// No description provided for @goalDroppedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropped'**
+  String get goalDroppedSection;
+
+  /// No description provided for @goalEditItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get goalEditItem;
+
+  /// No description provided for @goalServes.
+  ///
+  /// In en, this message translates to:
+  /// **'Serves'**
+  String get goalServes;
+
+  /// No description provided for @goalServesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal'**
+  String get goalServesNone;
+
+  /// No description provided for @goalSeedArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'archived'**
+  String get goalSeedArchived;
+
+  /// No description provided for @goalComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Every item is ticked.'**
+  String get goalComplete;
+
+  /// No description provided for @goalOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal options'**
+  String get goalOptions;
+
+  /// No description provided for @goalItemOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Item options'**
+  String get goalItemOptions;
+
+  /// No description provided for @goalAddSubtask.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a subtask'**
+  String get goalAddSubtask;
+
+  /// No description provided for @goalSubtaskProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String goalSubtaskProgress(int done, int total);
+
+  /// No description provided for @goalLiftStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a task of its own'**
+  String get goalLiftStep;
+
+  /// No description provided for @goalLiftNeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a requirement of its own'**
+  String get goalLiftNeed;
+
+  /// No description provided for @goalMoveUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'Move under…'**
+  String get goalMoveUnder;
+
+  /// No description provided for @goalMoveUnderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a subtask of'**
+  String get goalMoveUnderTitle;
+
+  /// No description provided for @goalItemRemovedWithSubtasks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removed, with its subtask} other{Removed, with its {count} subtasks}}'**
+  String goalItemRemovedWithSubtasks(int count);
+
+  /// No description provided for @navPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get navPlaces;
+
+  /// No description provided for @featurePlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get featurePlaces;
+
+  /// No description provided for @featurePlacesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.'**
+  String get featurePlacesHint;
+
+  /// No description provided for @placesDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get placesDay;
+
+  /// No description provided for @placesWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get placesWeek;
+
+  /// No description provided for @placesMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get placesMonth;
+
+  /// No description provided for @placesPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get placesPrevious;
+
+  /// No description provided for @placesNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get placesNext;
+
+  /// No description provided for @placesPickDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a day'**
+  String get placesPickDay;
+
+  /// No description provided for @placesTrailOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Record my trail'**
+  String get placesTrailOn;
+
+  /// No description provided for @placesTrailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps a point every 50 m while you move, with a notification on screen the whole time.'**
+  String get placesTrailHint;
+
+  /// No description provided for @placesTrailRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'The trail needs location “all the time”. Geotags still work without it.'**
+  String get placesTrailRefused;
+
+  /// No description provided for @placesOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get placesOpenSettings;
+
+  /// No description provided for @placesPause1h.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause for an hour'**
+  String get placesPause1h;
+
+  /// No description provided for @placesPauseTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause until tomorrow'**
+  String get placesPauseTomorrow;
+
+  /// No description provided for @placesResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume the trail'**
+  String get placesResume;
+
+  /// No description provided for @placesPausedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused until {time}'**
+  String placesPausedUntil(String time);
+
+  /// No description provided for @placesRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording · {count} points today'**
+  String placesRecording(int count);
+
+  /// No description provided for @placesHighAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'High accuracy'**
+  String get placesHighAccuracy;
+
+  /// No description provided for @placesHighAccuracyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharper trail, more battery.'**
+  String get placesHighAccuracyHint;
+
+  /// No description provided for @placesDeleteDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this day\'s trail'**
+  String get placesDeleteDay;
+
+  /// No description provided for @placesDayDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Trail deleted'**
+  String get placesDayDeleted;
+
+  /// No description provided for @placesDeleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all location history'**
+  String get placesDeleteAll;
+
+  /// No description provided for @placesDeleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every point, every geotag and every named place, gone for good. This cannot be undone.'**
+  String get placesDeleteAllBody;
+
+  /// No description provided for @placesNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here on this day'**
+  String get placesNothing;
+
+  /// No description provided for @placesNothingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the trail, or do something with Places on, and it shows up here.'**
+  String get placesNothingBody;
+
+  /// No description provided for @placesStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stayed {duration}'**
+  String placesStay(String duration);
+
+  /// No description provided for @placesNameStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Name this place'**
+  String get placesNameStay;
+
+  /// No description provided for @placesNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Home, Office, Gym…'**
+  String get placesNameHint;
+
+  /// No description provided for @placesLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Map views'**
+  String get placesLayers;
+
+  /// No description provided for @placesStreets.
+  ///
+  /// In en, this message translates to:
+  /// **'Streets'**
+  String get placesStreets;
+
+  /// No description provided for @placesSatellite.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite'**
+  String get placesSatellite;
+
+  /// No description provided for @placesLocateMe.
+  ///
+  /// In en, this message translates to:
+  /// **'My location'**
+  String get placesLocateMe;
+
+  /// No description provided for @placesSavePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this place'**
+  String get placesSavePlace;
+
+  /// No description provided for @placesEditPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit place'**
+  String get placesEditPlace;
+
+  /// No description provided for @placesPlaceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Place name'**
+  String get placesPlaceName;
+
+  /// No description provided for @placesPlaceNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get placesPlaceNotes;
+
+  /// No description provided for @placesPlaceNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What to remember about here.'**
+  String get placesPlaceNotesHint;
+
+  /// No description provided for @placesRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach (m)'**
+  String get placesRadius;
+
+  /// No description provided for @placesRadiusRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max} m'**
+  String placesRadiusRange(int min, int max);
+
+  /// No description provided for @placesPlaceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Place saved'**
+  String get placesPlaceSaved;
+
+  /// No description provided for @placesPlaceUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Place updated'**
+  String get placesPlaceUpdated;
+
+  /// No description provided for @placesPlaceForgotten.
+  ///
+  /// In en, this message translates to:
+  /// **'Place forgotten'**
+  String get placesPlaceForgotten;
+
+  /// No description provided for @placesForgetPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget place'**
+  String get placesForgetPlace;
+
+  /// No description provided for @placesForgetPlaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the pin, not the trail.'**
+  String get placesForgetPlaceBody;
+
+  /// No description provided for @placesNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find your location right now.'**
+  String get placesNoFix;
+
+  /// No description provided for @geoWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {time}'**
+  String geoWhere(String name, String time);
+
+  /// No description provided for @geoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No location recorded'**
+  String get geoUnavailable;
+
+  /// No description provided for @placesOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Places options'**
+  String get placesOptions;
+
+  /// No description provided for @placesNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get placesNotificationTitle;
+
+  /// No description provided for @placesNotificationText.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording your trail'**
+  String get placesNotificationText;
+
+  /// No description provided for @placesServiceOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is switched off on this phone.'**
+  String get placesServiceOff;
+
+  /// No description provided for @placesDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String placesDistance(String km);
+
+  /// No description provided for @geoExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get geoExpense;
+
+  /// No description provided for @geoCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get geoCheckIn;
+
+  /// No description provided for @geoPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture'**
+  String get geoPicture;
+
+  /// No description provided for @geoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get geoNote;
+
+  /// No description provided for @geoVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get geoVoice;
+
+  /// No description provided for @geoSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Planted a seed'**
+  String get geoSeed;
+
+  /// No description provided for @geoSeedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed note'**
+  String get geoSeedNote;
+
+  /// No description provided for @geoMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get geoMoney;
+
+  /// No description provided for @geoDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt'**
+  String get geoDebt;
+
+  /// No description provided for @geoDebtPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt payment'**
+  String get geoDebtPayment;
+
+  /// No description provided for @geoWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get geoWeight;
+
+  /// No description provided for @geoNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get geoNight;
+
+  /// No description provided for @geoSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym session'**
+  String get geoSession;
+
+  /// No description provided for @geoGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get geoGoal;
+
+  /// No description provided for @geoGoalItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal task'**
+  String get geoGoalItem;
+
+  /// No description provided for @geoAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get geoAlbum;
+
+  /// No description provided for @voiceNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New voice note'**
+  String get voiceNew;
+
+  /// No description provided for @voiceRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get voiceRecord;
+
+  /// No description provided for @voiceRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording…'**
+  String get voiceRecording;
+
+  /// No description provided for @voiceStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop and keep'**
+  String get voiceStop;
+
+  /// No description provided for @voiceDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get voiceDiscard;
+
+  /// No description provided for @voiceNoMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest needs the microphone to record.'**
+  String get voiceNoMic;
+
+  /// No description provided for @voiceDictate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate'**
+  String get voiceDictate;
+
+  /// No description provided for @voiceListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get voiceListening;
+
+  /// No description provided for @voiceNoDictation.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition is not available on this phone.'**
+  String get voiceNoDictation;
+
+  /// No description provided for @voicePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get voicePlay;
+
+  /// No description provided for @voicePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get voicePause;
+
+  /// No description provided for @voiceRecordings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recordings'**
+  String get voiceRecordings;
+
+  /// No description provided for @voiceMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is not on this phone.'**
+  String get voiceMissing;
+
+  /// No description provided for @voiceTranscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribe'**
+  String get voiceTranscribe;
+
+  /// No description provided for @readAloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Read aloud'**
+  String get readAloud;
+
+  /// No description provided for @readAloudStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get readAloudStop;
+
+  /// No description provided for @readAloudNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next paragraph'**
+  String get readAloudNext;
+
+  /// No description provided for @readAloudSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get readAloudSpeed;
+
+  /// No description provided for @readAloudEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to read yet.'**
+  String get readAloudEmpty;
+
+  /// No description provided for @readAloudParagraph.
+  ///
+  /// In en, this message translates to:
+  /// **'Paragraph {index} of {count}'**
+  String readAloudParagraph(int index, int count);
+
+  /// No description provided for @assistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assist'**
+  String get assistTitle;
+
+  /// No description provided for @assistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.'**
+  String get assistHint;
+
+  /// No description provided for @assistProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider'**
+  String get assistProvider;
+
+  /// No description provided for @assistGemini.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini'**
+  String get assistGemini;
+
+  /// No description provided for @assistOpenAi.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenAI-compatible'**
+  String get assistOpenAi;
+
+  /// No description provided for @assistModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get assistModel;
+
+  /// No description provided for @assistBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get assistBaseUrl;
+
+  /// No description provided for @assistKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get assistKey;
+
+  /// No description provided for @assistKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept in the phone\'s keystore, never exported or synced.'**
+  String get assistKeyHint;
+
+  /// No description provided for @assistSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get assistSave;
+
+  /// No description provided for @assistTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test'**
+  String get assistTest;
+
+  /// No description provided for @assistTestOk.
+  ///
+  /// In en, this message translates to:
+  /// **'It answered.'**
+  String get assistTestOk;
+
+  /// No description provided for @assistSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get assistSaved;
+
+  /// No description provided for @assistNeedsSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'The assist needs a provider and a key. Set it up in Settings → Extras.'**
+  String get assistNeedsSetup;
+
+  /// No description provided for @assistOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get assistOpenSettings;
+
+  /// No description provided for @assistSummarise.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarise'**
+  String get assistSummarise;
+
+  /// No description provided for @assistRewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite clearer'**
+  String get assistRewrite;
+
+  /// No description provided for @assistContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue writing'**
+  String get assistContinue;
+
+  /// No description provided for @assistFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix spelling and grammar'**
+  String get assistFix;
+
+  /// No description provided for @assistTranslate.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get assistTranslate;
+
+  /// No description provided for @assistAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about this note'**
+  String get assistAsk;
+
+  /// No description provided for @assistQuestionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to know?'**
+  String get assistQuestionHint;
+
+  /// No description provided for @assistSends.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends {what} to {provider}.'**
+  String assistSends(String what, String provider);
+
+  /// No description provided for @assistSendsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'this note'**
+  String get assistSendsNote;
+
+  /// No description provided for @assistSendsSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'the selected text'**
+  String get assistSendsSelection;
+
+  /// No description provided for @assistSendsUpToCaret.
+  ///
+  /// In en, this message translates to:
+  /// **'the note up to the cursor'**
+  String get assistSendsUpToCaret;
+
+  /// No description provided for @assistTranscribeTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording is too long to transcribe: the server takes recordings up to {limit} MB.'**
+  String assistTranscribeTooLong(int limit);
+
+  /// No description provided for @assistTranscribeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a kind of recording the server can transcribe.'**
+  String get assistTranscribeUnknown;
+
+  /// No description provided for @assistSendsRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'this recording'**
+  String get assistSendsRecording;
+
+  /// No description provided for @assistGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get assistGo;
+
+  /// No description provided for @assistInsert.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert'**
+  String get assistInsert;
+
+  /// No description provided for @assistReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get assistReplace;
+
+  /// No description provided for @assistCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get assistCopy;
+
+  /// No description provided for @assistCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get assistCopied;
+
+  /// No description provided for @assistBadKey.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider refused the key.'**
+  String get assistBadKey;
+
+  /// No description provided for @assistQuota.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests, or the quota is spent. Try again later.'**
+  String get assistQuota;
+
+  /// No description provided for @assistOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection.'**
+  String get assistOffline;
+
+  /// No description provided for @assistUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This provider cannot take recordings.'**
+  String get assistUnsupported;
+
+  /// No description provided for @assistFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'It did not answer: {detail}'**
+  String assistFailed(String detail);
+
+  /// No description provided for @settingsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsAccount;
+
+  /// No description provided for @settingsSectionAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: sync with your other devices and the web'**
+  String get settingsSectionAccountHint;
+
+  /// No description provided for @accountWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'An account only syncs your data between your phone and the web. Harvest works fully without one, forever.'**
+  String get accountWhy;
+
+  /// No description provided for @accountServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get accountServer;
+
+  /// No description provided for @accountServerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://your-harvest-server'**
+  String get accountServerHint;
+
+  /// No description provided for @accountEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get accountEmail;
+
+  /// No description provided for @accountPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get accountPassword;
+
+  /// No description provided for @accountDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get accountDisplayName;
+
+  /// No description provided for @accountSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get accountSignIn;
+
+  /// No description provided for @accountCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get accountCreate;
+
+  /// No description provided for @accountHaveOne.
+  ///
+  /// In en, this message translates to:
+  /// **'I have an account'**
+  String get accountHaveOne;
+
+  /// No description provided for @accountNeedOne.
+  ///
+  /// In en, this message translates to:
+  /// **'I need an account'**
+  String get accountNeedOne;
+
+  /// No description provided for @accountPasswordRule.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters, and not a common one.'**
+  String get accountPasswordRule;
+
+  /// No description provided for @accountUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email for the verification link. Sync starts once it is verified.'**
+  String get accountUnverified;
+
+  /// No description provided for @accountResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the link again'**
+  String get accountResend;
+
+  /// No description provided for @accountResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get accountResent;
+
+  /// No description provided for @accountVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get accountVerified;
+
+  /// No description provided for @accountSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get accountSyncNow;
+
+  /// No description provided for @accountSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get accountSyncing;
+
+  /// No description provided for @accountLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced {time}'**
+  String accountLastSynced(String time);
+
+  /// No description provided for @accountNeverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get accountNeverSynced;
+
+  /// No description provided for @accountPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes waiting'**
+  String accountPending(int count);
+
+  /// No description provided for @accountRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes the server refused'**
+  String accountRefused(int count);
+
+  /// No description provided for @accountHeldBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Money and places wait for a sync passphrase.'**
+  String get accountHeldBack;
+
+  /// No description provided for @accountDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get accountDevices;
+
+  /// No description provided for @accountThisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get accountThisDevice;
+
+  /// No description provided for @accountEndSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out there'**
+  String get accountEndSession;
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get accountSignOut;
+
+  /// No description provided for @accountSignOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone keeps everything. Sync stops until you sign in again.'**
+  String get accountSignOutBody;
+
+  /// No description provided for @accountDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get accountDelete;
+
+  /// No description provided for @accountDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes your account and everything on the server, at once. Nothing on this phone is touched.'**
+  String get accountDeleteBody;
+
+  /// No description provided for @accountDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Password to confirm'**
+  String get accountDeleteConfirm;
+
+  /// No description provided for @accountErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach the server.'**
+  String get accountErrorOffline;
+
+  /// No description provided for @accountErrorWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That email and password do not match.'**
+  String get accountErrorWrong;
+
+  /// No description provided for @accountErrorTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That email already has an account.'**
+  String get accountErrorTaken;
+
+  /// No description provided for @accountErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the fields: {detail}'**
+  String accountErrorInvalid(String detail);
+
+  /// No description provided for @accountErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a few minutes.'**
+  String get accountErrorRateLimited;
+
+  /// No description provided for @accountErrorOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong ({code}).'**
+  String accountErrorOther(String code);
+
+  /// No description provided for @passphraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync passphrase'**
+  String get passphraseTitle;
+
+  /// No description provided for @passphraseUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set: money and places stay on this phone.'**
+  String get passphraseUnset;
+
+  /// No description provided for @passphraseSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set: money and places sync end-to-end encrypted.'**
+  String get passphraseSet;
+
+  /// No description provided for @passphraseSetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the passphrase'**
+  String get passphraseSetAction;
+
+  /// No description provided for @passphraseForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget it on this device'**
+  String get passphraseForget;
+
+  /// No description provided for @passphraseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.'**
+  String get passphraseBody;
+
+  /// No description provided for @passphraseField.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get passphraseField;
+
+  /// No description provided for @passphraseRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'The same, again'**
+  String get passphraseRepeat;
+
+  /// No description provided for @passphraseMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two do not match.'**
+  String get passphraseMismatch;
+
+  /// No description provided for @passphraseShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 12 characters.'**
+  String get passphraseShort;
+
+  /// No description provided for @passphraseWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the key…'**
+  String get passphraseWorking;
+
+  /// No description provided for @passphraseWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'This passphrase does not open what your other devices sent. Enter the one you used there.'**
+  String get passphraseWrong;
+
+  /// No description provided for @exportIncludePlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Include my location history'**
+  String get exportIncludePlaces;
+
+  /// No description provided for @exportIncludePlacesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The trail, the geotags and the named places. Off leaves them out of this export.'**
+  String get exportIncludePlacesHint;
+
+  /// No description provided for @sheetGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get sheetGoals;
+
+  /// No description provided for @sheetGoalItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal items'**
+  String get sheetGoalItems;
+
+  /// No description provided for @sheetCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get sheetCategories;
+
+  /// No description provided for @sheetRecordings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recordings'**
+  String get sheetRecordings;
+
+  /// No description provided for @sheetSavedPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Named places'**
+  String get sheetSavedPlaces;
+
+  /// No description provided for @sheetTrail.
+  ///
+  /// In en, this message translates to:
+  /// **'Trail'**
+  String get sheetTrail;
+
+  /// No description provided for @sheetGeotags.
+  ///
+  /// In en, this message translates to:
+  /// **'Geotags'**
+  String get sheetGeotags;
+
+  /// No description provided for @stepsDailyAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily average'**
+  String get stepsDailyAverage;
+
+  /// No description provided for @notesDeleteFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every note in {folder} goes to the trash. You can put them back from there, or undo this.'**
+  String notesDeleteFolderBody(String folder);
+
+  /// No description provided for @unitKg.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
+
+  /// No description provided for @unitLb.
+  ///
+  /// In en, this message translates to:
+  /// **'lb'**
+  String get unitLb;
+
+  /// No description provided for @unitCm.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get unitCm;
+
+  /// No description provided for @galleryPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get galleryPhoto;
+
+  /// No description provided for @galleryVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get galleryVideo;
+
+  /// No description provided for @healthWhyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why Harvest reads your steps'**
+  String get healthWhyTitle;
+
+  /// No description provided for @healthWhyLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest asks Health Connect for one thing: the number of steps you have taken, day by day.'**
+  String get healthWhyLead;
+
+  /// No description provided for @healthWhyUse.
+  ///
+  /// In en, this message translates to:
+  /// **'That number fills the steps card, pays the daily step goal once a day, and is drawn on the thirty-day chart. Nothing else reads it. Steps never check a seed in and never break a streak.'**
+  String get healthWhyUse;
+
+  /// No description provided for @healthWhyStays.
+  ///
+  /// In en, this message translates to:
+  /// **'The number stays on this phone. Harvest has no account of its own, sends nothing to anyone, and has no third party to send it to. If you turn on syncing to a server of your own, steps travel there and nowhere else.'**
+  String get healthWhyStays;
+
+  /// No description provided for @healthWhyOff.
+  ///
+  /// In en, this message translates to:
+  /// **'You can withdraw the permission in Health Connect at any time, or turn Health off in Harvest. Either one stops the reading; neither deletes a day already counted.'**
+  String get healthWhyOff;
+
+  /// No description provided for @gymSkipWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Why skip it?'**
+  String get gymSkipWhy;
+
+  /// No description provided for @gymSkipHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoulder still sore, short on time…'**
+  String get gymSkipHint;
+
+  /// No description provided for @gymSkippedBecause.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped — {reason}'**
+  String gymSkippedBecause(String reason);
+
+  /// No description provided for @gymDropSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop this set'**
+  String get gymDropSet;
+
+  /// No description provided for @gymSetDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Set dropped'**
+  String get gymSetDropped;
+
+  /// No description provided for @gymDropSetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The set goes from this session. What you have already ticked stays.'**
+  String get gymDropSetBody;
+
+  /// No description provided for @galleryGymBound.
+  ///
+  /// In en, this message translates to:
+  /// **'The gym habit is the seed for this album, so it has no schedule of its own — two cards on the field for one session would be an accounting error.'**
+  String get galleryGymBound;
+
+  /// No description provided for @gymDiscardAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sure? This cannot be undone'**
+  String get gymDiscardAgain;
+
+  /// No description provided for @gymDiscardAgainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done, plural, =1{The set you logged is gone for good, and the session with it.} other{All {done} sets are gone for good, and the session with them.}}'**
+  String gymDiscardAgainBody(int done);
+
+  /// No description provided for @sleepOwedLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m owed to yourself'**
+  String sleepOwedLine(int hours, int minutes);
+
+  /// No description provided for @gymBestVolumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best session'**
+  String get gymBestVolumeLabel;
+
+  /// No description provided for @gymBestVolumeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight times reps, added up over one session.'**
+  String get gymBestVolumeHint;
+
+  /// No description provided for @gymChartEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated single'**
+  String get gymChartEstimate;
+
+  /// No description provided for @gymChartVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Session volume'**
+  String get gymChartVolume;
+
+  /// No description provided for @gymResting.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting'**
+  String get gymResting;
+
+  /// No description provided for @gymRestOverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest is up'**
+  String get gymRestOverTitle;
+
+  /// No description provided for @gymRestOverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Next set.'**
+  String get gymRestOverBody;
+
+  /// No description provided for @stepsDeniedHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed yet. Health Connect\'s settings can always allow it: open them, allow Steps for Harvest, and come back.'**
+  String get stepsDeniedHealthConnect;
+
+  /// No description provided for @ratesDzdManual.
+  ///
+  /// In en, this message translates to:
+  /// **'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.'**
+  String get ratesDzdManual;
+
+  /// No description provided for @ratesFetchedEurUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'EUR → USD updated. The dinar rates stay as you typed them.'**
+  String get ratesFetchedEurUsd;
+
+  /// No description provided for @accountServerExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Harvest server\'s address, like https://harvest.example.com'**
+  String get accountServerExample;
+
+  /// No description provided for @accountServerInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the server\'s address, starting with https://'**
+  String get accountServerInvalid;
+
+  /// No description provided for @accountEmailMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email.'**
+  String get accountEmailMissing;
+
+  /// No description provided for @accountEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get accountEmailInvalid;
+
+  /// No description provided for @accountPasswordMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password.'**
+  String get accountPasswordMissing;
+
+  /// No description provided for @accountPasswordShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters.'**
+  String get accountPasswordShort;
+
+  /// No description provided for @accountPasswordLong.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 256 characters.'**
+  String get accountPasswordLong;
+
+  /// No description provided for @expensesUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get expensesUpcoming;
+
+  /// No description provided for @expensesUpcomingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 expense logged ahead. It counts on its day, not before.} other{{count} expenses logged ahead. Each counts on its day, not before.}}'**
+  String expensesUpcomingBody(int count);
+
+  /// No description provided for @debtReopened.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment removed. The debt is open again.'**
+  String get debtReopened;
+
+  /// No description provided for @debtSettledWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled with {person}. Nothing left to pay!'**
+  String debtSettledWith(String person);
+
+  /// No description provided for @debtPaymentRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove payment'**
+  String get debtPaymentRemove;
+
+  /// No description provided for @cropCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in {title}'**
+  String cropCheckIn(String title);
+
+  /// No description provided for @gymDayToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get gymDayToday;
+
+  /// No description provided for @gymStaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still open from {day}'**
+  String gymStaleTitle(String day);
+
+  /// No description provided for @gymStaleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets logged. Finish it and it counts for {day}: the gym habit is checked in on that day, not today. Or drop it.'**
+  String gymStaleBody(int done, int total, String day);
+
+  /// No description provided for @gymStaleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get gymStaleLater;
+
+  /// No description provided for @gymStaleFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish as of {day}'**
+  String gymStaleFinish(String day);
+
+  /// No description provided for @gymCheckedInOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in for {day} · +{xp} XP'**
+  String gymCheckedInOn(String day, int xp);
+
+  /// No description provided for @gymClockDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String gymClockDays(int days);
+
+  /// No description provided for @gymPlates.
+  ///
+  /// In en, this message translates to:
+  /// **'Plates'**
+  String get gymPlates;
+
+  /// No description provided for @logCut.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged {logged}; {dropped} over the cap left out'**
+  String logCut(int logged, int dropped);
+
+  /// No description provided for @dailyOverTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be more than the total target'**
+  String get dailyOverTotal;
+
+  /// No description provided for @projectLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go'**
+  String projectLeft(int left);
+
+  /// No description provided for @projectReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Target reached'**
+  String get projectReached;
+
+  /// No description provided for @notesNoFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'No folder'**
+  String get notesNoFolder;
+
+  /// No description provided for @ledgerDayUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · upcoming'**
+  String ledgerDayUpcoming(String day);
+
+  /// No description provided for @projectDoneCut.
+  ///
+  /// In en, this message translates to:
+  /// **'{logged} logged; {dropped} over the target left out.'**
+  String projectDoneCut(int logged, int dropped);
+
+  /// No description provided for @stepsNoDaysConnectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each day\'s count lands here once the day is over.'**
+  String get stepsNoDaysConnectedBody;
+
+  /// No description provided for @navLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get navLists;
+
+  /// No description provided for @featureLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get featureLists;
+
+  /// No description provided for @featureListsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To buy, to read, to watch, and any list you make. Share a link from another app to save it here.'**
+  String get featureListsHint;
+
+  /// No description provided for @listsToRead.
+  ///
+  /// In en, this message translates to:
+  /// **'To read'**
+  String get listsToRead;
+
+  /// No description provided for @listsToWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'To watch'**
+  String get listsToWatch;
+
+  /// No description provided for @listsKindPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain'**
+  String get listsKindPlain;
+
+  /// No description provided for @listsKindShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get listsKindShopping;
+
+  /// No description provided for @listsKindMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get listsKindMedia;
+
+  /// No description provided for @listsKindPlainHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Things to tick off: ideas, packing, someday.'**
+  String get listsKindPlainHint;
+
+  /// No description provided for @listsKindShoppingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Things to buy, with an estimate and a planned day. An estimate is a plan, never an expense.'**
+  String get listsKindShoppingHint;
+
+  /// No description provided for @listsKindMediaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Books, articles, shows, films, videos and podcasts: want, in progress, finished.'**
+  String get listsKindMediaHint;
+
+  /// No description provided for @listsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New list'**
+  String get listsNew;
+
+  /// No description provided for @listsNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get listsNameLabel;
+
+  /// No description provided for @listsNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Packing, gift ideas'**
+  String get listsNameHint;
+
+  /// No description provided for @listsOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'List options'**
+  String get listsOptions;
+
+  /// No description provided for @listsRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get listsRename;
+
+  /// No description provided for @listsMoveEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Move left'**
+  String get listsMoveEarlier;
+
+  /// No description provided for @listsMoveLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Move right'**
+  String get listsMoveLater;
+
+  /// No description provided for @listsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete list'**
+  String get listsDelete;
+
+  /// No description provided for @listsDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” deleted'**
+  String listsDeleted(String name);
+
+  /// No description provided for @listsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this list'**
+  String get listsEmptyTitle;
+
+  /// No description provided for @listsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write it down while you think of it.'**
+  String get listsEmptyBody;
+
+  /// No description provided for @listsReadEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to read'**
+  String get listsReadEmptyTitle;
+
+  /// No description provided for @listsWatchEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to watch'**
+  String get listsWatchEmptyTitle;
+
+  /// No description provided for @listsShareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one here, or share a link to Harvest from any app.'**
+  String get listsShareHint;
+
+  /// No description provided for @listsDoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 done} other{{count} done}}'**
+  String listsDoneCount(int count);
+
+  /// No description provided for @listsFinishedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 finished} other{{count} finished}}'**
+  String listsFinishedCount(int count);
+
+  /// No description provided for @listsDoneOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Done on {day}'**
+  String listsDoneOn(String day);
+
+  /// No description provided for @listsFinishedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished on {day}'**
+  String listsFinishedOn(String day);
+
+  /// No description provided for @listsInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get listsInProgress;
+
+  /// No description provided for @listsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get listsStart;
+
+  /// No description provided for @listsFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get listsFinish;
+
+  /// No description provided for @listsNewItem.
+  ///
+  /// In en, this message translates to:
+  /// **'New item'**
+  String get listsNewItem;
+
+  /// No description provided for @listsListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get listsListLabel;
+
+  /// No description provided for @listsTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get listsTypeLabel;
+
+  /// No description provided for @listsCreatorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Author or creator'**
+  String get listsCreatorLabel;
+
+  /// No description provided for @listsLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get listsLinkLabel;
+
+  /// No description provided for @listsLinkInNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This list keeps no link: it goes in the note.'**
+  String get listsLinkInNote;
+
+  /// No description provided for @listsNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything worth remembering'**
+  String get listsNoteHint;
+
+  /// No description provided for @listsTitleHintPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Passport, charger'**
+  String get listsTitleHintPlain;
+
+  /// No description provided for @listsTitleHintMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Dune'**
+  String get listsTitleHintMedia;
+
+  /// No description provided for @listsMoveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to…'**
+  String get listsMoveTo;
+
+  /// No description provided for @listsMoveToTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to which list?'**
+  String get listsMoveToTitle;
+
+  /// No description provided for @listsOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open link'**
+  String get listsOpenLink;
+
+  /// No description provided for @listsLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link.'**
+  String get listsLinkFailed;
+
+  /// No description provided for @listsPlant.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant as a seed'**
+  String get listsPlant;
+
+  /// No description provided for @listsWriteAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Write about it'**
+  String get listsWriteAbout;
+
+  /// No description provided for @listsOpenNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the note'**
+  String get listsOpenNote;
+
+  /// No description provided for @listsSeedGrowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Planted as a seed'**
+  String get listsSeedGrowing;
+
+  /// No description provided for @listsSeedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed · {logged} of {total}'**
+  String listsSeedProgress(int logged, int total);
+
+  /// No description provided for @listsSeedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Its seed is done'**
+  String get listsSeedDone;
+
+  /// No description provided for @listsMarkFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark finished'**
+  String get listsMarkFinished;
+
+  /// No description provided for @listsRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished — how was it?'**
+  String get listsRateTitle;
+
+  /// No description provided for @listsRateSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'No rating'**
+  String get listsRateSkip;
+
+  /// No description provided for @listsRatingStars.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 star} other{{count} stars}}'**
+  String listsRatingStars(int count);
+
+  /// No description provided for @listsPlannedPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned purchases'**
+  String get listsPlannedPurchases;
+
+  /// No description provided for @listsShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to a list'**
+  String get listsShareTitle;
+
+  /// No description provided for @listsSharePickList.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the list it goes in.'**
+  String get listsSharePickList;
+
+  /// No description provided for @listsShareSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {list}'**
+  String listsShareSaved(String list);
+
+  /// No description provided for @listsShareOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get listsShareOpen;
+
+  /// No description provided for @mediaBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get mediaBook;
+
+  /// No description provided for @mediaArticle.
+  ///
+  /// In en, this message translates to:
+  /// **'Article'**
+  String get mediaArticle;
+
+  /// No description provided for @mediaShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get mediaShow;
+
+  /// No description provided for @mediaFilm.
+  ///
+  /// In en, this message translates to:
+  /// **'Film'**
+  String get mediaFilm;
+
+  /// No description provided for @mediaVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get mediaVideo;
+
+  /// No description provided for @mediaPodcast.
+  ///
+  /// In en, this message translates to:
+  /// **'Podcast'**
+  String get mediaPodcast;
+
+  /// No description provided for @mediaOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get mediaOther;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['ar', 'en'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'en':
+      return AppLocalizationsEn();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}

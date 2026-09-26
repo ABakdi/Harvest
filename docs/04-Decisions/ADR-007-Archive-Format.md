@@ -86,6 +86,22 @@ The rules that make it an archive rather than a dump:
    deletion is an update, and an archive that carries one must be able
    to win it. And the **streaks come back**: they are derived state,
    but derived from history the new phone may not have.
+9. **Phase 5 brought four more kinds of thing, and all of them come
+   back** ([[Phase-5-Goals-Places-and-Voice]]). The sheets are `Goals`
+   and `GoalItems` (with `GoalUuid` on `Seeds`), `Categories` (custom
+   expense categories, missing until [[Audit-v2]] Q3-02), `NoteAttachments`,
+   and `SavedPlaces`, `LocationPoints` and `Geotags`. A recording is a
+   file beside its note's `.md`, under the name the note embeds, so the
+   pair opens in Obsidian as it is ([[Notes]] N7); on import it goes back
+   to `<note uuid>/<file name>` in the app's own storage, never where the
+   archive says. Location is in every export unless I switch it off for
+   that export ([[Places]] PL6). The settings sheet carries only the
+   preferences an import would accept ([[Audit-v2]] S3-05).
+
+The web writes and reads this same archive ([[Web]]). Its timestamps
+are UTC with a `Z`; the phone's carry no offset and are read as local
+time, as they always were. `packages/contracts/fixtures/archive` holds
+one archive from each side, and each side's tests import the other's.
 
 ## Consequences
 
@@ -107,6 +123,6 @@ privacy ([[Business-Rules]] #6) still applies to what leaves the device
 automatically — which is nothing.
 
 **Deliberately not done.** No cloud, no sync, no account. That is
-[[Phase-6-Sync-and-Social]], and the whole point of getting the archive
+[[Phase-8-Social-and-Reach]], and the whole point of getting the archive
 right first is that Phase 6 then has a shape to write into rather than
 one to invent.

@@ -1,0 +1,12 @@
+{
+  "table": "step_days",
+  "uuid": "2026-09-18",
+  "updatedAt": "2026-09-18T21:58:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "harvestDay": "2026-09-18",
+    "steps": 11482,
+    "lastCounter": 58213,
+    "updatedAt": "2026-09-18T21:58:00.000Z"
+  }
+}

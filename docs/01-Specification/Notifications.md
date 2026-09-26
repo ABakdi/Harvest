@@ -4,20 +4,30 @@ Reminders are the product's pulse — but fatigue kills apps. Every notification
 
 ## The daily schedule
 
-Every time below is a **default, not a rule** — each reminder's time is adjustable in Settings, and the wake/bedtime-anchored ones follow whatever targets I set (which can differ per day of the week).
+What is built, and when it fires ([[Audit-v2]] D3-06):
 
-| When | Notification | Condition |
-| :--- | :--- | :--- |
-| Wake time (default 7 AM) | ☀️ *"Good morning! Here's today's harvest plan."* | Suppressed if I already opened the app |
-| Learned prime time −30 min | 🌾 Gentle nudge toward my usual logging window | Only when tasks remain |
-| Evening (default 8 PM) | 💰 *"What did you spend today? Log it in 2 taps."* | Phase 2+, suppressed if logged |
-| Target bedtime −45 min | 🌙 Wind-down + *"Plan tomorrow's harvest."* | The daily plan ritual hook |
-| Late check (default 11 PM) | 🔥 *"Log your remaining tasks to save your 15-day streak!"* | **Only** if the streak is genuinely at risk |
-| Real-time | ⏳ Remaining minutes overlay on distracting apps | Phase 4 |
+| When | Notification | Condition | Time is mine |
+| :--- | :--- | :--- | :--- |
+| 7:00 | ☀️ *"Good morning! Here's today's harvest plan."* | The master switch | Settings |
+| 20:00 | 💰 *"What did you spend today? Log it in 2 taps."* | Cancelled once an expense is logged | Settings |
+| 21:30 | 🌙 *"Plan tomorrow's harvest."* | The master switch | Settings |
+| 23:00 | 🔥 *"Log your remaining tasks to save your streak."* | **Only** if the streak is genuinely at risk | Fixed |
+| Bedtime −30 min | 🌙 Wind-down | Only with a daily cycle set ([[Health]]) | Follows the cycle, per weekday |
+| 19:00 | A debt still owed, quoting what is left | Until it is paid off | Per debt |
+| A time I set | A seed, an album | Always | Per row |
+| Real-time | ⏳ Remaining minutes overlay on distracting apps | [[Phase-7-Screen-Time]] | — |
 
-## Prime-time learning
+The three ritual times are settable; the late check is not, because
+its whole point is the hour when a day is nearly over.
 
-The app records *when* I usually check in and shifts the gentle nudge to 30 minutes before that window. Simple median of the last 14 days' first-check-in times — no cleverness needed.
+## Prime-time learning — not built
+
+The plan was to learn *when* I usually check in and move a gentle
+nudge to 30 minutes before that window. It was never built, and I have
+not missed it: the rituals sit at the hours I would have learned
+anyway, and a fifth notification is exactly what rule #9 is there to
+prevent. It stays here as an idea, not a promise ([[Audit-v2]]
+D3-06).
 
 ## Escalation rules
 
@@ -25,17 +35,17 @@ The app records *when* I usually check in and shifts the gentle nudge to 30 minu
 flowchart TD
     A[Task due today] --> B{Done already?}
     B -- yes --> Z[Silence 🤫]
-    B -- no --> C[Gentle nudge at prime time]
-    C --> D{Still pending at wind-down?}
+    B -- no --> C[Morning review names it]
+    C --> D{Still pending at the evening plan?}
     D -- no --> Z
-    D -- yes --> E[Bedtime reminder mentions it]
-    E --> F{Streak at risk at late check?}
+    D -- yes --> E[Evening plan mentions it]
+    E --> F{Streak at risk at the late check?}
     F -- no --> Z
     F -- yes --> G[One urgent nudge — never more]
 ```
 
 - The **four rituals** are the cap — morning review, evening plan, the expense check-in, the streak-risk nudge — and a comeback nudge takes the morning ritual's place rather than adding to them. A time I put on a seed, an album or a debt myself is not a ritual and always fires: I asked for it, by name, at that hour ([[Audit-v2-Beta]] B-11 — the old wording promised a cap the app never counted).
-- **Urgency is one level, and it is alarm-grade.** The escalation above describes the *sequence* — gentle first, then the bedtime mention, then one late nudge — not a change of volume. Since round 5 every reminder rings as an alarm: over the lock screen, on the alarm stream, snoozable. A reminder that can be missed is not a reminder ([[Audit-v2-Beta]] N-07).
+- **A reminder I asked for rings; a nudge does not.** A time I put on a seed, an album or a debt is alarm-grade: over the lock screen, on the alarm stream, snoozable, because I asked for it by name at that hour ([[Audit-v2-Beta]] N-07). The wind-down, the streak-risk nudge and the comeback rungs are ordinary notifications — nothing about going to bed needs to ring over a lock screen ([[Audit-v2]] D3-06).
 - Every category individually mutable in settings.
 - Copy always uses the farming voice ([[Glossary]]) — warm, short, no shame.
 

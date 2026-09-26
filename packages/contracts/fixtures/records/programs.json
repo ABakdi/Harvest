@@ -1,0 +1,18 @@
+{
+  "table": "programs",
+  "uuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
+  "updatedAt": "2026-09-10T08:00:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
+    "name": "nSuns 5/3/1",
+    "note": "4-day variant",
+    "weeks": null,
+    "commitmentUuid": "6f1c2a9e-4b7d-4e2a-9c1f-2d8b5e7a3c10",
+    "albumUuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
+    "photoPrompt": "after",
+    "createdAt": "2026-09-04T20:10:00.000Z",
+    "updatedAt": "2026-09-10T08:00:00.000Z",
+    "deletedAt": null
+  }
+}

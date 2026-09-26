@@ -1,0 +1,11 @@
+{
+  "table": "debts",
+  "uuid": "5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89",
+  "updatedAt": "2026-09-12T16:00:00.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAC",
+    "ct": "nehhzLljR63XokALMn0Q1mU7GdfhM44rJ7xFa5RrGsRGbPvmMuiCLM0cmd7JiSsSbBKrZnj0W8iBFW8tB/ohjqbEXhPdzohAWusl63+vFi2MkId2Nt5WfqZ0kin2iJdZVjOFSFkx7APquL/Q6RNXcvtP39VlA1qKHe5L+GIV3CkO/lV3OIfYbzKB7N9Iw+IlLzCTtY8uRQRlxQcMPFqMvkuFeHIqCYlIAK5IwLKQz4frtvanFv9hOCJbCSJSiHaZuRQqgyX/9M9FnO2KyEA2WMpnbbOJSoqR3VymuT3PHZFZR591qUWfkca5sb8i+TGnIR7zHLJ2xWR0o6nRyjd0zPGiircqshNW/ukCzE0MxfWv8/CQdCCFcdagk/7gisHrhoQTKFPyo/qCWQ=="
+  }
+}

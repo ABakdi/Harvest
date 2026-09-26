@@ -1,0 +1,19 @@
+{
+  "why": "a Harvest Day key names a real date",
+  "path": "data.harvestDay",
+  "record": {
+    "table": "check_ins",
+    "uuid": "b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
+    "updatedAt": "2026-09-18T22:41:05.000Z",
+    "deletedAt": null,
+    "data": {
+      "uuid": "b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
+      "commitmentUuid": "6f1c2a9e-4b7d-4e2a-9c1f-2d8b5e7a3c10",
+      "harvestDay": "2026-02-30",
+      "quantity": 1,
+      "loggedAt": "2026-09-18T22:41:05.000Z",
+      "deletedAt": null,
+      "updatedAt": "2026-09-18T22:41:05.000Z"
+    }
+  }
+}

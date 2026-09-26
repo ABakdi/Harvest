@@ -1,0 +1,14 @@
+{
+  "table": "program_days",
+  "uuid": "f2c6a8d4-5e1b-4c9f-b3a7-1d5e9c2f6b34",
+  "updatedAt": "2026-09-04T20:12:31.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "f2c6a8d4-5e1b-4c9f-b3a7-1d5e9c2f6b34",
+    "programUuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
+    "name": "Day 1 · Bench",
+    "position": 0,
+    "week": null,
+    "accessories": "Back, Abs"
+  }
+}

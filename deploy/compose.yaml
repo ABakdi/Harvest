@@ -1,0 +1,73 @@
+# Harvest, self-hosted: the database, the sync server, and the web app
+# behind Caddy on one origin ([[Deployment]]).
+#
+#   cp deploy/.env.example deploy/.env   # then fill it in
+#   docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+name: harvest
+
+services:
+  mongo:
+    # 7 wants a CPU with AVX; on one without (some virtual servers),
+    # HARVEST_MONGO_VERSION=4.4 — deploy.sh sets it when it sees none.
+    image: mongo:${HARVEST_MONGO_VERSION:-7}
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # mongosh from 5 on; 4.4 ships the older mongo shell.
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok' 2>/dev/null || mongo --quiet --eval 'db.adminCommand(\"ping\").ok'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build:
+      context: ..
+      dockerfile: apps/server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      MONGO_URL: mongodb://mongo:27017/harvest
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:?JWT_PRIVATE_KEY is required}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY is required}
+      CORS_ORIGINS: https://${HARVEST_DOMAIN:?HARVEST_DOMAIN is required}
+      APP_URL: https://${HARVEST_DOMAIN}
+      TRUST_PROXY: 1
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST is required}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-Harvest <no-reply@example.com>}
+      ASSIST_API_KEY: ${ASSIST_API_KEY:-}
+      ASSIST_MODEL: ${ASSIST_MODEL:-gemini-2.5-flash}
+      ASSIST_DAILY_LIMIT: ${ASSIST_DAILY_LIMIT:-50}
+      GITHUB_REPO: ${GITHUB_REPO:-ABakdi/Harvest}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - server
+    environment:
+      HARVEST_DOMAIN: ${HARVEST_DOMAIN}
+      HARVEST_SERVER: server:8080
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  mongo-data:
+  caddy-data:
+  caddy-config:

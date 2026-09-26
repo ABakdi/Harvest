@@ -31,4 +31,4 @@ stateDiagram-v2
 - The timer survives app backgrounding via a persistent notification with live countdown and pause/abandon actions ([[Notifications-and-Background]]).
 - Abandoning a focus block early logs nothing — no partial XP, no guilt screen. One gentle line: *"The field will wait."*
 - Session history (date, commitment, blocks completed) is stored for stats in [[Dashboard-and-Widgets]].
-- Later synergy: during a focus block, Phase 4's [[Screen-Time]] module can optionally auto-block distracting apps.
+- Later synergy: during a focus block, Phase 7's [[Screen-Time]] module can optionally auto-block distracting apps.

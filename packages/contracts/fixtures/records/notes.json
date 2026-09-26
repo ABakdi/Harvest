@@ -1,0 +1,15 @@
+{
+  "table": "notes",
+  "uuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
+  "updatedAt": "2026-09-12T09:15:22.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
+    "title": "Half marathon plan",
+    "folder": "Running/2026",
+    "body": "# Half marathon plan\n\nLong run on Saturdays. See [[Shoes]].\n\n![[memo-2026-09-12.m4a]]\n",
+    "createdAt": "2026-09-02T18:20:00.000Z",
+    "updatedAt": "2026-09-12T09:15:22.000Z",
+    "deletedAt": null
+  }
+}

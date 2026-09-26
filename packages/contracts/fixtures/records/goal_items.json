@@ -1,0 +1,20 @@
+{
+  "table": "goal_items",
+  "uuid": "a8c3f6e1-7d4b-4a9c-b2e5-9d6a3c8f1e45",
+  "updatedAt": "2026-09-05T12:00:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "a8c3f6e1-7d4b-4a9c-b2e5-9d6a3c8f1e45",
+    "goalUuid": "4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38",
+    "kind": "need",
+    "body": "Running shoes with 500 km left in them",
+    "note": null,
+    "doneAt": "2026-09-05T12:00:00.000Z",
+    "position": 0,
+    "commitmentUuid": null,
+    "parentUuid": null,
+    "createdAt": "2026-09-01T07:03:00.000Z",
+    "updatedAt": "2026-09-05T12:00:00.000Z",
+    "deletedAt": null
+  }
+}

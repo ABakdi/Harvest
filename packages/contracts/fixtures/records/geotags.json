@@ -1,0 +1,11 @@
+{
+  "table": "geotags",
+  "uuid": "1e8c5b9f-3a7d-4f2e-9c4b-7d1a5e8c3f27",
+  "updatedAt": "2026-09-18T22:41:40.000Z",
+  "deletedAt": null,
+  "enc": {
+    "v": 1,
+    "iv": "AAAAAAAAAAAAAAAF",
+    "ct": "UFAUNp2VHAkjHxa1W97Dgz2ixReZbsBRatnGHBeXrZOkS1t3bSxar5Vcuy9UQ6VnkCkttz3Xzd0efjJE43wv7LEK0/PH6G5Gihq0MKFu7PrFWDlmWYj+/D/ZEEwM0fQqpMNk6PlFsBgO5Hn3yZ2/XghAKY5NQZqsfXbBSnys+UFTOA2XYm2WpzDTi2aeEjbzVE0MvlT00RAVjJ7uq9k84Y9rqzm7F2D8YqXNREwTbmHM5yimlZaOtqrcj3R0o8ttyDGxZzs2R5MBd+9Omp1YDPlEKHNum7vdZBV4SMru4vy+tQkLIqfl3Y3w/l/UMqRnNmONr1/VLBRghXK3DXkCqXDLnJuv+gppa9H2PrnWWvm+Y/vPTVqir+EwxA2YRSfAVi4ly9cmcKXsZTe4tp8SeqvWyWeuLS87XDLg1gnfwzhcR2tj"
+  }
+}

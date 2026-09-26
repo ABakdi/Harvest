@@ -1,0 +1,14 @@
+{
+  "table": "pomodoro_sessions",
+  "uuid": "7b4e1a9d-3c6f-4f8b-a2d5-8e3c7b1f4a97",
+  "updatedAt": "2026-09-16T09:00:00.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "7b4e1a9d-3c6f-4f8b-a2d5-8e3c7b1f4a97",
+    "commitmentUuid": null,
+    "focusBlocks": 4,
+    "harvestDay": "2026-09-16",
+    "startedAt": "2026-09-16T09:00:00.000Z",
+    "endedAt": "2026-09-16T10:55:00.000Z"
+  }
+}

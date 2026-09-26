@@ -1,0 +1,18 @@
+{
+  "table": "sleep_sessions",
+  "uuid": "4a7c1e9f-2b6d-4d3a-9e8c-6f2b8d4a1c75",
+  "updatedAt": "2026-09-19T07:01:12.000Z",
+  "deletedAt": null,
+  "data": {
+    "uuid": "4a7c1e9f-2b6d-4d3a-9e8c-6f2b8d4a1c75",
+    "harvestDay": "2026-09-19",
+    "fellAsleepAt": "2026-09-18T23:40:00.000Z",
+    "wokeAt": "2026-09-19T06:55:00.000Z",
+    "targetMinutes": 480,
+    "restedStars": 4,
+    "note": null,
+    "createdAt": "2026-09-19T07:01:12.000Z",
+    "updatedAt": "2026-09-19T07:01:12.000Z",
+    "deletedAt": null
+  }
+}
