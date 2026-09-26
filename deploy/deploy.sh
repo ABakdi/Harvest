@@ -185,6 +185,19 @@ if [[ -z "$(env_get JWT_PRIVATE_KEY)" || -z "$(env_get JWT_PUBLIC_KEY)" ]]; then
   note "made a new Ed25519 signing pair"
 fi
 
+# MongoDB 5 and later stop with an illegal instruction on a CPU without
+# AVX, which some virtual servers expose. 4.4 is the last that runs
+# there; Harvest works on it. Chosen once: a database made by one version
+# is not opened by an older one, and moving up is a step at a time.
+if [[ -z "$(env_get HARVEST_MONGO_VERSION)" ]]; then
+  if grep -qw avx /proc/cpuinfo; then
+    env_set HARVEST_MONGO_VERSION 7
+  else
+    env_set HARVEST_MONGO_VERSION 4.4
+    note "this CPU has no AVX: MongoDB 4.4 (7 needs AVX)"
+  fi
+fi
+
 if [[ -z "$(env_get SMTP_HOST)" ]]; then
   die "deploy/.env has no SMTP_HOST. Without mail nobody can verify an account.
     Fill in SMTP_HOST, SMTP_USER, SMTP_PASS and SMTP_FROM in $ENV_FILE,

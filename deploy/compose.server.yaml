@@ -7,12 +7,15 @@ name: harvest
 
 services:
   mongo:
-    image: mongo:7
+    # 7 wants a CPU with AVX; on one without (some virtual servers),
+    # HARVEST_MONGO_VERSION=4.4 — deploy.sh sets it when it sees none.
+    image: mongo:${HARVEST_MONGO_VERSION:-7}
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      # mongosh from 5 on; 4.4 ships the older mongo shell.
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok' 2>/dev/null || mongo --quiet --eval 'db.adminCommand(\"ping\").ok'"]
       interval: 10s
       timeout: 5s
       retries: 10
