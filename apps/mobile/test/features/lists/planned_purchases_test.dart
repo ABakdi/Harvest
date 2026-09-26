@@ -73,7 +73,11 @@ void main() {
   }
 
   Future<void> seed(WidgetTester tester) => tester.runAsync(() async {
-    await repo.addItem(BuiltInList.buy.uuid, title: 'Kettle', priceMinor: 85000);
+    await repo.addItem(
+      BuiltInList.buy.uuid,
+      title: 'Kettle',
+      priceMinor: 85000,
+    );
     await repo.addItem(
       BuiltInList.wish.uuid,
       title: 'Espresso machine',

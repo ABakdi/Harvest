@@ -78,7 +78,10 @@ class FileSync {
   }) async {
     final locals = await _locals(gallery: gallery, attachments: attachments);
     final uploaded = await _upload(locals.where((one) => one.hash == null));
-    final downloaded = await _download(gallery: gallery, attachments: attachments);
+    final downloaded = await _download(
+      gallery: gallery,
+      attachments: attachments,
+    );
     return FileReport(
       uploaded: uploaded,
       downloaded: downloaded.downloaded,

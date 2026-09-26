@@ -186,8 +186,10 @@ void main() {
       expect(find.textContaining('DA5,000'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, '6000');
       await tester.pump();
-      expect(find.textContaining('≤ ${formatMoney(500000, Currency.dzd)}'),
-          findsOneWidget);
+      expect(
+        find.textContaining('≤ ${formatMoney(500000, Currency.dzd)}'),
+        findsOneWidget,
+      );
       expect(find.textContaining('DA5000'), findsNothing);
       await settle(tester);
     });
@@ -316,8 +318,9 @@ void main() {
         findsOneWidget,
       );
       final row = await tester.runAsync(
-        () => (db.select(db.debts)..where((d) => d.uuid.equals(uuid)))
-            .getSingle(),
+        () => (db.select(
+          db.debts,
+        )..where((d) => d.uuid.equals(uuid))).getSingle(),
       );
       expect(row!.settledAt, isNull);
       await settle(tester);

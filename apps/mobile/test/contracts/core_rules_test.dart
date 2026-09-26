@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/assist/domain/assist.dart';
@@ -175,11 +176,18 @@ void main() {
               : null,
         );
         final prompt = entry['prompt']! as Map<String, Object?>;
-        expect(request.system, prompt['system'], reason: entry['why'] as String?);
+        expect(
+          request.system,
+          prompt['system'],
+          reason: entry['why'] as String?,
+        );
         expect(
           [
             for (final message in request.messages)
-              {'role': message.fromModel ? 'model' : 'user', 'text': message.text},
+              {
+                'role': message.fromModel ? 'model' : 'user',
+                'text': message.text,
+              },
           ],
           prompt['messages'],
         );

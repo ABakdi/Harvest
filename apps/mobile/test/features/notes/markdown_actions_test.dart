@@ -60,8 +60,10 @@ void main() {
     });
 
     test('make a task list out of a plain line', () {
-      expect(togglePrefix(const Edit('pay rent', 0), '- [ ] ').text,
-          '- [ ] pay rent');
+      expect(
+        togglePrefix(const Edit('pay rent', 0), '- [ ] ').text,
+        '- [ ] pay rent',
+      );
     });
   });
 

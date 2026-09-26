@@ -53,7 +53,8 @@ class InlineSpanPart {
   int get hashCode => Object.hash(kind, text, target);
 
   @override
-  String toString() => '${kind.name}("$text"${target == null ? '' : ' → $target'})';
+  String toString() =>
+      '${kind.name}("$text"${target == null ? '' : ' → $target'})';
 }
 
 /// The one pattern both inline scanners run.
@@ -111,7 +112,10 @@ List<InlineScan> scanInline(String source) {
   void plain(int until) {
     if (until > cursor) {
       scans.add(
-        InlineScan(kind: InlineKind.text, text: source.substring(cursor, until)),
+        InlineScan(
+          kind: InlineKind.text,
+          text: source.substring(cursor, until),
+        ),
       );
     }
   }

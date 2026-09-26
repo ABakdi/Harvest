@@ -803,7 +803,10 @@ class _PaymentsList extends StatelessWidget {
               ),
               IconButton(
                 tooltip: l10n.debtPaymentRemove,
-                icon: Icon(Icons.delete_outline, color: scheme.onSurfaceVariant),
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: scheme.onSurfaceVariant,
+                ),
                 onPressed: () => onRemove(payment),
               ),
             ],

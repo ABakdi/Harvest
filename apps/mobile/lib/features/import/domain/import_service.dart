@@ -505,8 +505,7 @@ class ImportService {
 
   /// On the local clock, the spelling the app writes: an older export
   /// spelled some times in UTC with a `Z`.
-  static DateTime? _time(String? value) =>
-      value == null || value.isEmpty
+  static DateTime? _time(String? value) => value == null || value.isEmpty
       ? null
       : DateTime.tryParse(value)?.toLocal();
 
@@ -671,8 +670,7 @@ class ImportService {
               // An archive from before lists has no ListUuid; its List
               // names the shopping list, as a pulled row's would.
               listUuid: Value(
-                row['ListUuid'] ??
-                    listUuidOfItem(list: row['List'] ?? 'buy'),
+                row['ListUuid'] ?? listUuidOfItem(list: row['List'] ?? 'buy'),
               ),
               title: row['Title'] ?? '',
               priceMinor: Value(_int(row['PriceMinor'])),

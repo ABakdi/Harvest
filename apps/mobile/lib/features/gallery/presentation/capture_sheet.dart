@@ -159,7 +159,8 @@ class _CaptureButton extends StatelessWidget {
       children: [Icon(icon, size: 20), const SizedBox(width: 6), Text(label)],
     );
     return SizedBox(
-      width: (MediaQuery.sizeOf(context).width - HarvestSpacing.lg * 2 - 12) / 2,
+      width:
+          (MediaQuery.sizeOf(context).width - HarvestSpacing.lg * 2 - 12) / 2,
       child: primary
           ? FilledButton(onPressed: onPressed, child: child)
           : OutlinedButton(onPressed: onPressed, child: child),

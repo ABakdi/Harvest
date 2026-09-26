@@ -111,9 +111,8 @@ class _PairedScreenState<T extends Enum> extends ConsumerState<PairedScreen<T>>
     WidgetsBinding.instance.addPostFrameCallback((_) => old_.dispose());
   }
 
-  T? get _current => _on.isEmpty
-      ? null
-      : _on[_tabs.index.clamp(0, _on.length - 1)].value;
+  T? get _current =>
+      _on.isEmpty ? null : _on[_tabs.index.clamp(0, _on.length - 1)].value;
 
   Future<void> _recall(String key) async {
     final name = await ref.read(settingsRepositoryProvider).getString(key);

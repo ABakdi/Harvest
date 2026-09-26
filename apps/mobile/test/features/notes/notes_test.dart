@@ -128,13 +128,19 @@ void main() {
       ];
 
       expect(
-        filterNotes(list, (search: 'grams', folder: '', sort: NoteSort.title))
-            .map((n) => n.uuid),
+        filterNotes(list, (
+          search: 'grams',
+          folder: '',
+          sort: NoteSort.title,
+        )).map((n) => n.uuid),
         ['a'],
       );
       expect(
-        filterNotes(list, (search: 'rent', folder: '', sort: NoteSort.title))
-            .map((n) => n.uuid),
+        filterNotes(list, (
+          search: 'rent',
+          folder: '',
+          sort: NoteSort.title,
+        )).map((n) => n.uuid),
         ['b'],
       );
       expect(

@@ -27,6 +27,7 @@ class MemoryViewer extends ConsumerStatefulWidget {
   });
 
   final Album album;
+
   /// The album's memories as the caller had them. They are only the
   /// opening order and the first frame: the viewer watches the album
   /// itself, so a note saved here shows at once rather than the copy

@@ -118,8 +118,9 @@ void main() {
     test(
       "an old pending tag, as sync brings one, never gets this phone's place",
       () async {
-        Future<void> pendingAt(String uuid, DateTime when) =>
-            db.into(db.geotags).insert(
+        Future<void> pendingAt(String uuid, DateTime when) => db
+            .into(db.geotags)
+            .insert(
               GeotagsCompanion.insert(
                 uuid: uuid,
                 targetTable: 'notes',
@@ -147,16 +148,20 @@ void main() {
     test('an old pending tag takes the trail from its own time', () async {
       final then = now.subtract(const Duration(hours: 2));
       await places.addPoint(at(36.8, 3, then.add(const Duration(seconds: 40))));
-      await places.addPoint(at(36.9, 3.2, now.subtract(const Duration(seconds: 20))));
-      await db.into(db.geotags).insert(
-        GeotagsCompanion.insert(
-          uuid: 'waited',
-          targetTable: 'notes',
-          targetUuid: 'n-waited',
-          harvestDay: harvestDayKeyOf(then),
-          at: then,
-        ),
+      await places.addPoint(
+        at(36.9, 3.2, now.subtract(const Duration(seconds: 20))),
       );
+      await db
+          .into(db.geotags)
+          .insert(
+            GeotagsCompanion.insert(
+              uuid: 'waited',
+              targetTable: 'notes',
+              targetUuid: 'n-waited',
+              harvestDay: harvestDayKeyOf(then),
+              at: then,
+            ),
+          );
       await fill();
 
       final tag = await tagOf('notes', 'n-waited');

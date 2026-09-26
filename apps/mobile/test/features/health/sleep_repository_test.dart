@@ -70,16 +70,19 @@ void main() {
       expect(await xpTotal(), sleepXp);
     });
 
-    test('a correction keeps the target the night was judged by (#3)', () async {
-      await log(today);
-      await sleep.log(
-        day: today,
-        fellAsleepAt: midnight.add(const Duration(hours: -1)),
-        wokeAt: midnight.add(const Duration(hours: 8)),
-        targetMinutes: 9 * 60,
-      );
-      expect((await sleep.on(today))!.targetMinutes, 8 * 60);
-    });
+    test(
+      'a correction keeps the target the night was judged by (#3)',
+      () async {
+        await log(today);
+        await sleep.log(
+          day: today,
+          fellAsleepAt: midnight.add(const Duration(hours: -1)),
+          wokeAt: midnight.add(const Duration(hours: 8)),
+          targetMinutes: 9 * 60,
+        );
+        expect((await sleep.on(today))!.targetMinutes, 8 * 60);
+      },
+    );
 
     test('a correction without a note keeps the one already there', () async {
       await sleep.log(

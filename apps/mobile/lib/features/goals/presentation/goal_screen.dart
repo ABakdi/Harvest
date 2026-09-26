@@ -504,7 +504,10 @@ class _ItemListState extends ConsumerState<_ItemList> {
             return Column(
               key: ValueKey(item.uuid),
               mainAxisSize: MainAxisSize.min,
-              children: [_tile(item, index: i), _subtasks(item)],
+              children: [
+                _tile(item, index: i),
+                _subtasks(item),
+              ],
             );
           },
         ),

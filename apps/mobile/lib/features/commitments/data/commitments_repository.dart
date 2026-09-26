@@ -84,17 +84,15 @@ class CommitmentsRepository {
   /// uuid is the most recent check-in that day: enough for the geotag
   /// to point at ([[Places]]).
   Stream<
-      List<({HarvestDay day, int quantity, DateTime loggedAt, String? uuid})>
+    List<({HarvestDay day, int quantity, DateTime loggedAt, String? uuid})>
   >
   watchHistory(String uuid) {
     final query = _db.select(_db.checkIns)
       ..where((c) => c.commitmentUuid.equals(uuid) & c.deletedAt.isNull())
       ..orderBy([(c) => OrderingTerm.desc(c.loggedAt)]);
     return query.watch().map((rows) {
-      final byDay = <
-        String,
-        ({int quantity, DateTime loggedAt, String? uuid})
-      >{};
+      final byDay =
+          <String, ({int quantity, DateTime loggedAt, String? uuid})>{};
       for (final row in rows) {
         final seen = byDay[row.harvestDay];
         byDay[row.harvestDay] = (

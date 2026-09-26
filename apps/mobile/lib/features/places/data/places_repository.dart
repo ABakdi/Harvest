@@ -190,9 +190,9 @@ class PlacesRepository {
       )
       ..orderBy([(g) => OrderingTerm.desc(g.at)])
       ..limit(1);
-    return query
-        .watchSingleOrNull()
-        .map((row) => row == null ? null : _toGeotag(row));
+    return query.watchSingleOrNull().map(
+      (row) => row == null ? null : _toGeotag(row),
+    );
   }
 
   /// Geotags still waiting for a place, live: the filler's queue.
@@ -264,9 +264,11 @@ class PlacesRepository {
           ),
         );
       case 'notes':
-        return text((await (_db.select(
-          _db.notes,
-        )..where((n) => n.uuid.equals(uuid))).getSingleOrNull())?.title);
+        return text(
+          (await (_db.select(
+            _db.notes,
+          )..where((n) => n.uuid.equals(uuid))).getSingleOrNull())?.title,
+        );
       case 'commitments':
         return text(await _seedTitle(uuid));
       case 'check_ins':
@@ -289,17 +291,23 @@ class PlacesRepository {
         )..where((a) => a.uuid.equals(row.albumUuid))).getSingleOrNull();
         return text(album?.name);
       case 'goals':
-        return text((await (_db.select(
-          _db.goals,
-        )..where((g) => g.uuid.equals(uuid))).getSingleOrNull())?.title);
+        return text(
+          (await (_db.select(
+            _db.goals,
+          )..where((g) => g.uuid.equals(uuid))).getSingleOrNull())?.title,
+        );
       case 'goal_items':
-        return text((await (_db.select(
-          _db.goalItems,
-        )..where((i) => i.uuid.equals(uuid))).getSingleOrNull())?.body);
+        return text(
+          (await (_db.select(
+            _db.goalItems,
+          )..where((i) => i.uuid.equals(uuid))).getSingleOrNull())?.body,
+        );
       case 'workout_sessions':
-        return text((await (_db.select(
-          _db.workoutSessions,
-        )..where((w) => w.uuid.equals(uuid))).getSingleOrNull())?.title);
+        return text(
+          (await (_db.select(
+            _db.workoutSessions,
+          )..where((w) => w.uuid.equals(uuid))).getSingleOrNull())?.title,
+        );
     }
     return null;
   }

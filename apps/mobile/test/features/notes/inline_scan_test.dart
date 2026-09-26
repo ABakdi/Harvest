@@ -6,9 +6,10 @@ import 'package:harvest/features/notes/domain/markdown.dart';
 /// character back — a character it loses is a character the caret
 /// cannot reach.
 void main() {
-  String rebuilt(String source) => scanInline(source)
-      .map((part) => '${part.open}${part.text}${part.close}')
-      .join();
+  String rebuilt(String source) =>
+      scanInline(source)
+          .map((part) => '${part.open}${part.text}${part.close}')
+          .join();
 
   test('rebuilds the line exactly, whatever is in it', () {
     const lines = [

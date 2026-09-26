@@ -92,37 +92,40 @@ void main() {
   });
 
   group("a parent's tick (GL8)", () {
-    test('is drawn from its subtasks, stored as the latest of theirs', () async {
-      final (goal, task, subtasks) = await race();
-      await goals.setDone(
-        subtasks[0].uuid,
-        done: true,
-        at: DateTime(2026, 9, 20, 10),
-      );
-      await goals.setDone(
-        subtasks[2].uuid,
-        done: true,
-        at: DateTime(2026, 9, 22, 10),
-      );
-      expect((await row(task.uuid)).doneAt, isNull);
-      expect((await view(goal.uuid)).isDone(task), isFalse);
+    test(
+      'is drawn from its subtasks, stored as the latest of theirs',
+      () async {
+        final (goal, task, subtasks) = await race();
+        await goals.setDone(
+          subtasks[0].uuid,
+          done: true,
+          at: DateTime(2026, 9, 20, 10),
+        );
+        await goals.setDone(
+          subtasks[2].uuid,
+          done: true,
+          at: DateTime(2026, 9, 22, 10),
+        );
+        expect((await row(task.uuid)).doneAt, isNull);
+        expect((await view(goal.uuid)).isDone(task), isFalse);
 
-      await goals.setDone(
-        subtasks[1].uuid,
-        done: true,
-        at: DateTime(2026, 9, 21, 10),
-      );
-      expect(
-        (await row(task.uuid)).doneAt!.isAtSameMomentAs(
-          DateTime(2026, 9, 22, 10),
-        ),
-        isTrue,
-      );
-      expect((await view(goal.uuid)).isDone(task), isTrue);
+        await goals.setDone(
+          subtasks[1].uuid,
+          done: true,
+          at: DateTime(2026, 9, 21, 10),
+        );
+        expect(
+          (await row(task.uuid)).doneAt!.isAtSameMomentAs(
+            DateTime(2026, 9, 22, 10),
+          ),
+          isTrue,
+        );
+        expect((await view(goal.uuid)).isDone(task), isTrue);
 
-      await goals.setDone(subtasks[1].uuid, done: false);
-      expect((await row(task.uuid)).doneAt, isNull);
-    });
+        await goals.setDone(subtasks[1].uuid, done: false);
+        expect((await row(task.uuid)).doneAt, isNull);
+      },
+    );
 
     test('ticking the parent ticks every subtask, and un-ticks them', () async {
       final (goal, task, subtasks) = await race();
@@ -195,24 +198,30 @@ void main() {
   });
 
   group('deleting (GL7)', () {
-    test('a task takes its subtasks, and undo brings back only those', () async {
-      final (goal, task, subtasks) = await race();
-      final early = DateTime.now().subtract(const Duration(hours: 1));
-      await goals.deleteItem(subtasks[0].uuid, at: early);
+    test(
+      'a task takes its subtasks, and undo brings back only those',
+      () async {
+        final (goal, task, subtasks) = await race();
+        final early = DateTime.now().subtract(const Duration(hours: 1));
+        await goals.deleteItem(subtasks[0].uuid, at: early);
 
-      await goals.deleteItem(task.uuid);
-      var v = await view(goal.uuid);
-      expect(v.items, isEmpty);
-      expect(
-        (await row(subtasks[1].uuid)).deletedAt,
-        (await row(task.uuid)).deletedAt,
-      );
+        await goals.deleteItem(task.uuid);
+        var v = await view(goal.uuid);
+        expect(v.items, isEmpty);
+        expect(
+          (await row(subtasks[1].uuid)).deletedAt,
+          (await row(task.uuid)).deletedAt,
+        );
 
-      await goals.restoreItem(task.uuid);
-      v = await view(goal.uuid);
-      expect(v.subtasksOf(task.uuid).map((s) => s.body), ['Register', 'Run it']);
-      expect((await row(subtasks[0].uuid)).deletedAt, isNotNull);
-    });
+        await goals.restoreItem(task.uuid);
+        v = await view(goal.uuid);
+        expect(v.subtasksOf(task.uuid).map((s) => s.body), [
+          'Register',
+          'Run it',
+        ]);
+        expect((await row(subtasks[0].uuid)).deletedAt, isNotNull);
+      },
+    );
 
     test('a goal deleted with subtasks comes back with them', () async {
       final (goal, task, _) = await race();
@@ -241,22 +250,25 @@ void main() {
       expect((await row(task.uuid)).doneAt, isNotNull);
     });
 
-    test('a task without subtasks moves under another, taking its kind', () async {
-      final goal = await goals.create(title: 'Half marathon');
-      final plan = await goals.addItem(
-        goal.uuid,
-        body: 'A training plan',
-        kind: GoalItemKind.need,
-      );
-      final print = await goals.addItem(goal.uuid, body: 'Print it');
-      await goals.moveUnder(print.uuid, plan.uuid);
+    test(
+      'a task without subtasks moves under another, taking its kind',
+      () async {
+        final goal = await goals.create(title: 'Half marathon');
+        final plan = await goals.addItem(
+          goal.uuid,
+          body: 'A training plan',
+          kind: GoalItemKind.need,
+        );
+        final print = await goals.addItem(goal.uuid, body: 'Print it');
+        await goals.moveUnder(print.uuid, plan.uuid);
 
-      final v = await view(goal.uuid);
-      expect(v.steps, isEmpty);
-      final moved = v.subtasksOf(plan.uuid).single;
-      expect(moved.kind, GoalItemKind.need);
-      expect(moved.parentUuid, plan.uuid);
-    });
+        final v = await view(goal.uuid);
+        expect(v.steps, isEmpty);
+        final moved = v.subtasksOf(plan.uuid).single;
+        expect(moved.kind, GoalItemKind.need);
+        expect(moved.parentUuid, plan.uuid);
+      },
+    );
 
     test('a task with subtasks, or a subtask, cannot be moved under', () async {
       final (goal, task, subtasks) = await race();
@@ -266,7 +278,10 @@ void main() {
         () => goals.moveUnder(other.uuid, subtasks[0].uuid),
         throwsArgumentError,
       );
-      expect(() => goals.moveUnder(other.uuid, other.uuid), throwsArgumentError);
+      expect(
+        () => goals.moveUnder(other.uuid, other.uuid),
+        throwsArgumentError,
+      );
     });
   });
 

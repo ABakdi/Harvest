@@ -164,29 +164,32 @@ void main() {
       expect(await outboxTables(), containsAll(['goals', 'goal_items']));
     });
 
-    test('an archive from before subtasks brings every item top-level', () async {
-      await seedGoals();
-      final bundle = readArchive(await archiveBytes());
-      final older = ArchiveBundle(
-        sheets: {
-          ...bundle.sheets,
-          SheetNames.goalItems: [
-            for (final row in bundle.sheet(SheetNames.goalItems))
-              {...row}..remove('ParentUuid'),
-          ],
-        },
-        files: bundle.files,
-      );
-      expect(
-        bundle.sheet(SheetNames.goalItems).map((r) => r['ParentUuid']),
-        contains('i1'),
-      );
-      await importer.apply(older);
+    test(
+      'an archive from before subtasks brings every item top-level',
+      () async {
+        await seedGoals();
+        final bundle = readArchive(await archiveBytes());
+        final older = ArchiveBundle(
+          sheets: {
+            ...bundle.sheets,
+            SheetNames.goalItems: [
+              for (final row in bundle.sheet(SheetNames.goalItems))
+                {...row}..remove('ParentUuid'),
+            ],
+          },
+          files: bundle.files,
+        );
+        expect(
+          bundle.sheet(SheetNames.goalItems).map((r) => r['ParentUuid']),
+          contains('i1'),
+        );
+        await importer.apply(older);
 
-      final items = await target.select(target.goalItems).get();
-      expect(items.map((i) => i.uuid), unorderedEquals(['i1', 'i2']));
-      expect(items.every((i) => i.parentUuid == null), isTrue);
-    });
+        final items = await target.select(target.goalItems).get();
+        expect(items.map((i) => i.uuid), unorderedEquals(['i1', 'i2']));
+        expect(items.every((i) => i.parentUuid == null), isTrue);
+      },
+    );
 
     test("a seed's goal survives the trip", () async {
       await seedGoals();

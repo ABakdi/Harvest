@@ -140,8 +140,10 @@ void main() {
       await drain(tester);
     }
 
-    Future<List<ListItem>> itemsOf(WidgetTester tester, BuiltInList list) async =>
-        (await tester.runAsync(() => repo.watchItems(list.uuid).first))!;
+    Future<List<ListItem>> itemsOf(
+      WidgetTester tester,
+      BuiltInList list,
+    ) async => (await tester.runAsync(() => repo.watchItems(list.uuid).first))!;
 
     testWidgets('a video lands in To watch with its shared name, and Lists '
         'is switched on to show it', (tester) async {

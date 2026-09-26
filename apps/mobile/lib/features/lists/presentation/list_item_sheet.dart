@@ -71,9 +71,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
   late final _title = TextEditingController(
     text:
         _existing?.title ??
-        (_shared == null || _shared.title == _shared.link
-            ? ''
-            : _shared.title),
+        (_shared == null || _shared.title == _shared.link ? '' : _shared.title),
   );
   late final _note = TextEditingController(text: _existing?.note);
   late final _link = TextEditingController(
@@ -122,8 +120,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
     return _shared?.link ?? '';
   }
 
-  String? _blankToNull(String text) =>
-      text.trim().isEmpty ? null : text.trim();
+  String? _blankToNull(String text) => text.trim().isEmpty ? null : text.trim();
 
   Future<void> _pickDay() async {
     final today = HarvestDay.today();

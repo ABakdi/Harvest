@@ -28,23 +28,24 @@ Stream<List<Expense>> todayExpenses(Ref ref) =>
 /// ([[Finances]] Quick-log), soonest first. They count on their own day
 /// and not before, so no total reads them; this list is how they stay
 /// reachable to open, change or remove.
-final StreamProvider<List<Expense>> upcomingExpensesProvider = StreamProvider.autoDispose<List<Expense>>((
-  ref,
-) {
-  final today = HarvestDay.today();
-  return ref
-      .watch(financesRepositoryProvider)
-      .watchRange(today.next, today.addDays(366))
-      .map(soonestFirst);
-});
+final StreamProvider<List<Expense>> upcomingExpensesProvider =
+    StreamProvider.autoDispose<List<Expense>>((
+      ref,
+    ) {
+      final today = HarvestDay.today();
+      return ref
+          .watch(financesRepositoryProvider)
+          .watchRange(today.next, today.addDays(366))
+          .map(soonestFirst);
+    });
 
 /// [expenses] by day, soonest first, and within a day in the order
 /// they were logged.
-List<Expense> soonestFirst(List<Expense> expenses) => [...expenses]
-  ..sort((a, b) {
-    final byDay = a.day.compareTo(b.day);
-    return byDay != 0 ? byDay : a.loggedAt.compareTo(b.loggedAt);
-  });
+List<Expense> soonestFirst(List<Expense> expenses) =>
+    [...expenses]..sort((a, b) {
+      final byDay = a.day.compareTo(b.day);
+      return byDay != 0 ? byDay : a.loggedAt.compareTo(b.loggedAt);
+    });
 
 @riverpod
 Stream<List<Expense>> monthExpenses(Ref ref) =>

@@ -280,15 +280,16 @@ Stream<bool> placesHighAccuracy(Ref ref) => ref
 
 /// A few words on what a pin is: a note's title, an expense's amount.
 @riverpod
-Future<GeotagDetail?> geotagDetail(Ref ref, ({String table, String uuid}) target) =>
-    ref.watch(placesRepositoryProvider).detailFor(target.table, target.uuid);
+Future<GeotagDetail?> geotagDetail(
+  Ref ref,
+  ({String table, String uuid}) target,
+) => ref.watch(placesRepositoryProvider).detailFor(target.table, target.uuid);
 
 /// The geotag of one action, for the "where was it" line under it.
 @riverpod
-Stream<Geotag?> geotagFor(Ref ref, ({String table, String uuid}) target) =>
-    ref
-        .watch(placesRepositoryProvider)
-        .watchGeotagFor(target.table, target.uuid);
+Stream<Geotag?> geotagFor(Ref ref, ({String table, String uuid}) target) => ref
+    .watch(placesRepositoryProvider)
+    .watchGeotagFor(target.table, target.uuid);
 
 /// Which view of the map is on ([[Places]]): streets or satellite.
 @riverpod
@@ -298,18 +299,21 @@ Stream<MapBase> placesMapBase(Ref ref) => ref
     .map((values) => mapBaseOf(values[PlacesKeys.mapBase]));
 
 /// The style string for the view that is on.
-String placesStyleString(MapBase base, {String? streetStyle}) =>
-    switch (base) {
-      MapBase.streets => streetStyle ?? PlacesKeys.defaultStyleUrl,
-      MapBase.satellite => satelliteStyleJson,
-    };
+String placesStyleString(MapBase base, {String? streetStyle}) => switch (base) {
+  MapBase.streets => streetStyle ?? PlacesKeys.defaultStyleUrl,
+  MapBase.satellite => satelliteStyleJson,
+};
 
 /// Where to take the Places screen when a link from an entity points
 /// at it: the day, and the geotag's target. Set by the location chips
 /// on expenses, notes and photos; taken (and cleared) by the map.
 @immutable
 class PlacesFocus {
-  const PlacesFocus({required this.day, required this.table, required this.uuid});
+  const PlacesFocus({
+    required this.day,
+    required this.table,
+    required this.uuid,
+  });
 
   final HarvestDay day;
   final String table;

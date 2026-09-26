@@ -104,8 +104,7 @@ class GalleryTrashScreen extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                       trailing: _Actions(
-                        onRestore: () =>
-                            unawaited(_restore(ref, memory)),
+                        onRestore: () => unawaited(_restore(ref, memory)),
                         onPurge: () =>
                             unawaited(_purgeMemory(context, ref, memory)),
                       ),

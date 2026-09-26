@@ -93,7 +93,11 @@ class SyncCipher {
       mac: Mac(sealed.sublist(sealed.length - tag)),
     );
     return Uint8List.fromList(
-      await _aes.decrypt(box, secretKey: _key, aad: utf8.encode('file/$sha256')),
+      await _aes.decrypt(
+        box,
+        secretKey: _key,
+        aad: utf8.encode('file/$sha256'),
+      ),
     );
   }
 

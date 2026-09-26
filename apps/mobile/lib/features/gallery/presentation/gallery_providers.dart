@@ -59,7 +59,8 @@ List<({Album album, bool done})> albumsDueToday(Ref ref) {
   // the program's seed, never as a second card — even one given a
   // schedule before it was bound ([[Gym]]).
   final bound = {
-    for (final program in ref.watch(programsProvider).value ?? const <Program>[])
+    for (final program
+        in ref.watch(programsProvider).value ?? const <Program>[])
       ?program.albumUuid,
   };
 

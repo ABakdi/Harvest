@@ -54,11 +54,11 @@ List<Note> filterNotes(List<Note> notes, NoteQuery query) {
         note.body.toLowerCase().contains(needle);
   }).toList();
 
-  return matched
-    ..sort(switch (query.sort) {
-      NoteSort.edited => (a, b) => b.updatedAt.compareTo(a.updatedAt),
-      NoteSort.created => (a, b) => b.createdAt.compareTo(a.createdAt),
-      NoteSort.title => (a, b) =>
-          a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-    });
+  return matched..sort(switch (query.sort) {
+    NoteSort.edited => (a, b) => b.updatedAt.compareTo(a.updatedAt),
+    NoteSort.created => (a, b) => b.createdAt.compareTo(a.createdAt),
+    NoteSort.title => (a, b) => a.title.toLowerCase().compareTo(
+      b.title.toLowerCase(),
+    ),
+  });
 }

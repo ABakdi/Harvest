@@ -8,11 +8,9 @@ import 'package:harvest/features/finances/domain/amount_expression.dart';
 /// web's port in `packages/core` (`fixtures/amounts.json`): a sum typed
 /// on one device comes to the same cents on the other.
 void main() {
-  final spec =
-      jsonDecode(
-            File('../../packages/core/fixtures/amounts.json').readAsStringSync(),
-          )
-          as Map<String, Object?>;
+  final spec = jsonDecode(
+    File('../../packages/core/fixtures/amounts.json').readAsStringSync(),
+  ) as Map<String, Object?>;
 
   test('every amount comes to the same minor units', () {
     for (final item in spec['cases']! as List<Object?>) {

@@ -29,19 +29,17 @@ void main() {
   };
 
   Future<String?> listsSwitch(HarvestDatabase db) async =>
-      (await (db.select(db.kvSettings)
-                ..where((s) => s.key.equals('features.lists')))
-              .getSingleOrNull())
+      (await (db.select(
+            db.kvSettings,
+          )..where((s) => s.key.equals('features.lists'))).getSingleOrNull())
           ?.valueJson;
 
   test('the built-in ids are the ones the contract fixture names', () {
-    final fixture =
-        jsonDecode(
-              File(
-                '../../packages/contracts/fixtures/built-in-lists.json',
-              ).readAsStringSync(),
-            )
-            as Map<String, dynamic>;
+    final fixture = jsonDecode(
+      File(
+        '../../packages/contracts/fixtures/built-in-lists.json',
+      ).readAsStringSync(),
+    ) as Map<String, dynamic>;
     expect(fixture['namespace'], listsNamespace);
     expect(
       const Uuid().v5(Namespace.url.value, 'harvest:lists'),

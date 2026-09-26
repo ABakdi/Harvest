@@ -55,11 +55,13 @@ Edit toggleWrap(Edit at, String marker) {
         : '';
     if (before == marker && after == marker) {
       return Edit(
-        at.text.replaceRange(at.end, at.end + width, '').replaceRange(
-          at.start - width,
-          at.start,
-          '',
-        ),
+        at.text
+            .replaceRange(at.end, at.end + width, '')
+            .replaceRange(
+              at.start - width,
+              at.start,
+              '',
+            ),
         at.start - width,
         at.end - width,
       );
@@ -185,7 +187,8 @@ Edit? addTableRow(Edit at) {
   final rows = [...table.rows, row];
   final text = at.text.replaceRange(table.start, table.end, rows.join('\n'));
   // Caret into the new row's first cell.
-  final caret = table.start +
+  final caret =
+      table.start +
       rows.take(rows.length - 1).fold<int>(0, (sum, r) => sum + r.length + 1) +
       2;
   return Edit(text, caret);
@@ -197,7 +200,10 @@ Edit? addTableColumn(Edit at) {
   if (table == null) return null;
   final rows = [
     for (final row in table.rows)
-      if (_isDivider(row)) '${row.trimRight()} --- |' else '${row.trimRight()}   |',
+      if (_isDivider(row))
+        '${row.trimRight()} --- |'
+      else
+        '${row.trimRight()}   |',
   ];
   final text = at.text.replaceRange(table.start, table.end, rows.join('\n'));
   return Edit(text, at.start, at.end);

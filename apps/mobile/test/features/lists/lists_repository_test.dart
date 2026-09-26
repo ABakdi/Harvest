@@ -249,9 +249,11 @@ void main() {
     test('reorder bumps every row and logs it', () async {
       final a = await repo.addItem(read, title: 'A');
       final b = await repo.addItem(read, title: 'B');
-      await db.update(db.wishlistItems).write(
-        WishlistItemsCompanion(updatedAt: Value(DateTime(2000))),
-      );
+      await db
+          .update(db.wishlistItems)
+          .write(
+            WishlistItemsCompanion(updatedAt: Value(DateTime(2000))),
+          );
       await db.delete(db.outbox).go();
       await repo.reorderItems(read, [b.uuid, a.uuid]);
       expect((await itemsOf(read)).map((i) => i.title), ['B', 'A']);
@@ -289,7 +291,10 @@ void main() {
       await repo.deleteItem(hat.uuid, at: DateTime(2026, 9, 20));
 
       expect(await repo.deleteList(packing.uuid), isTrue);
-      expect((await repo.watchLists().first).map((l) => l.uuid), isNot(contains(packing.uuid)));
+      expect(
+        (await repo.watchLists().first).map((l) => l.uuid),
+        isNot(contains(packing.uuid)),
+      );
       expect(await repo.watchAllItems().first, isEmpty);
       expect(
         () => repo.addItem(packing.uuid, title: 'Scarf'),

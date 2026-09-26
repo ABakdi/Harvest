@@ -212,8 +212,10 @@ class GoalOutline {
   final List<GoalItem> _top;
   final Map<String, List<GoalItem>> _children;
 
-  List<GoalItem> top(GoalItemKind kind) =>
-      [for (final item in _top) if (item.kind == kind) item];
+  List<GoalItem> top(GoalItemKind kind) => [
+    for (final item in _top)
+      if (item.kind == kind) item,
+  ];
 
   List<GoalItem> subtasksOf(String uuid) => _children[uuid] ?? const [];
 

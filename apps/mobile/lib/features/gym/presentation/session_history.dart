@@ -159,7 +159,10 @@ class _DoneExercise extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final name =
-        ref.watch(exerciseByIdProvider(exercise.exerciseId)).value?.displayName ??
+        ref
+            .watch(exerciseByIdProvider(exercise.exerciseId))
+            .value
+            ?.displayName ??
         l10n.gymUnknownExercise;
     final done = exercise.sets.where((set) => set.done).toList();
 

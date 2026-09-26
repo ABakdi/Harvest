@@ -19,14 +19,13 @@ import 'package:harvest/features/health/domain/body_weight.dart';
 /// a day the phone says is next must be the same on both, because a
 /// session started in one place is finished in the other.
 void main() {
-  final spec =
-      jsonDecode(
-            File('../../packages/core/fixtures/gym.json').readAsStringSync(),
-          )
-          as Map<String, Object?>;
+  final spec = jsonDecode(
+    File('../../packages/core/fixtures/gym.json').readAsStringSync(),
+  ) as Map<String, Object?>;
 
   List<Map<String, Object?>> list(String key) => [
-    for (final item in spec[key]! as List<Object?>) item! as Map<String, Object?>,
+    for (final item in spec[key]! as List<Object?>)
+      item! as Map<String, Object?>,
   ];
 
   WorkoutSet setOf(Map<String, Object?> json, [int index = 0]) => WorkoutSet(
@@ -219,9 +218,8 @@ void main() {
 
   test('the clock stands at the same second', () {
     for (final entry in list('clocks')) {
-      DateTime? at(String key) => entry[key] == null
-          ? null
-          : DateTime.parse(entry[key]! as String);
+      DateTime? at(String key) =>
+          entry[key] == null ? null : DateTime.parse(entry[key]! as String);
       final session = WorkoutSession(
         uuid: 's',
         day: HarvestDay.parse('2026-09-19'),
@@ -277,49 +275,55 @@ void main() {
 
     tearDown(() async => db.close());
 
-    test('a started set is prefilled and labelled as the web writes it', () async {
-      for (final entry in list('targets')) {
-        final target = entry['target']! as Map<String, Object?>;
-        final program = await programs.createProgram(name: 'P');
-        final day = await programs.addDay(program.uuid, name: 'Day 1');
-        final slot = await programs.addSlot(day.uuid, exerciseId: '0025');
-        await programs.addTargetSet(
-          slot.uuid,
-          reps: target['reps'] as int?,
-          weightGrams: target['weightGrams'] as int?,
-          percentTenths: target['percentTenths'] as int?,
-          openEnded: target['openEnded']! as bool,
-        );
-        final max = entry['trainingMaxGrams'] as int?;
-        if (max != null) {
-          await programs.setTrainingMax(
-            programUuid: program.uuid,
-            exerciseId: '0025',
-            grams: max,
+    test(
+      'a started set is prefilled and labelled as the web writes it',
+      () async {
+        for (final entry in list('targets')) {
+          final target = entry['target']! as Map<String, Object?>;
+          final program = await programs.createProgram(name: 'P');
+          final day = await programs.addDay(program.uuid, name: 'Day 1');
+          final slot = await programs.addSlot(day.uuid, exerciseId: '0025');
+          await programs.addTargetSet(
+            slot.uuid,
+            reps: target['reps'] as int?,
+            weightGrams: target['weightGrams'] as int?,
+            percentTenths: target['percentTenths'] as int?,
+            openEnded: target['openEnded']! as bool,
           );
+          final max = entry['trainingMaxGrams'] as int?;
+          if (max != null) {
+            await programs.setTrainingMax(
+              programUuid: program.uuid,
+              exerciseId: '0025',
+              grams: max,
+            );
+          }
+          final fresh = (await programs.once(program.uuid))!;
+          final session = await sessions.start(
+            day: fresh.days.single,
+            programUuid: program.uuid,
+            title: 'Day 1',
+            trainingMaxes: await programs.trainingMaxesOnce(program.uuid),
+            unit: unitOf(entry),
+          );
+          final set = session.exercises.single.sets.single;
+          final why = entry['why'] as String?;
+          expect(set.weightGrams, (entry['grams'] as int?) ?? 0, reason: why);
+          expect(set.targetLabel, entry['label'], reason: why);
+          await sessions.discard(session.uuid);
         }
-        final fresh = (await programs.once(program.uuid))!;
-        final session = await sessions.start(
-          day: fresh.days.single,
-          programUuid: program.uuid,
-          title: 'Day 1',
-          trainingMaxes: await programs.trainingMaxesOnce(program.uuid),
-          unit: unitOf(entry),
-        );
-        final set = session.exercises.single.sets.single;
-        final why = entry['why'] as String?;
-        expect(set.weightGrams, (entry['grams'] as int?) ?? 0, reason: why);
-        expect(set.targetLabel, entry['label'], reason: why);
-        await sessions.discard(session.uuid);
-      }
-    });
+      },
+    );
 
     test('the same day is up next', () async {
       for (final entry in list('nextDays')) {
         final program = await programs.createProgram(name: 'P');
         final ids = <String, String>{};
         for (final name in entry['days']! as List<Object?>) {
-          final day = await programs.addDay(program.uuid, name: name! as String);
+          final day = await programs.addDay(
+            program.uuid,
+            name: name! as String,
+          );
           ids[day.name] = day.uuid;
         }
         final last = entry['last'] as String?;

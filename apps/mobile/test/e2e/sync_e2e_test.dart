@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -155,11 +156,14 @@ void main() {
           );
       await File('${roomA.path}/e2e.jpg').writeAsBytes(bytes);
 
-      Future<FileReport> files(HarvestDatabase db, ApiClient api, Directory room) =>
-          FileSync(db, ApiFiles(api), SyncCipher(key)).run(
-            gallery: (relative) async => File('${room.path}/$relative'),
-            attachments: (relative) async => File('${room.path}/$relative'),
-          );
+      Future<FileReport> files(
+        HarvestDatabase db,
+        ApiClient api,
+        Directory room,
+      ) => FileSync(db, ApiFiles(api), SyncCipher(key)).run(
+        gallery: (relative) async => File('${room.path}/$relative'),
+        attachments: (relative) async => File('${room.path}/$relative'),
+      );
 
       expect((await files(a, apiA, roomA)).uploaded, 1);
       // The row now carries the hash; sync it, then fetch the file.

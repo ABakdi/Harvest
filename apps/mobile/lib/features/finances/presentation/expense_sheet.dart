@@ -136,8 +136,7 @@ bool paysFromWallet({
   required int? amountMinor,
   required int walletBalance,
   bool? choice,
-}) =>
-    amountMinor != null && walletBalance >= amountMinor && (choice ?? true);
+}) => amountMinor != null && walletBalance >= amountMinor && (choice ?? true);
 
 class _ExpenseSheet extends ConsumerStatefulWidget {
   const _ExpenseSheet({this.existing, this.prefill});
