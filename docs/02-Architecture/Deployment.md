@@ -8,7 +8,44 @@ Nothing here is required to *use* Harvest. The phone works alone, as
 it always has ([[Business-Rules]] #5); this is only for the account
 that ties a phone to a browser.
 
-## All of it, in one go
+## On a server of my own, with nginx
+
+`deploy/deploy.sh` does the whole thing on a Debian or Ubuntu server,
+from a checkout of the repository:
+
+```sh
+git clone https://github.com/ABakdi/Harvest.git && cd Harvest
+sudo deploy/deploy.sh --domain harvest.example.org --email me@example.org
+```
+
+The first run installs what is missing (Docker from Docker's own
+repository, nginx, certbot), writes `deploy/.env` with a fresh Ed25519
+pair, and stops to ask for the mail settings — nobody can verify an
+account without them. The second run:
+
+1. builds the server image and the web bundle, both inside Docker, so
+   the server needs no Node of its own;
+2. starts MongoDB and the server (`deploy/compose.server.yaml`), the
+   server on the loopback only, and waits for `/v1/health`;
+3. puts the bundle in `/var/www/harvest/releases/<commit>` and moves
+   the `current` link to it in one step, keeping the last three;
+4. serves a holding page on port 80 while Let's Encrypt checks the
+   domain (`certbot --webroot`), then writes the https site from
+   `deploy/nginx/harvest.https.conf`: http to https, `/v1` to the
+   server with room for 25 MB files and the assist's streamed answers,
+   long-cached assets, the shell always asked again, source maps kept
+   back, and the same Content-Security-Policy as the Caddy file;
+5. leaves renewals to certbot's own timer, with a hook that reloads
+   nginx.
+
+Every later run is an update — `sudo deploy/deploy.sh`, with no flags:
+it remembers the domain, the email and `--www`. `--staging` tries it
+against Let's Encrypt's staging CA, `--no-tls` stops before the
+certificate for a server whose DNS is not pointed yet, and `--no-pull`
+builds what is checked out. If nginx refuses a new site, the previous
+one is put back.
+
+## All of it in Docker, with Caddy
 
 `deploy/` holds the whole of it as one Compose file: MongoDB, the
 server, and Caddy serving the site with `/v1` handed to the server on
@@ -106,10 +143,11 @@ Two things the host must do:
   an open tab;
 - keeps the source maps on the build machine.
 
-A proxy of my own must let a request of about 15 MB through to
-`/v1/assist`: a recording to transcribe travels in the body, base64,
-up to 8 MB before encoding. Caddy sets no limit; nginx's default of
-1 MB would refuse most of them (`client_max_body_size 16m`).
+A proxy of my own must let a request of up to about 26 MB through to
+`/v1`: a picture or a recording travels up to 25 MB, a recording to
+transcribe about 15 MB once encoded. Caddy sets no limit; nginx's
+default of 1 MB would refuse most of them (`client_max_body_size 32m`,
+as `deploy.sh` sets).
 
 The bare minimum, with Caddy, is six lines:
 
