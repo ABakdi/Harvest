@@ -221,7 +221,7 @@ to read, to watch, and any list I make — in Records, before `v3.0.0`.
 - [x] Records reads *Notes · Lists · Gallery · Places*.
 - [x] `v3.0.0-beta.4`.
 
-- [ ] `v3.0.0`, once the beta has been lived in.
+- [x] `v3.0.0`, shipped 2026-09-26.
 
 **Exit:** the phone and the browser converge on the same day's
 field, the same notes and the same month of expenses, with the private

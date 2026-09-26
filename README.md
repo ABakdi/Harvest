@@ -17,14 +17,15 @@ years — but it only covers one narrow slice of a life, and the bar never
 moves. Here the bar is mine to raise, and the streak is fed by whatever
 I decide matters this month.
 
-**Status: v3.0 in beta — the phone, the web and the server.** On top
+**Status: v3.0 — the phone, the web and the server, shipped.** On top
 of v2's training log, sleep, steps and body weight, Phase 5 added a
 goals board, a trail with every action pinned on a free map, and voice
 notes; Phase 6 added an optional account, sync with the money and the
 places end-to-end encrypted, and the whole app in a browser — which
 now writes everything the phone writes, except what needs the phone
-itself (alarms, steps, the trail, the widget, the lock). The latest
-build is on the [releases page](https://github.com/ABakdi/Harvest/releases).
+itself (alarms, steps, the trail, the widget, the lock). Every list
+lives in one place, and a goal breaks down into tasks and subtasks.
+Grab it from the [releases page](https://github.com/ABakdi/Harvest/releases).
 
 v2.0 went through four betas first: [Checkpoint 6](docs/05-Checkpoints/Checkpoint-6.md)
 is the first week's findings, fixed, and the
@@ -35,8 +36,8 @@ the next days asked for; [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md)
 closes the day's steps on its own. The
 [third audit](docs/06-Audit/Audit-v2.md) read v2.0.0 after release.
 
-**Next:** `v3.0.0` proper once the beta has been lived in, then
-[Phase 7](docs/03-Planning/Phase-7-Screen-Time.md), screen time. The
+**Next:** [Phase 7](docs/03-Planning/Phase-7-Screen-Time.md), screen
+time. The
 repository is a monorepo: `apps/mobile` (Flutter), `apps/web`
 (React), `apps/server` (Express), the shared `packages/`, and
 `deploy/` to run it all.

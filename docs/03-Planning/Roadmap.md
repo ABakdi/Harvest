@@ -23,8 +23,8 @@ flowchart LR
 | **v1.0** | Four checkpoints on top: calendar, vault, app lock, spreadsheet export, notes on seeds, the archive screen, the comeback ladder, the home-screen widget, the daily cycle | **Shipped 2026-09-05** |
 | [[Phase-3-Notes-and-Gallery]] | Markdown notes with links, photo albums that are seeds, the zip archive **and an importer** | **Shipped 2026-09-06 as v1.1.0** |
 | [[Phase-4-Health-and-Gym]] | Steps, body weight, and a real training log — programs, sessions, personal records — plus the sleep alarm and debt | **Shipped 2026-09-15 as v2.0.0**, after four betas: [[Checkpoint-6]], the [[Audit-v2-Beta]], [[Checkpoint-7]] and [[Checkpoint-8]] |
-| [[Phase-5-Goals-Places-and-Voice]] | A goals board on the field, a trail and a geotag on every action with a map to see them, voice notes, read aloud, and an assist in notes | A week with the trail on, a goal planted into seeds; `v2.1.0` |
-| [[Phase-6-Sync-Accounts-and-Web]] | The monorepo's other two programs: an Express + MongoDB server with accounts and sync, and the whole app on the web (React, shadcn/ui, a PWA) with a home page and the APK download | Phone and browser converge, private tier unreadable on the server; `v3.0.0` |
+| [[Phase-5-Goals-Places-and-Voice]] | A goals board on the field, a trail and a geotag on every action with a map to see them, voice notes, read aloud, and an assist in notes | **Shipped with v3.0.0** (2026-09-26): it never had a release of its own, because Phase 6 was already under way |
+| [[Phase-6-Sync-Accounts-and-Web]] | The monorepo's other two programs: an Express + MongoDB server with accounts and sync, and the whole app on the web (React, shadcn/ui, a PWA) with a home page and the APK download | **Shipped 2026-09-26 as v3.0.0**, after four betas, a fourth audit by hand ([[Audit-v3-Beta]]), Lists and goals with subtasks — and with it Phase 5's goals, places and voice |
 | [[Phase-7-Screen-Time]] | Usage caps, weed-pull interventions (Android) | Caps enforce reliably through a full week; `v3.1.0` |
 | [[Phase-8-Social-and-Reach]] | Rankings, the share card, iOS polish | Leaderboard live |
 
