@@ -4016,7 +4016,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String accountPending(int count) {
-    return '$count changes waiting';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes waiting',
+      one: '1 change waiting',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4025,7 +4031,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get accountHeldBack => 'Money and places wait for a sync passphrase.';
+  String get accountHeldBack =>
+      'Money, places and pictures wait for your sync PIN.';
 
   @override
   String get accountDevices => 'Devices';
@@ -4074,45 +4081,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String accountErrorOther(String code) {
     return 'Something went wrong ($code).';
   }
-
-  @override
-  String get passphraseTitle => 'Sync passphrase';
-
-  @override
-  String get passphraseUnset => 'Not set: money and places stay on this phone.';
-
-  @override
-  String get passphraseSet =>
-      'Set: money and places sync end-to-end encrypted.';
-
-  @override
-  String get passphraseSetAction => 'Set the passphrase';
-
-  @override
-  String get passphraseForget => 'Forget it on this device';
-
-  @override
-  String get passphraseBody =>
-      'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.';
-
-  @override
-  String get passphraseField => 'Passphrase';
-
-  @override
-  String get passphraseRepeat => 'The same, again';
-
-  @override
-  String get passphraseMismatch => 'The two do not match.';
-
-  @override
-  String get passphraseShort => 'At least 12 characters.';
-
-  @override
-  String get passphraseWorking => 'Making the key…';
-
-  @override
-  String get passphraseWrong =>
-      'This passphrase does not open what your other devices sent. Enter the one you used there.';
 
   @override
   String get exportIncludePlaces => 'Include my location history';
@@ -4628,4 +4596,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mediaOther => 'Other';
+
+  @override
+  String get syncPinTitle => 'Sync PIN';
+
+  @override
+  String get syncPinChooseBody =>
+      'Money, places and pictures are encrypted on this phone with a key made from this PIN. The server never sees it. Use the same PIN on every device.';
+
+  @override
+  String get syncPinEnterBody =>
+      'Your other devices already use a sync PIN. Enter the same one here to bring over your money, places and pictures.';
+
+  @override
+  String get syncPinLoss =>
+      'If you lose it, what is encrypted cannot be read on a new device — only sent again from one that still has it. Nobody can reset it.';
+
+  @override
+  String get syncPinCost =>
+      'A PIN is quick to type, but someone holding a copy of the server\'s data could try every one. A passphrase of 8 characters or more holds against that.';
+
+  @override
+  String get syncPinField => 'PIN';
+
+  @override
+  String get syncPinRepeat => 'The same PIN, again';
+
+  @override
+  String get syncPinRule => '4 to 6 digits';
+
+  @override
+  String get syncPassphraseField => 'Passphrase';
+
+  @override
+  String get syncPassphraseRepeat => 'The same passphrase, again';
+
+  @override
+  String get syncPassphraseRule => '8 characters or more';
+
+  @override
+  String get syncPinUsePassphrase => 'Use a passphrase instead';
+
+  @override
+  String get syncPinUsePin => 'Use a PIN instead';
+
+  @override
+  String get syncPinLength => 'A PIN is 4 to 6 digits.';
+
+  @override
+  String get syncPassphraseShort => 'At least 8 characters.';
+
+  @override
+  String get syncPinMismatch => 'The two do not match.';
+
+  @override
+  String get syncPinChoose => 'Set the PIN';
+
+  @override
+  String get syncPinEnter => 'Unlock';
+
+  @override
+  String get syncPinWorking => 'Making the key…';
+
+  @override
+  String get syncPinChecking => 'Checking it against your other devices…';
+
+  @override
+  String get syncPinWrong =>
+      'This PIN does not open what your other devices sent. Enter the one you used there.';
+
+  @override
+  String get syncPinLater => 'Later';
+
+  @override
+  String get syncPinWaiting =>
+      'Money, places and pictures stay on this phone until you set your sync PIN.';
+
+  @override
+  String get syncPinIsSet =>
+      'Set: money, places and pictures sync end-to-end encrypted.';
+
+  @override
+  String get syncPinSetAction => 'Set your sync PIN';
+
+  @override
+  String get syncPinForget => 'Forget it on this device';
+
+  @override
+  String get accountCircleLabel => 'Account and sync';
+
+  @override
+  String get accountOnline => 'Online';
+
+  @override
+  String get accountOffline => 'Offline';
+
+  @override
+  String get accountAllSent => 'Everything is sent';
+
+  @override
+  String get accountPage => 'Account settings';
+
+  @override
+  String get galleryFileNotSent => 'Not sent yet from the device that took it';
+
+  @override
+  String get galleryFileNeedsPin => 'Enter your sync PIN to see it';
+
+  @override
+  String get galleryFileFailed => 'Couldn\'t load';
+
+  @override
+  String get galleryFileRetry => 'Try again';
 }

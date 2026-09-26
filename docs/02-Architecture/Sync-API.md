@@ -69,7 +69,7 @@ A synced row travels as a **record**:
   `debt_payments`, `expense_categories`, `location_points`, `geotags`,
   `saved_places`) sends `enc` instead of `data`:
   `{ "v": 1, "iv": "<base64 12 bytes>", "ct": "<base64>" }`. That is
-  AES-256-GCM over the JSON of `data`, keyed by the sync passphrase
+  AES-256-GCM over the JSON of `data`, keyed by the sync PIN or passphrase ([[Accounts]] AC7)
   through PBKDF2-SHA256 (600,000 iterations, the account's salt). The
   server checks that the envelope is well-formed and nothing more.
   `updatedAt` and `deletedAt` stay in the clear, because the conflict
@@ -184,7 +184,7 @@ is one file on the server and travels once:
   The reader checks, though — bytes that do not hash to the name they
   came under are dropped rather than written.
 - **A row that names a file carries its hash**, and that is what the
-  other device fetches by. Files travel only once a sync passphrase is
+  other device fetches by. Files travel only once a sync PIN is
   set, because they go sealed or not at all.
 - **A file never holds up a row.** One that fails is tried again on the
   next sync, and a picture whose file has not arrived shows as being on

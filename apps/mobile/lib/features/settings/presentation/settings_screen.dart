@@ -9,6 +9,7 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/features/account/presentation/account_card.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/assist/presentation/assist_settings_card.dart';
 import 'package:harvest/features/export/presentation/export_card.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
@@ -105,6 +106,7 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(title ?? l10n.navSettings),
         bottom: tabs,
       ),

@@ -8,13 +8,17 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
+import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// Settings → Account ([[Accounts]]): signed out, a way in; signed in,
 /// what sync is doing and the way out.
 class AccountCard extends ConsumerWidget {
-  const AccountCard({super.key});
+  const AccountCard({this.creating = false, super.key});
+
+  /// Signed out, open on *Create account* rather than *Sign in*.
+  final bool creating;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,7 +26,7 @@ class AccountCard extends ConsumerWidget {
     if (account == null) return const SizedBox.shrink();
     return account.signedIn
         ? _SignedIn(state: account)
-        : _SignedOut(serverUrl: account.serverUrl);
+        : _SignedOut(serverUrl: account.serverUrl, creating: creating);
   }
 }
 
@@ -34,7 +38,7 @@ String accountError(AppLocalizations l10n, Object error) => switch (error) {
   ApiException(code: 'rate_limited') => l10n.accountErrorRateLimited,
   ApiException(code: 'validation_failed', :final message) =>
     l10n.accountErrorInvalid(message ?? ''),
-  ApiException(code: 'passphrase') => l10n.passphraseWrong,
+  ApiException(code: 'passphrase') => l10n.syncPinWrong,
   ApiException(:final code) => l10n.accountErrorOther(code),
   _ => l10n.accountErrorOther(error.runtimeType.toString()),
 };
@@ -70,9 +74,10 @@ String? signInProblem(
 }
 
 class _SignedOut extends ConsumerStatefulWidget {
-  const _SignedOut({required this.serverUrl});
+  const _SignedOut({required this.serverUrl, this.creating = false});
 
   final String serverUrl;
+  final bool creating;
 
   @override
   ConsumerState<_SignedOut> createState() => _SignedOutState();
@@ -83,7 +88,7 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _name = TextEditingController();
-  var _creating = false;
+  late bool _creating = widget.creating;
   var _busy = false;
   String? _error;
 
@@ -333,7 +338,7 @@ class _SignedIn extends ConsumerWidget {
               ),
             ],
             const Divider(height: HarvestSpacing.lg),
-            const _Passphrase(),
+            const SyncPinTile(),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.devices_outlined),
@@ -341,7 +346,7 @@ class _SignedIn extends ConsumerWidget {
               onTap: () => unawaited(
                 showHarvestSheet<void>(
                   context,
-                  builder: (_) => const _Devices(),
+                  builder: (_) => const AccountDevices(),
                 ),
               ),
             ),
@@ -400,8 +405,9 @@ class _SignedIn extends ConsumerWidget {
   }
 }
 
-class _Devices extends ConsumerWidget {
-  const _Devices();
+/// The signed-in sessions, each with a way to end it ([[Accounts]]).
+class AccountDevices extends ConsumerWidget {
+  const AccountDevices({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -457,9 +463,14 @@ class _Devices extends ConsumerWidget {
   }
 }
 
-/// The private tier's passphrase: set once per device, never sent.
-class _Passphrase extends ConsumerWidget {
-  const _Passphrase();
+/// The sync PIN ([[Accounts]]): set once per device, never sent.
+///
+/// There is no *change* here on purpose. A file on the server is named
+/// by its contents and never replaced, so a new PIN could re-seal the
+/// rows but not the pictures already up, and the other devices would be
+/// left with files no key of theirs opens.
+class SyncPinTile extends ConsumerWidget {
+  const SyncPinTile({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -468,99 +479,17 @@ class _Passphrase extends ConsumerWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(set ? Icons.lock_outline : Icons.lock_open_outlined),
-      title: Text(l10n.passphraseTitle),
-      subtitle: Text(set ? l10n.passphraseSet : l10n.passphraseUnset),
+      title: Text(l10n.syncPinTitle),
+      subtitle: Text(set ? l10n.syncPinIsSet : l10n.syncPinWaiting),
       trailing: set
           ? TextButton(
               onPressed: () => unawaited(
                 ref.read(syncPassphraseProvider.notifier).forget(),
               ),
-              child: Text(l10n.passphraseForget),
+              child: Text(l10n.syncPinForget),
             )
-          : null,
-      onTap: set
-          ? null
-          : () => unawaited(
-              showHarvestSheet<void>(
-                context,
-                builder: (_) => const _PassphraseSheet(),
-              ),
-            ),
-    );
-  }
-}
-
-class _PassphraseSheet extends ConsumerStatefulWidget {
-  const _PassphraseSheet();
-
-  @override
-  ConsumerState<_PassphraseSheet> createState() => _PassphraseSheetState();
-}
-
-class _PassphraseSheetState extends ConsumerState<_PassphraseSheet> {
-  final _first = TextEditingController();
-  final _second = TextEditingController();
-  var _working = false;
-
-  @override
-  void dispose() {
-    _first.dispose();
-    _second.dispose();
-    super.dispose();
-  }
-
-  String? _problem(AppLocalizations l10n) {
-    if (_first.text.length < 12) return l10n.passphraseShort;
-    if (_first.text != _second.text) return l10n.passphraseMismatch;
-    return null;
-  }
-
-  Future<void> _save() async {
-    setState(() => _working = true);
-    final navigator = Navigator.of(context);
-    // Read before the sheet goes: its ref dies with it.
-    final sync = ref.read(syncControllerProvider.notifier);
-    await ref.read(syncPassphraseProvider.notifier).set(_first.text);
-    navigator.pop();
-    unawaited(sync.syncNow());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final problem = _problem(l10n);
-    return HarvestSheet(
-      title: l10n.passphraseTitle,
-      actionLabel: _working ? l10n.passphraseWorking : l10n.passphraseSetAction,
-      onAction: problem != null || _working ? null : () => unawaited(_save()),
-      children: [
-        Text(l10n.passphraseBody),
-        const SizedBox(height: HarvestSpacing.md),
-        TextField(
-          controller: _first,
-          obscureText: true,
-          autocorrect: false,
-          enableSuggestions: false,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(labelText: l10n.passphraseField),
-        ),
-        const SizedBox(height: HarvestSpacing.sm),
-        TextField(
-          controller: _second,
-          obscureText: true,
-          autocorrect: false,
-          enableSuggestions: false,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            labelText: l10n.passphraseRepeat,
-            errorText: _second.text.isEmpty ? null : problem,
-          ),
-        ),
-        if (_working) ...[
-          const SizedBox(height: HarvestSpacing.md),
-          const LinearProgressIndicator(),
-        ],
-      ],
+          : const Icon(Icons.chevron_right),
+      onTap: set ? null : () => unawaited(showSyncPinSheet(context)),
     );
   }
 }

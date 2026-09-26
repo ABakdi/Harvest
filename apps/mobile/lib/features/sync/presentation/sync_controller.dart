@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:drift/drift.dart' show countAll;
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database_provider.dart';
@@ -30,6 +31,9 @@ class SyncStatus {
 
   /// Changes waiting in the outbox.
   final int pending;
+
+  /// The server was not reached the last time it was tried.
+  bool get offline => error == 'offline';
 
   SyncStatus copyWith({
     bool? running,
@@ -85,12 +89,46 @@ class SyncController extends _$SyncController {
         });
   }
 
+  Future<void>? _run;
+  var _again = false;
+
   /// Syncs now, if there is a verified account to sync with. Quietly
   /// does nothing otherwise: an account is optional ([[Accounts]] AC1).
-  Future<void> syncNow() async {
+  ///
+  /// Asked while a sync is running, it runs once more when that one
+  /// ends, and answers when both are done: what was asked for — a PIN
+  /// just set, a change just made — may have missed the running one.
+  Future<void> syncNow() {
+    final running = _run;
+    if (running != null) {
+      _again = true;
+      return running;
+    }
+    return _run = _loop().whenComplete(() => _run = null);
+  }
+
+  Future<void> _loop() async {
+    do {
+      _again = false;
+      await _once();
+    } while (_again);
+  }
+
+  Future<void> _once() async {
     final account = await ref.read(accountControllerProvider.future);
-    final me = account.me;
-    if (me == null || !me.verified || state.running) return;
+    var me = account.me;
+    if (me == null) return;
+    if (!me.verified) {
+      // The link was likely opened somewhere else since: ask again,
+      // or this phone would wait for a restart that changes nothing.
+      try {
+        await ref.read(accountControllerProvider.notifier).refreshMe();
+      } on ApiException {
+        return;
+      }
+      me = (await ref.read(accountControllerProvider.future)).me;
+      if (me == null || !me.verified) return;
+    }
     state = state.copyWith(running: true);
     try {
       final report = await ref.read(syncServiceProvider).run();
@@ -127,8 +165,7 @@ class SyncController extends _$SyncController {
         gallery: (relative) async => GalleryStorage.isSafeRelative(relative)
             ? await gallery.fileOf(relative)
             : null,
-        attachments: (relative) async =>
-            GalleryStorage.isSafeRelative(relative)
+        attachments: (relative) async => GalleryStorage.isSafeRelative(relative)
             ? await attachments.fileOf(relative)
             : null,
       );

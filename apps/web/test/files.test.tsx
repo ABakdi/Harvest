@@ -52,7 +52,7 @@ describe('files on the web', () => {
     expect(await h.db.files.count()).toBe(0);
   });
 
-  it('says a picture is on the phone when there is no passphrase', async () => {
+  it('asks for the sync PIN on a picture this browser cannot open yet (G9)', async () => {
     const h = await device(new FakeServer());
     await h.db.rows('albums').put({
       uuid: 'a1',
@@ -86,6 +86,6 @@ describe('files on the web', () => {
     );
     await screen.findByText('Gym');
     await screen.findByRole('button', { name: /gym/i }).then((button) => button.click());
-    expect(await screen.findByTitle('Still on the phone')).toBeInTheDocument();
+    expect(await screen.findByTitle('Enter your sync PIN to see it')).toBeInTheDocument();
   });
 });

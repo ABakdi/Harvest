@@ -83,7 +83,7 @@ export interface Leave {
   deleteAccount(password: string): Promise<void>;
 }
 
-const LeaveContext = createContext<Leave | null>(null);
+export const LeaveContext = createContext<Leave | null>(null);
 
 export function useLeave(): Leave {
   const leave = useContext(LeaveContext);

@@ -80,6 +80,7 @@ class Memory {
     required this.capturedAt,
     this.kind = MemoryKind.photo,
     this.note,
+    this.fileHash,
   });
 
   final String uuid;
@@ -92,6 +93,10 @@ class Memory {
   final MemoryKind kind;
   final String? note;
   final DateTime capturedAt;
+
+  /// The SHA-256 of the file, once it is on the server; null while the
+  /// device that took it has not sent it ([[Sync-API]]).
+  final String? fileHash;
 }
 
 /// An album with the numbers the list needs.

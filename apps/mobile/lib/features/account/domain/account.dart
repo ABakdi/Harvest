@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/secret_store.dart';
@@ -38,26 +39,34 @@ class AccountState {
 @Riverpod(keepAlive: true)
 TokenStore tokenStore(Ref ref) => TokenStore(ref.watch(secretStoreProvider));
 
+/// The server address as the client uses it, held in memory so a
+/// sign-in straight after typing a new one goes there and not to the
+/// old one (the setting itself is only read back asynchronously).
+class ServerAddress {
+  Uri value = Uri.parse(defaultServerUrl);
+
+  void set(String? url) => value = Uri.parse(
+    url == null || url.trim().isEmpty ? defaultServerUrl : url.trim(),
+  );
+}
+
+@Riverpod(keepAlive: true)
+ServerAddress serverAddress(Ref ref) {
+  final settings = ref.watch(settingsRepositoryProvider);
+  final address = ServerAddress();
+  unawaited(settings.getString(AccountKeys.serverUrl).then(address.set));
+  final subscription = settings
+      .watchAll([AccountKeys.serverUrl])
+      .listen((values) => address.set(values[AccountKeys.serverUrl]));
+  ref.onDispose(subscription.cancel);
+  return address;
+}
+
 @Riverpod(keepAlive: true)
 ApiClient apiClient(Ref ref) {
-  final settings = ref.watch(settingsRepositoryProvider);
-  var base = Uri.parse(defaultServerUrl);
-  // The URL is read on every call, so a change in Settings needs no
-  // restart: the listener keeps a copy fresh.
-  unawaited(
-    settings.getString(AccountKeys.serverUrl).then((value) {
-      if (value != null && value.isNotEmpty) base = Uri.parse(value);
-    }),
-  );
-  final subscription = settings.watchAll([AccountKeys.serverUrl]).listen((
-    values,
-  ) {
-    final value = values[AccountKeys.serverUrl];
-    base = Uri.parse(value == null || value.isEmpty ? defaultServerUrl : value);
-  });
-  ref.onDispose(subscription.cancel);
+  final address = ref.watch(serverAddressProvider);
   return ApiClient(
-    baseUrl: () => base,
+    baseUrl: () => address.value,
     tokens: ref.watch(tokenStoreProvider),
     onSignedOut: () => unawaited(
       ref.read(accountControllerProvider.notifier).forget(),
@@ -128,7 +137,11 @@ class ApiFiles implements FileRemote {
       _api.putBytes(
         '/v1/files/$sha256',
         sealed,
-        headers: {fileIvHeader: iv},
+        headers: {
+          fileIvHeader: iv,
+          // AES-GCM adds a 16-byte tag and nothing else.
+          filePlainBytesHeader: '${sealed.length - 16}',
+        },
       );
 
   @override
@@ -143,6 +156,9 @@ class ApiFiles implements FileRemote {
 /// The header the nonce travels in, as the contract names it
 /// (`packages/contracts/src/files.ts`).
 const fileIvHeader = 'x-harvest-iv';
+
+/// The plaintext's length, for the server's accounting only.
+const filePlainBytesHeader = 'x-harvest-plain-bytes';
 
 /// Files sync only once a passphrase is set: a picture is as personal
 /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
@@ -171,9 +187,26 @@ SyncService syncService(Ref ref) => SyncService(
   },
 );
 
-/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
-/// derived from it is kept, in the keystore; the passphrase itself is
-/// gone the moment the key exists.
+/// Makes the private tier's key from the sync secret and the account's
+/// salt. Its own provider so the tests can make one without 600,000
+/// rounds.
+typedef SyncKeyMaker = Future<Uint8List> Function(String secret, String salt);
+
+@Riverpod(keepAlive: true)
+SyncKeyMaker syncKeyMaker(Ref ref) =>
+    (secret, salt) => compute(_derive, (passphrase: secret, salt: salt));
+
+/// Whether another device has sealed rows on the server: what decides
+/// between *choosing* a sync PIN and *entering* one ([[Accounts]]).
+@Riverpod(keepAlive: true)
+Stream<bool> syncSealedSeen(Ref ref) => ref
+    .watch(settingsRepositoryProvider)
+    .watchAll([SyncKeys.sealedSeen])
+    .map((values) => values[SyncKeys.sealedSeen] == 'true');
+
+/// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
+/// Only the key derived from it is kept, in the keystore; the secret
+/// itself is gone the moment the key exists.
 @Riverpod(keepAlive: true)
 class SyncPassphrase extends _$SyncPassphrase {
   static const keyName = 'sync.privateKey';
@@ -184,22 +217,26 @@ class SyncPassphrase extends _$SyncPassphrase {
 
   /// Derives the key (seconds of work, off the UI thread) and opens the
   /// private tier: the history is pulled again so the rows that waited
-  /// for it can be read.
-  Future<void> set(String passphrase) async {
+  /// for it can be read, and this phone's own go up sealed. Whether it
+  /// is the right secret is found out by that pull ([[Sync-API]]).
+  Future<void> set(String secret) async {
     final me = (await ref.read(accountControllerProvider.future)).me;
     if (me == null) return;
-    final key = await compute(
-      _derive,
-      (passphrase: passphrase, salt: me.syncSalt),
-    );
+    final key = await ref.read(syncKeyMakerProvider)(secret, me.syncSalt);
+    // A run already going started without the key; it ends first, or
+    // it would put back the cursor the re-pull needs at zero.
+    final service = ref.read(syncServiceProvider);
+    await service.idle();
     await ref.read(secretStoreProvider).write(keyName, base64Encode(key));
-    await ref.read(syncServiceProvider).privateTierOpened();
+    await service.privateTierOpened();
+    ref.invalidate(fileSyncProvider);
     state = const AsyncData(true);
   }
 
-  /// Forgets the key on this device; money and places stay home again.
+  /// Forgets the key on this device; the private tier stays home again.
   Future<void> forget() async {
     await ref.read(secretStoreProvider).write(keyName, null);
+    ref.invalidate(fileSyncProvider);
     state = const AsyncData(false);
   }
 }
@@ -234,6 +271,7 @@ class AccountController extends _$AccountController {
   ApiClient get _api => ref.read(apiClientProvider);
 
   Future<void> setServerUrl(String url) async {
+    ref.read(serverAddressProvider).set(url);
     await ref
         .read(settingsRepositoryProvider)
         .setString(AccountKeys.serverUrl, url.trim());

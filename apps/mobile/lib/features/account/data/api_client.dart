@@ -99,7 +99,11 @@ class ApiClient {
   Future<({Uint8List bytes, Map<String, String> headers})> getBytes(
     String path,
   ) async {
-    final response = await _rawRetried('GET', path, accept: 'application/octet-stream');
+    final response = await _rawRetried(
+      'GET',
+      path,
+      accept: 'application/octet-stream',
+    );
     if (response.statusCode >= 400) {
       // An error answer is JSON even on these routes.
       _decode(response);
@@ -113,10 +117,20 @@ class ApiClient {
     String accept = 'application/json',
   }) async {
     if (tokens.access == null) await _refreshOnce();
-    var response = await _raw(method, path, bearer: tokens.access, accept: accept);
+    var response = await _raw(
+      method,
+      path,
+      bearer: tokens.access,
+      accept: accept,
+    );
     if (response.statusCode == 401) {
       await _refreshOnce();
-      response = await _raw(method, path, bearer: tokens.access, accept: accept);
+      response = await _raw(
+        method,
+        path,
+        bearer: tokens.access,
+        accept: accept,
+      );
     }
     return response;
   }

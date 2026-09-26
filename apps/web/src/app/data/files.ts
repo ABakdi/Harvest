@@ -60,6 +60,17 @@ export interface UploadReport {
 export type FileProblem = 'quota' | null;
 
 /**
+ * Why a file could not be had here ([[Gallery]] G9): the server does
+ * not have it yet (*still on the phone*), this browser has no sync PIN
+ * to open it, or asking for it failed — no connection, too slow, or
+ * bytes that are not the file — and it is worth trying again.
+ */
+export type FileMiss = 'onPhone' | 'locked' | 'failed';
+
+/** How long a file may take to arrive before it counts as failed. */
+export const fileFetchTimeoutMs = 30_000;
+
+/**
  * Pictures and recordings, fetched by the name of their own bytes and
  * sent the same way ([[Sync-API]], files).
  *
@@ -74,11 +85,13 @@ export type FileProblem = 'quota' | null;
  * asks for a name nobody has uploaded. A file never holds up a row.
  */
 export class FileStore {
-  private readonly pending = new Map<string, Promise<Blob | null>>();
+  private readonly pending = new Map<string, Promise<Blob | FileMiss>>();
   private readonly listeners = new Set<() => void>();
   private uploading: Promise<UploadReport> | null = null;
   private again: Promise<UploadReport> | null = null;
   private problemNow: FileProblem = null;
+  /** How long a fetch may take; a test shortens it. */
+  timeoutMs = fileFetchTimeoutMs;
 
   constructor(
     private readonly db: HarvestDB,
@@ -90,6 +103,12 @@ export class FileStore {
 
   /** The file, from this browser or the server; null when it cannot be had. */
   async get(sha256: string): Promise<Blob | null> {
+    const found = await this.find(sha256);
+    return typeof found === 'string' ? null : found;
+  }
+
+  /** The file, or why it cannot be had here ([[Gallery]] G9). */
+  async find(sha256: string): Promise<Blob | FileMiss> {
     const held = await this.db.files.get(sha256);
     if (held) return held.blob;
     const running = this.pending.get(sha256);
@@ -99,21 +118,30 @@ export class FileStore {
     return fetching;
   }
 
-  private async fetch(sha256: string): Promise<Blob | null> {
+  private async fetch(sha256: string): Promise<Blob | FileMiss> {
     const key = await this.keyring.key(this.salt());
-    if (!key) return null;
+    if (!key) return 'locked';
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const { sealed, iv } = await this.remote.file(sha256);
+      // A request that never answers would leave a frame loading for
+      // good: past the timeout it is a failure, with *Try again*.
+      const late = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('timeout')), this.timeoutMs);
+      });
+      const { sealed, iv } = await Promise.race([this.remote.file(sha256), late]);
       const plain = await openFile(key, sha256, { iv, ct: sealed });
       const bytes = plain.slice().buffer;
-      if ((await sha256Of(bytes)) !== sha256) return null;
+      if ((await sha256Of(bytes)) !== sha256) return 'failed';
       const blob = new Blob([bytes]);
       await this.db.files.put({ sha256, blob, fetchedAt: new Date().toISOString() });
       return blob;
-    } catch {
-      // Not there yet, not ours to open, or no connection: the picture
-      // is simply on another device for now.
-      return null;
+    } catch (failure) {
+      // The server has no such file: the phone has not sent it yet.
+      if (failure instanceof ApiError && failure.status === 404) return 'onPhone';
+      // No connection, too slow, or not ours to open.
+      return 'failed';
+    } finally {
+      clearTimeout(timer);
     }
   }
 

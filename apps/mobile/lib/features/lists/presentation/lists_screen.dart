@@ -14,6 +14,7 @@ import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
@@ -112,6 +113,7 @@ class _ListsScreenState extends ConsumerState<ListsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(widget.title ?? l10n.navLists),
         bottom: widget.tabs,
         actions: [

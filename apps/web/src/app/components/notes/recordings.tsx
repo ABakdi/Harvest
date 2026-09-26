@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useHarvest } from '../../context';
 import { audioEmbedsIn, type AttachmentRow } from '../../data/attachments';
-import { useRowFile } from '../gallery/memory-media';
+import { FileMissing, useRowFile } from '../gallery/memory-media';
 
 /** `mm:ss`, as the recorder's clock shows it. */
 export function formatClock(ms: number): string {
@@ -25,7 +25,7 @@ export function RecordingPlayer({
   onTranscribe?: ((attachment: AttachmentRow) => void) | undefined;
 }) {
   const { t } = useTranslation();
-  const { url } = useRowFile(attachment.uuid, attachment.fileHash);
+  const { url, view } = useRowFile(attachment.uuid, attachment.fileHash);
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-2 ps-3">
       <MicIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -57,9 +57,9 @@ export function RecordingPlayer({
             </Button>
           )}
         </>
-      ) : url === null ? (
-        <span className="text-xs text-muted-foreground">{t('voice.missing')}</span>
-      ) : null}
+      ) : (
+        <FileMissing view={view} kind="audio" className="w-full flex-row items-center justify-start rounded-lg p-2 text-start [&>svg]:size-4" />
+      )}
     </li>
   );
 }

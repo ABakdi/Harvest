@@ -18,6 +18,7 @@ import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/reminder_countdown.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
@@ -93,6 +94,7 @@ class _FieldScreenState extends ConsumerState<FieldScreen>
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(l10n.appTitle),
         actions: [
           IconButton(

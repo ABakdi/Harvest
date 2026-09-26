@@ -12,6 +12,7 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/finances/presentation/moves_ledger.dart';
@@ -314,6 +315,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(widget.title ?? l10n.navPlaces),
         bottom: widget.tabs,
         actions: [_menu(l10n, state)],
@@ -972,7 +974,12 @@ String? geotagDetailText(AppLocalizations l10n, GeotagDetail? detail) =>
     switch (detail) {
       null => null,
       GeotagText(:final text) => text,
-      GeotagExpense(:final amountMinor, :final currency, :final category, :final note) =>
+      GeotagExpense(
+        :final amountMinor,
+        :final currency,
+        :final category,
+        :final note,
+      ) =>
         '${formatMoney(amountMinor, currency)} · '
             '${note ?? categoryLabel(l10n, category)}',
       GeotagMove(:final txn) =>

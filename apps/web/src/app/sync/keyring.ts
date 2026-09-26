@@ -43,7 +43,7 @@ export class Keyring {
       try {
         await openRow(key, probe.table, probe.uuid, probe.enc);
       } catch {
-        throw new WrongPassphraseError('The passphrase does not open the sealed rows');
+        throw new WrongPassphraseError('The sync secret does not open the sealed rows');
       }
     }
     await setMeta(this.db, metaKeys.privateKey, { key, salt } satisfies StoredKey);
@@ -56,6 +56,7 @@ export class Keyring {
     return (await this.db.sealed.count()) > 0;
   }
 
+  /** Called when the key arrives, and when it is forgotten. */
   onUnlock(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -63,5 +64,16 @@ export class Keyring {
 
   forget(): void {
     this.cached = undefined;
+  }
+
+  /**
+   * Forgets the key on this browser ([[Accounts]], the account circle):
+   * what is already open here stays, and new private writes wait for
+   * the sync PIN again, as on a browser that never had it.
+   */
+  async clear(): Promise<void> {
+    await this.db.meta.delete(metaKeys.privateKey);
+    this.cached = null;
+    for (const listener of this.listeners) listener();
   }
 }

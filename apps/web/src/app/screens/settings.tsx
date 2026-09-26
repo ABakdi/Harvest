@@ -87,7 +87,7 @@ function SyncSection() {
   );
 }
 
-function SessionsList() {
+export function SessionsList() {
   const { t } = useTranslation();
   const client = useQueryClient();
   const sessions = useQuery({ queryKey: ['sessions'], queryFn: () => api.sessions(), retry: 1 });

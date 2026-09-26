@@ -10,6 +10,7 @@ import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/stat_tile.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/commitments/presentation/seed_providers.dart';
@@ -44,7 +45,9 @@ class StatsScreen extends ConsumerWidget {
     final weekSpending = ref.watch(weekByCategoryProvider);
     final archived = ref.watch(archivedCommitmentsProvider).value ?? const [];
     final since = firstSeedDay(
-      [for (final seed in [...commitments, ...archived]) seed.startDay],
+      [
+        for (final seed in [...commitments, ...archived]) seed.startDay,
+      ],
       activity.keys,
     );
 
@@ -57,6 +60,7 @@ class StatsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(title ?? l10n.navStats),
         bottom: tabs,
       ),
@@ -248,7 +252,10 @@ class _HeatMap extends StatelessWidget {
               : null;
           return Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: SizedBox(width: fit, child: _weeks(weeks, locale, theme, scheme)),
+            child: SizedBox(
+              width: fit,
+              child: _weeks(weeks, locale, theme, scheme),
+            ),
           );
         },
       ),
@@ -264,43 +271,43 @@ class _HeatMap extends StatelessWidget {
     ThemeData theme,
     ColorScheme scheme,
   ) => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        reverse: true,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            for (var w = 0; w < weeks.length; w++)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 16,
-                    width: _columnWidth,
-                    child: _monthLabel(weeks, w, locale, theme),
-                  ),
-                  for (final cell in weeks[w])
-                    Padding(
-                      padding: const EdgeInsets.all(1.5),
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: cell == null
-                              ? Colors.transparent
-                              : _color(
-                                  scheme,
-                                  activity[cell.key] ?? 0,
-                                  inStreak: streakDays.contains(cell),
-                                ),
-                        ),
-                      ),
-                    ),
-                ],
+    scrollDirection: Axis.horizontal,
+    reverse: true,
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        for (var w = 0; w < weeks.length; w++)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 16,
+                width: _columnWidth,
+                child: _monthLabel(weeks, w, locale, theme),
               ),
-          ],
-        ),
-      );
+              for (final cell in weeks[w])
+                Padding(
+                  padding: const EdgeInsets.all(1.5),
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: cell == null
+                          ? Colors.transparent
+                          : _color(
+                              scheme,
+                              activity[cell.key] ?? 0,
+                              inStreak: streakDays.contains(cell),
+                            ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+      ],
+    ),
+  );
 
   /// The month's short name over the first week that starts in it.
   Widget? _monthLabel(
@@ -478,8 +485,7 @@ class _WeeklyReportCard extends StatelessWidget {
             ),
             const SizedBox(height: HarvestSpacing.sm),
             Text(l10n.weeklyBestDay(weekdayName(best))),
-            if (worst != null)
-              Text(l10n.weeklyWorstDay(weekdayName(worst))),
+            if (worst != null) Text(l10n.weeklyWorstDay(weekdayName(worst))),
             if (topCategory != null)
               Text(
                 l10n.weeklyTopSpending(

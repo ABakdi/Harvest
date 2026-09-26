@@ -8,6 +8,7 @@ import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/gym/data/exercise_catalogue.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/data/sessions_repository.dart';
@@ -50,6 +51,7 @@ class GymScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(title ?? l10n.navGym),
         bottom: tabs,
       ),

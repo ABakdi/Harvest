@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/lists/data/share_inbox.dart';
@@ -174,30 +175,34 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
     return PopScope(
       canPop: widget.navigationShell.currentIndex == ShellBranch.field,
       onPopInvokedWithResult: _onBack,
-      child: Scaffold(
-        body: widget.navigationShell,
-        bottomNavigationBar: typing
-            ? null
-            : NavigationBar(
-                selectedIndex: current < 0 ? 0 : current,
-                onDestinationSelected: (index) {
-                  unawaited(HarvestHaptics.tick());
-                  final branch = tabs[index].branch;
-                  widget.navigationShell.goBranch(
-                    branch,
-                    initialLocation:
-                        branch == widget.navigationShell.currentIndex,
-                  );
-                },
-                destinations: [
-                  for (final tab in tabs)
-                    NavigationDestination(
-                      icon: Icon(tab.icon),
-                      selectedIcon: Icon(tab.active),
-                      label: tab.label,
-                    ),
-                ],
-              ),
+      // The sync PIN is asked for here, above every tab, straight after
+      // signing in and at a start without one ([[Accounts]]).
+      child: SyncPinPrompt(
+        child: Scaffold(
+          body: widget.navigationShell,
+          bottomNavigationBar: typing
+              ? null
+              : NavigationBar(
+                  selectedIndex: current < 0 ? 0 : current,
+                  onDestinationSelected: (index) {
+                    unawaited(HarvestHaptics.tick());
+                    final branch = tabs[index].branch;
+                    widget.navigationShell.goBranch(
+                      branch,
+                      initialLocation:
+                          branch == widget.navigationShell.currentIndex,
+                    );
+                  },
+                  destinations: [
+                    for (final tab in tabs)
+                      NavigationDestination(
+                        icon: Icon(tab.icon),
+                        selectedIcon: Icon(tab.active),
+                        label: tab.label,
+                      ),
+                  ],
+                ),
+        ),
       ),
     );
   }

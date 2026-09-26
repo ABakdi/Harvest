@@ -6737,7 +6737,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountPending.
   ///
   /// In en, this message translates to:
-  /// **'{count} changes waiting'**
+  /// **'{count, plural, =1{1 change waiting} other{{count} changes waiting}}'**
   String accountPending(int count);
 
   /// No description provided for @accountRefused.
@@ -6749,7 +6749,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountHeldBack.
   ///
   /// In en, this message translates to:
-  /// **'Money and places wait for a sync passphrase.'**
+  /// **'Money, places and pictures wait for your sync PIN.'**
   String get accountHeldBack;
 
   /// No description provided for @accountDevices.
@@ -6835,78 +6835,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong ({code}).'**
   String accountErrorOther(String code);
-
-  /// No description provided for @passphraseTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync passphrase'**
-  String get passphraseTitle;
-
-  /// No description provided for @passphraseUnset.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set: money and places stay on this phone.'**
-  String get passphraseUnset;
-
-  /// No description provided for @passphraseSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Set: money and places sync end-to-end encrypted.'**
-  String get passphraseSet;
-
-  /// No description provided for @passphraseSetAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Set the passphrase'**
-  String get passphraseSetAction;
-
-  /// No description provided for @passphraseForget.
-  ///
-  /// In en, this message translates to:
-  /// **'Forget it on this device'**
-  String get passphraseForget;
-
-  /// No description provided for @passphraseBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.'**
-  String get passphraseBody;
-
-  /// No description provided for @passphraseField.
-  ///
-  /// In en, this message translates to:
-  /// **'Passphrase'**
-  String get passphraseField;
-
-  /// No description provided for @passphraseRepeat.
-  ///
-  /// In en, this message translates to:
-  /// **'The same, again'**
-  String get passphraseRepeat;
-
-  /// No description provided for @passphraseMismatch.
-  ///
-  /// In en, this message translates to:
-  /// **'The two do not match.'**
-  String get passphraseMismatch;
-
-  /// No description provided for @passphraseShort.
-  ///
-  /// In en, this message translates to:
-  /// **'At least 12 characters.'**
-  String get passphraseShort;
-
-  /// No description provided for @passphraseWorking.
-  ///
-  /// In en, this message translates to:
-  /// **'Making the key…'**
-  String get passphraseWorking;
-
-  /// No description provided for @passphraseWrong.
-  ///
-  /// In en, this message translates to:
-  /// **'This passphrase does not open what your other devices sent. Enter the one you used there.'**
-  String get passphraseWrong;
 
   /// No description provided for @exportIncludePlaces.
   ///
@@ -7729,6 +7657,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get mediaOther;
+
+  /// No description provided for @syncPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync PIN'**
+  String get syncPinTitle;
+
+  /// No description provided for @syncPinChooseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Money, places and pictures are encrypted on this phone with a key made from this PIN. The server never sees it. Use the same PIN on every device.'**
+  String get syncPinChooseBody;
+
+  /// No description provided for @syncPinEnterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your other devices already use a sync PIN. Enter the same one here to bring over your money, places and pictures.'**
+  String get syncPinEnterBody;
+
+  /// No description provided for @syncPinLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'If you lose it, what is encrypted cannot be read on a new device — only sent again from one that still has it. Nobody can reset it.'**
+  String get syncPinLoss;
+
+  /// No description provided for @syncPinCost.
+  ///
+  /// In en, this message translates to:
+  /// **'A PIN is quick to type, but someone holding a copy of the server\'s data could try every one. A passphrase of 8 characters or more holds against that.'**
+  String get syncPinCost;
+
+  /// No description provided for @syncPinField.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN'**
+  String get syncPinField;
+
+  /// No description provided for @syncPinRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'The same PIN, again'**
+  String get syncPinRepeat;
+
+  /// No description provided for @syncPinRule.
+  ///
+  /// In en, this message translates to:
+  /// **'4 to 6 digits'**
+  String get syncPinRule;
+
+  /// No description provided for @syncPassphraseField.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get syncPassphraseField;
+
+  /// No description provided for @syncPassphraseRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'The same passphrase, again'**
+  String get syncPassphraseRepeat;
+
+  /// No description provided for @syncPassphraseRule.
+  ///
+  /// In en, this message translates to:
+  /// **'8 characters or more'**
+  String get syncPassphraseRule;
+
+  /// No description provided for @syncPinUsePassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a passphrase instead'**
+  String get syncPinUsePassphrase;
+
+  /// No description provided for @syncPinUsePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a PIN instead'**
+  String get syncPinUsePin;
+
+  /// No description provided for @syncPinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'A PIN is 4 to 6 digits.'**
+  String get syncPinLength;
+
+  /// No description provided for @syncPassphraseShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters.'**
+  String get syncPassphraseShort;
+
+  /// No description provided for @syncPinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two do not match.'**
+  String get syncPinMismatch;
+
+  /// No description provided for @syncPinChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the PIN'**
+  String get syncPinChoose;
+
+  /// No description provided for @syncPinEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get syncPinEnter;
+
+  /// No description provided for @syncPinWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the key…'**
+  String get syncPinWorking;
+
+  /// No description provided for @syncPinChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking it against your other devices…'**
+  String get syncPinChecking;
+
+  /// No description provided for @syncPinWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'This PIN does not open what your other devices sent. Enter the one you used there.'**
+  String get syncPinWrong;
+
+  /// No description provided for @syncPinLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get syncPinLater;
+
+  /// No description provided for @syncPinWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Money, places and pictures stay on this phone until you set your sync PIN.'**
+  String get syncPinWaiting;
+
+  /// No description provided for @syncPinIsSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set: money, places and pictures sync end-to-end encrypted.'**
+  String get syncPinIsSet;
+
+  /// No description provided for @syncPinSetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your sync PIN'**
+  String get syncPinSetAction;
+
+  /// No description provided for @syncPinForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget it on this device'**
+  String get syncPinForget;
+
+  /// No description provided for @accountCircleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account and sync'**
+  String get accountCircleLabel;
+
+  /// No description provided for @accountOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get accountOnline;
+
+  /// No description provided for @accountOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get accountOffline;
+
+  /// No description provided for @accountAllSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is sent'**
+  String get accountAllSent;
+
+  /// No description provided for @accountPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Account settings'**
+  String get accountPage;
+
+  /// No description provided for @galleryFileNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent yet from the device that took it'**
+  String get galleryFileNotSent;
+
+  /// No description provided for @galleryFileNeedsPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your sync PIN to see it'**
+  String get galleryFileNeedsPin;
+
+  /// No description provided for @galleryFileFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load'**
+  String get galleryFileFailed;
+
+  /// No description provided for @galleryFileRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get galleryFileRetry;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,18 @@
 {
+  "account": {
+    "allSent": "Everything is sent",
+    "allSettings": "All account settings",
+    "label": "Account and sync",
+    "mark": {
+      "error": "Sync problem",
+      "noPin": "No sync PIN in this browser",
+      "offline": "Offline",
+      "pending": "Changes waiting",
+      "synced": "Synced"
+    },
+    "offline": "Offline",
+    "online": "Online"
+  },
   "app": {
     "bootFailedBody": "The server answered with an error. Try again in a moment.",
     "bootFailedTitle": "Harvest could not start",
@@ -201,8 +215,8 @@
       "preparing": "Reading everything…",
       "running": "Building the archive…",
       "saved": "Saved as {{name}}",
-      "sealed_one": "{{count}} private row is still sealed in this browser and cannot go in the archive. Enter the passphrase to include it.",
-      "sealed_other": "{{count}} private rows are still sealed in this browser and cannot go in the archive. Enter the passphrase to include them.",
+      "sealed_one": "{{count}} private row is still encrypted in this browser and cannot go in the archive. Enter your sync PIN to include it.",
+      "sealed_other": "{{count}} private rows are still encrypted in this browser and cannot go in the archive. Enter your sync PIN to include them.",
       "stopped": "Stopped. Nothing was saved.",
       "title": "Take an archive"
     },
@@ -330,7 +344,7 @@
     "archiveTitle": "Archive this seed?",
     "archived": "Archived",
     "budgetLeftToday": "{{amount}} left today",
-    "budgetLocked": "Today’s budget is locked — enter your passphrase in the Granary",
+    "budgetLocked": "Today’s budget is locked — enter your sync PIN in the Granary",
     "budgetOverToday": "{{amount}} over today",
     "capped": "Daily cap reached — the field rests too.",
     "checkInFailed": "That did not save. Try again.",
@@ -389,6 +403,13 @@
     "xpEarned_other": "+{{count}} XP",
     "xpToday_one": "{{count}} XP today",
     "xpToday_other": "{{count}} XP today"
+  },
+  "fileState": {
+    "enterPin": "Enter sync PIN",
+    "failed": "Couldn't load",
+    "loading": "Loading the picture…",
+    "locked": "Enter your sync PIN to see it",
+    "onPhone": "Still on the phone — it arrives once your phone has your sync PIN"
   },
   "focus": {
     "abandon": "Abandon",
@@ -470,7 +491,7 @@
     },
     "everyDays_one": "Every day",
     "everyDays_other": "Every {{count}} days",
-    "filesSynced": "Pictures travel sealed with the sync passphrase. Ones from the phone arrive once it has synced them; ones added here stay in this browser until they are sent.",
+    "filesSynced": "Pictures travel encrypted with your sync PIN. Ones from the phone arrive once it has synced them; ones added here stay in this browser until they are sent.",
     "fps_one": "{{count}}/s",
     "fps_other": "{{count}}/s",
     "frame": "Frame",
@@ -859,7 +880,7 @@
         "title": "A field, not a to-do list"
       },
       "money": {
-        "body": "The granary logs what you spend, day by day. When it syncs, it is encrypted on your device with a passphrase the server never sees.",
+        "body": "The granary logs what you spend, day by day. When it syncs, it is encrypted on your device with a sync PIN the server never sees.",
         "p1": "Amounts in DZD, USD or EUR, with categories of your own",
         "p2": "End-to-end encrypted sync for money and places",
         "p3": "An account is optional: Harvest works fully without one",
@@ -1244,10 +1265,10 @@
     "confirm": "The same, again",
     "firstTime": "Nothing sealed has arrived yet, so it cannot be checked: type it twice. Use the same one on every device.",
     "label": "Passphrase",
-    "lead": "Money is encrypted on your devices with a key made from this passphrase. It is not your password, and the server never sees it. Type it once in this browser.",
+    "lead": "It encrypts your money, places, pictures and recordings on your devices before they sync. It is not your password, and it is never sent.",
     "mismatch": "The two do not match.",
     "opening": "Making the key…",
-    "title": "Sync passphrase",
+    "title": "Sync PIN",
     "tooShort": "At least 12 characters.",
     "unlock": "Open with this passphrase",
     "warning": "If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.",
@@ -1400,7 +1421,7 @@
         "title": "Loading this site"
       },
       "sync": {
-        "body": "Your rows go to the Harvest server so your devices agree. Money and places are encrypted on your device first, with a passphrase the server never sees.",
+        "body": "Your rows go to the Harvest server so your devices agree. Money, places and pictures are encrypted on your device first, with a sync PIN the server never sees.",
         "title": "Sync, once you have signed in"
       },
       "tiles": {
@@ -1546,7 +1567,7 @@
     "deleteConfirm": "Delete everything",
     "deleteTitle": "Delete your account?",
     "devices": "Devices",
-    "enterPassphrase": "Enter the passphrase",
+    "enterPassphrase": "Enter your sync PIN",
     "harvest": "Harvest",
     "invalid_one": "{{count}} change the server refused",
     "invalid_other": "{{count}} changes the server refused",
@@ -1566,14 +1587,14 @@
       "settings": "Go to settings"
     },
     "lastSynced": "Last synced",
-    "locked_one": "{{count}} money change waiting for the passphrase",
-    "locked_other": "{{count}} money changes waiting for the passphrase",
-    "passphraseHint": "Money syncs end-to-end encrypted with it.",
+    "locked_one": "{{count}} private change waiting for the sync PIN",
+    "locked_other": "{{count}} private changes waiting for the sync PIN",
+    "passphraseHint": "Money, places, pictures and recordings sync end-to-end encrypted with it.",
     "passphraseSet": "Set in this browser",
     "pending_one": "{{count}} change waiting",
     "pending_other": "{{count}} changes waiting",
-    "sealed_one": "{{count}} sealed row waiting for the passphrase",
-    "sealed_other": "{{count}} sealed rows waiting for the passphrase",
+    "sealed_one": "{{count}} encrypted row waiting for the sync PIN",
+    "sealed_other": "{{count}} encrypted rows waiting for the sync PIN",
     "sessionSeen": "Since {{first}} · last seen {{last}}",
     "sessionsOffline": "The devices list needs a connection.",
     "signOut": "Sign out there",
@@ -1662,6 +1683,7 @@
     "getAndroid": "Get the Android app",
     "homeLink": "Harvest home",
     "install": "Install Harvest",
+    "installing": "Installing — Harvest will appear on your home screen in a moment. It can take up to a minute.",
     "iosHow": "Add it to your home screen",
     "iosStep1": "Tap Share in Safari’s toolbar",
     "iosStep2": "Choose Add to Home Screen",
@@ -1772,6 +1794,39 @@
     "unverified": "Verify email to sync",
     "waiting_one": "{{count}} change waiting.",
     "waiting_other": "{{count}} changes waiting."
+  },
+  "syncPin": {
+    "choose": "Use it",
+    "chooseTitle": "Choose a sync PIN",
+    "confirmPassphrase": "The same passphrase again",
+    "confirmPin": "The same PIN again",
+    "enter": "Enter your sync PIN",
+    "enterTitle": "Enter your sync PIN",
+    "firstTime": "Nothing encrypted has arrived here yet, so it can't be checked: type it twice. Use the same one on every device.",
+    "forget": "Forget it on this browser",
+    "forgetBody": "What is already here stays. New money, places and pictures wait in this browser until you enter it again.",
+    "forgetTitle": "Forget the sync PIN on this browser?",
+    "forgotten": "Forgotten on this browser",
+    "lead": "It encrypts your money, places, pictures and recordings on your devices before they sync. It is not your password, and it is never sent. Enter it once in this browser.",
+    "mismatch": "The two do not match.",
+    "opening": "Making the key…",
+    "passphraseLabel": "Passphrase (8 characters or more)",
+    "pinLabel": "Sync PIN (4 to 6 digits)",
+    "problem": {
+      "empty": "Type it first.",
+      "passphraseTooShort": "A passphrase is at least 8 characters.",
+      "pinTooLong": "A PIN is at most 6 digits. For something longer, use a passphrase.",
+      "pinTooShort": "A PIN is at least 4 digits."
+    },
+    "setHere": "Set in this browser",
+    "title": "Sync PIN",
+    "tradeOff": "A PIN is quick; a longer passphrase keeps your data safer if the server's database were ever copied.",
+    "unlock": "Unlock",
+    "usePassphrase": "Use a passphrase instead",
+    "usePin": "Use a PIN instead",
+    "waiting": "Money, places and pictures from your other devices stay locked in this browser until you enter your sync PIN.",
+    "warning": "If you lose it, what is encrypted can't be read on a new device — only sent again from one that still has it.",
+    "wrong": "This doesn't open what your other devices sent. Enter the one you chose there."
   },
   "vault": {
     "addDebt": "Log a debt",

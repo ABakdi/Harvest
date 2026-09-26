@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { useHarvest } from './context';
+import type { FileMiss } from './data/files';
 import { readSetting, settingKeys } from './data/settings';
 
 /** Whether this browser holds the private tier's key; undefined while it looks. */
@@ -35,7 +36,7 @@ export function useDefaultCurrency(): string {
 
 /**
  * A count that goes up each time a file that could not be had might now
- * be had: the passphrase was entered, or a sync finished. Listens only
+ * be had: the sync PIN was entered, or a sync finished. Listens only
  * while [waiting], so a file already shown is never fetched again.
  */
 export function useFileRetry(waiting: boolean): number {
@@ -60,36 +61,66 @@ export function useFileRetry(waiting: boolean): number {
 }
 
 /**
- * A picture or a recording as a URL, once this browser has it.
- *
- * Undefined while it is being fetched and null when it cannot be had —
- * no hash yet, no passphrase, or the file has not reached the server —
- * so a caller can say *on another device* rather than show a broken
- * frame ([[Gallery]]).
+ * A picture or a recording, as this browser can show it ([[Gallery]]
+ * G9): loading, ready with a URL, or missing and why — still on the
+ * phone, waiting for the sync PIN, or failed with *Try again*. A fetch
+ * is bounded, so loading always ends.
  */
-export function useFile(sha256: string | null): string | null | undefined {
+export type FileView =
+  | { state: 'loading' }
+  | { state: 'ready'; url: string }
+  | { state: FileMiss; retry: () => void };
+
+/** A file by its hash, as a [FileView]; no hash is still on the phone. */
+export function useFileView(sha256: string | null): FileView {
   const { files } = useHarvest();
   // Keyed by the hash, so a tile scrolled into a new row starts again
   // rather than showing the last file it held.
-  const [found, setFound] = useState<{ hash: string; url: string | null }>();
+  const [found, setFound] = useState<{ hash: string; url: string } | { hash: string; miss: FileMiss }>();
+  const [asked, setAsked] = useState(0);
   // Locked or offline the first time: asked again when that may have changed.
-  const retry = useFileRetry(sha256 !== null && found?.hash === sha256 && found.url === null);
+  const missing = sha256 !== null && found?.hash === sha256 && 'miss' in found;
+  const retry = useFileRetry(missing);
 
   useEffect(() => {
     if (sha256 === null) return;
     let live = true;
     let made: string | null = null;
-    void files.get(sha256).then((blob) => {
+    void files.find(sha256).then((got) => {
       if (!live) return;
-      made = blob === null ? null : URL.createObjectURL(blob);
+      if (typeof got === 'string') {
+        setFound({ hash: sha256, miss: got });
+        return;
+      }
+      made = URL.createObjectURL(got);
       setFound({ hash: sha256, url: made });
     });
     return () => {
       live = false;
       if (made !== null) URL.revokeObjectURL(made);
     };
-  }, [files, sha256, retry]);
+  }, [files, sha256, retry, asked]);
 
-  if (sha256 === null) return null;
-  return found?.hash === sha256 ? found.url : undefined;
+  if (sha256 === null) return { state: 'onPhone', retry: () => setAsked((n) => n + 1) };
+  if (found?.hash !== sha256) return { state: 'loading' };
+  if ('url' in found) return { state: 'ready', url: found.url };
+  return {
+    state: found.miss,
+    retry: () => {
+      setFound(undefined);
+      setAsked((n) => n + 1);
+    },
+  };
+}
+
+/**
+ * A picture or a recording as a URL, once this browser has it.
+ *
+ * Undefined while it is being fetched and null when it cannot be had,
+ * for callers that only need the URL; [useFileView] says why.
+ */
+export function useFile(sha256: string | null): string | null | undefined {
+  const view = useFileView(sha256);
+  if (view.state === 'loading') return undefined;
+  return view.state === 'ready' ? view.url : null;
 }

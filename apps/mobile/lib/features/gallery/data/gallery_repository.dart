@@ -417,6 +417,7 @@ class GalleryRepository {
     kind: MemoryKind.fromName(row.kind),
     note: row.note,
     capturedAt: row.capturedAt,
+    fileHash: row.fileHash,
   );
 }
 

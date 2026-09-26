@@ -1,4 +1,4 @@
-import { ImageIcon, PauseIcon, PlayIcon, VideoIcon } from 'lucide-react';
+import { PauseIcon, PlayIcon, VideoIcon } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatDay } from '@/lib/format';
 import type { MemoryRow } from '../../data/gallery';
-import { useMemoryUrls } from './memory-media';
+import { FileMissing, useMemoryFiles } from './memory-media';
 
 /** Frames per second worth offering, as on the phone. */
 export const timelapseSpeeds = [2, 4, 8, 12] as const;
@@ -21,21 +21,21 @@ export const timelapseSpeeds = [2, 4, 8, 12] as const;
 export function TimelapseDialog({ title, memories, onClose }: { title: string; memories: MemoryRow[]; onClose: () => void }) {
   const { t } = useTranslation();
   const id = useId();
-  const urls = useMemoryUrls(memories);
+  const views = useMemoryFiles(memories);
   const [index, setIndex] = useState(0);
   const [speed, setSpeed] = useState<number>(4);
   const [playing, setPlaying] = useState(true);
 
   useEffect(() => {
-    if (!playing || !urls || memories.length === 0) return;
+    if (!playing || !views || memories.length === 0) return;
     const timer = setInterval(() => setIndex((at) => (at + 1 >= memories.length ? 0 : at + 1)), Math.round(1000 / speed));
     return () => clearInterval(timer);
-  }, [playing, speed, urls, memories.length]);
+  }, [playing, speed, views, memories.length]);
 
   if (memories.length === 0) return null;
   const at = Math.min(index, memories.length - 1);
   const current = memories[at]!;
-  const url = urls?.get(current.uuid);
+  const view = views?.get(current.uuid);
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -43,12 +43,13 @@ export function TimelapseDialog({ title, memories, onClose }: { title: string; m
         <DialogTitle className="truncate px-4 pe-12 text-lg text-white">{title}</DialogTitle>
         <DialogDescription className="sr-only">{t('gallery.playHint')}</DialogDescription>
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
-          {url ? (
-            <img src={url} alt={current.note ?? formatDay(current.harvestDay)} className="size-full object-contain" />
-          ) : current.kind === 'video' ? (
+          {view?.state === 'ready' ? (
+            <img src={view.url} alt={current.note ?? formatDay(current.harvestDay)} className="size-full object-contain" />
+          ) : view === null ? (
             <VideoIcon className="size-12 text-white/40" aria-label={t('gallery.video')} />
           ) : (
-            <ImageIcon className="size-12 text-white/40" aria-label={t('gallery.onPhone')} />
+            // Playing, the reason is a mark; paused on a frame, it is said in full.
+            <FileMissing view={view ?? { state: 'loading' }} compact={playing} dark className="size-full" />
           )}
           <span className="absolute bottom-3 start-3 rounded-md bg-black/55 px-2 py-1 text-sm font-bold" aria-live="off">
             {formatDay(current.harvestDay)}

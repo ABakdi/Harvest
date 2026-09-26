@@ -42,7 +42,11 @@ sync, and render in well under a second on a phone.
     already.
 - **The install button** listens for `beforeinstallprompt`. On iOS
   Safari, which has no prompt, it shows the two steps (Share → Add to
-  Home Screen) instead.
+  Home Screen) instead. Once the install is accepted it says the app is
+  on its way: on Android, Chrome builds the app through Google's
+  servers, which fetch the manifest and icons from the site itself and
+  can take a minute — so the site must already answer on its domain
+  when it is installed. The manifest lists PNG icons only.
 
 ## The app
 
@@ -68,7 +72,7 @@ wide screen:
 | M6.5 | Public site, install, accounts, the app shell, settings, sync status |
 | M6.6 | Field (today, check-ins, undo), seeds (plant, edit, archive), Goals board, Notes (editor, folders, links, search), expenses (log, edit, the month) |
 | M6.7 | Vault, budgets, calendar, stats, farmer and streak details, Gallery, Body, Gym, Places (the map, day and range views) — first as views |
-| M6.8 | Pictures and recordings, fetched by the name of their own bytes and opened with the sync passphrase ([[Sync-API]], files) |
+| M6.8 | Pictures and recordings, fetched by the name of their own bytes and opened with the sync PIN ([[Sync-API]], files) |
 | M6.10 | The Wishlist, the Granary's fourth tab ([[Wishlist]]) |
 | M6.11 | Everything the phone writes, written here too: a seed's own page and its notes, the focus timer, tomorrow's plan, a freeze bought with coins, the weekly report; the vault's moves, debts, the budget, categories, sums in an amount and the Insights tab; nights and weights; the program editor and a whole session run in the browser; albums, pictures uploaded and the timelapse; folders, tables, recordings, read aloud and print in notes; week and month on the map, a stay named, location history deleted; every setting the phone syncs, the first run, and the archive, exported and imported |
 | M6.12 | Records → Lists: every list in one place, a pasted link filling itself in, and the Granary's Wishlist tab folded into it ([[Lists]]); items reorder with Alt+↑/↓ |
@@ -115,7 +119,7 @@ app lock. The web shows their data, and Settings lists them under
   both start offline can still end up with two; the gym then shows the
   newest. The exercise catalogue is bundled, as on the phone; its
   animations are not fetched.
-- **Money is written here too**, behind the same passphrase gate, and
+- **Money is written here too**, behind the same PIN gate, and
   the guards live in the repositories rather than the dialogs: a pot
   cannot be overdrawn, a debt cannot be overpaid, currencies never
   mix.

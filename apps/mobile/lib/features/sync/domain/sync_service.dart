@@ -59,6 +59,11 @@ abstract final class SyncKeys {
   /// false when a passphrase is first given, so the history that waited
   /// for it goes up.
   static const privateSnapshotDone = 'sync.privateSnapshotDone';
+
+  /// Whether the server has shown this phone a sealed row it could not
+  /// open: another device has a sync PIN, so this one is asked to
+  /// *enter* it once rather than *choose* one twice ([[Accounts]]).
+  static const sealedSeen = 'sync.sealedSeen';
 }
 
 /// A private row the key cannot open: the passphrase on this device is
@@ -95,13 +100,36 @@ class SyncService {
 
   Future<SyncReport>? _running;
 
+  /// Set when a pull meets a sealed row without a key to open it.
+  var _sawSealed = false;
+
   Future<SyncReport> run() => _running ??= _run().whenComplete(
     () => _running = null,
   );
 
+  /// Waits for a run already going, if there is one, however it ends.
+  Future<void> idle() async {
+    final running = _running;
+    if (running == null) return;
+    try {
+      await running;
+    } on Object {
+      return;
+    }
+  }
+
   Future<SyncReport> _run() async {
     _cipher = await _cipherOf();
-    var pulled = await _pullAll();
+    int pulled;
+    try {
+      pulled = await _pullAll();
+    } on SyncPassphraseMismatch {
+      // The page that failed was rolled back with its flag; the answer
+      // it gave stands.
+      _sawSealed = false;
+      await _set(SyncKeys.sealedSeen, 'true');
+      rethrow;
+    }
     if (await _setting(SyncKeys.snapshotDone) != 'true') {
       await _snapshot(private: false);
       await _set(SyncKeys.snapshotDone, 'true');
@@ -138,6 +166,10 @@ class SyncService {
       });
       cursor = page.cursor;
       await _set(SyncKeys.cursor, '$cursor');
+      if (_sawSealed) {
+        _sawSealed = false;
+        await _set(SyncKeys.sealedSeen, 'true');
+      }
       if (!page.more) return merged;
     }
   }
@@ -159,6 +191,7 @@ class SyncService {
     if (envelope is Map<String, Object?>) {
       // Ciphertext waits for the passphrase ([[Sync-API]]: private tier);
       // setting it re-pulls everything, so nothing waiting is lost.
+      _sawSealed = true;
       final cipher = _cipher;
       if (cipher == null) return false;
       try {
@@ -342,6 +375,7 @@ class SyncService {
       SyncKeys.lastSyncedAt,
       SyncKeys.invalid,
       SyncKeys.privateSnapshotDone,
+      SyncKeys.sealedSeen,
     ]) {
       await (_db.delete(_db.kvSettings)..where((s) => s.key.equals(key))).go();
     }

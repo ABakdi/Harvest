@@ -11,6 +11,7 @@ import 'package:harvest/core/ui/widgets/action_snack_bar.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/assist/data/assist_settings.dart';
 import 'package:harvest/features/assist/domain/assist.dart';
 import 'package:harvest/features/assist/domain/prompts.dart';
@@ -405,6 +406,8 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         onOpenTrash: _openTrash,
       ),
       appBar: AppBar(
+        leading: accountLeading(context, drawer: true),
+        leadingWidth: accountLeadingWidth(context, drawer: true),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

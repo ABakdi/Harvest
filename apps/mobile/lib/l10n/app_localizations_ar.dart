@@ -4035,7 +4035,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String accountPending(int count) {
-    return '$count تغييرات تنتظر';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تغييرًا ينتظر',
+      few: '$count تغييرات تنتظر',
+      two: 'تغييران ينتظران',
+      one: 'تغيير واحد ينتظر',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4044,7 +4052,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get accountHeldBack => 'المال والأماكن تنتظر عبارة مرور المزامنة.';
+  String get accountHeldBack => 'المال والأماكن والصور تنتظر رمز المزامنة.';
 
   @override
   String get accountDevices => 'الأجهزة';
@@ -4093,46 +4101,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String accountErrorOther(String code) {
     return 'حدث خطأ ($code).';
   }
-
-  @override
-  String get passphraseTitle => 'عبارة مرور المزامنة';
-
-  @override
-  String get passphraseUnset =>
-      'غير مضبوطة: المال والأماكن تبقى على هذا الهاتف.';
-
-  @override
-  String get passphraseSet =>
-      'مضبوطة: المال والأماكن تُزامَن مشفّرة من طرف إلى طرف.';
-
-  @override
-  String get passphraseSetAction => 'اضبط العبارة';
-
-  @override
-  String get passphraseForget => 'انسها على هذا الجهاز';
-
-  @override
-  String get passphraseBody =>
-      'يُشفَّر المال والأماكن على هذا الهاتف بمفتاح مصنوع من هذه العبارة. لا يراها الخادم أبدًا. استخدم العبارة نفسها على كل جهاز. إن فقدتها فلا يمكن قراءة الصفوف المشفّرة على جهاز جديد — بل إرسالها مجددًا من جهاز لا يزال يحملها.';
-
-  @override
-  String get passphraseField => 'العبارة';
-
-  @override
-  String get passphraseRepeat => 'العبارة نفسها مرة أخرى';
-
-  @override
-  String get passphraseMismatch => 'العبارتان غير متطابقتين.';
-
-  @override
-  String get passphraseShort => 'اثنا عشر حرفًا على الأقل.';
-
-  @override
-  String get passphraseWorking => 'يصنع المفتاح…';
-
-  @override
-  String get passphraseWrong =>
-      'هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك.';
 
   @override
   String get exportIncludePlaces => 'أدرج سجل مواقعي';
@@ -4664,4 +4632,116 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mediaOther => 'آخر';
+
+  @override
+  String get syncPinTitle => 'رمز المزامنة';
+
+  @override
+  String get syncPinChooseBody =>
+      'يُشفَّر المال والأماكن والصور على هذا الهاتف بمفتاح مصنوع من هذا الرمز. لا يراه الخادم أبدًا. استخدم الرمز نفسه على كل جهاز.';
+
+  @override
+  String get syncPinEnterBody =>
+      'أجهزتك الأخرى تستخدم رمز مزامنة بالفعل. أدخل الرمز نفسه هنا لتصلك أموالك وأماكنك وصورك.';
+
+  @override
+  String get syncPinLoss =>
+      'إن فقدته فلا يمكن قراءة ما شُفِّر على جهاز جديد — بل إرساله مجددًا من جهاز لا يزال يحمله. لا أحد يستطيع إعادة ضبطه.';
+
+  @override
+  String get syncPinCost =>
+      'الرمز سريع الكتابة، لكن من يملك نسخة من بيانات الخادم يستطيع تجربة كل الرموز. عبارة مرور من 8 أحرف أو أكثر تصمد أمام ذلك.';
+
+  @override
+  String get syncPinField => 'الرمز';
+
+  @override
+  String get syncPinRepeat => 'الرمز نفسه مرة أخرى';
+
+  @override
+  String get syncPinRule => 'من 4 إلى 6 أرقام';
+
+  @override
+  String get syncPassphraseField => 'عبارة المرور';
+
+  @override
+  String get syncPassphraseRepeat => 'العبارة نفسها مرة أخرى';
+
+  @override
+  String get syncPassphraseRule => '8 أحرف أو أكثر';
+
+  @override
+  String get syncPinUsePassphrase => 'استخدم عبارة مرور بدلًا منه';
+
+  @override
+  String get syncPinUsePin => 'استخدم رمزًا بدلًا منها';
+
+  @override
+  String get syncPinLength => 'الرمز من 4 إلى 6 أرقام.';
+
+  @override
+  String get syncPassphraseShort => '8 أحرف على الأقل.';
+
+  @override
+  String get syncPinMismatch => 'الإدخالان غير متطابقين.';
+
+  @override
+  String get syncPinChoose => 'اضبط الرمز';
+
+  @override
+  String get syncPinEnter => 'افتح';
+
+  @override
+  String get syncPinWorking => 'يصنع المفتاح…';
+
+  @override
+  String get syncPinChecking => 'يتحقق منه مع أجهزتك الأخرى…';
+
+  @override
+  String get syncPinWrong =>
+      'هذا الرمز لا يفتح ما أرسلته أجهزتك الأخرى. أدخل الرمز الذي استخدمته هناك.';
+
+  @override
+  String get syncPinLater => 'لاحقًا';
+
+  @override
+  String get syncPinWaiting =>
+      'المال والأماكن والصور تبقى على هذا الهاتف حتى تضبط رمز المزامنة.';
+
+  @override
+  String get syncPinIsSet =>
+      'مضبوط: المال والأماكن والصور تُزامَن مشفّرة من طرف إلى طرف.';
+
+  @override
+  String get syncPinSetAction => 'اضبط رمز المزامنة';
+
+  @override
+  String get syncPinForget => 'انسه على هذا الجهاز';
+
+  @override
+  String get accountCircleLabel => 'الحساب والمزامنة';
+
+  @override
+  String get accountOnline => 'متصل';
+
+  @override
+  String get accountOffline => 'غير متصل';
+
+  @override
+  String get accountAllSent => 'أُرسل كل شيء';
+
+  @override
+  String get accountPage => 'إعدادات الحساب';
+
+  @override
+  String get galleryFileNotSent => 'لم يُرسَل بعد من الجهاز الذي التقطه';
+
+  @override
+  String get galleryFileNeedsPin => 'أدخل رمز المزامنة لتراه';
+
+  @override
+  String get galleryFileFailed => 'تعذّر التحميل';
+
+  @override
+  String get galleryFileRetry => 'حاول مجددًا';
 }

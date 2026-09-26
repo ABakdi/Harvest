@@ -8,6 +8,7 @@ import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/presentation/album_sheet.dart';
 import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
@@ -38,6 +39,7 @@ class GalleryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(title ?? l10n.galleryTitle),
         bottom: tabs,
         actions: [

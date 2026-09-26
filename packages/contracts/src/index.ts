@@ -8,3 +8,4 @@ export * from './sync.js';
 export * from './crypto.js';
 export * from './files.js';
 export * from './assist.js';
+export * from './sync-secret.js';

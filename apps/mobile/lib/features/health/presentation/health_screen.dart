@@ -11,6 +11,7 @@ import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/data/steps_source.dart';
@@ -66,6 +67,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(widget.title ?? l10n.navHealth),
         bottom: widget.tabs,
       ),

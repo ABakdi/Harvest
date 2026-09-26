@@ -134,7 +134,7 @@ export function MemoryViewer({
         </div>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
-          <MemoryMedia key={memory.uuid} memory={memory} fit="contain" controls className="size-full" />
+          <MemoryMedia key={memory.uuid} memory={memory} fit="contain" controls explain className="size-full" />
           {at > 0 && (
             <Button
               variant="ghost"

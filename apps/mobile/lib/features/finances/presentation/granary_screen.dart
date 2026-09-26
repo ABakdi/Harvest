@@ -15,6 +15,7 @@ import 'package:harvest/core/ui/widgets/hero_card.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/ledger_row.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
@@ -62,6 +63,7 @@ class _GranaryScreenState extends State<GranaryScreen>
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(l10n.granaryTitle),
         // Tabs that do not fit a phone's width in Arabic scroll,
         // centred while they fit.

@@ -19,6 +19,7 @@ import { HarvestMark } from '@/components/brand';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { AccountCircle } from './components/account-circle';
 import { PomodoroChip } from './components/pomodoro-timer';
 import { useFeaturesOrOff } from './components/settings-bits';
 import { SyncIndicator } from './components/sync-indicator';
@@ -98,9 +99,12 @@ function Rail({ tabs }: { tabs: Tab[] }) {
       aria-label={t('nav.main')}
       className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-background/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur md:sticky md:top-0 md:inset-auto md:h-dvh md:w-24 md:flex-col md:gap-1 md:border-t-0 md:border-e md:px-2 md:py-4"
     >
-      <Link to="/app/field" className="mb-4 hidden justify-center md:flex" aria-label={t('nav.field')}>
+      <Link to="/app/field" className="mb-3 hidden justify-center md:flex" aria-label={t('nav.field')}>
         <HarvestMark className="size-10" />
       </Link>
+      <div className="mb-3 hidden justify-center md:flex">
+        <AccountCircle />
+      </div>
       {tabs.map((tab) => (
         <NavLink key={tab.to} to={tab.to} className={item} title={`${tab.label} (g ${tab.key})`}>
           <tab.icon className="size-5" aria-hidden />
@@ -196,6 +200,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
               <span className="hidden sm:inline">{t('seed.plant')}</span>
               <span className="sr-only sm:hidden">{t('seed.plant')}</span>
             </Button>
+            <AccountCircle className="ms-1 md:hidden" />
           </div>
         </header>
         <main id="app-main" tabIndex={-1} className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-3 py-4 outline-none md:px-6">

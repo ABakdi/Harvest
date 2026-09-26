@@ -1,9 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/features/account/domain/account.dart';
+import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
+import 'package:harvest/features/sync/presentation/sync_controller.dart';
+import 'package:harvest/l10n/app_localizations.dart';
 
 /// One memory's file, drawn.
 ///
@@ -58,14 +63,23 @@ class MemoryView extends ConsumerWidget {
       future: ref.watch(galleryRepositoryProvider).fileOf(memory),
       builder: (context, snapshot) {
         final file = snapshot.data;
-        if (file == null || !file.existsSync()) return placeholder;
+        if (snapshot.connectionState != ConnectionState.done) {
+          return placeholder;
+        }
+        if (file == null || !file.existsSync()) {
+          return MemoryAbsent(memory: memory, failed: false);
+        }
         if (memory.kind == MemoryKind.video) {
           return Stack(
             fit: StackFit.expand,
             children: [
               placeholder,
               const Center(
-                child: Icon(Icons.play_circle_fill, size: 34, color: Colors.white70),
+                child: Icon(
+                  Icons.play_circle_fill,
+                  size: 34,
+                  color: Colors.white70,
+                ),
               ),
             ],
           );
@@ -80,7 +94,8 @@ class MemoryView extends ConsumerWidget {
             fit: fit,
             gaplessPlayback: true,
             cacheWidth: decodeWidth(context, constraints.maxWidth),
-            errorBuilder: (context, error, stack) => placeholder,
+            errorBuilder: (context, error, stack) =>
+                MemoryAbsent(memory: memory, failed: true),
           ),
         );
       },
@@ -88,5 +103,98 @@ class MemoryView extends ConsumerWidget {
 
     if (borderRadius == null) return image;
     return ClipRRect(borderRadius: borderRadius!, child: image);
+  }
+}
+
+/// Why a memory's picture is not here, in place of the picture
+/// ([[Gallery]] G9): not sent yet by the device that took it, waiting
+/// for the sync PIN, or not loaded — with *Try again*. Never a blank
+/// frame. In a thumbnail too small for words, the icon says it and the
+/// words are its label.
+class MemoryAbsent extends ConsumerWidget {
+  const MemoryAbsent({required this.memory, required this.failed, super.key});
+
+  final Memory memory;
+
+  /// The file is here but would not draw.
+  final bool failed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final pinSet = ref.watch(syncPassphraseProvider).value ?? false;
+
+    final (
+      IconData icon,
+      String words,
+      String? action,
+      VoidCallback? onTap,
+    ) = switch ((failed, memory.fileHash, pinSet)) {
+      (false, null, _) => (
+        Icons.cloud_upload_outlined,
+        l10n.galleryFileNotSent,
+        null,
+        null,
+      ),
+      (false, _, false) => (
+        Icons.lock_outline,
+        l10n.galleryFileNeedsPin,
+        l10n.syncPinSetAction,
+        () => unawaited(showSyncPinSheet(context)),
+      ),
+      _ => (
+        Icons.broken_image_outlined,
+        l10n.galleryFileFailed,
+        l10n.galleryFileRetry,
+        () => unawaited(ref.read(syncControllerProvider.notifier).syncNow()),
+      ),
+    };
+
+    return ColoredBox(
+      color: scheme.onSurface.withValues(alpha: 0.06),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final roomy =
+              constraints.maxWidth >= 140 && constraints.maxHeight >= 120;
+          final mark = Icon(icon, color: scheme.onSurfaceVariant);
+          if (!roomy) {
+            return Semantics(
+              label: words,
+              button: onTap != null,
+              child: Tooltip(
+                message: words,
+                child: InkWell(
+                  onTap: onTap,
+                  child: Center(child: ExcludeSemantics(child: mark)),
+                ),
+              ),
+            );
+          }
+          return Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  mark,
+                  const SizedBox(height: 6),
+                  Text(
+                    words,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (action != null && onTap != null)
+                    TextButton(onPressed: onTap, child: Text(action)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

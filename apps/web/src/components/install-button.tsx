@@ -14,11 +14,22 @@ export function InstallButton({ size = 'lg' }: { size?: 'lg' | 'default' }) {
   const { t } = useTranslation();
   const { canPrompt, installed } = useInstallState();
   const [showSteps, setShowSteps] = useState(false);
+  // Accepted: Android builds the app on Google's side first, which can
+  // take a minute, so the page says so rather than seem to do nothing.
+  const [accepted, setAccepted] = useState(false);
   const ios = isIosSafari();
+
+  if (accepted && !installed) {
+    return (
+      <p role="status" className="max-w-sm text-sm font-semibold text-muted-foreground">
+        {t('site.installing')}
+      </p>
+    );
+  }
 
   if (canPrompt && !installed) {
     return (
-      <Button variant="brand" size={size} onClick={() => void promptInstall()}>
+      <Button variant="brand" size={size} onClick={() => void promptInstall().then(setAccepted)}>
         <DownloadIcon />
         {t('site.install')}
       </Button>
