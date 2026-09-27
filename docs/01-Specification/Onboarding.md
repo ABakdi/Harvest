@@ -25,12 +25,18 @@ Five pages, and I can leave at any of them ([[Audit-v2]] D3-07):
    in Settings, at the defaults in [[Notifications]], because choosing
    four times before using the app once is a decision without
    information.
-5. **The optional halves:** five plain questions, all defaulting to
+5. **The optional halves:** six plain questions, all defaulting to
    **no** — [[Notes]], the [[Gallery]], [[Health]], the [[Gym]],
-   [[Places]]. None is on unless asked for, all are switchable in
+   [[Places]] and [[Lists]]. None is on unless asked for, all are switchable in
    Settings forever after, and each asks for its permission only when
    it is switched on. Someone who came for a streak tracker should
    reach their field without walking past any of them.
+
+**On the web** the first run is four pages, for an account with
+nothing in it: the same welcome, templates, Daily Harvest Goal and six
+questions, without the reminders page — reminders ring on the phone
+([[Web]]). Either client writes `onboarding.done`, so neither asks again
+once one of them has.
 
 **Language and theme are not a step.** The app takes the phone's
 language and theme, and both are one tap away in Settings

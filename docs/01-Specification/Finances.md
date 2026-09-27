@@ -62,7 +62,12 @@ shows a hero card with its per-currency balances and its actions, then
   debt refuses further payments. A payment logged by mistake is
   **removed the way an expense is** — long-press it, confirm, undo from
   the snackbar — and removing it takes its wallet movement with it and
-  reopens a debt it had settled ([[Audit-v2-Beta]] N-01). Unsettled
+  reopens a debt it had settled ([[Audit-v2-Beta]] N-01). A debt itself
+  can be **corrected** — who, how much, the day, the reminder, the note —
+  but never to less than has been paid, and its currency stays put once
+  a payment was made in it. It can also be **removed**, with Undo: its
+  payments go with it, while what they took from the wallet stays spent,
+  because that money did leave ([[Audit-v3]] G5-02). Unsettled
   debts nag **daily** (19:00 default) until fully paid; partial
   payments accumulate and full payment settles with a small celebration.
   Settled debts fold into a quiet list underneath.
@@ -79,7 +84,7 @@ the **custom categories** live together under Settings › Money.
 
 The whole point is a **sub-5-second log**:
 - **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]]). The rule lives once, in `packages/core`, and a fixture both the phone and the web are tested against pins it
-- **Logged on** — today unless I say otherwise; a chip takes any day a year either side, for the receipt found in a pocket or the bill I know is coming. The day's +10 follows the day the expense lands on ([[Checkpoint-8]])
+- **Logged on** — today unless I say otherwise; a chip takes any day a year either side, for the receipt found in a pocket or the bill I know is coming. The day's +10 follows the day the expense lands on ([[Checkpoint-8]]); a day still to come earns nothing yet, so a year of bills logged ahead cannot mint a year of XP today ([[Audit-v3]] Q5-67)
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 
@@ -102,6 +107,11 @@ If the same amount+category (e.g., "Coffee — $5, Food") appears 3 days running
   already had, not a second one.
 - Removing a movement, or undoing that removal, never takes a pot below
   zero; it is refused with the same words as an overdraw.
+- The rules hold in the repository, not only in the sheets: a sheet
+  opened before a sync emptied the wallet cannot take it below zero, and
+  the Undo of a removed payment is refused, and says so, when the debt
+  has been paid again or the wallet spent in the meantime
+  ([[Audit-v3]] Q5-17, Q5-18).
 - The month's total counts the expenses up to today; one logged ahead
   waits for its day. It is listed under **Upcoming**, soonest first,
   where it can be edited or removed like any other. Its wallet movement
@@ -119,7 +129,7 @@ If the same amount+category (e.g., "Coffee — $5, Food") appears 3 days running
 
 ## Budget logic
 
-- I set a **Monthly Budget**, and can clear it: no budget is an empty value, which every device reads as none.
+- I set a **Monthly Budget**, and can clear it: no budget is an empty value, which every device reads as none. The budget is a sum in the default currency, so switching that currency converts it at the rate I last fetched (DA50,000 becomes its worth in euros, not €50,000); without a rate it keeps its number ([[Audit-v3]] G5-04).
 - **Floating Daily Limit** = remaining budget ÷ remaining days in the month — recomputed at each 3 AM reset ([[Business-Rules]]).
 - A real-time gauge: 🟢 under · 🟡 within 15% · 🔴 over.
 

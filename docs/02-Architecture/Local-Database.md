@@ -73,14 +73,16 @@ erDiagram
 
 XP and coins are a **ledger**, not a counter — balances are sums, history is free, and sync conflicts become trivial merges.
 
-Later phases add tables without touching these: `expenses`, `money_txns`, `debts`, `debt_payments`, `categories` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets`, `session_exercises` (Phase 4); `goals`, `goal_items`, `location_points`, `geotags`, `saved_places`, `note_attachments` (Phase 5); `screen_goals`, `usage_days` (Phase 7).
+Later phases add tables without touching these: `expenses`, `money_txns`, `debts`, `debt_payments`, `categories` (Phase 2); `notes`, `note_links`, `albums`, `memories` (Phase 3); `sleep_sessions`, `step_days`, `body_weights`, `exercises` (mine only), `programs`, `program_days`, `program_slots`, `target_sets`, `training_maxes`, `workout_sessions`, `workout_sets`, `session_exercises` (Phase 4); `goals`, `goal_items`, `location_points`, `geotags`, `saved_places`, `note_attachments` (Phase 5); `wishlist_items` and `lists` (v3.0.0, [[Wishlist]] and [[Lists]]); `screen_goals`, `usage_days` (Phase 7).
 
 There is **no `budgets` table**: the monthly budget is one setting,
 `finance.monthlyBudgetMinor`, because a single number I change a few
 times a year is not a table ([[Audit-v2]] D3-02).
 
 Phase 4 landed at **schema v13**; [[Checkpoint-6]] took it to **v14**,
-and Phase 5 to **v15**.
+Phase 5 to **v15**, and Phase 6 and the v3.0.0 betas to where it is now:
+the schema is at **v24** (`schemaVersion` in
+`lib/core/db/database.dart`). The history is under Migrations below.
 
 **Phase 3 is the first time a row points at a file.** A note's body is
 text in the database, but a memory is a path into the app's own
@@ -104,7 +106,7 @@ can drop the files back under a fresh root and repoint nothing
 
 ## Migrations
 
-Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`; **v11** added `memories.deleted_at`, the gallery's trash ([[Checkpoint-5]]); **v12** and **v13** added the Phase 4 tables, the body in one step and sleep in the next; **v14** added `workout_sessions.paused_at` and `paused_seconds`, the clock that stops for a phone call ([[Checkpoint-6]]); **v15** is Phase 5 in one step — `goals`, `goal_items` and `commitments.goal_uuid` ([[Goals]]), `location_points`, `geotags` and `saved_places` ([[Places]]), and `note_attachments` ([[Notes]] N7); **v16** added `session_exercises.skip_reason`; **v17** added `file_hash` to `memories` and `note_attachments`, the name a file is synced by ([[Sync-API]]); **v18** stores every date as ISO-8601 text, to the microsecond; **v19** added `wishlist_items` ([[Wishlist]]); **v20** added `saved_places.notes` ([[Places]]); **v21** added `expense_categories.created_at`, filled from `updated_at` for the rows I already had, so that the list is ordered by when a category was made and a restored one keeps its place instead of dropping to the end; **v22** stamps a row from the phone's clock rather than sqlite's. `CURRENT_TIMESTAMP` wrote UTC with no zone, drift read that back as a UTC clock, and in Algiers an expense I logged at 4:21 PM showed 3:21. The defaults became client-side (`clientDefault(DateTime.now)`), which means rebuilding every table that had one, and every date still spelled in UTC — sqlite's `2026-09-25 15:21:00` from the old default and the v18 rewrite, or a `Z` from a pulled row — is rewritten on the local clock with its offset (`2026-09-25T16:21:00.000 +01:00`), the spelling the app writes itself, keeping its instant. A date already in that spelling is left alone. Sync reads a date with no zone as UTC, sends it with a `Z`, and stores what it pulls on the local clock. A column added after v18 is added *before* the v18 rewrite when an upgrade crosses both, because the rewrite rebuilds each table from its current definition. **v23** is [[Lists]]: a `lists` table (name, kind — `plain`, `shopping` or `media` —, icon, position, and `built_in` for the four every device has), and `wishlist_items` — which keeps its name so the beta devices and archives out there keep working — gains `list_uuid`, `media_type`, `link`, `creator`, `started_at`, `rating`, `seed_uuid` and `note_uuid`. `bought_at` now means done for every kind. The four built-in lists (*To buy*, *Wishlist*, *To read*, *To watch*) have fixed ids, a uuid v5 of `lists/<key>` written out in `@harvest/contracts`, and a stamp from 2020, so a phone and a browser that upgrade on their own make the same four rows and a late upgrade never outranks a rename; they are made on a fresh install too, and never queued. The upgrade points every item at the list its old `list` column named, and if I had a live item it switches `features.lists` on (and queues that preference), so the Wishlist does not vanish behind a switch I never saw. The old `list` column is still written — `buy` for *To buy*, `wish` for everything else — and a row that arrives without `list_uuid`, from a beta client or an old archive, is read by it. The new columns are added before the v22 rebuild when an upgrade crosses both, for the same reason as above.
+Drift's stepwise migrations, tested with its schema-verification tooling. Every schema change lands with a migration test before merge. Schema history: v6 added `money_txns`, `debts`, `debt_payments`; v7 added `money_txns.kind` + `reference` so each movement records why it happened (manual / transfer / expense / debt) and what it relates to; v8 added `money_txns.link_uuid`, the row a movement belongs to (the expense it paid for, the debt payment it settled) so the two are edited and deleted as one; **v9** added `commitments.archive_note` (why a seed was put away) and the `seed_notes` table; **v10** added the Phase 3 tables — `notes`, `note_links`, `albums` and `memories`; **v11** added `memories.deleted_at`, the gallery's trash ([[Checkpoint-5]]); **v12** and **v13** added the Phase 4 tables, the body in one step and sleep in the next; **v14** added `workout_sessions.paused_at` and `paused_seconds`, the clock that stops for a phone call ([[Checkpoint-6]]); **v15** is Phase 5 in one step — `goals`, `goal_items` and `commitments.goal_uuid` ([[Goals]]), `location_points`, `geotags` and `saved_places` ([[Places]]), and `note_attachments` ([[Notes]] N7); **v16** added `session_exercises.skip_reason`; **v17** added `file_hash` to `memories` and `note_attachments`, the name a file is synced by ([[Sync-API]]); **v18** stores every date as ISO-8601 text, to the microsecond; **v19** added `wishlist_items` ([[Wishlist]]); **v20** added `saved_places.notes` ([[Places]]); **v21** added `expense_categories.created_at`, filled from `updated_at` for the rows I already had, so that the list is ordered by when a category was made and a restored one keeps its place instead of dropping to the end; **v22** stamps a row from the phone's clock rather than sqlite's. `CURRENT_TIMESTAMP` wrote UTC with no zone, drift read that back as a UTC clock, and in Algiers an expense I logged at 4:21 PM showed 3:21. The defaults became client-side (`clientDefault(DateTime.now)`), which means rebuilding every table that had one, and every date still spelled in UTC — sqlite's `2026-09-25 15:21:00` from the old default and the v18 rewrite, or a `Z` from a pulled row — is rewritten on the local clock with its offset (`2026-09-25T16:21:00.000 +01:00`), the spelling the app writes itself, keeping its instant. A date already in that spelling is left alone. Sync reads a date with no zone as UTC, sends it with a `Z`, and stores what it pulls on the local clock. A column added after v18 is added *before* the v18 rewrite when an upgrade crosses both, because the rewrite rebuilds each table from its current definition. **v23** is [[Lists]]: a `lists` table (name, kind — `plain`, `shopping` or `media` —, icon, position, and `built_in` for the four every device has), and `wishlist_items` — which keeps its name so the beta devices and archives out there keep working — gains `list_uuid`, `media_type`, `link`, `creator`, `started_at`, `rating`, `seed_uuid` and `note_uuid`. `bought_at` now means done for every kind. The four built-in lists (*To buy*, *Wishlist*, *To read*, *To watch*) have fixed ids, a uuid v5 of `lists/<key>` written out in `@harvest/contracts`, and a stamp from 2020, so a phone and a browser that upgrade on their own make the same four rows and a late upgrade never outranks a rename; they are made on a fresh install too, and never queued. The upgrade points every item at the list its old `list` column named, and if I had a live item it switches `features.lists` on (and queues that preference), so the Wishlist does not vanish behind a switch I never saw. The old `list` column is still written — `buy` for *To buy*, `wish` for everything else — and a row that arrives without `list_uuid`, from a beta client or an old archive, is read by it. The new columns are added before the v22 rebuild when an upgrade crosses both, for the same reason as above. **v24** added `goal_items.parent_uuid`: an item may belong to another item, one level deep, which is how a goal gets subtasks ([[Goals]] GL8). Every item I already had stays top-level, so the column starts null and nothing is rewritten; like the others, it is added before the v18 and v22 rebuilds when an upgrade crosses them. **v24 is the current version.**
 
 A seed's **start day** deliberately has no column: `created_at` already
 says when it was planted, so the rule that nothing is due before then
@@ -147,6 +149,94 @@ carry the most sensitive data in the app — amounts, and other people's
 names. They belong in the same tier as expenses in [[Sync-Strategy]]:
 end-to-end encrypted, or local-only by choice. The outbox row itself
 holds no content, only a table, a uuid and an operation.
+
+## The file at rest is encrypted
+
+The private tier is sealed on the server, but the phone keeps it
+decrypted, in rows: my money, the people I owe, the places I have been.
+So the file itself — `harvest.sqlite` in the app's documents directory —
+is encrypted with **SQLCipher** (S-04). Every page is AES-256; a copy of
+the file on its own is noise, whether it comes from a rooted phone, a
+forensic dump or a backup that should not have happened (backups are
+off, S-01).
+
+**How it is linked.** `package:sqlite3` 3.x builds its native library
+through a build hook, and `pubspec.yaml` asks it for the SQLCipher build
+(`hooks: user_defines: sqlite3: source: sqlcipher`). There is no
+`sqlcipher_flutter_libs` any more and no `open.overrideFor`: the hook
+bundles `libsqlcipher.so` in the APK and the Dart side loads it. The
+host tests link the same build, so the tests below run the real cipher.
+Every connection proves it on open: `PRAGMA cipher_version` has to
+answer, or a debug build stops with an error instead of quietly writing
+a plain file.
+
+**The key.** 32 bytes from `Random.secure()`, made on the first start
+and kept as 64 hex digits in the Keystore-backed secure storage, under
+`db.key` next to the account's refresh token
+(`lib/core/db/database_key.dart`). It reaches SQLCipher as a raw key,
+`PRAGMA key = "x'…'"`, so there is no passphrase derivation to wait for.
+It is never logged, and it is not in the archive, the sync or the
+export: those carry rows, never the file, so nothing outside the phone
+ever needs it. A key is only made after the store has said "there is
+none"; a store that fails to answer is not taken as an empty one,
+because a new key would lock the old file away for good. A key is also
+read back after it is written, before anything is encrypted with it.
+
+**Who opens the file.** The app's own connection
+(`HarvestDatabase.primary()`) is the only one that makes a key, encrypts
+a plain file or sets an unreadable one aside. The background isolates —
+the 3 AM job, a snooze tapped with the app closed, the trail recorder —
+open `HarvestDatabase()`, which unlocks the file with the stored key and
+does nothing else. The home-screen widget never reads the file: the app
+and the 3 AM job hand it its numbers through `home_widget`'s shared
+preferences.
+
+**The upgrade from v3.0.0.** The first start after the update finds a
+plain file (its first 16 bytes are `SQLite format 3\0`; an encrypted
+file starts with a random salt) and encrypts it in place, off the main
+isolate (`encryptInPlace` in `lib/core/db/database_file.dart`):
+
+1. `ATTACH` a new file, `harvest.sqlite.encrypting`, with the key, and
+   `sqlcipher_export` every table, index and trigger into it. The export
+   leaves `user_version` at 0, and drift reads its schema version from
+   it, so I copy it by hand; `sqlite_sequence` (the outbox's counter)
+   comes along with the tables.
+2. Reopen the copy with the key and compare every table's row count
+   with the plain file. One difference and the copy is thrown away.
+3. Delete the plain file's `-wal`, `-shm` and `-journal` (the export
+   closed it cleanly, so they hold nothing) and rename the copy over
+   `harvest.sqlite`. The rename is atomic: at every instant the path
+   holds one whole database, plain or encrypted.
+
+If any step fails — a full disk, a key that did not stick — the plain
+file stays exactly as it was, the app opens it as before, and the next
+start tries again. The rename unlinks the plain file, but flash storage
+can keep its old blocks until they are reused; that is the one copy
+encryption cannot reach, and it only exists once, for files from before
+this change.
+
+**If the key is lost.** With backups off, a new phone gets neither the
+file nor the key, so the two only part if the Keystore itself forgets
+(a factory-reset keystore, a vendor bug). The file is then unreadable
+by anyone, me included. The app does not try again on every start:
+when the stored key is missing or does not open the file (SQLite says
+"not a database"), the app's own connection moves it to
+`harvest.sqlite.unreadable`, replacing an older one, makes a new key and
+starts empty, like a fresh install. What was synced comes back when I
+sign in again (the private tier needs my sync PIN or passphrase, as on
+any new device); what was not, lives only in my last export archive.
+A background job that meets such a file skips its run and leaves it for
+the app. Any other failure — a busy lock, a full disk — says nothing
+about the key and is never taken for a lost one.
+
+**What is tested where.** `test/core/database_file_test.dart` runs on
+the host against the real SQLCipher: the header check, a v24 file
+encrypted in place with its rows, schema version and outbox counter
+intact, no trace of the rows in the bytes, a failed run that keeps the
+plain file, a key that does not stick, the background isolates leaving
+the file alone, a lost key, and a Keystore that fails to answer. What
+only the phone can show — the Keystore itself, the hook's Android
+build, and a real v3.0.0 install upgrading — I checked on the emulator.
 
 
 ## Reference data is not database data (Phase 4)

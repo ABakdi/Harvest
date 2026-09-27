@@ -199,8 +199,8 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Phase 2 — Finances](docs/03-Planning/Phase-2-Finances.md) | Expenses, budgets, gauge ✅ |
 | [Phase 3 — Notes, Gallery and the Archive](docs/03-Planning/Phase-3-Notes-and-Gallery.md) | Markdown notes, photo albums, the zip archive and its importer ✅ |
 | [Phase 4 — Health and Gym](docs/03-Planning/Phase-4-Health-and-Gym.md) | Steps, weight, the training log, sleep ✅ |
-| [Phase 5 — Goals, Places and Voice](docs/03-Planning/Phase-5-Goals-Places-and-Voice.md) | Goals board, trail and geotags on a map, voice notes, read aloud, assist |
-| [Phase 6 — Sync, Accounts and the Web](docs/03-Planning/Phase-6-Sync-Accounts-and-Web.md) | Express + MongoDB server, accounts, sync, the React web app and PWA |
+| [Phase 5 — Goals, Places and Voice](docs/03-Planning/Phase-5-Goals-Places-and-Voice.md) | Goals board, trail and geotags on a map, voice notes, read aloud, assist ✅ |
+| [Phase 6 — Sync, Accounts and the Web](docs/03-Planning/Phase-6-Sync-Accounts-and-Web.md) | Express + MongoDB server, accounts, sync, the React web app and PWA ✅ |
 | [Phase 7 — Screen Time](docs/03-Planning/Phase-7-Screen-Time.md) | Usage caps, interventions |
 | [Phase 8 — Social and Reach](docs/03-Planning/Phase-8-Social-and-Reach.md) | Rankings, iOS |
 
@@ -217,6 +217,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Checkpoint 7](docs/05-Checkpoints/Checkpoint-7.md) | Finish where the thumb is, a record's moment, and settings as a place |
 | [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md) | The day's steps written down at 3 AM, and an expense on the day it belongs to |
 | [Checkpoint 9](docs/05-Checkpoints/Checkpoint-9.md) | The Wishlist, the web writing everything the phone writes, and a deployment I can run |
+| [Checkpoint 10](docs/05-Checkpoints/Checkpoint-10.md) | The sync PIN, the phone layout on the web, and audit 5 |
 
 ### Audit
 
@@ -229,6 +230,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Audit 2 — the v2 beta](docs/06-Audit/Audit-v2-Beta.md) | Business logic, what the specs never said, code quality and security, read again on the v2 beta |
 | [Audit 3 — v2.0.0](docs/06-Audit/Audit-v2.md) | What changed since audit 2, the screens of the new half, the specs against the code, and the deferred list |
 | [Audit 4 — v3 beta, by hand](docs/06-Audit/Audit-v3-Beta.md) | The phone on the emulator and the web as deployed, used screen by screen |
+| [Audit 5 — v3.0.0](docs/06-Audit/Audit-v3.md) | The fifth: security, quality and gaps, all fixed |
 
 ### Decisions
 
@@ -364,16 +366,19 @@ docs/               the Obsidian vault
 | — | Four checkpoints: calendar, app lock, export, seed notes and history, the archive, the comeback ladder, the widget, the daily cycle | ✅ **v1.0** |
 | 3 — Notes, Gallery & the Archive | Markdown notes with links; photo albums that are seeds; the zip archive **and an importer** | ✅ **v1.1** |
 | 4 — Health & the Gym | Steps, body weight, and a training log — programs, sessions, personal records — plus the sleep alarm | ✅ **v2.0** |
-| 5 — Goals, Places & Voice | A goals board, a trail and a geotag on every action on a free map, voice notes, read aloud, an assist in notes | ✅ |
-| 6 — Sync, Accounts & the Web | Express + MongoDB server, optional accounts, sync, the whole app in the browser as a PWA | ✅ **v3.0.0-beta.1** |
-| 7 — Screen Time | Usage caps, weed-pull interventions | v3.1 |
+| 5 — Goals, Places & Voice | A goals board, a trail and a geotag on every action on a free map, voice notes, read aloud, an assist in notes | ✅ **v3.0** |
+| 6 — Sync, Accounts & the Web | Express + MongoDB server, optional accounts, sync, the whole app in the browser as a PWA | ✅ **v3.0** |
+| 7 — Screen Time | Usage caps, weed-pull interventions | v3.2 |
 | 8 — Social & Reach | Rankings, the share card, iOS polish | |
 
-### What's coming in Phase 5
+### What Phases 5 and 6 brought
+
+Both shipped together as v3.0.0 on 2026-09-26; Phase 5 never had a
+release of its own (the v2.1.0 it was planned as folded into v3.0.0).
 
 [Goals](docs/01-Specification/Goals.md): a board on the field for the
 things a streak cannot hold, with a living list of what each one takes
-and the seeds I plant from it.
+— tasks and their subtasks — and the seeds I plant from it.
 [Places](docs/01-Specification/Places.md): a trail recorded in the
 background while I want it, a geotag on every action, and a map of
 each day with its expenses, pictures, notes and check-ins pinned where
@@ -383,7 +388,7 @@ free, and no Google.
 dictation, read aloud, and an assist that summarises, rewrites,
 translates and transcribes, only when asked, with my own key.
 
-Then Phase 6 takes it off the phone: an optional account, sync with the
+Phase 6 took it off the phone: an optional account, sync with the
 private tier end-to-end encrypted, and the whole app in the browser,
 installable, with a home page and the APK download.
 
@@ -400,7 +405,7 @@ with before starting the next — dogfooding is the QA department.
 ## Privacy
 
 Everything is stored on the device in a local SQLite database. Financial
-data never leaves the phone in plaintext. When sync arrives it will be
-opt-in, finances and location are end-to-end encrypted before they
-leave, and you can keep everything local forever. Nothing is sold,
+data never leaves the phone in plaintext. Sync is opt-in — the account
+is optional — finances and location are end-to-end encrypted before
+they leave, and you can keep everything local forever. Nothing is sold,
 nothing is shared.

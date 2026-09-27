@@ -42,7 +42,7 @@ turning it back on finds everything where it was.
 | :--- | :--- |
 | **Note** | One markdown file: a title, a body, a folder, timestamps |
 | **Folder** | A path, nothing more. Nested, created by naming one |
-| **Link** | `[[Another note]]` in the body, resolved by title |
+| **Link** | `[[Another note]]` in the body, resolved by title: the note with that exact title, else one whose title differs only in case; the older first when two share it |
 | **Backlink** | Which notes point here — a list, not a graph |
 
 Links are stored as text in the body *and* indexed in a table, so
@@ -51,7 +51,8 @@ stays the source of truth: edit the body, the index follows.
 
 A link to a note that does not exist yet is **not an error**. It is a
 note I have not written, shown differently, and tapping it offers to
-create it. That is the one Obsidian behaviour worth copying outright,
+create it: it asks first, on both apps, and the new note goes at the
+top of the vault. That is the one Obsidian behaviour worth copying outright,
 because it is how notes actually get written.
 
 ## Writing
@@ -71,7 +72,8 @@ because it is how notes actually get written.
   through as text rather than being silently eaten.
 - **Autosave.** A note is saved as it is typed, debounced, the way the
   day notes already are. Nothing in this app should ever have a Save
-  button that can be missed.
+  button that can be missed. A save that fails says so, and a note
+  past 100,000 characters says that what is beyond them is not kept.
 
 ## Finding things
 
@@ -82,7 +84,7 @@ space is for one note ([[Checkpoint-5]]).
 - A folder tree, with a new note at any level.
 - Sort by edited, created, or title.
 - The **trash**: deleting a note is undoable, and emptying the trash is
-  the step that is not.
+  the step that is not. Emptied here is emptied on every device.
 
 A folder may exist before it holds a note. The truth about where a note
 lives is still the note's own path; the empty ones are remembered in
@@ -189,6 +191,8 @@ an account, the assist entry says what it needs and links to Settings
 | N10 | Read aloud and dictation use the device's own engines. Only Transcribe and the assist actions ever send audio or text off the device. In a browser, read aloud uses local voices only, and dictation is offered only where the browser recognises speech on the device itself; Transcribe works there too, through the server's assist, with the same request as the phone's and only after the dialog has said the recording goes to it. |
 
 A note also goes out as a **PDF**, rendered rather than dumped, through
-the system share sheet.
+the system share sheet. It is set in the app's own fonts, so Arabic
+has its letters; each paragraph runs in its own direction, read from
+its first letter, and a note with no title is named in my language.
 
 Related: [[Gallery]] · [[ADR-007-Archive-Format]] · [[Core-Entities]] · [[Checkpoint-5]]

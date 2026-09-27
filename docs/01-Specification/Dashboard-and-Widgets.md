@@ -60,14 +60,25 @@ was put away and the date. Restore puts one back on the field; delete
 removes it for good ([[Business-Rules]] #8). Tapping one opens its
 history — an archive whose contents cannot be read is a bin.
 
-## Weekly Harvest Report (Sundays)
+## Weekly Harvest Report
 
-A shareable summary card:
-- Total XP this week; best & worst day
-- Streak status and closest calls
-- Avg sleep vs. target
-- Biggest spending category
-- Most-used app category ([[Phase-7-Screen-Time]])
+A card on the Stats screen, on the phone and on the web alike, showing
+**the week so far** — Monday to today, every day of the week rather
+than only on Sundays:
+- **XP this week**, from the ledger since Monday.
+- **The best day**, the one with the most seeds checked in; the first
+  one wins a tie.
+- **The quietest day**, counted only from the day my first seed was
+  planted (the days before were not quiet, they were not yet), and
+  only once there are two days to compare — so not on a Monday.
+- **The top spending category** this week, summed in the default
+  currency. On the web it shows only where the browser can read the
+  private tier.
+
+What the first version of this page promised and neither client
+builds: sharing the card, streak status and closest calls, average
+sleep against the target, and the most-used app category (which waits
+on [[Phase-7-Screen-Time]]).
 
 ## Home-screen widget ✅ ([[Checkpoint-3]])
 

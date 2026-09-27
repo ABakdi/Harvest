@@ -86,7 +86,7 @@ be a lie about a month of work.
 
 ## Calendar
 
-A month calendar (field app bar) populated from every schedule: habits due per their rules, to-dos on their planned days, and deadline flags (a project's deadline included). Projects themselves stay off the grid: a project is due every day until it is done, so its daily commitment would sit on every square and the month would stop telling me anything. Future days accept quick-planted to-dos.
+A month calendar (field app bar) populated from every schedule: habits due per their rules, to-dos on their planned days, and deadline flags (a project's deadline included). Projects themselves stay off the grid: a project is due every day until it is done, so its daily commitment would sit on every square and the month would stop telling me anything. Future days accept quick-planted to-dos. A times-a-week habit shows on a day while its week's quota, counted over the days *before* that one, is still open: meeting it on Wednesday takes it off Thursday to Sunday, never off the days that met it. A to-do counts as done once it was ever checked in, a day late included. One rule for both apps (`calendarEntries` in `packages/core`, pinned by `fixtures/calendar.json`).
 
 ## Editing & lifecycle
 

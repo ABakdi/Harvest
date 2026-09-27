@@ -57,10 +57,13 @@ chosen list below, its open items in my order, and what is done folded
 underneath. A list's menu renames, reorders, or deletes it.
 
 The Granary no longer has a Wishlist tab. It keeps one line on its
-first tab — *Planned purchases · DA18,850* — that opens *To buy*; the
+first tab — *Planned purchases · DA850* — that opens *To buy*; the
 money stays in the Granary, the lists in one place. The line sums, per
 currency, the open estimates of every shopping list except the
-Wishlist: someday is not a purchase that is planned.
+Wishlist: someday is not a purchase that is planned. (A kettle for
+DA850 on *To buy* and an espresso machine for DA18,000 on the
+Wishlist make DA850.) One rule in `packages/core` (`plannedPurchases`),
+pinned by `fixtures/lists.json`, which both apps read.
 
 ## Saving from anywhere
 
@@ -119,9 +122,9 @@ columns in the **Wishlist** sheet ([[ADR-007-Archive-Format]]).
 | L4 | Done is a stamp, not a transaction (W3): buying, finishing or ticking writes no money row and moves no streak. Bought *offers* an expense; it never logs one. |
 | L5 | A planned day is a plan (W5): no streak, no schedule, no reminder is built from it. |
 | L6 | Deletion is soft and history is kept (W6); a deleted list takes its items to the trash with it, and restoring it brings them back. |
-| L7 | Only a shopping list's items are bought; a wish is moved to *To buy* first (W7). |
+| L7 | Only a shopping list's items are bought; a wish is moved to *To buy* first (W7). A bought item moved to the Wishlist is a wish again. |
 | L8 | Adding, finishing or rating pays nothing: wanting is not doing. A planted seed pays as any seed does. |
-| L9 | Saving a link fetches nothing. |
+| L9 | Saving a link fetches nothing. Opening one is my tap, and only a plain `http` or `https` link opens (`linkOf`, on both apps). |
 | L10 | The built-in lists have fixed ids and cannot be deleted. |
 
 Related: [[Wishlist]] · [[Finances]] · [[Goals]] · [[Notes]] · [[Web]]

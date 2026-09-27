@@ -4,7 +4,7 @@ The things the app tracks, in the order they arrived. Three belong to
 the productivity pillar (the MVP), and each phase since has added its
 own — Phase 3 the first things in this app that are *files* rather
 than rows ([[Notes]], [[Gallery]]), Phase 5 the vault, goals and the
-map ([[Audit-v2]] D3-12).
+map ([[Audit-v2]] D3-12), and v3.0.0 the lists ([[Lists]]).
 
 ```mermaid
 erDiagram
@@ -20,6 +20,7 @@ erDiagram
         date startDay "created day - nothing is due before it"
         bool archived
         string archiveNote "why it was put away"
+        string goalId "the goal it serves, nullable"
     }
     COMMITMENT ||--o{ SEED_NOTE : "journalled in"
     SEED_NOTE {
@@ -41,7 +42,7 @@ erDiagram
         int current
         int best
         date lastEarnedDay
-        int freezesUsed
+        int freezesStored "banked, at most 2"
     }
     EXPENSE_ENTRY {
         string id
@@ -56,7 +57,41 @@ erDiagram
         datetime fellAsleepAt
         datetime wokeAt
         int targetMinutes "frozen at logging time"
-        int restfulness "1-5, nullable"
+        int restedStars "1-5, nullable"
+    }
+    GOAL ||--o{ GOAL_ITEM : "broken into"
+    GOAL {
+        string id
+        string title
+        string why
+        date targetDay
+        string status "active | achieved | dropped"
+    }
+    GOAL_ITEM ||--o{ GOAL_ITEM : "subtasks, one level"
+    GOAL_ITEM {
+        string id
+        string goalId
+        string parentId "null = top-level"
+        string kind "need | step"
+        string body
+        datetime doneAt
+        string commitmentId "the seed it became, nullable"
+    }
+    LIST ||--o{ LIST_ITEM : holds
+    LIST {
+        string id
+        string name
+        string kind "plain | shopping | media"
+        string builtIn "the four every device has, nullable"
+    }
+    LIST_ITEM {
+        string id
+        string listId
+        string title
+        int priceMinor "shopping"
+        string mediaType "media"
+        int rating "1-5, media"
+        datetime boughtAt "done, for every kind"
     }
     SCREEN_GOAL {
         string id
@@ -184,8 +219,21 @@ number. Spec: [[Finances]].
 ## Goal and Goal Item (Phase 5)
 
 What I am aiming at, and the list of what it will take. An item can
-become a seed on the field, and the goal keeps the link. Spec:
-[[Goals]].
+become a seed on the field, and the goal keeps the link. An item can
+have subtasks, one level deep (`goal_items.parent_uuid`, schema v24): a
+parent is done exactly when all its subtasks are. Spec: [[Goals]].
+
+## List and List Item (v3.0.0)
+
+A **List** is a named list of one of three kinds — plain, shopping or
+media — with an icon and a place in the order. Four are built in and
+exist on every device (*To buy*, *Wishlist*, *To read*, *To watch*);
+the rest are mine. A **List Item** is one line on it: a price for
+shopping, a type, link, creator, start day and rating for media, and
+optionally the seed or note it became. Done means done for every kind.
+The items live in `wishlist_items`, the table's name from before lists
+existed, so older devices and archives keep working. Spec: [[Lists]],
+[[Wishlist]].
 
 ## Location Point, Geotag and Saved Place (Phase 5)
 
