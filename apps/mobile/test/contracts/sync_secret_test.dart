@@ -38,8 +38,11 @@ void main() {
   });
 
   test('a PIN is 4 to 6 ASCII digits; a passphrase 8 characters', () {
-    expect(syncSecretProblem('1234'), isNull);
-    expect(syncSecretProblem('123456'), isNull);
+    expect(syncSecretProblem('2468'), isNull);
+    expect(syncSecretProblem('482913'), isNull);
+    expect(syncSecretProblem('1234'), SyncSecretProblem.pinTooSimple);
+    expect(syncSecretProblem('121212'), SyncSecretProblem.pinTooSimple);
+    expect(syncSecretProblem('000000'), SyncSecretProblem.pinTooSimple);
     expect(syncSecretProblem('123'), SyncSecretProblem.pinTooShort);
     expect(syncSecretProblem('1234567'), SyncSecretProblem.pinTooLong);
     expect(syncSecretProblem('abcdefg'), SyncSecretProblem.passphraseTooShort);
@@ -65,6 +68,10 @@ void main() {
     expect(
       syncSecretMessage(l10n, SyncSecretProblem.passphraseTooShort),
       l10n.syncPassphraseShort,
+    );
+    expect(
+      syncSecretMessage(l10n, SyncSecretProblem.pinTooSimple),
+      l10n.syncPinTooSimple,
     );
   });
 

@@ -2,9 +2,11 @@ import type { Db } from 'mongodb';
 import { collections, ensureIndexes } from './collections.js';
 import { AssistUsageRepository } from './assist-usage.js';
 import { FilesRepository } from './files.js';
+import { LoginFailuresRepository } from './login-failures.js';
 import { OneTimeTokensRepository } from './one-time-tokens.js';
 import { RecordsRepository } from './records.js';
 import { SessionsRepository } from './sessions.js';
+import { TotalsRepository } from './totals.js';
 import { UsersRepository } from './users.js';
 
 export interface Repositories {
@@ -14,6 +16,8 @@ export interface Repositories {
   records: RecordsRepository;
   files: FilesRepository;
   assistUsage: AssistUsageRepository;
+  totals: TotalsRepository;
+  loginFailures: LoginFailuresRepository;
 }
 
 export async function createRepositories(db: Db): Promise<Repositories> {
@@ -25,7 +29,9 @@ export async function createRepositories(db: Db): Promise<Repositories> {
     oneTimeTokens: new OneTimeTokensRepository(c.oneTimeTokens),
     records: new RecordsRepository(c.records, c.counters),
     files: new FilesRepository(c.files),
-    assistUsage: new AssistUsageRepository(c.assistUsage),
+    assistUsage: new AssistUsageRepository(c.assistUsage, c.assistDays),
+    totals: new TotalsRepository(c.counters),
+    loginFailures: new LoginFailuresRepository(c.loginFailures),
   };
 }
 

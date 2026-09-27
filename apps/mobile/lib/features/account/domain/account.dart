@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/secret_store.dart';
 import 'package:harvest/features/account/data/api_client.dart';
+import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/sync/domain/file_sync.dart';
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
@@ -144,6 +146,10 @@ class ApiFiles implements FileRemote {
         },
       );
 
+  /// Tells the server no row names this file any more, so it can stop
+  /// keeping it (`DELETE /v1/files/:sha256`).
+  Future<void> forget(String sha256) => _api.delete('/v1/files/$sha256');
+
   @override
   Future<({Uint8List sealed, String iv})> download(String sha256) async {
     final answer = await _api.getBytes('/v1/files/$sha256');
@@ -159,6 +165,90 @@ const fileIvHeader = 'x-harvest-iv';
 
 /// The plaintext's length, for the server's accounting only.
 const filePlainBytesHeader = 'x-harvest-plain-bytes';
+
+/// The account's half of the private tier's key, and its key check, as
+/// `GET /v1/me/sync-key` answers ([[Sync-API]], `contracts/sync-key.ts`).
+@immutable
+class SyncKeyShare {
+  const SyncKeyShare({
+    required this.salt,
+    required this.keyShare,
+    this.check,
+  });
+
+  factory SyncKeyShare.fromJson(Map<String, Object?> json) => SyncKeyShare(
+    salt: json['salt']! as String,
+    keyShare: base64Decode(json['keyShare']! as String),
+    check: json['check'] as Map<String, Object?>?,
+  );
+
+  final String salt;
+
+  /// 32 bytes only a signed-in session is given: without them the salt
+  /// and a copy of the server's data are not enough to try PINs.
+  final Uint8List keyShare;
+
+  /// The account's key check, or null while no device has chosen a PIN.
+  final Map<String, Object?>? check;
+
+  /// No device has chosen a PIN yet: this one *chooses*, typed twice.
+  /// Otherwise it *enters* the one the others use ([[Accounts]]).
+  bool get choosing => check == null;
+}
+
+/// The key routes, as the phone needs them.
+abstract interface class SyncKeyRemote {
+  Future<SyncKeyShare> fetch();
+
+  /// Stores [check] as the account's: null when it was stored, or the
+  /// check another device stored first.
+  Future<Map<String, Object?>?> putCheck(Map<String, Object?> check);
+
+  /// Starts the PIN over (`DELETE /v1/me/sync-key`, with the account's
+  /// password): the key check, the key share, every private row and
+  /// every file on the server go.
+  Future<void> startOver(String password);
+}
+
+class ApiSyncKeys implements SyncKeyRemote {
+  ApiSyncKeys(this._api);
+
+  final ApiClient _api;
+
+  @override
+  Future<SyncKeyShare> fetch() async =>
+      SyncKeyShare.fromJson(await _api.get('/v1/me/sync-key'));
+
+  @override
+  Future<Map<String, Object?>?> putCheck(Map<String, Object?> check) async {
+    try {
+      await _api.put('/v1/me/sync-key/check', {'check': check});
+      return null;
+    } on ApiException catch (error) {
+      if (error.status != 409) rethrow;
+      final stored = error.body?['check'];
+      if (stored is Map<String, Object?>) return stored;
+      // The first device's check, asked for again.
+      final share = await fetch();
+      return share.check ?? (throw error);
+    }
+  }
+
+  @override
+  Future<void> startOver(String password) =>
+      _api.delete('/v1/me/sync-key', {'password': password});
+}
+
+@Riverpod(keepAlive: true)
+SyncKeyRemote syncKeyRemote(Ref ref) =>
+    ApiSyncKeys(ref.watch(apiClientProvider));
+
+/// What the server says about the account's key right now: whether a
+/// PIN is to be chosen or entered is its answer, never a guess from what
+/// this phone happens to have pulled ([[Accounts]]).
+@riverpod
+Future<SyncKeyShare> syncKeyShare(Ref ref) =>
+    ref.watch(syncKeyRemoteProvider).fetch();
 
 /// Files sync only once a passphrase is set: a picture is as personal
 /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
@@ -176,61 +266,148 @@ Future<FileSync?> fileSync(Ref ref) async {
 }
 
 @Riverpod(keepAlive: true)
-SyncService syncService(Ref ref) => SyncService(
-  ref.watch(databaseProvider),
-  ApiRemote(ref.watch(apiClientProvider)),
-  cipher: () async {
-    final stored = await ref
-        .read(secretStoreProvider)
-        .read(SyncPassphrase.keyName);
-    return stored == null ? null : SyncCipher(base64Decode(stored));
-  },
-);
+SyncService syncService(Ref ref) {
+  final db = ref.watch(databaseProvider);
+  final gallery = ref.watch(galleryStorageProvider);
+  final attachments = ref.watch(attachmentStorageProvider);
+  return SyncService(
+    db,
+    ApiRemote(ref.watch(apiClientProvider)),
+    cipher: () async {
+      final stored = await ref
+          .read(secretStoreProvider)
+          .read(SyncPassphrase.keyName);
+      return stored == null ? null : SyncCipher(base64Decode(stored));
+    },
+    // A purge that came from another device frees the file too
+    // ([[Sync-API]]: tombstones).
+    onPurged: PurgedFiles(
+      db,
+      gallery: gallery.delete,
+      attachments: attachments.delete,
+      forget: ApiFiles(ref.watch(apiClientProvider)).forget,
+    ).release,
+  );
+}
 
-/// Makes the private tier's key from the sync secret and the account's
-/// salt. Its own provider so the tests can make one without 600,000
-/// rounds.
-typedef SyncKeyMaker = Future<Uint8List> Function(String secret, String salt);
+/// Makes the private tier's key from the sync secret, the account's
+/// salt and its key share. Its own provider so the tests can make one
+/// without 600,000 rounds.
+typedef SyncKeyMaker = Future<Uint8List> Function(
+  String secret,
+  String salt,
+  Uint8List keyShare,
+);
 
 @Riverpod(keepAlive: true)
 SyncKeyMaker syncKeyMaker(Ref ref) =>
-    (secret, salt) => compute(_derive, (passphrase: secret, salt: salt));
+    (secret, salt, keyShare) => compute(
+      _derive,
+      (passphrase: secret, salt: salt, keyShare: keyShare),
+    );
 
-/// Whether another device has sealed rows on the server: what decides
-/// between *choosing* a sync PIN and *entering* one ([[Accounts]]).
-@Riverpod(keepAlive: true)
-Stream<bool> syncSealedSeen(Ref ref) => ref
-    .watch(settingsRepositoryProvider)
-    .watchAll([SyncKeys.sealedSeen])
-    .map((values) => values[SyncKeys.sealedSeen] == 'true');
+/// A PIN the server's key check refused: not the account's PIN. Nothing
+/// was kept, and nothing was sealed with it.
+class SyncPinRefused implements Exception {
+  const SyncPinRefused({this.chosenElsewhere = false});
+
+  /// Another device chose the account's PIN while this one was choosing.
+  final bool chosenElsewhere;
+}
 
 /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
 /// Only the key derived from it is kept, in the keystore; the secret
 /// itself is gone the moment the key exists.
 @Riverpod(keepAlive: true)
 class SyncPassphrase extends _$SyncPassphrase {
-  static const keyName = 'sync.privateKey';
+  /// Version 2 keys only: a key 3.0.0 kept under the old name is not
+  /// one this version can use, and the PIN is asked for again.
+  static const keyName = 'sync.privateKey.v2';
+  static const legacyKeyName = 'sync.privateKey';
 
   @override
-  Future<bool> build() async =>
-      await ref.read(secretStoreProvider).read(keyName) != null;
+  Future<bool> build() async {
+    final secrets = ref.read(secretStoreProvider);
+    if (await secrets.read(legacyKeyName) != null) {
+      await secrets.write(legacyKeyName, null);
+    }
+    return await secrets.read(keyName) != null;
+  }
 
-  /// Derives the key (seconds of work, off the UI thread) and opens the
-  /// private tier: the history is pulled again so the rows that waited
-  /// for it can be read, and this phone's own go up sealed. Whether it
-  /// is the right secret is found out by that pull ([[Sync-API]]).
+  /// Checks the secret against the account's key check and, only when
+  /// it is the account's, keeps the key and opens the private tier: the
+  /// history is pulled again so the rows that waited for it can be read,
+  /// and this phone's own go up sealed.
+  ///
+  /// The first device to choose a PIN stores the check; the key is kept
+  /// only once the server has it, and when another device got there
+  /// first, only if it opens theirs. Throws [SyncPinRefused] when it is
+  /// not the account's PIN, with nothing kept ([[Accounts]]).
   Future<void> set(String secret) async {
     final me = (await ref.read(accountControllerProvider.future)).me;
     if (me == null) return;
-    final key = await ref.read(syncKeyMakerProvider)(secret, me.syncSalt);
+    final remote = ref.read(syncKeyRemoteProvider);
+    final share = await remote.fetch();
+    final key = await ref.read(syncKeyMakerProvider)(
+      secret,
+      share.salt,
+      share.keyShare,
+    );
+    final cipher = SyncCipher(key);
+    final stored = share.check;
+    if (stored != null) {
+      if (!await cipher.opensCheck(stored)) throw const SyncPinRefused();
+    } else {
+      final first = await remote.putCheck(await cipher.sealCheck());
+      if (first != null && !await cipher.opensCheck(first)) {
+        ref.invalidate(syncKeyShareProvider);
+        throw const SyncPinRefused(chosenElsewhere: true);
+      }
+    }
     // A run already going started without the key; it ends first, or
     // it would put back the cursor the re-pull needs at zero.
     final service = ref.read(syncServiceProvider);
     await service.idle();
     await ref.read(secretStoreProvider).write(keyName, base64Encode(key));
     await service.privateTierOpened();
-    ref.invalidate(fileSyncProvider);
+    ref
+      ..invalidate(fileSyncProvider)
+      ..invalidate(syncKeyShareProvider);
     state = const AsyncData(true);
+  }
+
+  /// Starts the PIN over, with the account's password: everything
+  /// private on the server goes, the key here is forgotten, and the
+  /// next PIN is *chosen*. What this phone holds goes up again under it
+  /// ([[Accounts]]: start over).
+  Future<void> startOver(String password) async {
+    await ref.read(syncKeyRemoteProvider).startOver(password);
+    await forget();
+    ref.invalidate(syncKeyShareProvider);
+  }
+
+  /// Whether the key kept here still opens the account's key check.
+  /// When it does not — the PIN was started over on another device —
+  /// the key is forgotten and false is the answer; the PIN is asked for
+  /// again, and what this phone holds goes up again under the new one.
+  /// Null when there was no key, or no answer from the server.
+  Future<bool?> stillTheAccounts() async {
+    final stored = await ref.read(secretStoreProvider).read(keyName);
+    if (stored == null) return null;
+    final SyncKeyShare share;
+    try {
+      share = await ref.read(syncKeyRemoteProvider).fetch();
+    } on ApiException {
+      return null;
+    }
+    final check = share.check;
+    if (check != null &&
+        await SyncCipher(base64Decode(stored)).opensCheck(check)) {
+      return true;
+    }
+    await forget();
+    ref.invalidate(syncKeyShareProvider);
+    return false;
   }
 
   /// Forgets the key on this device; the private tier stays home again.
@@ -241,8 +418,9 @@ class SyncPassphrase extends _$SyncPassphrase {
   }
 }
 
-Future<Uint8List> _derive(({String passphrase, String salt}) input) =>
-    SyncCipher.deriveKey(input.passphrase, input.salt);
+Future<Uint8List> _derive(
+  ({String passphrase, String salt, Uint8List keyShare}) input,
+) => SyncCipher.deriveKey(input.passphrase, input.salt, input.keyShare);
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.

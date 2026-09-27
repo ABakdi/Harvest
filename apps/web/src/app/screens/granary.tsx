@@ -7,8 +7,11 @@ import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { formatDate, formatDay, formatMoney } from '@/lib/format';
 import { EmptyState } from '../components/bits';
+import { Fab } from '../components/fab';
+import { screenTabsList, screenTabsTrigger } from '../components/screen-tabs';
 import { categoryLabel } from '../components/category';
 import { LocationNote } from '../components/location-note';
 import { useFeaturesOrOff } from '../components/settings-bits';
@@ -184,7 +187,12 @@ function PlannedPurchases() {
   );
 }
 
-function ExpensesPanel() {
+/**
+ * The phone's Today: the month's budget first, then a repeat worth one
+ * tap, what the shopping lists plan, and the spending, today's and the
+ * month's, with what is logged ahead ([[Finances]]).
+ */
+function TodayPanel() {
   const { t } = useTranslation();
   const { db } = useHarvest();
   const today = useHarvestDay();
@@ -212,6 +220,7 @@ function ExpensesPanel() {
 
   return (
     <div className="flex flex-col gap-4">
+      <BudgetPanel breakdown={false} />
       <RepeatCard />
       <PlannedPurchases />
       <section className="grid gap-3 sm:grid-cols-2">
@@ -270,10 +279,10 @@ function ExpensesPanel() {
 }
 
 /**
- * The Granary, in four views of the same home: what I spent, what I
- * have, what the month allows, and where it went ([[Finances]]). What I
- * plan to buy lives in Records → Lists now; the Expenses tab keeps one
- * line of it ([[Lists]]).
+ * The Granary, in the phone's three views of the same home: Today (the
+ * budget and what I spent), Balances (what I have and what is owed)
+ * and Insights (where it went) ([[Finances]]). What I plan to buy lives
+ * in Records → Lists now; Today keeps one line of it ([[Lists]]).
  *
  * The private tier is asked for once, here, because the money tabs read
  * rows that are sealed on the wire ([[Sync-Strategy]]).
@@ -282,13 +291,13 @@ export function GranaryScreen() {
   const { t } = useTranslation();
   const dialogs = useDialogs();
   const unlocked = usePrivateKey();
-  const [tab, setTab] = useState('expenses');
+  const [tab, setTab] = useState('today');
 
   if (unlocked === undefined) return null;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 max-md:hidden">
         <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
         {unlocked && (
           <Button onClick={dialogs.logExpense} title={`${t('money.log')} (e)`}>
@@ -297,26 +306,31 @@ export function GranaryScreen() {
           </Button>
         )}
       </div>
+      {/* On a phone the app bar names it, and the expense floats on the first tab only, as there. */}
+      <h1 className="sr-only md:hidden">{t('money.granary')}</h1>
+      {unlocked && tab === 'today' && <Fab wide={false} label={t('money.log')} onClick={dialogs.logExpense} />}
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="max-w-full justify-start overflow-x-auto">
-          <TabsTrigger value="expenses">{t('money.expenses')}</TabsTrigger>
-          <TabsTrigger value="vault">{t('vault.title')}</TabsTrigger>
-          <TabsTrigger value="insights">{t('insights.title')}</TabsTrigger>
-          <TabsTrigger value="budget">{t('budget.title')}</TabsTrigger>
+        <TabsList className={cn('max-w-full justify-start overflow-x-auto', screenTabsList)}>
+          <TabsTrigger value="today" className={screenTabsTrigger}>
+            {t('money.today')}
+          </TabsTrigger>
+          <TabsTrigger value="balances" className={screenTabsTrigger}>
+            {t('money.balancesTab')}
+          </TabsTrigger>
+          <TabsTrigger value="insights" className={screenTabsTrigger}>
+            {t('insights.title')}
+          </TabsTrigger>
         </TabsList>
         {unlocked ? (
           <>
-            <TabsContent value="expenses">
-              <ExpensesPanel />
+            <TabsContent value="today">
+              <TodayPanel />
             </TabsContent>
-            <TabsContent value="vault">
+            <TabsContent value="balances">
               <VaultPanel />
             </TabsContent>
             <TabsContent value="insights">
               <InsightsPanel />
-            </TabsContent>
-            <TabsContent value="budget">
-              <BudgetPanel />
             </TabsContent>
           </>
         ) : (

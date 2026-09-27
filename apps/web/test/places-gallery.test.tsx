@@ -340,7 +340,8 @@ vi.mock('maplibre-gl', () => {
       if (onceCb) onceCb(payload);
     }
   }
-  return { default: { Map: MockMap, NavigationControl: vi.fn(), Popup: vi.fn(() => ({ remove: vi.fn() })) } };
+  const lib = { setWorkerUrl: vi.fn(), Map: MockMap, NavigationControl: vi.fn(), Popup: vi.fn(() => ({ remove: vi.fn() })) };
+  return { ...lib, default: lib };
 });
 
 describe('the places screen (map stubbed)', () => {

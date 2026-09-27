@@ -2,12 +2,16 @@ import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
-import '@/i18n';
+import i18n from '@/i18n';
 
 // A screen that reads IndexedDB can take more than a second to settle
 // when the whole suite runs at once; waiting longer only costs time when
 // something is really missing.
 configure({ asyncUtilTimeout: 5000 });
+
+// The app fetches a language when it is first needed; a test may ask for
+// either at any moment, so both are in from the start.
+await i18n.loadLanguages(['en', 'ar']);
 
 afterEach(() => {
   cleanup();

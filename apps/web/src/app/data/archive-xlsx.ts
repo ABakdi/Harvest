@@ -1,3 +1,4 @@
+import { cellText as cellFits } from '@harvest/core';
 import { strFromU8, strToU8, unzipSync, zipSync, type Zippable } from 'fflate';
 
 /**
@@ -137,7 +138,9 @@ class SharedStrings {
   }
 
   xml(): string {
-    const items = this.list.map((text) => `<si><t xml:space="preserve">${xmlText(text)}</t></si>`).join('');
+    // Cut to what a cell holds (32,767), never inside a pair: the full
+    // note is in its `.md` (Q5-59).
+    const items = this.list.map((text) => `<si><t xml:space="preserve">${xmlText(cellFits(text))}</t></si>`).join('');
     return `${xmlHeader}<sst xmlns="${mainNs}" count="${this.count}" uniqueCount="${this.list.length}">${items}</sst>`;
   }
 }

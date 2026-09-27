@@ -8,6 +8,7 @@ import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/commitments/presentation/project_done.dart';
 import 'package:harvest/features/commitments/presentation/quantity_sheet.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/presentation/gym_seed_choice.dart';
@@ -233,16 +234,31 @@ class PomodoroScreen extends ConsumerWidget {
       if (commitment.type == CommitmentType.project) {
         final logged = ref.read(loggedTodayProvider).value ?? const {};
         final totals = ref.read(lifetimeTotalsProvider).value ?? const {};
+        final totalBefore = totals[commitment.uuid] ?? 0;
+        final navigator = Navigator.of(context, rootNavigator: true);
         final result = await showQuantitySheet(
           context,
           ref,
           item: FieldItem(
             commitment: commitment,
             loggedToday: logged[commitment.uuid] ?? 0,
-            totalLogged: totals[commitment.uuid] ?? 0,
+            totalLogged: totalBefore,
           ),
         );
-        if (result is CheckInSuccess) {
+        final log = result == null ? null : projectLogOf(result);
+        // The target reached from a focus block is the same 100% moment
+        // the field has: the dialog, then the barn ([[Audit-v3]] Q5-28).
+        if (log != null &&
+            projectReached(commitment, totalBefore, log.logged)) {
+          await celebrateProjectDone(
+            ref,
+            navigator,
+            project: commitment,
+            total: totalBefore + log.logged,
+            logged: log.logged,
+            dropped: log.dropped,
+          );
+        } else if (result is CheckInSuccess) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.xpEarned(result.xpEarned))),
           );

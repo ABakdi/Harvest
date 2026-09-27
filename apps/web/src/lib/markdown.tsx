@@ -203,7 +203,7 @@ const headingClass: Record<number, string> = {
 export function Markdown({ source, options = {}, className }: { source: string; options?: MarkdownOptions; className?: string }) {
   const blocks = parseBlocks(source);
   return (
-    <div className={className ?? 'flex flex-col gap-3 leading-relaxed'}>
+    <div className={className ?? 'flex min-w-0 flex-col gap-3 leading-relaxed [overflow-wrap:anywhere]'}>
       {blocks.map((block, index) => {
         const key = `b${index}`;
         switch (block.kind) {

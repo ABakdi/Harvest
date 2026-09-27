@@ -40,13 +40,44 @@ class NotesRepository {
     );
   }
 
+  /// The live note a `[[link]]` to [title] leads to. Two notes can share
+  /// a title (made on two devices, renamed, imported), so this never
+  /// expects one row: the exact-case match wins, then any match that
+  /// differs only in case, as the editor and the web resolve links; the
+  /// oldest first among equals ([[Audit-v3]] Q5-04).
   Future<Note?> byTitle(String title) async {
-    final row =
-        await (_db.select(_db.notes)..where(
-              (n) => n.title.equals(title) & n.deletedAt.isNull(),
-            ))
-            .getSingleOrNull();
+    final row = pickByTitle(await _liveTitled(title), title);
     return row == null ? null : _toDomain(row);
+  }
+
+  /// Live notes whose title is [title] in any case. SQLite's `lower`
+  /// folds ASCII only, so the match is made here.
+  Future<List<NoteRow>> _liveTitled(String title) async {
+    final wanted = title.toLowerCase();
+    final rows = await (_db.select(
+      _db.notes,
+    )..where((n) => n.deletedAt.isNull())).get();
+    return [
+      for (final row in rows)
+        if (row.title.toLowerCase() == wanted) row,
+    ];
+  }
+
+  /// Which of [rows] a link to [title] means: see [byTitle].
+  static NoteRow? pickByTitle(Iterable<NoteRow> rows, String title) {
+    final wanted = title.toLowerCase();
+    NoteRow? exact;
+    NoteRow? folded;
+    bool older(NoteRow row, NoteRow? than) =>
+        than == null || row.createdAt.isBefore(than.createdAt);
+    for (final row in rows) {
+      if (row.title == title) {
+        if (older(row, exact)) exact = row;
+      } else if (row.title.toLowerCase() == wanted) {
+        if (older(row, folded)) folded = row;
+      }
+    }
+    return exact ?? folded;
   }
 
   /// Every folder that has a note in it, plus their parents, sorted.
@@ -267,6 +298,12 @@ class NotesRepository {
         await (_db.delete(
           _db.noteLinks,
         )..where((l) => l.fromUuid.equals(row.uuid))).go();
+        await (_db.update(_db.noteLinks)
+              ..where((l) => l.toUuid.equals(row.uuid)))
+            .write(const NoteLinksCompanion(toUuid: Value(null)));
+        // Gone here is gone everywhere: the web and the server would
+        // otherwise keep it in their trash for good ([[Audit-v3]] Q5-22).
+        await _appendOutbox(row.uuid, 'delete');
       }
       await (_db.delete(
         _db.notes,
@@ -296,11 +333,27 @@ class NotesRepository {
     }
   }
 
-  /// Points every unresolved link with this title at [uuid].
+  /// Points the links to this title at [uuid]: every unresolved one in
+  /// any case, and one resolved elsewhere only by its case when this
+  /// note's title is the exact one it wrote ([byTitle]'s rule).
   Future<void> _resolveInbound(String title, String uuid) async {
-    await (_db.update(_db.noteLinks)
-          ..where((l) => l.toTitle.equals(title) & l.toUuid.isNull()))
-        .write(NoteLinksCompanion(toUuid: Value(uuid)));
+    final wanted = title.toLowerCase();
+    final links = await _db.select(_db.noteLinks).get();
+    for (final link in links) {
+      if (link.toTitle.toLowerCase() != wanted || link.toUuid == uuid) {
+        continue;
+      }
+      var repoint = link.toUuid == null;
+      if (!repoint && link.toTitle == title) {
+        final target = await (_db.select(
+          _db.notes,
+        )..where((n) => n.uuid.equals(link.toUuid!))).getSingleOrNull();
+        repoint = target == null || target.title != link.toTitle;
+      }
+      if (!repoint) continue;
+      await (_db.update(_db.noteLinks)..where((l) => l.uuid.equals(link.uuid)))
+          .write(NoteLinksCompanion(toUuid: Value(uuid)));
+    }
   }
 
   /// Throws the whole index away and builds it again from the bodies.

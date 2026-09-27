@@ -1,7 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:harvest/core/db/built_in_lists.dart';
+import 'package:harvest/core/db/database_file.dart';
+import 'package:harvest/core/db/database_key.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
@@ -992,7 +996,13 @@ const actionTables = {
   ],
 )
 class HarvestDatabase extends _$HarvestDatabase {
-  HarvestDatabase() : super(_openConnection());
+  /// A background isolate's connection: the 3 AM job, a snooze tap, the
+  /// trail recorder. It opens the file as it finds it.
+  HarvestDatabase() : super(_openConnection(primary: false));
+
+  /// The app's own connection, the one that encrypts a plain file from
+  /// v3.0.0 and recovers from a lost key ([[Local-Database]]).
+  HarvestDatabase.primary() : super(_openConnection(primary: true));
 
   HarvestDatabase.forTesting(super.e);
 
@@ -1318,7 +1328,31 @@ class HarvestDatabase extends _$HarvestDatabase {
     );
   }
 
-  static QueryExecutor _openConnection() => driftDatabase(name: 'harvest');
+  /// The file is `harvest.sqlite` in the app's documents directory, as
+  /// it always was; what changed is that it is encrypted
+  /// ([[Local-Database]], S-04). The key is read before drift opens it,
+  /// and `setup` unlocks every connection before its first query.
+  static QueryExecutor _openConnection({required bool primary}) =>
+      DatabaseConnection.delayed(
+        Future(() async {
+          final path = p.join(
+            (await getApplicationDocumentsDirectory()).path,
+            'harvest.sqlite',
+          );
+          final key = await prepareDatabaseFile(
+            path,
+            const KeystoreDatabaseKeys(),
+            primary: primary,
+          );
+          return driftDatabase(
+            name: 'harvest',
+            native: DriftNativeOptions(
+              databasePath: () async => path,
+              setup: key == null ? null : (db) => unlockDatabase(db, key),
+            ),
+          );
+        }),
+      );
 
   /// Whether an insert into an action table also writes a pending
   /// geotag ([[Places]] PL2). Set from the `features.places` setting by

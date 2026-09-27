@@ -1,9 +1,19 @@
-import { evaluateAmountToMinor } from '@harvest/core';
+import { HarvestDay, evaluateAmountToMinor } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { PlusIcon } from 'lucide-react';
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -53,7 +63,7 @@ export function ExpenseEditor({ expense, prefill, onClose }: { expense: ExpenseR
 
 function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow | null; prefill?: ExpensePrefill | undefined; onClose: () => void }) {
   const { t } = useTranslation();
-  const { db, money } = useHarvest();
+  const { db, money, clock } = useHarvest();
   const today = useHarvestDay();
   const defaultCurrency = useDefaultCurrency();
   const id = useId();
@@ -63,7 +73,11 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
   const [currency, setCurrency] = useState<string | null>(expense?.currency ?? prefill.currency ?? null);
   const [category, setCategory] = useState(expense?.category ?? 'food');
   const [note, setNote] = useState(expense?.note ?? prefill.note ?? '');
-  const [day, setDay] = useState(expense?.harvestDay ?? today.key);
+  // Null is "today", read when Log is pressed: a form opened at 02:58
+  // and saved at 03:02 logs on the new day, not the one it opened on
+  // ([[Audit-v3]] Q5-49).
+  const [day, setDay] = useState<string | null>(expense?.harvestDay ?? null);
+  const [confirming, setConfirming] = useState(false);
   const [fromWallet, setFromWallet] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -101,8 +115,16 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
       setError(t('money.error.amount'));
       return;
     }
-    if (!day) {
+    const now = HarvestDay.of(clock());
+    const chosenDay = day ?? now.key;
+    if (!chosenDay || HarvestDay.tryParse(chosenDay) === null) {
       setError(t('money.error.day'));
+      return;
+    }
+    // A year either side, as the chip allows; the form is noValidate,
+    // so the date input's own bounds are only a hint.
+    if (chosenDay < now.addDays(-365).key || chosenDay > now.addDays(365).key) {
+      setError(t('money.error.dayRange'));
       return;
     }
     setSaving(true);
@@ -111,7 +133,7 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
       currency: chosenCurrency,
       category,
       note: note || null,
-      day,
+      day: chosenDay,
       fromWallet: paidFromWallet,
     };
     try {
@@ -131,10 +153,15 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
 
   async function remove() {
     if (!expense) return;
-    await money.remove(expense.uuid);
+    try {
+      await money.remove(expense.uuid);
+    } catch {
+      toast.error(t('common.saveFailed'));
+      return;
+    }
     onClose();
     toast(t('money.removed'), {
-      action: { label: t('common.undo'), onClick: () => void money.restore(expense.uuid) },
+      action: { label: t('common.undo'), onClick: () => void money.restore(expense.uuid).catch(() => void toast.error(t('common.saveFailed'))) },
     });
   }
 
@@ -202,7 +229,7 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
             <Input
               id={`${id}-day`}
               type="date"
-              value={day}
+              value={day ?? today.key}
               min={today.addDays(-365).key}
               max={today.addDays(365).key}
               onChange={(event) => {
@@ -232,7 +259,7 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
         )}
         <DialogFooter className="gap-2">
           {expense && (
-            <Button variant="ghost" className="text-destructive sm:me-auto" onClick={() => void remove()}>
+            <Button variant="ghost" className="text-destructive sm:me-auto" onClick={() => setConfirming(true)}>
               {t('common.remove')}
             </Button>
           )}
@@ -246,6 +273,21 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
       </form>
       {/* Outside the form: its own submit must not log the expense. */}
       {creating && <CategoryCreator onClose={() => setCreating(false)} onCreated={setCategory} />}
+      {/* Removing asks first, as the phone does. */}
+      <AlertDialog open={confirming} onOpenChange={setConfirming}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('money.removeTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('money.removeBody', { amount: expense ? formatMoney(expense.amountMinor, expense.currency) : '' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void remove()}>{t('common.remove')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

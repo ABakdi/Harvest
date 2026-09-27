@@ -54,7 +54,7 @@ typedef ArchiveContents = ({
 
   /// One picture or clip, at the path its row names, read back out of
   /// the gallery directory by [storedPath].
-  List<({String path, String storedPath})> memories,
+  List<({String path, String storedPath, String? hash})> memories,
 
   /// One recording, beside its note's `.md`, read back out of the
   /// attachments directory by [storedPath] ([[Notes]] N7).

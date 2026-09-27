@@ -125,7 +125,7 @@ export function PomodoroScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
+      <Button asChild variant="ghost" size="sm" className="w-fit max-md:hidden">
         <Link to="/app/field">
           <ArrowLeftIcon className="rtl:rotate-180" />
           {t('field.today')}

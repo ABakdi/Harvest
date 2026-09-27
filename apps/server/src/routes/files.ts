@@ -10,9 +10,13 @@ import { Binary } from 'mongodb';
 import express, { Router } from 'express';
 import { z } from 'zod';
 import type { FilesRepository } from '../db/files.js';
+import type { RecordsRepository } from '../db/records.js';
+import type { TotalsRepository } from '../db/totals.js';
 import { authOf } from '../http/authenticate.js';
 import { HttpError, validationError } from '../http/errors.js';
 import { validated } from '../http/validate.js';
+import { unnamedFileGraceMs } from '../sync/file-sweep.js';
+import type { KeyedMutex } from '../sync/mutex.js';
 
 /** A 12-byte nonce, base64, as the envelope carries one. */
 const ivSchema = z.string().regex(/^[A-Za-z0-9+/]{16}={0,2}$/, { message: 'Not a 12-byte nonce' });
@@ -38,18 +42,30 @@ function sealOf(req: { get(name: string): string | undefined }): { iv: string; p
  *
  * Mounted behind requireAuth and requireVerified, like sync.
  */
-export function fileRoutes(files: FilesRepository, now: () => Date = () => new Date()): Router {
+export interface FileDeps {
+  files: FilesRepository;
+  records: RecordsRepository;
+  totals: TotalsRepository;
+  /** The account lock pushes run under ([[SyncService]]). */
+  lock: KeyedMutex;
+  now?: () => Date;
+}
+
+export function fileRoutes({ files, records, totals, lock, now = () => new Date() }: FileDeps): Router {
   const router = Router();
 
   // Ciphertext, not JSON: the body is raw bytes and nothing parses it.
   const bytes = express.raw({ type: 'application/octet-stream', limit: maxFileBytes + 4096 });
+  // 500 hashes of 64 characters, and room around them.
+  const json = express.json({ limit: '64kb' });
 
   router.post(
     '/missing',
+    json,
     ...validated({ body: fileQuerySchema }, async ({ body }, _req, res) => {
       const { userId } = authOf(res);
       res.json({
-        missing: await files.missing(userId, body.hashes),
+        missing: await files.missing(userId, body.hashes, now()),
         usedBytes: await files.usedBytes(userId),
         quotaBytes: maxFileStoreBytes,
       });
@@ -68,25 +84,39 @@ export function fileRoutes(files: FilesRepository, now: () => Date = () => new D
         throw new HttpError('validation_failed', 'The body must be the file');
       }
 
-      // Already held: the name is the contents, so there is nothing to
-      // replace and nothing to charge for.
-      if (await files.has(userId, sha256)) {
+      // Under the account's lock: an account being deleted is not written
+      // back to, and the room is charged before the bytes land, so two
+      // uploads at once cannot both take the last of it (audit S5-08).
+      const had = await lock.run(userId.toHexString(), async () => {
+        // Already held: the name is the contents, so there is nothing to
+        // replace and nothing to charge for.
+        if (await files.claim(userId, sha256, now())) return true;
+        const room = await totals.reserve(userId, 'fileBytes', blob.length, maxFileStoreBytes, () =>
+          files.usedBytes(userId),
+        );
+        if (!room) throw new HttpError('quota_exceeded', 'This account has no room left for files');
+        let stored = false;
+        try {
+          const at = now();
+          stored = await files.put({
+            userId,
+            sha256,
+            bytes: blob.length,
+            iv,
+            plainBytes,
+            blob: new Binary(blob),
+            uploadedAt: at,
+            claimedAt: at,
+          });
+        } finally {
+          if (!stored) await totals.release(userId, 'fileBytes', blob.length);
+        }
+        return !stored;
+      });
+      if (had) {
         res.json({ sha256, bytes: blob.length, had: true });
         return;
       }
-      const used = await files.usedBytes(userId);
-      if (used + blob.length > maxFileStoreBytes) {
-        throw new HttpError('quota_exceeded', 'This account has no room left for files');
-      }
-      await files.put({
-        userId,
-        sha256,
-        bytes: blob.length,
-        iv,
-        plainBytes,
-        blob: new Binary(blob),
-        uploadedAt: now(),
-      });
       res.status(201).json({ sha256, bytes: blob.length, had: false });
     }),
   );
@@ -103,6 +133,37 @@ export function fileRoutes(files: FilesRepository, now: () => Date = () => new D
         .set(fileIvHeader, doc.iv)
         .set(filePlainBytesHeader, String(doc.plainBytes))
         .send(Buffer.from(doc.blob.buffer));
+    }),
+  );
+
+  /**
+   * Lets go of a file the account no longer needs, and gives its room
+   * back, by the sweep's own rule ([[FileSweeper]]): not while a row,
+   * live or in the trash, still names it, and not within 30 days of its
+   * upload or of a "missing?" that said the server has it, because
+   * another device may be about to name it. Either answers 409, and the
+   * sweep lets it go later. Deleting one that is not there is done all
+   * the same: 204.
+   */
+  router.delete(
+    '/:sha256',
+    ...validated({ params: nameSchema }, async ({ params }, _req, res) => {
+      const { userId } = authOf(res);
+      await lock.run(userId.toHexString(), async () => {
+        const doc = await files.times(userId, params.sha256);
+        if (!doc) return;
+        if (await records.namesFile(userId, params.sha256)) {
+          throw new HttpError('conflict', 'A row still names this file; it stays until none does');
+        }
+        const since = now().getTime() - unnamedFileGraceMs;
+        const touched = Math.max(doc.uploadedAt.getTime(), doc.claimedAt?.getTime() ?? 0);
+        if (touched > since) {
+          throw new HttpError('conflict', 'This file was sent or asked about recently; the sweep lets it go later');
+        }
+        const bytes = await files.delete(userId, params.sha256);
+        if (bytes !== null) await totals.release(userId, 'fileBytes', bytes);
+      });
+      res.status(204).end();
     }),
   );
 

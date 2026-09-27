@@ -45,7 +45,10 @@ class SessionFinisher {
     WorkoutSession session, {
     DateTime? endedAt,
   }) async {
-    await _sessions.finish(session.uuid, at: endedAt);
+    // Already finished (a double tap): nothing more to end or pay.
+    if (!await _sessions.finish(session.uuid, at: endedAt)) {
+      return (xpEarned: 0, albumUuid: null);
+    }
 
     final programUuid = session.programUuid;
     if (programUuid == null) return (xpEarned: 0, albumUuid: null);

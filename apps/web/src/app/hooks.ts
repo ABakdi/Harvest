@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import { useHarvest } from './context';
 import type { FileMiss } from './data/files';
 import { readSetting, settingKeys } from './data/settings';
@@ -71,8 +71,34 @@ export type FileView =
   | { state: 'ready'; url: string }
   | { state: FileMiss; retry: () => void };
 
-/** A file by its hash, as a [FileView]; no hash is still on the phone. */
-export function useFileView(sha256: string | null): FileView {
+/**
+ * At most [size] of these at once; the rest wait their turn. A gallery
+ * of a thousand tiles asks for its files five at a time, not a thousand
+ * at once ([[Audit-v3]] Q5-32).
+ */
+export function fetchPool(size: number): <T>(work: () => Promise<T>) => Promise<T> {
+  let running = 0;
+  const waiting: (() => void)[] = [];
+  return async <T>(work: () => Promise<T>): Promise<T> => {
+    if (running >= size) await new Promise<void>((resolve) => waiting.push(resolve));
+    running++;
+    try {
+      return await work();
+    } finally {
+      running--;
+      waiting.shift()?.();
+    }
+  };
+}
+
+const filePool = fetchPool(5);
+
+/**
+ * A file by its hash, as a [FileView]; no hash is still on the phone.
+ * With [enabled] false (a tile not on screen yet) nothing is fetched and
+ * it reads as loading.
+ */
+export function useFileView(sha256: string | null, enabled = true): FileView {
   const { files } = useHarvest();
   // Keyed by the hash, so a tile scrolled into a new row starts again
   // rather than showing the last file it held.
@@ -83,10 +109,12 @@ export function useFileView(sha256: string | null): FileView {
   const retry = useFileRetry(missing);
 
   useEffect(() => {
-    if (sha256 === null) return;
+    if (sha256 === null || !enabled) return;
     let live = true;
     let made: string | null = null;
-    void files.find(sha256).then((got) => {
+    // Not started at all if the tile is gone before its turn.
+    void filePool(async () => (live ? files.find(sha256) : null)).then((got) => {
+      if (got === null) return;
       if (!live) return;
       if (typeof got === 'string') {
         setFound({ hash: sha256, miss: got });
@@ -99,7 +127,7 @@ export function useFileView(sha256: string | null): FileView {
       live = false;
       if (made !== null) URL.revokeObjectURL(made);
     };
-  }, [files, sha256, retry, asked]);
+  }, [files, sha256, retry, asked, enabled]);
 
   if (sha256 === null) return { state: 'onPhone', retry: () => setAsked((n) => n + 1) };
   if (found?.hash !== sha256) return { state: 'loading' };
@@ -111,6 +139,30 @@ export function useFileView(sha256: string | null): FileView {
       setAsked((n) => n + 1);
     },
   };
+}
+
+/**
+ * Whether [ref]'s element has come near the screen; once it has, it
+ * stays true. Without IntersectionObserver it is simply true.
+ */
+export function useSeen(ref: RefObject<Element | null>, margin = '300px'): boolean {
+  const [seen, setSeen] = useState(() => typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    const element = ref.current;
+    if (seen || !element) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setSeen(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: margin },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref, seen, margin]);
+  return seen;
 }
 
 /**

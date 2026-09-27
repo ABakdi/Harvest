@@ -132,6 +132,97 @@ final class ApiClientProvider
 
 String _$apiClientHash() => r'8e9a9bac28b70238ea27c5cd5cd9bb587d67bd76';
 
+@ProviderFor(syncKeyRemote)
+final syncKeyRemoteProvider = SyncKeyRemoteProvider._();
+
+final class SyncKeyRemoteProvider
+    extends $FunctionalProvider<SyncKeyRemote, SyncKeyRemote, SyncKeyRemote>
+    with $Provider<SyncKeyRemote> {
+  SyncKeyRemoteProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncKeyRemoteProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncKeyRemoteHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncKeyRemote> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SyncKeyRemote create(Ref ref) {
+    return syncKeyRemote(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncKeyRemote value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncKeyRemote>(value),
+    );
+  }
+}
+
+String _$syncKeyRemoteHash() => r'5084e1f1ce5c40e5ab3f735827e3de3039e9f17b';
+
+/// What the server says about the account's key right now: whether a
+/// PIN is to be chosen or entered is its answer, never a guess from what
+/// this phone happens to have pulled ([[Accounts]]).
+
+@ProviderFor(syncKeyShare)
+final syncKeyShareProvider = SyncKeyShareProvider._();
+
+/// What the server says about the account's key right now: whether a
+/// PIN is to be chosen or entered is its answer, never a guess from what
+/// this phone happens to have pulled ([[Accounts]]).
+
+final class SyncKeyShareProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SyncKeyShare>,
+          SyncKeyShare,
+          FutureOr<SyncKeyShare>
+        >
+    with $FutureModifier<SyncKeyShare>, $FutureProvider<SyncKeyShare> {
+  /// What the server says about the account's key right now: whether a
+  /// PIN is to be chosen or entered is its answer, never a guess from what
+  /// this phone happens to have pulled ([[Accounts]]).
+  SyncKeyShareProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncKeyShareProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncKeyShareHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SyncKeyShare> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SyncKeyShare> create(Ref ref) {
+    return syncKeyShare(ref);
+  }
+}
+
+String _$syncKeyShareHash() => r'1e153f37e7b9c36594515085d5015cb6993f1076';
+
 /// Files sync only once a passphrase is set: a picture is as personal
 /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
 
@@ -217,7 +308,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'2833ec746be5951149015c8bd6a862d7fbcfadd7';
+String _$syncServiceHash() => r'7b74d5b8cf5620275ddf1193c914c1fe610f0b81';
 
 @ProviderFor(syncKeyMaker)
 final syncKeyMakerProvider = SyncKeyMakerProvider._();
@@ -258,48 +349,7 @@ final class SyncKeyMakerProvider
   }
 }
 
-String _$syncKeyMakerHash() => r'a28d3377fabac6a67a94579ff1def4dfc998ef87';
-
-/// Whether another device has sealed rows on the server: what decides
-/// between *choosing* a sync PIN and *entering* one ([[Accounts]]).
-
-@ProviderFor(syncSealedSeen)
-final syncSealedSeenProvider = SyncSealedSeenProvider._();
-
-/// Whether another device has sealed rows on the server: what decides
-/// between *choosing* a sync PIN and *entering* one ([[Accounts]]).
-
-final class SyncSealedSeenProvider
-    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
-    with $FutureModifier<bool>, $StreamProvider<bool> {
-  /// Whether another device has sealed rows on the server: what decides
-  /// between *choosing* a sync PIN and *entering* one ([[Accounts]]).
-  SyncSealedSeenProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'syncSealedSeenProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$syncSealedSeenHash();
-
-  @$internal
-  @override
-  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
-
-  @override
-  Stream<bool> create(Ref ref) {
-    return syncSealedSeen(ref);
-  }
-}
-
-String _$syncSealedSeenHash() => r'697b951c3d96b42c918082e1b3c44698df638eab';
+String _$syncKeyMakerHash() => r'e790c723678d17255a3b4ad70fe49c750fb873cb';
 
 /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
 /// Only the key derived from it is kept, in the keystore; the secret
@@ -335,7 +385,7 @@ final class SyncPassphraseProvider
   SyncPassphrase create() => SyncPassphrase();
 }
 
-String _$syncPassphraseHash() => r'640458f993057f2513fe9f6c18ae0480274f1998';
+String _$syncPassphraseHash() => r'22d2f5983a85c432a69e15b337ba6837ccb1b072';
 
 /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
 /// Only the key derived from it is kept, in the keystore; the secret

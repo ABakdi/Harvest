@@ -105,6 +105,30 @@ export function staysIn(trail: readonly FixLike[], places: readonly SavedPlaceLi
   return stays;
 }
 
+/**
+ * The stays of a span of days, from [start] to [end]: [trail] is the
+ * span's points plus the last point before it and the first after it,
+ * so a stay across the 3 AM line (home from 19:00 to 08:00, nothing in
+ * between) is found on both days, each keeping its own part of it
+ * ([[Audit-v3]] Q5-58). A stay is cut to the span, and a part shorter
+ * than [stayMinimumMs] is left out.
+ */
+export function staysWithin(
+  trail: readonly FixLike[],
+  start: Date,
+  end: Date,
+  places: readonly SavedPlaceLike[] = [],
+): Stay[] {
+  const stays: Stay[] = [];
+  for (const stay of staysIn(trail, places)) {
+    const from = new Date(Math.max(stay.from.getTime(), start.getTime()));
+    const to = new Date(Math.min(stay.to.getTime(), end.getTime()));
+    const lengthMs = to.getTime() - from.getTime();
+    if (lengthMs >= stayMinimumMs) stays.push({ ...stay, from, to, lengthMs });
+  }
+  return stays;
+}
+
 /** The total length of a trail, in metres. */
 export function trailMetres(trail: readonly FixLike[]): number {
   let total = 0;

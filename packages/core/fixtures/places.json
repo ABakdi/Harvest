@@ -1,5 +1,5 @@
 {
-  "about": "place.dart: the haversine, a trail's length and staysIn (Places PL5). Distances in metres, to within a metre; a stay is a run of points inside 100 m spanning at least ten minutes.",
+  "about": "place.dart: the haversine, a trail's length and staysIn (Places PL5). Distances in metres, to within a metre; a stay is a run of points inside 100 m spanning at least ten minutes. staysWithin: the stays of a span of days, given its points plus the last point before it and the first after it; a stay is cut to the span and kept when its part is at least ten minutes long. Times are wall-clock; the Harvest Day starts at 3 AM.",
   "distances": [
     {
       "why": "a hundredth of a degree of latitude is about 1.11 km anywhere",
@@ -124,6 +124,41 @@
           "place": null
         }
       ]
+    }
+  ],
+  "staysWithin": [
+    {
+      "why": "home from 19:00 to 08:00 with nothing in between: the evening's part on the day it started",
+      "dayStart": "2026-09-19T03:00:00",
+      "dayEnd": "2026-09-20T03:00:00",
+      "points": [
+        { "latitude": 36.7, "longitude": 3.0, "at": "2026-09-19T12:00:00" },
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T19:00:00" },
+        { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-20T08:00:00" }
+      ],
+      "result": [{ "from": "2026-09-19T19:00:00", "to": "2026-09-20T03:00:00", "minutes": 480 }]
+    },
+    {
+      "why": "and the morning's part on the next day, from its first point before it",
+      "dayStart": "2026-09-20T03:00:00",
+      "dayEnd": "2026-09-21T03:00:00",
+      "points": [
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T19:00:00" },
+        { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-20T08:00:00" },
+        { "latitude": 36.8, "longitude": 3.1, "at": "2026-09-20T09:00:00" }
+      ],
+      "result": [{ "from": "2026-09-20T03:00:00", "to": "2026-09-20T08:00:00", "minutes": 300 }]
+    },
+    {
+      "why": "a part shorter than ten minutes inside the day is not a stay",
+      "dayStart": "2026-09-20T03:00:00",
+      "dayEnd": "2026-09-21T03:00:00",
+      "points": [
+        { "latitude": 36.75, "longitude": 3.06, "at": "2026-09-19T19:00:00" },
+        { "latitude": 36.7501, "longitude": 3.06, "at": "2026-09-20T03:05:00" },
+        { "latitude": 36.8, "longitude": 3.1, "at": "2026-09-20T09:00:00" }
+      ],
+      "result": []
     }
   ]
 }

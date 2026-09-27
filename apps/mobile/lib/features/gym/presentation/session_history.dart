@@ -164,7 +164,19 @@ class _DoneExercise extends ConsumerWidget {
             .value
             ?.displayName ??
         l10n.gymUnknownExercise;
+    // What the day was meant to be stays in the record (Y7): the
+    // exercise it replaced, and why one was skipped ([[Audit-v3]] G5-10).
+    final planned = exercise.replaced
+        ? ref
+                  .watch(exerciseByIdProvider(exercise.plannedExerciseId!))
+                  .value
+                  ?.displayName ??
+              l10n.gymUnknownExercise
+        : null;
     final done = exercise.sets.where((set) => set.done).toList();
+    final quiet = theme.textTheme.bodySmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
@@ -182,6 +194,9 @@ class _DoneExercise extends ConsumerWidget {
                     : null,
               ),
             ),
+            if (planned != null) Text(l10n.gymInsteadOf(planned), style: quiet),
+            if (exercise.skipped && (exercise.skipReason ?? '').isNotEmpty)
+              Text(l10n.gymSkippedBecause(exercise.skipReason!), style: quiet),
             if (done.isEmpty)
               Text(
                 l10n.gymNoSetsLogged,

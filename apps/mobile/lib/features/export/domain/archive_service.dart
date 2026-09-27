@@ -7,6 +7,8 @@ import 'package:harvest/features/export/domain/archive_layout.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/export/domain/workbook.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/import/domain/archive_reader.dart'
+    show ArchiveLimits;
 import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -50,12 +52,20 @@ class ArchiveService {
   final AttachmentStorage _attachments;
 
   /// [onProgress] is called for every entry; returning `false` from
-  /// [cancelled] between entries stops the build.
+  /// [cancelled] between entries stops the build. [onTooLarge] hears of
+  /// each file left out for being bigger than an importer takes
+  /// ([ArchiveLimits.entryBytes]): its row still goes out, like a row
+  /// whose file is gone, and the archive stays one that opens (Q5-06).
+  /// [onNotHere] hears of each picture only the server holds so far —
+  /// named, not yet downloaded — so the export can say how many it could
+  /// not carry (Q5-61).
   Future<Uint8List> build({
     DateTime? now,
     void Function(ArchiveProgress)? onProgress,
     bool Function()? cancelled,
     bool includePlaces = true,
+    void Function(String path)? onTooLarge,
+    void Function(String path)? onNotHere,
   }) async {
     final at = now ?? DateTime.now();
     final contents = await _repository.readArchive(
@@ -110,6 +120,11 @@ class ArchiveService {
         step(attachment.path);
         continue;
       }
+      if (file.lengthSync() > ArchiveLimits.entryBytes) {
+        onTooLarge?.call(attachment.path);
+        step(attachment.path);
+        continue;
+      }
       final bytes = await file.readAsBytes();
       archive.addFile(ArchiveFile(attachment.path, bytes.length, bytes));
       step(attachment.path);
@@ -121,6 +136,12 @@ class ArchiveService {
       // A row whose file is gone is not a reason to lose the archive;
       // the row still goes out, and the sheet is honest about it.
       if (!file.existsSync()) {
+        if (memory.hash != null) onNotHere?.call(memory.path);
+        step(memory.path);
+        continue;
+      }
+      if (file.lengthSync() > ArchiveLimits.entryBytes) {
+        onTooLarge?.call(memory.path);
         step(memory.path);
         continue;
       }

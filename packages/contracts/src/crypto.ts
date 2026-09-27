@@ -13,8 +13,14 @@
  *
  * `fixtures/crypto.json` pins all of it, and the phone's tests read the
  * same file.
+ *
+ * That is version 1, as 3.0.0 wrote it. Version 2 (below, pinned by
+ * `fixtures/crypto-v2.json`) adds the account's key share to the key and
+ * the row's clocks to the additional data.
  */
 import type { EncEnvelope } from './sync.js';
+import { hasColumn, tables, type SyncedTable } from './tables.js';
+import { instantMicros, sameInstant } from './time.js';
 
 export const syncKeyIterations = 600_000;
 
@@ -133,4 +139,192 @@ export async function openRow(
     fromBase64(envelope.ct),
   );
   return JSON.parse(decoder.decode(plain)) as Record<string, unknown>;
+}
+
+// ------------------------------------------------------------ version 2
+
+/**
+ * Version 2 of the private tier ([[Sync-API]]):
+ *
+ * - the key is HKDF-SHA256 over the version 1 key (PBKDF2 of the secret
+ *   and the salt, unchanged), salted with the account's `keyShare`, the
+ *   32 random bytes the server hands only to a signed-in session, with
+ *   the info `harvest/sync-key/v2`. The salt and the ciphertext alone,
+ *   from a copy of the database, are no longer enough to try PINs.
+ * - the envelope says `v: 2`;
+ * - a row's additional data is
+ *   `row/<table>/<uuid>/<updatedAt micros>/<deletedAt micros or "">`, so
+ *   an older ciphertext offered under a newer clock fails to open, and a
+ *   deleted version cannot be replayed as a live one;
+ * - files are sealed as before (`file/<sha256>`), with the version 2 key;
+ * - the account's key check is the text `harvest-key-check` sealed with
+ *   the additional data `key-check`: a secret is the account's secret
+ *   exactly when its key opens it.
+ */
+export const syncKeyInfoV2 = 'harvest/sync-key/v2';
+export const keyCheckPlaintext = 'harvest-key-check';
+export const keyCheckAad = 'key-check';
+
+/** The clocks a record carries in the clear, which a version 2 row binds. */
+export interface RowClocks {
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+/** A sealed row this key cannot read: another key, another row or clock, or version 1. */
+export class UnreadableRowError extends Error {
+  constructor(message = 'This row cannot be opened with this key') {
+    super(message);
+    this.name = 'UnreadableRowError';
+  }
+}
+
+function bytesOf(value: string | Uint8Array): Uint8Array<ArrayBuffer> {
+  if (typeof value === 'string') return fromBase64(value);
+  const copy = new Uint8Array(value.length);
+  copy.set(value);
+  return copy;
+}
+
+/**
+ * The version 2 key, from the secret, the account's salt and its key
+ * share (base64, as `GET /v1/me/sync-key` gives it, or the bytes).
+ */
+export async function deriveSyncKeyV2(
+  secret: string,
+  syncSalt: string,
+  keyShare: string | Uint8Array,
+  options: { iterations?: number; extractable?: boolean } = {},
+): Promise<CryptoKey> {
+  const password = await crypto.subtle.importKey('raw', encoder.encode(secret), 'PBKDF2', false, [
+    'deriveBits',
+  ]);
+  const base = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      hash: 'SHA-256',
+      salt: encoder.encode(syncSalt),
+      iterations: options.iterations ?? syncKeyIterations,
+    },
+    password,
+    256,
+  );
+  const ikm = await crypto.subtle.importKey('raw', base, 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: bytesOf(keyShare), info: encoder.encode(syncKeyInfoV2) },
+    ikm,
+    { name: 'AES-GCM', length: 256 },
+    options.extractable ?? false,
+    ['encrypt', 'decrypt'],
+  );
+}
+
+/** A version 2 row's additional data: the table, the key and both clocks. */
+export function rowAadV2(table: string, uuid: string, clocks: RowClocks): string {
+  const deleted = clocks.deletedAt === null ? '' : String(instantMicros(clocks.deletedAt));
+  return `row/${table}/${uuid}/${instantMicros(clocks.updatedAt)}/${deleted}`;
+}
+
+/** Seals one row's data for the wire, bound to the clocks it travels with. */
+export async function sealRowV2(
+  key: CryptoKey,
+  table: string,
+  uuid: string,
+  clocks: RowClocks,
+  data: Record<string, unknown>,
+  iv: Uint8Array<ArrayBuffer> = crypto.getRandomValues(new Uint8Array(12)),
+): Promise<EncEnvelope> {
+  const ct = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, additionalData: encoder.encode(rowAadV2(table, uuid, clocks)), tagLength: 128 },
+    key,
+    encoder.encode(JSON.stringify(data)),
+  );
+  return { v: 2, iv: toBase64(iv), ct: toBase64(new Uint8Array(ct)) };
+}
+
+/**
+ * Opens one version 2 row, or throws [UnreadableRowError]: a version 1
+ * envelope, another key, another row, or clocks other than the ones it
+ * was sealed with. The row's own `updatedAt`/`deletedAt`, where its
+ * table has them, must also be the record's.
+ */
+export async function openRowV2(
+  key: CryptoKey,
+  table: string,
+  uuid: string,
+  clocks: RowClocks,
+  envelope: { v: number; iv: string; ct: string },
+): Promise<Record<string, unknown>> {
+  if (envelope.v !== 2) throw new UnreadableRowError('A version 1 envelope');
+  let plain: ArrayBuffer;
+  try {
+    plain = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: fromBase64(envelope.iv),
+        additionalData: encoder.encode(rowAadV2(table, uuid, clocks)),
+        tagLength: 128,
+      },
+      key,
+      fromBase64(envelope.ct),
+    );
+  } catch {
+    throw new UnreadableRowError();
+  }
+  const data = JSON.parse(decoder.decode(plain)) as Record<string, unknown>;
+  if (!clocksMatch(table, clocks, data)) throw new UnreadableRowError("The row's clocks are not the record's");
+  return data;
+}
+
+/** Whether an opened row's own clocks are the record's, where its table keeps them. */
+export function clocksMatch(table: string, clocks: RowClocks, data: Record<string, unknown>): boolean {
+  if (!Object.hasOwn(tables, table)) return false;
+  const synced = table as SyncedTable;
+  const same = (value: unknown, expected: string | null): boolean => {
+    if (value !== null && typeof value !== 'string') return false;
+    try {
+      return sameInstant(value, expected);
+    } catch {
+      return false;
+    }
+  };
+  if (hasColumn(synced, 'updatedAt') && !same(data.updatedAt ?? null, clocks.updatedAt)) return false;
+  if (hasColumn(synced, 'deletedAt') && !same(data.deletedAt ?? null, clocks.deletedAt)) return false;
+  return true;
+}
+
+/** Seals the account's key check under [key]: what the first device stores. */
+export async function sealKeyCheck(
+  key: CryptoKey,
+  iv: Uint8Array<ArrayBuffer> = crypto.getRandomValues(new Uint8Array(12)),
+): Promise<EncEnvelope> {
+  const ct = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, additionalData: encoder.encode(keyCheckAad), tagLength: 128 },
+    key,
+    encoder.encode(keyCheckPlaintext),
+  );
+  return { v: 2, iv: toBase64(iv), ct: toBase64(new Uint8Array(ct)) };
+}
+
+/** Whether [key] opens the account's key check: whether it is the account's key. */
+export async function opensKeyCheck(
+  key: CryptoKey,
+  check: { v: number; iv: string; ct: string },
+): Promise<boolean> {
+  if (check.v !== 2) return false;
+  try {
+    const plain = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: fromBase64(check.iv),
+        additionalData: encoder.encode(keyCheckAad),
+        tagLength: 128,
+      },
+      key,
+      fromBase64(check.ct),
+    );
+    return decoder.decode(plain) === keyCheckPlaintext;
+  } catch {
+    return false;
+  }
 }

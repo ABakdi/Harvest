@@ -72,10 +72,10 @@ export function LoginPage() {
           {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
         </Button>
         <div className="flex flex-wrap justify-between gap-2 text-sm">
-          <Link to="/forgot" className="font-bold text-primary hover:underline">
+          <Link to="/forgot" className="font-bold text-primary hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
             {t('auth.forgotLink')}
           </Link>
-          <Link to="/register" className="font-bold text-primary hover:underline">
+          <Link to="/register" className="font-bold text-primary hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
             {t('auth.createAccount')}
           </Link>
         </div>

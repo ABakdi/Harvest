@@ -23,7 +23,7 @@ import { PassphrasePrompt } from './passphrase-prompt';
 type ExportState =
   | { kind: 'idle' }
   | { kind: 'running'; progress: ArchiveProgress | null }
-  | { kind: 'saved'; name: string; sealed: number; missing: number }
+  | { kind: 'saved'; name: string; sealed: number; missing: number; tooLarge: number }
   | { kind: 'stopped' }
   | { kind: 'failed' };
 
@@ -106,7 +106,13 @@ function ExportPart() {
           cancelled: () => cancelled.current,
         });
         save(built.bytes as Uint8Array<ArrayBuffer>, built.fileName);
-        setState({ kind: 'saved', name: built.fileName, sealed: built.sealed, missing: built.missingFiles });
+        setState({
+          kind: 'saved',
+          name: built.fileName,
+          sealed: built.sealed,
+          missing: built.missingFiles,
+          tooLarge: built.tooLarge,
+        });
       } catch (error) {
         setState(error instanceof ArchiveCancelled ? { kind: 'stopped' } : { kind: 'failed' });
       }
@@ -175,6 +181,9 @@ function ExportPart() {
           <>
             <span>{t('data.export.saved', { name: state.name })}</span>
             {state.missing > 0 && <span className="font-normal text-muted-foreground">{t('data.export.missing', { count: state.missing })}</span>}
+            {state.tooLarge > 0 && (
+              <span className="font-normal text-muted-foreground">{t('data.export.tooLarge', { count: state.tooLarge })}</span>
+            )}
             {state.sealed > 0 && <span className="font-normal text-muted-foreground">{t('data.export.sealed', { count: state.sealed })}</span>}
           </>
         )}
@@ -328,6 +337,9 @@ function PreviewPanel({
           </span>
         )}
         {total.skipped > 0 && <span className="text-xs text-muted-foreground">{t('data.import.skipped', { count: total.skipped })}</span>}
+        {(preview.skippedFiles ?? 0) > 0 && (
+          <span className="text-xs text-muted-foreground">{t('data.import.tooLarge', { count: preview.skippedFiles })}</span>
+        )}
       </div>
       {changed.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('data.import.nothingToDo')}</p>

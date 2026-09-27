@@ -15,6 +15,7 @@ import { ExerciseDetailDialog } from './gym/exercise-detail';
 import { ExercisePicker } from './gym/exercise-picker';
 import { usePictureOffer } from './gym/picture-offer';
 import { SetList, UnitToggle, useAsker, useLoad, useVolume } from './gym/shared';
+import { Fab } from '../components/fab';
 import { StartDialog, useStartSession } from './gym/start';
 
 /**
@@ -162,6 +163,10 @@ function History() {
                       >
                         {nameOf(row.exerciseId)}
                       </button>
+                      {/* What the day was meant to be stays in the record (Y7, [[Audit-v3]] G5-10). */}
+                      {row.plannedExerciseId !== null && row.plannedExerciseId !== row.exerciseId && (
+                        <span className="text-xs text-muted-foreground">{t('gym.insteadOf', { name: nameOf(row.plannedExerciseId) })}</span>
+                      )}
                       {row.skipped ? (
                         <span className="text-xs text-muted-foreground">
                           {row.skipReason ? t('gym.skippedBecause', { reason: row.skipReason }) : t('gym.skipped')}
@@ -171,6 +176,7 @@ function History() {
                           <SetList labels={done.map((set) => `${load(set.weightGrams)}×${set.reps}`)} />
                         </span>
                       )}
+                      {row.note && <span className="basis-full text-xs text-muted-foreground">{row.note}</span>}
                     </li>
                   );
                 })}
@@ -209,10 +215,7 @@ export function GymPanel() {
       <div className="flex flex-col gap-3">
         <Running />
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button onClick={() => void start()}>
-            <PlayIcon />
-            {t('gym.start')}
-          </Button>
+          <Fab icon={<PlayIcon />} label={t('gym.start')} onClick={() => void start()} />
           <UnitToggle />
         </div>
       </div>

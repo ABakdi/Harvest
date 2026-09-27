@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { boot, localDb, wipeLocal } from '@/app/app-root';
 import { SeedLogDialog } from '@/app/components/seed-log-dialog';
 import { HarvestContext, type Harvest } from '@/app/context';
-import { metaKeys, setMeta } from '@/app/data/db';
+import { getMeta, metaKeys, setMeta } from '@/app/data/db';
 import { titleCase } from '@/app/data/exercises';
 import { readProgram, readTrainingMaxes } from '@/app/data/gym';
 import { DialogsProvider } from '@/app/dialogs';
@@ -357,6 +357,29 @@ describe('opening the app when the refresh is turned away', () => {
     resetApiForTests();
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(answer(401));
     expect(await boot()).toMatchObject({ kind: 'signedOut' });
+  });
+
+  it('forgets what this browser holds when the session is gone, not when the server is away (S5-15)', async () => {
+    const db = localDb();
+    await db.rows('notes').put({
+      uuid: 'n1',
+      title: 'Private thoughts',
+      folder: '',
+      body: '',
+      createdAt: '2026-09-19T10:00:00.000Z',
+      updatedAt: '2026-09-19T10:00:00.000Z',
+      deletedAt: null,
+    });
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(answer(503));
+    expect(await boot()).toMatchObject({ kind: 'ready', offline: true });
+    expect(await localDb().rows('notes').count()).toBe(1);
+    resetApiForTests();
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(answer(401));
+    expect(await boot()).toMatchObject({ kind: 'signedOut' });
+    const after = localDb();
+    await after.open();
+    expect(await after.rows('notes').count()).toBe(0);
+    expect(await getMeta(after, metaKeys.user)).toBeUndefined();
   });
 
   it('backs off: a refresh turned away is not asked again at once', async () => {

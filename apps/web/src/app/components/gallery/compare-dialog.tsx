@@ -89,7 +89,7 @@ export function CompareDialog({ title, memories, onClose }: { title: string; mem
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-2 rounded-none border-0 bg-black p-0 pt-3 text-white sm:max-w-none">
+      <DialogContent sheet={false} className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-2 rounded-none border-0 bg-black p-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[env(safe-area-inset-bottom)] text-white sm:max-w-none">
         <DialogTitle className="px-4 text-lg text-white">
           {t('gallery.compare')} · {title}
         </DialogTitle>

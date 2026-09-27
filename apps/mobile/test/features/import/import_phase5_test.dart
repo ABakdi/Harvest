@@ -128,6 +128,9 @@ void main() {
               goalUuid: 'g1',
               kind: const Value('need'),
               body: 'Try them on',
+              // Ticked, as its ticked parent says: the export writes a
+              // parent's tick as its subtasks draw it (Q5-44).
+              doneAt: Value(at),
               parentUuid: const Value('i1'),
               createdAt: Value(at),
               updatedAt: Value(at),
@@ -564,7 +567,10 @@ void main() {
     test('carries my preferences and none of the bookkeeping', () async {
       for (final key in [
         'themeMode',
-        'places.enabled',
+        'places.mapBase',
+        // Where a request goes stays on its phone (S5-01).
+        'places.styleUrl',
+        'assist.baseUrl',
         'security.appLock',
         'streak.lastJudgedDay',
         'pomodoro.active',
@@ -578,7 +584,7 @@ void main() {
       final rows = (await ExportRepository(source).readArchive()).data.settings;
       expect(rows.map((row) => row.first).toSet(), {
         'themeMode',
-        'places.enabled',
+        'places.mapBase',
       });
     });
   });

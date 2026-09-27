@@ -164,9 +164,9 @@ class CropCard extends StatelessWidget {
                     ),
                   ),
                 if (onOptions != null)
+                  // The full 48 dp, like the check-in beside it (Q5-62).
                   IconButton(
                     tooltip: l10n.cropOptions,
-                    visualDensity: VisualDensity.compact,
                     icon: Icon(Icons.more_vert, color: muted),
                     onPressed: onOptions,
                   ),

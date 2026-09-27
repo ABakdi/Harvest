@@ -57,7 +57,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatBytes, formatDate } from '@/lib/format';
+import { formatBytes, formatDate, formatNumber } from '@/lib/format';
 import { Markdown } from '@/lib/markdown';
 import { dropDraft, keepDraft, leftDrafts } from '@/lib/note-drafts';
 import { registerPendingEdit } from '@/lib/pending-edits';
@@ -72,13 +72,23 @@ import { RecordingDialog } from '../components/notes/recording-dialog';
 import { Recordings } from '../components/notes/recordings';
 import { canSpeak, localDictation, recordingFormat, type Recognition } from '../components/notes/voice';
 import { useHarvest } from '../context';
+import { AppBarActions } from '../components/app-bar';
 import { RecordsOff, RecordsTabs, useRecordsOff } from './records';
 import { assistStatus } from '../data/assist';
 import { placeTranscript } from '../data/transcribe';
 import { attachmentFileName, audioEmbed, audioExtensionOf, voiceNoteTitle } from '../data/attachments';
 import { FileTooLargeError } from '../data/files';
 import type { HarvestDB } from '../data/db';
-import { decodeFolders, folderTree, linksIn, normalizeFolder, notePreview, type NoteRow, type NotesRepository } from '../data/notes';
+import {
+  decodeFolders,
+  folderTree,
+  linksIn,
+  maxNoteBody,
+  normalizeFolder,
+  notePreview,
+  type NoteRow,
+  type NotesRepository,
+} from '../data/notes';
 import { settingKeys, settingText } from '../data/settings';
 
 type Sort = 'edited' | 'created' | 'title';
@@ -107,22 +117,60 @@ function byTitle(notes: NoteRow[], title: string): NoteRow | undefined {
   return notes.find((note) => note.title === title) ?? notes.find((note) => note.title.toLowerCase() === title.toLowerCase());
 }
 
-function useOpenTitle(notes: NoteRow[], folder: string) {
+function useOpenTitle(notes: NoteRow[]) {
+  const { t } = useTranslation();
   const { notes: repo } = useHarvest();
   const navigate = useNavigate();
-  return useCallback(
-    async (title: string) => {
+  const [asking, setAsking] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const openTitle = useCallback(
+    (title: string) => {
       const target = byTitle(notes, title);
       if (target) {
         void navigate(`/app/records/${target.uuid}`);
         return;
       }
-      // A link to a note not written yet offers to write it.
-      const created = await repo.create({ title, folder });
-      void navigate(`/app/records/${created.uuid}`);
+      // A link to a note not written yet offers to write it, as the
+      // phone does, rather than writing it on a click ([[Audit-v3]] G5-09).
+      setAsking(title);
     },
-    [notes, folder, repo, navigate],
+    [notes, navigate],
   );
+  const create = async () => {
+    if (asking === null || busy) return;
+    // Held while it runs: a double click is one note, not two with one
+    // title. At the top of the vault, where the phone puts it.
+    setBusy(true);
+    try {
+      const existing = byTitle(notes, asking);
+      const target = existing ?? (await repo.create({ title: asking, folder: '' }));
+      setAsking(null);
+      void navigate(`/app/records/${target.uuid}`);
+    } catch {
+      toast.error(t('common.saveFailed'));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const prompt = (
+    <Dialog open={asking !== null} onOpenChange={(open) => !open && !busy && setAsking(null)}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('notes.createLinkTitle', { title: asking ?? '' })}</DialogTitle>
+          <DialogDescription>{t('notes.createLinkBody')}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setAsking(null)} disabled={busy}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={() => void create()} disabled={busy}>
+            {t('common.create')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+  return { openTitle, prompt };
 }
 
 // ------------------------------------------------------------- sidebar
@@ -310,13 +358,24 @@ function Sidebar({
 
   return (
     <aside className="flex flex-col gap-3" aria-label={t('notes.sidebar')}>
-      <div className="flex gap-2">
-        <Button className="flex-1" onClick={() => void create()}>
+      {/* On a phone the microphone and the "+" sit in the app bar, as there. */}
+      <AppBarActions>
+        {recordingFormat() !== null && (
+          <Button variant="ghost" size="icon" aria-label={t('voice.newNote')} title={t('voice.newNote')} onClick={() => void createVoice()}>
+            <MicIcon />
+          </Button>
+        )}
+        <Button variant="ghost" size="icon" aria-label={t('notes.new')} title={t('notes.new')} onClick={() => void create()}>
+          <PlusIcon />
+        </Button>
+      </AppBarActions>
+      <div className="flex gap-2 max-md:justify-end">
+        <Button className="flex-1 max-md:hidden" onClick={() => void create()}>
           <FilePlusIcon />
           {t('notes.new')}
         </Button>
         {recordingFormat() !== null && (
-          <Button variant="outline" size="icon" aria-label={t('voice.newNote')} title={t('voice.newNote')} onClick={() => void createVoice()}>
+          <Button variant="outline" size="icon" className="max-md:hidden" aria-label={t('voice.newNote')} title={t('voice.newNote')} onClick={() => void createVoice()}>
             <MicIcon />
           </Button>
         )}
@@ -338,7 +397,7 @@ function Sidebar({
                 aria-current={folder === path ? 'true' : undefined}
                 onClick={() => setFolder(path)}
                 style={{ paddingInlineStart: `${0.5 + depth * 0.9}rem` }}
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-1.5 pe-2 text-start text-sm font-semibold outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-1.5 pe-2 text-start text-sm font-semibold outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11"
               >
                 <FolderIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="truncate">{path ? path.split('/').at(-1) : t('notes.allNotes')}</span>
@@ -364,7 +423,7 @@ function Sidebar({
           {t('notes.sortBy')}
         </Label>
         <Select value={sort} onValueChange={(value) => setSort(value as Sort)}>
-          <SelectTrigger id="notes-sort" className="h-8 flex-1 text-xs">
+          <SelectTrigger id="notes-sort" className="h-8 flex-1 text-xs max-md:h-11">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -392,7 +451,7 @@ function Sidebar({
         ))}
         {shown.length === 0 && <li className="px-3 py-2 text-sm text-muted-foreground">{t('notes.noneHere')}</li>}
       </ul>
-      <Link to="/app/records/trash" className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent">
+      <Link to="/app/records/trash" className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent max-md:min-h-11">
         <Trash2Icon className="size-4" aria-hidden />
         {t('notes.trash', { count: vault.trash.length })}
       </Link>
@@ -447,12 +506,16 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
   const [mode, setMode] = useState<'write' | 'read'>(note.body ? 'read' : 'write');
   const area = useRef<HTMLTextAreaElement>(null);
   const pending = useRef<{ title: string; folder: string; body: string; at: string } | null>(null);
+  const warnedLong = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const seen = useRef(note.updatedAt);
   const [inTable, setInTable] = useState(false);
   const [recording, setRecording] = useState<boolean>(() => Boolean((location.state as { record?: boolean } | null)?.record));
   const [reading, setReading] = useState(false);
-  const [printing, setPrinting] = useState(false);
+  // What is printed is taken when *Export PDF* is chosen, after the
+  // pending save has landed: never a copy short of the last keystrokes
+  // (Q5-53).
+  const [printing, setPrinting] = useState<NoteRow | null>(null);
   const dictation = useRef<Recognition | null>(null);
   const [canDictate, setCanDictate] = useState(false);
   const [dictating, setDictating] = useState(false);
@@ -491,8 +554,14 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
     const at = clock().toISOString();
     pending.current = { ...next, at };
     keepDraft(note.uuid, { ...next, at });
+    // What is past the limit is not kept: say so once, rather than let
+    // the editor show text that will never be saved (Q5-60).
+    if (next.body.length > maxNoteBody && !warnedLong.current) {
+      warnedLong.current = true;
+      toast.warning(t('notes.tooLong', { max: formatNumber(maxNoteBody) }));
+    }
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => void flush(), 600);
+    timer.current = setTimeout(() => void flush().catch(() => toast.error(t('common.saveFailed'))), 600);
   };
 
   useEffect(() => {
@@ -514,7 +583,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
     setBody(note.body);
   }, [note]);
 
-  const openTitle = useOpenTitle(vault.notes, note.folder);
+  const { openTitle, prompt: createLinkPrompt } = useOpenTitle(vault.notes);
   const outgoing = useMemo(() => {
     const seenTitles = new Set<string>();
     return linksIn(body).filter((link) => {
@@ -653,16 +722,11 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
     { label: t('notes.tool.quote'), icon: <QuoteIcon />, spec: { prefix: '> ' } },
     { label: t('notes.tool.link'), icon: <LinkIcon />, spec: { wrap: ['[[', ']]'] } },
   ];
-  const printDone = useCallback(() => setPrinting(false), []);
+  const printDone = useCallback(() => setPrinting(null), []);
 
   return (
     <article className="flex min-w-0 flex-col gap-3">
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="icon" className="md:hidden" aria-label={t('notes.backToList')}>
-          <Link to="/app/records">
-            <ArrowLeftIcon className="rtl:rotate-180" />
-          </Link>
-        </Button>
         <Label htmlFor="note-title" className="sr-only">
           {t('notes.title')}
         </Label>
@@ -701,8 +765,10 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
             )}
             <DropdownMenuItem
               onSelect={() => {
-                void flush();
-                setPrinting(true);
+                const snapshot = { ...note, title, folder, body };
+                void flush()
+                  .catch(() => toast.error(t('common.saveFailed')))
+                  .then(() => setPrinting(snapshot));
               }}
             >
               <PrinterIcon />
@@ -738,7 +804,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
           list="note-folders"
           value={folder}
           placeholder={t('notes.rootFolder')}
-          className="h-8 w-48 text-xs"
+          className="h-8 w-48 text-xs max-md:h-11"
           onChange={(event) => {
             setFolder(event.target.value);
             schedule({ title, folder: event.target.value, body });
@@ -786,7 +852,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
             <TabsTrigger value="read">{t('notes.read')}</TabsTrigger>
           </TabsList>
           {mode === 'write' && (
-            <div role="toolbar" aria-label={t('notes.formatting')} className="flex flex-wrap gap-0.5">
+            <div role="toolbar" aria-label={t('notes.formatting')} className="flex flex-wrap gap-0.5 max-md:w-full max-md:flex-nowrap max-md:overflow-x-auto">
               {tools.map((tool) => (
                 <Button key={tool.label} variant="ghost" size="icon-sm" aria-label={tool.label} title={tool.label} onClick={() => format(tool.spec)}>
                   {tool.icon}
@@ -797,12 +863,12 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
               </Button>
               {inTable && (
                 <>
-                  <Button variant="ghost" size="sm" className="h-8 px-2" title={t('notes.tool.tableRow')} onClick={() => applyEdit(addTableRow(caret()))}>
+                  <Button variant="ghost" size="sm" className="h-8 px-2 max-md:h-11" title={t('notes.tool.tableRow')} onClick={() => applyEdit(addTableRow(caret()))}>
                     <PlusIcon />
                     {t('notes.tool.rowShort')}
                     <span className="sr-only">{t('notes.tool.tableRow')}</span>
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 px-2" title={t('notes.tool.tableColumn')} onClick={() => applyEdit(addTableColumn(caret()))}>
+                  <Button variant="ghost" size="sm" className="h-8 px-2 max-md:h-11" title={t('notes.tool.tableColumn')} onClick={() => applyEdit(addTableColumn(caret()))}>
                     <PlusIcon />
                     {t('notes.tool.columnShort')}
                     <span className="sr-only">{t('notes.tool.tableColumn')}</span>
@@ -903,7 +969,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
                     return (
                       <button
                         type="button"
-                        onClick={() => void openTitle(linkTitle)}
+                        onClick={() => openTitle(linkTitle)}
                         className={cn('font-semibold underline-offset-4 hover:underline', target ? 'text-primary' : 'text-muted-foreground italic')}
                         title={target ? undefined : t('notes.createLinked', { title: linkTitle })}
                       >
@@ -962,7 +1028,8 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
         />
       )}
       {reading && <ReadAloudDialog markdown={body} onClose={() => setReading(false)} />}
-      {printing && <NotePrint note={{ ...note, title, folder, body }} onDone={printDone} />}
+      {printing && <NotePrint note={printing} onDone={printDone} />}
+      {createLinkPrompt}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <section aria-labelledby="outgoing" className="rounded-xl border bg-card p-3">
@@ -979,8 +1046,8 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
                   <li key={link.title}>
                     <button
                       type="button"
-                      onClick={() => void openTitle(link.title)}
-                      className={cn('text-sm font-semibold hover:underline', target ? 'text-primary' : 'text-muted-foreground italic')}
+                      onClick={() => openTitle(link.title)}
+                      className={cn('text-start text-sm font-semibold hover:underline max-md:min-h-11', target ? 'text-primary' : 'text-muted-foreground italic')}
                     >
                       {link.title}
                       {!target && <span className="ms-1 text-xs">({t('notes.notWritten')})</span>}
@@ -1001,7 +1068,7 @@ function Editor({ note, vault }: { note: NoteRow; vault: Vault }) {
             <ul className="flex flex-col gap-1">
               {backlinks.map((other) => (
                 <li key={other.uuid}>
-                  <Link to={`/app/records/${other.uuid}`} className="text-sm font-semibold text-primary hover:underline">
+                  <Link to={`/app/records/${other.uuid}`} className="text-sm font-semibold text-primary hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
                     {other.title || t('notes.untitled')}
                   </Link>
                 </li>
@@ -1021,7 +1088,7 @@ function Trash({ vault }: { vault: Vault }) {
   return (
     <section className="flex flex-col gap-3" aria-labelledby="trash-heading">
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="icon" aria-label={t('notes.backToList')}>
+        <Button asChild variant="ghost" size="icon" className="max-md:hidden" aria-label={t('notes.backToList')}>
           <Link to="/app/records">
             <ArrowLeftIcon className="rtl:rotate-180" />
           </Link>
@@ -1127,9 +1194,10 @@ export function NotesScreen({ trash = false }: { trash?: boolean }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <RecordsTabs />
-      <div className="grid gap-6 md:grid-cols-[18rem_1fr]">
-      <div className={cn(detail && 'hidden md:block')}>
+      {/* A note or the trash is a screen of its own on a phone, with no tab row over it. */}
+      <RecordsTabs className={detail ? 'max-md:hidden' : undefined} />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[18rem_1fr]">
+      <div className={cn('min-w-0', detail && 'hidden md:block')}>
         <Sidebar vault={vault} folder={folder} setFolder={setFolder} selected={uuid} />
       </div>
       <div className={cn('min-w-0', !detail && 'hidden md:block')}>

@@ -586,6 +586,7 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
                   if (!_expanded.remove(debt.uuid)) _expanded.add(debt.uuid);
                 }),
                 onPay: () => unawaited(_pay(context, debt)),
+                onEdit: () => unawaited(showDebtSheet(context, existing: debt)),
                 onRemovePayment: (payment) =>
                     unawaited(_removePayment(context, payment)),
               ),
@@ -613,6 +614,8 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
                           _expanded.add(debt.uuid);
                         }
                       }),
+                      onEdit: () =>
+                          unawaited(showDebtSheet(context, existing: debt)),
                       onRemovePayment: (payment) => unawaited(
                         _removePayment(context, payment, settled: true),
                       ),
@@ -656,7 +659,15 @@ class _DebtsSectionState extends ConsumerState<_DebtsSection> {
           content: Text(settled ? l10n.debtReopened : l10n.deleted),
           action: SnackBarAction(
             label: l10n.undoAction,
-            onPressed: () => actions.restorePayment(payment.uuid).ignore(),
+            // The debt or the wallet may have moved on while Undo was
+            // showing; a refused Undo says so ([[Audit-v3]] Q5-17).
+            onPressed: () => unawaited(
+              actions.restorePayment(payment.uuid).catchError((Object _) {
+                messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.undoRefused)),
+                );
+              }),
+            ),
           ),
         ),
       );
@@ -719,6 +730,7 @@ class _SettledDebt extends StatelessWidget {
     required this.payments,
     required this.expanded,
     required this.onToggle,
+    required this.onEdit,
     required this.onRemovePayment,
   });
 
@@ -726,6 +738,9 @@ class _SettledDebt extends StatelessWidget {
   final List<DebtPayment> payments;
   final bool expanded;
   final VoidCallback onToggle;
+
+  /// Long-press: correct it or remove it ([[Finances]] The Vault).
+  final VoidCallback onEdit;
   final ValueChanged<DebtPayment> onRemovePayment;
 
   @override
@@ -742,7 +757,8 @@ class _SettledDebt extends StatelessWidget {
           subtitle: l10n.debtSettled,
           amount: formatMoney(debt.amountMinor, debt.currency),
           amountColor: scheme.onSurface.withValues(alpha: 0.55),
-          onTap: payments.isEmpty ? null : onToggle,
+          onTap: payments.isEmpty ? onEdit : onToggle,
+          onLongPress: onEdit,
         ),
         if (payments.isNotEmpty)
           Align(
@@ -823,6 +839,7 @@ class _DebtCard extends StatelessWidget {
     required this.expanded,
     required this.onToggle,
     required this.onPay,
+    required this.onEdit,
     required this.onRemovePayment,
   });
 
@@ -831,6 +848,9 @@ class _DebtCard extends StatelessWidget {
   final bool expanded;
   final VoidCallback onToggle;
   final VoidCallback onPay;
+
+  /// A tap on the header: correct the debt or remove it.
+  final VoidCallback onEdit;
 
   /// Long-press on a payment: the way an expense is removed.
   final ValueChanged<DebtPayment> onRemovePayment;
@@ -849,47 +869,51 @@ class _DebtCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                IconBadge(Icons.handshake, color: scheme.tertiary),
-                const SizedBox(width: HarvestSpacing.sm + 4),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        debt.person,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      if (payOffBy != null || debt.note != null)
+            InkWell(
+              onTap: onEdit,
+              borderRadius: BorderRadius.circular(HarvestRadii.chip),
+              child: Row(
+                children: [
+                  IconBadge(Icons.handshake, color: scheme.tertiary),
+                  const SizedBox(width: HarvestSpacing.sm + 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          [
-                            if (payOffBy != null)
-                              '${l10n.debtPayOffBy} ${DateFormat.MMMd(locale).format(
-                                DateTime(payOffBy.year, payOffBy.month, payOffBy.day),
-                              )}',
-                            if (debt.note != null) debt.note!,
-                          ].join(' · '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.6),
+                          debt.person,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                    ],
+                        if (payOffBy != null || debt.note != null)
+                          Text(
+                            [
+                              if (payOffBy != null)
+                                '${l10n.debtPayOffBy} ${DateFormat.MMMd(locale).format(
+                                  DateTime(payOffBy.year, payOffBy.month, payOffBy.day),
+                                )}',
+                              if (debt.note != null) debt.note!,
+                            ].join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: HarvestSpacing.sm),
-                Text(
-                  formatMoney(debt.remainingMinor, debt.currency),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: scheme.tertiary,
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Text(
+                    formatMoney(debt.remainingMinor, debt.currency),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: scheme.tertiary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: HarvestSpacing.md),
             ClipRRect(

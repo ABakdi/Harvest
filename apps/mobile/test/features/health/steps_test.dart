@@ -78,4 +78,22 @@ void main() {
       expect(averageSteps([StepDay(day: today, steps: 0)]), isNull);
     });
   });
+
+  test('the last days are all there, a gap as a zero (Q5-47)', () {
+    final today = HarvestDay.parse('2026-09-27');
+    final filled = lastDaysFilled(
+      [
+        StepDay(day: today.addDays(-20), steps: 900),
+        StepDay(day: today.addDays(-3), steps: 4000),
+        StepDay(day: today, steps: 1200),
+      ],
+      today,
+      count: 14,
+    );
+    expect(filled, hasLength(14));
+    expect(filled.first.day, today.addDays(-13));
+    expect(filled.last.day, today);
+    expect(filled.map((d) => d.steps).where((s) => s > 0), [4000, 1200]);
+    expect(filled[10].steps, 4000);
+  });
 }

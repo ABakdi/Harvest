@@ -160,7 +160,7 @@ export function ClockInput({
       }}
       className={
         className ??
-        'h-9 rounded-md border bg-transparent px-3 text-sm font-bold tabular outline-none focus-visible:ring-2 focus-visible:ring-ring'
+        'h-9 rounded-md border max-md:h-11 bg-transparent px-3 text-sm font-bold tabular outline-none focus-visible:ring-2 focus-visible:ring-ring'
       }
     />
   );

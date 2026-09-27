@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
@@ -38,7 +39,7 @@ String accountError(AppLocalizations l10n, Object error) => switch (error) {
   ApiException(code: 'rate_limited') => l10n.accountErrorRateLimited,
   ApiException(code: 'validation_failed', :final message) =>
     l10n.accountErrorInvalid(message ?? ''),
-  ApiException(code: 'passphrase') => l10n.syncPinWrong,
+  ApiException(code: 'pinChanged') => l10n.syncPinChangedElsewhere,
   ApiException(:final code) => l10n.accountErrorOther(code),
   _ => l10n.accountErrorOther(error.runtimeType.toString()),
 };
@@ -314,6 +315,26 @@ class _SignedIn extends ConsumerWidget {
                     color: theme.colorScheme.error,
                   ),
                 ),
+              if (last?.refusedFor.contains('quota_exceeded') ?? false)
+                Text(
+                  l10n.syncRefusedQuota,
+                  style: theme.textTheme.bodySmall,
+                ),
+              if (last?.refusedFor.any(
+                    (code) => code == 'clock_ahead' || code == 'clock_too_far',
+                  ) ??
+                  false)
+                Text(
+                  l10n.syncRefusedClock,
+                  style: theme.textTheme.bodySmall,
+                ),
+              if ((last?.locked ?? 0) > 0)
+                Text(
+                  l10n.accountLocked(last!.locked),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
               if ((last?.heldBack ?? 0) > 0)
                 Text(
                   l10n.accountHeldBack,
@@ -405,6 +426,23 @@ class _SignedIn extends ConsumerWidget {
   }
 }
 
+/// What kind of client a session is, in words.
+String sessionClient(AppLocalizations l10n, Object? client) =>
+    client == 'web' ? l10n.accountClientWeb : l10n.accountClientPhone;
+
+/// "Web · last seen Sep 3, 8:43 PM", on this phone's clock (Q5-27).
+@visibleForTesting
+String sessionSeen(
+  BuildContext context,
+  AppLocalizations l10n,
+  Map<String, Object?> session,
+) {
+  final client = sessionClient(l10n, session['client']);
+  final seen = DateTime.tryParse('${session['lastSeenAt']}');
+  if (seen == null) return client;
+  return '$client · ${l10n.accountLastSeen(formatMoment(context, seen))}';
+}
+
 /// The signed-in sessions, each with a way to end it ([[Accounts]]).
 class AccountDevices extends ConsumerWidget {
   const AccountDevices({super.key});
@@ -438,9 +476,9 @@ class AccountDevices extends ConsumerWidget {
                       session['current'] == true
                           ? l10n.accountThisDevice
                           : (session['deviceName'] as String?) ??
-                                '${session['client']}',
+                                sessionClient(l10n, session['client']),
                     ),
-                    subtitle: Text('${session['lastSeenAt']}'),
+                    subtitle: Text(sessionSeen(context, l10n, session)),
                     trailing: session['current'] == true
                         ? null
                         : TextButton(
@@ -465,10 +503,11 @@ class AccountDevices extends ConsumerWidget {
 
 /// The sync PIN ([[Accounts]]): set once per device, never sent.
 ///
-/// There is no *change* here on purpose. A file on the server is named
-/// by its contents and never replaced, so a new PIN could re-seal the
-/// rows but not the pictures already up, and the other devices would be
-/// left with files no key of theirs opens.
+/// *Change PIN* is starting over while I still have everything: a file
+/// on the server is named by its contents and cannot be re-sealed in
+/// place, so the server's private rows and files go, and this phone
+/// sends its own again under the new PIN. The other devices are asked
+/// for the new one at their next sync.
 class SyncPinTile extends ConsumerWidget {
   const SyncPinTile({super.key});
 
@@ -482,11 +521,24 @@ class SyncPinTile extends ConsumerWidget {
       title: Text(l10n.syncPinTitle),
       subtitle: Text(set ? l10n.syncPinIsSet : l10n.syncPinWaiting),
       trailing: set
-          ? TextButton(
-              onPressed: () => unawaited(
-                ref.read(syncPassphraseProvider.notifier).forget(),
-              ),
-              child: Text(l10n.syncPinForget),
+          ? PopupMenuButton<bool>(
+              key: const ValueKey('sync-pin-menu'),
+              onSelected: (change) async {
+                if (!change) {
+                  await ref.read(syncPassphraseProvider.notifier).forget();
+                  return;
+                }
+                // Changing is starting over while I still have it all:
+                // what this phone holds goes up under the new one.
+                if (await startSyncPinOver(context, ref, changing: true) &&
+                    context.mounted) {
+                  await showSyncPinSheet(context);
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(value: true, child: Text(l10n.syncPinChange)),
+                PopupMenuItem(value: false, child: Text(l10n.syncPinForget)),
+              ],
             )
           : const Icon(Icons.chevron_right),
       onTap: set ? null : () => unawaited(showSyncPinSheet(context)),

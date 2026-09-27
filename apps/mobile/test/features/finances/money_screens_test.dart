@@ -167,6 +167,32 @@ void main() {
       await settle(tester);
     });
 
+    testWidgets('takes a sum, as the expense sheet does (G5-06)', (
+      tester,
+    ) async {
+      MoneyEntry? entry;
+      await tester.pumpWidget(
+        app(
+          (_) => opener('open', (context) async {
+            entry = await showMoneySheet(
+              context,
+              title: 'Deposit',
+              initialCurrency: Currency.dzd,
+            );
+          }),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '120+30');
+      await tester.pump();
+      expect(find.textContaining('DA150'), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(entry?.minor, 15000);
+      await settle(tester);
+    });
+
     testWidgets('an over-cap amount names the cap grouped', (tester) async {
       await tester.pumpWidget(
         app(
@@ -359,6 +385,68 @@ void main() {
         () => db.select(db.debts).getSingle(),
       );
       expect(debt!.settledAt, isNotNull);
+      await settle(tester);
+    });
+  });
+
+  group('a debt can be corrected and removed (G5-02)', () {
+    Future<void> openVault(WidgetTester tester) async {
+      await tester.runAsync(() async {
+        await VaultRepository(db).createDebt(
+          person: 'Samy',
+          amountMinor: 150000,
+          currency: Currency.dzd,
+        );
+        await tester.pumpWidget(app((_) => const VaultTab()));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Debts'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Samy'));
+        await tester.pumpAndSettle();
+      });
+    }
+
+    testWidgets('a tap on it opens the sheet on what it is', (tester) async {
+      await openVault(tester);
+      expect(find.text('Edit debt'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).at(0), 'Sami');
+      await tester.enterText(find.byType(TextField).at(1), '2000');
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pumpAndSettle();
+      });
+      final debt = await tester.runAsync(
+        () => db.select(db.debts).getSingle(),
+      );
+      expect(debt!.person, 'Sami');
+      expect(debt.amountMinor, 200000);
+      await settle(tester);
+    });
+
+    testWidgets('removing it asks, and Undo brings it back', (tester) async {
+      await openVault(tester);
+      await tester.tap(find.byTooltip('Delete'));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove this debt?'), findsOneWidget);
+      await tester.runAsync(() async {
+        await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pumpAndSettle();
+      });
+      var debt = await tester.runAsync(
+        () => db.select(db.debts).getSingle(),
+      );
+      expect(debt!.deletedAt, isNotNull);
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Undo'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pumpAndSettle();
+      });
+      debt = await tester.runAsync(() => db.select(db.debts).getSingle());
+      expect(debt!.deletedAt, isNull);
       await settle(tester);
     });
   });

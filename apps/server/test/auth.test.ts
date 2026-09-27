@@ -2,7 +2,7 @@ import type { AuthResult, ErrorBody, Me, PullResult, SessionsResult } from '@har
 import { ObjectId } from 'mongodb';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { wrongCredentials } from '../src/auth/service.js';
+import { refreshGraceMs, wrongCredentials } from '../src/auth/service.js';
 import {
   bearer,
   expectError,
@@ -10,6 +10,7 @@ import {
   harness,
   linkToken,
   password,
+  refreshCookie,
   refreshCookieOf,
   signIn,
   signUp,
@@ -45,7 +46,7 @@ describe('sign-up', () => {
   it('gives the web its refresh token as a strict HttpOnly cookie, and not in the body', async () => {
     const res = await request(h.app).post('/v1/auth/register').send({ email: freshEmail(), password }).expect(201);
     expect((res.body as AuthResult).refreshToken).toBeUndefined();
-    const cookie = (res.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('harvest_refresh='));
+    const cookie = (res.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith(`${refreshCookie}=`));
     expect(cookie).toBeDefined();
     expect(cookie).toContain('HttpOnly');
     expect(cookie).toContain('Secure');
@@ -175,24 +176,55 @@ describe('refresh tokens', () => {
 
   it('revoke the whole family when one is used twice (AC4)', async () => {
     const account = await signUp(h);
-    const rotated = ((await refresh(account.refreshToken).expect(200)).body as AuthResult);
+    const rotated = (await refresh(account.refreshToken).expect(200)).body as AuthResult;
+    const again = (await refresh(rotated.refreshToken!).expect(200)).body as AuthResult;
 
-    // The old token comes back: someone else has a copy.
+    // The old token comes back after its successor was used: someone
+    // else has a copy.
     expectError(await refresh(account.refreshToken), 401, 'unauthorized');
 
     // Every token and access token of that session is now dead.
-    expectError(await refresh(rotated.refreshToken!), 401, 'unauthorized');
-    expectError(await me(rotated), 401, 'unauthorized');
+    expectError(await refresh(again.refreshToken!), 401, 'unauthorized');
+    expectError(await me(again), 401, 'unauthorized');
     expectError(await me(account), 401, 'unauthorized');
   });
 
   it('leave other sessions alone when one family is revoked', async () => {
     const account = await signUp(h);
     const laptop = (await signIn(h, account.email).expect(200)).body as AuthResult;
-    await refresh(account.refreshToken).expect(200);
+    const rotated = (await refresh(account.refreshToken).expect(200)).body as AuthResult;
+    await refresh(rotated.refreshToken!).expect(200);
     await refresh(account.refreshToken).expect(401);
     await me(laptop).expect(200);
     await refresh(laptop.refreshToken!).expect(200);
+  });
+
+  it('give a retry inside the grace the same successor, and nothing else (Q5-13)', async () => {
+    const account = await signUp(h);
+    const first = (await refresh(account.refreshToken).expect(200)).body as AuthResult;
+    // The answer was lost; the phone asks again with the same token.
+    const retry = (await refresh(account.refreshToken).expect(200)).body as AuthResult;
+    expect(retry.refreshToken).toBe(first.refreshToken);
+    await me(retry).expect(200);
+    // The session goes on from the one successor.
+    const next = (await refresh(first.refreshToken!).expect(200)).body as AuthResult;
+    await me(next).expect(200);
+  });
+
+  it('treat the same token after the grace as stolen', async () => {
+    let clock = Date.now();
+    const timed = await harness({ now: () => new Date(clock) });
+    try {
+      const account = await signUp(timed);
+      const refreshOn = (token: string) =>
+        request(timed.app).post('/v1/auth/refresh').send({ refreshToken: token });
+      const first = (await refreshOn(account.refreshToken).expect(200)).body as AuthResult;
+      clock += refreshGraceMs + 1000;
+      expectError(await refreshOn(account.refreshToken), 401, 'unauthorized');
+      expectError(await refreshOn(first.refreshToken!), 401, 'unauthorized');
+    } finally {
+      await timed.close();
+    }
   });
 
   it('refuse garbage and expired tokens', async () => {
@@ -210,11 +242,36 @@ describe('refresh tokens', () => {
     const cookie = refreshCookieOf(login)!;
     expect(cookie).toBeDefined();
 
-    const res = await request(h.app).post('/v1/auth/refresh').set('Cookie', `harvest_refresh=${cookie}`).expect(200);
+    const res = await request(h.app).post('/v1/auth/refresh').set('Cookie', `${refreshCookie}=${cookie}`).expect(200);
     expect((res.body as AuthResult).refreshToken).toBeUndefined();
     const next = refreshCookieOf(res);
     expect(next).toBeDefined();
     expect(next).not.toBe(cookie);
+  });
+
+  it('still take the cookie under its old name, and move it to the new one', async () => {
+    const email = (await signUp(h)).email;
+    const cookie = refreshCookieOf(await signIn(h, email, 'web').expect(200))!;
+
+    const res = await request(h.app).post('/v1/auth/refresh').set('Cookie', `harvest_refresh=${cookie}`).expect(200);
+    expect(refreshCookieOf(res)).toBeDefined();
+    expect(String(res.headers['set-cookie'])).toContain('harvest_refresh=;');
+  });
+
+  it('keep the cookie when the refresh failed for a reason other than the session', async () => {
+    const email = (await signUp(h)).email;
+    const cookie = refreshCookieOf(await signIn(h, email, 'web').expect(200))!;
+    // The database away for a moment: a 500, not a 401.
+    const find = h.repos.sessions.consumeToken.bind(h.repos.sessions);
+    h.repos.sessions.consumeToken = () => Promise.reject(new Error('mongo went away'));
+    const failed = await request(h.app).post('/v1/auth/refresh').set('Cookie', `${refreshCookie}=${cookie}`);
+    h.repos.sessions.consumeToken = find;
+    expect(failed.status).toBe(500);
+    expect(failed.headers['set-cookie']).toBeUndefined();
+
+    const refused = await request(h.app).post('/v1/auth/refresh').set('Cookie', `${refreshCookie}=garbage`);
+    expect(refused.status).toBe(401);
+    expect(String(refused.headers['set-cookie'])).toContain(`${refreshCookie}=;`);
   });
 });
 
@@ -231,7 +288,7 @@ describe('sign-out', () => {
 
   it('clears the web cookie, and is quiet about unknown tokens', async () => {
     const res = await request(h.app).post('/v1/auth/logout').send({ refreshToken: 'whatever' }).expect(204);
-    expect(String(res.headers['set-cookie'])).toContain('harvest_refresh=;');
+    expect(String(res.headers['set-cookie'])).toContain(`${refreshCookie}=;`);
   });
 });
 

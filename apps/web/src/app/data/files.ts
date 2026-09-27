@@ -5,7 +5,7 @@ import type { Writer } from './writer';
 import type { Keyring } from '../sync/keyring';
 
 /** The file routes, as this browser needs them ([[Sync-API]], files). */
-export type FileRemote = Pick<typeof api, 'file' | 'filesMissing' | 'putFile'>;
+export type FileRemote = Pick<typeof api, 'file' | 'filesMissing' | 'putFile'> & Partial<Pick<typeof api, 'forgetFile'>>;
 
 /** The two tables whose rows name a file. */
 export type FileTable = 'memories' | 'note_attachments';
@@ -219,6 +219,74 @@ export class FileStore {
     if (!named) await this.db.files.delete(sha256);
   }
 
+  /**
+   * A row another device purged is gone here too: its bytes go with it
+   * unless another row still names them, and when no row here names the
+   * hash, the server is told it can let the file go (Q5-23). A `409`
+   * there means another row on the server still names it, and it stays.
+   */
+  async releasePurged(table: string, row: Record<string, unknown>): Promise<void> {
+    if (table !== 'memories' && table !== 'note_attachments') return;
+    const sha256 = typeof row.fileHash === 'string' ? row.fileHash : null;
+    await this.release(String(row.uuid), sha256);
+    if (!sha256 || !this.remote.forgetFile) return;
+    const [memories, attachments] = await Promise.all([
+      this.db.rows('memories').toArray(),
+      this.db.rows('note_attachments').toArray(),
+    ]);
+    if (memories.some((one) => one.fileHash === sha256) || attachments.some((one) => one.fileHash === sha256)) return;
+    await this.remote.forgetFile(sha256);
+  }
+
+  /**
+   * Lets go of bytes no row names any more: a recording whose note was
+   * emptied from the trash, a picture purged elsewhere (Q5-23). Only
+   * bytes kept here for an hour or more go, so a file kept a moment
+   * before its row is written is never swept from under it.
+   */
+  async sweepOrphans(): Promise<number> {
+    const [memories, attachments, waiting, held] = await Promise.all([
+      this.db.rows('memories').toArray(),
+      this.db.rows('note_attachments').toArray(),
+      this.waiting(),
+      this.db.files.toArray(),
+    ]);
+    const named = new Set<string>();
+    for (const row of memories) if (row.fileHash) named.add(row.fileHash);
+    for (const row of attachments) if (row.fileHash) named.add(row.fileHash);
+    for (const entry of waiting) named.add(entry.sha256);
+    const hourAgo = Date.now() - 60 * 60_000;
+    const orphans = held
+      .filter((file) => !named.has(file.sha256) && Date.parse(file.fetchedAt) < hourAgo)
+      .map((file) => file.sha256);
+    if (orphans.length > 0) await this.db.files.bulkDelete(orphans);
+    return orphans.length;
+  }
+
+  /**
+   * After a new key, every file this browser holds is asked about again
+   * and sent sealed under it: the server may have none of them any more
+   * ([[Accounts]], start over).
+   */
+  async requeueHeld(): Promise<void> {
+    const [memories, attachments] = await Promise.all([
+      this.db.rows('memories').toArray(),
+      this.db.rows('note_attachments').toArray(),
+    ]);
+    const entries: PendingUpload[] = [];
+    for (const [table, rows] of [
+      ['memories', memories],
+      ['note_attachments', attachments],
+    ] as const) {
+      for (const row of rows) {
+        if (!row.fileHash || row.deletedAt !== null) continue;
+        if (!(await this.db.files.get(row.fileHash))) continue;
+        entries.push({ table, uuid: row.uuid, sha256: row.fileHash, check: true });
+      }
+    }
+    await this.queueAll(entries);
+  }
+
   private async waiting(): Promise<PendingUpload[]> {
     return (await getMeta<PendingUpload[]>(this.db, uploadsKey)) ?? [];
   }
@@ -304,11 +372,17 @@ export class FileStore {
       for (const hash of missing) {
         const file = await this.db.files.get(hash);
         if (!file) continue;
-        const bytes = new Uint8Array(await file.blob.arrayBuffer());
-        const sealed = await sealFile(key, hash, bytes);
-        await this.remote.putFile(hash, sealed.sealed, sealed.iv, bytes.byteLength);
-        held.add(hash);
-        report.uploaded += 1;
+        try {
+          const bytes = new Uint8Array(await file.blob.arrayBuffer());
+          const sealed = await sealFile(key, hash, bytes);
+          await this.remote.putFile(hash, sealed.sealed, sealed.iv, bytes.byteLength);
+          held.add(hash);
+          report.uploaded += 1;
+        } catch (error) {
+          // No room is everyone's problem; anything else is this file's,
+          // and the others still go (Q5-06).
+          if (error instanceof ApiError && error.code === 'quota_exceeded') throw error;
+        }
       }
       this.setProblem(null);
     } catch (error) {
@@ -360,6 +434,7 @@ export class FileStore {
       if (engine.status.lastSyncedAt === last) return;
       last = engine.status.lastSyncedAt;
       kick();
+      void this.sweepOrphans().catch(() => undefined);
     });
     const offUnlock = this.keyring.onUnlock(kick);
     kick();

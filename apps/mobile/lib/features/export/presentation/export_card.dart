@@ -118,7 +118,11 @@ class ExportCard extends ConsumerWidget {
 
   String? _message(AppLocalizations l10n, ExportStatus status) =>
       switch (status) {
-        ExportSaved(:final path) => l10n.exportSaved(path),
+        ExportSaved(:final path, :final leftOut, :final notHere) => [
+          l10n.exportSaved(path),
+          if (leftOut > 0) l10n.exportLeftOut(leftOut),
+          if (notHere > 0) l10n.exportNotHere(notHere),
+        ].join(' '),
         ExportFailed(reason: 'permission') => l10n.exportFailedPermission,
         ExportFailed(reason: 'unsupported') => l10n.exportFailedUnsupported,
         ExportFailed() => l10n.exportFailed,

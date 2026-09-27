@@ -235,7 +235,7 @@ describe('the body routes', () => {
     const view = render(wrap(h, <BodyScreen />, '/app/body'));
     expect(await screen.findByRole('tab', { name: 'Health', selected: true })).toBeInTheDocument();
     view.rerender(wrap(h, <BodyScreen tab="gym" />, '/app/body'));
-    expect(await screen.findByRole('tab', { name: 'Training', selected: true })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: 'Gym', selected: true })).toBeInTheDocument();
     view.rerender(wrap(h, <BodyScreen tab="health" />, '/app/body'));
     expect(await screen.findByRole('tab', { name: 'Health', selected: true })).toBeInTheDocument();
   });

@@ -150,9 +150,9 @@ extension GoalTallyRatio on GoalTally {
 /// So an item counts exactly when no live item is its subtask, and it
 /// counts as its own tick.
 GoalTally? goalTally(Iterable<GoalItem> live) {
+  final byUuid = {for (final item in live) item.uuid: item};
   final parents = {
-    for (final item in live)
-      if (item.parentUuid != null) item.parentUuid!,
+    for (final item in live) ?liveParentOf(item, byUuid),
   };
   var done = 0;
   var total = 0;
@@ -162,6 +162,17 @@ GoalTally? goalTally(Iterable<GoalItem> live) {
     if (item.isDone) done++;
   }
   return total == 0 ? null : (done: done, total: total);
+}
+
+/// The live task [item] is drawn under, or null when it reads as
+/// top-level: no parent, a parent that is gone, or a parent that is a
+/// subtask itself. One level deep (GL8), and an item two levels down
+/// (two devices disagreeing) is never hidden ([[Audit-v3]] G5-08);
+/// `liveParentOf` in `packages/core`.
+String? liveParentOf(GoalItem item, Map<String, GoalItem> live) {
+  final parent = live[item.parentUuid];
+  if (parent == null) return null;
+  return live.containsKey(parent.parentUuid) ? null : parent.uuid;
 }
 
 /// Progress as a fraction, for the ring.
@@ -192,9 +203,10 @@ class GoalOutline {
     final top = <GoalItem>[];
     final children = <String, List<GoalItem>>{};
     for (final item in live) {
-      final parent = item.parentUuid;
-      // A subtask whose parent is gone reads as an item of its own.
-      if (parent == null || !byUuid.containsKey(parent)) {
+      // A subtask whose parent is gone, or is a subtask itself, reads as
+      // an item of its own.
+      final parent = liveParentOf(item, byUuid);
+      if (parent == null) {
         top.add(item);
       } else {
         (children[parent] ??= []).add(item);

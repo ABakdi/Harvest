@@ -115,19 +115,34 @@ class FinanceActions {
     }
   });
 
-  /// Removes an expense and whatever it took out of the wallet.
+  /// Removes an expense and whatever it took out of the wallet, both
+  /// under the expense's own stamp so [restoreExpense] can tell them
+  /// apart from a movement an earlier edit dropped.
   Future<void> removeExpense(String uuid) => _db.transaction(() async {
     await _finances.remove(uuid);
     final linked = await _vault.linkedTxn(uuid);
-    if (linked != null) await _vault.removeTxn(linked.uuid);
+    if (linked != null) {
+      await _vault.removeTxn(linked.uuid, at: await _deletedAt(uuid));
+    }
   });
 
-  /// Puts back what [removeExpense] took away (the snackbar's Undo).
+  /// Puts back what [removeExpense] took away (the snackbar's Undo): the
+  /// expense, and the wallet movement only if it went with it. One an
+  /// edit took off the wallet earlier stays gone, or Undo would charge
+  /// the wallet a second time ([[Audit-v3]] Q5-16).
   Future<void> restoreExpense(String uuid) => _db.transaction(() async {
+    final deletedAt = await _deletedAt(uuid);
     await _finances.restore(uuid);
-    final linked = await _vault.linkedTxn(uuid, includeDeleted: true);
+    final linked = await _vault.linkedRowDeletedAt(uuid, deletedAt);
     if (linked != null) await _vault.restoreTxn(linked.uuid);
   });
+
+  Future<DateTime?> _deletedAt(String expenseUuid) async {
+    final row = await (_db.select(
+      _db.expenses,
+    )..where((e) => e.uuid.equals(expenseUuid))).getSingleOrNull();
+    return row?.deletedAt;
+  }
 
   /// Puts money into savings, either moved from the wallet or new.
   Future<void> depositSavings({

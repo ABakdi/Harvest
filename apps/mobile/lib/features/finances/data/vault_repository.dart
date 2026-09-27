@@ -99,8 +99,46 @@ class VaultRepository {
     note: row.note,
   );
 
+  /// What one pot holds in one currency today: deleted rows and ones
+  /// logged ahead aside, as [watchBalances] counts it.
+  Future<int> balanceOf(MoneyAccount account, Currency currency) async {
+    final sum = _db.moneyTxns.deltaMinor.sum();
+    final query = _db.selectOnly(_db.moneyTxns)
+      ..addColumns([sum])
+      ..where(
+        _db.moneyTxns.account.equals(account.name) &
+            _db.moneyTxns.currency.equals(currency.code) &
+            _db.moneyTxns.deletedAt.isNull() &
+            _db.moneyTxns.harvestDay.isSmallerOrEqualValue(
+              HarvestDay.today().key,
+            ),
+      );
+    return (await query.getSingle()).read(sum) ?? 0;
+  }
+
+  /// Refuses to take [amountMinor] out of a pot that does not hold it.
+  /// The sheets cap the amount too, but a sheet opened before a sync
+  /// emptied the pot is stale; the repository is where the rule holds
+  /// ([[Web]] Money writes, [[Audit-v3]] Q5-18).
+  Future<void> _refuseOverdraw(
+    MoneyAccount account,
+    Currency currency,
+    int amountMinor,
+  ) async {
+    if (amountMinor <= 0) return;
+    if (await balanceOf(account, currency) < amountMinor) {
+      throw ArgumentError.value(
+        amountMinor,
+        'amountMinor',
+        'more than the ${account.name} holds',
+      );
+    }
+  }
+
   /// Records one movement. Positive [deltaMinor] deposits, negative
-  /// withdraws.
+  /// withdraws; a hand-made withdrawal never takes a pot below zero
+  /// (throws [ArgumentError]). An expense's movement follows its
+  /// expense, which may be logged whatever the wallet holds.
   Future<void> move({
     required MoneyAccount account,
     required int deltaMinor,
@@ -113,6 +151,9 @@ class VaultRepository {
   }) async {
     final uuid = _uuid.v4();
     await _db.transaction(() async {
+      if (kind == TxnKind.manual && deltaMinor < 0) {
+        await _refuseOverdraw(account, currency, -deltaMinor);
+      }
       await _db
           .into(_db.moneyTxns)
           .insert(
@@ -151,6 +192,27 @@ class VaultRepository {
     return row == null ? null : _toTxn(row);
   }
 
+  /// The movement [linkUuid] owns that was deleted at [deletedAt]: the
+  /// one that went with its owner, never an older row an edit dropped
+  /// ([[Audit-v3]] Q5-16).
+  Future<MoneyTxnRow?> linkedRowDeletedAt(
+    String linkUuid,
+    DateTime? deletedAt,
+  ) async {
+    if (deletedAt == null) return null;
+    final rows =
+        await (_db.select(
+              _db.moneyTxns,
+            )..where(
+              (t) => t.linkUuid.equals(linkUuid) & t.deletedAt.isNotNull(),
+            ))
+            .get();
+    for (final row in rows) {
+      if (row.deletedAt == deletedAt) return row;
+    }
+    return null;
+  }
+
   /// Re-points a linked movement at an edited amount or category.
   Future<void> updateLinked(
     String uuid, {
@@ -173,16 +235,22 @@ class VaultRepository {
     await _outbox('money_txns', uuid, 'update');
   });
 
-  /// Soft-deletes one movement (the expense behind it went away).
-  Future<void> removeTxn(String uuid) => _db.transaction(() async {
-    await (_db.update(_db.moneyTxns)..where((t) => t.uuid.equals(uuid))).write(
-      MoneyTxnsCompanion(
-        deletedAt: Value(DateTime.now()),
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
-    await _outbox('money_txns', uuid, 'delete');
-  });
+  /// Soft-deletes one movement (the expense behind it went away). [at]
+  /// stamps it with its owner's moment, so an Undo can tell the two
+  /// belonged together.
+  Future<void> removeTxn(String uuid, {DateTime? at}) =>
+      _db.transaction(() async {
+        final now = at ?? DateTime.now();
+        await (_db.update(
+          _db.moneyTxns,
+        )..where((t) => t.uuid.equals(uuid))).write(
+          MoneyTxnsCompanion(
+            deletedAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+        await _outbox('money_txns', uuid, 'delete');
+      });
 
   /// Puts a soft-deleted movement back (undo).
   Future<void> restoreTxn(String uuid) => _db.transaction(() async {
@@ -229,6 +297,7 @@ class VaultRepository {
     String? note,
   }) async {
     await _db.transaction(() async {
+      await _refuseOverdraw(from, currency, amountMinor);
       await move(
         account: from,
         deltaMinor: -amountMinor,
@@ -405,6 +474,13 @@ class VaultRepository {
           'more than the ${debt.amountMinor - alreadyPaid} still owed',
         );
       }
+      if (fromWallet) {
+        await _refuseOverdraw(
+          MoneyAccount.wallet,
+          Currency.fromCode(debt.currency),
+          amountMinor,
+        );
+      }
       await _db
           .into(_db.debtPayments)
           .insert(
@@ -456,28 +532,183 @@ class VaultRepository {
             )..where((p) => p.uuid.equals(uuid) & p.deletedAt.isNull()))
             .getSingleOrNull();
     if (payment == null) return;
+    final now = DateTime.now();
     await (_db.update(_db.debtPayments)..where((p) => p.uuid.equals(uuid)))
-        .write(DebtPaymentsCompanion(deletedAt: Value(DateTime.now())));
+        .write(DebtPaymentsCompanion(deletedAt: Value(now)));
     await _outbox('debt_payments', uuid, 'delete');
 
     final linked = await linkedTxn(uuid);
-    if (linked != null) await removeTxn(linked.uuid);
+    if (linked != null) await removeTxn(linked.uuid, at: now);
     await _settleIfPaid(payment.debtUuid);
   });
 
   /// Puts a removed payment back, wallet movement and settlement too.
+  ///
+  /// The world may have moved while Undo was showing: the debt paid
+  /// again, the wallet spent. So the payment comes back under the same
+  /// rules as a new one: never past what is owed, never out of a wallet
+  /// that no longer holds it, never onto a debt that is gone. Throws
+  /// [ArgumentError] otherwise ([[Audit-v3]] Q5-17).
   Future<void> restorePayment(String uuid) => _db.transaction(() async {
-    final payment = await (_db.select(
-      _db.debtPayments,
-    )..where((p) => p.uuid.equals(uuid))).getSingleOrNull();
+    final payment =
+        await (_db.select(
+              _db.debtPayments,
+            )..where((p) => p.uuid.equals(uuid) & p.deletedAt.isNotNull()))
+            .getSingleOrNull();
     if (payment == null) return;
+    final debt =
+        await (_db.select(_db.debts)..where(
+              (d) => d.uuid.equals(payment.debtUuid) & d.deletedAt.isNull(),
+            ))
+            .getSingleOrNull();
+    if (debt == null) {
+      throw ArgumentError.value(payment.debtUuid, 'debtUuid', 'no such debt');
+    }
+    final paid = (await _paidByDebt())[debt.uuid] ?? 0;
+    if (paid + payment.amountMinor > debt.amountMinor) {
+      throw ArgumentError.value(
+        payment.amountMinor,
+        'amountMinor',
+        'more than the ${debt.amountMinor - paid} still owed',
+      );
+    }
+    final linked = await linkedRowDeletedAt(uuid, payment.deletedAt);
+    if (linked != null &&
+        linked.harvestDay.compareTo(HarvestDay.today().key) <= 0) {
+      await _refuseOverdraw(
+        MoneyAccount.values.byName(linked.account),
+        Currency.fromCode(linked.currency),
+        -linked.deltaMinor,
+      );
+    }
     await (_db.update(_db.debtPayments)..where((p) => p.uuid.equals(uuid)))
         .write(const DebtPaymentsCompanion(deletedAt: Value(null)));
     await _outbox('debt_payments', uuid, 'update');
 
-    final linked = await linkedTxn(uuid, includeDeleted: true);
     if (linked != null) await restoreTxn(linked.uuid);
     await _settleIfPaid(payment.debtUuid);
+  });
+
+  /// Corrects a debt: who, how much, when, the reminder and the note
+  /// ([[Finances]] The Vault). The amount never drops below what has
+  /// been paid, and the currency cannot change under payments made in
+  /// the old one. A new amount settles or reopens the debt to match.
+  /// Throws [ArgumentError] for anything else.
+  Future<void> updateDebt({
+    required String uuid,
+    required String person,
+    required int amountMinor,
+    required Currency currency,
+    HarvestDay? payOffBy,
+    String? remindAt,
+    String? note,
+  }) async {
+    final name = person.trim();
+    if (name.isEmpty) {
+      throw ArgumentError.value(person, 'person', 'must not be empty');
+    }
+    if (amountMinor <= 0) {
+      throw ArgumentError.value(amountMinor, 'amountMinor', 'must be positive');
+    }
+    await _db.transaction(() async {
+      final debt =
+          await (_db.select(
+                _db.debts,
+              )..where((d) => d.uuid.equals(uuid) & d.deletedAt.isNull()))
+              .getSingleOrNull();
+      if (debt == null) {
+        throw ArgumentError.value(uuid, 'uuid', 'no such debt');
+      }
+      final paid = (await _paidByDebt())[uuid] ?? 0;
+      if (amountMinor < paid) {
+        throw ArgumentError.value(
+          amountMinor,
+          'amountMinor',
+          'less than the $paid already paid',
+        );
+      }
+      if (paid > 0 && currency.code != debt.currency) {
+        throw ArgumentError.value(
+          currency.code,
+          'currency',
+          'payments were made in ${debt.currency}',
+        );
+      }
+      final trimmedNote = note?.trim();
+      await (_db.update(_db.debts)..where((d) => d.uuid.equals(uuid))).write(
+        DebtsCompanion(
+          person: Value(name),
+          amountMinor: Value(amountMinor),
+          currency: Value(currency.code),
+          payOffBy: Value(payOffBy?.key),
+          remindAt: Value(remindAt),
+          note: Value(
+            trimmedNote == null || trimmedNote.isEmpty ? null : trimmedNote,
+          ),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      await _outbox('debts', uuid, 'update');
+      await _settleIfPaid(uuid);
+    });
+  }
+
+  /// Removes a debt logged by mistake, and its payments with it, under
+  /// one stamp so [restoreDebt] brings back exactly those. The wallet
+  /// movements the payments made stay: that money did leave the wallet.
+  Future<void> deleteDebt(String uuid) => _db.transaction(() async {
+    final now = DateTime.now();
+    final changed =
+        await (_db.update(
+          _db.debts,
+        )..where((d) => d.uuid.equals(uuid) & d.deletedAt.isNull())).write(
+          DebtsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        );
+    if (changed == 0) return;
+    await _outbox('debts', uuid, 'delete');
+    final payments =
+        await (_db.select(_db.debtPayments)..where(
+              (p) => p.debtUuid.equals(uuid) & p.deletedAt.isNull(),
+            ))
+            .get();
+    for (final payment in payments) {
+      await (_db.update(_db.debtPayments)
+            ..where((p) => p.uuid.equals(payment.uuid)))
+          .write(DebtPaymentsCompanion(deletedAt: Value(now)));
+      await _outbox('debt_payments', payment.uuid, 'delete');
+    }
+  });
+
+  /// The Undo for [deleteDebt]: the debt and the payments that went
+  /// with it, and none that were removed on their own before.
+  Future<void> restoreDebt(String uuid) => _db.transaction(() async {
+    final debt =
+        await (_db.select(
+              _db.debts,
+            )..where((d) => d.uuid.equals(uuid) & d.deletedAt.isNotNull()))
+            .getSingleOrNull();
+    if (debt == null) return;
+    final stamp = debt.deletedAt;
+    await (_db.update(_db.debts)..where((d) => d.uuid.equals(uuid))).write(
+      DebtsCompanion(
+        deletedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _outbox('debts', uuid, 'update');
+    final payments =
+        await (_db.select(_db.debtPayments)..where(
+              (p) => p.debtUuid.equals(uuid) & p.deletedAt.isNotNull(),
+            ))
+            .get();
+    for (final payment in payments) {
+      if (payment.deletedAt != stamp) continue;
+      await (_db.update(_db.debtPayments)
+            ..where((p) => p.uuid.equals(payment.uuid)))
+          .write(const DebtPaymentsCompanion(deletedAt: Value(null)));
+      await _outbox('debt_payments', payment.uuid, 'update');
+    }
+    await _settleIfPaid(uuid);
   });
 
   /// Settles a debt that is now fully paid, and reopens one that is

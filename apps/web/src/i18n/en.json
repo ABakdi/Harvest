@@ -27,6 +27,18 @@
     "verifyResend": "Send the link again",
     "verifySent": "Sent"
   },
+  "archive": {
+    "archivedOn": "Archived {{day}}",
+    "delete": "Delete",
+    "deleteBody": "{{title}}, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.",
+    "deleteTitle": "Delete this seed?",
+    "deleted": "Removed",
+    "empty": "Nothing put away yet",
+    "emptyBody": "Archived seeds land here, with the note that says why.",
+    "open": "Open the archive",
+    "restore": "Restore",
+    "title": "Archive"
+  },
   "assist": {
     "actions": {
       "summarise": "Summarise",
@@ -218,7 +230,9 @@
       "sealed_one": "{{count}} private row is still encrypted in this browser and cannot go in the archive. Enter your sync PIN to include it.",
       "sealed_other": "{{count}} private rows are still encrypted in this browser and cannot go in the archive. Enter your sync PIN to include them.",
       "stopped": "Stopped. Nothing was saved.",
-      "title": "Take an archive"
+      "title": "Take an archive",
+      "tooLarge_one": "{{count}} file too large for an archive was left out.",
+      "tooLarge_other": "{{count}} files too large for an archive were left out."
     },
     "import": {
       "action": "Choose an archive",
@@ -242,6 +256,8 @@
       "summary": "{{added}} new, {{updated}} to update",
       "title": "Bring an archive back",
       "tooLarge": "That archive is too large to open here.",
+      "tooLarge_one": "{{count}} file too large to bring in is left out",
+      "tooLarge_other": "{{count}} files too large to bring in are left out",
       "unreadable": "That file could not be opened."
     },
     "progress": "{{done}} of {{total}}",
@@ -544,6 +560,8 @@
     "wholeAlbum": "The whole album"
   },
   "goals": {
+    "achievedAgain": "Achieved.",
+    "achievedToast": "Achieved. +{{xp}} XP",
     "achieved_one": "Achieved ({{count}})",
     "achieved_other": "Achieved ({{count}})",
     "addNeed": "Add something it takes",
@@ -934,6 +952,7 @@
     "movesCount_one": "{{count}} movement",
     "movesCount_other": "{{count}} movements",
     "noSpending": "No spending in this range yet.",
+    "outOfRange": "Pick days between {{from}} and {{to}}.",
     "perDay": "Per day",
     "range": "Range",
     "rangeOf": "{{from}} — {{to}}",
@@ -1069,6 +1088,7 @@
   "money": {
     "amount": "Amount",
     "amountHint": "A number or a sum, like 120+30",
+    "balancesTab": "Balances",
     "cat": {
       "bills": "Bills",
       "entertainment": "Fun",
@@ -1093,7 +1113,8 @@
     "emptyTitle": "Nothing logged this month",
     "error": {
       "amount": "Type an amount above zero, like 450 or 12.50.",
-      "day": "Pick a day."
+      "day": "Pick a day.",
+      "dayRange": "Pick a day within a year of today."
     },
     "expenses": "Expenses",
     "expensesCount_one": "{{count}} expense",
@@ -1131,7 +1152,9 @@
     "nothingMonth": "Nothing this month",
     "nothingToday": "Nothing logged",
     "previousMonth": "Previous month",
+    "removeBody": "{{amount}} will be removed from the day, and any wallet withdrawal it made will be refunded.",
     "removeCategory": "Remove {{name}}",
+    "removeTitle": "Delete this expense?",
     "removed": "Removed",
     "repeatLogged": "Logged {{amount}} again",
     "repeatTitle": "Same as the last 3 days?",
@@ -1149,12 +1172,19 @@
     "upcomingBody_other": "{{count}} expenses logged ahead. Each counts on its day, not before."
   },
   "nav": {
+    "back": "Back",
     "body": "Body",
+    "bodyTabs": "Body",
     "farmer": "Farmer",
+    "farmerTabs": "Farmer",
     "field": "Field",
     "granary": "Granary",
+    "gym": "Gym",
+    "harvest": "Harvest",
+    "health": "Health",
     "main": "Main",
     "notes": "Notes",
+    "progress": "Progress",
     "records": "Records",
     "settings": "Settings"
   },
@@ -1164,6 +1194,8 @@
     "backToList": "Back to the notes",
     "body": "Note",
     "bodyHint": "Write. Markdown works, and [[a title]] links to another note.",
+    "createLinkBody": "That note does not exist yet. A link to a note you have not written is normal — this makes it.",
+    "createLinkTitle": "Write “{{title}}”?",
     "createLinked": "Write “{{title}}”",
     "deleteFolder": "Delete folder",
     "deleteFolderBody": "Every note in {{folder}} goes to the trash. You can put them back from there, or undo this.",
@@ -1218,6 +1250,7 @@
     },
     "sortBy": "Sort",
     "title": "Title",
+    "tooLong": "This note is longer than {{max}} characters. What is past that is not saved.",
     "tool": {
       "bold": "Bold",
       "code": "Code",
@@ -1787,17 +1820,24 @@
     "firstSync": "First sync…",
     "notYet": "Not synced yet",
     "offline": "Offline",
+    "refusedClock": "This computer's clock is ahead of the server's. Check its date and time.",
+    "refusedQuota": "The server has no room left for this account.",
     "signedOut": "Signed out",
     "syncNow": "Sync now",
     "syncedAgo": "Synced {{ago}}",
     "syncing": "Syncing…",
+    "unreadable_one": "{{count}} encrypted row could not be opened",
+    "unreadable_other": "{{count}} encrypted rows could not be opened",
     "unverified": "Verify email to sync",
     "waiting_one": "{{count}} change waiting.",
     "waiting_other": "{{count}} changes waiting."
   },
   "syncPin": {
+    "change": "Change PIN",
+    "changedElsewhere": "Your PIN was changed on another device. Enter the new one.",
     "choose": "Use it",
     "chooseTitle": "Choose a sync PIN",
+    "chosenElsewhere": "Another device set the sync PIN a moment ago. Enter that one.",
     "confirmPassphrase": "The same passphrase again",
     "confirmPin": "The same PIN again",
     "enter": "Enter your sync PIN",
@@ -1806,27 +1846,36 @@
     "forget": "Forget it on this browser",
     "forgetBody": "What is already here stays. New money, places and pictures wait in this browser until you enter it again.",
     "forgetTitle": "Forget the sync PIN on this browser?",
+    "forgot": "Forgot the PIN? Start over",
     "forgotten": "Forgotten on this browser",
     "lead": "It encrypts your money, places, pictures and recordings on your devices before they sync. It is not your password, and it is never sent. Enter it once in this browser.",
     "mismatch": "The two do not match.",
     "opening": "Making the key…",
     "passphraseLabel": "Passphrase (8 characters or more)",
+    "password": "Your account password",
     "pinLabel": "Sync PIN (4 to 6 digits)",
     "problem": {
       "empty": "Type it first.",
       "passphraseTooShort": "A passphrase is at least 8 characters.",
       "pinTooLong": "A PIN is at most 6 digits. For something longer, use a passphrase.",
-      "pinTooShort": "A PIN is at least 4 digits."
+      "pinTooShort": "A PIN is at least 4 digits.",
+      "pinTooSimple": "Too easy to guess. Avoid one digit repeated, runs like 1234, and pairs like 1212."
     },
     "setHere": "Set in this browser",
+    "sixDigits": "6 digits is best. Type it twice, and use the same one on every device.",
+    "startOver": "Start the PIN over",
+    "startOverBody": "This deletes the money, places and pictures kept on the server for this account, and the PIN with them. This browser then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
+    "startOverConfirm": "Start over",
     "title": "Sync PIN",
     "tradeOff": "A PIN is quick; a longer passphrase keeps your data safer if the server's database were ever copied.",
     "unlock": "Unlock",
+    "unreachable": "The server could not be reached to check the PIN. Try again when you're online.",
     "usePassphrase": "Use a passphrase instead",
     "usePin": "Use a PIN instead",
     "waiting": "Money, places and pictures from your other devices stay locked in this browser until you enter your sync PIN.",
     "warning": "If you lose it, what is encrypted can't be read on a new device — only sent again from one that still has it.",
-    "wrong": "This doesn't open what your other devices sent. Enter the one you chose there."
+    "wrong": "That isn't the PIN your other devices use.",
+    "wrongPassword": "That isn't this account's password."
   },
   "vault": {
     "addDebt": "Log a debt",
@@ -1875,6 +1924,8 @@
     "payments_other": "{{count}} payments",
     "refused": {
       "amount": "Type an amount above zero.",
+      "belowPaid": "That is less than has already been paid.",
+      "currency": "Payments were made in its currency; it stays that one.",
       "missing": "That debt is gone.",
       "overdraw": "The pot does not hold that much.",
       "overpay": "That is more than is still owed.",
@@ -1915,10 +1966,17 @@
     "withdrawal": "Taken out"
   },
   "vaultWeb": {
+    "debtBelowPaid": "Already paid {{amount}}; the debt can't be less.",
     "debtLead": "Who I owe, how much, and when I mean to have it paid back.",
     "debtPaid": "Paid {{amount}} to {{person}}",
+    "debtRemoveBody": "{{person}} and the payments on it will be removed. What those payments took from the wallet stays spent.",
+    "debtRemoveTitle": "Remove this debt?",
+    "debtRemoved": "Debt to {{person}} removed",
+    "debtSaved": "Debt saved",
     "debtSettled": "Settled with {{person}}. Nothing left to pay!",
     "depositLead": "From the wallet when it can cover it, or new money.",
+    "editDebt": "Edit debt",
+    "editDebtOf": "Edit the debt to {{person}}",
     "payLead": "Still owed: {{amount}}. Paying all of it settles the debt.",
     "saved": "Saved {{amount}}",
     "walletAddLead": "Money coming in from outside: pay, a gift, cash found in a coat.",
@@ -1967,6 +2025,11 @@
     "log": "Log a weight",
     "note": "Note",
     "noteHint": "After the flu, new scale…",
+    "target": "Target",
+    "targetClear": "Clear target",
+    "targetHint": "A line on the chart to aim at, and how far the latest reading is from it.",
+    "targetSet": "Set a target",
+    "targetTitle": "Target weight",
     "toTarget": "{{amount}} from your target of {{target}}",
     "unit": "Units"
   },

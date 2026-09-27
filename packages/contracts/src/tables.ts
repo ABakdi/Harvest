@@ -36,7 +36,13 @@ import { isHarvestDayKey, isoInstantSchema } from './time.js';
 // ------------------------------------------------------------- columns
 
 const id = z.string().min(1).max(200);
-const text = z.string();
+/**
+ * A text column's cap, in characters: a note of a few hundred pages,
+ * and no more, so one row cannot be the body limit's worth of text
+ * (audit S5-02).
+ */
+export const maxTextLength = 500_000;
+const text = z.string().max(maxTextLength);
 const int = z.int();
 const real = z.number();
 const bool = z.boolean();
@@ -88,10 +94,11 @@ function parsesAs(schema: z.ZodType) {
 
 const scheduleJson = z
   .string()
+  .max(maxTextLength)
   .refine(parsesAs(scheduleSchema), { message: 'Not a valid schedule' });
 
 /** Any JSON at all: a setting's value is whatever the phone encoded. */
-const anyJson = z.string().refine(parsesAs(z.unknown()), { message: 'Not valid JSON' });
+const anyJson = z.string().max(maxTextLength).refine(parsesAs(z.unknown()), { message: 'Not valid JSON' });
 
 // -------------------------------------------------------------- registry
 

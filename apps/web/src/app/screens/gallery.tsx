@@ -8,7 +8,6 @@ import {
   GitCompareArrowsIcon,
   ImageIcon,
   PlayIcon,
-  PlusIcon,
   RepeatIcon,
   RotateCcwIcon,
   SearchIcon,
@@ -45,6 +44,7 @@ import { MemoryViewer } from '../components/gallery/memory-viewer';
 import { TimelapseDialog } from '../components/gallery/timelapse-dialog';
 import { useHarvest, useHarvestDay, type Harvest } from '../context';
 import type { AlbumRow, MemoryRow } from '../data/gallery';
+import { Fab } from '../components/fab';
 import { RecordsTabs } from './records';
 
 interface AlbumSummary {
@@ -206,7 +206,8 @@ function AlbumList({ gallery, onOpen, onTrash }: { gallery: Gallery; onOpen: (uu
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="flex-1 text-2xl font-extrabold">{t('gallery.title')}</h1>
+        {/* On a phone the app bar and the tab row name it. */}
+        <h1 className="flex-1 text-2xl font-extrabold max-md:sr-only">{t('gallery.title')}</h1>
         {gallery.bytes > 0 && (
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold text-muted-foreground" title={t('gallery.storageHint')}>
             {formatBytes(gallery.bytes)}
@@ -216,10 +217,7 @@ function AlbumList({ gallery, onOpen, onTrash }: { gallery: Gallery; onOpen: (uu
           <Trash2Icon />
           {t('gallery.trash', { count: trashCount })}
         </Button>
-        <Button onClick={() => setMaking(true)}>
-          <PlusIcon />
-          {t('gallery.newAlbum')}
-        </Button>
+        <Fab label={t('gallery.newAlbum')} onClick={() => setMaking(true)} />
       </div>
       <UploadProblem />
       {gallery.albums.length === 0 ? (
@@ -272,7 +270,7 @@ function AlbumView({ summary, onBack }: { summary: AlbumSummary; onBack: () => v
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label={t('gallery.backToAlbums')} onClick={onBack}>
+        <Button variant="ghost" size="icon" className="max-md:hidden" aria-label={t('gallery.backToAlbums')} onClick={onBack}>
           <ArrowLeftIcon className="rtl:rotate-180" />
         </Button>
         {searching ? (
@@ -314,10 +312,7 @@ function AlbumView({ summary, onBack }: { summary: AlbumSummary; onBack: () => v
             <DropdownMenuItem onSelect={() => setOverlay({ kind: 'delete' })}>{t('common.delete')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button onClick={() => setOverlay({ kind: 'add' })}>
-          <CameraIcon />
-          {t('gallery.add')}
-        </Button>
+        <Fab icon={<CameraIcon />} label={t('gallery.add')} onClick={() => setOverlay({ kind: 'add' })} />
       </div>
 
       {album.note && <p className="text-sm text-muted-foreground" dir="auto">{album.note}</p>}
@@ -413,7 +408,7 @@ function TrashView({ gallery: data, onBack }: { gallery: Gallery; onBack: () => 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="gallery-trash">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label={t('gallery.backToAlbums')} onClick={onBack}>
+        <Button variant="ghost" size="icon" className="max-md:hidden" aria-label={t('gallery.backToAlbums')} onClick={onBack}>
           <ArrowLeftIcon className="rtl:rotate-180" />
         </Button>
         <h1 id="gallery-trash" className="flex-1 text-2xl font-extrabold">
@@ -512,7 +507,8 @@ export function GalleryScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <RecordsTabs />
+      {/* An album or the trash is a screen of its own on a phone, with no tab row over it. */}
+      <RecordsTabs className={albumUuid || params.has('trash') ? 'max-md:hidden' : undefined} />
       {params.has('trash') ? (
         <TrashView gallery={data} onBack={toList} />
       ) : open ? (

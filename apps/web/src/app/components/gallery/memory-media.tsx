@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { useHarvest } from '../../context';
 import type { FileMiss } from '../../data/files';
 import type { MemoryRow } from '../../data/gallery';
-import { useFileRetry, useFileView, type FileView } from '../../hooks';
+import { useFileRetry, useFileView, useSeen, type FileView } from '../../hooks';
 import { SyncPinDialog } from '../passphrase-prompt';
 
 /**
@@ -28,6 +28,7 @@ import { SyncPinDialog } from '../passphrase-prompt';
 export function useRowFile(
   uuid: string,
   fileHash: string | null,
+  enabled = true,
 ): { url: string | null | undefined; view: FileView; local: boolean } {
   const { files } = useHarvest();
   const waiting = useLiveQuery(
@@ -35,7 +36,7 @@ export function useRowFile(
     [files, uuid, fileHash],
   );
   const hash = fileHash ?? waiting ?? null;
-  const found = useFileView(hash);
+  const found = useFileView(hash, enabled);
   const view: FileView = fileHash === null && waiting === undefined ? { state: 'loading' } : found;
   const url = view.state === 'loading' ? undefined : view.state === 'ready' ? view.url : null;
   return { url, view, local: fileHash === null && typeof waiting === 'string' };
@@ -226,16 +227,24 @@ export function MemoryMedia({
   className?: string;
 }) {
   const { t } = useTranslation();
-  const { view, local } = useRowFile(memory.uuid, memory.fileHash);
+  // A tile fetches its file when it comes near the screen, not when the
+  // grid is drawn (Q5-32).
+  const frame = useRef<HTMLSpanElement>(null);
+  const seen = useSeen(frame);
+  const { view, local } = useRowFile(memory.uuid, memory.fileHash, seen);
   const alt = memory.note ?? t('gallery.untitled');
   const objectFit = fit === 'cover' ? 'object-cover' : 'object-contain';
 
   if (view.state !== 'ready') {
-    return <FileMissing view={view} kind={memory.kind} compact={!explain} dark={explain} className={className} />;
+    return (
+      <span ref={frame} className={cn('block', className)}>
+        <FileMissing view={view} kind={memory.kind} compact={!explain} dark={explain} className="size-full" />
+      </span>
+    );
   }
   const url = view.url;
   return (
-    <span className={cn('relative block overflow-hidden bg-black/5', className)}>
+    <span ref={frame} className={cn('relative block overflow-hidden bg-black/5', className)}>
       {memory.kind === 'video' ? (
         <video
           src={url}

@@ -33,7 +33,16 @@ const app = createApp({
     fetch: () => Promise.reject(new Error('offline')),
   }),
   logger: createLogger('silent'),
-  rateLimits: { loginFailures: 1000, authRequests: 1000, refreshes: 1000 },
+  rateLimits: {
+    loginFailures: 1000,
+    authRequests: 1000,
+    refreshes: 1000,
+    registrations: 1000,
+    deleteFailures: 1000,
+    syncRequests: 100_000,
+    fileRequests: 100_000,
+    syncKeyRequests: 1000,
+  },
 });
 
 const verify = setInterval(() => {

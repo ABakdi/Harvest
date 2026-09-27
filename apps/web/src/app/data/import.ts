@@ -19,6 +19,7 @@ import { primaryKeyOf, recordKeyOf, type HarvestDB, type Row } from './db';
 import { SheetNames, type SheetKey } from './export-sheets';
 import { sha256Of, type FileStore, type PendingUpload } from './files';
 import type { Writer } from './writer';
+import { settleGoalParents } from './goals';
 
 /**
  * "My data", back in: a Harvest archive merged into this browser
@@ -54,6 +55,11 @@ export interface ArchiveBundle {
   sheets: Map<string, SheetRows>;
   /** Everything else in the zip, by its path inside it. */
   files: Map<string, Uint8Array>;
+  /**
+   * Entries left out for being over `ArchiveLimits.entryBytes`: one long
+   * video costs its own file, never the whole archive (Q5-06).
+   */
+  skipped?: number;
 }
 
 /**
@@ -80,16 +86,23 @@ export function openArchive(bytes: Uint8Array): ArchiveBundle {
   if (listed.length > ArchiveLimits.entries) throw new ArchiveInvalid('tooLarge');
   const limitOf = (name: string) => (name === ArchivePaths.workbook ? ArchiveLimits.workbookBytes : ArchiveLimits.entryBytes);
   let expanded = 0;
+  const oversized = new Set<string>();
   for (const entry of listed) {
     if (entry.name.endsWith('/')) continue;
-    if (entry.size < 0 || entry.size > limitOf(entry.name)) throw new ArchiveInvalid('tooLarge');
+    const workbookEntry = entry.name === ArchivePaths.workbook;
+    if (entry.size < 0 || (workbookEntry && entry.size > limitOf(entry.name))) throw new ArchiveInvalid('tooLarge');
+    if (entry.size > limitOf(entry.name)) {
+      // Left out, never inflated, and counted for the preview.
+      oversized.add(entry.name);
+      continue;
+    }
     expanded += entry.size;
     if (expanded > ArchiveLimits.expandedBytes) throw new ArchiveInvalid('tooLarge');
   }
 
   let entries: Record<string, Uint8Array>;
   try {
-    entries = unzipSync(bytes, { filter: (file) => !file.name.endsWith('/') });
+    entries = unzipSync(bytes, { filter: (file) => !file.name.endsWith('/') && !oversized.has(file.name) });
   } catch {
     throw new ArchiveInvalid('unreadable');
   }
@@ -113,7 +126,7 @@ export function openArchive(bytes: Uint8Array): ArchiveBundle {
   } catch {
     throw new ArchiveInvalid('badWorkbook');
   }
-  return { sheets, files };
+  return { sheets, files, skipped: oversized.size };
 }
 
 /** What an import would do to one sheet. */
@@ -131,6 +144,8 @@ export interface ImportPreview {
   /** Files in the archive, and how many are not in this browser yet. */
   files: number;
   newFiles: number;
+  /** Files too large to bring in, left out rather than refusing the archive. */
+  skippedFiles?: number;
 }
 
 export function totalOf(preview: ImportPreview): ImportCount {
@@ -1010,7 +1025,7 @@ async function merge(
 ): Promise<ImportPreview> {
   const db = writer.db;
   const context: Context = { now: writer.clock().toISOString(), bodies: noteBodies(bundle) };
-  const result: ImportPreview = { tables: {}, files: bundle.files.size, newFiles: 0 };
+  const result: ImportPreview = { tables: {}, files: bundle.files.size, newFiles: 0, skippedFiles: bundle.skipped ?? 0 };
   let done = 0;
 
   const carry = async (sheet: string, planned: Planned) => {
@@ -1067,6 +1082,9 @@ export async function applyImport(
   { onProgress, files }: { onProgress?: (progress: ImportProgress) => void; files?: FileStore } = {},
 ): Promise<ImportPreview> {
   const result = await merge(writer, bundle, { write: true, onProgress, files });
+  // A parent's tick is drawn from its subtasks (GL3), whichever copy of
+  // each the merge kept (Q5-44).
+  await settleGoalParents(writer);
   // No passphrase yet, or no connection: the queue keeps them for later.
   if (files) void files.upload().catch(() => undefined);
   return result;

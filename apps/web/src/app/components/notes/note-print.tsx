@@ -18,13 +18,19 @@ const printStyle = `
   body > *:not(.harvest-print) { display: none !important; }
   .harvest-print { display: block; color: #000; background: #fff; padding: 0; }
   @page { size: A4; margin: 18mm 17mm; }
+}
+.harvest-print :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th) {
+  unicode-bidi: plaintext;
+  text-align: start;
 }`;
 
 /**
  * A note as a page somebody else can read (the phone's `noteToPdf`):
  * the markdown rendered rather than dumped, under its title with the
  * folder and the day. The browser's own print dialog saves it as a PDF;
- * nothing is sent anywhere to make it.
+ * nothing is sent anywhere to make it. Each paragraph runs in its own
+ * direction, read from its first letter, as the phone's PDF does, so an
+ * Arabic line in an English note reads right to left ([[Audit-v3]] Q5-25).
  */
 export function NotePrint({ note, onDone }: { note: NoteRow; onDone: () => void }) {
   const { t, i18n } = useTranslation();
@@ -53,8 +59,12 @@ export function NotePrint({ note, onDone }: { note: NoteRow; onDone: () => void 
   return createPortal(
     <div className="harvest-print" dir={i18n.dir()} data-testid="note-print">
       <style>{printStyle}</style>
-      <h1 className="text-3xl font-extrabold">{title}</h1>
-      <p className="mb-4 text-sm text-neutral-600">{subtitle}</p>
+      <h1 className="text-3xl font-extrabold" dir="auto">
+        {title}
+      </h1>
+      <p className="mb-4 text-sm text-neutral-600" dir="auto">
+        {subtitle}
+      </p>
       <Markdown source={note.body} />
     </div>,
     document.body,

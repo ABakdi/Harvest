@@ -395,6 +395,7 @@ class _GoalPage extends StatelessWidget {
             children: [
               IconButton.filledTonal(
                 onPressed: goal > 1 ? () => onChanged(goal - 1) : null,
+                tooltip: l10n.decrease,
                 icon: const Icon(Icons.remove),
               ),
               Padding(
@@ -410,6 +411,7 @@ class _GoalPage extends StatelessWidget {
               ),
               IconButton.filledTonal(
                 onPressed: goal < 10 ? () => onChanged(goal + 1) : null,
+                tooltip: l10n.increase,
                 icon: const Icon(Icons.add),
               ),
             ],

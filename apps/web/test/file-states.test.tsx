@@ -1,5 +1,5 @@
 import { Blob as NodeBlob } from 'node:buffer';
-import { deriveSyncKey, sealFile } from '@harvest/contracts';
+import { sealFile } from '@harvest/contracts';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -13,7 +13,7 @@ import { sha256Of } from '@/app/data/files';
 import type { MemoryRow } from '@/app/data/gallery';
 import { api, ApiError } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, testUser, testKey } from './helpers';
 
 type Device = Awaited<ReturnType<typeof device>>;
 
@@ -42,7 +42,7 @@ async function unlocked(): Promise<Device> {
 async function sealedPicture() {
   const bytes = new Uint8Array(96).map((_, i) => (i * 11 + 3) % 256);
   const sha256 = await sha256Of(bytes.slice().buffer);
-  const key = await deriveSyncKey('2468', testUser.syncSalt, { iterations: 1 });
+  const key = await testKey('2468');
   return { sha256, box: await sealFile(key, sha256, bytes) };
 }
 

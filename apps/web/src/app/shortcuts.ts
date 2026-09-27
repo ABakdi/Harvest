@@ -19,6 +19,38 @@ function dialogOpen(): boolean {
 
 export type ShortcutMap = Record<string, () => void>;
 
+/** The printable keys a code stands for on a US layout, unshifted and shifted. */
+const codeKeys: Record<string, [string, string]> = {
+  Slash: ['/', '?'],
+  Period: ['.', '>'],
+  Comma: [',', '<'],
+  Semicolon: [';', ':'],
+  Quote: ["'", '"'],
+  BracketLeft: ['[', '{'],
+  BracketRight: [']', '}'],
+  Minus: ['-', '_'],
+  Equal: ['=', '+'],
+  Backquote: ['`', '~'],
+};
+
+/**
+ * The key a shortcut is named by. A Latin key is itself; any other
+ * printable key (an Arabic layout's letters, say) is read from its
+ * place on the keyboard, so N is N whatever layout is active
+ * ([[Audit-v3]] Q5-37).
+ */
+export function shortcutKey(event: Pick<KeyboardEvent, 'key' | 'code' | 'shiftKey'>): string {
+  if (event.key.length !== 1) return event.key;
+  if (/^[\x20-\x7e]$/.test(event.key)) return event.key.toLowerCase();
+  const letter = /^Key([A-Z])$/.exec(event.code);
+  if (letter) return letter[1]!.toLowerCase();
+  const digit = /^Digit([0-9])$/.exec(event.code);
+  if (digit) return digit[1]!;
+  const mark = codeKeys[event.code];
+  if (mark) return event.shiftKey ? mark[1] : mark[0];
+  return event.key.toLowerCase();
+}
+
 /**
  * The keyboard map of [[Web]]: single keys (`n`, `e`, `/`) and two-key
  * sequences starting with `g` (`g f`). Keys are ignored while typing,
@@ -36,7 +68,7 @@ export function useShortcuts(map: ShortcutMap): void {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
       if (isTyping(event.target) || dialogOpen()) return;
-      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      const key = shortcutKey(event);
       const combo = pending ? `${pending} ${key}` : key;
       const action = latest.current[combo];
       if (action) {

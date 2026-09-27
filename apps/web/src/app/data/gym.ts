@@ -150,10 +150,20 @@ export interface SessionTree {
 
 async function hydrate(source: RowSource, rows: SessionRow[]): Promise<SessionTree[]> {
   if (rows.length === 0) return [];
-  const wanted = new Set(rows.map((row) => row.uuid));
-  const exercises = (await source.rows('session_exercises').toArray()).filter((row) => wanted.has(row.sessionUuid));
-  const exerciseUuids = new Set(exercises.map((row) => row.uuid));
-  const sets = (await source.rows('workout_sets').toArray()).filter((row) => exerciseUuids.has(row.sessionExerciseUuid));
+  // By the indexes: these sessions' own rows, not every set ever logged (Q5-32).
+  const exercises = await source
+    .rows('session_exercises')
+    .where('sessionUuid')
+    .anyOf(rows.map((row) => row.uuid))
+    .toArray();
+  const sets =
+    exercises.length === 0
+      ? []
+      : await source
+          .rows('workout_sets')
+          .where('sessionExerciseUuid')
+          .anyOf(exercises.map((row) => row.uuid))
+          .toArray();
   const setsBy = groupBy(sets, (set) => set.sessionExerciseUuid);
   const exercisesBy = groupBy(exercises, (row) => row.sessionUuid);
   return rows.map((session) => {
@@ -228,13 +238,18 @@ export interface ExerciseOuting {
 
 /** Every appearance of an exercise, with its session. */
 async function appearances(source: RowSource, exerciseId: string) {
-  const [exercises, sessions, sets] = await Promise.all([
-    source.rows('session_exercises').toArray(),
-    source.rows('workout_sessions').toArray(),
-    source.rows('workout_sets').toArray(),
-  ]);
-  const mine = exercises.filter((row) => row.exerciseId === exerciseId);
-  const byUuid = new Map(sessions.map((row) => [row.uuid, row]));
+  // Only this exercise's sessions and sets are read, by their indexes (Q5-32).
+  const mine = (await source.rows('session_exercises').toArray()).filter((row) => row.exerciseId === exerciseId);
+  const sessions = await source.rows('workout_sessions').bulkGet([...new Set(mine.map((row) => row.sessionUuid))]);
+  const sets =
+    mine.length === 0
+      ? []
+      : await source
+          .rows('workout_sets')
+          .where('sessionExerciseUuid')
+          .anyOf(mine.map((row) => row.uuid))
+          .toArray();
+  const byUuid = new Map(sessions.filter((row) => row !== undefined).map((row) => [row.uuid, row]));
   const setsBy = groupBy(
     sets.filter((set) => set.done),
     (set) => set.sessionExerciseUuid,
@@ -285,9 +300,10 @@ export async function lastTime(source: RowSource, exerciseId: string): Promise<S
 
 /** One entry per session that logged something of this exercise. */
 export async function exerciseHistory(source: RowSource, exerciseId: string, limit = 30): Promise<ExerciseOuting[]> {
+  // Empty outings go first, so a limit of 30 means 30 that logged a set (Q5-48).
   return finishedAppearances(await appearances(source, exerciseId))
-    .slice(0, limit)
     .filter((entry) => entry.sets.length > 0)
+    .slice(0, limit)
     .map((entry) => ({
       day: entry.session.harvestDay,
       sets: entry.sets,

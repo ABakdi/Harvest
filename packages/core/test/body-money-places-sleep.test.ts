@@ -6,6 +6,7 @@ import {
   budgetSnapshotFor,
   budgetStatus,
   computeBudget,
+  convertBudget,
   cycleMinutes,
   decodeCycle,
   fallbackCycle,
@@ -21,6 +22,7 @@ import {
   weightSeries,
   weightTrend,
   type BudgetSnapshot,
+  type CurrencyCode,
   type Cycle,
   type Rates,
   type SleepNightLike,
@@ -112,6 +114,7 @@ describe('sleep', () => {
 describe('money', () => {
   const spec = fixture<{
     conversions: { why: string; rates: Rates; minor: number; from: string; result: number | null }[];
+    budgetSwitches: { why: string; rates: Rates; budget: number; from: CurrencyCode; to: CurrencyCode; result: number }[];
     budgets: {
       why: string;
       monthlyBudget: number;
@@ -132,6 +135,10 @@ describe('money', () => {
 
   it.each(spec.conversions)('converting: $why', ({ rates, minor, from, result }) => {
     expect(toDefault(rates, minor, from as Rates['defaultCurrency'])).toBe(result);
+  });
+
+  it.each(spec.budgetSwitches)('switching the currency carries the budget: $why', ({ rates, budget, from, to, result }) => {
+    expect(convertBudget(budget, from, to, rates)).toBe(result);
   });
 
   it.each(spec.budgets)('the budget: $why', (entry) => {

@@ -1,6 +1,7 @@
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/data/seed_notes_repository.dart';
+import 'package:harvest/features/commitments/domain/calendar_entries.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,6 +11,12 @@ part 'field_providers.g.dart';
 @riverpod
 Stream<List<Commitment>> activeCommitments(Ref ref) =>
     ref.watch(commitmentsRepositoryProvider).watchActive();
+
+/// Every live check-in: what the calendar marks done, and how it counts
+/// a times-a-week habit's days (G5-12).
+@riverpod
+Stream<List<CalendarCheckIn>> liveCheckIns(Ref ref) =>
+    ref.watch(commitmentsRepositoryProvider).watchLiveCheckIns();
 
 /// Units logged today per commitment — follows the live Harvest Day, so
 /// the field turns over at 3 AM without a restart.

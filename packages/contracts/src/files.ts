@@ -23,14 +23,7 @@ export const maxFileStoreBytes = 2 * 1024 * 1024 * 1024;
 /** How many hashes one "do you have these?" question may carry. */
 export const maxFileQuery = 500;
 
-/**
- * The 12-byte nonce a file's ciphertext was sealed with, base64, sent
- * as a header rather than in the body so the body stays raw bytes.
- */
-export const fileIvHeader = 'x-harvest-iv';
-
-/** The plaintext's own length, so a reader can check what it decrypted. */
-export const filePlainBytesHeader = 'x-harvest-plain-bytes';
+export { fileIvHeader, filePlainBytesHeader } from './headers.js';
 
 export const fileUploadedSchema = z.object({
   sha256: fileHashSchema,

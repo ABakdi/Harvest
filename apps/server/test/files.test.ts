@@ -1,8 +1,11 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { fileIvHeader, filePlainBytesHeader, maxFileBytes } from '@harvest/contracts';
+import { fileIvHeader, filePlainBytesHeader, maxFileBytes, maxFileStoreBytes } from '@harvest/contracts';
+import { ObjectId } from 'mongodb';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { bearer, expectError, harness, password, signUp, type Account, type Harness } from './harness.js';
+import { FileSweeper, unnamedFileGraceMs } from '../src/sync/file-sweep.js';
+import { KeyedMutex } from '../src/sync/mutex.js';
+import { appOrigin, bearer, expectError, harness, password, signUp, type Account, type Harness } from './harness.js';
 
 let h: Harness;
 beforeEach(async () => {
@@ -108,5 +111,211 @@ describe('files', () => {
       .send({ password })
       .expect(204);
     expect(await h.repos.files.usedBytes(account.userId as never)).toBe(0);
+  });
+});
+
+describe('room (audit S5-08, Q5-23)', () => {
+  const counterOf = async (account: Account) =>
+    (await h.db.collection('counters').findOne({ _id: new ObjectId(account.userId) }))?.fileBytes as number | undefined;
+
+  it('charges the room before the bytes land, so two uploads cannot share the last of it', async () => {
+    const account = await signUp(h);
+    const a = randomBytes(1000);
+    const b = randomBytes(1000);
+    await h.db
+      .collection('counters')
+      .updateOne(
+        { _id: new ObjectId(account.userId) },
+        { $set: { fileBytes: maxFileStoreBytes - 1500 } },
+        { upsert: true },
+      );
+    const answers = await Promise.all([upload(account, nameOf(a), a), upload(account, nameOf(b), b)]);
+    expect(answers.map((res) => res.status).sort()).toEqual([201, 507]);
+    expect(await counterOf(account)).toBe(maxFileStoreBytes - 500);
+  });
+
+  it('fills in the room used by an account from before it was kept', async () => {
+    const account = await signUp(h);
+    const a = randomBytes(300);
+    await upload(account, nameOf(a), a).expect(201);
+    await h.db.collection('counters').updateOne({ _id: new ObjectId(account.userId) }, { $unset: { fileBytes: '' } });
+    const b = randomBytes(200);
+    await upload(account, nameOf(b), b).expect(201);
+    expect(await counterOf(account)).toBe(500);
+  });
+
+  /** Moves a file's upload and claim back past the grace, as time would. */
+  const age = (account: Account, sha256: string) => {
+    const long = new Date(Date.now() - unnamedFileGraceMs - 60_000);
+    return h.db
+      .collection('files')
+      .updateOne({ userId: new ObjectId(account.userId), sha256 }, { $set: { uploadedAt: long, claimedAt: long } });
+  };
+
+  it('lets a file go, and gives its room back', async () => {
+    const account = await signUp(h);
+    const bytes = randomBytes(256);
+    const sha256 = nameOf(bytes);
+    await upload(account, sha256, bytes).expect(201);
+    expect(await counterOf(account)).toBe(256);
+    await age(account, sha256);
+
+    await request(h.app).delete(`/v1/files/${sha256}`).set(bearer(account)).expect(204);
+    expectError(await request(h.app).get(`/v1/files/${sha256}`).set(bearer(account)), 404, 'not_found');
+    expect(await counterOf(account)).toBe(0);
+    // Gone already is gone.
+    await request(h.app).delete(`/v1/files/${sha256}`).set(bearer(account)).expect(204);
+    expect(await counterOf(account)).toBe(0);
+  });
+
+  it('keeps a file a row names, live or in the trash, and one sent or asked about lately', async () => {
+    const account = await signUp(h);
+    const at = new Date().toISOString();
+    const memory = (uuid: string, hash: string, deletedAt: string | null) => ({
+      table: 'memories',
+      uuid,
+      updatedAt: at,
+      deletedAt,
+      data: {
+        uuid, albumUuid: 'album', harvestDay: at.slice(0, 10), path: `${uuid}.jpg`, kind: 'photo',
+        note: null, fileHash: hash, capturedAt: at, updatedAt: at, deletedAt,
+      },
+    });
+    const live = randomBytes(64);
+    const trashed = randomBytes(64);
+    const recent = randomBytes(64);
+    for (const bytes of [live, trashed, recent]) await upload(account, nameOf(bytes), bytes).expect(201);
+    await request(h.app)
+      .post('/v1/sync/push')
+      .set(bearer(account))
+      .send({ deviceId: 'phone', records: [memory('m1', nameOf(live), null), memory('m2', nameOf(trashed), at)] })
+      .expect(200);
+    await age(account, nameOf(live));
+    await age(account, nameOf(trashed));
+
+    const del = (bytes: Buffer) => request(h.app).delete(`/v1/files/${nameOf(bytes)}`).set(bearer(account));
+    for (const bytes of [live, trashed, recent]) {
+      const res = await del(bytes);
+      expectError(res, 409, 'conflict');
+    }
+    expect(await counterOf(account)).toBe(192);
+
+    // A "missing?" answer that said the server has it starts the grace again.
+    const asked = randomBytes(64);
+    await upload(account, nameOf(asked), asked).expect(201);
+    await age(account, nameOf(asked));
+    await request(h.app).post('/v1/files/missing').set(bearer(account)).send({ hashes: [nameOf(asked)] }).expect(200);
+    expectError(await del(asked), 409, 'conflict');
+  });
+
+  it('lets only the owner delete', async () => {
+    const mine = await signUp(h);
+    const theirs = await signUp(h);
+    const bytes = randomBytes(64);
+    await upload(mine, nameOf(bytes), bytes).expect(201);
+    await request(h.app).delete(`/v1/files/${nameOf(bytes)}`).set(bearer(theirs)).expect(204);
+    await request(h.app).get(`/v1/files/${nameOf(bytes)}`).set(bearer(mine)).expect(200);
+  });
+
+  it('sweeps the files no row names, and only once they have been unnamed a while', async () => {
+    let clock = Date.now();
+    const now = () => new Date(clock);
+    const timed = await harness({ now });
+    try {
+      const account = await signUp(timed);
+      const put = (bytes: Buffer) =>
+        request(timed.app)
+          .put(`/v1/files/${nameOf(bytes)}`)
+          .set(bearer(account))
+          .set('Content-Type', 'application/octet-stream')
+          .set(fileIvHeader, iv)
+          .set(filePlainBytesHeader, String(bytes.length))
+          .send(bytes)
+          .expect(201);
+      const memory = (uuid: string, hash: string, fields: { deletedAt?: string | null } = {}) => {
+        const at = new Date(clock).toISOString();
+        return {
+          table: 'memories',
+          uuid,
+          updatedAt: at,
+          deletedAt: fields.deletedAt ?? null,
+          data: {
+            uuid,
+            albumUuid: 'album',
+            harvestDay: at.slice(0, 10),
+            path: `${uuid}.jpg`,
+            kind: 'photo',
+            note: null,
+            fileHash: hash,
+            capturedAt: at,
+            updatedAt: at,
+            deletedAt: fields.deletedAt ?? null,
+          },
+        };
+      };
+      const pushRows = (records: unknown[]) =>
+        request(timed.app).post('/v1/sync/push').set(bearer(account)).send({ deviceId: 'phone', records }).expect(200);
+
+      const kept = randomBytes(100);
+      const trashed = randomBytes(100);
+      const purged = randomBytes(100);
+      const unnamed = randomBytes(100);
+      for (const bytes of [kept, trashed, purged, unnamed]) await put(bytes);
+      const deletedAt = new Date(clock).toISOString();
+      await pushRows([
+        memory('m-kept', nameOf(kept)),
+        memory('m-trashed', nameOf(trashed), { deletedAt }),
+        memory('m-purged', nameOf(purged)),
+      ]);
+      clock += 1000;
+      await pushRows([
+        { table: 'memories', uuid: 'm-purged', updatedAt: new Date(clock).toISOString(), deletedAt, purged: true },
+      ]);
+
+      const sweeper = new FileSweeper(timed.repos, new KeyedMutex(), now);
+      const userId = new ObjectId(account.userId);
+      // Too soon: a device may be about to name them.
+      expect(await sweeper.sweep(userId)).toBe(0);
+
+      clock += unnamedFileGraceMs + 60_000;
+      // One claimed just now by a "missing?" stays for another while.
+      expect(await timed.repos.files.missing(userId, [nameOf(unnamed)], now())).toEqual([]);
+      expect(await sweeper.sweep(userId)).toBe(1);
+      expect((await timed.repos.files.get(userId, nameOf(purged))) === null).toBe(true);
+      for (const bytes of [kept, trashed, unnamed]) {
+        expect(await timed.repos.files.get(userId, nameOf(bytes))).not.toBeNull();
+      }
+      expect((await timed.db.collection('counters').findOne({ _id: userId }))!.fileBytes).toBe(300);
+
+      clock += unnamedFileGraceMs + 60_000;
+      expect(await sweeper.sweepAll()).toBe(1);
+      expect(await timed.repos.files.get(userId, nameOf(unnamed))).toBeNull();
+    } finally {
+      await timed.close();
+    }
+  });
+
+  it('limits file requests per account', async () => {
+    const limited = await harness({ rateLimits: { fileRequests: 1 } });
+    try {
+      const account = await signUp(limited);
+      const ask = () => request(limited.app).post('/v1/files/missing').set(bearer(account)).send({ hashes: [] });
+      await ask().expect(200);
+      expectError(await ask(), 429, 'rate_limited');
+    } finally {
+      await limited.close();
+    }
+  });
+
+  it('lets a browser on another origin upload, if the server lists it', async () => {
+    const preflight = await request(h.app)
+      .options('/v1/files/abc')
+      .set('Origin', appOrigin)
+      .set('Access-Control-Request-Method', 'PUT')
+      .set('Access-Control-Request-Headers', `authorization,content-type,${fileIvHeader},${filePlainBytesHeader}`);
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers['access-control-allow-methods']).toContain('PUT');
+    expect(preflight.headers['access-control-allow-headers']).toContain(fileIvHeader);
+    expect(preflight.headers['access-control-allow-headers']).toContain(filePlainBytesHeader);
   });
 });

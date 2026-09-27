@@ -1,4 +1,4 @@
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { rateLimit, type Options, type RateLimitInfo } from 'express-rate-limit';
 import { HttpError } from './errors.js';
 
@@ -10,6 +10,27 @@ export interface RateLimitSettings {
   /** Token refreshes; generous, because every tab of the web app refreshes. */
   refreshes: number;
   windowMs: number;
+  /**
+   * Sign-ups per address per hour. Sign-up is the one route that says an
+   * address is taken ([[Accounts]] AC3), so it is the one kept tightest.
+   */
+  registrations: number;
+  registrationWindowMs: number;
+  /** Wrong passwords per account per window when deleting it. */
+  deleteFailures: number;
+  /** Sync requests (push and pull) per account per minute. */
+  syncRequests: number;
+  /** File requests per account per minute: a year of pictures comes down in batches. */
+  fileRequests: number;
+  /** Key-share and key-check requests per account per window. */
+  syncKeyRequests: number;
+  /**
+   * Failed sign-ins per email per hour, from anywhere: the soft limit
+   * behind the per-address one, against many addresses trying one
+   * account. Kept in Mongo, so a restart does not reset it.
+   */
+  emailLoginFailures: number;
+  emailWindowMs: number;
 }
 
 export const defaultRateLimits: RateLimitSettings = {
@@ -17,6 +38,14 @@ export const defaultRateLimits: RateLimitSettings = {
   authRequests: 30,
   refreshes: 120,
   windowMs: 15 * 60_000,
+  registrations: 5,
+  registrationWindowMs: 60 * 60_000,
+  deleteFailures: 5,
+  syncRequests: 120,
+  fileRequests: 300,
+  syncKeyRequests: 60,
+  emailLoginFailures: 20,
+  emailWindowMs: 60 * 60_000,
 };
 
 function limiter(limit: number, windowMs: number, extra: Partial<Options> = {}) {
@@ -35,18 +64,48 @@ function limiter(limit: number, windowMs: number, extra: Partial<Options> = {}) 
 }
 
 /**
- * The auth limiters, keyed by the client's address. Made per app, so
- * each app (and each test) starts with a clean count.
+ * Keyed by the signed-in account rather than the address: behind
+ * requireAuth, the account is who is asking, and one phone on a
+ * carrier's shared address must not spend another's allowance.
+ */
+function byAccount(limit: number, windowMs: number, extra: Partial<Options> = {}) {
+  return limiter(limit, windowMs, {
+    keyGenerator: (_req: Request, res: Response) => {
+      const auth = res.locals.auth;
+      if (!auth) throw new Error('an account limiter used on a route without requireAuth');
+      return auth.userId.toHexString();
+    },
+    ...extra,
+  });
+}
+
+/**
+ * The limiters, made per app, so each app (and each test) starts with a
+ * clean count.
  *
  * Sign-in counts failures only: a person who types the right password
  * five times an hour is not an attack. It is keyed by address rather
  * than by email, so nobody can lock someone else out by guessing at
- * their account.
+ * their account; the softer per-email count lives in Mongo
+ * (`LoginFailuresRepository`).
  */
 export function authLimiters(settings: RateLimitSettings) {
   return {
     login: limiter(settings.loginFailures, settings.windowMs, { skipSuccessfulRequests: true }),
     auth: limiter(settings.authRequests, settings.windowMs),
+    // Every answer that could say whether an address is taken counts (201
+    // and 409); a body that did not parse (400, a weak password retyped)
+    // says nothing, and is let off.
+    register: limiter(settings.registrations, settings.registrationWindowMs, {
+      skipSuccessfulRequests: true,
+      requestWasSuccessful: (_req, res) => res.statusCode === 400,
+    }),
     refresh: limiter(settings.refreshes, settings.windowMs),
+    deleteAccount: byAccount(settings.deleteFailures, settings.windowMs, { skipSuccessfulRequests: true }),
+    sync: byAccount(settings.syncRequests, 60_000),
+    files: byAccount(settings.fileRequests, 60_000),
+    syncKey: byAccount(settings.syncKeyRequests, settings.windowMs),
   };
 }
+
+export type Limiters = ReturnType<typeof authLimiters>;

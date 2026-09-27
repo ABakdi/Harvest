@@ -5,7 +5,7 @@ part 'database_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 HarvestDatabase database(Ref ref) {
-  final db = HarvestDatabase();
+  final db = HarvestDatabase.primary();
   ref.onDispose(db.close);
   return db;
 }

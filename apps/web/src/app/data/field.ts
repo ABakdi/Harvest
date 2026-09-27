@@ -49,34 +49,68 @@ export interface FieldView {
 }
 
 /**
+ * Lifetime XP and coins, summed once and kept while the ledger holds the
+ * same number of rows. The ledger only grows: a payment is taken back
+ * with a mirror row, never by rewriting or deleting one, so its count
+ * says whether the sums are still right (Q5-31).
+ */
+const ledgerSums = new WeakMap<HarvestDB, { count: number; xp: number; coins: number }>();
+
+async function ledgerTotals(db: HarvestDB): Promise<{ xp: number; coins: number }> {
+  const count = await db.rows('ledger').count();
+  const kept = ledgerSums.get(db);
+  if (kept && kept.count === count) return kept;
+  let xp = 0;
+  let coins = 0;
+  await db.rows('ledger').each((entry) => {
+    if (entry.kind === 'coin') coins += entry.delta;
+    else xp += entry.delta;
+  });
+  const sums = { count, xp, coins };
+  ledgerSums.set(db, sums);
+  return sums;
+}
+
+/**
  * The field for one Harvest Day, computed from the rows with
  * `packages/core` (W2): what is due by `isDueOn` and its start-day rule,
  * what is done, and the day's numbers. Nothing here is stored.
  */
 export async function loadField(db: HarvestDB, day: HarvestDay): Promise<FieldView> {
-  const [rows, checkIns, streaks, ledger, goalSetting, albums, memories] = await Promise.all([
+  const weekKeys = day.weekDays.map((d) => d.key);
+  const [rows, weekCheckIns, streaks, dayLedger, xpCoins, goalSetting, albums, memories] = await Promise.all([
     db.rows('commitments').toArray(),
-    db.rows('check_ins').toArray(),
+    // By the day index: the week, not every check-in ever (Q5-31).
+    db.rows('check_ins').where('harvestDay').between(weekKeys[0]!, weekKeys[6]!, true, true).toArray(),
     db.rows('streaks').toArray(),
-    db.rows('ledger').toArray(),
+    db.rows('ledger').where('harvestDay').equals(day.key).toArray(),
+    ledgerTotals(db),
     db.rows('kv_settings').get(settingKeys.dailyHarvestGoal),
     db.rows('albums').toArray(),
     db.rows('memories').where('harvestDay').equals(day.key).toArray(),
   ]);
 
-  const week = new Set(day.weekDays.map((d) => d.key));
+  // A lifetime total matters only to a project (its progress) and a
+  // to-do (done or not): only their check-ins are read in full, by the
+  // seed index. A habit's grow every day and are never needed here.
+  const counted = rows
+    .filter((row) => row.deletedAt === null && row.archivedAt === null && row.type !== 'habit')
+    .map((row) => row.uuid);
+  const lifetime = counted.length === 0 ? [] : await db.rows('check_ins').where('commitmentUuid').anyOf(counted).toArray();
+
   const totals = new Map<string, number>();
-  const todays = new Map<string, number>();
-  const weekDays = new Map<string, Set<string>>();
-  for (const row of checkIns) {
+  for (const row of lifetime) {
     if (row.deletedAt !== null) continue;
     totals.set(row.commitmentUuid, (totals.get(row.commitmentUuid) ?? 0) + row.quantity);
+  }
+  const todays = new Map<string, number>();
+  const weekDays = new Map<string, Set<string>>();
+  for (const row of weekCheckIns) {
+    if (row.deletedAt !== null) continue;
     if (row.harvestDay === day.key) todays.set(row.commitmentUuid, (todays.get(row.commitmentUuid) ?? 0) + row.quantity);
-    if (week.has(row.harvestDay)) {
-      const days = weekDays.get(row.commitmentUuid) ?? new Set<string>();
-      days.add(row.harvestDay);
-      weekDays.set(row.commitmentUuid, days);
-    }
+    const days = weekDays.get(row.commitmentUuid) ?? new Set<string>();
+    days.add(row.harvestDay);
+    weekDays.set(row.commitmentUuid, days);
   }
   const streakBy = new Map(streaks.map((row) => [row.scope, row]));
 
@@ -112,16 +146,8 @@ export async function loadField(db: HarvestDB, day: HarvestDay): Promise<FieldVi
   const albumActions = new Set(memories.filter((m) => m.deletedAt === null && scheduledAlbums.has(m.albumUuid)).map((m) => m.albumUuid)).size;
 
   let dayXp = 0;
-  let totalXp = 0;
-  let coins = 0;
-  for (const entry of ledger) {
-    if (entry.kind === 'coin') {
-      coins += entry.delta;
-      continue;
-    }
-    totalXp += entry.delta;
-    if (entry.harvestDay === day.key) dayXp += entry.delta;
-  }
+  for (const entry of dayLedger) if (entry.kind !== 'coin') dayXp += entry.delta;
+  const { xp: totalXp, coins } = xpCoins;
   const global = streakBy.get(globalStreakScope);
 
   return {

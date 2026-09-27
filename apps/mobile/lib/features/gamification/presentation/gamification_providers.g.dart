@@ -149,8 +149,59 @@ final class CheckInCountProvider
 
 String _$checkInCountHash() => r'c0a4138b480ea09d448aa0ed90c1c373c6436df2';
 
+/// The heat-map's squares over [activityWindow]: each day's productive
+/// actions, by the rule the web draws its map with (G5-11).
+
+@ProviderFor(heatActivity)
+final heatActivityProvider = HeatActivityProvider._();
+
+/// The heat-map's squares over [activityWindow]: each day's productive
+/// actions, by the rule the web draws its map with (G5-11).
+
+final class HeatActivityProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, int>>,
+          Map<String, int>,
+          Stream<Map<String, int>>
+        >
+    with $FutureModifier<Map<String, int>>, $StreamProvider<Map<String, int>> {
+  /// The heat-map's squares over [activityWindow]: each day's productive
+  /// actions, by the rule the web draws its map with (G5-11).
+  HeatActivityProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'heatActivityProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$heatActivityHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<String, int>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<String, int>> create(Ref ref) {
+    return heatActivity(ref);
+  }
+}
+
+String _$heatActivityHash() => r'c2c319565216401ab50e3f4c1efb7491f47593f1';
+
+/// Distinct seeds checked in per day: the weekly report's count.
+
 @ProviderFor(dailyActivity)
 final dailyActivityProvider = DailyActivityProvider._();
+
+/// Distinct seeds checked in per day: the weekly report's count.
 
 final class DailyActivityProvider
     extends
@@ -160,6 +211,7 @@ final class DailyActivityProvider
           Stream<Map<String, int>>
         >
     with $FutureModifier<Map<String, int>>, $StreamProvider<Map<String, int>> {
+  /// Distinct seeds checked in per day: the weekly report's count.
   DailyActivityProvider._()
     : super(
         from: null,
@@ -186,7 +238,7 @@ final class DailyActivityProvider
   }
 }
 
-String _$dailyActivityHash() => r'281145a458ffacf72927a921dabbe2dd2612d4aa';
+String _$dailyActivityHash() => r'4063f5b699f63e715c101e7731182af085cd8c05';
 
 @ProviderFor(commitmentStreaks)
 final commitmentStreaksProvider = CommitmentStreaksProvider._();

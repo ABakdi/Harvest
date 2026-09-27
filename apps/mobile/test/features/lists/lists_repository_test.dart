@@ -198,6 +198,16 @@ void main() {
       expect(await repo.setDone(machine.uuid, done: true), isTrue);
     });
 
+    test(
+      'a bought item moved to the Wishlist is a wish again (Q5-45)',
+      () async {
+        final coat = await repo.addItem(buy, title: 'Coat');
+        await repo.setDone(coat.uuid, done: true);
+        expect(await repo.moveItem(coat.uuid, wish), isTrue);
+        expect((await itemsOf(wish)).single.isDone, isFalse);
+      },
+    );
+
     test('plain items are ticked', () async {
       final packing = await repo.createList(
         name: 'Packing',

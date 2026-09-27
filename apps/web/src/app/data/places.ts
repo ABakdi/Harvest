@@ -1,5 +1,5 @@
 import type { FixLike, HarvestDay, SavedPlaceLike, Stay } from '@harvest/core';
-import { staysIn, trailMetres } from '@harvest/core';
+import { staysWithin, trailMetres } from '@harvest/core';
 import type { HarvestDB, Row } from './db';
 import type { Writer } from './writer';
 
@@ -88,16 +88,19 @@ export interface PlacesSpan {
  * that happened somewhere. A week or a month is one trail, drawn
  * together — the travel view — as the phone draws it.
  *
- * Stays are derived, never stored (PL5), and the same `staysIn` the
- * phone uses decides them — ten minutes inside a hundred metres, and a
- * named place claims whatever falls in its radius.
+ * Stays are derived, never stored (PL5), and the same `staysWithin`
+ * the phone uses decides them — ten minutes inside a hundred metres,
+ * and a named place claims whatever falls in its radius. The points
+ * just outside the span go in too, so a night at home across 3 AM is
+ * a stay on both days, each its own part ([[Audit-v3]] Q5-58).
  */
 export async function readSpan(db: HarvestDB, span: PlacesSpan): Promise<DayPlaces> {
   // Day keys sort as dates, so a span is one range over the index.
-  const [points, geotags, places] = await Promise.all([
+  const [points, geotags, places, edges] = await Promise.all([
     db.rows('location_points').where('harvestDay').between(span.from.key, span.to.key, true, true).toArray(),
     db.rows('geotags').where('harvestDay').between(span.from.key, span.to.key, true, true).toArray(),
     db.rows('saved_places').toArray(),
+    edgePoints(db, span),
   ]);
 
   const trail = points
@@ -130,7 +133,7 @@ export async function readSpan(db: HarvestDB, span: PlacesSpan): Promise<DayPlac
   return {
     points: trail,
     metres: trailMetres(fixes),
-    stays: staysIn(fixes, known),
+    stays: staysWithin([...fixes, ...edges], span.from.startsAt, span.to.next.startsAt, known),
     pins,
     places: saved,
     unavailable: live.filter((row) => row.state === 'unavailable').length,
@@ -142,12 +145,49 @@ export function readDay(db: HarvestDB, day: HarvestDay): Promise<DayPlaces> {
   return readSpan(db, { from: day, to: day });
 }
 
-/** Which days have anything on the map at all, newest first. */
+/** The last live point before [span] and the first after it. */
+async function edgePoints(db: HarvestDB, span: PlacesSpan): Promise<FixLike[]> {
+  const points = db.rows('location_points');
+  const live = (row: Row<'location_points'>) => row.deletedAt === null;
+  // By the day index: only the nearest day either side is read.
+  const before = await points.where('harvestDay').below(span.from.key).reverse().filter(live).first();
+  const after = await points.where('harvestDay').above(span.to.key).filter(live).first();
+  const edges: FixLike[] = [];
+  for (const [row, last] of [
+    [before, true],
+    [after, false],
+  ] as const) {
+    if (!row) continue;
+    const day = (await points.where('harvestDay').equals(row.harvestDay).toArray())
+      .filter(live)
+      .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
+    const edge = last ? day.at(-1) : day[0];
+    if (edge) edges.push({ latitude: edge.latitude, longitude: edge.longitude, at: edge.recordedAt });
+  }
+  return edges;
+}
+
+/**
+ * Which days have anything on the map at all, newest first. The day
+ * index answers which days exist; only a day's own rows are read to
+ * check one is live ([[Audit-v3]] Q5-32).
+ */
 export async function readMappedDays(db: HarvestDB): Promise<string[]> {
-  const [points, geotags] = await Promise.all([db.rows('location_points').toArray(), db.rows('geotags').toArray()]);
   const days = new Set<string>();
-  for (const row of points) if (row.deletedAt === null) days.add(row.harvestDay);
-  for (const row of geotags) if (row.deletedAt === null && row.state === 'fixed') days.add(row.harvestDay);
+  const points = db.rows('location_points');
+  for (const key of (await points.orderBy('harvestDay').uniqueKeys()) as string[]) {
+    if (await points.where('harvestDay').equals(key).filter((row) => row.deletedAt === null).first()) days.add(key);
+  }
+  const geotags = db.rows('geotags');
+  for (const key of (await geotags.orderBy('harvestDay').uniqueKeys()) as string[]) {
+    if (days.has(key)) continue;
+    const fixed = await geotags
+      .where('harvestDay')
+      .equals(key)
+      .filter((row) => row.deletedAt === null && row.state === 'fixed')
+      .first();
+    if (fixed) days.add(key);
+  }
   return [...days].sort((a, b) => b.localeCompare(a));
 }
 
@@ -275,4 +315,25 @@ export class LocationHistoryRepository {
       }
     });
   }
+}
+
+/**
+ * The corners of a set of [longitude, latitude] spots, or null for none.
+ * A reduce rather than `Math.min(...spots)`, which throws once a month
+ * of trail is more arguments than a call can take ([[Audit-v3]] Q5-32).
+ */
+export function boundsOf(spots: readonly (readonly [number, number])[]): [[number, number], [number, number]] | null {
+  if (spots.length === 0) return null;
+  let [west, south] = spots[0]!;
+  let [east, north] = spots[0]!;
+  for (const [lng, lat] of spots) {
+    if (lng < west) west = lng;
+    if (lng > east) east = lng;
+    if (lat < south) south = lat;
+    if (lat > north) north = lat;
+  }
+  return [
+    [west, south],
+    [east, north],
+  ];
 }

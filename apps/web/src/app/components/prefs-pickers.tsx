@@ -57,7 +57,7 @@ export function PresetPicker() {
             aria-checked={selected}
             onClick={() => setPrefs({ themePreset: preset })}
             className={cn(
-              'flex items-center gap-2 rounded-lg bg-input px-3 py-2 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'flex items-center gap-2 rounded-lg bg-input px-3 py-2 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11',
               selected && 'ring-2 ring-primary',
             )}
           >

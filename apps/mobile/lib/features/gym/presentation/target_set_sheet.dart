@@ -59,9 +59,10 @@ class _TargetSetSheet extends ConsumerWidget {
       title: exercise?.displayName ?? l10n.gymUnknownExercise,
       subtitle: l10n.gymSetsSubtitle,
       children: [
-        for (final set in slot.sets)
+        for (final (index, set) in slot.sets.indexed)
           _SetRow(
             set: set,
+            number: index + 1,
             unit: unit,
             onEdit: () => unawaited(_edit(context, ref, set)),
             onRemove: () => unawaited(repository.removeTargetSet(set.uuid)),
@@ -238,6 +239,7 @@ class _ChipField extends StatelessWidget {
 class _SetRow extends StatelessWidget {
   const _SetRow({
     required this.set,
+    required this.number,
     required this.unit,
     required this.onEdit,
     required this.onRemove,
@@ -245,6 +247,9 @@ class _SetRow extends StatelessWidget {
   });
 
   final TargetSet set;
+
+  /// 1 up, by place in the list, not by position (Q5-46).
+  final int number;
   final WeightUnit unit;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
@@ -275,7 +280,7 @@ class _SetRow extends StatelessWidget {
           // goes up, so it is marked rather than numbered — with the
           // same mark the session uses, because the program and the
           // workout should call it one thing ([[Audit-v2]] U3-18).
-          set.openEnded ? '1+' : '${set.position + 1}',
+          set.openEnded ? '1+' : '$number',
           style: theme.textTheme.labelSmall?.copyWith(
             fontSize: set.openEnded ? 10 : null,
             fontWeight: FontWeight.w800,

@@ -127,7 +127,7 @@ export function SleepNightsCard() {
         const name = weekdayName(weekday);
         const set = (part: 'bedTime' | 'wakeTime', clock: Clock) => write(weekday, { ...(own ?? targets.cycle), [part]: clock });
         return (
-          <li key={weekday} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2">
+          <li key={weekday} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 max-md:py-2.5">
             <Switch
               checked={own !== null}
               aria-label={t('settingsWeb.ownNight', { day: name })}

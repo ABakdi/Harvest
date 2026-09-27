@@ -399,12 +399,20 @@ class _SyncPinPromptState extends ConsumerState<SyncPinPrompt> {
         syncPassphraseProvider,
         (_, _) => _consider(),
         fireImmediately: true,
-      );
+      )
+      // The PIN was started over on another device: asked again now,
+      // whatever was asked this start, and said why.
+      ..listenManual(syncControllerProvider, (previous, next) {
+        if (next.error == SyncController.pinChanged &&
+            previous?.error != SyncController.pinChanged) {
+          _consider(forgetAsked: true, changedElsewhere: true);
+        }
+      });
   }
 
   /// After the frame: the listeners fire while the tree is building,
   /// and nothing may change then.
-  void _consider({bool forgetAsked = false}) {
+  void _consider({bool forgetAsked = false, bool changedElsewhere = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final asked = ref.read(syncPinAskedProvider.notifier);
@@ -420,6 +428,10 @@ class _SyncPinPromptState extends ConsumerState<SyncPinPrompt> {
         showSyncPinSheet(
           context,
           asking: true,
+          changedElsewhere:
+              changedElsewhere ||
+              ref.read(syncControllerProvider).error ==
+                  SyncController.pinChanged,
         ).whenComplete(() => _showing = false),
       );
     });

@@ -357,15 +357,17 @@ class SessionsRepository {
     WeightUnit unit = WeightUnit.kg,
     HarvestDay? on,
   }) async {
-    // One session at a time (Y3): a second Start — a double tap, a
-    // retry — resumes the one already running rather than beginning
-    // another beside it ([[Audit-v2]] U3-15).
-    final running = await runningOnce();
-    if (running != null) return running;
     final uuid = _uuid.v4();
     final harvestDay = on ?? HarvestDay.today();
 
-    await _db.transaction(() async {
+    final running = await _db.transaction(() async {
+      // One session at a time (Y3): a second Start — a double tap, a
+      // retry — resumes the one already running rather than beginning
+      // another beside it ([[Audit-v2]] U3-15). The look happens inside
+      // the write, so two taps cannot both find nothing running
+      // ([[Audit-v3]] Q5-39).
+      final running = await runningOnce();
+      if (running != null) return running;
       await _db
           .into(_db.workoutSessions)
           .insert(
@@ -422,9 +424,10 @@ class SessionsRepository {
         }
       }
       await _outbox(uuid, 'insert');
+      return null;
     });
 
-    return (await once(uuid))!;
+    return running ?? (await once(uuid))!;
   }
 
   /// An empty session, for a day I am making up as I go — or, with a
@@ -659,11 +662,15 @@ class SessionsRepository {
 
   /// Ends the session. [at] ends it at a moment of my choosing: a session left running
   /// for days ends at its last set, not at the tap that closed it.
-  Future<void> finish(String uuid, {DateTime? at}) => _db.transaction(() async {
+  ///
+  /// False when it had already ended: a second Finish (a double tap)
+  /// changes nothing and pays nothing ([[Audit-v3]] Q5-39).
+  Future<bool> finish(String uuid, {DateTime? at}) => _db.transaction(() async {
     // A session finished while paused ends at the pause: the minutes
     // between were not training.
     final row = await _row(uuid);
-    final pausedAt = row?.pausedAt;
+    if (row == null || row.endedAt != null) return false;
+    final pausedAt = row.pausedAt;
     await (_db.update(
       _db.workoutSessions,
     )..where((s) => s.uuid.equals(uuid))).write(
@@ -674,6 +681,7 @@ class SessionsRepository {
       ),
     );
     await _outbox(uuid, 'update');
+    return true;
   });
 
   Future<WorkoutSessionRow?> _row(String uuid) => (_db.select(

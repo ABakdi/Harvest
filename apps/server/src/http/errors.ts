@@ -15,6 +15,8 @@ export class HttpError extends Error {
     message: string,
     readonly details?: Issue[],
     readonly headers: Record<string, string> = {},
+    /** Fields that travel beside `error` in the body, for the one route that needs them. */
+    readonly extra: Record<string, unknown> = {},
   ) {
     super(message);
   }
@@ -72,7 +74,8 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
     if (!known) logger.error({ err: error, method: req.method, path: req.path }, 'unhandled error');
 
     for (const [name, value] of Object.entries(failure.headers)) res.setHeader(name, value);
-    const body: ErrorBody = {
+    const body: ErrorBody & Record<string, unknown> = {
+      ...failure.extra,
       error: {
         code: failure.code,
         message: failure.message,

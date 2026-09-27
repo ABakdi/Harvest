@@ -293,9 +293,9 @@ class _ItemListState extends ConsumerState<_ItemList> {
               ? CommitmentType.todo
               : CommitmentType.habit,
           goalUuid: _goal.uuid,
+          alongside: (seed) => repository.linkItem(item.uuid, seed.uuid),
         );
         if (seed == null) return;
-        await repository.linkItem(item.uuid, seed.uuid);
         messenger.showSnackBar(SnackBar(content: Text(l10n.goalPlanted)));
       case _ItemAction.addSubtask:
         setState(() => _adding = item.uuid);

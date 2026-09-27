@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { formatDate, formatNumber } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { StreakChip } from '../components/bits';
+import { FarmerTabs } from '../components/screen-tabs';
 import { categoryLabel } from '../components/category';
 import { useHarvest, useHarvestDay } from '../context';
 import type { HarvestDB } from '../data/db';
@@ -161,6 +162,7 @@ export function FarmerScreen() {
 
   return (
     <div className="flex flex-col gap-4">
+      <FarmerTabs />
       <h1 className="text-2xl font-extrabold">{user.displayName ?? t('nav.farmer')}</h1>
       <section className="flex flex-col gap-3 rounded-2xl border bg-card p-5">
         <div className="flex items-center gap-3">
@@ -216,7 +218,8 @@ export function FarmerScreen() {
 
       <StatsSection />
 
-      <section aria-labelledby="archive-heading" className="flex flex-col gap-2">
+      {/* On a phone the archive is its own screen, from the Field's app bar. */}
+      <section aria-labelledby="archive-heading" className="flex flex-col gap-2 max-md:hidden">
         <h2 id="archive-heading" className="text-lg font-extrabold">
           {t('farmer.archive')}
         </h2>
@@ -250,7 +253,7 @@ export function FarmerScreen() {
   );
 }
 
-/** A square per day, a column per week: the run of the last four months. */
+/** A square per day, a column per week: the run of the last six months. */
 function Heat({ stats }: { stats: StatsView }) {
   const { t } = useTranslation();
   const weeks: HeatDay[][] = [];
@@ -259,14 +262,13 @@ function Heat({ stats }: { stats: StatsView }) {
   }
   // Two things are said at once, so they are said differently, as on
   // the phone: a day of the current streak is simply on; any other
-  // day is shaded by how much was done on it.
+  // day is faded to how close it came to the goal (`activityShade`,
+  // the phone's shading too: G5-11).
   const shade = (day: HeatDay) => {
-    if (stats.streakDays.has(day.key)) return 'bg-success';
-    if (day.actions === 0) return 'bg-muted';
-    const step = stats.busiest === 0 ? 1 : day.actions / stats.busiest;
-    if (step > 0.66) return 'bg-primary';
-    if (step > 0.33) return 'bg-primary/70';
-    return 'bg-primary/40';
+    if (day.future) return { className: 'bg-transparent' };
+    if (stats.streakDays.has(day.key)) return { className: 'bg-success' };
+    if (day.shade === 0) return { className: 'bg-muted' };
+    return { className: 'bg-success', style: { opacity: day.shade } };
   };
   return (
     <div className="flex flex-col gap-2">
@@ -277,7 +279,8 @@ function Heat({ stats }: { stats: StatsView }) {
               <span
                 key={day.key}
                 title={`${formatDate(day.day.toDate())} · ${t('stats.actions', { count: day.actions })}`}
-                className={`size-3 rounded-[3px] ${shade(day)}`}
+                className={`size-3 rounded-[3px] ${shade(day).className}`}
+                style={shade(day).style}
               />
             ))}
           </div>
@@ -289,7 +292,7 @@ function Heat({ stats }: { stats: StatsView }) {
           {t('stats.legendStreak')}
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-[3px] bg-primary/70" aria-hidden />
+          <span className="size-2.5 rounded-[3px] bg-success opacity-30" aria-hidden />
           {t('stats.legendActive')}
         </li>
         <li className="flex items-center gap-1.5">

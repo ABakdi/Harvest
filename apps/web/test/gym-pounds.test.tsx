@@ -57,8 +57,8 @@ describe('a pound gym', () => {
     expect(sets.map((set) => [set.weightGrams, set.targetLabel])).toEqual([
       [lb135, '61.23×5'],
       [lb40, '18.14×10'],
-      // 75% of 225 lb is 168.75 lb — not 168.8, not a quarter kilo off.
-      [76_544, '76.54×5'],
+      // 75% of 225 lb is 168.75 lb, which 2.5 lb plates cannot make: 170 lb (G5-13).
+      [77_111, '77.11×5'],
     ]);
   });
 

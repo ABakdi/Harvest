@@ -2,12 +2,14 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import {
   ArchiveIcon,
   BedIcon,
+  CalendarDaysIcon,
   CameraIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   CoinsIcon,
   EllipsisVerticalIcon,
+  FlagIcon,
   FlameIcon,
   HistoryIcon,
   LockIcon,
@@ -26,7 +28,7 @@ import {
 import { useState } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -55,6 +57,8 @@ import { formatDay, formatMoney, formatNumber } from '@/lib/format';
 import { renderInline } from '@/lib/markdown';
 import { cn } from '@/lib/utils';
 import { EmptyState, ProgressRing, StreakChip } from '../components/bits';
+import { Fab } from '../components/fab';
+import { NavTabs } from '../components/screen-tabs';
 import { SeedLogDialog } from '../components/seed-log-dialog';
 import { SeedNoteDialog } from '../components/seed-note-dialog';
 import { StreakDialog } from './farmer';
@@ -72,25 +76,19 @@ import { CaptureDialog } from '../components/gallery/capture-dialog';
 import { useFeaturesOrOff } from '../components/settings-bits';
 import { readAlbumsDue, type AlbumDue } from '../data/gallery';
 
+/** Today and Goals, as on the phone; a wide window keeps the calendar as a third tab. */
 export function FieldTabs() {
   const { t } = useTranslation();
-  const tab = ({ isActive }: { isActive: boolean }) =>
-    cn(
-      'rounded-md px-3 py-1.5 text-sm font-extrabold outline-none focus-visible:ring-2 focus-visible:ring-ring',
-      isActive ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-    );
   return (
-    <nav aria-label={t('field.tabs')} className="flex w-fit gap-1 rounded-lg bg-muted p-1">
-      <NavLink to="/app/field" end className={tab}>
-        {t('field.today')}
-      </NavLink>
-      <NavLink to="/app/field/goals" className={tab}>
-        {t('field.goals')}
-      </NavLink>
-      <NavLink to="/app/field/calendar" className={tab}>
-        {t('calendar.title')}
-      </NavLink>
-    </nav>
+    <NavTabs
+      label={t('field.tabs')}
+      tabs={[
+        { to: '/app/field', label: t('field.today'), icon: SproutIcon, end: true },
+        { to: '/app/field/goals', label: t('field.goals'), icon: FlagIcon },
+        // On a phone-width window the calendar is an action in the app bar, as on the phone.
+        { to: '/app/field/calendar', label: t('calendar.title'), icon: CalendarDaysIcon, className: 'max-md:hidden' },
+      ]}
+    />
   );
 }
 
@@ -169,7 +167,7 @@ function SeedCard({
   return (
     <li
       className={cn(
-        'flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors',
+        'relative flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors',
         seed.overdue && !seed.done && 'border-destructive/60',
       )}
     >
@@ -181,7 +179,7 @@ function SeedCard({
         disabled={paused}
         onClick={() => (seed.done && row.type !== 'project' ? onUndo(seed) : row.type === 'project' ? onLog(seed) : onCheck(seed))}
         className={cn(
-          'flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:opacity-40',
+          'relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:opacity-40',
           seed.done ? 'border-success bg-success text-white' : 'border-muted-foreground/40 hover:border-success',
         )}
       >
@@ -195,7 +193,8 @@ function SeedCard({
         <Link
           to={`/app/field/seed/${row.uuid}`}
           className={cn(
-            'truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring',
+            // On a phone the whole card opens the seed, as it does there.
+            "truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring max-md:after:absolute max-md:after:inset-0 max-md:after:content-['']",
             seed.done && row.type !== 'project' && 'text-muted-foreground line-through',
           )}
         >
@@ -215,7 +214,7 @@ function SeedCard({
       {seed.streak !== null && <StreakChip count={seed.streak} />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label={t('field.options', { title: row.title })}>
+          <Button variant="ghost" size="icon-sm" className="relative z-10" aria-label={t('field.options', { title: row.title })}>
             <EllipsisVerticalIcon />
           </Button>
         </DropdownMenuTrigger>
@@ -285,14 +284,14 @@ function AlbumCard({ entry, onCapture }: { entry: AlbumDue; onCapture: (entry: A
   const { album, done } = entry;
   const to = `/app/records/gallery?album=${album.uuid}`;
   return (
-    <li className="flex items-center gap-3 rounded-xl border bg-card p-3">
+    <li className="relative flex items-center gap-3 rounded-xl border bg-card p-3">
       <button
         type="button"
         data-field-check
         aria-label={done ? t('field.albumOpen', { name: album.name }) : t('field.albumAdd', { name: album.name })}
         onClick={() => (done ? void navigate(to) : onCapture(entry))}
         className={cn(
-          'flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95',
+          'relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95',
           done ? 'border-success bg-success text-white' : 'border-muted-foreground/40 text-muted-foreground hover:border-success',
         )}
       >
@@ -302,7 +301,7 @@ function AlbumCard({ entry, onCapture }: { entry: AlbumDue; onCapture: (entry: A
         <Link
           to={to}
           className={cn(
-            'truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring',
+            "truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring max-md:after:absolute max-md:after:inset-0 max-md:after:content-['']",
             done && 'text-muted-foreground line-through',
           )}
         >
@@ -408,6 +407,7 @@ function TodayView() {
 
   return (
     <div className="flex flex-col gap-4">
+      <Fab label={t('seed.plant')} wide={false} onClick={() => dialogs.plantSeed()} />
       <section aria-label={t('field.summary')} className="flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4">
         <ProgressRing
           ratio={view.goal > 0 ? view.actions / view.goal : 0}
@@ -427,7 +427,7 @@ function TodayView() {
                 onClick={() => setStreakOpen(true)}
                 title={t('streak.sheetTitle')}
                 aria-label={`${t('streak.sheetTitle')}: ${t('streak.days', { count: view.streak.current })}`}
-                className="flex items-center gap-1 rounded-full px-3 py-1 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex items-center gap-1 rounded-full px-3 py-1 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring max-md:touch-target"
               >
                 <FlameIcon className="size-4 text-primary" aria-hidden />
                 <span className="tabular">{t('streak.days', { count: view.streak.current })}</span>

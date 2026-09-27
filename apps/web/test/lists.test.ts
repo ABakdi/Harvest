@@ -77,7 +77,8 @@ describe("a list's kind decides its items' fields (L2)", () => {
 
   it('reads an item from before lists by its old column', async () => {
     const h = await device(new FakeServer());
-    await h.wishlist.add({ list: 'wish', title: 'Lamp' });
+    await h.lists.ensureBuiltIns();
+    await h.lists.addItem(wishListId, { title: 'Lamp' });
     await h.db.table('wishlist_items').put({
       uuid: 'old',
       list: 'buy',
@@ -101,9 +102,10 @@ describe("a list's kind decides its items' fields (L2)", () => {
 describe('done, started, rated (L4, L7, L8)', () => {
   it('a wish is not bought where it is; To buy is where things get bought', async () => {
     const h = await device(new FakeServer());
-    const machine = await h.wishlist.add({ list: 'wish', title: 'Espresso machine', priceMinor: 540_000 });
+    await h.lists.ensureBuiltIns();
+    const machine = await h.lists.addItem(wishListId, { title: 'Espresso machine', priceMinor: 540_000 });
     expect(await h.lists.setDone(machine.uuid, true)).toBe(false);
-    await h.wishlist.move(machine.uuid, 'buy');
+    await h.lists.moveItem(machine.uuid, buyListId);
     expect(await h.lists.setDone(machine.uuid, true)).toBe(true);
     // A stamp, not a transaction: nothing in the ledger or the wallet.
     expect(await h.db.rows('ledger').count()).toBe(0);
@@ -225,7 +227,7 @@ describe('the browser store', () => {
 
     const db = new HarvestDB(name);
     await db.open();
-    expect(db.verno).toBe(4);
+    expect(db.verno).toBe(5);
     expect(await db.rows('lists').count()).toBe(4);
     const coat = (await db.rows('wishlist_items').get('coat'))!;
     expect(coat).toMatchObject({ listUuid: buyListId, mediaType: null, rating: null });

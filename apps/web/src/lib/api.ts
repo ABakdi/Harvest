@@ -8,6 +8,7 @@ import type {
   FileUploaded,
   ForgotPasswordBody,
   Issue,
+  KeyCheck,
   LoginBody,
   Me,
   PatchMeBody,
@@ -18,8 +19,10 @@ import type {
   Release,
   ResetPasswordBody,
   SessionsResult,
+  SyncKeyResult,
 } from '@harvest/contracts';
-import { fileIvHeader, filePlainBytesHeader } from '@harvest/contracts';
+// From the schema-free module: this file is on the public pages (Q5-30).
+import { fileIvHeader, filePlainBytesHeader } from '@harvest/contracts/headers';
 
 /**
  * The web's only door to the server. Everything else it knows, it knows
@@ -52,6 +55,8 @@ export class ApiError extends Error {
     message: string,
     readonly details: Issue[] = [],
     readonly retryAfter: number | null = null,
+    /** On a 409 from the key check, the check already stored. */
+    readonly check: KeyCheck | null = null,
   ) {
     super(message);
   }
@@ -160,9 +165,16 @@ export function resumeSession(): AuthResult | null {
 async function toError(response: Response): Promise<ApiError> {
   const retryAfter = Number(response.headers.get('retry-after')) || null;
   try {
-    const body = (await response.json()) as Partial<ErrorBody>;
+    const body = (await response.json()) as Partial<ErrorBody> & { check?: KeyCheck };
     if (body.error) {
-      return new ApiError(response.status, body.error.code, body.error.message, body.error.details ?? [], retryAfter);
+      return new ApiError(
+        response.status,
+        body.error.code,
+        body.error.message,
+        body.error.details ?? [],
+        retryAfter,
+        body.check ?? null,
+      );
     }
   } catch {
     // Not the contract's shape: a proxy's error page, most likely.
@@ -170,11 +182,43 @@ async function toError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, 'internal', response.statusText || 'Request failed', [], retryAfter);
 }
 
-async function send(path: string, init: RequestInit): Promise<Response> {
+async function sendOnce(path: string, init: RequestInit): Promise<Response> {
   try {
     return await fetch(`${base}${path}`, { credentials: 'include', ...init });
   } catch (error) {
     throw new ApiError(0, 'network', error instanceof Error ? error.message : 'Network error');
+  }
+}
+
+/** How often a paced route is asked again after a `429`, and the longest wait. */
+export const paceAttempts = 3;
+export const longestPaceMs = 60_000;
+
+/** How a test waits out a `429` without waiting. */
+let pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+export function setPauseForTests(next: (ms: number) => Promise<void>): void {
+  pause = next;
+}
+
+/**
+ * The sync and file routes are paced per account ([[Sync-API]], limits):
+ * a `429` there is waited out as long as `Retry-After` says (a minute at
+ * most) and asked again, so a busy moment slows a sync down rather than
+ * failing it. Everything else answers at once.
+ */
+async function send(path: string, init: RequestInit): Promise<Response> {
+  const paced = path.startsWith('/v1/sync/') || path.startsWith('/v1/files');
+  for (let attempt = 1; ; attempt++) {
+    const response = await sendOnce(path, init);
+    if (!paced || response.status !== 429 || attempt >= paceAttempts) return response;
+    const seconds = Number(response.headers.get('retry-after'));
+    const wait = Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 5_000;
+    try {
+      await response.text();
+    } catch {
+      // Nothing to read.
+    }
+    await pause(Math.min(wait, longestPaceMs));
   }
 }
 
@@ -447,6 +491,35 @@ export const api = {
     }
     if (!response.ok) throw await toError(response);
     return response;
+  },
+
+  /** The account's salt, key share and key check ([[Sync-API]], sync key). */
+  syncKey: () => request<SyncKeyResult>('/v1/me/sync-key'),
+
+  /**
+   * Stores this device's key check as the account's: null when it was
+   * stored, or the check another device stored first (409).
+   */
+  async putKeyCheck(check: KeyCheck): Promise<KeyCheck | null> {
+    try {
+      await request<{ check: KeyCheck }>('/v1/me/sync-key/check', { method: 'PUT', body: { check } });
+      return null;
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 409) throw error;
+      return error.check ?? (await api.syncKey()).check;
+    }
+  },
+
+  /** Starts the PIN over: the check, the share and everything private on the server go. */
+  startOverSyncKey: (password: string) => request<void>('/v1/me/sync-key', { method: 'DELETE', body: { password } }),
+
+  /** Lets go of a file no row names any more; a 409 (still named) leaves it. */
+  async forgetFile(sha256: string): Promise<void> {
+    try {
+      await request<void>(`/v1/files/${sha256}`, { method: 'DELETE' });
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 409) throw error;
+    }
   },
 
   push: (body: PushBody) => request<PushResult>('/v1/sync/push', { method: 'POST', body }),

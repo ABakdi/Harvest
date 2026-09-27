@@ -9,19 +9,27 @@
  * record: the archive importer, the export and sync all read it. The
  * two are held together by the contract fixtures; a key added there and
  * not here is a setting the server refuses.
+ *
+ * Nothing that names where a request goes travels (S5-01):
+ * not the assist's provider, model or base URL, and not the
+ * map's style URL. A row anyone with write access to the account could
+ * push would otherwise decide where this phone sends its API key and
+ * which map server learns where I look.
  */
 export const portableSettingPrefixes = [
   'themeMode',
   'locale',
   'dailyHarvestGoal',
-  'assist.',
   'cycle.',
   'features.',
   'finance.',
   'gym.',
   'health.',
   'notes.',
-  'places.',
+  'places.trail',
+  'places.pausedUntil',
+  'places.highAccuracy',
+  'places.mapBase',
   'onboarding.done',
   'pomodoro.focusMinutes',
   'pomodoro.shortBreakMinutes',
@@ -43,4 +51,18 @@ export const portableSettingPrefixes = [
  */
 export function isPortableSetting(key: string): boolean {
   return portableSettingPrefixes.some((prefix) => key.startsWith(prefix));
+}
+
+/**
+ * Keys 3.0.0 synced and nothing does any more (S5-01): the assist's
+ * provider, model and base URL, and every `places.` key, the map's
+ * style URL among them. A 3.0.0 phone still pushes them, so the server
+ * takes them rather than answer `invalid` for ever; current clients
+ * never push them and ignore them on a pull.
+ */
+export const legacySettingPrefixes = ['assist.', 'places.'] as const;
+
+/** Whether [key] is one only an old client sends: stored, never applied. */
+export function isLegacySetting(key: string): boolean {
+  return !isPortableSetting(key) && legacySettingPrefixes.some((prefix) => key.startsWith(prefix));
 }

@@ -1,8 +1,9 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import type { PullResult, PushResult, SyncRecord } from '@harvest/contracts';
+import { maxRecordStoreBytes, type PullResult, type PushResult, type SyncRecord } from '@harvest/contracts';
 import { ObjectId } from 'mongodb';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { SyncService } from '../src/sync/service.js';
 import { bearer, expectError, harness, signUp, type Account, type Harness } from './harness.js';
 
 let h: Harness;
@@ -335,7 +336,7 @@ describe('what the server checks', () => {
 
   it('checks the envelope and nothing more', async () => {
     const account = await signUp(h);
-    const bad = { table: 'geotags', uuid: 'g1', updatedAt: at(1), deletedAt: null, enc: { v: 2, iv: 'x', ct: '' } };
+    const bad = { table: 'geotags', uuid: 'g1', updatedAt: at(1), deletedAt: null, enc: { v: 3, iv: 'x', ct: '' } };
     const result = await push(account, [bad]);
     expect(result.results[0]!.status).toBe('invalid');
     expect(result.results[0]!.issues!.map((i) => i.path.join('.'))).toEqual(expect.arrayContaining(['enc.v', 'enc.iv']));
@@ -390,5 +391,124 @@ describe('what the server checks', () => {
     const records = await pullAll(account);
     expect(records).toHaveLength(1);
     expect(records[0]!.data!.steps).toBe(12000);
+  });
+});
+
+describe('limits (audit S5-02, S5-11)', () => {
+  it('refuses a clock more than a day ahead of the server, or past 2200', async () => {
+    const account = await signUp(h);
+    const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
+    const make = (uuid: string, updatedAt: string): SyncRecord => ({
+      ...note(uuid, 1),
+      updatedAt,
+      data: { ...note(uuid, 1).data, updatedAt },
+    });
+    const result = await push(account, [
+      make('n-soon', ahead(60 * 60_000)),
+      make('n-tomorrow', ahead(2 * 24 * 60 * 60_000)),
+      make('n-far', '9999-12-31T23:59:59Z'),
+    ]);
+    expect(result.results.map((r) => r.status)).toEqual(['applied', 'invalid', 'invalid']);
+    expect(result.results[1]!.issues).toEqual([expect.objectContaining({ path: ['updatedAt'], code: 'clock_ahead' })]);
+    expect(result.results[2]!.issues).toEqual([expect.objectContaining({ path: ['updatedAt'], code: 'clock_too_far' })]);
+  });
+
+  it('refuses a text past its cap and a sealed row past its', async () => {
+    const account = await signUp(h);
+    const long = note('n-long', 1);
+    long.data = { ...long.data, body: 'x'.repeat(500_001) };
+    const sealed = {
+      table: 'geotags',
+      uuid: 'g-big',
+      updatedAt: at(1),
+      deletedAt: null,
+      enc: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct: 'A'.repeat(1_000_004) },
+    };
+    const result = await push(account, [long, sealed]);
+    expect(result.results.map((r) => r.status)).toEqual(['invalid', 'invalid']);
+    expect(result.results[0]!.issues![0]!.path).toEqual(['data', 'body']);
+    expect(result.results[1]!.issues![0]!.path).toEqual(['enc', 'ct']);
+  });
+
+  it('pages a pull by bytes as well as by count', async () => {
+    const account = await signUp(h);
+    const big = (uuid: string, minute: number) => {
+      const record = note(uuid, minute);
+      record.data = { ...record.data, body: 'b'.repeat(3000) };
+      return record;
+    };
+    await push(account, [big('a', 1), big('b', 2), big('c', 3), big('d', 4)]);
+
+    const sync = new SyncService(h.repos);
+    const userId = new ObjectId(account.userId);
+    // Two rows fit under 7 kB, the third would not.
+    const first = await sync.pull(userId, 0, 1000, 7000);
+    expect(first.records.map((r) => r.uuid)).toEqual(['a', 'b']);
+    expect(first.more).toBe(true);
+    // A row bigger than the page still comes, alone.
+    const alone = await sync.pull(userId, first.cursor, 1000, 10);
+    expect(alone.records.map((r) => r.uuid)).toEqual(['c']);
+    expect(alone.more).toBe(true);
+    const rest = await sync.pull(userId, alone.cursor, 1000, 7000);
+    expect(rest.records.map((r) => r.uuid)).toEqual(['d']);
+    expect(rest.more).toBe(false);
+  });
+
+  it('keeps each account to its row quota, and lets it shrink when full', async () => {
+    const account = await signUp(h);
+    const userId = new ObjectId(account.userId);
+    await push(account, [note('n1', 1)]);
+    // The running total agrees with what Mongo measures of the stored rows.
+    const counted = await h.db.collection('counters').findOne({ _id: userId });
+    expect(counted!.recordBytes).toBe(await h.repos.records.storedBytes(userId));
+
+    await h.db
+      .collection('counters')
+      .updateOne({ _id: userId }, { $set: { recordBytes: maxRecordStoreBytes - 100 } });
+    const full = await push(account, [note('n2', 2)]);
+    expect(full.results[0]).toMatchObject({ status: 'invalid' });
+    expect(full.results[0]!.issues![0]!.code).toBe('quota_exceeded');
+
+    // A purge makes room rather than taking it.
+    const purged = await push(account, [
+      { table: 'notes', uuid: 'n1', updatedAt: at(5), deletedAt: at(5), purged: true },
+    ]);
+    expect(purged.results[0]!.status).toBe('applied');
+  });
+
+  it('fills in the total of an account from before it was kept', async () => {
+    const account = await signUp(h);
+    const userId = new ObjectId(account.userId);
+    await push(account, [note('n1', 1), note('n2', 2)]);
+    await h.db.collection('counters').updateOne({ _id: userId }, { $unset: { recordBytes: '' } });
+    await h.db.collection('records').updateMany({ userId }, { $unset: { bytes: '' } });
+
+    await push(account, [note('n1', 3, { title: 'Longer title than before' })]);
+    const counted = await h.db.collection('counters').findOne({ _id: userId });
+    expect(counted!.recordBytes).toBe(await h.repos.records.storedBytes(userId));
+  });
+
+  it('limits sync requests per account, not per address', async () => {
+    const limited = await harness({ rateLimits: { syncRequests: 2 } });
+    try {
+      const one = await signUp(limited);
+      const two = await signUp(limited);
+      const pullAs = (account: Account) => request(limited.app).get('/v1/sync/pull').set(bearer(account));
+      await pullAs(one).expect(200);
+      await pullAs(one).expect(200);
+      expectError(await pullAs(one), 429, 'rate_limited');
+      await pullAs(two).expect(200);
+    } finally {
+      await limited.close();
+    }
+  });
+
+  it('reads no body before it knows who is asking', async () => {
+    const res = await request(h.app)
+      .post('/v1/sync/push')
+      .set('Content-Type', 'application/json')
+      .send('{"not json');
+    // A 400 would mean the body was parsed first.
+    expectError(res, 401, 'unauthorized');
   });
 });

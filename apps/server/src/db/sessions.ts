@@ -1,5 +1,5 @@
 import { ObjectId, type Collection } from 'mongodb';
-import type { RefreshTokenDoc, SessionDoc } from './types.js';
+import type { RefreshTokenDoc, SealedBytes, SessionDoc } from './types.js';
 
 export class SessionsRepository {
   constructor(
@@ -88,6 +88,11 @@ export class SessionsRepository {
       { $set: { usedAt: now } },
       { returnDocument: 'after' },
     );
+  }
+
+  /** Keeps, on a used token, the token it was exchanged for (sealed). */
+  async setSuccessor(userId: ObjectId, tokenId: ObjectId, successor: SealedBytes): Promise<void> {
+    await this.tokens.updateOne({ _id: tokenId, userId }, { $set: { successor } });
   }
 
   findToken(userId: ObjectId, tokenHash: string): Promise<RefreshTokenDoc | null> {

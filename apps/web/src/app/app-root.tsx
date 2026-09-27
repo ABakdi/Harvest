@@ -32,6 +32,8 @@ export async function wipeLocal(): Promise<void> {
 export type Boot =
   | { kind: 'loading' }
   | { kind: 'leaving' }
+  /** The session ended elsewhere: the store is being forgotten. */
+  | { kind: 'ending' }
   | { kind: 'left' }
   | { kind: 'ready'; harvest: Harvest; offline: boolean }
   | { kind: 'signedOut' }
@@ -44,7 +46,8 @@ export type Boot =
  * cookie does. Offline — or with the server turning the refresh away
  * for now (429, 5xx) — the account this browser last saw is trusted, so
  * the app opens from IndexedDB all the same (W1); the next sync settles
- * whether the session still stands. Only a 401 means signed out.
+ * whether the session still stands. Only a 401 means signed out, and
+ * then this browser forgets the account's data (S5-15).
  */
 export async function boot(): Promise<Boot> {
   let db = localDb();
@@ -54,7 +57,13 @@ export async function boot(): Promise<Boot> {
   let offline = false;
   try {
     const result = resumeSession() ?? (await refreshSession());
-    if (!result) return { kind: 'signedOut' };
+    if (!result) {
+      // The server said the session is gone (401), not that it could not
+      // be reached: what this browser holds of the account goes too, as
+      // on signing out (W5, S5-15), before the sign-in page.
+      if (known) await wipeLocal();
+      return { kind: 'signedOut' };
+    }
     user = result.user;
   } catch (error) {
     if (!isServerTrouble(error)) return { kind: 'failed' };
@@ -151,7 +160,11 @@ export function AppRoot() {
         harvest.user = user;
         void setMeta(harvest.db, metaKeys.user, user);
       } else if (!leaving.current) {
-        setState({ kind: 'signedOut' });
+        // Ended elsewhere, or refused on refresh: the shell comes down,
+        // and then the store, as on signing out (S5-15).
+        leaving.current = true;
+        setState({ kind: 'ending' });
+        void wipeLocal().then(() => setState({ kind: 'signedOut' }));
       }
     });
     // Ask the browser not to evict the store under storage pressure.
@@ -163,7 +176,7 @@ export function AppRoot() {
   }, [harvest]);
 
   if (state.kind === 'left') return <Navigate to="/" replace />;
-  if (state.kind === 'loading' || state.kind === 'leaving') {
+  if (state.kind === 'loading' || state.kind === 'leaving' || state.kind === 'ending') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3" role="status">
         <HarvestMark className="size-14" />

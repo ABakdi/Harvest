@@ -3,10 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/domain/western_digits.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/core/ui/widgets/text_prompt.dart';
+import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/account/domain/sync_secret.dart';
+import 'package:harvest/features/account/presentation/account_card.dart';
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -17,6 +22,7 @@ String? syncSecretMessage(AppLocalizations l10n, SyncSecretProblem? problem) =>
       null || SyncSecretProblem.empty => null,
       SyncSecretProblem.pinTooShort ||
       SyncSecretProblem.pinTooLong => l10n.syncPinLength,
+      SyncSecretProblem.pinTooSimple => l10n.syncPinTooSimple,
       SyncSecretProblem.passphraseTooShort => l10n.syncPassphraseShort,
     };
 
@@ -28,19 +34,10 @@ class PinDigitsFormatter extends TextInputFormatter {
   const PinDigitsFormatter();
 
   static String digitsOf(String text) {
-    final out = StringBuffer();
-    for (final rune in text.runes) {
-      final digit = switch (rune) {
-        >= 0x30 && <= 0x39 => rune - 0x30,
-        >= 0x660 && <= 0x669 => rune - 0x660,
-        >= 0x6F0 && <= 0x6F9 => rune - 0x6F0,
-        _ => null,
-      };
-      if (digit == null) continue;
-      if (out.length == syncPinMaxLength) break;
-      out.write(digit);
-    }
-    return out.toString();
+    final ascii = westernDigits(text).replaceAll(RegExp('[^0-9]'), '');
+    return ascii.length > syncPinMaxLength
+        ? ascii.substring(0, syncPinMaxLength)
+        : ascii;
   }
 
   @override
@@ -57,26 +54,77 @@ class PinDigitsFormatter extends TextInputFormatter {
   }
 }
 
-/// Asks for the sync PIN ([[Accounts]]): *chosen*, typed twice, on the
-/// first device; *entered*, once, on a device whose account already has
-/// sealed rows — and then checked against them. [asking] is the prompt
-/// that follows sign-in, which can be put off with *Later*.
-Future<void> showSyncPinSheet(BuildContext context, {bool asking = false}) =>
-    showHarvestSheet<void>(
-      context,
-      builder: (_) => SyncPinSheet(asking: asking),
-    );
+/// Asks for the sync PIN ([[Accounts]]): *chosen*, typed twice, while
+/// the account has no key check on the server; *entered*, once, when it
+/// has one — and a PIN that does not open the check is refused on the
+/// spot. The server decides which, not what this phone has pulled.
+/// [asking] is the prompt that follows sign-in, which can be put off
+/// with *Later*; [changedElsewhere] says the PIN was started over on
+/// another device, which is why it is asked for again.
+Future<void> showSyncPinSheet(
+  BuildContext context, {
+  bool asking = false,
+  bool changedElsewhere = false,
+}) => showHarvestSheet<void>(
+  context,
+  builder: (_) =>
+      SyncPinSheet(asking: asking, changedElsewhere: changedElsewhere),
+);
+
+/// Starts the sync PIN over ([[Accounts]]: start over): says plainly
+/// what goes, asks for the account's password, and then drops the key
+/// check, the key share and everything private on the server. True
+/// when it was done; the next PIN is then *chosen*. [changing] is the
+/// same thing asked for as *Change PIN*, by someone who still has it.
+Future<bool> startSyncPinOver(
+  BuildContext context,
+  WidgetRef ref, {
+  bool changing = false,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final pin = ref.read(syncPassphraseProvider.notifier);
+  final ok = await confirm(
+    context,
+    title: changing ? l10n.syncPinChange : l10n.syncPinStartOver,
+    body: l10n.syncPinStartOverBody,
+    confirmLabel: l10n.syncPinStartOverConfirm,
+    destructive: true,
+  );
+  if (!ok || !context.mounted) return false;
+  final password = await promptForText(
+    context,
+    title: l10n.accountDeleteConfirm,
+    confirmLabel: l10n.syncPinStartOverConfirm,
+  );
+  if (password == null || password.isEmpty) return false;
+  try {
+    await pin.startOver(password);
+    return true;
+  } on ApiException catch (error) {
+    final words = error.code == 'forbidden'
+        ? l10n.syncPinWrongPassword
+        : accountError(l10n, error);
+    messenger?.showSnackBar(SnackBar(content: Text(words)));
+    return false;
+  }
+}
 
 class SyncPinSheet extends ConsumerStatefulWidget {
-  const SyncPinSheet({this.asking = false, super.key});
+  const SyncPinSheet({
+    this.asking = false,
+    this.changedElsewhere = false,
+    super.key,
+  });
 
   final bool asking;
+  final bool changedElsewhere;
 
   @override
   ConsumerState<SyncPinSheet> createState() => _SyncPinSheetState();
 }
 
-enum _Phase { typing, deriving, checking }
+enum _Phase { typing, deriving }
 
 class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
   final _first = TextEditingController();
@@ -96,51 +144,73 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
     super.dispose();
   }
 
-  bool get _entering => ref.read(syncSealedSeenProvider).value ?? false;
+  /// Whether the account already has a PIN, as the server says; null
+  /// while it has not answered.
+  bool? get _entering {
+    final share = ref.read(syncKeyShareProvider).value;
+    return share == null ? null : !share.choosing;
+  }
 
-  String? _problem(AppLocalizations l10n) {
-    final rule = syncSecretMessage(l10n, syncSecretProblem(_first.text));
+  /// The rule for what is typed. Entering, the PIN is the one already
+  /// chosen, and the account's key check is its judge; choosing, a PIN
+  /// too easy to guess is refused.
+  SyncSecretProblem? _rule(String text, {required bool entering}) {
+    final problem = syncSecretProblem(text);
+    if (entering && problem == SyncSecretProblem.pinTooSimple) return null;
+    return problem;
+  }
+
+  String? _problem(AppLocalizations l10n, {required bool entering}) {
+    final rule = syncSecretMessage(
+      l10n,
+      _rule(_first.text, entering: entering),
+    );
     if (rule != null) return rule;
-    if (!_entering && _first.text != _second.text) return l10n.syncPinMismatch;
+    if (!entering && _first.text != _second.text) return l10n.syncPinMismatch;
     return null;
   }
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
+    final entering = _entering;
+    if (entering == null) return;
     setState(() {
       _tried = true;
       _error = null;
     });
-    if (_first.text.isEmpty || _problem(l10n) != null) return;
-    final entering = _entering;
+    if (_first.text.isEmpty || _problem(l10n, entering: entering) != null) {
+      return;
+    }
     final navigator = Navigator.of(context);
     // Read before the sheet goes: its ref dies with it.
     final sync = ref.read(syncControllerProvider.notifier);
     final secret = ref.read(syncPassphraseProvider.notifier);
     setState(() => _phase = _Phase.deriving);
-    await secret.set(_first.text);
-    if (!entering) {
+    String? error;
+    try {
+      await secret.set(_first.text);
+    } on SyncPinRefused catch (refused) {
+      error = refused.chosenElsewhere
+          ? l10n.syncPinChosenElsewhere
+          : l10n.syncPinWrong;
+    } on ApiException catch (failure) {
+      error = failure.offline
+          ? l10n.syncPinUnreachable
+          : accountError(l10n, failure);
+    }
+    if (error == null) {
       navigator.pop();
       // The private tier goes up now, not at the next trigger.
       unawaited(sync.syncNow());
       return;
     }
-    if (mounted) setState(() => _phase = _Phase.checking);
-    await sync.syncNow();
-    // A key that could not open what the others sealed has already been
-    // forgotten by the sync; say so here, where it was typed.
-    final kept = ref.read(syncPassphraseProvider).value ?? false;
     if (!mounted) return;
-    if (kept) {
-      navigator.pop();
-      return;
-    }
     _first.clear();
     _second.clear();
     setState(() {
       _phase = _Phase.typing;
       _tried = false;
-      _error = l10n.syncPinWrong;
+      _error = error;
     });
   }
 
@@ -184,16 +254,55 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final entering = ref.watch(syncSealedSeenProvider).value ?? false;
-    final problem = _problem(l10n);
-    final rule = syncSecretMessage(l10n, syncSecretProblem(_first.text));
+    final share = ref.watch(syncKeyShareProvider);
     final working = _phase != _Phase.typing;
+    final muted = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+
+    // Whether to choose or to enter is the server's answer; until it
+    // comes there is nothing to type into.
+    final entering = switch (share) {
+      AsyncData(:final value) => !value.choosing,
+      _ => null,
+    };
+    if (entering == null) {
+      final failed = share.hasError && !share.isLoading;
+      return HarvestSheet(
+        title: l10n.syncPinTitle,
+        actionLabel: failed ? l10n.galleryFileRetry : l10n.syncPinChecking,
+        onAction: failed ? () => ref.invalidate(syncKeyShareProvider) : null,
+        trailing: widget.asking
+            ? TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.syncPinLater),
+              )
+            : null,
+        children: [
+          if (failed)
+            Text(
+              share.error is ApiException &&
+                      !(share.error! as ApiException).offline
+                  ? accountError(l10n, share.error!)
+                  : l10n.syncPinUnreachable,
+            )
+          else
+            const LinearProgressIndicator(),
+        ],
+      );
+    }
+
+    final problem = _problem(l10n, entering: entering);
+    final rule = syncSecretMessage(
+      l10n,
+      _rule(_first.text, entering: entering),
+    );
 
     return HarvestSheet(
       title: l10n.syncPinTitle,
       actionLabel: switch (_phase) {
-        _Phase.deriving => l10n.syncPinWorking,
-        _Phase.checking => l10n.syncPinChecking,
+        _Phase.deriving =>
+          entering ? l10n.syncPinChecking : l10n.syncPinWorking,
         _Phase.typing => entering ? l10n.syncPinEnter : l10n.syncPinChoose,
       },
       onAction: working || _first.text.isEmpty
@@ -206,13 +315,27 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
             )
           : null,
       children: [
+        if (widget.changedElsewhere) ...[
+          Text(
+            l10n.syncPinChangedElsewhere,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+        ],
         Text(entering ? l10n.syncPinEnterBody : l10n.syncPinChooseBody),
         const SizedBox(height: HarvestSpacing.md),
         _field(
           controller: _first,
           autofocus: true,
           label: _passphrase ? l10n.syncPassphraseField : l10n.syncPinField,
-          helper: _passphrase ? l10n.syncPassphraseRule : l10n.syncPinRule,
+          // Six digits suggested when choosing; entering, the one there is.
+          helper: _passphrase
+              ? l10n.syncPassphraseRule
+              : entering
+              ? null
+              : l10n.syncPinRule,
           error: _tried ? rule : null,
         ),
         if (!entering) ...[
@@ -238,22 +361,31 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
             ),
           ),
         ),
-        // Said plainly, and said twice ([[Accounts]]): once here, once
-        // in what it costs.
-        Text(
-          l10n.syncPinLoss,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        if (!_passphrase) ...[
-          const SizedBox(height: HarvestSpacing.sm),
-          Text(
-            l10n.syncPinCost,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+        if (entering)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              onPressed: working
+                  ? null
+                  : () async {
+                      if (await startSyncPinOver(context, ref) && mounted) {
+                        _first.clear();
+                        _second.clear();
+                        setState(() {
+                          _tried = false;
+                          _error = null;
+                        });
+                      }
+                    },
+              child: Text(l10n.syncPinForgot),
             ),
           ),
+        // Said plainly, and said twice ([[Accounts]]): once here, once
+        // in what it costs.
+        Text(l10n.syncPinLoss, style: muted),
+        if (!_passphrase) ...[
+          const SizedBox(height: HarvestSpacing.sm),
+          Text(l10n.syncPinCost, style: muted),
         ],
         if (working) ...[
           const SizedBox(height: HarvestSpacing.md),

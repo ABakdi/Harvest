@@ -38,3 +38,39 @@ export function classifyLink(url: string): SharedLink {
   const video = videoHosts.some((site) => host === site || host.endsWith(`.${site}`));
   return video ? { list: 'watch', mediaType: 'video' } : { list: 'read', mediaType: 'article' };
 }
+
+/** A list, as far as *Planned purchases* needs one. */
+export interface PlanList {
+  readonly uuid: string;
+  readonly kind: string;
+  /** Which built-in list it is (`wish`, `buy`, …), null for one I made. */
+  readonly builtIn: string | null;
+}
+
+/** An item, as far as *Planned purchases* needs one. */
+export interface PlanItem {
+  readonly listUuid: string;
+  readonly priceMinor: number | null;
+  readonly currency: string;
+  /** Bought (or otherwise done). */
+  readonly done: boolean;
+}
+
+/**
+ * The Granary's *Planned purchases* line ([[Lists]] L3): per currency,
+ * the open estimates of every live shopping list except the Wishlist,
+ * because someday is not a purchase that is planned. [lists] are the
+ * live lists; an item of a list not among them does not count. Pinned
+ * by `fixtures/lists.json`, which the phone reads too.
+ */
+export function plannedPurchases(lists: readonly PlanList[], items: readonly PlanItem[]): Record<string, number> {
+  const planned = new Set(
+    lists.filter((list) => list.kind === 'shopping' && list.builtIn !== 'wish').map((l) => l.uuid),
+  );
+  const sums: Record<string, number> = {};
+  for (const item of items) {
+    if (item.done || item.priceMinor === null || !planned.has(item.listUuid)) continue;
+    sums[item.currency] = (sums[item.currency] ?? 0) + item.priceMinor;
+  }
+  return sums;
+}

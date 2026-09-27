@@ -140,7 +140,7 @@ final class AssistSettingsProvider
   AssistSettings create() => AssistSettings();
 }
 
-String _$assistSettingsHash() => r'32ec167037614ae2eebe81ec423370ac17f828f4';
+String _$assistSettingsHash() => r'3a383630bb8376e4baef286be33a6f6d7b305f56';
 
 /// Reads and writes the assist's configuration.
 

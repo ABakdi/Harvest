@@ -123,16 +123,18 @@ class PomodoroController extends _$PomodoroController {
       final boundary = current.endsAt!;
       switch (current.phase) {
         case PomodoroPhase.focus:
-          await _service.completeBlock(current, now: boundary);
           final blocksDone = current.blocksDone + 1;
           final nextPhase = blocksDone % config.blocksPerLongBreak == 0
               ? PomodoroPhase.longBreak
               : PomodoroPhase.shortBreak;
-          current = current.copyWith(
+          final next = current.copyWith(
             phase: nextPhase,
             blocksDone: blocksDone,
             endsAt: boundary.add(config.of(nextPhase)),
           );
+          // Paid and saved together: the block is never paid twice.
+          await _service.completeBlock(current, now: boundary, then: next);
+          current = next;
           unawaited(HarvestHaptics.thud());
         case PomodoroPhase.shortBreak:
         case PomodoroPhase.longBreak:

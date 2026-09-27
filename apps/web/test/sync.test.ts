@@ -1,7 +1,5 @@
 import { checkRecord, type EncEnvelope } from '@harvest/contracts';
-import pinned from '../../../packages/contracts/fixtures/crypto.json';
-import expenseData from '../../../packages/contracts/fixtures/private-data/expenses.json';
-import expenseRecord from '../../../packages/contracts/fixtures/records/expenses.json';
+import v2 from '../../../packages/contracts/fixtures/crypto-v2.json';
 import { HarvestDay } from '@harvest/core';
 import { describe, expect, it } from 'vitest';
 import { WrongPassphraseError } from '@/app/sync/keyring';
@@ -126,7 +124,7 @@ describe('the private tier', () => {
 
     const stored = server.get('expenses', uuid)!;
     expect(stored.data).toBeUndefined();
-    expect(stored.enc).toMatchObject({ v: 1 });
+    expect(stored.enc).toMatchObject({ v: 2 });
     expect(JSON.stringify(stored)).not.toContain('Couscous');
     const { seq: _seq, ...record } = stored;
     expect(checkRecord(record).ok).toBe(true);
@@ -147,20 +145,25 @@ describe('the private tier', () => {
 
   it('opens a row the phone sealed, once the passphrase is typed', async () => {
     const server = new FakeServer();
-    server.stored.set(`expenses/${expenseRecord.uuid}`, {
+    // The account of the version 2 fixture, as the phone left it.
+    server.salt = v2.syncSalt;
+    server.keyShare = v2.keyShare;
+    server.check = v2.keyCheck as EncEnvelope as never;
+    const row = v2.rows[0]!;
+    server.stored.set(`expenses/${row.uuid}`, {
       table: 'expenses',
-      uuid: expenseRecord.uuid,
-      updatedAt: expenseRecord.updatedAt,
-      deletedAt: expenseRecord.deletedAt,
-      enc: expenseRecord.enc as EncEnvelope,
+      uuid: row.uuid,
+      updatedAt: row.updatedAt,
+      deletedAt: row.deletedAt,
+      enc: row.enc as EncEnvelope,
       seq: 1,
     });
-    const b = await device(server, undefined, { ...testUser, syncSalt: pinned.syncSalt });
+    const b = await device(server, undefined, { ...testUser, syncSalt: v2.syncSalt });
     await b.engine.sync();
     expect(b.engine.status.sealed).toBe(1);
-    await b.keyring.unlock(pinned.passphrase, pinned.syncSalt);
+    await b.keyring.unlock(v2.secret, v2.syncSalt);
     await b.engine.openSealed();
-    expect(await b.db.rows('expenses').get(expenseRecord.uuid)).toEqual(expenseData);
+    expect(await b.db.rows('expenses').get(row.uuid)).toEqual(JSON.parse(row.plaintext));
   });
 
   it('holds private writes until the passphrase is set, and sends the rest meanwhile', async () => {

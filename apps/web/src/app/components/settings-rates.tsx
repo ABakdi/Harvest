@@ -35,6 +35,15 @@ function ManualRate({ settingKey, label, stored }: { settingKey: string; label: 
   const save = async (field: HTMLInputElement) => {
     const text = field.value.trim();
     if (text === (stored ?? '')) return;
+    // A failed write says so, and the field goes back to the rate in use (Q5-49).
+    try {
+      await write(field, text);
+    } catch {
+      field.value = stored ?? '';
+      toast.error(t('common.saveFailed'));
+    }
+  };
+  const write = async (field: HTMLInputElement, text: string) => {
     if (text === '') {
       await settings.remove(settingKey);
       toast(t('ratesWeb.cleared'));

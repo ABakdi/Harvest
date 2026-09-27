@@ -95,7 +95,43 @@ void main() {
         note: 'bread',
         day: HarvestDay.today(),
       );
-      final key = List<int>.generate(32, (i) => i * 7 % 256);
+      // The key as a phone makes it: the account's salt and key share
+      // from the server, the PIN chosen on the first phone, its key
+      // check stored, and the second phone's PIN checked against it.
+      final shareA = await ApiSyncKeys(apiA).fetch();
+      expect(shareA.choosing, isTrue);
+      final key = await SyncCipher.deriveKey(
+        '482913',
+        shareA.salt,
+        shareA.keyShare,
+        iterations: 1000,
+      );
+      expect(
+        await ApiSyncKeys(apiA).putCheck(await SyncCipher(key).sealCheck()),
+        isNull,
+      );
+      final shareB = await ApiSyncKeys(apiB).fetch();
+      expect(shareB.choosing, isFalse);
+      final wrong = await SyncCipher.deriveKey(
+        '482914',
+        shareB.salt,
+        shareB.keyShare,
+        iterations: 1000,
+      );
+      expect(await SyncCipher(wrong).opensCheck(shareB.check!), isFalse);
+      final keyB = await SyncCipher.deriveKey(
+        '482913',
+        shareB.salt,
+        shareB.keyShare,
+        iterations: 1000,
+      );
+      expect(keyB, key);
+      expect(await SyncCipher(keyB).opensCheck(shareB.check!), isTrue);
+      // A second device choosing now is told the first one's check.
+      final raced = await ApiSyncKeys(
+        apiB,
+      ).putCheck(await SyncCipher(wrong).sealCheck());
+      expect(raced, shareB.check);
       Future<SyncCipher?> cipher() async => SyncCipher(key);
 
       final reportA = await SyncService(
@@ -171,6 +207,31 @@ void main() {
       await SyncService(b, ApiRemote(apiB), cipher: cipher).run();
       expect((await files(b, apiB, roomB)).downloaded, 1);
       expect(await File('${roomB.path}/e2e.jpg').readAsBytes(), bytes);
+
+      // A file no row needs can be let go of.
+      final hash = (await b.select(b.memories).getSingle()).fileHash!;
+      await ApiFiles(apiB).forget(hash);
+      expect(await ApiFiles(apiB).missing([hash]), [hash]);
+
+      // Starting the PIN over: a wrong password changes nothing; the
+      // right one drops the check and the share, and the old key opens
+      // nothing any more.
+      await expectLater(
+        ApiSyncKeys(apiA).startOver('not the password'),
+        throwsA(isA<ApiException>()),
+      );
+      expect((await ApiSyncKeys(apiA).fetch()).choosing, isFalse);
+      await ApiSyncKeys(apiA).startOver(password);
+      final fresh = await ApiSyncKeys(apiB).fetch();
+      expect(fresh.choosing, isTrue);
+      expect(fresh.keyShare, isNot(shareA.keyShare));
+      final pulled = await ApiRemote(apiB).pull(0, 1000);
+      expect(
+        pulled.records.where(
+          (r) => r['table'] == 'expenses' && r['enc'] != null,
+        ),
+        isEmpty,
+      );
     },
     skip: url == null ? 'set HARVEST_E2E_URL to run against a server' : false,
   );

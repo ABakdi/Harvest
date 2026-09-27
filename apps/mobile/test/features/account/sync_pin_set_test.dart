@@ -10,11 +10,14 @@ import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/secret_store.dart';
-import 'package:harvest/features/account/data/api_client.dart' show Me;
+import 'package:harvest/features/account/data/api_client.dart'
+    show ApiException, Me;
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/sync/domain/file_sync.dart';
+import 'package:harvest/features/sync/domain/row_codec.dart' show privateTables;
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
@@ -99,12 +102,14 @@ class _Unverified extends AccountController {
 /// the first one sealed.
 void main() {
   late FakeRemote remote;
+  late FakeSyncKeys keys;
   late _Files files;
   late List<HarvestDatabase> dbs;
   late List<Directory> dirs;
 
   setUp(() {
     remote = FakeRemote();
+    keys = FakeSyncKeys();
     files = _Files();
     dbs = [];
     dirs = [];
@@ -139,10 +144,11 @@ void main() {
         secretStoreProvider.overrideWithValue(secrets),
         accountControllerProvider.overrideWith(account ?? _Account.new),
         galleryStorageProvider.overrideWithValue(TempGalleryStorage(dir)),
+        syncKeyRemoteProvider.overrideWithValue(keys),
         // The real derivation, with fewer rounds.
         syncKeyMakerProvider.overrideWithValue(
-          (secret, salt) =>
-              SyncCipher.deriveKey(secret, salt, iterations: 1000),
+          (secret, salt, share) =>
+              SyncCipher.deriveKey(secret, salt, share, iterations: 1000),
         ),
         syncServiceProvider.overrideWith(
           (ref) => SyncService(db, remote, cipher: cipher),
@@ -237,7 +243,21 @@ void main() {
     expect(remote.row('expenses', uuid)?['enc'], isNotNull);
   });
 
-  test('a later device enters it once, and a wrong one is forgotten', () async {
+  test(
+    'the first device stores the key check before it seals anything',
+    () async {
+      final a = await phone();
+      expect(keys.check, isNull);
+      await a.container.read(syncPassphraseProvider.notifier).set('2468');
+      expect(keys.check, isNotNull);
+      expect(keys.check!['v'], 2);
+      // The check says nothing of the PIN to the server.
+      expect('${keys.check}', isNot(contains('2468')));
+    },
+  );
+
+  test('a later device enters it once, and a wrong one is refused on the '
+      'spot', () async {
     final a = await phone();
     await logExpense(a.db);
     await a.container.read(syncPassphraseProvider.notifier).set('2468');
@@ -245,23 +265,180 @@ void main() {
 
     final b = await phone();
     final sync = b.container.read(syncControllerProvider.notifier);
-    final sealed = b.container.listen(syncSealedSeenProvider, (_, _) {});
-    await sync.syncNow();
-    await pumpEventQueue();
-    // The server holds sealed rows: this device enters, not chooses.
-    expect(sealed.read().value, isTrue);
-    expect(await b.db.select(b.db.expenses).get(), isEmpty);
+    // The server has a check: this device enters, not chooses — decided
+    // before any pull (Q5-55).
+    final share = await b.container.read(syncKeyShareProvider.future);
+    expect(share.choosing, isFalse);
 
     final pin = b.container.read(syncPassphraseProvider.notifier);
-    await pin.set('1357');
-    await sync.syncNow();
+    await expectLater(pin.set('1357'), throwsA(isA<SyncPinRefused>()));
     expect(await b.container.read(syncPassphraseProvider.future), isFalse);
-    expect(b.container.read(syncControllerProvider).error, 'passphrase');
+    await SettingsRepository(b.db).setString('themeMode', 'dark');
+    await sync.syncNow();
+    expect(await b.db.select(b.db.expenses).get(), isEmpty);
+    expect(
+      remote.row('kv_settings', 'themeMode'),
+      isNotNull,
+      reason: 'the plain tier syncs meanwhile',
+    );
 
     await pin.set('2468');
     await sync.syncNow();
     expect(await b.container.read(syncPassphraseProvider.future), isTrue);
     final row = await b.db.select(b.db.expenses).getSingle();
     expect(row.note, 'bread');
+  });
+
+  test('two devices choosing at once: the second is checked against the '
+      "first's", () async {
+    final a = await phone();
+    await a.container.read(syncPassphraseProvider.notifier).set('2468');
+    final first = keys.check!;
+
+    // B opened its sheet before A chose, so it offers to choose; A's
+    // check is there by the time B's arrives.
+    keys
+      ..raced = first
+      ..check = null;
+    final b = await phone();
+    await expectLater(
+      b.container.read(syncPassphraseProvider.notifier).set('9173'),
+      throwsA(
+        isA<SyncPinRefused>().having(
+          (r) => r.chosenElsewhere,
+          'chosen elsewhere',
+          isTrue,
+        ),
+      ),
+    );
+    expect(await b.container.read(syncPassphraseProvider.future), isFalse);
+    expect(keys.check, first);
+
+    await b.container.read(syncPassphraseProvider.notifier).set('2468');
+    expect(await b.container.read(syncPassphraseProvider.future), isTrue);
+  });
+
+  test('a row that will not open is locked, and never costs the key', () async {
+    final a = await phone();
+    await a.container.read(syncPassphraseProvider.notifier).set('2468');
+    await logExpense(a.db);
+    // A row no key of this account sealed: 3.0.0's, or one the server
+    // made up.
+    await remote.push('elsewhere', [
+      {
+        'table': 'expenses',
+        'uuid': 'forged',
+        'updatedAt': '2026-09-20T10:00:00.000Z',
+        'deletedAt': null,
+        'enc': {
+          'v': 1,
+          'iv': 'AAAAAAAAAAAAAAAA',
+          'ct': 'AAAAAAAAAAAAAAAAAAAAAA==',
+        },
+      },
+    ]);
+    await a.container.read(syncControllerProvider.notifier).syncNow();
+
+    final status = a.container.read(syncControllerProvider);
+    expect(status.error, isNull);
+    expect(status.last!.locked, 1);
+    expect(await a.container.read(syncPassphraseProvider.future), isTrue);
+    expect(
+      remote.row(
+        'expenses',
+        (await a.db.select(a.db.expenses).getSingle()).uuid,
+      )?['enc'],
+      isNotNull,
+    );
+  });
+
+  test('a key kept by 3.0.0 is let go, and the PIN is asked again', () async {
+    final a = await phone();
+    final secrets = a.container.read(secretStoreProvider);
+    await secrets.write(SyncPassphrase.legacyKeyName, 'b2xk');
+    expect(await a.container.read(syncPassphraseProvider.future), isFalse);
+    expect(await secrets.read(SyncPassphrase.legacyKeyName), isNull);
+  });
+
+  test('starting over asks for the password, drops what the server kept, '
+      'and everything here goes up again under the new PIN', () async {
+    keys.onStartOver = () {
+      remote.dropTables(privateTables);
+      files.held.clear();
+    };
+    final a = await phone();
+    final uuid = await logExpense(a.db);
+    await picture(a.db, a.dir);
+    final pin = a.container.read(syncPassphraseProvider.notifier);
+    final sync = a.container.read(syncControllerProvider.notifier);
+    await pin.set('2468');
+    await sync.syncNow();
+    expect(files.held, hasLength(1));
+
+    await expectLater(
+      pin.startOver('not it'),
+      throwsA(isA<ApiException>()),
+    );
+    expect(await a.container.read(syncPassphraseProvider.future), isTrue);
+
+    await pin.startOver('the password');
+    expect(await a.container.read(syncPassphraseProvider.future), isFalse);
+    expect(remote.row('expenses', uuid), isNull);
+    expect(files.held, isEmpty);
+    expect(
+      (await a.container.read(syncKeyShareProvider.future)).choosing,
+      isTrue,
+    );
+
+    await pin.set('9731');
+    await sync.syncNow();
+    expect(remote.row('expenses', uuid)?['enc'], isNotNull);
+    expect(files.held, hasLength(1), reason: 'the picture went up again');
+  });
+
+  test('a PIN started over on another device is asked for again here, and '
+      "this phone's own rows go up under it", () async {
+    keys.onStartOver = () => remote.dropTables(privateTables);
+    final a = await phone();
+    final b = await phone();
+    await a.container.read(syncPassphraseProvider.notifier).set('2468');
+    await b.container.read(syncPassphraseProvider.notifier).set('2468');
+    final mine = await logExpense(b.db);
+    final syncB = b.container.read(syncControllerProvider.notifier);
+    await syncB.syncNow();
+    expect(remote.row('expenses', mine), isNotNull);
+
+    final pinA = a.container.read(syncPassphraseProvider.notifier);
+    await pinA.startOver('the password');
+    await pinA.set('9731');
+    await a.container.read(syncControllerProvider.notifier).syncNow();
+    expect(remote.row('expenses', mine), isNull);
+
+    // B's next sync, with money of its own to send, meets rows sealed
+    // under the new key, finds its own no longer fits, and says so.
+    // What it sent meanwhile under the old one goes again under the new.
+    await logExpense(a.db);
+    await a.container.read(syncControllerProvider.notifier).syncNow();
+    final later = await FinancesRepository(b.db).log(
+      amountMinor: 300,
+      category: 'tea',
+      day: HarvestDay.today(),
+    );
+    await syncB.syncNow();
+    expect(await b.container.read(syncPassphraseProvider.future), isFalse);
+    expect(
+      b.container.read(syncControllerProvider).error,
+      SyncController.pinChanged,
+    );
+
+    await b.container.read(syncPassphraseProvider.notifier).set('9731');
+    await syncB.syncNow();
+    expect(remote.row('expenses', mine)?['enc'], isNotNull);
+    expect(remote.row('expenses', later)?['enc'], isNotNull);
+    await a.container.read(syncControllerProvider.notifier).syncNow();
+    expect(
+      (await a.db.select(a.db.expenses).get()).map((e) => e.uuid),
+      containsAll([mine, later]),
+    );
   });
 }

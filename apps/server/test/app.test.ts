@@ -31,8 +31,9 @@ describe('the app', () => {
       400,
       'validation_failed',
     );
+    // Sign-in's own cap is 16 kB, whatever the general one says.
     expectError(
-      await request(h.app).post('/v1/auth/login').send({ email: 'a@b.co', password: 'x'.repeat(2000) }),
+      await request(h.app).post('/v1/auth/login').send({ email: 'a@b.co', password: 'x'.repeat(20_000) }),
       413,
       'payload_too_large',
     );
@@ -89,6 +90,7 @@ describe('config', () => {
       JWT_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString().replace(/\n/g, '\\n'),
       JWT_PUBLIC_KEY: publicKey.export({ type: 'spki', format: 'pem' }).toString(),
       SMTP_HOST: 'smtp.example',
+      KEY_SHARE_KEY: Buffer.alloc(32, 7).toString('base64'),
       CORS_ORIGINS: 'https://a.example, https://b.example',
       APP_URL: 'https://harvest.example/',
     });

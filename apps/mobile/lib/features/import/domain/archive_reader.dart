@@ -19,6 +19,7 @@ class ArchiveBundle {
   ArchiveBundle({
     required this.sheets,
     required this.files,
+    this.skipped = 0,
   });
 
   /// Sheet name to its rows.
@@ -26,6 +27,10 @@ class ArchiveBundle {
 
   /// Everything else in the zip, by its path inside it.
   final Map<String, Uint8List> files;
+
+  /// Entries left out for being over [ArchiveLimits.entryBytes]: a
+  /// long video costs its own file, never the whole archive (Q5-06).
+  final int skipped;
 
   SheetRows sheet(String name) => sheets[name] ?? const [];
 
@@ -67,7 +72,8 @@ abstract final class ArchiveLimits {
   /// The picked file itself.
   static const int archiveBytes = 768 * 1024 * 1024;
 
-  /// Any one entry, uncompressed.
+  /// Any one entry, uncompressed. A file over it is left out, and the
+  /// rest of the archive still comes in; only the workbook is required.
   static const int entryBytes = 64 * 1024 * 1024;
 
   /// Every entry, uncompressed, added up.
@@ -112,13 +118,20 @@ ArchiveBundle readArchive(Uint8List bytes) {
     throw const ArchiveInvalid(ArchiveProblem.tooLarge);
   }
   var expanded = 0;
+  final oversized = <ArchiveFile>{};
   for (final entry in zip.files) {
     if (!entry.isFile) continue;
-    final limit = entry.name == ArchivePaths.workbook
+    final isWorkbook = entry.name == ArchivePaths.workbook;
+    final limit = isWorkbook
         ? ArchiveLimits.workbookBytes
         : ArchiveLimits.entryBytes;
-    if (entry.size < 0 || entry.size > limit) {
+    if (entry.size < 0 || (isWorkbook && entry.size > limit)) {
       throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+    }
+    if (entry.size > limit) {
+      // Left out, never inflated, and counted for the preview.
+      oversized.add(entry);
+      continue;
     }
     expanded += entry.size;
     if (expanded > ArchiveLimits.expandedBytes) {
@@ -130,7 +143,7 @@ ArchiveBundle readArchive(Uint8List bytes) {
   Uint8List? workbook;
   var inflated = 0;
   for (final entry in zip.files) {
-    if (!entry.isFile) continue;
+    if (!entry.isFile || oversized.contains(entry)) continue;
     final content = entry.content;
     if (content is! List<int>) continue;
     final isWorkbook = entry.name == ArchivePaths.workbook;
@@ -183,7 +196,11 @@ ArchiveBundle readArchive(Uint8List bytes) {
     sheets[entry.key] = parsed;
   }
 
-  return ArchiveBundle(sheets: sheets, files: files);
+  return ArchiveBundle(
+    sheets: sheets,
+    files: files,
+    skipped: oversized.length,
+  );
 }
 
 /// A cell as text, whatever the spreadsheet decided to store it as.

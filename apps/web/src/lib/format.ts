@@ -1,4 +1,4 @@
-import { HarvestDay } from '@harvest/core';
+import { HarvestDay, westernDigits } from '@harvest/core';
 import i18n from '@/i18n';
 
 /**
@@ -35,7 +35,7 @@ export function formatMoney(minor: number, currency: string): string {
 
 /** Parses a typed amount ("450", "1,250.5") into minor units; null when it is not one. */
 export function parseAmount(text: string): number | null {
-  const cleaned = text.replace(/[\s,]/g, '').replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+  const cleaned = westernDigits(text).replace(/[\s,]/g, '');
   if (!/^\d+(\.\d{0,2})?$/.test(cleaned)) return null;
   const [whole, fraction = ''] = cleaned.split('.');
   const minor = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));

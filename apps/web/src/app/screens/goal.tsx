@@ -168,7 +168,13 @@ function ItemRow({ item, index, count, view, onMove, tickRef, onAddSubtask, onMo
           variant="outline"
           size="sm"
           onClick={() =>
-            dialogs.plantSeed({ title: item.body, type: 'todo', goalUuid: view.goal.uuid, linkItem: item.uuid })
+            dialogs.plantSeed({
+              title: item.body,
+              // A requirement is kept up, a task is done once: the phone's defaults (G5-14).
+              type: item.kind === 'need' ? 'habit' : 'todo',
+              goalUuid: view.goal.uuid,
+              linkItem: item.uuid,
+            })
           }
         >
           <SproutIcon />
@@ -484,7 +490,13 @@ export function GoalScreen() {
   const view = useLiveQuery(async () => (await loadGoals(db)).find((v) => v.goal.uuid === uuid) ?? null, [db, uuid]);
   const [editing, setEditing] = useState(false);
   const [dropping, setDropping] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
   const daysLeft = useDaysLeft(view?.goal.targetDay ?? null);
+  useEffect(() => {
+    if (!celebrating) return;
+    const timer = setTimeout(() => setCelebrating(false), 1200);
+    return () => clearTimeout(timer);
+  }, [celebrating]);
 
   if (view === undefined) return null;
   if (view === null) {
@@ -499,6 +511,17 @@ export function GoalScreen() {
   }
   const { goal, progress } = view;
 
+  /** The phone's moment: a burst, and the +50 said out loud (G5-14). */
+  const achieve = async () => {
+    try {
+      const paid = await goals.achieve(goal.uuid);
+      setCelebrating(true);
+      toast.success(paid > 0 ? t('goals.achievedToast', { xp: paid }) : t('goals.achievedAgain'));
+    } catch {
+      toast.error(t('common.saveFailed'));
+    }
+  };
+
   const remove = () => {
     void goals.delete(goal.uuid).then(() => {
       void navigate('/app/field/goals');
@@ -511,7 +534,7 @@ export function GoalScreen() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="icon" aria-label={t('goals.back')}>
+        <Button asChild variant="ghost" size="icon" className="max-md:hidden" aria-label={t('goals.back')}>
           <Link to="/app/field/goals">
             <ArrowLeftIcon className="rtl:rotate-180" />
           </Link>
@@ -531,7 +554,7 @@ export function GoalScreen() {
             </DropdownMenuItem>
             {goal.status === 'active' ? (
               <>
-                <DropdownMenuItem onSelect={() => void goals.achieve(goal.uuid)}>
+                <DropdownMenuItem onSelect={() => void achieve()}>
                   <TrophyIcon />
                   {t('goals.markAchieved')}
                 </DropdownMenuItem>
@@ -566,13 +589,18 @@ export function GoalScreen() {
           {progress && <p className="text-sm font-bold">{t('goals.progress', { done: progress.done, total: progress.total })}</p>}
         </div>
         {goal.status === 'active' && progress?.complete && (
-          <Button variant="brand" onClick={() => void goals.achieve(goal.uuid)}>
+          <Button variant="brand" onClick={() => void achieve()}>
             <TrophyIcon />
             {t('goals.markAchieved')}
           </Button>
         )}
       </section>
       {goal.status !== 'active' && goal.statusNote && <p className="rounded-lg bg-muted p-3 text-sm">{goal.statusNote}</p>}
+      {celebrating && (
+        <div className="pointer-events-none fixed inset-0 z-50 grid place-items-center" aria-hidden data-testid="goal-burst">
+          <TrophyIcon className="size-24 text-primary motion-safe:animate-ping" />
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Section view={view} kind="need" items={view.needs} />

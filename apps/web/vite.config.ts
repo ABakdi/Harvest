@@ -55,6 +55,8 @@ export default defineConfig({
       '@': here('./src'),
       // The shared packages are compiled from source, so the web never
       // runs against a stale build of the rules it shares with the phone.
+      // Before the package root, which would otherwise swallow it.
+      '@harvest/contracts/headers': here('../../packages/contracts/src/headers.ts'),
       '@harvest/contracts': here('../../packages/contracts/src/index.ts'),
       '@harvest/core': here('../../packages/core/src/index.ts'),
     },

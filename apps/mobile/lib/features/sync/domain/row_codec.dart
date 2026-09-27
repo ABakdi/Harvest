@@ -137,6 +137,18 @@ class TableCodec {
     updateKind: UpdateKind.delete,
   );
 
+  /// Moves a row's own clock to [at] without touching the rest of it,
+  /// and without the outbox: the change it stamps is already queued.
+  Future<void> restamp(HarvestDatabase db, String key, DateTime at) =>
+      db.customUpdate(
+        'UPDATE "$name" SET "updated_at" = ? WHERE $_where',
+        variables: [
+          Variable<DateTime>(at.toLocal()),
+          for (final v in keyValues(key)) Variable(v),
+        ],
+        updates: {table},
+      );
+
   Object? _toWire(GeneratedColumn<Object> column, Object? value) {
     if (value == null) return null;
     return switch (column.type) {

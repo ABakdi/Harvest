@@ -5,6 +5,7 @@ import {
   HandCoinsIcon,
   MinusIcon,
   PartyPopperIcon,
+  PencilIcon,
   PiggyBankIcon,
   PlusIcon,
   Trash2Icon,
@@ -51,7 +52,7 @@ type Section = Account | 'debts';
 type Open =
   | { kind: 'walletAdd' | 'walletTake' | 'deposit' | 'withdraw' }
   | { kind: 'pay'; debt: DebtView }
-  | { kind: 'debt' }
+  | { kind: 'debt'; existing?: DebtView }
   | null;
 
 /** A pot's balances as a map, zero balances dropped, for the dialogs' caps. */
@@ -74,7 +75,27 @@ function Hero({ icon, title, aside, tone, children, actions }: { icon: ReactNode
   );
 }
 
-function DebtCard({ view, onPay, onRemovePayment }: { view: DebtView; onPay: () => void; onRemovePayment: (payment: DebtPaymentRow) => void }) {
+/** The way into correcting or removing a debt ([[Audit-v3]] G5-02). */
+function EditDebtButton({ view, onEdit }: { view: DebtView; onEdit: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <Button variant="ghost" size="icon-sm" aria-label={t('vaultWeb.editDebtOf', { person: view.debt.person })} title={t('vaultWeb.editDebt')} onClick={onEdit}>
+      <PencilIcon />
+    </Button>
+  );
+}
+
+function DebtCard({
+  view,
+  onPay,
+  onEdit,
+  onRemovePayment,
+}: {
+  view: DebtView;
+  onPay: () => void;
+  onEdit: () => void;
+  onRemovePayment: (payment: DebtPaymentRow) => void;
+}) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const { debt, paidMinor, leftMinor, payments } = view;
@@ -95,6 +116,7 @@ function DebtCard({ view, onPay, onRemovePayment }: { view: DebtView; onPay: () 
         <span className="text-lg font-extrabold tabular" dir="ltr">
           {formatMoney(leftMinor, debt.currency)}
         </span>
+        <EditDebtButton view={view} onEdit={onEdit} />
       </div>
       <div
         className="h-2 overflow-hidden rounded-full bg-muted"
@@ -162,7 +184,17 @@ function PaymentsList({ id, payments, currency, onRemove }: { id: string; paymen
  * payments one tap away, so a mistaken last payment can still be taken
  * back. [cheer] plays the small celebration the moment it settles.
  */
-function SettledDebt({ view, cheer, onRemovePayment }: { view: DebtView; cheer: boolean; onRemovePayment: (payment: DebtPaymentRow) => void }) {
+function SettledDebt({
+  view,
+  cheer,
+  onEdit,
+  onRemovePayment,
+}: {
+  view: DebtView;
+  cheer: boolean;
+  onEdit: () => void;
+  onRemovePayment: (payment: DebtPaymentRow) => void;
+}) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const { debt, payments } = view;
@@ -181,6 +213,7 @@ function SettledDebt({ view, cheer, onRemovePayment }: { view: DebtView; cheer: 
         <span className="font-extrabold text-muted-foreground tabular" dir="ltr">
           {formatMoney(debt.amountMinor, debt.currency)}
         </span>
+        <EditDebtButton view={view} onEdit={onEdit} />
         {payments.length > 0 && (
           <Button variant="ghost" size="sm" aria-expanded={expanded} aria-controls={panel} onClick={() => setExpanded(!expanded)}>
             <ChevronDownIcon className={cn('transition-transform', expanded && 'rotate-180')} />
@@ -272,9 +305,17 @@ export function VaultPanel() {
   }
 
   async function removePayment(payment: DebtPaymentRow) {
-    await repository.removePayment(payment.uuid);
+    try {
+      await repository.removePayment(payment.uuid);
+    } catch (failure) {
+      toast.error(moneyError(t, failure));
+      return;
+    }
+    // The debt or the wallet may move on while Undo shows; a refused
+    // Undo says why ([[Audit-v3]] Q5-17).
+    const undo = () => repository.restorePayment(payment.uuid).catch((failure: unknown) => void toast.error(moneyError(t, failure)));
     toast(t('vault.paymentRemoved'), {
-      action: { label: t('common.undo'), onClick: () => void repository.restorePayment(payment.uuid) },
+      action: { label: t('common.undo'), onClick: () => void undo() },
     });
   }
 
@@ -390,7 +431,13 @@ export function VaultPanel() {
               </h2>
               <ul className="flex flex-col gap-2">
                 {openDebts.map((view) => (
-                  <DebtCard key={view.debt.uuid} view={view} onPay={() => setOpen({ kind: 'pay', debt: view })} onRemovePayment={setRemoving} />
+                  <DebtCard
+                    key={view.debt.uuid}
+                    view={view}
+                    onPay={() => setOpen({ kind: 'pay', debt: view })}
+                    onEdit={() => setOpen({ kind: 'debt', existing: view })}
+                    onRemovePayment={setRemoving}
+                  />
                 ))}
               </ul>
             </section>
@@ -402,7 +449,13 @@ export function VaultPanel() {
               </h2>
               <ul className="flex flex-col divide-y rounded-xl border bg-card">
                 {settled.map((view) => (
-                  <SettledDebt key={view.debt.uuid} view={view} cheer={view.debt.uuid === cheering} onRemovePayment={setRemoving} />
+                  <SettledDebt
+                    key={view.debt.uuid}
+                    view={view}
+                    cheer={view.debt.uuid === cheering}
+                    onEdit={() => setOpen({ kind: 'debt', existing: view })}
+                    onRemovePayment={setRemoving}
+                  />
                 ))}
               </ul>
             </section>
@@ -461,7 +514,7 @@ export function VaultPanel() {
           onClose={() => setOpen(null)}
         />
       )}
-      {open?.kind === 'debt' && <DebtDialog onClose={() => setOpen(null)} />}
+      {open?.kind === 'debt' && <DebtDialog existing={open.existing} onClose={() => setOpen(null)} />}
 
       <AlertDialog open={removing !== null} onOpenChange={(value) => !value && setRemoving(null)}>
         <AlertDialogContent>

@@ -14,6 +14,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@harvest/contracts/headers": ["../../packages/contracts/src/headers.ts"],
       "@harvest/contracts": ["../../packages/contracts/src/index.ts"],
       "@harvest/core": ["../../packages/core/src/index.ts"]
     }

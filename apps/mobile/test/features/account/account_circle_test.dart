@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:harvest/features/account/data/api_client.dart' show Me;
+import 'package:harvest/features/account/data/api_client.dart'
+    show ApiException, Me;
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
@@ -67,7 +70,7 @@ class _Pin extends SyncPassphrase {
   final bool initial;
   final secrets = <String>[];
 
-  /// What the next check against sealed rows finds.
+  /// Whether the next PIN opens the account's key check.
   bool opens = true;
 
   @override
@@ -76,11 +79,20 @@ class _Pin extends SyncPassphrase {
   @override
   Future<void> set(String secret) async {
     secrets.add(secret);
+    if (!opens) throw const SyncPinRefused();
     state = const AsyncData(true);
   }
 
   @override
   Future<void> forget() async => state = const AsyncData(false);
+
+  final startedOver = <String>[];
+
+  @override
+  Future<void> startOver(String password) async {
+    startedOver.add(password);
+    state = const AsyncData(false);
+  }
 }
 
 class _Sync extends SyncController {
@@ -94,12 +106,7 @@ class _Sync extends SyncController {
   SyncStatus build() => initial;
 
   @override
-  Future<void> syncNow() async {
-    syncs++;
-    // A key that does not open what is on the server is forgotten.
-    final pin = this.pin;
-    if (pin != null && !pin.opens) await pin.forget();
-  }
+  Future<void> syncNow() async => syncs++;
 }
 
 final _report = SyncReport(
@@ -120,6 +127,7 @@ void main() {
     bool sealed = false,
     bool prompt = false,
     Locale? locale,
+    ApiException? unreachable,
   }) {
     sync.pin = pin;
     Widget home = Scaffold(
@@ -135,7 +143,15 @@ void main() {
         accountControllerProvider.overrideWith(() => account),
         syncPassphraseProvider.overrideWith(() => pin),
         syncControllerProvider.overrideWith(() => sync),
-        syncSealedSeenProvider.overrideWith((ref) => Stream.value(sealed)),
+        // Whether the account already has a PIN is the server's answer.
+        syncKeyShareProvider.overrideWith((ref) async {
+          if (unreachable != null) throw unreachable;
+          return SyncKeyShare(
+            salt: 'salt',
+            keyShare: Uint8List(32),
+            check: sealed ? const {'v': 2, 'iv': '', 'ct': ''} : null,
+          );
+        }),
       ],
       child: MaterialApp(
         locale: locale,
@@ -328,6 +344,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l10n.accountThisDevice), findsOneWidget);
       expect(find.text('Laptop'), findsOneWidget);
+      // On this phone's clock, in words (Q5-27): never the raw wire.
+      expect(find.textContaining('T08:00'), findsNothing);
+      expect(
+        find.textContaining('${l10n.accountClientWeb} · '),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('${l10n.accountClientPhone} · '),
+        findsOneWidget,
+      );
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
 
@@ -524,8 +550,8 @@ void main() {
       expect(pin.secrets, ['olive grove']);
     });
 
-    testWidgets('a later device enters it once, and hears when it is not '
-        'the one the others used', (tester) async {
+    testWidgets('a later device enters it once, and a wrong one is refused '
+        'on the spot', (tester) async {
       final pin = _Pin()..opens = false;
       final sync = _Sync(SyncStatus(last: _report));
       await tester.pumpWidget(
@@ -546,18 +572,98 @@ void main() {
       await tester.ensureVisible(find.text(l10n.syncPinEnter));
       await tester.tap(find.text(l10n.syncPinEnter));
       await tester.pumpAndSettle();
-      expect(sync.syncs, 1);
+      // Refused by the key check: nothing kept, nothing synced.
+      expect(sync.syncs, 0);
       expect(find.text(l10n.syncPinWrong), findsOneWidget);
       expect(find.byType(SyncPinSheet), findsOneWidget);
 
       pin.opens = true;
-      await tester.enterText(fields.first, '2468');
+      // Entering, the PIN is the one already chosen: an easy one is the
+      // check's to judge, not the chooser's rule.
+      await tester.enterText(fields.first, '1234');
       await tester.pump();
       await tester.ensureVisible(find.text(l10n.syncPinEnter));
       await tester.tap(find.text(l10n.syncPinEnter));
       await tester.pumpAndSettle();
-      expect(pin.secrets, ['1357', '2468']);
+      expect(pin.secrets, ['1357', '1234']);
+      expect(sync.syncs, 1);
       expect(find.byType(SyncPinSheet), findsNothing);
+    });
+
+    testWidgets('choosing, a PIN too easy to guess is refused', (tester) async {
+      final pin = _Pin();
+      await tester.pumpWidget(
+        app(account: _Account(_me), pin: pin, sync: _Sync()),
+      );
+      await tester.pumpAndSettle();
+      await open(tester);
+      expect(find.text(l10n.syncPinRule), findsOneWidget);
+
+      final fields = find.descendant(
+        of: find.byType(SyncPinSheet),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(fields.first, '123456');
+      await tester.enterText(fields.last, '123456');
+      await tester.pump();
+      await tester.ensureVisible(find.text(l10n.syncPinChoose));
+      await tester.tap(find.text(l10n.syncPinChoose));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.syncPinTooSimple), findsOneWidget);
+      expect(pin.secrets, isEmpty);
+    });
+
+    testWidgets('with the server out of reach it says so, and nothing is '
+        'typed into a guess', (tester) async {
+      await tester.pumpWidget(
+        app(
+          account: _Account(_me),
+          pin: _Pin(),
+          sync: _Sync(),
+          unreachable: const ApiException('offline', 0),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await open(tester);
+      expect(find.text(l10n.syncPinUnreachable), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SyncPinSheet),
+          matching: find.byType(TextField),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a forgotten PIN can be started over, with the password, '
+        'after saying plainly what goes', (tester) async {
+      final pin = _Pin();
+      await tester.pumpWidget(
+        app(account: _Account(_me), pin: pin, sync: _Sync(), sealed: true),
+      );
+      await tester.pumpAndSettle();
+      await open(tester);
+
+      await tester.ensureVisible(find.text(l10n.syncPinForgot));
+      await tester.tap(find.text(l10n.syncPinForgot));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.syncPinStartOverBody), findsOneWidget);
+      await tester.tap(
+        find.widgetWithText(FilledButton, l10n.syncPinStartOverConfirm),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        'my password',
+      );
+      await tester.tap(
+        find.widgetWithText(FilledButton, l10n.syncPinStartOverConfirm),
+      );
+      await tester.pumpAndSettle();
+      expect(pin.startedOver, ['my password']);
     });
   });
 }

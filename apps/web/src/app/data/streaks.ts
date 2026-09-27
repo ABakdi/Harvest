@@ -4,11 +4,15 @@ import {
   emptyStreak,
   freezeCost,
   globalStreakScope,
+  HarvestDay as Day,
   maxFreezesStored,
+  parseScheduleJson,
   productiveActions,
   refreshGlobalStreak,
   retractHabitDay,
+  type HabitCalendar,
   type HarvestDay,
+  type MilestonePaid,
   type StreakState,
 } from '@harvest/core';
 import { settingKeys } from './settings';
@@ -62,16 +66,54 @@ export async function actionsOn(tx: Tx, dayKey: string): Promise<number> {
 async function refreshGlobal(tx: Tx, day: HarvestDay): Promise<void> {
   const goal = dailyGoalFromJson((await tx.get('kv_settings', settingKeys.dailyHarvestGoal))?.valueJson);
   const actions = await actionsOn(tx, day.key);
-  const refresh = refreshGlobalStreak(await streakOf(tx, globalStreakScope), actions, goal, day.key, day.previous.key);
+  // The milestones already paid, so a run pays each one once (Q5-29).
+  const paid: MilestonePaid[] = (await tx.rows('ledger').where('kind').equals('coin').toArray())
+    .filter((entry) => entry.reason.startsWith('streak:'))
+    .map((entry) => ({ reason: entry.reason, harvestDay: entry.harvestDay }));
+  const refresh = refreshGlobalStreak(
+    await streakOf(tx, globalStreakScope),
+    actions,
+    goal,
+    day.key,
+    day.previous.key,
+    paid,
+  );
   if (refresh.next) await writeStreak(tx, globalStreakScope, refresh.next);
   if (refresh.milestone) {
     await tx.ledger({ kind: 'coin', delta: refresh.milestone.coins, reason: refresh.milestone.reason, harvestDay: day.key });
   }
 }
 
-export async function onCheckIn(tx: Tx, seed: { uuid: string; type: string }, day: HarvestDay): Promise<void> {
+/**
+ * What judging a habit's missed days needs (Q5-02): its schedule, daily
+ * when it has none, and the first day it was paused or archived on,
+ * from which days are excused as the phone's judging excuses them.
+ */
+export function habitCalendarOf(seed: {
+  scheduleJson?: string | null;
+  pausedAt?: string | null;
+  archivedAt?: string | null;
+}): HabitCalendar | undefined {
+  let schedule;
+  try {
+    schedule = seed.scheduleJson ? parseScheduleJson(seed.scheduleJson) : null;
+  } catch {
+    return undefined; // an unreadable schedule is never judged
+  }
+  const excused = [seed.pausedAt, seed.archivedAt]
+    .filter((at): at is string => typeof at === 'string')
+    .map((at) => Day.of(new Date(at)).key)
+    .sort()[0];
+  return { schedule, pausedDay: excused ?? null };
+}
+
+export async function onCheckIn(
+  tx: Tx,
+  seed: { uuid: string; type: string; scheduleJson?: string | null; pausedAt?: string | null; archivedAt?: string | null },
+  day: HarvestDay,
+): Promise<void> {
   if (seed.type === 'habit') {
-    const next = earnHabitDay(await streakOf(tx, seed.uuid), day.key);
+    const next = earnHabitDay(await streakOf(tx, seed.uuid), day.key, habitCalendarOf(seed));
     if (next) await writeStreak(tx, seed.uuid, next);
   }
   await refreshGlobal(tx, day);

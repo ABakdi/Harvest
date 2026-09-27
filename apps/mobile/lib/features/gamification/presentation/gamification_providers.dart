@@ -1,12 +1,10 @@
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
+import 'package:harvest/features/gamification/domain/day_activity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamification_providers.g.dart';
-
-/// How far back the activity heat-map looks.
-const activityWindow = Duration(days: 182);
 
 @riverpod
 Stream<int> xpTotal(Ref ref) =>
@@ -24,12 +22,23 @@ Stream<int> coinTotal(Ref ref) =>
 Stream<int> checkInCount(Ref ref) =>
     ref.watch(gamificationRepositoryProvider).watchCheckInCount();
 
+/// The heat-map's squares over [activityWindow]: each day's productive
+/// actions, by the rule the web draws its map with (G5-11).
+@riverpod
+Stream<Map<String, int>> heatActivity(Ref ref) {
+  final window = activityWindow(ref.watch(currentHarvestDayProvider));
+  return ref
+      .watch(gamificationRepositoryProvider)
+      .watchHeatActivity(window.start, window.end);
+}
+
+/// Distinct seeds checked in per day: the weekly report's count.
 @riverpod
 Stream<Map<String, int>> dailyActivity(Ref ref) {
   final today = ref.watch(currentHarvestDayProvider);
   return ref
       .watch(gamificationRepositoryProvider)
-      .watchDailyActivity(today.addDays(-activityWindow.inDays).weekStart);
+      .watchDailyActivity(activityWindow(today).start);
 }
 
 @riverpod

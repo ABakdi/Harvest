@@ -1,5 +1,5 @@
 import { Blob as NodeBlob } from 'node:buffer';
-import { deriveSyncKey, maxFileBytes, openFile } from '@harvest/contracts';
+import { maxFileBytes, openFile } from '@harvest/contracts';
 import { HarvestDay } from '@harvest/core';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -11,7 +11,7 @@ import { memoryPath } from '@/app/data/gallery';
 import { GalleryScreen } from '@/app/screens/gallery';
 import { ApiError, api } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, testUser, testKey } from './helpers';
 
 beforeAll(() => {
   // jsdom's Blob does not survive IndexedDB's structured clone; Node's
@@ -115,7 +115,7 @@ describe('file upload ([[Sync-API]], files)', () => {
 
   it('asks what is missing, sends it sealed under its name, and stamps the row', async () => {
     const h = await device(new FakeServer());
-    const key = await deriveSyncKey('a long passphrase', testUser.syncSalt, { iterations: 1 });
+    const key = await testKey('a long passphrase');
     const blob = picture();
     const sha256 = await sha256Of(await blob.arrayBuffer());
     const missing = vi.spyOn(api, 'filesMissing').mockResolvedValue({ missing: [sha256], usedBytes: 0, quotaBytes: 1 });

@@ -16,6 +16,7 @@ import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/commitments/presentation/seed_providers.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/gamification/domain/day_activity.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -37,6 +38,7 @@ class StatsScreen extends ConsumerWidget {
     final streakDays = ref.watch(streakDaysProvider);
     final checkIns = ref.watch(checkInCountProvider).value ?? 0;
     final activity = ref.watch(dailyActivityProvider).value ?? const {};
+    final heat = ref.watch(heatActivityProvider).value ?? const {};
     final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
     final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
     final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
@@ -103,7 +105,7 @@ class StatsScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _HeatMap(
-                          activity: activity,
+                          activity: heat,
                           goal: goal,
                           streakDays: streakDays,
                         ),
@@ -196,7 +198,9 @@ class StatsScreen extends ConsumerWidget {
   }
 }
 
-/// Six months of daily activity, garden style.
+/// Six months of daily activity, garden style: [activityWeeks] whole
+/// weeks, each day as high as its productive actions ([dayActivity]),
+/// the same map the web draws.
 ///
 /// Two things are being said at once, so they are said differently. A
 /// day that is **part of the current streak** is solid green — ten days
@@ -219,11 +223,12 @@ class _HeatMap extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final today = HarvestDay.today();
-    final start = today.addDays(-activityWindow.inDays).weekStart;
+    final window = activityWindow(today);
 
+    // The days after today in this week stay blank.
     final weeks = <List<HarvestDay?>>[];
-    var day = start;
-    while (day.compareTo(today) <= 0) {
+    var day = window.start;
+    while (day.compareTo(window.end) <= 0) {
       final week = <HarvestDay?>[];
       for (var i = 0; i < 7; i++) {
         week.add(day.compareTo(today) <= 0 ? day : null);
@@ -340,12 +345,12 @@ class _HeatMap extends StatelessWidget {
   Color _color(ColorScheme scheme, int count, {required bool inStreak}) {
     // The streak is the headline number, so its days are not shaded by
     // how much was done on them: they are simply on.
-    if (inStreak) return scheme.secondary;
-    if (count == 0) return scheme.onSurface.withValues(alpha: 0.06);
     // Kept well short of solid, so a busy day off the streak never
-    // passes for a streak square beside a "No streak running" line.
-    final intensity = (count / goal).clamp(0.2, 0.4);
-    return scheme.secondary.withValues(alpha: intensity);
+    // passes for a streak square beside a "No streak running" line
+    // ([activityShade], the web's shading too).
+    final shade = activityShade(count, goal, inStreak: inStreak);
+    if (shade == 0) return scheme.onSurface.withValues(alpha: 0.06);
+    return scheme.secondary.withValues(alpha: shade);
   }
 }
 

@@ -1,7 +1,8 @@
-import type { Me } from '@harvest/contracts';
+import { deriveSyncKeyV2, type Me } from '@harvest/contracts';
 import { createHarvest, type Harvest } from '@/app/context';
 import { HarvestDB } from '@/app/data/db';
 import type { SyncTransport } from '@/app/sync/engine';
+import { testKeyShare } from './fake-server';
 
 export const testUser: Me = {
   id: '0123456789abcdef01234567',
@@ -37,4 +38,13 @@ export async function device(
   const db = new HarvestDB(`test-${Date.now()}-${counter++}`);
   await db.open();
   return Object.assign(createHarvest(db, user, transport, clock), { clock });
+}
+
+/**
+ * The key a fresh fake account makes from [secret], as the keyring does
+ * with one round (`unlock(secret, salt, 1)`): what a test seals a file
+ * or a row with to play another device.
+ */
+export function testKey(secret: string): Promise<CryptoKey> {
+  return deriveSyncKeyV2(secret, testUser.syncSalt, testKeyShare, { iterations: 1 });
 }

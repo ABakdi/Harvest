@@ -1,5 +1,8 @@
 import {
   checkRecord,
+  tierOf,
+  type KeyCheck,
+  type SyncKeyResult,
   recordStamp,
   type PulledRecord,
   type PullResult,
@@ -16,11 +19,43 @@ import type { SyncTransport } from '@/app/sync/engine';
  * is stale, a purge keeps only its tombstone, and every stored write
  * takes the next sequence number.
  */
+/** The key share every fresh fake account starts with. */
+export const testKeyShare = Buffer.from(Array.from({ length: 32 }, (_, i) => i)).toString('base64');
+
 export class FakeServer implements SyncTransport {
   readonly stored = new Map<string, PulledRecord>();
   private seq = 0;
   pushes = 0;
   pulls = 0;
+
+  // The sync key routes (routes/sync-key.ts): the account's salt, its
+  // key share, and the first key check a device stores.
+  salt = 'c2FsdHNhbHRzYWx0c2FsdA==';
+  keyShare = testKeyShare;
+  check: KeyCheck | null = null;
+  password = 'the password';
+  keyAsks = 0;
+
+  syncKey(): Promise<SyncKeyResult> {
+    this.keyAsks++;
+    return Promise.resolve({ salt: this.salt, keyShare: this.keyShare, check: this.check });
+  }
+
+  putKeyCheck(check: KeyCheck): Promise<KeyCheck | null> {
+    if (this.check && JSON.stringify(this.check) !== JSON.stringify(check)) return Promise.resolve(this.check);
+    this.check = check;
+    return Promise.resolve(null);
+  }
+
+  startOverSyncKey(password: string): Promise<void> {
+    if (password !== this.password) {
+      return Promise.reject(Object.assign(new Error('Wrong password'), { status: 403, code: 'forbidden' }));
+    }
+    this.check = null;
+    this.keyShare = Buffer.from(Array.from({ length: 32 }, (_, i) => (i * 7 + 3) % 256)).toString('base64');
+    for (const [id, record] of this.stored) if (tierOf(record.table) === 'private') this.stored.delete(id);
+    return Promise.resolve();
+  }
 
   push(body: PushBody): Promise<PushResult> {
     this.pushes++;

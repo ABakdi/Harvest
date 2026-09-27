@@ -1,3 +1,5 @@
+import { fileNameKey, safeFileName } from '@harvest/core';
+
 /**
  * Where everything sits inside a Harvest archive, and what an archive
  * may weigh before it is refused ([[ADR-007-Archive-Format]]).
@@ -57,16 +59,17 @@ export function archiveFileName(at: Date): string {
 
 /**
  * A filename that survives every platform, with the real title kept in
- * the workbook beside it (ADR-007 rule 4). The phone's `safeFileName`.
+ * the workbook beside it (ADR-007 rule 4): core's rule, the phone's too
+ * ([[Audit-v3]] Q5-59).
  */
-export function safeFileName(title: string): string {
-  const cleaned = title
-    .replace(/[\\/:*?"<>|]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const trimmed = cleaned.replace(/^\.+/, '').trim();
-  if (trimmed === '') return 'untitled';
-  return trimmed.length > 120 ? trimmed.slice(0, 120).trim() : trimmed;
+export { safeFileName } from '@harvest/core';
+
+/** Takes [candidate] for this archive, by its case-folded key. */
+function claim(taken: Set<string>, candidate: string): boolean {
+  const key = fileNameKey(candidate);
+  if (taken.has(key)) return false;
+  taken.add(key);
+  return true;
 }
 
 /** `path.posix.join` for the few segments a layout needs; empties dropped. */
@@ -99,18 +102,19 @@ function safeFolder(folder: string): string {
 
 /**
  * `notes/Health/Sleep log.md`: the folder the app shows, the title as
- * the filename, a suffix when two land on the same name.
+ * the filename, a suffix when two land on the same name, `Ideas` and
+ * `ideas` included, which are one file once unzipped on a system that
+ * ignores case.
  */
 export function notePath({ title, folder, taken }: { title: string; folder: string; taken: Set<string> }): string {
   const base = safeFileName(title.trim() === '' ? 'Untitled' : title);
   const directory = safeFolder(folder);
   let candidate = joinPath(ArchivePaths.notes, directory, `${base}.md`);
   let suffix = 2;
-  while (taken.has(candidate)) {
+  while (!claim(taken, candidate)) {
     candidate = joinPath(ArchivePaths.notes, directory, `${base} (${suffix}).md`);
     suffix++;
   }
-  taken.add(candidate);
   return candidate;
 }
 
@@ -133,11 +137,10 @@ export function attachmentPath({
   const stem = extension === '' ? name : name.slice(0, -extension.length);
   let candidate = joinPath(directory, name);
   let suffix = 2;
-  while (taken.has(candidate)) {
+  while (!claim(taken, candidate)) {
     candidate = joinPath(directory, `${stem} (${suffix})${extension}`);
     suffix++;
   }
-  taken.add(candidate);
   return candidate;
 }
 
@@ -157,11 +160,10 @@ export function memoryPath({
   const extension = extensionOf(storedPath).toLowerCase();
   let candidate = joinPath(ArchivePaths.gallery, album, `${day}${extension}`);
   let suffix = 2;
-  while (taken.has(candidate)) {
+  while (!claim(taken, candidate)) {
     candidate = joinPath(ArchivePaths.gallery, album, `${day}-${suffix}${extension}`);
     suffix++;
   }
-  taken.add(candidate);
   return candidate;
 }
 

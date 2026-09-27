@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -16,6 +18,20 @@ typedef MoneyEntry = ({
   String? note,
   bool fromWallet,
 });
+
+/// Under an amount box holding a sum: what it comes to, or that it is
+/// not finished yet. Null for a plain number, which needs no caption.
+String? amountSumHelper(
+  AppLocalizations l10n,
+  String input,
+  Currency currency,
+) {
+  if (!isAmountExpression(input)) return null;
+  final minor = evaluateAmountToMinor(input);
+  return minor == null
+      ? l10n.amountSumIncomplete
+      : l10n.amountSum(formatMoney(minor, currency));
+}
 
 /// The one way an amount is asked for in the vault: a big number, the
 /// currency pills, an optional note, and the bouncy confirm.
@@ -97,7 +113,8 @@ class _MoneySheetState extends State<_MoneySheet> {
   /// while it is untouched, so the common case needs no thought.
   bool? _fromWallet;
 
-  int? get _minor => parseToMinor(_amountController.text);
+  // A sum counts here as it does in the expense sheet ([[Audit-v3]] G5-06).
+  int? get _minor => evaluateAmountToMinor(_amountController.text);
   int? get _cap => widget.maxMinor?[_currency];
   bool get _overCap => _minor != null && _cap != null && _minor! > _cap!;
   bool get _valid => _minor != null && !_overCap;
@@ -142,6 +159,9 @@ class _MoneySheetState extends State<_MoneySheet> {
           controller: _amountController,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(amountCharacters),
+          ],
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _submit(),
           style: theme.textTheme.displaySmall?.copyWith(
@@ -162,6 +182,11 @@ class _MoneySheetState extends State<_MoneySheet> {
             errorText: _overCap
                 ? '${l10n.amountLabel} ≤ ${formatMoney(_cap!, _currency)}'
                 : null,
+            helperText: amountSumHelper(
+              l10n,
+              _amountController.text,
+              _currency,
+            ),
           ),
         ),
         const SizedBox(height: HarvestSpacing.sm),

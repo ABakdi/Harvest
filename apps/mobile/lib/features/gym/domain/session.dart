@@ -182,11 +182,62 @@ class WorkoutSession {
   int get totalSets =>
       exercises.fold(0, (sum, exercise) => sum + exercise.sets.length);
 
+  /// What Finish has to ask about (Y10, `finishQuestion` in
+  /// `packages/core`).
+  FinishQuestion get finishQuestion => FinishQuestion.of(
+    [for (final exercise in exercises) (exercise.skipped, exercise.sets)],
+  );
+
   int get volumeGrams => exercises.fold(
     0,
     (sum, exercise) =>
         sum + exercise.sets.fold(0, (s, set) => s + set.volumeGrams),
   );
+}
+
+/// What Finish asks before it checks the habit in (Y10). Sets on an
+/// exercise I skipped were never going to happen, so they are not
+/// [planned]; the unticked rest are [left]. [done] counts every tick,
+/// but only a tick on an exercise still in the plan takes one off
+/// [left]: squats ticked twice and then skipped leave the bench sets as
+/// many as they were ([[Audit-v3]] Q5-19).
+@immutable
+class FinishQuestion {
+  const FinishQuestion({
+    required this.done,
+    required this.left,
+    required this.planned,
+  });
+
+  factory FinishQuestion.of(
+    Iterable<(bool skipped, List<WorkoutSet> sets)> exercises,
+  ) {
+    var done = 0;
+    var planned = 0;
+    var donePlanned = 0;
+    for (final (skipped, sets) in exercises) {
+      final ticked = sets.where((set) => set.done).length;
+      done += ticked;
+      if (skipped) continue;
+      planned += sets.length;
+      donePlanned += ticked;
+    }
+    return FinishQuestion(
+      done: done,
+      left: planned - donePlanned,
+      planned: planned,
+    );
+  }
+
+  final int done;
+  final int left;
+  final int planned;
+
+  /// Nothing ticked at all: finishing is worth a second thought.
+  bool get empty => done == 0;
+
+  /// Ticked, but sets still in the plan are not.
+  bool get incomplete => !empty && left > 0;
 }
 
 /// Estimated one-rep max, by **Epley**: `w × (1 + reps ÷ 30)`.

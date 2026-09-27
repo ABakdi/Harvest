@@ -57,6 +57,20 @@ describe('the server assist', () => {
     await request(h.app).post('/v1/assist').set(bearer(other)).send(ask).expect(200);
   });
 
+  it('stops the whole server at its daily ceiling, however many accounts ask (S5-19)', async () => {
+    await h.close();
+    h = await harness({
+      env: { ASSIST_API_KEY: 'a-server-key', ASSIST_DAILY_LIMIT: '2', ASSIST_GLOBAL_DAILY_LIMIT: '3' },
+      assistFetch: model,
+    });
+    for (let i = 0; i < 3; i += 1) {
+      const account = await signUp(h);
+      await request(h.app).post('/v1/assist').set(bearer(account)).send(ask).expect(200);
+    }
+    const late = await signUp(h);
+    expectError(await request(h.app).post('/v1/assist').set(bearer(late)).send(ask), 429, 'rate_limited');
+  });
+
   it('keeps the question out of anything it stores', async () => {
     const account = await signUp(h);
     await request(h.app).post('/v1/assist').set(bearer(account)).send(ask).expect(200);

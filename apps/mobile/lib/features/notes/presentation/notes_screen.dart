@@ -337,8 +337,15 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     final when = formatDay(context, HarvestDay.of(note.updatedAt));
     final subtitle = note.folder.isEmpty ? when : '${note.folder} · $when';
     try {
-      final bytes = await noteToPdf(note, subtitle: subtitle);
-      await Printing.sharePdf(bytes: bytes, filename: pdfFileName(note));
+      final bytes = await noteToPdf(
+        note,
+        untitled: l10n.notesUntitled,
+        subtitle: subtitle,
+      );
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: pdfFileName(note, untitled: l10n.notesUntitled),
+      );
     } on Object {
       messenger.showSnackBar(SnackBar(content: Text(l10n.notesPdfFailed)));
     }

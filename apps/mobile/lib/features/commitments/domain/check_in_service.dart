@@ -62,7 +62,7 @@ class CheckInService {
   }) async {
     final harvestDay = day ?? HarvestDay.today();
 
-    final result = await _db.transaction(() async {
+    return _db.transaction(() async {
       var toLog = quantity;
       var capped = false;
       final loggedToday = await _loggedOn(commitment.uuid, harvestDay);
@@ -93,6 +93,9 @@ class CheckInService {
           ? Xp.perProjectUnit * toLog
           : Xp.habitOrTodo;
       final checkInUuid = _uuid.v4();
+      // The check-in's moment is also the tick it gives a goal item, so
+      // its undo can tell that tick from one given by hand (Q5-43).
+      final loggedAt = DateTime.now();
       await _db
           .into(_db.checkIns)
           .insert(
@@ -101,6 +104,7 @@ class CheckInService {
               commitmentUuid: commitment.uuid,
               harvestDay: harvestDay.key,
               quantity: Value(toLog),
+              loggedAt: Value(loggedAt),
             ),
           );
       await _db.insertLedger(
@@ -114,8 +118,11 @@ class CheckInService {
       );
       await _outbox(checkInUuid, 'insert');
       if (commitment.type == CommitmentType.todo) {
-        await _tickGoalItems(commitment.uuid, done: true);
+        await _tickGoalItems(commitment.uuid, at: loggedAt);
       }
+      // In the same transaction: two quick taps on two seeds cannot
+      // both reach the goal and both pay its milestone (Q5-29).
+      await _streaks.onCheckIn(commitment, harvestDay);
       return capped
           ? CheckInCapped(
               quantityLogged: toLog,
@@ -124,13 +131,6 @@ class CheckInService {
             )
           : CheckInSuccess(quantityLogged: toLog, xpEarned: xp);
     });
-
-    final logged = switch (result) {
-      CheckInSuccess(:final quantityLogged) => quantityLogged,
-      CheckInCapped(:final quantityLogged) => quantityLogged,
-    };
-    if (logged > 0) await _streaks.onCheckIn(commitment, harvestDay);
-    return result;
   }
 
   /// Undoes today's check-ins for [commitment] — same-day corrections
@@ -174,10 +174,12 @@ class CheckInService {
         await _outbox(row.uuid, 'update');
       }
       if (rows.isNotEmpty && commitment.type == CommitmentType.todo) {
-        await _tickGoalItems(commitment.uuid, done: false);
+        await _untickGoalItems(commitment.uuid, [
+          for (final row in rows) row.loggedAt,
+        ]);
       }
+      await _streaks.onUndo(commitment, harvestDay);
     });
-    await _streaks.onUndo(commitment, harvestDay);
   }
 
   Future<int> _loggedOn(String commitmentUuid, HarvestDay day) async {
@@ -210,24 +212,37 @@ class CheckInService {
   /// ever changes an item without my hand, and it runs inside the
   /// check-in's own transaction so the two cannot disagree. It ticks
   /// the way my hand would: a subtask's tick can complete its parent,
-  /// and a parent's ticks its subtasks (GL8).
+  /// and a parent's ticks its subtasks (GL8). The tick carries the
+  /// check-in's [at], which is how the undo finds it again.
   Future<void> _tickGoalItems(
     String commitmentUuid, {
-    required bool done,
+    required DateTime at,
   }) async {
-    final items =
-        await (_db.select(_db.goalItems)..where(
-              (i) =>
-                  i.commitmentUuid.equals(commitmentUuid) &
-                  i.deletedAt.isNull(),
-            ))
-            .get();
     final goals = GoalsRepository(_db);
-    for (final item in items) {
-      if ((item.doneAt != null) == done) continue;
-      await goals.setDone(item.uuid, done: done);
+    for (final item in await _plantedItems(commitmentUuid)) {
+      if (item.doneAt != null) continue;
+      await goals.setDone(item.uuid, done: true, at: at);
     }
   }
+
+  /// Takes back only the ticks the undone check-ins gave ([stamps]);
+  /// a subtask ticked by hand stays ticked ([[Audit-v3]] Q5-43).
+  Future<void> _untickGoalItems(
+    String commitmentUuid,
+    List<DateTime> stamps,
+  ) async {
+    final goals = GoalsRepository(_db);
+    for (final item in await _plantedItems(commitmentUuid)) {
+      await goals.untickFrom(item.uuid, stamps);
+    }
+  }
+
+  Future<List<GoalItemRow>> _plantedItems(String commitmentUuid) =>
+      (_db.select(_db.goalItems)..where(
+            (i) =>
+                i.commitmentUuid.equals(commitmentUuid) & i.deletedAt.isNull(),
+          ))
+          .get();
 
   Future<void> _outbox(String uuid, String op) =>
       _db.logChange('check_ins', uuid, op);

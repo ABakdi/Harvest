@@ -10,6 +10,8 @@ export interface AssistDeps {
   upstream: GeminiUpstream | null;
   usage: AssistUsageRepository;
   dailyLimit: number;
+  /** The whole server's requests per UTC day (audit S5-19). */
+  globalDailyLimit: number;
   now?: () => Date;
 }
 
@@ -24,7 +26,7 @@ export interface AssistDeps {
  *
  * Mounted behind requireAuth and requireVerified, like sync.
  */
-export function assistRoutes({ upstream, usage, dailyLimit, now = () => new Date() }: AssistDeps): Router {
+export function assistRoutes({ upstream, usage, dailyLimit, globalDailyLimit, now = () => new Date() }: AssistDeps): Router {
   const router = Router();
 
   router.get('/status', async (_req, res) => {
@@ -51,6 +53,11 @@ export function assistRoutes({ upstream, usage, dailyLimit, now = () => new Date
       const spent = await usage.spend(userId, day, at);
       if (spent > dailyLimit) {
         throw new HttpError('rate_limited', 'That is all the assist this account has today');
+      }
+      // And the server's own ceiling: a hundred fresh accounts are not a
+      // hundred times the key's allowance.
+      if ((await usage.spendGlobal(day, at)) > globalDailyLimit) {
+        throw new HttpError('rate_limited', 'That is all the assist this server has today');
       }
 
       // Server-sent events: the first words go out while the rest are

@@ -25,9 +25,12 @@ const idle: SyncStatus = {
   lastSyncedAt: '2026-09-19T11:55:00.000Z',
   pending: 0,
   invalid: 0,
+  refusedFor: [],
   sealed: 0,
+  unreadable: 0,
   locked: 0,
   firstSync: false,
+  pinChanged: false,
   error: null,
 };
 

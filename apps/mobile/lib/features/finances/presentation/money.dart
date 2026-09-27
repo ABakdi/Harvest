@@ -1,3 +1,4 @@
+import 'package:harvest/core/domain/western_digits.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:intl/intl.dart';
 
@@ -55,28 +56,12 @@ String formatMoney(int minor, Currency currency) =>
 String formatMoneySigned(int minor, Currency currency) =>
     ltrIsolate(formatSigned(minor, currency));
 
-/// Arabic-Indic and extended Arabic-Indic digits → ASCII, so a number
-/// typed on an Arabic keyboard parses like any other.
-String _latinDigits(String input) {
-  final buffer = StringBuffer();
-  for (final rune in input.runes) {
-    if (rune >= 0x0660 && rune <= 0x0669) {
-      buffer.writeCharCode(rune - 0x0660 + 0x30);
-    } else if (rune >= 0x06F0 && rune <= 0x06F9) {
-      buffer.writeCharCode(rune - 0x06F0 + 0x30);
-    } else {
-      buffer.writeCharCode(rune);
-    }
-  }
-  return buffer.toString();
-}
-
 /// Parses user input ("12", "12.5", "12,50", "1,234") into minor units.
 /// Returns null for anything that isn't a positive amount within
 /// [maxMajorUnits]. A comma is a thousands separator when it is
 /// followed by exactly three digits, and a decimal point otherwise.
 int? parseToMinor(String input) {
-  var text = _latinDigits(input).trim();
+  var text = westernDigits(input).trim();
   if (text.isEmpty || text.startsWith('+') || text.startsWith('-')) return null;
 
   // "1,234" / "1,234,567" are grouped; "1,5" is a decimal comma.

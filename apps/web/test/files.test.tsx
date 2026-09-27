@@ -1,4 +1,4 @@
-import { deriveSyncKey, sealFile } from '@harvest/contracts';
+import { sealFile } from '@harvest/contracts';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -7,7 +7,7 @@ import { sha256Of } from '@/app/data/files';
 import { GalleryScreen } from '@/app/screens/gallery';
 import { api } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, testUser, testKey } from './helpers';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -24,7 +24,7 @@ describe('files on the web', () => {
   it('fetches a picture by its name, opens it and keeps it', async () => {
     const h = await device(new FakeServer());
     const { bytes, sha256 } = await picture();
-    const key = await deriveSyncKey('a long passphrase', testUser.syncSalt, { iterations: 1 });
+    const key = await testKey('a long passphrase');
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     const sealed = await sealFile(key, sha256, bytes);
     const fetching = vi.spyOn(api, 'file').mockResolvedValue({ sealed: sealed.sealed, iv: sealed.iv });
@@ -42,7 +42,7 @@ describe('files on the web', () => {
   it('throws away bytes that do not hash to the name they came under', async () => {
     const h = await device(new FakeServer());
     const { sha256 } = await picture();
-    const key = await deriveSyncKey('a long passphrase', testUser.syncSalt, { iterations: 1 });
+    const key = await testKey('a long passphrase');
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     // Sealed correctly for that name, but the bytes are something else.
     const lie = await sealFile(key, sha256, new Uint8Array([1, 2, 3]));

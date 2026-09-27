@@ -11,11 +11,24 @@ import {
 } from '@harvest/contracts';
 import { Router, type CookieOptions, type Request, type Response } from 'express';
 import { refreshTokenMs, type AuthService, type SignedIn } from '../auth/service.js';
-import { unauthorized } from '../http/errors.js';
-import type { authLimiters } from '../http/rate-limits.js';
+import { HttpError, unauthorized } from '../http/errors.js';
+import type { Limiters } from '../http/rate-limits.js';
 import { validated } from '../http/validate.js';
 
-export const refreshCookie = 'harvest_refresh';
+/**
+ * The refresh cookie's name. Where it is Secure it carries the
+ * `__Secure-` prefix, which a browser only accepts from https with the
+ * Secure flag, so no page on plain http can plant one (audit S5-20).
+ * The web never reads it (it is HttpOnly), so the name is the server's
+ * alone; the old one is still read, and cleared, so nobody is signed
+ * out by the change.
+ */
+export const legacyRefreshCookie = 'harvest_refresh';
+export const secureRefreshCookie = '__Secure-harvest_refresh';
+
+export function refreshCookieName(policy: CookiePolicy): string {
+  return policy.secure ? secureRefreshCookie : legacyRefreshCookie;
+}
 
 export interface CookiePolicy {
   secure: boolean;
@@ -30,7 +43,15 @@ function cookieOptions(policy: CookiePolicy): CookieOptions {
   return { httpOnly: true, secure: policy.secure, sameSite: 'strict', path: '/v1/auth' };
 }
 
-function answer(res: Response, signedIn: SignedIn, policy: CookiePolicy, status = 200): void {
+/** Clears the refresh cookie under both its names. */
+export function clearRefreshCookies(res: Response, policy: CookiePolicy): void {
+  res.clearCookie(refreshCookieName(policy), cookieOptions(policy));
+  if (refreshCookieName(policy) !== legacyRefreshCookie) {
+    res.clearCookie(legacyRefreshCookie, cookieOptions(policy));
+  }
+}
+
+function answer(res: Response, signedIn: SignedIn, policy: CookiePolicy, status = 200, req?: Request): void {
   const body: AuthResult = {
     accessToken: signedIn.accessToken,
     expiresIn: signedIn.expiresIn,
@@ -39,7 +60,12 @@ function answer(res: Response, signedIn: SignedIn, policy: CookiePolicy, status 
   if (signedIn.client === 'mobile') {
     body.refreshToken = signedIn.refreshToken;
   } else {
-    res.cookie(refreshCookie, signedIn.refreshToken, { ...cookieOptions(policy), maxAge: refreshTokenMs });
+    res.cookie(refreshCookieName(policy), signedIn.refreshToken, { ...cookieOptions(policy), maxAge: refreshTokenMs });
+    // Moved to the new name: the old cookie goes.
+    const cookies = req?.cookies as Record<string, unknown> | undefined;
+    if (refreshCookieName(policy) !== legacyRefreshCookie && cookies?.[legacyRefreshCookie] !== undefined) {
+      res.clearCookie(legacyRefreshCookie, cookieOptions(policy));
+    }
   }
   res.status(status).json(body);
 }
@@ -48,30 +74,33 @@ function answer(res: Response, signedIn: SignedIn, policy: CookiePolicy, status 
 function presentedToken(req: Request, fromBody: string | undefined): string | undefined {
   if (fromBody) return fromBody;
   const cookies = req.cookies as Record<string, unknown> | undefined;
-  const cookie = cookies?.[refreshCookie];
-  return typeof cookie === 'string' && cookie.length > 0 ? cookie : undefined;
+  for (const name of [secureRefreshCookie, legacyRefreshCookie]) {
+    const cookie = cookies?.[name];
+    if (typeof cookie === 'string' && cookie.length > 0) return cookie;
+  }
+  return undefined;
 }
 
-export function authRoutes(
-  auth: AuthService,
-  limits: ReturnType<typeof authLimiters>,
-  policy: CookiePolicy,
-): Router {
+export function authRoutes(auth: AuthService, limits: Limiters, policy: CookiePolicy): Router {
   const router = Router();
 
+  // Sign-up says whether an address is taken (409), the one route that
+  // does ([[Accounts]] AC3): it has a limit of its own, much tighter than
+  // the rest.
   router.post(
     '/register',
+    limits.register,
     limits.auth,
-    ...validated({ body: registerBodySchema }, async ({ body }, _req, res) => {
-      answer(res, await auth.register(body), policy, 201);
+    ...validated({ body: registerBodySchema }, async ({ body }, req, res) => {
+      answer(res, await auth.register(body), policy, 201, req);
     }),
   );
 
   router.post(
     '/login',
     limits.login,
-    ...validated({ body: loginBodySchema }, async ({ body }, _req, res) => {
-      answer(res, await auth.login(body), policy);
+    ...validated({ body: loginBodySchema }, async ({ body }, req, res) => {
+      answer(res, await auth.login(body), policy, 200, req);
     }),
   );
 
@@ -82,10 +111,13 @@ export function authRoutes(
       const token = presentedToken(req, body.refreshToken);
       if (!token) throw unauthorized('Missing refresh token');
       try {
-        answer(res, await auth.refresh(token), policy);
+        answer(res, await auth.refresh(token), policy, 200, req);
       } catch (error) {
-        // A refresh that fails leaves a dead cookie behind otherwise.
-        res.clearCookie(refreshCookie, cookieOptions(policy));
+        // A refresh the session refused leaves a dead cookie behind
+        // otherwise. Anything else (the database away for a moment) is
+        // not the session's end, and the cookie stays for the next try
+        // (Q5-15).
+        if (error instanceof HttpError && error.code === 'unauthorized') clearRefreshCookies(res, policy);
         throw error;
       }
     }),
@@ -96,7 +128,7 @@ export function authRoutes(
     ...validated({ body: logoutBodySchema }, async ({ body }, req, res) => {
       const token = presentedToken(req, body.refreshToken);
       if (token) await auth.logout(token);
-      res.clearCookie(refreshCookie, cookieOptions(policy));
+      clearRefreshCookies(res, policy);
       res.status(204).end();
     }),
   );
@@ -134,7 +166,7 @@ export function authRoutes(
     limits.auth,
     ...validated({ body: resetPasswordBodySchema }, async ({ body }, _req, res) => {
       await auth.resetPassword(body.token, body.password);
-      res.clearCookie(refreshCookie, cookieOptions(policy));
+      clearRefreshCookies(res, policy);
       res.status(204).end();
     }),
   );

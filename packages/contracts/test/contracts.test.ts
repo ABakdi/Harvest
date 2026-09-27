@@ -6,6 +6,7 @@ import {
   errorStatus,
   instantMicros,
   isCommonPassword,
+  isLegacySetting,
   isPortableSetting,
   loginBodySchema,
   passwordSchema,
@@ -86,6 +87,23 @@ describe('settings allow-list', () => {
     expect(isPortableSetting('streak.lastReconciledDay')).toBe(false);
     expect(isPortableSetting('pomodoro.active')).toBe(false);
     expect(isPortableSetting('security.lockEnabled')).toBe(false);
+  });
+
+  it('still takes what a 3.0.0 phone pushes, without it being portable', () => {
+    for (const key of ['assist.provider', 'assist.baseUrl', 'assist.model', 'places.styleUrl']) {
+      expect(isPortableSetting(key)).toBe(false);
+      expect(isLegacySetting(key)).toBe(true);
+      const record = {
+        table: 'kv_settings',
+        uuid: key,
+        updatedAt: '2026-09-19T10:00:00Z',
+        deletedAt: null,
+        data: { key, valueJson: '"x"', updatedAt: '2026-09-19T10:00:00Z' },
+      };
+      expect(checkRecord(record).ok).toBe(true);
+    }
+    expect(isLegacySetting('places.mapBase')).toBe(false);
+    expect(isLegacySetting('security.lockEnabled')).toBe(false);
   });
 });
 

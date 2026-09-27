@@ -1,13 +1,15 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import type { ClientKind, Me, Session } from '@harvest/contracts';
 import type { CryptoKey } from 'jose';
 import type { ObjectId } from 'mongodb';
 import type { Logger } from 'pino';
-import { isDuplicateKey, type Repositories, type SessionDoc, type UserDoc } from '../db/index.js';
+import { isDuplicateKey, type RefreshTokenDoc, type Repositories, type SessionDoc, type UserDoc } from '../db/index.js';
 import { HttpError, unauthorized } from '../http/errors.js';
+import { KeyedMutex } from '../sync/mutex.js';
 import type { Mailer, MailMessage } from '../mail/mailer.js';
 import { resetMail, verificationMail } from '../mail/templates.js';
 import { hashPassword, verifyPassword } from './passwords.js';
+import { open, seal } from './seal.js';
 import {
   accessTokenSeconds,
   createOpaqueToken,
@@ -20,6 +22,13 @@ import {
 export const refreshTokenMs = 30 * 24 * 60 * 60_000;
 export const verifyLinkMs = 24 * 60 * 60_000;
 export const resetLinkMs = 60 * 60_000;
+
+/**
+ * How long after a refresh token is exchanged the same token may be
+ * exchanged again for the same successor: a phone whose answer was lost
+ * to a timeout retries, and a retry is not a theft (Q5-13).
+ */
+export const refreshGraceMs = 30_000;
 
 /** One message for every failed sign-in, so it never says which half was wrong (AC3). */
 export const wrongCredentials = 'Wrong email or password';
@@ -39,6 +48,13 @@ export interface AuthDeps {
   keys: { privateKey: CryptoKey; publicKey: CryptoKey };
   appUrl: string;
   now?: () => Date;
+  /**
+   * The per-account lock pushes run under, so deleting an account cannot
+   * interleave with a push that would write rows back for it (Q5-56).
+   */
+  accountLock?: KeyedMutex;
+  /** The soft per-email sign-in limit (audit S5-06). */
+  emailLimit?: { failures: number; windowMs: number };
 }
 
 export function toMe(user: UserDoc): Me {
@@ -71,10 +87,14 @@ export function toSession(session: SessionDoc, currentId: ObjectId): Session {
 export class AuthService {
   private readonly repos: Repositories;
   private readonly now: () => Date;
+  private readonly lock: KeyedMutex;
+  private readonly emailLimit: { failures: number; windowMs: number };
 
   constructor(private readonly deps: AuthDeps) {
     this.repos = deps.repos;
     this.now = deps.now ?? (() => new Date());
+    this.lock = deps.accountLock ?? new KeyedMutex();
+    this.emailLimit = deps.emailLimit ?? { failures: 20, windowMs: 60 * 60_000 };
   }
 
   // ---------------------------------------------------------- sign-up
@@ -87,6 +107,9 @@ export class AuthService {
     deviceName?: string | undefined;
   }): Promise<SignedIn> {
     // Checked before hashing, so a taken address costs no argon2 run.
+    // This is the one answer that says an address has an account: a
+    // deliberate exception to AC3, for a session straight after sign-up,
+    // and the reason sign-up has the tightest limit ([[Accounts]]).
     if (await this.repos.users.findByEmail(input.email)) {
       throw new HttpError('conflict', 'An account with this email already exists');
     }
@@ -135,9 +158,24 @@ export class AuthService {
     client: ClientKind;
     deviceName?: string | undefined;
   }): Promise<SignedIn> {
+    const now = this.now();
+    const key = emailKey(input.email);
+    const wait = await this.repos.loginFailures.blockedFor(key, now, this.emailLimit.failures);
+    if (wait !== null) {
+      // Before the hash: an account under a guessing run costs nothing
+      // more. Every address is counted alike, so this says nothing about
+      // whether it has an account.
+      throw new HttpError('rate_limited', 'Too many attempts for this account; try again later', undefined, {
+        'Retry-After': String(wait),
+      });
+    }
     const user = await this.repos.users.findByEmail(input.email);
     const ok = await verifyPassword(user?.passwordHash ?? null, input.password);
-    if (!user || !ok) throw unauthorized(wrongCredentials);
+    if (!user || !ok) {
+      await this.repos.loginFailures.fail(key, now, this.emailLimit.windowMs);
+      throw unauthorized(wrongCredentials);
+    }
+    await this.repos.loginFailures.clear(key);
     return this.startSession(user, input.client, input.deviceName ?? null);
   }
 
@@ -146,6 +184,11 @@ export class AuthService {
    * presenting one that was already exchanged means two parties hold it,
    * so the whole family (the session) is revoked and every device on it
    * must sign in again (AC4).
+   *
+   * The one exception is a retry: the same token again within
+   * [refreshGraceMs] of its exchange, while its successor is still
+   * unused, gets that same successor back. The answer to the first
+   * exchange was lost, not stolen (Q5-13).
    */
   async refresh(token: string): Promise<SignedIn> {
     const read = readOpaqueToken(token);
@@ -156,6 +199,8 @@ export class AuthService {
     if (!consumed) {
       const known = await this.repos.sessions.findToken(read.userId, read.hash);
       if (known) {
+        const retried = await this.retry(token, read.userId, known, now);
+        if (retried) return retried;
         await this.repos.sessions.revoke(read.userId, known.sessionId, now);
         this.deps.logger.warn(
           { userId: read.userId.toHexString(), sessionId: known.sessionId.toHexString() },
@@ -173,6 +218,7 @@ export class AuthService {
     const next = createOpaqueToken(user._id);
     const expiresAt = new Date(now.getTime() + refreshTokenMs);
     await this.repos.sessions.addToken({ userId: user._id, sessionId: session._id, tokenHash: next.hash, expiresAt }, now);
+    await this.repos.sessions.setSuccessor(user._id, consumed._id, seal(successorKey(token), Buffer.from(next.token), 'refresh-successor'));
     await this.repos.sessions.extend(user._id, session._id, expiresAt, now);
     await this.repos.users.touch(user._id, now);
 
@@ -180,6 +226,43 @@ export class AuthService {
       accessToken: await signAccessToken(this.deps.keys.privateKey, { userId: user._id, sessionId: session._id }),
       expiresIn: accessTokenSeconds,
       refreshToken: next.token,
+      client: session.client,
+      user: toMe(user),
+    };
+  }
+
+  /**
+   * The successor of a token presented again, if this is a retry inside
+   * the grace: the token was exchanged moments ago, its successor has
+   * not been used, and the session is live. Null means reuse.
+   */
+  private async retry(
+    token: string,
+    userId: ObjectId,
+    known: RefreshTokenDoc,
+    now: Date,
+  ): Promise<SignedIn | null> {
+    if (!known.usedAt || now.getTime() - known.usedAt.getTime() > refreshGraceMs) return null;
+    // The first exchange may still be writing its successor down.
+    let sealed = known.successor;
+    for (let tries = 0; !sealed && tries < 20; tries += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      sealed = (await this.repos.sessions.findToken(userId, known.tokenHash))?.successor;
+    }
+    if (!sealed) return null;
+    const successor = open(successorKey(token), sealed, 'refresh-successor')?.toString();
+    const next = successor ? readOpaqueToken(successor) : null;
+    if (!successor || !next || !next.userId.equals(userId)) return null;
+    const unused = await this.repos.sessions.findToken(userId, next.hash);
+    if (!unused || unused.usedAt !== null || unused.expiresAt <= now) return null;
+
+    const session = await this.repos.sessions.findLive(userId, known.sessionId, now);
+    const user = session ? await this.repos.users.findById(userId) : null;
+    if (!session || !user) return null;
+    return {
+      accessToken: await signAccessToken(this.deps.keys.privateKey, { userId: user._id, sessionId: session._id }),
+      expiresIn: accessTokenSeconds,
+      refreshToken: successor,
       client: session.client,
       user: toMe(user),
     };
@@ -258,12 +341,38 @@ export class AuthService {
       // Not 401: the session is fine, and a 401 would send the client to refresh.
       throw new HttpError('forbidden', 'Wrong password');
     }
-    await this.repos.sessions.deleteAll(userId);
-    await this.repos.oneTimeTokens.deleteAll(userId);
-    await this.repos.records.deleteAll(userId);
-    await this.repos.files.deleteAllFor(userId);
-    await this.repos.assistUsage.deleteAllFor(userId);
-    await this.repos.users.delete(userId);
+    // Under the account's lock: a push or an upload already running
+    // finishes first, and none starts until everything is gone.
+    await this.lock.run(userId.toHexString(), async () => {
+      await this.repos.sessions.deleteAll(userId);
+      await this.repos.oneTimeTokens.deleteAll(userId);
+      await this.repos.records.deleteAll(userId);
+      await this.repos.files.deleteAllFor(userId);
+      await this.repos.assistUsage.deleteAllFor(userId);
+      await this.repos.users.delete(userId);
+    });
+  }
+
+  /**
+   * Starts the private tier over ([[Accounts]], a forgotten PIN, or a new
+   * one): with the password, drops the key check, the key share (a new
+   * one is made on the next read, so nothing sealed before can be opened
+   * again, even with the old PIN), every private-tier row and every file.
+   * The plain tier stays. Under the account's lock, like a push.
+   */
+  async resetSyncKey(userId: ObjectId, password: string): Promise<void> {
+    const user = await this.me(userId);
+    if (!(await verifyPassword(user.passwordHash, password))) {
+      throw new HttpError('forbidden', 'Wrong password');
+    }
+    await this.lock.run(userId.toHexString(), async () => {
+      await this.repos.users.clearSyncKey(userId);
+      await this.repos.records.deletePrivate(userId);
+      await this.repos.files.deleteAllFor(userId);
+      // Filled in again from what is left, the next time they are needed.
+      await this.repos.totals.forget(userId, 'recordBytes');
+      await this.repos.totals.forget(userId, 'fileBytes');
+    });
   }
 
   // ---------------------------------------------------------- helpers
@@ -304,9 +413,34 @@ export class AuthService {
    */
   private deliver(message: MailMessage): void {
     this.deps.mailer.send(message).catch((error: unknown) => {
-      this.deps.logger.error({ err: error, purpose: message.purpose }, 'mail failed');
+      // Only the codes: a mail error carries the rejected address, and
+      // logs never carry one.
+      const { code, responseCode, command } = (error ?? {}) as { code?: unknown; responseCode?: unknown; command?: unknown };
+      this.deps.logger.error(
+        {
+          purpose: message.purpose,
+          code: typeof code === 'string' ? code : undefined,
+          responseCode: typeof responseCode === 'number' ? responseCode : undefined,
+          command: typeof command === 'string' ? command : undefined,
+        },
+        'mail failed',
+      );
     });
   }
+}
+
+/** A sign-in's per-email key: the address, hashed, so none is kept as itself. */
+function emailKey(email: string): string {
+  return createHash('sha256').update(`login/${email}`).digest('hex');
+}
+
+/**
+ * The key a token's successor is sealed under: derived from the token
+ * itself, which the server never keeps (only a different hash of it), so
+ * only whoever presents the token can open it.
+ */
+function successorKey(token: string): Buffer {
+  return createHash('sha256').update(`harvest/refresh-successor/${token}`).digest();
 }
 
 function invalidLink(): HttpError {

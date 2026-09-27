@@ -41,7 +41,16 @@ void main() {
       trainingMaxGrams: gramsOfPounds(225),
       unit: WeightUnit.lb,
     )!;
-    expect(WeightUnit.lb.from(grams), closeTo(168.75, 0.001));
+    // 168.75 lb is not a load 2.5 lb plates can make; 170 is (G5-13).
+    expect(WeightUnit.lb.from(grams), closeTo(170, 0.001));
+    expect(
+      platesFor(
+        grams,
+        barGrams: barIn(defaultBarGrams, WeightUnit.lb),
+        unit: WeightUnit.lb,
+      ).shortfallGrams,
+      0,
+    );
   });
 
   test('a slot on the default bar is a 45 lb bar in pounds', () {
@@ -142,6 +151,7 @@ void main() {
         home: Scaffold(
           body: SetRow(
             set: set,
+            number: 1,
             exercise: exercise,
             unit: unit,
             onTicked: () {},
@@ -157,5 +167,45 @@ void main() {
     expect(find.text('135'), findsOneWidget);
     // The stored label reads back in pounds too.
     expect(find.text('135×5'), findsOneWidget);
+  });
+
+  testWidgets('a set is numbered by its place, not its position (Q5-46)', (
+    tester,
+  ) async {
+    // Set 2 was dropped (Y13): the one left at position 2 is the
+    // second set on screen, not the third.
+    const set = WorkoutSet(
+      uuid: 's',
+      sessionExerciseUuid: 'e',
+      position: 2,
+      weightGrams: 60000,
+      reps: 5,
+    );
+    const exercise = SessionExercise(
+      uuid: 'e',
+      sessionUuid: 'w',
+      position: 0,
+      exerciseId: '0025',
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SetRow(
+              set: set,
+              number: 2,
+              exercise: exercise,
+              unit: WeightUnit.kg,
+              onTicked: () {},
+              onPlates: null,
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('3'), findsNothing);
   });
 }

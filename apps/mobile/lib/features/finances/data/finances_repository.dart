@@ -294,7 +294,12 @@ class FinancesRepository {
     return (await query.getSingle()).read(sum) ?? 0;
   }
 
+  /// Pays a day's +10 once. A day still to come is not paid: the XP is
+  /// for the books of a day that has come, and paying ahead would let a
+  /// year of tiny future bills mint a year of XP today ([[Audit-v3]]
+  /// Q5-67).
   Future<void> _payDayIfUnpaid(HarvestDay day) async {
+    if (day.compareTo(HarvestDay.today()) > 0) return;
     if (await _dayXpNet(day) != 0) return;
     await _db.insertLedger(
       LedgerCompanion.insert(

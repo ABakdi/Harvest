@@ -12,19 +12,26 @@
 /// archive is data, never instructions ([[Audit-v2-Beta]] S2-04):
 /// a zip must not be able to arm the lock, resurrect a timer, or tell
 /// `reconcile` the past is already judged (B-02).
+///
+/// Nothing that says where a request goes is on the list
+/// (S5-01): the assist's provider, model and base URL,
+/// and the map's style URL, stay on the phone that set them. A synced
+/// row must never decide where this phone sends its API key, or which
+/// map server learns where I look.
 const importableSettingPrefixes = [
   'themeMode',
   'locale',
   'dailyHarvestGoal',
-  // The assist's provider and model; its key lives in the keystore.
-  'assist.',
   'cycle.',
   'features.',
   'finance.',
   'gym.',
   'health.',
   'notes.',
-  'places.',
+  'places.trail',
+  'places.pausedUntil',
+  'places.highAccuracy',
+  'places.mapBase',
   'onboarding.done',
   'pomodoro.focusMinutes',
   'pomodoro.shortBreakMinutes',

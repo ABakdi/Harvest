@@ -264,7 +264,15 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
       for (final tag in tags)
         if (tag.hasPlace) tag,
     ];
-    final stays = staysIn([for (final p in trail) p.fix], places: saved);
+    final edges = ref.watch(trailEdgesProvider(span)).value ?? const [];
+    // A night at home crosses 3 AM: the points either side of the span
+    // let each day keep its part of the stay (Q5-58).
+    final stays = staysWithin(
+      [for (final p in trail) p.fix, ...edges],
+      start: span.from.startsAt,
+      end: span.to.next.startsAt,
+      places: saved,
+    );
 
     final styleString = placesStyleString(mapBase, streetStyle: style);
     if (style != null && styleString != _style) {
@@ -1281,9 +1289,10 @@ class _MapButton extends StatelessWidget {
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onPressed,
+          // 48 dp, the least a finger can be asked to hit (Q5-62).
           child: SizedBox(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             child: Icon(icon, size: 22),
           ),
         ),

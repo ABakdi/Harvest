@@ -440,12 +440,6 @@ abstract class AppLocalizations {
   /// **'{done} of {total} · today {today}/{daily}'**
   String projectSubtitle(int done, int total, int today, int daily);
 
-  /// No description provided for @todoOverdue.
-  ///
-  /// In en, this message translates to:
-  /// **'Overdue'**
-  String get todoOverdue;
-
   /// No description provided for @rankSprout.
   ///
   /// In en, this message translates to:
@@ -968,18 +962,6 @@ abstract class AppLocalizations {
   /// **'Monthly budget'**
   String get budgetTitle;
 
-  /// No description provided for @budgetSpentOf.
-  ///
-  /// In en, this message translates to:
-  /// **'{spent} of {budget} this month'**
-  String budgetSpentOf(String spent, String budget);
-
-  /// No description provided for @budgetFloating.
-  ///
-  /// In en, this message translates to:
-  /// **'{spent} / {limit} today'**
-  String budgetFloating(String spent, String limit);
-
   /// No description provided for @budgetSet.
   ///
   /// In en, this message translates to:
@@ -1075,18 +1057,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archive'**
   String get archiveAction;
-
-  /// No description provided for @archiveConfirmTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Archive this seed?'**
-  String get archiveConfirmTitle;
-
-  /// No description provided for @archiveConfirmBody.
-  ///
-  /// In en, this message translates to:
-  /// **'\"{title}\" is archived. Its history stays.'**
-  String archiveConfirmBody(String title);
 
   /// No description provided for @projectDoneTitle.
   ///
@@ -1298,12 +1268,6 @@ abstract class AppLocalizations {
   /// **'Insights'**
   String get insightsTab;
 
-  /// No description provided for @wishlistTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Wishlist'**
-  String get wishlistTitle;
-
   /// No description provided for @wishlistBuyList.
   ///
   /// In en, this message translates to:
@@ -1382,29 +1346,11 @@ abstract class AppLocalizations {
   /// **'Edit item'**
   String get wishlistEditItem;
 
-  /// No description provided for @wishlistMoveToBuy.
-  ///
-  /// In en, this message translates to:
-  /// **'To the buy list'**
-  String get wishlistMoveToBuy;
-
-  /// No description provided for @wishlistMoveToWish.
-  ///
-  /// In en, this message translates to:
-  /// **'To the wishlist'**
-  String get wishlistMoveToWish;
-
   /// No description provided for @wishlistDelete.
   ///
   /// In en, this message translates to:
   /// **'Delete'**
   String get wishlistDelete;
-
-  /// No description provided for @wishlistNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Something I want'**
-  String get wishlistNew;
 
   /// No description provided for @wishlistTitleHint.
   ///
@@ -1544,12 +1490,6 @@ abstract class AppLocalizations {
   /// **'Default currency'**
   String get defaultCurrencyLabel;
 
-  /// No description provided for @exchangeRates.
-  ///
-  /// In en, this message translates to:
-  /// **'Exchange rates'**
-  String get exchangeRates;
-
   /// No description provided for @ratesDzdUsd.
   ///
   /// In en, this message translates to:
@@ -1627,12 +1567,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Withdraw'**
   String get savingsWithdraw;
-
-  /// No description provided for @debtsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Debts'**
-  String get debtsTitle;
 
   /// No description provided for @addDebt.
   ///
@@ -1826,23 +1760,11 @@ abstract class AppLocalizations {
   /// **'Settled'**
   String get debtSettledSection;
 
-  /// No description provided for @payFromWallet.
-  ///
-  /// In en, this message translates to:
-  /// **'Pay from the wallet?'**
-  String get payFromWallet;
-
   /// No description provided for @budgetSpentToday.
   ///
   /// In en, this message translates to:
   /// **'Spent today'**
   String get budgetSpentToday;
-
-  /// No description provided for @budgetDailyLimit.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily limit'**
-  String get budgetDailyLimit;
 
   /// No description provided for @budgetLeftToday.
   ///
@@ -1855,18 +1777,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount} over today'**
   String budgetOverToday(String amount);
-
-  /// No description provided for @budgetLeftMonth.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} left this month'**
-  String budgetLeftMonth(String amount);
-
-  /// No description provided for @budgetOverMonth.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} over budget this month'**
-  String budgetOverMonth(String amount);
 
   /// No description provided for @expensesToday.
   ///
@@ -2150,23 +2060,11 @@ abstract class AppLocalizations {
   /// **'Edit budget'**
   String get editBudget;
 
-  /// No description provided for @perDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Per day'**
-  String get perDay;
-
   /// No description provided for @todayEmptyBody.
   ///
   /// In en, this message translates to:
   /// **'Tap Log an expense to add the first one.'**
   String get todayEmptyBody;
-
-  /// No description provided for @debtRemindDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Every day at 7:00 PM until it is paid'**
-  String get debtRemindDefault;
 
   /// No description provided for @undoAction.
   ///
@@ -2179,12 +2077,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That did not save. Try again.'**
   String get saveFailed;
-
-  /// No description provided for @categoryExists.
-  ///
-  /// In en, this message translates to:
-  /// **'A category with that name already exists'**
-  String get categoryExists;
 
   /// No description provided for @withdrawToWallet.
   ///
@@ -2443,12 +2335,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Where you left off today'**
   String get seedNotesSubtitle;
-
-  /// No description provided for @seedNotesSheetSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Today\'s note, and the last one'**
-  String get seedNotesSheetSubtitle;
 
   /// No description provided for @seedNotesExplainer.
   ///
@@ -3044,18 +2930,6 @@ abstract class AppLocalizations {
   /// **'Search titles and text'**
   String get notesSearchHint;
 
-  /// No description provided for @notesAllFolders.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get notesAllFolders;
-
-  /// No description provided for @notesFolder.
-  ///
-  /// In en, this message translates to:
-  /// **'Folder'**
-  String get notesFolder;
-
   /// No description provided for @notesFolderHint.
   ///
   /// In en, this message translates to:
@@ -3104,35 +2978,11 @@ abstract class AppLocalizations {
   /// **'Nothing matches that'**
   String get notesNoMatch;
 
-  /// No description provided for @notesNoMatchBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Try another word, or a different folder.'**
-  String get notesNoMatchBody;
-
-  /// No description provided for @notesGone.
-  ///
-  /// In en, this message translates to:
-  /// **'This note is gone'**
-  String get notesGone;
-
   /// No description provided for @notesGoneBody.
   ///
   /// In en, this message translates to:
   /// **'It was deleted, or it never existed.'**
   String get notesGoneBody;
-
-  /// No description provided for @notesRead.
-  ///
-  /// In en, this message translates to:
-  /// **'Read'**
-  String get notesRead;
-
-  /// No description provided for @notesEdit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get notesEdit;
 
   /// No description provided for @notesCreate.
   ///
@@ -3385,12 +3235,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Right'**
   String get galleryCompareRight;
-
-  /// No description provided for @galleryDeleteMemoryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete this memory?'**
-  String get galleryDeleteMemoryTitle;
 
   /// No description provided for @galleryDeleteMemoryBody.
   ///
@@ -4046,12 +3890,6 @@ abstract class AppLocalizations {
   /// **'Connect'**
   String get stepsConnect;
 
-  /// No description provided for @stepsConnectTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Read steps from the phone'**
-  String get stepsConnectTitle;
-
   /// No description provided for @stepsConnectBody.
   ///
   /// In en, this message translates to:
@@ -4105,12 +3943,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.'**
   String get stepsGoalHint;
-
-  /// No description provided for @stepsGoalNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No goal'**
-  String get stepsGoalNone;
 
   /// No description provided for @stepsGoalMet.
   ///
@@ -4177,12 +4009,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Best day'**
   String get stepsBestDay;
-
-  /// No description provided for @stepsCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{steps} steps'**
-  String stepsCount(String steps);
 
   /// No description provided for @weightTitle.
   ///
@@ -4315,24 +4141,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It leaves the chart. You can undo this straight away.'**
   String get weightDeleteBody;
-
-  /// No description provided for @gymComingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'The gym is next'**
-  String get gymComingTitle;
-
-  /// No description provided for @gymComingBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Programs, sessions and personal records are being built. Steps and weight work now.'**
-  String get gymComingBody;
-
-  /// No description provided for @gymBrowse.
-  ///
-  /// In en, this message translates to:
-  /// **'Browse exercises'**
-  String get gymBrowse;
 
   /// No description provided for @gymPickExercise.
   ///
@@ -4772,12 +4580,6 @@ abstract class AppLocalizations {
   /// **'Which day?'**
   String get gymPickDay;
 
-  /// No description provided for @gymNoProgramToStart.
-  ///
-  /// In en, this message translates to:
-  /// **'No program to start'**
-  String get gymNoProgramToStart;
-
   /// No description provided for @gymNoProgramToStartBody.
   ///
   /// In en, this message translates to:
@@ -4945,12 +4747,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'seconds'**
   String get gymRestCustomHint;
-
-  /// No description provided for @gymRestNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No timer'**
-  String get gymRestNone;
 
   /// No description provided for @gymPause.
   ///
@@ -5228,12 +5024,6 @@ abstract class AppLocalizations {
   /// **'Rings at the wake time your day is already built around.'**
   String get sleepAlarmBody;
 
-  /// No description provided for @sleepAlarmExact.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow exact alarms'**
-  String get sleepAlarmExact;
-
   /// No description provided for @sleepAlarmExactBody.
   ///
   /// In en, this message translates to:
@@ -5504,18 +5294,6 @@ abstract class AppLocalizations {
   /// **'{sets, plural, =1{1 set} other{{sets} sets}} · {volume}'**
   String gymSessionSummary(int sets, String volume);
 
-  /// No description provided for @gymVolume.
-  ///
-  /// In en, this message translates to:
-  /// **'Volume'**
-  String get gymVolume;
-
-  /// No description provided for @gymBest.
-  ///
-  /// In en, this message translates to:
-  /// **'Best'**
-  String get gymBest;
-
   /// No description provided for @gymRecords.
   ///
   /// In en, this message translates to:
@@ -5702,12 +5480,6 @@ abstract class AppLocalizations {
   /// **'Drop this goal?'**
   String get goalDropTitle;
 
-  /// No description provided for @goalDropBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Its seeds keep going. A line on why, if you like.'**
-  String get goalDropBody;
-
   /// No description provided for @goalDropNoteHint.
   ///
   /// In en, this message translates to:
@@ -5888,23 +5660,11 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get placesNext;
 
-  /// No description provided for @placesPickDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick a day'**
-  String get placesPickDay;
-
   /// No description provided for @placesTrailOn.
   ///
   /// In en, this message translates to:
   /// **'Record my trail'**
   String get placesTrailOn;
-
-  /// No description provided for @placesTrailHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Keeps a point every 50 m while you move, with a notification on screen the whole time.'**
-  String get placesTrailHint;
 
   /// No description provided for @placesTrailRefused.
   ///
@@ -5953,12 +5713,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'High accuracy'**
   String get placesHighAccuracy;
-
-  /// No description provided for @placesHighAccuracyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Sharper trail, more battery.'**
-  String get placesHighAccuracyHint;
 
   /// No description provided for @placesDeleteDay.
   ///
@@ -6320,12 +6074,6 @@ abstract class AppLocalizations {
   /// **'Pause'**
   String get voicePause;
 
-  /// No description provided for @voiceRecordings.
-  ///
-  /// In en, this message translates to:
-  /// **'Recordings'**
-  String get voiceRecordings;
-
   /// No description provided for @voiceMissing.
   ///
   /// In en, this message translates to:
@@ -6343,12 +6091,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read aloud'**
   String get readAloud;
-
-  /// No description provided for @readAloudStop.
-  ///
-  /// In en, this message translates to:
-  /// **'Stop'**
-  String get readAloudStop;
 
   /// No description provided for @readAloudNext.
   ///
@@ -6385,12 +6127,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.'**
   String get assistHint;
-
-  /// No description provided for @assistProvider.
-  ///
-  /// In en, this message translates to:
-  /// **'Provider'**
-  String get assistProvider;
 
   /// No description provided for @assistGemini.
   ///
@@ -7703,7 +7439,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncPinRule.
   ///
   /// In en, this message translates to:
-  /// **'4 to 6 digits'**
+  /// **'6 digits is best; 4 to 6'**
   String get syncPinRule;
 
   /// No description provided for @syncPassphraseField.
@@ -7781,7 +7517,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncPinWrong.
   ///
   /// In en, this message translates to:
-  /// **'This PIN does not open what your other devices sent. Enter the one you used there.'**
+  /// **'That isn\'t the PIN your other devices use.'**
   String get syncPinWrong;
 
   /// No description provided for @syncPinLater.
@@ -7867,6 +7603,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get galleryFileRetry;
+
+  /// No description provided for @budgetClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear budget'**
+  String get budgetClear;
+
+  /// No description provided for @budgetCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget cleared'**
+  String get budgetCleared;
+
+  /// No description provided for @debtEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit debt'**
+  String get debtEditTitle;
+
+  /// No description provided for @debtDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this debt?'**
+  String get debtDeleteTitle;
+
+  /// No description provided for @debtDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} and the payments on it will be removed. What those payments took from the wallet stays spent. Undo is in the bar for a moment after.'**
+  String debtDeleteBody(String person);
+
+  /// No description provided for @debtAmountBelowPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Already paid {amount}; the debt can\'t be less'**
+  String debtAmountBelowPaid(String amount);
+
+  /// No description provided for @undoRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo: the debt or the wallet has changed since.'**
+  String get undoRefused;
+
+  /// No description provided for @syncPinTooSimple.
+  ///
+  /// In en, this message translates to:
+  /// **'Too easy to guess. Avoid one digit repeated, runs like 1234, and pairs like 1212.'**
+  String get syncPinTooSimple;
+
+  /// No description provided for @syncPinChosenElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device set the sync PIN a moment ago. Enter that one.'**
+  String get syncPinChosenElsewhere;
+
+  /// No description provided for @syncPinUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'The server could not be reached to check the PIN. Try again when you\'re online.'**
+  String get syncPinUnreachable;
+
+  /// No description provided for @accountLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 encrypted row could not be opened} other{{count} encrypted rows could not be opened}}'**
+  String accountLocked(int count);
+
+  /// No description provided for @accountClientWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get accountClientWeb;
+
+  /// No description provided for @accountClientPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get accountClientPhone;
+
+  /// No description provided for @accountLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'last seen {time}'**
+  String accountLastSeen(String time);
+
+  /// No description provided for @galleryFileDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading…'**
+  String get galleryFileDownloading;
+
+  /// No description provided for @importFilesTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file too large to bring in is left out} other{{count} files too large to bring in are left out}}'**
+  String importFilesTooLarge(int count);
+
+  /// No description provided for @exportLeftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file too large for an archive was left out.} other{{count} files too large for an archive were left out.}}'**
+  String exportLeftOut(int count);
+
+  /// No description provided for @weightTargetSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a target'**
+  String get weightTargetSet;
+
+  /// No description provided for @weightTargetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target weight'**
+  String get weightTargetTitle;
+
+  /// No description provided for @weightTargetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A line on the chart to aim at, and how far the latest reading is from it.'**
+  String get weightTargetHint;
+
+  /// No description provided for @weightTargetClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear target'**
+  String get weightTargetClear;
+
+  /// No description provided for @notesTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This note is longer than {max} characters. What is past that is not saved.'**
+  String notesTooLong(String max);
+
+  /// No description provided for @syncPinForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot the PIN? Start over'**
+  String get syncPinForgot;
+
+  /// No description provided for @syncPinChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get syncPinChange;
+
+  /// No description provided for @syncPinStartOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the PIN over'**
+  String get syncPinStartOver;
+
+  /// No description provided for @syncPinStartOverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the money, places and pictures kept on the server for this account, and the PIN with them. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.'**
+  String get syncPinStartOverBody;
+
+  /// No description provided for @syncPinStartOverConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get syncPinStartOverConfirm;
+
+  /// No description provided for @syncPinChangedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Your PIN was changed on another device. Enter the new one.'**
+  String get syncPinChangedElsewhere;
+
+  /// No description provided for @syncRefusedQuota.
+  ///
+  /// In en, this message translates to:
+  /// **'The server has no room left for this account.'**
+  String get syncRefusedQuota;
+
+  /// No description provided for @syncRefusedClock.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s clock is ahead of the server\'s. Check its date and time.'**
+  String get syncRefusedClock;
+
+  /// No description provided for @syncPinWrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'That isn\'t this account\'s password.'**
+  String get syncPinWrongPassword;
+
+  /// No description provided for @exportNotHere.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 picture not downloaded to this phone yet is not in it.} other{{count} pictures not downloaded to this phone yet are not in it.}}'**
+  String exportNotHere(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -7,11 +7,15 @@
  * - Characters are Unicode code points (the phone counts `runes`), and
  *   nothing is trimmed: the secret is used exactly as typed.
  *
- * The key is derived from it unchanged (`deriveSyncKey`).
+ * - A PIN anyone would try first is refused (`pinTooSimple`): one digit
+ *   repeated (`0000`), a run up or down (`1234`, `987654`), or two digits
+ *   taking turns (`1212`, `12121`).
+ *
+ * The key is derived from it unchanged (`deriveSyncKeyV2`).
  * `fixtures/sync-secret.json` pins the cases, and the phone's tests read
  * the same file.
  */
-export type SyncSecretProblem = 'empty' | 'pinTooShort' | 'pinTooLong' | 'passphraseTooShort';
+export type SyncSecretProblem = 'empty' | 'pinTooShort' | 'pinTooLong' | 'pinTooSimple' | 'passphraseTooShort';
 
 export const syncPinMinLength = 4;
 export const syncPinMaxLength = 6;
@@ -28,7 +32,20 @@ export function syncSecretProblem(secret: string): SyncSecretProblem | null {
   if (isSyncPin(secret)) {
     if (secret.length < syncPinMinLength) return 'pinTooShort';
     if (secret.length > syncPinMaxLength) return 'pinTooLong';
-    return null;
+    return isSimplePin(secret) ? 'pinTooSimple' : null;
   }
   return [...secret].length < syncPassphraseMinLength ? 'passphraseTooShort' : null;
+}
+
+/**
+ * Whether a PIN is one of the first a guesser tries: every digit the
+ * same, a run of consecutive digits up or down, or two digits in turn.
+ */
+export function isSimplePin(pin: string): boolean {
+  const digits = [...pin].map(Number);
+  if (digits.length < 2) return false;
+  const step = digits[1]! - digits[0]!;
+  const run = (step === 1 || step === -1 || step === 0) && digits.every((d, i) => i === 0 || d - digits[i - 1]! === step);
+  const turns = digits.every((d, i) => d === digits[i % 2]);
+  return run || turns;
 }

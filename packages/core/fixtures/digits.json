@@ -1,0 +1,15 @@
+{
+  "about": "westernDigits: Arabic-Indic digits (U+0660-0669) and extended Arabic-Indic (Persian) digits (U+06F0-06F9) become the ASCII digits 0-9; every other character is left as it is. The web (packages/core digits.ts) and the phone (western_digits.dart) read this file.",
+  "cases": [
+    { "input": "", "expected": "" },
+    { "input": "1234", "expected": "1234" },
+    { "input": "٠١٢٣٤٥٦٧٨٩", "expected": "0123456789" },
+    { "input": "۰۱۲۳۴۵۶۷۸۹", "expected": "0123456789" },
+    { "input": "١٢٫٥", "expected": "12٫5" },
+    { "input": "1٢3۴", "expected": "1234" },
+    { "input": "DA ١,٢٥٠.٥", "expected": "DA 1,250.5" },
+    { "input": "١٢ + ۳", "expected": "12 + 3" },
+    { "input": "abc", "expected": "abc" },
+    { "input": "२४६८", "expected": "२४६८" }
+  ]
+}

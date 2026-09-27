@@ -1,6 +1,10 @@
 import { HarvestDay, type Stay } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
-import maplibregl, { type GeoJSONSourceSpecification, type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+// The map's worker, bundled with what it imports: from v6 it is its own
+// module, which it looks for beside the library's file, not beside ours.
+import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+import { type GeoJSONSourceSpecification, type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
 import {
   CameraIcon,
   ChevronLeftIcon,
@@ -41,6 +45,7 @@ import {
   type PlacesSpan,
   type SavedPlaceRow,
   LocationHistoryRepository,
+  boundsOf,
   readMappedDays,
   readSavedPlaces,
   readSpan,
@@ -191,7 +196,8 @@ function feed(instance: MapLibreMap, id: string, data: GeoData): void {
   if (!instance.getSource(id)) {
     instance.addSource(id, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   }
-  instance.getSource<maplibregl.GeoJSONSource>(id)?.setData(data);
+  // The map applies it on its own time; a failure only means a stale layer.
+  void instance.getSource<maplibregl.GeoJSONSource>(id)?.setData(data);
 }
 
 function point(longitude: number, latitude: number) {
@@ -413,6 +419,7 @@ function DayMap({ day, saved, base, selected, here, draft, spanKey, onSelect, on
   // The map is born once, in whichever view is on.
   useEffect(() => {
     if (!holder.current || map.current) return;
+    maplibregl.setWorkerUrl(mapWorkerUrl);
     const instance = new maplibregl.Map({
       container: holder.current,
       style: bootBase.current === 'satellite' ? satelliteStyle : streetStyleUrl,
@@ -489,17 +496,10 @@ function DayMap({ day, saved, base, selected, here, draft, spanKey, onSelect, on
       ...day.points.map((p) => [p.longitude, p.latitude] as [number, number]),
       ...day.pins.map((p) => [p.longitude, p.latitude] as [number, number]),
     ];
-    if (spots.length === 0) return;
+    const bounds = boundsOf(spots);
+    if (bounds === null) return;
     framed.current = spanKey;
-    const lngs = spots.map(([lng]) => lng);
-    const lats = spots.map(([, lat]) => lat);
-    instance.fitBounds(
-      [
-        [Math.min(...lngs), Math.min(...lats)],
-        [Math.max(...lngs), Math.max(...lats)],
-      ],
-      { padding: 48, maxZoom: 16 },
-    );
+    instance.fitBounds(bounds, { padding: 48, maxZoom: 16 });
   }, [day, selected, spanKey]);
 
   useEffect(() => {
@@ -511,13 +511,13 @@ function DayMap({ day, saved, base, selected, here, draft, spanKey, onSelect, on
 
   return (
     <div ref={holder} className="relative h-80 w-full overflow-hidden rounded-2xl border">
-      <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-2">
+      <div className="absolute end-3 top-3 z-10 flex flex-col items-end gap-2">
         <button
           type="button"
           onClick={onLocate}
           title={t('places.locateMe')}
           aria-label={t('places.locateMe')}
-          className="rounded-full border bg-card p-2.5 text-muted-foreground shadow hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-full border bg-card p-2.5 text-muted-foreground shadow hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring max-md:p-3"
         >
           <LocateFixedIcon className="size-5" aria-hidden />
         </button>
@@ -526,7 +526,7 @@ function DayMap({ day, saved, base, selected, here, draft, spanKey, onSelect, on
           onClick={() => onBaseChange(base === 'satellite' ? 'streets' : 'satellite')}
           title={t('places.layers')}
           aria-label={t('places.layers')}
-          className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-2 text-muted-foreground shadow hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-2 text-muted-foreground shadow hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11"
         >
           <LayersIcon className="size-4" aria-hidden />
           <span className="text-xs font-bold capitalize">
@@ -882,7 +882,7 @@ export function PlacesScreen() {
     <div className="flex flex-col gap-4">
       <RecordsTabs />
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="me-auto text-2xl font-extrabold">{t('places.title')}</h1>
+        <h1 className="me-auto text-2xl font-extrabold max-md:sr-only">{t('places.title')}</h1>
         <ToggleGroup
           type="single"
           value={range}
@@ -924,7 +924,7 @@ export function PlacesScreen() {
             if (next) moveTo(next);
           }}
           aria-label={t('places.pickDay')}
-          className="rounded-md border bg-card px-2 py-1.5 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-md border bg-card px-2 py-1.5 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11"
         />
       </div>
 

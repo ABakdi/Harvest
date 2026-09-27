@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/commitments/domain/calendar_entries.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -167,6 +168,22 @@ class CommitmentsRepository {
     return query.watch().map(_sumByCommitment);
   }
 
+  /// Every live check-in, for the calendar's done marks and its
+  /// times-a-week count ([calendarEntries]).
+  Stream<List<CalendarCheckIn>> watchLiveCheckIns() {
+    final query = _db.select(_db.checkIns)..where((c) => c.deletedAt.isNull());
+    return query.watch().map(
+      (rows) => [
+        for (final row in rows)
+          (
+            commitmentUuid: row.commitmentUuid,
+            harvestDay: row.harvestDay,
+            quantity: row.quantity,
+          ),
+      ],
+    );
+  }
+
   /// Distinct completed days per commitment within [day]'s week, up to and
   /// including [day] — feeds the times-per-week schedule.
   Stream<Map<String, int>> watchDoneDaysThisWeek(HarvestDay day) {
@@ -210,6 +227,7 @@ class CommitmentsRepository {
     HarvestDay? deadline,
     DateTime? createdAt,
     String? goalUuid,
+    Future<void> Function(Commitment seed)? alongside,
   }) async {
     final commitment = Commitment(
       uuid: _uuid.v4(),
@@ -230,6 +248,10 @@ class CommitmentsRepository {
     await _db.transaction(() async {
       await _db.into(_db.commitments).insert(_toRow(commitment));
       await _appendOutbox('commitments', commitment.uuid, 'insert');
+      // What planted it (a goal item, a list item) records the link in
+      // the same transaction: a seed is never left planted but unlinked
+      // ([[Audit-v3]] Q5-41).
+      if (alongside != null) await alongside(commitment);
     });
     return commitment;
   }

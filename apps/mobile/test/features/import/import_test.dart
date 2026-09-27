@@ -22,6 +22,7 @@ import 'package:harvest/features/import/domain/archive_reader.dart';
 import 'package:harvest/features/import/domain/import_service.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
+import 'package:harvest/features/sync/domain/sync_service.dart' show SyncKeys;
 
 import '../../support/temp_gallery_storage.dart';
 
@@ -248,6 +249,44 @@ void main() {
     });
   });
 
+  test("a parent's tick is settled from the subtasks an import brought "
+      '(Q5-44)', () async {
+    final at = DateTime.utc(2026, 9, 18, 7);
+    await source
+        .into(source.goals)
+        .insert(
+          GoalsCompanion.insert(
+            uuid: 'g1',
+            title: 'Move',
+            createdAt: Value(at),
+            updatedAt: Value(at),
+          ),
+        );
+    for (final (uuid, parent, done) in [
+      ('p1', null, at),
+      ('s1', 'p1', null),
+    ]) {
+      await source
+          .into(source.goalItems)
+          .insert(
+            GoalItemsCompanion.insert(
+              uuid: uuid,
+              goalUuid: 'g1',
+              body: uuid,
+              doneAt: Value(done),
+              parentUuid: Value(parent),
+              createdAt: Value(at),
+              updatedAt: Value(at),
+            ),
+          );
+    }
+    await importer.apply(await bundle());
+    final parent = await (target.select(
+      target.goalItems,
+    )..where((i) => i.uuid.equals('p1'))).getSingle();
+    expect(parent.doneAt, isNull, reason: 'its subtask is open');
+  });
+
   group('the pictures', () {
     test('come back into storage with their rows pointing at them', () async {
       final gallery = GalleryRepository(source, sourceStorage);
@@ -292,6 +331,81 @@ void main() {
         expect(album.isScheduled, isTrue);
       },
     );
+
+    test('restored pictures travel, and their files are asked about even '
+        'when named (Q5-05)', () async {
+      final gallery = GalleryRepository(source, sourceStorage);
+      final gym = await gallery.createAlbum(name: 'Gym');
+      await (await sourceStorage.fileOf('a.jpg')).writeAsBytes([1]);
+      final memory = await gallery.addMemory(
+        albumUuid: gym.uuid,
+        path: 'a.jpg',
+        day: day,
+      );
+      await (source.update(source.memories)
+            ..where((m) => m.uuid.equals(memory.uuid)))
+          .write(MemoriesCompanion(fileHash: Value('e' * 64)));
+
+      await importer.apply(await bundle());
+
+      final queued = await target.select(target.outbox).get();
+      expect(
+        queued.where((o) => o.targetTable == 'memories').map((o) => o.rowUuid),
+        [memory.uuid],
+      );
+      final flag = await (target.select(
+        target.kvSettings,
+      )..where((s) => s.key.equals(SyncKeys.checkFiles))).getSingleOrNull();
+      expect(flag, isNotNull);
+    });
+
+    test('a picture too large for an archive is left out and counted, and '
+        'its row still goes (Q5-06)', () async {
+      final gallery = GalleryRepository(source, sourceStorage);
+      final gym = await gallery.createAlbum(name: 'Gym');
+      await (await sourceStorage.fileOf('small.jpg')).writeAsBytes([1]);
+      final big = await sourceStorage.fileOf('big.mp4');
+      final sink = big.openWrite();
+      for (var i = 0; i <= ArchiveLimits.entryBytes ~/ (1024 * 1024); i++) {
+        sink.add(Uint8List(1024 * 1024));
+      }
+      await sink.close();
+      await gallery.addMemory(albumUuid: gym.uuid, path: 'small.jpg', day: day);
+      await gallery.addMemory(albumUuid: gym.uuid, path: 'big.mp4', day: day);
+
+      final left = <String>[];
+      final bytes = await ArchiveService(
+        ExportRepository(source),
+        sourceStorage,
+        AttachmentStorage(documents: () async => sourceRoot),
+      ).build(onTooLarge: left.add);
+      expect(left, hasLength(1));
+
+      final result = await importer.apply(readArchive(bytes));
+      expect(result.tables[SheetNames.memories]!.added, 2);
+      expect(result.newFiles, 1);
+    });
+
+    test('a picture only the server holds so far is counted, not carried '
+        '(Q5-61)', () async {
+      final gallery = GalleryRepository(source, sourceStorage);
+      final gym = await gallery.createAlbum(name: 'Gym');
+      final memory = await gallery.addMemory(
+        albumUuid: gym.uuid,
+        path: 'elsewhere.jpg',
+        day: day,
+      );
+      await (source.update(source.memories)
+            ..where((m) => m.uuid.equals(memory.uuid)))
+          .write(MemoriesCompanion(fileHash: Value('f' * 64)));
+      final notHere = <String>[];
+      await ArchiveService(
+        ExportRepository(source),
+        sourceStorage,
+        AttachmentStorage(documents: () async => sourceRoot),
+      ).build(onNotHere: notHere.add);
+      expect(notHere, hasLength(1));
+    });
 
     test('a second import of the same archive adds nothing', () async {
       final gallery = GalleryRepository(source, sourceStorage);

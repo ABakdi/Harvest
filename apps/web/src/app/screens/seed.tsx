@@ -98,7 +98,7 @@ export function SeedScreen() {
   if (!story) return null;
 
   const back = (
-    <Button asChild variant="ghost" size="sm" className="w-fit">
+    <Button asChild variant="ghost" size="sm" className="w-fit max-md:hidden">
       <Link to="/app/field">
         <ArrowLeftIcon className="rtl:rotate-180" />
         {t('field.today')}

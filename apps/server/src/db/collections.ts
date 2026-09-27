@@ -1,5 +1,16 @@
 import type { Collection, Db } from 'mongodb';
-import type { AssistUsageDoc, CounterDoc, FileDoc, OneTimeTokenDoc, RecordDoc, RefreshTokenDoc, SessionDoc, UserDoc } from './types.js';
+import type {
+  AssistDayDoc,
+  AssistUsageDoc,
+  CounterDoc,
+  FileDoc,
+  LoginFailureDoc,
+  OneTimeTokenDoc,
+  RecordDoc,
+  RefreshTokenDoc,
+  SessionDoc,
+  UserDoc,
+} from './types.js';
 
 export interface Collections {
   users: Collection<UserDoc>;
@@ -10,6 +21,8 @@ export interface Collections {
   counters: Collection<CounterDoc>;
   files: Collection<FileDoc>;
   assistUsage: Collection<AssistUsageDoc>;
+  assistDays: Collection<AssistDayDoc>;
+  loginFailures: Collection<LoginFailureDoc>;
 }
 
 export function collections(db: Db): Collections {
@@ -22,6 +35,8 @@ export function collections(db: Db): Collections {
     counters: db.collection<CounterDoc>('counters'),
     files: db.collection<FileDoc>('files'),
     assistUsage: db.collection<AssistUsageDoc>('assist_usage'),
+    assistDays: db.collection<AssistDayDoc>('assist_days'),
+    loginFailures: db.collection<LoginFailureDoc>('login_failures'),
   };
 }
 
@@ -57,5 +72,9 @@ export async function ensureIndexes(c: Collections): Promise<void> {
     // One row per account per day, and old days sweep themselves away.
     c.assistUsage.createIndex({ userId: 1, day: 1 }, { unique: true, name: 'user_day' }),
     c.assistUsage.createIndex({ lastAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60, name: 'assist_ttl' }),
+    c.assistDays.createIndex({ lastAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60, name: 'assist_days_ttl' }),
+
+    // A window of failed sign-ins goes when it ends.
+    c.loginFailures.createIndex({ resetAt: 1 }, { expireAfterSeconds: 0, name: 'login_failures_ttl' }),
   ]);
 }

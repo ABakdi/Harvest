@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -169,6 +170,80 @@ void main() {
       );
       // Two nights an hour short of eight, twice.
       expect(debt.minutes, 120);
+    });
+  });
+
+  group('two nights for one morning, by sync (Q5-20)', () {
+    /// A second night written straight into the table, the way a pull
+    /// from another device lands it, with its own XP.
+    Future<void> arriveFromElsewhere(String uuid) async {
+      await db
+          .into(db.sleepSessions)
+          .insert(
+            SleepSessionsCompanion.insert(
+              uuid: uuid,
+              harvestDay: today.key,
+              fellAsleepAt: midnight.subtract(const Duration(hours: 2)),
+              wokeAt: midnight.add(const Duration(hours: 6)),
+              targetMinutes: 8 * 60,
+              updatedAt: Value(DateTime.now().add(const Duration(minutes: 1))),
+            ),
+          );
+      await db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: 'xp-$uuid',
+          kind: 'xp',
+          delta: sleepXp,
+          reason: 'sleep:$uuid',
+          harvestDay: today.key,
+        ),
+      );
+    }
+
+    test('read as one, the newer, and paid once', () async {
+      await log(today);
+      await arriveFromElsewhere('web');
+      expect((await sleep.on(today))!.uuid, 'web');
+      final nights = await sleep.watchRecent().first;
+      expect(nights.map((n) => n.uuid), ['web']);
+      // The older one is put away as it is seen.
+      await pumpEventQueue();
+      final live = await (db.select(
+        db.sleepSessions,
+      )..where((s) => s.deletedAt.isNull())).get();
+      expect(live.map((row) => row.uuid), ['web']);
+      expect(await xpTotal(), sleepXp);
+    });
+
+    test('logging the morning again does not throw', () async {
+      await log(today);
+      await arriveFromElsewhere('web');
+      await log(today, stars: 4);
+      final live = await (db.select(
+        db.sleepSessions,
+      )..where((s) => s.deletedAt.isNull())).get();
+      expect(live, hasLength(1));
+      expect(live.single.restedStars, 4);
+      expect(await xpTotal(), sleepXp);
+    });
+  });
+
+  group('the sheet reads the clock, not the elapsed time (Q5-21)', () {
+    test('a clock reading goes there and back', () {
+      for (final minutes in [-240, -60, 0, 7 * 60, 7 * 60 + 35, 15 * 60]) {
+        expect(wallMinutesOn(today, wallMomentOn(today, minutes)), minutes);
+      }
+    });
+
+    test('on a morning the clocks change, 07:00 is still 07:00', () {
+      // Only meaningful where the zone moves its clocks; everywhere
+      // else it is the plain case above.
+      final morning = HarvestDay.parse('2026-03-29');
+      final seven = wallMomentOn(morning, 7 * 60);
+      expect(seven.hour, 7);
+      expect(seven.minute, 0);
+      expect(wallMinutesOn(morning, seven), 7 * 60);
+      expect(wallMinutesOn(morning, DateTime(2026, 3, 28, 23, 30)), -30);
     });
   });
 }

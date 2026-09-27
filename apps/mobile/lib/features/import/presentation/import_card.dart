@@ -168,6 +168,13 @@ class _Preview extends StatelessWidget {
                 color: scheme.onSurfaceVariant,
               ),
             ),
+          if (preview.skippedFiles > 0)
+            Text(
+              l10n.importFilesTooLarge(preview.skippedFiles),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
           if (changed.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: HarvestSpacing.xs),

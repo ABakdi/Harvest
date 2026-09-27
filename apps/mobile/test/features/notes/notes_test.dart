@@ -161,4 +161,60 @@ void main() {
       expect(safeFileName('...hidden'), 'hidden');
     });
   });
+
+  group('two notes with one title (Q5-04)', () {
+    test('a note linking to them still saves, and links the older', () async {
+      final first = await notes.create(title: 'Ideas');
+      await notes.create(title: 'Ideas');
+      final log = await notes.create(title: 'Log');
+      await notes.update(log.uuid, body: 'see [[Ideas]]');
+      final links = await notes.watchOutgoing(log.uuid).first;
+      expect(links.single.uuid, first.uuid);
+      await notes.reindexAll();
+    });
+
+    test('the exact case wins, then any case', () async {
+      final upper = await notes.create(title: 'Ideas');
+      final lower = await notes.create(title: 'ideas');
+      expect((await notes.byTitle('ideas'))!.uuid, lower.uuid);
+      expect((await notes.byTitle('Ideas'))!.uuid, upper.uuid);
+      expect((await notes.byTitle('IDEAS'))!.uuid, upper.uuid);
+    });
+
+    test('a link in another case finds its note and its backlink', () async {
+      final ideas = await notes.create(title: 'Ideas');
+      final log = await notes.create(title: 'Log', body: 'see [[ideas]]');
+      final back = await notes.watchBacklinks(ideas.uuid).first;
+      expect(back.map((n) => n.uuid), [log.uuid]);
+    });
+
+    test('a note written after the link, in another case, takes it', () async {
+      final log = await notes.create(title: 'Log', body: 'see [[ideas]]');
+      final ideas = await notes.create(title: 'Ideas');
+      final links = await notes.watchOutgoing(log.uuid).first;
+      expect(links.single.uuid, ideas.uuid);
+    });
+  });
+
+  group('emptying the trash (Q5-22)', () {
+    test('tells the other devices', () async {
+      final note = await notes.create(title: 'Old');
+      await notes.remove(note.uuid);
+      await db.delete(db.outbox).go();
+      await notes.emptyTrash();
+      final sent = await db.select(db.outbox).get();
+      expect(
+        sent.map((e) => (e.targetTable, e.rowUuid, e.op)),
+        [('notes', note.uuid, 'delete')],
+      );
+    });
+  });
+
+  group('a filename, made safe everywhere (Q5-59)', () {
+    test('no control characters, trailing dots or reserved names', () {
+      expect(safeFileName('a\u0001b'), 'ab');
+      expect(safeFileName('Notes...'), 'Notes');
+      expect(safeFileName('con'), 'con_');
+    });
+  });
 }

@@ -10,7 +10,7 @@ import { FileStore } from './data/files';
 import { GalleryRepository } from './data/gallery';
 import type { HarvestDB } from './data/db';
 import { Geotagger } from './data/geotags';
-import { GoalsRepository } from './data/goals';
+import { GoalsRepository, settleGoalParents } from './data/goals';
 import { HealthRepository } from './data/health';
 import { ListsRepository } from './data/lists';
 import { MoneyRepository } from './data/money';
@@ -22,10 +22,9 @@ import { SeedsRepository } from './data/seeds';
 import { SessionsRepository } from './data/sessions';
 import { SettingsRepository } from './data/settings';
 import { VaultRepository } from './data/vault';
-import { WishlistRepository } from './data/wishlist';
 import { Writer, type Clock } from './data/writer';
 import { SyncEngine, type SyncStatus, type SyncTransport } from './sync/engine';
-import { Keyring } from './sync/keyring';
+import { Keyring, type SyncKeyRemote } from './sync/keyring';
 
 /** Everything a screen needs, built once per signed-in session. */
 export interface Harvest {
@@ -50,7 +49,6 @@ export interface Harvest {
   vault: VaultRepository;
   categories: CategoriesRepository;
   settings: SettingsRepository;
-  wishlist: WishlistRepository;
   lists: ListsRepository;
   geotags: Geotagger;
   user: Me;
@@ -64,7 +62,10 @@ export function createHarvest(
   clock: Clock = () => new Date(),
 ): Harvest {
   const writer = new Writer(db, clock);
-  const keyring = new Keyring(db);
+  // The key routes go with the transport when it has them (a test's
+  // fake server does), and to the server otherwise.
+  const keys: SyncKeyRemote = 'syncKey' in transport ? (transport as SyncTransport & SyncKeyRemote) : api;
+  const keyring = new Keyring(db, keys);
   // Files stamp their rows through the writer once the server has them.
   const files = new FileStore(db, keyring, () => harvest.user.syncSalt, writer);
   const harvest: Harvest = {
@@ -74,7 +75,15 @@ export function createHarvest(
     files,
     gallery: new GalleryRepository(writer, files),
     attachments: new AttachmentsRepository(writer, files),
-    engine: new SyncEngine({ db, transport, keyring, salt: () => harvest.user.syncSalt, now: clock }),
+    engine: new SyncEngine({
+      db,
+      transport,
+      keyring,
+      salt: () => harvest.user.syncSalt,
+      now: clock,
+      onPurged: (table, row) => files.releasePurged(table, row),
+      onGoalItems: () => settleGoalParents(writer),
+    }),
     seeds: new SeedsRepository(writer),
     checkIns: new CheckInsRepository(writer),
     seedNotes: new SeedNotesRepository(writer),
@@ -90,11 +99,15 @@ export function createHarvest(
     vault: new VaultRepository(writer),
     categories: new CategoriesRepository(writer),
     settings: new SettingsRepository(writer),
-    wishlist: new WishlistRepository(writer),
     lists: new ListsRepository(writer),
     geotags: new Geotagger(db, writer, clock),
     user,
     clock,
+  };
+  // A new key: what this browser holds goes up again under it.
+  keyring.onNewKey = async () => {
+    await harvest.engine.privateTierOpened();
+    await files.requeueHeld();
   };
   return harvest;
 }

@@ -183,6 +183,32 @@ void _write(
     final int number => IntCellValue(number),
     final double number => DoubleCellValue(number),
     final bool flag => BoolCellValue(flag),
-    _ => TextCellValue('$value'),
+    _ => TextCellValue(cellText('$value')),
   };
+}
+
+/// The most characters an Excel cell holds.
+const maxCellLength = 32767;
+
+/// Text a workbook cell can hold: without what XML 1.0 cannot carry
+/// (control characters but tab and line breaks, U+FFFE, U+FFFF, a lone
+/// half of a surrogate pair), which the `xml` writer would put out as
+/// `&#x1;` and so make the whole workbook unreadable ([[Audit-v3]]
+/// Q5-24); and cut to [maxCellLength] without splitting a pair (Q5-59).
+/// A note's full body is in its `.md` file. The same rule as `cellText`
+/// in `packages/core`, held to `fixtures/file-names.json`.
+String cellText(String text) {
+  final safe = String.fromCharCodes(
+    text.runes.where(
+      (rune) =>
+          !((rune < 0x20 && rune != 0x09 && rune != 0x0a && rune != 0x0d) ||
+              rune == 0xfffe ||
+              rune == 0xffff ||
+              (rune >= 0xd800 && rune <= 0xdfff)),
+    ),
+  );
+  if (safe.length <= maxCellLength) return safe;
+  final last = safe.codeUnitAt(maxCellLength - 1);
+  final pairStarts = last >= 0xd800 && last <= 0xdbff;
+  return safe.substring(0, pairStarts ? maxCellLength - 1 : maxCellLength);
 }

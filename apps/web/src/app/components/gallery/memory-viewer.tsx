@@ -88,7 +88,8 @@ export function MemoryViewer({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 text-white sm:max-w-none"
+        sheet={false}
+        className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white sm:max-w-none"
       >
         <div className="flex items-center gap-1 p-2">
           <DialogTitle className="flex-1 truncate px-2 text-lg text-white">

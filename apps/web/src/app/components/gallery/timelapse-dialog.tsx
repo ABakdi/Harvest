@@ -39,7 +39,7 @@ export function TimelapseDialog({ title, memories, onClose }: { title: string; m
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 pt-3 text-white sm:max-w-none">
+      <DialogContent sheet={false} className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[env(safe-area-inset-bottom)] text-white sm:max-w-none">
         <DialogTitle className="truncate px-4 pe-12 text-lg text-white">{title}</DialogTitle>
         <DialogDescription className="sr-only">{t('gallery.playHint')}</DialogDescription>
         <div className="relative flex min-h-0 flex-1 items-center justify-center">

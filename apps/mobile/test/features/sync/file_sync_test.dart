@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart' show Sha256;
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/features/sync/domain/file_sync.dart';
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
+import 'package:harvest/features/sync/domain/sync_service.dart' show SyncKeys;
 
 /// The server as the file routes behave: it keeps bytes under the name
 /// it is given, and has no key to check them with.
@@ -14,12 +16,16 @@ class FakeFiles implements FileRemote {
   final Map<String, ({Uint8List sealed, String iv})> held = {};
   int uploads = 0;
 
+  /// Hashes whose upload fails, as a flaky network would.
+  final failing = <String>{};
+
   @override
   Future<List<String>> missing(List<String> hashes) async =>
       hashes.where((hash) => !held.containsKey(hash)).toList();
 
   @override
   Future<void> upload(String sha256, Uint8List sealed, String iv) async {
+    if (failing.contains(sha256)) throw StateError('connection reset');
     held[sha256] = (sealed: sealed, iv: iv);
     uploads += 1;
   }
@@ -170,5 +176,114 @@ void main() {
     final report = await run(b, phoneB);
     expect(report.missing, 1);
     expect((await b.select(b.memories).getSingle()).fileHash, 'a' * 64);
+  });
+
+  test('a file too large for the server is left out, and the rest still '
+      'go up and come down (Q5-06)', () async {
+    await picture(a, phoneA, 'small', List<int>.filled(64, 1));
+    await picture(a, phoneA, 'huge', const []);
+    final huge = File('${phoneA.path}/huge.jpg');
+    final sink = huge.openWrite();
+    for (var i = 0; i <= maxFileBytes ~/ (1024 * 1024); i++) {
+      sink.add(Uint8List(1024 * 1024));
+    }
+    await sink.close();
+
+    // Something for the other direction too, waiting on the server.
+    final bytes = List<int>.generate(256, (index) => index % 13);
+    await picture(b, phoneB, 'there', bytes);
+    await run(b, phoneB);
+    final hash = (await b.select(b.memories).getSingle()).fileHash;
+    await picture(a, phoneA, 'there', bytes, write: false, fileHash: hash);
+
+    final report = await run(a, phoneA);
+    expect(report.tooLarge, 1);
+    expect(report.uploaded, 1);
+    expect(report.downloaded, 1);
+    final rows = {
+      for (final row in await a.select(a.memories).get()) row.uuid: row,
+    };
+    expect(rows['huge']!.fileHash, isNull);
+    expect(rows['small']!.fileHash, isNotNull);
+  });
+
+  test('one file that fails to go up never holds up the others '
+      '(Q5-06)', () async {
+    final bad = List<int>.filled(64, 5);
+    await picture(a, phoneA, 'bad', bad);
+    await picture(a, phoneA, 'good', List<int>.filled(64, 6));
+    final sha = await Sha256().hash(bad);
+    remote.failing.add(
+      sha.bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+    );
+
+    final report = await run(a, phoneA);
+    expect(report.uploaded, 1);
+    expect(report.failed, 1);
+    final rows = {
+      for (final row in await a.select(a.memories).get()) row.uuid: row,
+    };
+    // Not named, so it is tried again next time.
+    expect(rows['bad']!.fileHash, isNull);
+    expect(rows['good']!.fileHash, isNotNull);
+
+    remote.failing.clear();
+    expect((await run(a, phoneA)).uploaded, 1);
+  });
+
+  test('after a restore, named files the server lacks go up too '
+      '(Q5-05)', () async {
+    final bytes = List<int>.generate(300, (index) => index % 17);
+    await picture(a, phoneA, 'm1', bytes);
+    await run(a, phoneA);
+    final hash = (await a.select(a.memories).getSingle()).fileHash!;
+
+    // A new server, or a new account: it has none of them.
+    remote.held.clear();
+    expect((await run(a, phoneA)).uploaded, 0, reason: 'nothing asked');
+
+    await a
+        .into(a.kvSettings)
+        .insert(
+          KvSettingsCompanion.insert(
+            key: SyncKeys.checkFiles,
+            valueJson: '"true"',
+          ),
+        );
+    expect((await run(a, phoneA)).uploaded, 1);
+    expect(remote.held.keys, [hash]);
+    // Asked once: the flag goes when everything is there.
+    expect(
+      await (a.select(
+        a.kvSettings,
+      )..where((s) => s.key.equals(SyncKeys.checkFiles))).getSingleOrNull(),
+      isNull,
+    );
+  });
+
+  test('a purge lets go of its file, unless another row still names it '
+      '(Q5-23)', () async {
+    final forgotten = <String>[];
+    final deleted = <String>[];
+    final purged = PurgedFiles(
+      a,
+      gallery: (relative) async => deleted.add(relative),
+      attachments: (relative) async => deleted.add(relative),
+      forget: (hash) async => forgotten.add(hash),
+    );
+    await picture(a, phoneA, 'kept', const [], fileHash: 'c' * 64);
+    await purged.release('memories', {
+      'uuid': 'gone',
+      'path': 'gone.jpg',
+      'file_hash': 'd' * 64,
+    });
+    await purged.release('memories', {
+      'uuid': 'twin',
+      'path': 'kept.jpg',
+      'file_hash': 'c' * 64,
+    });
+    await purged.release('memories', {'uuid': 'x', 'path': '../escape.jpg'});
+    expect(deleted, ['gone.jpg']);
+    expect(forgotten, ['d' * 64]);
   });
 }

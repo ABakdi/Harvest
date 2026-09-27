@@ -34,6 +34,24 @@ String formatDay(BuildContext context, HarvestDay day, {bool weekday = false}) {
       : DateFormat.yMMMd(locale).format(date);
 }
 
+/// A moment on the local clock: "8:43 PM" today, "Sep 3, 8:43 PM"
+/// another day, with the year when it is not this one.
+String formatMoment(BuildContext context, DateTime moment) {
+  final local = moment.toLocal();
+  final now = DateTime.now();
+  final time = formatTime(context, local);
+  if (local.year == now.year &&
+      local.month == now.month &&
+      local.day == now.day) {
+    return time;
+  }
+  final locale = localeTag(context);
+  final day = local.year == now.year
+      ? DateFormat.MMMd(locale).format(local)
+      : DateFormat.yMMMd(locale).format(local);
+  return '$day, $time';
+}
+
 /// A measurement in the locale's own digits and separators, with
 /// trailing zeros dropped: `82.5`, `1,240`, `100`.
 ///

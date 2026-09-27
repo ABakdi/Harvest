@@ -76,7 +76,10 @@ const linkTokenSchema = z.string().min(20).max(200);
 
 // ----------------------------------------------------------------- bodies
 
-export const registerBodySchema = z.object({
+// Strict: a key the contract does not name is refused, not carried along
+// (audit S5-07).
+
+export const registerBodySchema = z.strictObject({
   email: emailSchema,
   password: passwordSchema,
   displayName: displayNameSchema.optional(),
@@ -85,7 +88,7 @@ export const registerBodySchema = z.object({
 });
 export type RegisterBody = z.input<typeof registerBodySchema>;
 
-export const loginBodySchema = z.object({
+export const loginBodySchema = z.strictObject({
   email: emailSchema,
   password: loginPasswordSchema,
   client: clientKindSchema.default('web'),
@@ -94,7 +97,7 @@ export const loginBodySchema = z.object({
 export type LoginBody = z.input<typeof loginBodySchema>;
 
 /** The web sends nothing (the cookie carries the token); the phone sends it here. */
-export const refreshBodySchema = z.object({
+export const refreshBodySchema = z.strictObject({
   refreshToken: z.string().min(1).max(300).optional(),
 });
 export type RefreshBody = z.input<typeof refreshBodySchema>;
@@ -102,16 +105,16 @@ export type RefreshBody = z.input<typeof refreshBodySchema>;
 export const logoutBodySchema = refreshBodySchema;
 export type LogoutBody = RefreshBody;
 
-export const verifyEmailBodySchema = z.object({ token: linkTokenSchema });
+export const verifyEmailBodySchema = z.strictObject({ token: linkTokenSchema });
 export type VerifyEmailBody = z.input<typeof verifyEmailBodySchema>;
 
-export const resendVerificationBodySchema = z.object({ email: emailSchema });
+export const resendVerificationBodySchema = z.strictObject({ email: emailSchema });
 export type ResendVerificationBody = z.input<typeof resendVerificationBodySchema>;
 
-export const forgotPasswordBodySchema = z.object({ email: emailSchema });
+export const forgotPasswordBodySchema = z.strictObject({ email: emailSchema });
 export type ForgotPasswordBody = z.input<typeof forgotPasswordBodySchema>;
 
-export const resetPasswordBodySchema = z.object({
+export const resetPasswordBodySchema = z.strictObject({
   token: linkTokenSchema,
   password: passwordSchema,
 });
@@ -123,7 +126,7 @@ export const patchMeBodySchema = z.strictObject({
 export type PatchMeBody = z.input<typeof patchMeBodySchema>;
 
 /** Deleting everything asks for the password again, whatever the token says. */
-export const deleteMeBodySchema = z.object({ password: loginPasswordSchema });
+export const deleteMeBodySchema = z.strictObject({ password: loginPasswordSchema });
 export type DeleteMeBody = z.input<typeof deleteMeBodySchema>;
 
 export const sessionParamsSchema = z.object({

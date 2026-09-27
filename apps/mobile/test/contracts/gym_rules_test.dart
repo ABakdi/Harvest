@@ -262,6 +262,40 @@ void main() {
     }
   });
 
+  test('Finish counts what is left on the exercises still in the plan '
+      '(Q5-19)', () {
+    for (final entry in list('finishes')) {
+      final question = FinishQuestion.of([
+        for (final raw in entry['exercises']! as List<Object?>)
+          if (raw case final Map<String, Object?> exercise)
+            (
+              exercise['skipped']! as bool,
+              [
+                for (final done in exercise['sets']! as List<Object?>)
+                  WorkoutSet(
+                    uuid: 'x',
+                    sessionExerciseUuid: 'e',
+                    position: 0,
+                    weightGrams: 0,
+                    reps: 5,
+                    done: done! as bool,
+                  ),
+              ],
+            ),
+      ]);
+      final why = entry['why'] as String?;
+      expect(question.done, entry['done'], reason: why);
+      expect(question.left, entry['left'], reason: why);
+      expect(question.planned, entry['planned'], reason: why);
+      final kind = question.empty
+          ? 'empty'
+          : question.incomplete
+          ? 'incomplete'
+          : 'none';
+      expect(kind, entry['kind'], reason: why);
+    }
+  });
+
   group('through the repositories', () {
     late HarvestDatabase db;
     late ProgramsRepository programs;

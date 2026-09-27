@@ -90,23 +90,37 @@ describe.each(pinned.cases)('$table', ({ table, uuid, plaintext }) => {
 });
 
 describe('the keyring', () => {
-  it('keeps a non-extractable key in IndexedDB that opens the fixtures', async () => {
+  const v2 = readFixture<{ secret: string; syncSalt: string; keyShare: string; keyCheck: EncEnvelope }>(
+    'crypto-v2.json',
+  );
+  const remote = {
+    syncKey: () => Promise.resolve({ salt: v2.syncSalt, keyShare: v2.keyShare, check: v2.keyCheck as never }),
+    putKeyCheck: () => Promise.resolve(null),
+    startOverSyncKey: () => Promise.resolve(),
+  };
+
+  it('keeps a non-extractable version 2 key in IndexedDB that opens the account check', async () => {
     const db = new HarvestDB('keyring-test');
     await db.open();
-    const keyring = new Keyring(db);
-    await keyring.unlock(pinned.passphrase, pinned.syncSalt);
+    const keyring = new Keyring(db, remote);
+    await keyring.unlock(v2.secret);
 
     // A fresh keyring on the same store: the key survived, still sealed away.
-    const stored = await new Keyring(db).key(pinned.syncSalt);
+    const stored = await new Keyring(db, remote).key(v2.syncSalt);
     expect(stored).not.toBeNull();
     expect(stored!.extractable).toBe(false);
     await expect(crypto.subtle.exportKey('raw', stored!)).rejects.toThrow();
-    const record = readFixture<FixtureRecord>('records/expenses.json');
-    expect(await openRow(stored!, 'expenses', record.uuid, record.enc)).toEqual(
-      readFixture('private-data/expenses.json'),
-    );
     // Another account's salt is another key: this one is not offered.
-    expect(await new Keyring(db).key('another-salt')).toBeNull();
+    expect(await new Keyring(db, remote).key('another-salt')).toBeNull();
+    db.close();
+  });
+
+  it('never uses a key 3.0.0 kept', async () => {
+    const db = new HarvestDB('keyring-legacy');
+    await db.open();
+    const old = await deriveSyncKey(pinned.passphrase, pinned.syncSalt);
+    await db.meta.put({ key: 'privateKey', value: { key: old, salt: pinned.syncSalt } });
+    expect(await new Keyring(db, remote).key(pinned.syncSalt)).toBeNull();
     db.close();
   });
 });

@@ -87,6 +87,28 @@ export function roundLoad(grams: number, unit: LoadUnit = 'kg'): number {
   return Math.round(grams / roundingGrams) * roundingGrams;
 }
 
+/**
+ * What a resolved percentage steps by (`loadStepGrams`): a pair of the
+ * smallest plates, one each side, so 0.5 kg with 0.25 kg plates (Y8).
+ */
+export const loadStepGrams = 2 * 250;
+
+/** The same in pounds: a pair of 2.5 lb plates, 5 lb. */
+export const loadStepPounds = 2 * 2.5;
+
+/**
+ * Rounds a resolved percentage to a load the plate list can put on a
+ * bar (`roundToPlates`): the nearest 0.5 kg, or the nearest 5 lb, kept
+ * as whole grams of those pounds. [roundLoad]'s quarter steps are for
+ * reading and typing a weight; a quarter kilo cannot be split over two
+ * sides of a bar, and a number nobody can load is a bug
+ * ([[Audit-v3]] G5-13).
+ */
+export function roundToPlates(grams: number, unit: LoadUnit = 'kg'): number {
+  if (unit === 'lb') return gramsOfPounds(Math.round(grams / gramsPerPound / loadStepPounds) * loadStepPounds);
+  return Math.round(grams / loadStepGrams) * loadStepGrams;
+}
+
 // ------------------------------------------------------------- targets
 
 /** One row of what I am *meant* to do, as `target_sets` stores it. */
@@ -100,14 +122,14 @@ export interface TargetSetLike {
 
 /**
  * What a target asks for in grams (`TargetSet.resolve`), a percentage
- * rounded in [unit]. Null for a percentage with no training max — a
+ * rounded in [unit] to what the plates can load ([roundToPlates]). Null for a percentage with no training max — a
  * question to ask, not a zero to load.
  */
 export function resolveTarget(set: TargetSetLike, trainingMaxGrams?: number | null, unit: LoadUnit = 'kg'): number | null {
   if (set.weightGrams !== null) return set.weightGrams;
   if (set.percentTenths === null) return null;
   if (trainingMaxGrams === undefined || trainingMaxGrams === null) return null;
-  return roundLoad((trainingMaxGrams * set.percentTenths) / 1000, unit);
+  return roundToPlates((trainingMaxGrams * set.percentTenths) / 1000, unit);
 }
 
 /** A Dart `double.toString()`: a whole number keeps its `.0`. */
@@ -440,6 +462,9 @@ export function sessionElapsedSeconds(session: SessionClockLike, now: string | D
 /**
  * What Finish has to ask about (Y10): sets on exercises I skipped were
  * never going to happen; the unticked rest are [left] of [planned].
+ * [done] counts every tick, but only a tick on an exercise still in the
+ * plan takes one off [left]: two squat sets ticked before squats were
+ * skipped do not make three bench sets any fewer ([[Audit-v3]] Q5-19).
  */
 export function finishQuestion(exercises: readonly { readonly skipped: boolean; readonly sets: readonly { readonly done: boolean }[] }[]): {
   kind: 'empty' | 'incomplete' | 'none';
@@ -449,11 +474,15 @@ export function finishQuestion(exercises: readonly { readonly skipped: boolean; 
 } {
   let done = 0;
   let planned = 0;
+  let donePlanned = 0;
   for (const exercise of exercises) {
-    done += exercise.sets.filter((set) => set.done).length;
-    if (!exercise.skipped) planned += exercise.sets.length;
+    const ticked = exercise.sets.filter((set) => set.done).length;
+    done += ticked;
+    if (exercise.skipped) continue;
+    planned += exercise.sets.length;
+    donePlanned += ticked;
   }
-  const left = planned - done;
+  const left = planned - donePlanned;
   const kind = done === 0 ? 'empty' : left > 0 ? 'incomplete' : 'none';
   return { kind, done, left, planned };
 }

@@ -145,6 +145,20 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
     if (list == null) return;
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).saveFailed;
+    try {
+      navigator.pop(await _persist(list));
+    } on Object {
+      // A failed write says so and leaves the sheet ready to try again,
+      // not stuck on a disabled Save ([[Audit-v3]] Q5-41).
+      if (!mounted) return;
+      setState(() => _saving = false);
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
+  }
+
+  Future<ListItem?> _persist(ItemList list) async {
     final repository = ref.read(listsRepositoryProvider);
     var note = _blankToNull(_note.text);
     final link = _blankToNull(_link.text);
@@ -155,7 +169,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
     }
     final existing = _existing;
     if (existing == null) {
-      final item = await repository.addItem(
+      return repository.addItem(
         list.uuid,
         title: _titleText,
         note: note,
@@ -166,8 +180,6 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
         link: link,
         creator: _blankToNull(_creator.text),
       );
-      navigator.pop(item);
-      return;
     }
     await repository.editItem(
       existing.uuid,
@@ -180,7 +192,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
       link: link,
       creator: _blankToNull(_creator.text),
     );
-    navigator.pop(await repository.item(existing.uuid));
+    return repository.item(existing.uuid);
   }
 
   @override

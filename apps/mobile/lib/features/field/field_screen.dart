@@ -26,6 +26,7 @@ import 'package:harvest/features/commitments/presentation/check_in_controller.da
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/commitments/presentation/project_done.dart';
 import 'package:harvest/features/commitments/presentation/quantity_sheet.dart';
 import 'package:harvest/features/commitments/presentation/schedule_label.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
@@ -582,24 +583,15 @@ class _CropTile extends ConsumerWidget {
 
     final result = await showQuantitySheet(context, ref, item: item);
     if (result == null) return;
-    final logged = switch (result) {
-      CheckInSuccess(:final quantityLogged) => quantityLogged,
-      CheckInCapped(:final quantityLogged) => quantityLogged,
-    };
-    final completed =
-        logged > 0 &&
-        item.totalLogged + logged >= (commitment.totalTarget ?? 0);
-    if (completed) {
+    final (:logged, :dropped) = projectLogOf(result);
+    if (projectReached(commitment, item.totalLogged, logged)) {
       // The dialog takes the snackbar's place, so it says what the cut
-      // left out too.
-      final dropped = switch (result) {
-        CheckInCapped(:final dropped) => dropped,
-        CheckInSuccess() => 0,
-      };
-      await _celebrateCompletion(
+      // left out too. One 100% moment for the field and the focus timer.
+      await celebrateProjectDone(
         ref,
         navigator,
-        item.totalLogged + logged,
+        project: commitment,
+        total: item.totalLogged + logged,
         logged: logged,
         dropped: dropped,
       );
@@ -618,60 +610,6 @@ class _CropTile extends ConsumerWidget {
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
-
-  /// The 100% moment: a celebration dialog, then the crop is archived
-  /// with its history intact.
-  Future<void> _celebrateCompletion(
-    WidgetRef ref,
-    NavigatorState navigator,
-    int total, {
-    int logged = 0,
-    int dropped = 0,
-  }) async {
-    // Taken before the dialog: the tile may be gone by the time it
-    // closes, and its `ref` with it.
-    final editor = ref.read(commitmentEditorProvider.notifier);
-    final context = navigator.context;
-    if (!context.mounted) return;
-    final l10n = AppLocalizations.of(context);
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.projectDoneTitle),
-        content: Text(
-          projectDoneMessage(
-            l10n,
-            title: item.commitment.title,
-            total: total,
-            logged: logged,
-            dropped: dropped,
-          ),
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.toTheBarn),
-          ),
-        ],
-      ),
-    );
-    await editor.archive(item.commitment.uuid);
-  }
-}
-
-/// What the completion dialog says: the project grown, and — when the
-/// last log went past the target — how much of it was left out.
-@visibleForTesting
-String projectDoneMessage(
-  AppLocalizations l10n, {
-  required String title,
-  required int total,
-  required int logged,
-  required int dropped,
-}) {
-  final body = l10n.projectDoneBody(title, total);
-  if (dropped <= 0) return body;
-  return '$body\n\n${l10n.projectDoneCut(logged, dropped)}';
 }
 
 /// Tomorrow at a glance, and the way into the evening plan — a card at

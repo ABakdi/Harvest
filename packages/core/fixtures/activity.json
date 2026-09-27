@@ -1,0 +1,46 @@
+{
+  "about": "The activity heat-map (dayActivity, activityWindow, activityShade). A day's height is its productive actions, the count the Daily Harvest Goal is judged by. The window is 26 whole weeks, Monday to Sunday, ending with today's week. A streak day is on (1), a quiet day off (0), any other day faded to actions/goal, between 0.2 and 0.4.",
+  "window": [
+    { "today": "2026-09-27", "start": "2026-03-30", "end": "2026-09-27" },
+    { "why": "a Monday still shows its whole week", "today": "2026-09-21", "start": "2026-03-30", "end": "2026-09-27" }
+  ],
+  "activity": {
+    "today": "2026-09-27",
+    "seeds": [
+      { "uuid": "h", "type": "habit", "dailyCommitment": null, "deletedAt": null },
+      { "uuid": "t", "type": "todo", "dailyCommitment": null, "deletedAt": null },
+      { "uuid": "p", "type": "project", "dailyCommitment": 10, "deletedAt": null },
+      { "uuid": "gone", "type": "habit", "dailyCommitment": null, "deletedAt": "2026-09-20T10:00:00.000Z" }
+    ],
+    "albums": [
+      { "uuid": "gym", "scheduled": true, "deletedAt": null },
+      { "uuid": "scrapbook", "scheduled": false, "deletedAt": null }
+    ],
+    "checkIns": [
+      { "commitmentUuid": "h", "harvestDay": "2026-09-25", "quantity": 1, "deletedAt": null },
+      { "commitmentUuid": "t", "harvestDay": "2026-09-25", "quantity": 1, "deletedAt": null },
+      { "commitmentUuid": "p", "harvestDay": "2026-09-25", "quantity": 4, "deletedAt": null },
+      { "commitmentUuid": "p", "harvestDay": "2026-09-25", "quantity": 6, "deletedAt": null },
+      { "commitmentUuid": "p", "harvestDay": "2026-09-26", "quantity": 9, "deletedAt": null },
+      { "commitmentUuid": "gone", "harvestDay": "2026-09-26", "quantity": 1, "deletedAt": null },
+      { "commitmentUuid": "h", "harvestDay": "2026-09-24", "quantity": 1, "deletedAt": "2026-09-24T20:00:00.000Z" },
+      { "commitmentUuid": "h", "harvestDay": "2026-03-29", "quantity": 1, "deletedAt": null },
+      { "commitmentUuid": "h", "harvestDay": "2026-03-30", "quantity": 1, "deletedAt": null }
+    ],
+    "memories": [
+      { "albumUuid": "gym", "harvestDay": "2026-09-27", "deletedAt": null },
+      { "albumUuid": "gym", "harvestDay": "2026-09-27", "deletedAt": null },
+      { "albumUuid": "scrapbook", "harvestDay": "2026-09-27", "deletedAt": null },
+      { "albumUuid": "gym", "harvestDay": "2026-09-23", "deletedAt": "2026-09-23T21:00:00.000Z" }
+    ],
+    "heights": { "2026-03-30": 1, "2026-09-25": 3, "2026-09-27": 1 },
+    "why": "the 25th: a habit, a to-do and a project that met its 10 across two check-ins; the 26th: a project short of its amount and a deleted seed count nothing; the 24th: an undone check-in; the 27th: one scheduled album with two pictures counts once, a scrapbook not at all; the 29th of March is before the window"
+  },
+  "shade": [
+    { "actions": 5, "goal": 3, "inStreak": true, "shade": 1 },
+    { "actions": 0, "goal": 3, "inStreak": false, "shade": 0 },
+    { "why": "one of three", "actions": 1, "goal": 3, "inStreak": false, "shade": 0.3333333333333333 },
+    { "why": "a trace is still seen", "actions": 1, "goal": 10, "inStreak": false, "shade": 0.2 },
+    { "why": "never as solid as a streak day", "actions": 9, "goal": 3, "inStreak": false, "shade": 0.4 }
+  ]
+}

@@ -17,11 +17,12 @@ const buttonVariants = cva(
         brand: 'bg-brand-gradient text-white shadow-md hover:brightness-105 [text-shadow:0_1px_1px_rgb(0_0_0/0.25)]',
       },
       size: {
-        default: 'h-10 px-4 py-2 has-[>svg]:px-3',
-        sm: 'h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5',
+        // A phone-width window gets the phone's 44 px targets.
+        default: 'h-10 px-4 py-2 has-[>svg]:px-3 max-md:h-11 max-md:min-w-11',
+        sm: 'h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5 max-md:h-11 max-md:min-w-11',
         lg: 'h-12 px-6 text-base has-[>svg]:px-4',
-        icon: 'size-10',
-        'icon-sm': 'size-8 rounded-md',
+        icon: 'size-10 max-md:size-11',
+        'icon-sm': 'size-8 rounded-md max-md:size-11',
       },
     },
     defaultVariants: { variant: 'default', size: 'default' },

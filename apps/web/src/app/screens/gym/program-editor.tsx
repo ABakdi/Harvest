@@ -344,7 +344,8 @@ function EditSetForm({ set, onClose }: { set: TargetSetRow; onClose: () => void 
 }
 
 /** The mark for a set: its number, or `1+` on the open one — the program and the session call it one thing. */
-export function SetBadge({ position, openEnded }: { position: number; openEnded: boolean }) {
+/** A set's badge: its number, 1 up by place in the list — never its position, which a dropped set leaves gaps in (Q5-46). */
+export function SetBadge({ number, openEnded }: { number: number; openEnded: boolean }) {
   return (
     <span
       className={cn(
@@ -352,7 +353,7 @@ export function SetBadge({ position, openEnded }: { position: number; openEnded:
         openEnded ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
       )}
     >
-      {openEnded ? '1+' : position + 1}
+      {openEnded ? '1+' : number}
     </span>
   );
 }
@@ -392,9 +393,9 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
         {slot && (
           <>
             <ul className="flex flex-col gap-1">
-              {slot.sets.map((set) => (
+              {slot.sets.map((set, index) => (
                 <li key={set.uuid} className="flex items-center gap-2">
-                  <SetBadge position={set.position} openEnded={set.openEnded} />
+                  <SetBadge number={index + 1} openEnded={set.openEnded} />
                   <button
                     type="button"
                     className="min-w-0 flex-1 rounded-md px-2 py-1.5 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
@@ -549,7 +550,7 @@ function SlotRow({
         }}
         aria-label={t('gym.reorderHandle', { name })}
         title={t('gym.reorderHint')}
-        className="cursor-grab rounded-md p-2 text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+        className="cursor-grab rounded-md p-2 text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing max-md:p-3.5"
       >
         <GripVerticalIcon className="size-4" aria-hidden />
       </button>
@@ -807,7 +808,7 @@ export function ProgramEditorScreen() {
 
   if (tree === undefined) return null;
   const back = (
-    <Button asChild variant="ghost" size="sm" className="self-start">
+    <Button asChild variant="ghost" size="sm" className="self-start max-md:hidden">
       <Link to="/app/body/gym">
         <ArrowLeftIcon className="rtl:rotate-180" />
         {t('gym.backToGym')}

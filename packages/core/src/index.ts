@@ -11,3 +11,7 @@ export * from './body.js';
 export * from './assist.js';
 export * from './gym.js';
 export * from './lists.js';
+export * from './file-names.js';
+export * from './activity.js';
+export * from './calendar.js';
+export * from './digits.js';

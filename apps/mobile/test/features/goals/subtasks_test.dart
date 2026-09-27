@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -314,6 +315,69 @@ void main() {
         v.subtasksOf(task.uuid).where((s) => s.isDone).map((s) => s.body),
         ['Find a race', 'Register'],
       );
+    });
+
+    test('undoing a planted task takes back only the ticks it gave '
+        '(Q5-43)', () async {
+      final seeds = CommitmentsRepository(db);
+      final checkIns = CheckInService(db, StreakService(db));
+      final (goal, task, subtasks) = await race();
+      await goals.setDone(subtasks[0].uuid, done: true);
+      final todo = await seeds.create(
+        type: CommitmentType.todo,
+        title: 'Run a 10 km race',
+        dueDay: HarvestDay.today(),
+        goalUuid: goal.uuid,
+      );
+      await goals.linkItem(task.uuid, todo.uuid);
+
+      await checkIns.checkIn(todo);
+      expect((await view(goal.uuid)).isDone(task), isTrue);
+
+      await checkIns.undoToday(todo);
+      final v = await view(goal.uuid);
+      expect(v.isDone(task), isFalse);
+      expect(
+        v.subtasksOf(task.uuid).where((s) => s.isDone).map((s) => s.body),
+        ['Find a race'],
+      );
+    });
+
+    test('a to-do ticked by hand before the check-in stays ticked', () async {
+      final seeds = CommitmentsRepository(db);
+      final checkIns = CheckInService(db, StreakService(db));
+      final goal = await goals.create(title: 'Move');
+      final item = await goals.addItem(goal.uuid, body: 'Book the van');
+      await goals.setDone(item.uuid, done: true);
+      final todo = await seeds.create(
+        type: CommitmentType.todo,
+        title: 'Book the van',
+        dueDay: HarvestDay.today(),
+        goalUuid: goal.uuid,
+      );
+      await goals.linkItem(item.uuid, todo.uuid);
+
+      await checkIns.checkIn(todo);
+      await checkIns.undoToday(todo);
+      expect((await row(item.uuid)).doneAt, isNotNull);
+    });
+  });
+
+  group('a merge that leaves a parent behind (Q5-44)', () {
+    test('settling every parent repairs its stored tick', () async {
+      final (_, task, subtasks) = await race();
+      for (final subtask in subtasks) {
+        await goals.setDone(subtask.uuid, done: true);
+      }
+      expect((await row(task.uuid)).doneAt, isNotNull);
+      // A pulled row reopened one subtask, written on its own.
+      await (db.update(db.goalItems)
+            ..where((i) => i.uuid.equals(subtasks[1].uuid)))
+          .write(const GoalItemsCompanion(doneAt: Value(null)));
+      expect((await row(task.uuid)).doneAt, isNotNull);
+
+      await goals.settleAllParents();
+      expect((await row(task.uuid)).doneAt, isNull);
     });
   });
 }

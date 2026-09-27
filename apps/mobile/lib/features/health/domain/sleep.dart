@@ -175,6 +175,25 @@ String _hhmm((int, int) time) =>
   return (hour, minute);
 }
 
+/// Where [moment] sits on the sleep sheet's clock: wall-clock minutes
+/// from the midnight that starts the morning of [day], negative the
+/// evening before. Read off the clock, not counted as time elapsed, so
+/// on the morning the clocks change 07:00 still reads 07:00
+/// ([[Audit-v3]] Q5-21).
+int wallMinutesOn(HarvestDay day, DateTime moment) {
+  final local = moment.toLocal();
+  final days = DateTime.utc(
+    local.year,
+    local.month,
+    local.day,
+  ).difference(DateTime.utc(day.year, day.month, day.day)).inDays;
+  return days * 24 * 60 + local.hour * 60 + local.minute;
+}
+
+/// The moment [minutes] on that clock names: [wallMinutesOn] backwards.
+DateTime wallMomentOn(HarvestDay day, int minutes) =>
+    DateTime(day.year, day.month, day.day, 0, minutes);
+
 /// When the alarm should ring for the morning of [day].
 DateTime alarmFor(HarvestDay day, SleepTargets targets) {
   final wake = targets.forMorning(day).wakeTime;

@@ -93,7 +93,7 @@ export function RegisterPage() {
           {isSubmitting ? t('auth.creating') : t('auth.createAccount')}
         </Button>
         <p className="text-sm text-muted-foreground">{t('auth.accountOptional')}</p>
-        <Link to="/login" className="text-sm font-bold text-primary hover:underline">
+        <Link to="/login" className="text-sm font-bold text-primary hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
           {t('auth.haveAccount')}
         </Link>
       </form>

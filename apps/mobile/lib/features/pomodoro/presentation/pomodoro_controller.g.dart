@@ -43,7 +43,7 @@ final class PomodoroControllerProvider
 }
 
 String _$pomodoroControllerHash() =>
-    r'bcbc6482627da56a9d44c67eaf732433f859e53a';
+    r'f6a51e4da573c4576994dc65ab7d50d50a15ac8e';
 
 /// Drives the pomodoro state machine. All timing derives from wall-clock
 /// instants persisted by [PomodoroService]; [evaluate] advances the

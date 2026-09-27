@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { MapPinIcon, MapPinOffIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useHarvest } from '../context';
 import type { HarvestDB } from '../data/db';
@@ -13,7 +14,8 @@ function coord(value: number): string {
 }
 
 function clock(at: string): string {
-  return new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // The browser's own locale could be one with Eastern digits.
+  return formatDate(at, { hour: '2-digit', minute: '2-digit' });
 }
 
 /**

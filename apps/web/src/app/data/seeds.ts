@@ -107,6 +107,22 @@ export class SeedsRepository {
       await tx.patch('commitments', uuid, { archivedAt: null, archiveNote: null, updatedAt: tx.now() });
     });
   }
+
+  /**
+   * Gone for good, from the archive (`hardDelete` on the phone): its
+   * check-ins, notes and streak go with it here, focus blocks let go of
+   * it, and only the seed itself travels, as a purged record.
+   */
+  remove(uuid: string): Promise<void> {
+    return this.writer.run(async (tx) => {
+      await tx.rows('seed_notes').where('commitmentUuid').equals(uuid).delete();
+      await tx.rows('check_ins').where('commitmentUuid').equals(uuid).delete();
+      await tx.rows('streaks').delete(uuid);
+      const blocks = await tx.rows('pomodoro_sessions').filter((row) => row.commitmentUuid === uuid).toArray();
+      for (const block of blocks) await tx.rows('pomodoro_sessions').put({ ...block, commitmentUuid: null });
+      await tx.purge('commitments', uuid);
+    });
+  }
 }
 
 /** Today's Harvest Day for a clock. */

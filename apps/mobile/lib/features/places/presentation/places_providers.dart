@@ -253,6 +253,11 @@ typedef PlacesSpan = ({HarvestDay from, HarvestDay to});
 Stream<List<TrailPoint>> trail(Ref ref, PlacesSpan span) =>
     ref.watch(placesRepositoryProvider).watchTrail(span.from, span.to);
 
+/// The points just outside [span], for a stay across its edges.
+@riverpod
+Stream<List<Fix>> trailEdges(Ref ref, PlacesSpan span) =>
+    ref.watch(placesRepositoryProvider).watchTrailEdges(span.from, span.to);
+
 @riverpod
 Stream<List<Geotag>> geotags(Ref ref, PlacesSpan span) =>
     ref.watch(placesRepositoryProvider).watchGeotags(span.from, span.to);

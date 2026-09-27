@@ -66,13 +66,43 @@ describe('the calendar', () => {
 });
 
 describe('the run so far', () => {
+  it('counts a project only once its daily amount is met, as the phone does (G5-11)', async () => {
+    const h = await device(new FakeServer());
+    const book = await h.seeds.plant({ type: 'project', title: 'Read', totalTarget: 300, dailyCommitment: 10 });
+    await h.checkIns.checkIn(book, today, 5);
+    let stats = await readStats(h.db, today);
+    expect(stats.heat.find((day) => day.key === today.key)?.actions).toBe(0);
+    await h.checkIns.checkIn(book, today, 5);
+    stats = await readStats(h.db, today);
+    expect(stats.heat.find((day) => day.key === today.key)?.actions).toBe(1);
+    // One of three is faded, never solid.
+    expect(stats.heat.find((day) => day.key === today.key)?.shade).toBeCloseTo(1 / 3);
+    expect(stats.heat.find((day) => day.key === today.next.key)?.future).toBe(true);
+  });
+
+  it('shows a times-a-week habit on the days before the quota was met (G5-12)', async () => {
+    const h = await device(new FakeServer());
+    const monday = today.weekStart;
+    const run = await h.seeds.plant({ type: 'habit', title: 'Run', schedule: { type: 'timesPerWeek', times: 2 } });
+    await h.db.rows('commitments').update(run.uuid, { createdAt: monday.addDays(-7).toDate().toISOString() });
+    const fresh = (await h.db.rows('commitments').get(run.uuid))!;
+    await h.checkIns.checkIn(fresh, monday);
+    await h.checkIns.checkIn(fresh, monday.next);
+    const month = await readMonth(h.db, monday);
+    const on = (day: HarvestDay) => month.get(day.key)?.entries.map((entry) => entry.row.title) ?? [];
+    if (month.has(monday.key)) expect(on(monday)).toContain('Run');
+    if (month.has(monday.next.key)) expect(on(monday.next)).toContain('Run');
+    if (month.has(monday.addDays(2).key)) expect(on(monday.addDays(2))).not.toContain('Run');
+  });
+
   it('counts a day by its productive actions, in whole weeks', async () => {
     const h = await device(new FakeServer());
     const seed = await h.seeds.plant({ type: 'habit', title: 'Walk', schedule: { type: 'daily' } });
     await h.checkIns.checkIn(seed, today);
 
     const stats = await readStats(h.db, today);
-    expect(stats.heat).toHaveLength(17 * 7);
+    // The phone's window: 26 whole weeks (G5-11).
+    expect(stats.heat).toHaveLength(26 * 7);
     expect(stats.heat.at(-1)?.day.weekday).toBe(7);
     expect(stats.heat.find((day) => day.key === today.key)?.actions).toBe(1);
     expect(stats.busiest).toBe(1);

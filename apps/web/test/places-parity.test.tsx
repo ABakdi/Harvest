@@ -360,7 +360,8 @@ vi.mock('maplibre-gl', () => {
       for (const listener of this.listeners.get(event) ?? []) listener(payload);
     }
   }
-  return { default: { Map: StubMap, NavigationControl: vi.fn() } };
+  const lib = { setWorkerUrl: vi.fn(), Map: StubMap, NavigationControl: vi.fn() };
+  return { ...lib, default: lib };
 });
 
 interface Stub {

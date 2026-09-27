@@ -48,6 +48,55 @@ final class ActiveCommitmentsProvider
 
 String _$activeCommitmentsHash() => r'ba05ad92a44219950e775584a51d11ee7039be0d';
 
+/// Every live check-in: what the calendar marks done, and how it counts
+/// a times-a-week habit's days (G5-12).
+
+@ProviderFor(liveCheckIns)
+final liveCheckInsProvider = LiveCheckInsProvider._();
+
+/// Every live check-in: what the calendar marks done, and how it counts
+/// a times-a-week habit's days (G5-12).
+
+final class LiveCheckInsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CalendarCheckIn>>,
+          List<CalendarCheckIn>,
+          Stream<List<CalendarCheckIn>>
+        >
+    with
+        $FutureModifier<List<CalendarCheckIn>>,
+        $StreamProvider<List<CalendarCheckIn>> {
+  /// Every live check-in: what the calendar marks done, and how it counts
+  /// a times-a-week habit's days (G5-12).
+  LiveCheckInsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'liveCheckInsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$liveCheckInsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<CalendarCheckIn>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<CalendarCheckIn>> create(Ref ref) {
+    return liveCheckIns(ref);
+  }
+}
+
+String _$liveCheckInsHash() => r'7c0f0eff1a79685e025c02b619d233f11ce018aa';
+
 /// Units logged today per commitment — follows the live Harvest Day, so
 /// the field turns over at 3 AM without a restart.
 

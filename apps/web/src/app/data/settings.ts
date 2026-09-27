@@ -1,4 +1,4 @@
-import { type Clock, type Cycle, fallbackCycle, formatClock, parseClock } from '@harvest/core';
+import { type Clock, type Cycle, convertBudget, currencyOf, fallbackCycle, formatClock, parseClock } from '@harvest/core';
 import type { HarvestDB } from './db';
 import type { Tx, Writer } from './writer';
 
@@ -219,6 +219,35 @@ export class SettingsRepository {
   setMany(values: Record<string, string>): Promise<void> {
     return this.writer.run(async (tx) => {
       for (const [key, value] of Object.entries(values)) await writeSetting(tx, key, value);
+    });
+  }
+
+  /**
+   * Switches the default currency and carries the budget across in the
+   * same write (`FinanceSettings.setDefaultCurrency`): the budget is a
+   * sum in the default currency, so DA50,000 becomes its worth in
+   * euros, not €50,000 ([[Audit-v3]] G5-04).
+   */
+  setDefaultCurrency(code: string): Promise<void> {
+    return this.writer.run(async (tx) => {
+      const read = async (key: string) => settingText((await tx.get('kv_settings', key))?.valueJson);
+      const from = currencyOf(await read(settingKeys.defaultCurrency));
+      const to = currencyOf(code);
+      if (from === to) return;
+      await writeSetting(tx, settingKeys.defaultCurrency, to);
+      const budget = Number(await read(settingKeys.monthlyBudget));
+      if (!Number.isSafeInteger(budget) || budget <= 0) return;
+      const rate = async (key: string) => {
+        const value = Number(await read(key));
+        return Number.isFinite(value) && value > 0 ? value : null;
+      };
+      const converted = convertBudget(budget, from, to, {
+        defaultCurrency: to,
+        dzdPerUsd: await rate('rate.dzdPerUsd'),
+        dzdPerEur: await rate('rate.dzdPerEur'),
+        usdPerEur: await rate('rate.usdPerEur'),
+      });
+      if (converted !== budget) await writeSetting(tx, settingKeys.monthlyBudget, String(converted));
     });
   }
 

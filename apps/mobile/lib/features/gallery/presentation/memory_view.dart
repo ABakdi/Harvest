@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/data/memory_files.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
-import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// One memory's file, drawn.
@@ -59,6 +59,9 @@ class MemoryView extends ConsumerWidget {
       ),
     );
 
+    // A file that lands — by a sync, or fetched for this very frame —
+    // is looked for again.
+    ref.watch(fileArrivalsProvider);
     final image = FutureBuilder<File>(
       future: ref.watch(galleryRepositoryProvider).fileOf(memory),
       builder: (context, snapshot) {
@@ -67,7 +70,11 @@ class MemoryView extends ConsumerWidget {
           return placeholder;
         }
         if (file == null || !file.existsSync()) {
-          return MemoryAbsent(memory: memory, failed: false);
+          return MemoryAbsent(
+            key: ValueKey(memory.uuid),
+            memory: memory,
+            failed: false,
+          );
         }
         if (memory.kind == MemoryKind.video) {
           return Stack(
@@ -106,12 +113,26 @@ class MemoryView extends ConsumerWidget {
   }
 }
 
+/// Why a memory's picture is not here, in words ([[Gallery]] G9), or
+/// null while it is on its way: not sent yet by the device that took
+/// it, or waiting for the sync PIN. Share says the same.
+String? memoryAbsentWords(
+  AppLocalizations l10n,
+  Memory memory, {
+  required bool pinSet,
+}) {
+  if (memory.fileHash == null) return l10n.galleryFileNotSent;
+  if (!pinSet) return l10n.galleryFileNeedsPin;
+  return null;
+}
+
 /// Why a memory's picture is not here, in place of the picture
 /// ([[Gallery]] G9): not sent yet by the device that took it, waiting
-/// for the sync PIN, or not loaded — with *Try again*. Never a blank
-/// frame. In a thumbnail too small for words, the icon says it and the
-/// words are its label.
-class MemoryAbsent extends ConsumerWidget {
+/// for the sync PIN, on its way down, or not loaded — with *Try again*.
+/// Never a blank frame. A picture the server has is fetched the moment
+/// it is shown, on its own, and drawn when it lands. In a thumbnail too
+/// small for words, the icon says it and the words are its label.
+class MemoryAbsent extends ConsumerStatefulWidget {
   const MemoryAbsent({required this.memory, required this.failed, super.key});
 
   final Memory memory;
@@ -120,18 +141,58 @@ class MemoryAbsent extends ConsumerWidget {
   final bool failed;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MemoryAbsent> createState() => _MemoryAbsentState();
+}
+
+class _MemoryAbsentState extends ConsumerState<MemoryAbsent> {
+  var _started = false;
+  var _fetching = false;
+  var _missing = false;
+
+  void _fetch({bool retry = false, bool again = false}) {
+    _started = true;
+    setState(() {
+      _fetching = true;
+      _missing = false;
+    });
+    unawaited(
+      ref
+          .read(memoryFilesProvider)
+          .fetch(widget.memory, retry: retry, again: again)
+          .then((
+            landed,
+          ) {
+            if (!mounted) return;
+            setState(() {
+              _fetching = false;
+              _missing = !landed;
+            });
+          }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final memory = widget.memory;
     final pinSet = ref.watch(syncPassphraseProvider).value ?? false;
+    final reachable = memory.fileHash != null && pinSet;
+    if (!widget.failed && reachable && !_started) {
+      _started = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _fetch();
+      });
+    }
+    final waiting = !widget.failed && reachable && (_fetching || !_missing);
 
     final (
       IconData icon,
       String words,
       String? action,
       VoidCallback? onTap,
-    ) = switch ((failed, memory.fileHash, pinSet)) {
+    ) = switch ((widget.failed, memory.fileHash, pinSet)) {
       (false, null, _) => (
         Icons.cloud_upload_outlined,
         l10n.galleryFileNotSent,
@@ -144,11 +205,19 @@ class MemoryAbsent extends ConsumerWidget {
         l10n.syncPinSetAction,
         () => unawaited(showSyncPinSheet(context)),
       ),
+      _ when waiting => (
+        Icons.cloud_download_outlined,
+        l10n.galleryFileDownloading,
+        null,
+        null,
+      ),
       _ => (
         Icons.broken_image_outlined,
         l10n.galleryFileFailed,
-        l10n.galleryFileRetry,
-        () => unawaited(ref.read(syncControllerProvider.notifier).syncNow()),
+        reachable && !_fetching ? l10n.galleryFileRetry : null,
+        reachable && !_fetching
+            ? () => _fetch(retry: true, again: widget.failed)
+            : null,
       ),
     };
 
@@ -187,6 +256,13 @@ class MemoryAbsent extends ConsumerWidget {
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
+                  if (waiting) ...[
+                    const SizedBox(height: 8),
+                    const SizedBox(
+                      width: 64,
+                      child: LinearProgressIndicator(),
+                    ),
+                  ],
                   if (action != null && onTap != null)
                     TextButton(onPressed: onTap, child: Text(action)),
                 ],

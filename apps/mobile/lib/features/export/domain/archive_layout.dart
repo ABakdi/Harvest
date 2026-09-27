@@ -17,8 +17,10 @@ abstract final class ArchivePaths {
 /// with the title as the filename, sanitised.
 ///
 /// Collisions are possible (`Q4: what now?` and `Q4- what now?` land on
-/// the same name), so [taken] carries what has already been used inside
-/// the archive and a suffix is added rather than a file lost.
+/// the same name, and so do `Ideas` and `ideas` once unzipped on a
+/// system that ignores case), so [taken] carries what has already been
+/// used inside the archive, by [fileNameKey], and a suffix is added
+/// rather than a file lost ([[Audit-v3]] Q5-59).
 String notePath({
   required String title,
   required String folder,
@@ -28,7 +30,7 @@ String notePath({
   final directory = _safeFolder(folder);
   var candidate = p.posix.join(ArchivePaths.notes, directory, '$base.md');
   var suffix = 2;
-  while (!taken.add(candidate)) {
+  while (!taken.add(fileNameKey(candidate))) {
     candidate = p.posix.join(
       ArchivePaths.notes,
       directory,
@@ -59,7 +61,7 @@ String attachmentPath({
   final stem = p.posix.basenameWithoutExtension(name);
   var candidate = p.posix.join(directory, name);
   var suffix = 2;
-  while (!taken.add(candidate)) {
+  while (!taken.add(fileNameKey(candidate))) {
     candidate = p.posix.join(directory, '$stem ($suffix)$extension');
     suffix++;
   }
@@ -80,7 +82,7 @@ String memoryPath({
   final extension = p.extension(storedPath).toLowerCase();
   var candidate = p.posix.join(ArchivePaths.gallery, album, '$day$extension');
   var suffix = 2;
-  while (!taken.add(candidate)) {
+  while (!taken.add(fileNameKey(candidate))) {
     candidate = p.posix.join(
       ArchivePaths.gallery,
       album,
@@ -90,6 +92,10 @@ String memoryPath({
   }
   return candidate;
 }
+
+/// Two paths that name one file on a system that ignores case (Windows,
+/// macOS) share this key; `fileNameKey` in `packages/core`.
+String fileNameKey(String path) => path.toLowerCase();
 
 /// The album's own folder inside the archive, for the sheet to name.
 String albumFolder(String albumName) => p.posix.join(

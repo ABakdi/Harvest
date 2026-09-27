@@ -38,6 +38,7 @@ import { Input } from '@/components/ui/input';
 import { formatDay, formatMoney, formatNumber } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '../components/bits';
+import { useBusy } from '../components/use-busy';
 import { ListNameDialog, listName } from '../components/list-bits';
 import { useFeaturesOrOff } from '../components/settings-bits';
 import { useHarvest, useHarvestDay } from '../context';
@@ -113,7 +114,7 @@ export function ListsScreen() {
               aria-current={list.uuid === chosen?.uuid ? 'page' : undefined}
               aria-label={t('lists.chipLabel', { name: listName(list, t), count: view.counts.get(list.uuid) ?? 0 })}
               className={cn(
-                'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-extrabold outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-extrabold outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11',
                 list.uuid === chosen?.uuid ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-accent',
               )}
             >
@@ -308,6 +309,7 @@ function AddField({ list, name }: { list: ListRow; name: string }) {
   const id = useId();
   const [text, setText] = useState('');
   const [link, setLink] = useState<string | null>(null);
+  const [, adding] = useBusy();
   const input = useRef<HTMLInputElement>(null);
 
   const reset = () => {
@@ -337,19 +339,22 @@ function AddField({ list, name }: { list: ListRow; name: string }) {
     const { url, title } = read();
     if (!title) return;
     const media = list.kind === 'media';
-    try {
-      await lists.addItem(list.uuid, {
-        title,
-        // Only a media item has a link (L2); elsewhere a link with a title of its own goes in the note.
-        link: media ? url : null,
-        mediaType: media && url ? classifyLink(url).mediaType : null,
-        note: !media && url && url !== title ? url : null,
-      });
-    } catch {
-      toast.error(t('common.saveFailed'));
-      return;
-    }
-    reset();
+    // One add at a time: two quick Enters are one item (Q5-51).
+    await adding(async () => {
+      try {
+        await lists.addItem(list.uuid, {
+          title,
+          // Only a media item has a link (L2); elsewhere a link with a title of its own goes in the note.
+          link: media ? url : null,
+          mediaType: media && url ? classifyLink(url).mediaType : null,
+          note: !media && url && url !== title ? url : null,
+        });
+      } catch {
+        toast.error(t('common.saveFailed'));
+        return;
+      }
+      reset();
+    });
   };
 
   const details = () => {
@@ -557,7 +562,7 @@ function ItemRow({
           onClick={() => dialogs.editListItem(row)}
           onKeyDown={keys}
           aria-keyshortcuts={onMove ? 'Alt+ArrowUp Alt+ArrowDown' : undefined}
-          className="flex min-w-0 flex-1 flex-col text-start outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-w-0 flex-1 flex-col text-start outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11 max-md:justify-center"
         >
           <span className={cn('truncate font-bold', isDone && buyable && 'text-muted-foreground line-through')}>{row.title}</span>
           {subtitle && <span className="truncate text-xs text-muted-foreground">{subtitle}</span>}
@@ -617,7 +622,12 @@ function ItemRow({
             {!seed && !isDone && (
               <DropdownMenuItem
                 onSelect={() =>
-                  dialogs.plantSeed({ title: row.title, type: row.mediaType === 'book' ? 'project' : 'todo', linkListItem: row.uuid })
+                  dialogs.plantSeed(
+                    // A book starts at "300 pages, 10 a day", as on the phone (G5-14).
+                    row.mediaType === 'book'
+                      ? { title: row.title, type: 'project', totalTarget: 300, dailyCommitment: 10, linkListItem: row.uuid }
+                      : { title: row.title, type: 'todo', linkListItem: row.uuid },
+                  )
                 }
               >
                 <SproutIcon />

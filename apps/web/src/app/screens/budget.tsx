@@ -80,14 +80,16 @@ const colour = { under: 'bg-success', close: 'bg-sun', over: 'bg-destructive' } 
 
 /**
  * The month's budget: what is left today, what is left of the month,
- * and where the month went.
+ * and where the month went. The Granary's Today opens on it without
+ * the [breakdown], as the phone's does; the split is under Insights and
+ * the categories in Settings there.
  *
  * The daily limit floats — the month's remainder spread over the days
  * that are left — so an expensive Tuesday tightens Wednesday rather
  * than failing the month ([[Finances]]). It is computed here from the
  * expenses themselves, never asked of the server (W2).
  */
-export function BudgetPanel() {
+export function BudgetPanel({ breakdown = true }: { breakdown?: boolean } = {}) {
   const { t } = useTranslation();
   const { db } = useHarvest();
   const today = useHarvestDay();
@@ -108,7 +110,7 @@ export function BudgetPanel() {
           body={t('budget.noBudgetBody')}
           action={<Button onClick={() => setEditing(true)}>{t('budget.set')}</Button>}
         />
-        <CategoryManager />
+        {breakdown && <CategoryManager />}
         {dialog}
       </div>
     );
@@ -165,33 +167,37 @@ export function BudgetPanel() {
         </span>
       </section>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="px-1 text-sm font-extrabold text-muted-foreground">{t('budget.byCategory')}</h2>
-        {budget.byCategory.length === 0 ? (
-          <p className="px-1 text-sm text-muted-foreground">{t('budget.nothingYet')}</p>
-        ) : (
-          <ul className="flex flex-col divide-y rounded-xl border bg-card">
-            {budget.byCategory.map(([category, minor]) => (
-              <li key={category} className="flex items-center gap-3 px-4 py-2.5">
-                <span className="flex-1 font-bold">{categoryLabel(t, category)}</span>
-                <span className="text-xs text-muted-foreground tabular">
-                  {formatNumber(Math.round((minor / budget.spentThisMonth) * 100))}%
-                </span>
-                <span className="font-extrabold tabular" dir="ltr">
-                  {money(minor)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {breakdown && (
+        <>
+          <section className="flex flex-col gap-2">
+            <h2 className="px-1 text-sm font-extrabold text-muted-foreground">{t('budget.byCategory')}</h2>
+            {budget.byCategory.length === 0 ? (
+              <p className="px-1 text-sm text-muted-foreground">{t('budget.nothingYet')}</p>
+            ) : (
+              <ul className="flex flex-col divide-y rounded-xl border bg-card">
+                {budget.byCategory.map(([category, minor]) => (
+                  <li key={category} className="flex items-center gap-3 px-4 py-2.5">
+                    <span className="flex-1 font-bold">{categoryLabel(t, category)}</span>
+                    <span className="text-xs text-muted-foreground tabular">
+                      {formatNumber(Math.round((minor / budget.spentThisMonth) * 100))}%
+                    </span>
+                    <span className="font-extrabold tabular" dir="ltr">
+                      {money(minor)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-      <CategoryManager />
+          <CategoryManager />
 
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        <SmartphoneIcon className="size-4" aria-hidden />
-        {t('budget.converted')}
-      </p>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <SmartphoneIcon className="size-4" aria-hidden />
+            {t('budget.converted')}
+          </p>
+        </>
+      )}
       {dialog}
     </div>
   );

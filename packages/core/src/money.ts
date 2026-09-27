@@ -10,6 +10,7 @@
  */
 
 import type { HarvestDay } from './harvest-day.js';
+import { westernDigits } from './digits.js';
 
 export const currencies = ['DZD', 'USD', 'EUR'] as const;
 export type CurrencyCode = (typeof currencies)[number];
@@ -65,6 +66,21 @@ export function toDefault(rates: Rates, minor: number, from: CurrencyCode): numb
  */
 export function toDefaultOrFace(rates: Rates, minor: number, from: CurrencyCode): number {
   return toDefault(rates, minor, from) ?? minor;
+}
+
+/**
+ * A budget of [budget] minor units of [from] as a budget in [to]
+ * (`convertBudget`): the budget is a sum in the default currency, so
+ * switching that currency must carry it across — DA50,000 becomes its
+ * worth in euros, not €50,000 ([[Audit-v3]] G5-04). Without a rate it
+ * keeps its number, the way every sum falls back to face value; it never
+ * drops below one minor unit.
+ */
+export function convertBudget(budget: number, from: CurrencyCode, to: CurrencyCode, rates: Rates): number {
+  if (from === to) return budget;
+  const converted = toDefault({ ...rates, defaultCurrency: to }, budget, from);
+  if (converted === null) return budget;
+  return converted < 1 ? 1 : converted;
 }
 
 /** Sums per-currency amounts into the default currency. */
@@ -162,14 +178,6 @@ function parseDartInt(raw: string): number | null {
   return sign === '-' ? -magnitude : magnitude;
 }
 
-/** Arabic-Indic and extended Arabic-Indic digits → ASCII. */
-function latinDigits(input: string): string {
-  return input.replace(/[٠-٩۰-۹]/g, (digit) => {
-    const code = digit.charCodeAt(0);
-    return String(code - (code >= 0x06f0 ? 0x06f0 : 0x0660));
-  });
-}
-
 /**
  * `parseToMinor`: "12", "12.5", "12,50", "1,234" into minor units; null
  * for anything that is not a positive amount within [maxMajorUnits]. A
@@ -177,7 +185,7 @@ function latinDigits(input: string): string {
  * decimal point otherwise.
  */
 export function parseToMinor(input: string): number | null {
-  let text = latinDigits(input).trim();
+  let text = westernDigits(input).trim();
   if (text === '' || text.startsWith('+') || text.startsWith('-')) return null;
   text = /^\d{1,3}(,\d{3})+(\.\d+)?$/.test(text) ? text.replaceAll(',', '') : text.replaceAll(',', '.');
   const parts = text.split('.');
@@ -287,6 +295,10 @@ class AmountParser {
     // Dart's `double.tryParse` over digits and points: one point at most.
     const raw = this.text.slice(start, this.at);
     if (!/^(\d+\.?\d*|\.\d+)$/.test(raw)) return null;
+    // Cents go two digits deep, inside a sum as in a plain number:
+    // `12.345+0` is the same typo as `12.345` ([[Audit-v3]] Q5-66).
+    const point = raw.indexOf('.');
+    if (point >= 0 && raw.length - point - 1 > 2) return null;
     return Number(raw);
   }
 }

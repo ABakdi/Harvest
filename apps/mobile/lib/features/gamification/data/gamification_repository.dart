@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/features/gamification/domain/day_activity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamification_repository.g.dart';
@@ -72,6 +73,68 @@ class GamificationRepository {
         byDay.putIfAbsent(row.harvestDay, () => {}).add(row.commitmentUuid);
       }
       return byDay.map((day, set) => MapEntry(day, set.length));
+    });
+  }
+
+  /// Each day's productive actions from [start] to [end] — the
+  /// heat-map's squares ([dayActivity], the web's rule too). Watches the
+  /// four tables that feed it.
+  Stream<Map<String, int>> watchHeatActivity(HarvestDay start, HarvestDay end) {
+    final trigger = _db.customSelect(
+      'SELECT 1',
+      readsFrom: {_db.checkIns, _db.commitments, _db.albums, _db.memories},
+    );
+    return trigger.watch().asyncMap((_) async {
+      final checkIns =
+          await (_db.select(_db.checkIns)..where(
+                (c) => c.harvestDay.isBetweenValues(start.key, end.key),
+              ))
+              .get();
+      final seeds = await _db.select(_db.commitments).get();
+      final albums = await _db.select(_db.albums).get();
+      final memories =
+          await (_db.select(_db.memories)..where(
+                (m) => m.harvestDay.isBetweenValues(start.key, end.key),
+              ))
+              .get();
+      return dayActivity(
+        checkIns: [
+          for (final row in checkIns)
+            (
+              commitmentUuid: row.commitmentUuid,
+              harvestDay: row.harvestDay,
+              quantity: row.quantity,
+              deleted: row.deletedAt != null,
+            ),
+        ],
+        seeds: [
+          for (final row in seeds)
+            (
+              uuid: row.uuid,
+              type: row.type,
+              dailyCommitment: row.dailyCommitment,
+              deleted: row.deletedAt != null,
+            ),
+        ],
+        albums: [
+          for (final row in albums)
+            (
+              uuid: row.uuid,
+              scheduled: row.scheduleJson != null,
+              deleted: row.deletedAt != null,
+            ),
+        ],
+        memories: [
+          for (final row in memories)
+            (
+              albumUuid: row.albumUuid,
+              harvestDay: row.harvestDay,
+              deleted: row.deletedAt != null,
+            ),
+        ],
+        start: start,
+        end: end,
+      );
     });
   }
 

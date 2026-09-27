@@ -214,6 +214,55 @@
   background-image: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand-mid) 55%, var(--brand-light) 100%);
 }
 
+/*
+ * A hit area of at least 44 px around a control drawn smaller, as the
+ * phone gives its switches and checkboxes a 48 dp target around a
+ * smaller mark. The element becomes the positioning box for it.
+ */
+@utility touch-target {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  &:dir(rtl)::after {
+    transform: translate(50%, -50%);
+  }
+}
+
+@media (width < 48rem) {
+  /* The map's zoom buttons get the same 44 px on a phone-width window. */
+  .maplibregl-ctrl.maplibregl-ctrl-group button {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* A toast sits just above the bottom bar, and the floating action
+     steps up out of its way while it shows, as the phone's does for a
+     snack bar. */
+  [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important;
+  }
+  [data-fab] {
+    transition: bottom 200ms ease-out;
+  }
+  body:has([data-sonner-toaster] [data-sonner-toast]) [data-fab] {
+    bottom: calc(10.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* While the on-screen keyboard is up the bar and the floating action
+     go, so a field is not typed under them. */
+  html[data-keyboard] [data-bottom-bar],
+  html[data-keyboard] [data-fab] {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

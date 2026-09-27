@@ -1,8 +1,9 @@
+import { parentDoneAt } from '@harvest/core';
 import { isPortableSetting, tierOf } from '@harvest/contracts';
 import { strToU8, zipSync, type Zippable } from 'fflate';
-import { albumFolder, archiveFileName, ArchivePaths, attachmentPath, memoryPath, notePath } from './archive';
+import { albumFolder, archiveFileName, ArchiveLimits, ArchivePaths, attachmentPath, memoryPath, notePath } from './archive';
 import { buildWorkbook, type CellValue } from './archive-xlsx';
-import type { HarvestDB } from './db';
+import type { HarvestDB, Row } from './db';
 import { harvestSheets, type ExportData } from './export-sheets';
 import { localFileHashes } from './files';
 
@@ -254,7 +255,7 @@ export async function readArchiveContents(
       row.kind,
       row.body,
       row.note,
-      row.doneAt,
+      drawnDoneAt(row, goalItems),
       row.position,
       row.commitmentUuid,
       row.parentUuid ?? null,
@@ -496,6 +497,11 @@ export interface BuiltArchive {
   sealed: number;
   /** Files a row names that this browser could not get. */
   missingFiles: number;
+  /**
+   * Files bigger than an importer takes (`ArchiveLimits.entryBytes`),
+   * left out so the archive still opens; their rows still go (Q5-06).
+   */
+  tooLarge: number;
 }
 
 /** Already-compressed media gain nothing from deflate. */
@@ -528,6 +534,7 @@ export async function buildArchive(
   const total = 1 + contents.notes.length + contents.attachments.length + contents.memories.length;
   let done = 0;
   let missingFiles = 0;
+  let tooLarge = 0;
   const step = (label: string | null) => {
     done++;
     onProgress?.({ done, total, label });
@@ -551,6 +558,7 @@ export async function buildArchive(
     check();
     const blob = item.hash === null ? null : await file(item.hash);
     if (blob === null) missingFiles++;
+    else if (blob.size > ArchiveLimits.entryBytes) tooLarge++;
     else entries[item.path] = [new Uint8Array(await blob.arrayBuffer()), { level: levelFor(item.path) }];
     step(item.path);
   }
@@ -559,5 +567,17 @@ export async function buildArchive(
   const sealed = (await db.sealed.toArray()).filter(
     (row) => tierOf(row.table) === 'private' && (includePlaces || !(locationTables as readonly string[]).includes(row.table)),
   ).length;
-  return { bytes: zipSync(entries, { mtime: now }), fileName: archiveFileName(now), sealed, missingFiles };
+  return { bytes: zipSync(entries, { mtime: now }), fileName: archiveFileName(now), sealed, missingFiles, tooLarge };
+}
+
+/**
+ * A parent's tick as its live subtasks draw it (`parentDoneAt`, GL8),
+ * not as stored: a pull or an import can leave the stored one behind
+ * ([[Audit-v3]] Q5-44). Any other item keeps its own. The phone's
+ * export does the same.
+ */
+function drawnDoneAt(row: Row<'goal_items'>, all: readonly Row<'goal_items'>[]): string | null {
+  if (row.deletedAt !== null || (row.parentUuid ?? null) !== null) return row.doneAt;
+  const drawn = parentDoneAt(all.filter((other) => other.parentUuid === row.uuid && other.deletedAt === null));
+  return drawn === undefined ? row.doneAt : drawn;
 }

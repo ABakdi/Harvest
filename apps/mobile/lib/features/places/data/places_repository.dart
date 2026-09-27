@@ -55,6 +55,41 @@ class PlacesRepository {
     return query.watch().map((rows) => rows.map(_toPoint).toList());
   }
 
+  /// The last point before [from] and the first after [to]: where a
+  /// stay that crosses the span's edge began or ended (Q5-58).
+  Stream<List<Fix>> watchTrailEdges(HarvestDay from, HarvestDay to) {
+    final trigger = _db.customSelect(
+      'SELECT 1',
+      readsFrom: {_db.locationPoints},
+    );
+    return trigger.watch().asyncMap((_) async {
+      final before =
+          await (_db.select(_db.locationPoints)
+                ..where(
+                  (p) =>
+                      p.harvestDay.isSmallerThanValue(from.key) &
+                      p.deletedAt.isNull(),
+                )
+                ..orderBy([(p) => OrderingTerm.desc(p.recordedAt)])
+                ..limit(1))
+              .getSingleOrNull();
+      final after =
+          await (_db.select(_db.locationPoints)
+                ..where(
+                  (p) =>
+                      p.harvestDay.isBiggerThanValue(to.key) &
+                      p.deletedAt.isNull(),
+                )
+                ..orderBy([(p) => OrderingTerm.asc(p.recordedAt)])
+                ..limit(1))
+              .getSingleOrNull();
+      return [
+        for (final row in [before, after])
+          if (row != null) _toPoint(row).fix,
+      ];
+    });
+  }
+
   /// The newest point, if it is recent enough to stand in for a fresh
   /// fix.
   Future<Fix?> lastPointSince(DateTime since) async {

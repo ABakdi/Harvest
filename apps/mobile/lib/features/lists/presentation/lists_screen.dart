@@ -25,6 +25,7 @@ import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/lists/data/lists_repository.dart';
 import 'package:harvest/features/lists/domain/lists.dart';
+import 'package:harvest/features/lists/domain/share_links.dart';
 import 'package:harvest/features/lists/presentation/list_item_sheet.dart';
 import 'package:harvest/features/lists/presentation/list_labels.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
@@ -834,15 +835,16 @@ class ItemActions {
   }
 
   /// Opens the link in whatever handles it — on my tap, and only then
-  /// (L9, [[Business-Rules]] 13).
+  /// (L9, [[Business-Rules]] 13). Only a bare http(s) link opens, by the
+  /// rule the web applies (`linkOf`): a synced `tel:`, `market:` or app
+  /// link is text, not something one tap should launch.
   Future<void> openLink() async {
-    final link = item.link;
-    if (link == null) return;
+    final link = item.link == null ? null : linkOf(item.link!);
     final messenger = ScaffoldMessenger.of(context);
     final failed = AppLocalizations.of(context).listsLinkFailed;
-    final uri = Uri.tryParse(link);
+    final uri = link == null ? null : Uri.tryParse(link);
     var opened = false;
-    if (uri != null && uri.hasScheme) {
+    if (uri != null) {
       try {
         opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
       } on Object {
@@ -865,9 +867,9 @@ class ItemActions {
       initialType: book ? CommitmentType.project : CommitmentType.todo,
       initialTotal: book ? 300 : null,
       initialDaily: book ? 10 : null,
+      alongside: (seed) => _repository.linkSeed(item.uuid, seed.uuid),
     );
     if (seed == null) return;
-    await _repository.linkSeed(item.uuid, seed.uuid);
     messenger.showSnackBar(SnackBar(content: Text(l10n.goalPlanted)));
   }
 

@@ -1,4 +1,4 @@
-import type { ClientKind, EncEnvelope, SyncedTable } from '@harvest/contracts';
+import type { ClientKind, EncEnvelope, KeyCheck, SyncedTable } from '@harvest/contracts';
 import type { Binary, ObjectId } from 'mongodb';
 
 /**
@@ -20,6 +20,20 @@ export interface UserDoc {
   syncSalt: string;
   createdAt: Date;
   lastSeenAt: Date;
+  /**
+   * The account's key share, sealed with KEY_SHARE_KEY (AES-256-GCM,
+   * additional data `key-share/<user id>`), base64. Made the first time
+   * it is asked for.
+   */
+  keyShare?: SealedBytes;
+  /** The first device's key check; absent until a PIN is chosen. */
+  keyCheck?: KeyCheck | null;
+}
+
+/** Bytes sealed by the server with a key of its own, base64. */
+export interface SealedBytes {
+  iv: string;
+  ct: string;
 }
 
 /**
@@ -51,6 +65,12 @@ export interface RefreshTokenDoc {
    * expires, because seeing it a second time is how theft is noticed.
    */
   usedAt: Date | null;
+  /**
+   * The token this one was exchanged for, sealed under a key only the
+   * holder of this token can derive, so a retry of a refresh whose
+   * answer was lost gets the same successor back (Q5-13).
+   */
+  successor?: SealedBytes;
 }
 
 export type OneTimePurpose = 'verify' | 'reset';
@@ -66,7 +86,6 @@ export interface OneTimeTokenDoc {
   usedAt: Date | null;
 }
 
-/** One synced row, as the server holds it. */
 /** One account's assist requests on one UTC day. */
 export interface AssistUsageDoc {
   _id: ObjectId;
@@ -75,6 +94,24 @@ export interface AssistUsageDoc {
   day: string;
   count: number;
   lastAt: Date;
+}
+
+/** The whole server's assist requests on one UTC day. `_id` is the day. */
+export interface AssistDayDoc {
+  _id: string;
+  count: number;
+  lastAt: Date;
+}
+
+/**
+ * Failed sign-ins for one email, from any address, in the current
+ * window. `_id` is the SHA-256 of the normalised email: an address
+ * nobody registered is never written down as itself.
+ */
+export interface LoginFailureDoc {
+  _id: string;
+  count: number;
+  resetAt: Date;
 }
 
 /** One file, content-addressed, its bytes sealed by the client. */
@@ -90,8 +127,15 @@ export interface FileDoc {
   plainBytes: number;
   blob: Binary;
   uploadedAt: Date;
+  /**
+   * The last time a device was told the server has it (an upload, or a
+   * "missing?" that did not list it): a device may name it in a row it
+   * has not pushed yet, so the sweep leaves it alone for a while.
+   */
+  claimedAt?: Date;
 }
 
+/** One synced row, as the server holds it. */
 export interface RecordDoc {
   _id: ObjectId;
   userId: ObjectId;
@@ -110,10 +154,18 @@ export interface RecordDoc {
   /** Which device wrote it last; kept for debugging, never returned. */
   deviceId: string;
   receivedAt: Date;
+  /** The stored payload's size (`payloadBytes`); absent on rows from before it was kept. */
+  bytes?: number;
 }
 
-/** The per-user sequence. `_id` is the user's id. */
+/**
+ * The per-user sequence, and what the account keeps. `_id` is the
+ * user's id. The two byte totals are filled in the first time they are
+ * needed, from what is stored.
+ */
 export interface CounterDoc {
   _id: ObjectId;
   seq: number;
+  recordBytes?: number;
+  fileBytes?: number;
 }

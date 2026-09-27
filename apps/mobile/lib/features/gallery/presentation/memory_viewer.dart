@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/data/memory_files.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/domain/gallery_service.dart';
 import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
@@ -82,8 +84,25 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
     final memory = _current;
     final file = await ref.read(galleryRepositoryProvider).fileOf(memory);
     if (!file.existsSync()) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.galleryFileGone)));
-      return;
+      // Not here yet says why, as the frame does ([[Gallery]] G9); one
+      // the server has comes down first.
+      final pinSet = ref.read(syncPassphraseProvider).value ?? false;
+      final why = memoryAbsentWords(l10n, memory, pinSet: pinSet);
+      if (why != null) {
+        messenger.showSnackBar(SnackBar(content: Text(why)));
+        return;
+      }
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.galleryFileDownloading)),
+      );
+      final landed = await ref.read(memoryFilesProvider).fetch(memory);
+      messenger.hideCurrentSnackBar();
+      if (!landed || !file.existsSync()) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.galleryFileFailed)),
+        );
+        return;
+      }
     }
     await SharePlus.instance.share(
       ShareParams(

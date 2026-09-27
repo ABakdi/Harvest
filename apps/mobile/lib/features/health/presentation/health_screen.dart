@@ -412,7 +412,6 @@ class _StepsSourceRow extends ConsumerWidget {
             IconButton(
               tooltip: l10n.stepsRefresh,
               icon: const Icon(Icons.refresh, size: 18),
-              visualDensity: VisualDensity.compact,
               onPressed: () => unawaited(notifier.refresh()),
             ),
           ],
@@ -631,6 +630,29 @@ class _WeightCard extends ConsumerWidget {
                               .ignore(),
                         ),
                     ],
+                  ),
+                ),
+              ],
+            ),
+            // The line to aim at is mine to set, change or clear
+            // ([[Health]], [[Audit-v3]] G5-05).
+            Row(
+              children: [
+                Text(
+                  l10n.weightLegendTarget,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => showTargetWeightSheet(context).ignore(),
+                  icon: const Icon(Icons.flag_outlined, size: 18),
+                  label: Text(
+                    target == null
+                        ? l10n.weightTargetSet
+                        : '${formatNumber(context, unit.from(target))} '
+                              '${unitLabel(context, unit)}',
                   ),
                 ),
               ],

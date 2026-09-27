@@ -1,5 +1,6 @@
 import { ObjectId, type Collection } from 'mongodb';
-import type { UserDoc } from './types.js';
+import type { KeyCheck } from '@harvest/contracts';
+import type { SealedBytes, UserDoc } from './types.js';
 
 export class UsersRepository {
   constructor(private readonly users: Collection<UserDoc>) {}
@@ -38,6 +39,27 @@ export class UsersRepository {
 
   async touch(userId: ObjectId, at: Date): Promise<void> {
     await this.users.updateOne({ _id: userId }, { $set: { lastSeenAt: at } });
+  }
+
+  /**
+   * Stores the account's sealed key share unless it has one; answers
+   * the one it has afterwards, which is the first one written when two
+   * requests race.
+   */
+  async setKeyShareOnce(userId: ObjectId, keyShare: SealedBytes): Promise<UserDoc | null> {
+    await this.users.updateOne({ _id: userId, keyShare: { $exists: false } }, { $set: { keyShare } });
+    return this.findById(userId);
+  }
+
+  /** Stores the key check unless there is one; answers whether this one is now stored. */
+  async setKeyCheckOnce(userId: ObjectId, keyCheck: KeyCheck): Promise<boolean> {
+    const result = await this.users.updateOne({ _id: userId, keyCheck: null }, { $set: { keyCheck } });
+    return result.modifiedCount === 1;
+  }
+
+  /** Drops the key share and the key check: the private tier starts over. */
+  async clearSyncKey(userId: ObjectId): Promise<void> {
+    await this.users.updateOne({ _id: userId }, { $unset: { keyShare: '', keyCheck: '' } });
   }
 
   async delete(userId: ObjectId): Promise<void> {

@@ -2,8 +2,11 @@ import { HarvestDay, trendWindows, weightIn } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   BedIcon,
+  DumbbellIcon,
   FlagIcon,
   FootprintsIcon,
+  HeartPulseIcon,
+  MoonIcon,
   PencilIcon,
   PlusIcon,
   ScaleIcon,
@@ -33,8 +36,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatDate, formatDay, formatNumber } from '@/lib/format';
 import { EmptyState } from '../components/bits';
+import { Fab, usePhoneWidth } from '../components/fab';
+import { screenTabsList, screenTabsTrigger, TabIcon } from '../components/screen-tabs';
 import { useFeatures } from '../components/settings-bits';
 import { SleepEditor } from '../components/sleep-editor';
+import { TargetWeightDialog } from '../components/target-weight';
 import { WeightEditor } from '../components/weight-editor';
 import { useHarvest, useHarvestDay } from '../context';
 import {
@@ -133,8 +139,9 @@ type NightEditing = { day: HarvestDay; night: SleepRow | null } | null;
  * Last night, and what is owed (`SleepCard`). The debt is a gauge that
  * fills rather than a number that accuses; full is three nights down.
  */
-function SleepCard({ onLog }: { onLog: (editing: NonNullable<NightEditing>) => void }) {
+function SleepCard({ onLog, onLogWeight }: { onLog: (editing: NonNullable<NightEditing>) => void; onLogWeight: () => void }) {
   const { t } = useTranslation();
+  const phone = usePhoneWidth();
   const duration = useDuration();
   const { db } = useHarvest();
   const today = useHarvestDay();
@@ -150,7 +157,8 @@ function SleepCard({ onLog }: { onLog: (editing: NonNullable<NightEditing>) => v
       icon={<BedIcon />}
       title={t('body.sleepTitle')}
       action={
-        unlogged && (
+        unlogged &&
+        !phone && (
           <Button size="sm" onClick={() => onLog({ day: today, night: null })}>
             <PlusIcon />
             {t('sleepWeb.logLastNight')}
@@ -158,6 +166,13 @@ function SleepCard({ onLog }: { onLog: (editing: NonNullable<NightEditing>) => v
         )
       }
     >
+      {/* The phone's one floating action: last night until it is written down, then the weight. */}
+      {phone &&
+        (unlogged ? (
+          <Fab icon={<MoonIcon />} label={t('sleepWeb.logLastNight')} onClick={() => onLog({ day: today, night: null })} />
+        ) : (
+          <Fab icon={<ScaleIcon />} label={t('weightWeb.log')} onClick={onLogWeight} />
+        ))}
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <span className={last ? 'text-3xl font-extrabold tabular' : 'text-lg font-extrabold'}>
           {last ? duration(sleptMinutesOf(last)) : t('sleepWeb.nothingYet')}
@@ -211,7 +226,7 @@ function NightsCard({ onEdit }: { onEdit: (editing: NonNullable<NightEditing>) =
               <li key={night.uuid} className="flex items-center gap-2 py-1.5">
                 <button
                   type="button"
-                  className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-md px-1 py-1 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-md px-1 py-1 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11"
                   aria-label={t('sleepWeb.editNight', { day: formatDay(night.harvestDay) })}
                   onClick={() => {
                     const parsed = HarvestDay.tryParse(night.harvestDay);
@@ -335,6 +350,7 @@ function WeightCard({ onLog }: { onLog: () => void }) {
   const days = (trendWindows as readonly number[]).includes(stored) ? stored : 30;
   const targetText = useSetting(healthKeys.targetGrams);
   const target = targetText ? Number.parseInt(targetText, 10) || null : null;
+  const [targeting, setTargeting] = useState(false);
   const rows = useLiveQuery(() => readWeights(db), [db]);
   if (!rows) return null;
 
@@ -389,8 +405,17 @@ function WeightCard({ onLog }: { onLog: () => void }) {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+          {/* The line to aim at is mine to set, change or clear ([[Audit-v3]] G5-05). */}
+          <div className="flex items-center justify-between gap-2 border-t pt-2">
+            <span className="text-xs font-bold text-muted-foreground">{t('weightWeb.target')}</span>
+            <Button size="sm" variant="ghost" onClick={() => setTargeting(true)}>
+              <FlagIcon />
+              {target === null ? t('weightWeb.targetSet') : show(target)}
+            </Button>
+          </div>
         </>
       )}
+      {targeting && <TargetWeightDialog target={target} unit={unit} onClose={() => setTargeting(false)} />}
     </Card>
   );
 }
@@ -685,7 +710,7 @@ function HealthPanel() {
   const [weight, setWeight] = useState<{ row: WeightRow | null } | null>(null);
   return (
     <div className="flex flex-col gap-4">
-      <SleepCard onLog={setNight} />
+      <SleepCard onLog={setNight} onLogWeight={() => setWeight({ row: null })} />
       <StepsCard />
       <WeightCard onLog={() => setWeight({ row: null })} />
       <WeightHistory onEdit={(row) => setWeight({ row })} />
@@ -723,7 +748,8 @@ export function BodyScreen({ tab: initial = 'health' }: { tab?: 'health' | 'gym'
   const halves = (['health', 'gym'] as const).filter((half) => switches[half]);
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-extrabold">{t('body.title')}</h1>
+      {/* On a phone the app bar names the tab. */}
+      <h1 className="text-2xl font-extrabold max-md:sr-only">{t('body.title')}</h1>
       {halves.length === 0 ? (
         <EmptyState
           icon={<SettingsIcon />}
@@ -743,9 +769,15 @@ export function BodyScreen({ tab: initial = 'health' }: { tab?: 'health' | 'gym'
         )
       ) : (
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
-            <TabsTrigger value="health">{t('body.health')}</TabsTrigger>
-            <TabsTrigger value="gym">{t('body.gym')}</TabsTrigger>
+          <TabsList aria-label={t('nav.bodyTabs')} className={screenTabsList}>
+            <TabsTrigger value="health" className={screenTabsTrigger}>
+              <TabIcon icon={HeartPulseIcon} />
+              {t('nav.health')}
+            </TabsTrigger>
+            <TabsTrigger value="gym" className={screenTabsTrigger}>
+              <TabIcon icon={DumbbellIcon} />
+              {t('nav.gym')}
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="health">
             <HealthPanel />

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { type Issue, issueSchema, toIssues } from './errors.js';
-import { isPortableSetting } from './settings.js';
+import { isLegacySetting, isPortableSetting } from './settings.js';
 import { hasColumn, syncedTableSchema, tables, type SyncedTable } from './tables.js';
 import { instantMicros, isoInstantSchema, sameInstant } from './time.js';
 
@@ -18,18 +18,30 @@ function decodedLength(value: string): number {
 }
 
 /**
+ * The longest `ct` a sealed row may carry, in base64 characters (about
+ * 750 KB of ciphertext). The biggest private row is a place or a debt
+ * with a long note; a megabyte of base64 is far past any real one, and
+ * far short of what a push could otherwise carry (audit S5-02).
+ */
+export const maxEnvelopeCtLength = 1_000_000;
+
+/**
  * A private-tier row, sealed: AES-256-GCM over the JSON of its `data`,
  * keyed by the sync passphrase ([[Sync-API]]). The server checks that
  * it is well-formed and nothing more; it has no key to do anything else.
+ *
+ * `v: 2` is what clients write now (`crypto.ts`). `v: 1`, what 3.0.0
+ * wrote, is still well-formed, so such a row can be stored and pulled;
+ * a newer client counts it as locked.
  */
 export const encEnvelopeSchema = z.strictObject({
-  v: z.literal(1),
+  v: z.union([z.literal(1), z.literal(2)]),
   /** The 12-byte GCM nonce, base64. */
   iv: base64.refine((value) => decodedLength(value) === 12, {
     message: 'The nonce must be 12 bytes',
   }),
   /** Ciphertext followed by the 16-byte tag, base64. */
-  ct: base64.min(1).max(4_000_000),
+  ct: base64.min(1).max(maxEnvelopeCtLength),
 });
 export type EncEnvelope = z.infer<typeof encEnvelopeSchema>;
 
@@ -129,7 +141,9 @@ export function checkRecord(raw: unknown): CheckedRecord {
   if (!envelope.success) return { ok: false, issues: toIssues(envelope.error) };
   const record = envelope.data as SyncRecord;
 
-  if (record.table === 'kv_settings' && !isPortableSetting(record.uuid)) {
+  // A legacy key from a 3.0.0 phone is stored so that phone is not
+  // refused for ever; nothing current applies it.
+  if (record.table === 'kv_settings' && !isPortableSetting(record.uuid) && !isLegacySetting(record.uuid)) {
     return {
       ok: false,
       issues: [
@@ -185,6 +199,59 @@ export function checkRecord(raw: unknown): CheckedRecord {
 export function recordStamp(record: Pick<SyncRecord, 'updatedAt'>): number {
   return instantMicros(record.updatedAt);
 }
+
+/**
+ * How far ahead of the server's clock a record's `updatedAt` may be. A
+ * stamp from next year would win every conflict until next year, so a
+ * row written by a device whose clock ran away is refused rather than
+ * frozen (audit S5-11, Q5-10).
+ */
+export const maxClockLeadMs = 24 * 60 * 60_000;
+
+/**
+ * No clock past this: microseconds since the epoch stop being exact
+ * doubles in 2255, and nothing Harvest keeps is dated after 2200.
+ */
+export const latestInstant = '2200-01-01T00:00:00Z';
+
+/**
+ * What is wrong with a record's clocks, judged at [now] (the server's
+ * clock), or null when nothing is.
+ */
+export function clockIssues(record: Pick<SyncRecord, 'updatedAt' | 'deletedAt'>, now: Date): Issue[] {
+  const latest = instantMicros(latestInstant);
+  const issues: Issue[] = [];
+  const stamp = instantMicros(record.updatedAt);
+  if (stamp >= latest) {
+    issues.push({ path: ['updatedAt'], message: 'The clock is past the year 2200', code: 'clock_too_far' });
+  } else if (stamp > (now.getTime() + maxClockLeadMs) * 1000) {
+    issues.push({
+      path: ['updatedAt'],
+      message: "The clock is more than a day ahead of the server's; check this device's date",
+      code: 'clock_ahead',
+    });
+  }
+  if (record.deletedAt !== null && instantMicros(record.deletedAt) >= latest) {
+    issues.push({ path: ['deletedAt'], message: 'The clock is past the year 2200', code: 'clock_too_far' });
+  }
+  return issues;
+}
+
+/**
+ * What one account may keep in rows, all told: the sealed and plain
+ * payloads as stored. Years of a heavy day are a few tens of megabytes;
+ * this is room for far more, and a ceiling on a volume that has none
+ * otherwise (audit S5-02). Past it, a record that would grow the store
+ * comes back `invalid` with the issue code `quota_exceeded`.
+ */
+export const maxRecordStoreBytes = 256 * 1024 * 1024;
+
+/**
+ * How much one pull carries at most, in stored bytes: the page ends at
+ * the first record past it (with `more: true`), so a pull never holds
+ * more than this and one record in memory.
+ */
+export const maxPullBytes = 8 * 1024 * 1024;
 
 // ------------------------------------------------------------------ push
 

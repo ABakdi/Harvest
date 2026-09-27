@@ -1,12 +1,15 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
+import 'package:harvest/features/gallery/data/memory_files.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/presentation/memory_view.dart';
-import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:harvest/l10n/app_localizations_en.dart';
 
@@ -19,14 +22,17 @@ class _Pin extends SyncPassphrase {
   Future<bool> build() async => initial;
 }
 
-class _Sync extends SyncController {
-  int syncs = 0;
+/// The server's copy of a picture, fetched on demand; each fetch waits
+/// on [answer] until the test says how it went.
+class _Files implements MemoryFiles {
+  final asked = <({String uuid, bool retry, bool again})>[];
+  Completer<bool> answer = Completer();
 
   @override
-  SyncStatus build() => const SyncStatus();
-
-  @override
-  Future<void> syncNow() async => syncs++;
+  Future<bool> fetch(Memory memory, {bool retry = false, bool again = false}) {
+    asked.add((uuid: memory.uuid, retry: retry, again: again));
+    return answer.future;
+  }
 }
 
 Memory _memory({String? fileHash}) => Memory(
@@ -43,20 +49,26 @@ Memory _memory({String? fileHash}) => Memory(
 void main() {
   final l10n = AppLocalizationsEn();
 
-  Future<_Sync> pump(
+  Future<_Files> pump(
     WidgetTester tester,
     Memory memory, {
     bool pin = false,
     bool failed = false,
     double size = 240,
   }) async {
-    final sync = _Sync();
+    final files = _Files();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           syncPassphraseProvider.overrideWith(() => _Pin(initial: pin)),
-          syncControllerProvider.overrideWith(() => sync),
-          syncSealedSeenProvider.overrideWith((ref) => Stream.value(true)),
+          memoryFilesProvider.overrideWithValue(files),
+          syncKeyShareProvider.overrideWith(
+            (ref) async => SyncKeyShare(
+              salt: 'salt',
+              keyShare: Uint8List(32),
+              check: const {'v': 2, 'iv': '', 'ct': ''},
+            ),
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -72,8 +84,9 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
-    return sync;
+    await tester.pump();
+    await tester.pump();
+    return files;
   }
 
   testWidgets('not sent yet by the device that took it', (tester) async {
@@ -85,21 +98,34 @@ void main() {
   testWidgets('on the server, but this phone has no PIN: asks for it', (
     tester,
   ) async {
-    await pump(tester, _memory(fileHash: 'ab' * 32));
+    final files = await pump(tester, _memory(fileHash: 'ab' * 32));
     expect(find.text(l10n.galleryFileNeedsPin), findsOneWidget);
+    expect(files.asked, isEmpty);
     await tester.tap(find.text(l10n.syncPinSetAction));
     await tester.pumpAndSettle();
     expect(find.byType(SyncPinSheet), findsOneWidget);
   });
 
-  testWidgets('with the PIN and still missing: could not load, try again', (
-    tester,
-  ) async {
-    final sync = await pump(tester, _memory(fileHash: 'ab' * 32), pin: true);
+  testWidgets('on the server, with the PIN: fetched now, on its own '
+      '(Q5-26)', (tester) async {
+    final files = await pump(tester, _memory(fileHash: 'ab' * 32), pin: true);
+    expect(find.text(l10n.galleryFileDownloading), findsOneWidget);
+    expect(files.asked, [(uuid: 'm1', retry: false, again: false)]);
+    expect(find.text(l10n.galleryFileFailed), findsNothing);
+  });
+
+  testWidgets('one that does not come down: could not load, and Try again '
+      'fetches that file again', (tester) async {
+    final files = await pump(tester, _memory(fileHash: 'ab' * 32), pin: true);
+    files.answer.complete(false);
+    await tester.pump();
     expect(find.text(l10n.galleryFileFailed), findsOneWidget);
+
+    files.answer = Completer();
     await tester.tap(find.text(l10n.galleryFileRetry));
     await tester.pump();
-    expect(sync.syncs, 1);
+    expect(files.asked.last, (uuid: 'm1', retry: true, again: false));
+    expect(find.text(l10n.galleryFileDownloading), findsOneWidget);
   });
 
   testWidgets('a file here that will not draw could not load either', (
@@ -107,6 +133,20 @@ void main() {
   ) async {
     await pump(tester, _memory(), failed: true);
     expect(find.text(l10n.galleryFileFailed), findsOneWidget);
+  });
+
+  testWidgets('one that will not draw, and is on the server, comes down '
+      'again on Try again', (tester) async {
+    final files = await pump(
+      tester,
+      _memory(fileHash: 'ab' * 32),
+      pin: true,
+      failed: true,
+    );
+    expect(files.asked, isEmpty);
+    await tester.tap(find.text(l10n.galleryFileRetry));
+    await tester.pump();
+    expect(files.asked, [(uuid: 'm1', retry: true, again: true)]);
   });
 
   testWidgets('a thumbnail too small for words keeps them as its label', (

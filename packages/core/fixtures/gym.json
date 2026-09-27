@@ -1,5 +1,5 @@
 {
-  "about": "program.dart, session.dart, plates.dart, exercise.dart, weight_text.dart and the pure half of sessions_repository.dart: loads round to a quarter kilo or a quarter pound, in the unit they are read in, percentages resolve against a training max, a session keeps the phone's label of its target, Epley estimates, three records, plates per side, and the day that is up next.",
+  "about": "program.dart, session.dart, plates.dart, exercise.dart, weight_text.dart and the pure half of sessions_repository.dart: loads round to a quarter kilo or a quarter pound, in the unit they are read in, percentages resolve against a training max to what the plates can load (0.5 kg, 5 lb), a session keeps the phone's label of its target, Epley estimates, three records, plates per side, and the day that is up next.",
   "roundLoad": [
     { "grams": 83250, "rounded": 83250 },
     { "grams": 83260, "rounded": 83250 },
@@ -19,18 +19,18 @@
       "label": "100.00×5"
     },
     {
-      "why": "75% of 111 kg is 83.25, not a float nobody can load",
+      "why": "75% of 111 kg is 83.25, which two sides of a bar cannot hold: 83.5",
       "target": { "reps": 5, "weightGrams": null, "percentTenths": 750, "openEnded": false },
       "trainingMaxGrams": 111000,
-      "grams": 83250,
-      "label": "83.25×5"
+      "grams": 83500,
+      "label": "83.50×5"
     },
     {
-      "why": "33.3% of 100 kg rounds to the nearest quarter kilo",
+      "why": "33.3% of 100 kg rounds to the nearest half kilo",
       "target": { "reps": 8, "weightGrams": null, "percentTenths": 333, "openEnded": false },
       "trainingMaxGrams": 100000,
-      "grams": 33250,
-      "label": "33.25×8"
+      "grams": 33500,
+      "label": "33.50×8"
     },
     {
       "why": "a percentage with no training max is a question, not a zero, and keeps its percent in the label",
@@ -62,15 +62,15 @@
       "label": "61.23×5"
     },
     {
-      "why": "75% of 225 lb resolves in pounds: 168.75 lb",
+      "why": "75% of 225 lb is 168.75 lb, which 2.5 lb plates cannot make: 170 lb",
       "unit": "lb",
       "target": { "reps": 5, "weightGrams": null, "percentTenths": 750, "openEnded": true },
       "trainingMaxGrams": 102058,
-      "grams": 76544,
-      "label": "76.54×5+"
+      "grams": 77111,
+      "label": "77.11×5+"
     },
     {
-      "why": "33.3% of 225 lb rounds to the nearest quarter pound, 75 lb",
+      "why": "33.3% of 225 lb rounds to the nearest 5 lb, 75 lb",
       "unit": "lb",
       "target": { "reps": 8, "weightGrams": null, "percentTenths": 333, "openEnded": false },
       "trainingMaxGrams": 102058,
@@ -215,5 +215,13 @@
     { "positions": [0, 1, 2], "next": 3, "why": "nothing dropped" },
     { "positions": [0, 2], "next": 3, "why": "the middle one dropped: after the highest, not at the count" },
     { "positions": [2, 0], "next": 3, "why": "whatever order they are read in" }
+  ],
+  "finishes": [
+    { "why": "nothing ticked", "exercises": [{ "skipped": false, "sets": [false] }], "kind": "empty", "done": 0, "left": 1, "planned": 1 },
+    { "why": "half the sets ticked", "exercises": [{ "skipped": false, "sets": [true, false] }], "kind": "incomplete", "done": 1, "left": 1, "planned": 2 },
+    { "why": "a skipped exercise's sets were never going to happen", "exercises": [{ "skipped": false, "sets": [true] }, { "skipped": true, "sets": [false, false] }], "kind": "none", "done": 1, "left": 0, "planned": 1 },
+    { "why": "ticks on a skipped exercise leave nothing fewer to do", "exercises": [{ "skipped": true, "sets": [true, true, false, false, false] }, { "skipped": false, "sets": [false, false, false] }], "kind": "incomplete", "done": 2, "left": 3, "planned": 3 },
+    { "why": "however many of them there are", "exercises": [{ "skipped": true, "sets": [true, true, true, true, true] }, { "skipped": false, "sets": [false, false, false] }], "kind": "incomplete", "done": 5, "left": 3, "planned": 3 },
+    { "why": "all ticked", "exercises": [{ "skipped": false, "sets": [true, true] }], "kind": "none", "done": 2, "left": 0, "planned": 2 }
   ]
 }

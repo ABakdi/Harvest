@@ -30,7 +30,9 @@ import { useRelativeTime } from '../components/relative-time';
 import { useHarvest, useSyncStatus } from '../context';
 import { SettingsRow as Row, SettingsSection as Section, Stepper, FeatureSwitchList, useFeaturesOrOff } from '../components/settings-bits';
 import { DailyCycleCard, SleepNightsCard } from '../components/settings-cycle';
+import { CategoryManager } from '../components/money-categories';
 import { RatesCard } from '../components/settings-rates';
+import { FarmerTabs } from '../components/screen-tabs';
 import { featureKeys, pomodoroSettings, settingKeys } from '../data/settings';
 import { useDefaultCurrency, usePrivateKey, useSetting } from '../hooks';
 
@@ -378,11 +380,12 @@ export function MoneySection() {
   const { t } = useTranslation();
   const { settings } = useHarvest();
   const currency = useDefaultCurrency();
+  const unlocked = usePrivateKey();
   const id = useId();
   return (
     <Section title={t('settingsWeb.money')} id="settings-money">
       <Row label={t('settings.defaultCurrency')} htmlFor={`${id}-currency`}>
-        <Select value={currency} onValueChange={(value) => void settings.setString(settingKeys.defaultCurrency, value)}>
+        <Select value={currency} onValueChange={(value) => void settings.setDefaultCurrency(value)}>
           <SelectTrigger id={`${id}-currency`} className="w-full sm:w-40">
             <SelectValue />
           </SelectTrigger>
@@ -398,6 +401,8 @@ export function MoneySection() {
       <div className="border-t pt-4">
         <RatesCard />
       </div>
+      {/* My own categories live here, as on the phone; they are sealed, so only once the PIN is in. */}
+      {unlocked && <CategoryManager />}
     </Section>
   );
 }
@@ -446,7 +451,8 @@ export function SettingsScreen() {
   const id = useId();
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-extrabold">{t('nav.settings')}</h1>
+      <FarmerTabs />
+      <h1 className="text-2xl font-extrabold max-md:sr-only">{t('nav.settings')}</h1>
       <HarvestSection />
       <ExtrasSection />
       <GeotagSetting />

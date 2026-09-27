@@ -148,5 +148,13 @@
       "snapshot": null,
       "status": null
     }
+  ],
+  "budgetSwitches": [
+    { "why": "dinars into euros at the typed rate", "rates": { "defaultCurrency": "DZD", "dzdPerEur": 250 }, "budget": 5000000, "from": "DZD", "to": "EUR", "result": 20000 },
+    { "why": "and back", "rates": { "defaultCurrency": "EUR", "dzdPerEur": 250 }, "budget": 20000, "from": "EUR", "to": "DZD", "result": 5000000 },
+    { "why": "euros into dollars by the fetched cross rate", "rates": { "defaultCurrency": "EUR", "usdPerEur": 1.1 }, "budget": 100000, "from": "EUR", "to": "USD", "result": 110000 },
+    { "why": "without a rate the number stays", "rates": { "defaultCurrency": "DZD", "dzdPerEur": 250 }, "budget": 5000000, "from": "DZD", "to": "USD", "result": 5000000 },
+    { "why": "never below one minor unit", "rates": { "defaultCurrency": "DZD", "dzdPerUsd": 100000 }, "budget": 1, "from": "DZD", "to": "USD", "result": 1 },
+    { "why": "the same currency is the same budget", "rates": { "defaultCurrency": "DZD" }, "budget": 1234, "from": "DZD", "to": "DZD", "result": 1234 }
   ]
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
@@ -17,6 +18,7 @@ import 'package:harvest/core/ui/widgets/ledger_row.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/finance_actions.dart';
@@ -24,7 +26,9 @@ import 'package:harvest/features/finances/presentation/budget_colors.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_charts.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/finances/presentation/guarded.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/finances/presentation/money_sheet.dart';
 import 'package:harvest/features/finances/presentation/vault_tab.dart';
 import 'package:harvest/features/lists/domain/lists.dart';
 import 'package:harvest/features/lists/presentation/list_labels.dart';
@@ -473,12 +477,21 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
     super.dispose();
   }
 
-  Future<void> _save() async {
-    final minor = parseToMinor(_amountController.text);
-    if (minor == null) return;
+  /// What the box comes to; a sum counts, as it does everywhere an
+  /// amount is typed ([[Audit-v3]] G5-06).
+  int? get _minor => evaluateAmountToMinor(_amountController.text);
+
+  /// Saves, or clears with null, and says so when the write fails
+  /// instead of closing on a budget that never landed.
+  Future<void> _save(int? minor) async {
     final notifier = ref.read(financeSettingsProvider.notifier);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final saved = runGuarded(context, notifier.setBudget(minor), haptic: false);
     Navigator.of(context).pop();
-    await notifier.setBudget(minor);
+    if (await saved && minor == null) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.budgetCleared)));
+    }
   }
 
   @override
@@ -486,18 +499,31 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final currency = ref.watch(defaultCurrencyProvider);
+    final minor = _minor;
+    final current = ref.watch(financeSettingsProvider).value?.budgetMinor;
 
     return HarvestSheet(
       title: l10n.budgetTitle,
-      actionLabel: l10n.save,
-      onAction: parseToMinor(_amountController.text) == null
+      // Clearing is the spec's other answer: no budget at all.
+      trailing: current == null || current <= 0
           ? null
-          : () => unawaited(_save()),
+          : TextButton(
+              onPressed: () => unawaited(_save(null)),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+              child: Text(l10n.budgetClear),
+            ),
+      actionLabel: l10n.save,
+      onAction: minor == null ? null : () => unawaited(_save(minor)),
       children: [
         TextField(
           controller: _amountController,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(amountCharacters),
+          ],
           onChanged: (_) => setState(() {}),
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
@@ -505,6 +531,7 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
           decoration: InputDecoration(
             labelText: l10n.budgetAmountLabel,
             prefixText: currency.symbol,
+            helperText: amountSumHelper(l10n, _amountController.text, currency),
           ),
         ),
         const SizedBox(height: HarvestSpacing.sm),
@@ -519,14 +546,48 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
   }
 }
 
-class _RepeatCard extends ConsumerWidget {
+class _RepeatCard extends ConsumerStatefulWidget {
   const _RepeatCard({required this.suggestion, required this.rates});
 
   final RepeatSuggestion suggestion;
   final Rates rates;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_RepeatCard> createState() => _RepeatCardState();
+}
+
+class _RepeatCardState extends ConsumerState<_RepeatCard> {
+  /// One tap, one coffee: a double tap while the first write is on its
+  /// way logs nothing more ([[Audit-v3]] Q5-38).
+  bool _busy = false;
+
+  Future<void> _log() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final suggestion = widget.suggestion;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    try {
+      await ref
+          .read(financesRepositoryProvider)
+          .log(
+            amountMinor: suggestion.amountMinor,
+            category: suggestion.category,
+            currency: suggestion.currency,
+            note: suggestion.note,
+          );
+      await ref.read(notificationPlannerProvider).reevaluate();
+    } on Exception catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final suggestion = widget.suggestion;
+    final rates = widget.rates;
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -571,17 +632,7 @@ class _RepeatCard extends ConsumerWidget {
               minimumSize: const Size(64, 44),
               backgroundColor: scheme.secondary,
             ),
-            onPressed: () async {
-              await ref
-                  .read(financesRepositoryProvider)
-                  .log(
-                    amountMinor: suggestion.amountMinor,
-                    category: suggestion.category,
-                    currency: suggestion.currency,
-                    note: suggestion.note,
-                  );
-              await ref.read(notificationPlannerProvider).reevaluate();
-            },
+            onPressed: _busy ? null : () => unawaited(_log()),
             child: Text(l10n.logIt),
           ),
         ],

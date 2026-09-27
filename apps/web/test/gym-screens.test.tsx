@@ -169,7 +169,7 @@ describe('a session in the browser', () => {
     const detail = await screen.findByRole('dialog');
     expect(within(detail).getByText('Personal records')).toBeInTheDocument();
     // The heaviest set, and the history's one outing.
-    expect(within(detail).getAllByText('100 kg×5')).toHaveLength(2);
+    expect(await within(detail).findAllByText('100 kg×5')).toHaveLength(2);
     expect(within(detail).getAllByText('116.67 kg').length).toBeGreaterThan(0);
     expect(within(detail).getByText(/Epley/)).toBeInTheDocument();
     expect(within(detail).getByText('500 kg')).toBeInTheDocument();

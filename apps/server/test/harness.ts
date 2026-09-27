@@ -29,6 +29,8 @@ export interface HarnessOptions {
   fetch?: Fetch;
   /** The assist's model, which is otherwise over the network. */
   assistFetch?: typeof fetch;
+  /** The server's clock, for the tests that move it. */
+  now?: () => Date;
 }
 
 /**
@@ -56,8 +58,11 @@ export async function harness(options: HarnessOptions = {}): Promise<Harness> {
       fetch: options.fetch ?? (() => Promise.reject(new Error('no network in tests'))),
     }),
     logger: createLogger('silent'),
-    ...(options.rateLimits ? { rateLimits: options.rateLimits } : {}),
+    // Every test signs up from one address; the sign-up limit has a test
+    // of its own that sets it back.
+    rateLimits: { registrations: 1000, ...options.rateLimits },
     ...(options.assistFetch ? { assistFetch: options.assistFetch } : {}),
+    ...(options.now ? { now: options.now } : {}),
   });
   return {
     app,
@@ -116,11 +121,14 @@ export function linkToken(h: Harness, email: string, purpose: 'verify' | 'reset'
 
 export const bearer = (account: { accessToken: string }) => ({ Authorization: `Bearer ${account.accessToken}` });
 
+/** The refresh cookie's name where cookies are Secure, as in every test. */
+export const refreshCookie = '__Secure-harvest_refresh';
+
 /** The refresh cookie's value from a response, if it set one. */
-export function refreshCookieOf(res: Response): string | undefined {
+export function refreshCookieOf(res: Response, name = refreshCookie): string | undefined {
   const header = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cookie = header?.find((c) => c.startsWith('harvest_refresh='));
-  const value = cookie?.split(';')[0]?.slice('harvest_refresh='.length);
+  const cookie = header?.find((c) => c.startsWith(`${name}=`));
+  const value = cookie?.split(';')[0]?.slice(name.length + 1);
   return value && value.length > 0 ? value : undefined;
 }
 

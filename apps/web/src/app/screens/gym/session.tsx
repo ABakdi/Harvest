@@ -56,6 +56,7 @@ import { ExerciseDetailDialog } from './exercise-detail';
 import { ExercisePicker } from './exercise-picker';
 import { usePictureOffer, type PictureState } from './picture-offer';
 import { PlatesDialog } from './plates';
+import { useBusy } from '../../components/use-busy';
 import { SetBadge } from './program-editor';
 import { RestField, SetList, SetText, around, clockText, loadField, sessionClockText, prettyStoredLabel, useAsker, useLoad, useUnit, type Asker } from './shared';
 
@@ -165,7 +166,7 @@ function ClockButton({ session, staleDays, onToggle }: { session: SessionRow; st
       aria-label={paused ? t('gym.resumeClock') : t('gym.pause')}
       title={paused ? t('gym.resumeClock') : t('gym.pause')}
       className={cn(
-        'flex min-h-10 items-center gap-2 rounded-full px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'flex min-h-10 items-center max-md:min-h-11 gap-2 rounded-full px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring',
         paused ? 'bg-sun/20 text-foreground' : 'hover:bg-accent',
       )}
     >
@@ -198,6 +199,7 @@ function parseReps(text: string): number {
  */
 function SetLine({
   set,
+  number,
   exercise,
   barred,
   asker,
@@ -205,6 +207,8 @@ function SetLine({
   onPlates,
 }: {
   set: SetRow;
+  /** 1 up, by place in the list: a dropped set leaves a gap in the positions (Y13), not in the count (Q5-46). */
+  number: number;
   exercise: ExerciseInSession;
   barred: boolean;
   asker: Asker;
@@ -243,7 +247,9 @@ function SetLine({
 
   const grams = parseLoad(weight, unit);
   const count = parseReps(reps);
-  const number = set.position + 1;
+  // One tick at a time: a double click neither writes twice nor says
+  // the record twice ([[Audit-v3]] Q5-39).
+  const [, once] = useBusy();
 
   async function toggle() {
     if (set.done) {
@@ -276,23 +282,23 @@ function SetLine({
 
   const target = set.targetLabel === null ? '—' : prettyStoredLabel(set.targetLabel, unit);
   return (
-    <li className="grid grid-cols-[2rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] items-center gap-1.5">
+    <li className="grid grid-cols-[2rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] max-md:grid-cols-[2.75rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] items-center gap-1.5">
       {/* Dropping asks first, so a click at speed is never one slip from losing a row. */}
       <button
         type="button"
         onClick={() => void drop()}
         aria-label={t('gym.dropSetNamed', { set: number })}
         title={t('gym.dropSet')}
-        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11 max-md:items-center"
       >
-        <SetBadge position={set.position} openEnded={set.openEnded} />
+        <SetBadge number={number} openEnded={set.openEnded} />
       </button>
       {barred && grams > 0 ? (
         <button
           type="button"
           onClick={() => onPlates(grams)}
           aria-label={t('gym.platesFor', { load: load(grams) })}
-          className="truncate rounded-md px-1 text-start text-sm text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="truncate rounded-md px-1 text-start text-sm text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11"
           dir="ltr"
         >
           {target}
@@ -308,7 +314,7 @@ function SetLine({
         disabled={set.done}
         value={weight}
         onChange={(event) => setWeight(event.target.value.replace(/[^\d.,]/g, ''))}
-        className={cn('h-9 px-1 text-center font-bold tabular', set.done && 'bg-primary/10 disabled:opacity-100')}
+        className={cn('h-9 px-1 text-center font-bold tabular max-md:h-11', set.done && 'bg-primary/10 disabled:opacity-100')}
       />
       <Input
         aria-label={t('gym.repsOfSet', { set: number })}
@@ -317,17 +323,17 @@ function SetLine({
         placeholder={set.openEnded ? '1+' : undefined}
         value={reps}
         onChange={(event) => setReps(event.target.value.replace(/[^\d]/g, ''))}
-        className={cn('h-9 px-1 text-center font-bold tabular', set.done && 'bg-primary/10 disabled:opacity-100')}
+        className={cn('h-9 px-1 text-center font-bold tabular max-md:h-11', set.done && 'bg-primary/10 disabled:opacity-100')}
       />
       <span className="relative flex justify-center">
         {celebrating && <span className="absolute inset-0 rounded-full bg-sun/60 motion-safe:animate-ping" aria-hidden />}
         <button
           type="button"
-          onClick={() => void toggle()}
+          onClick={() => void once(toggle)}
           aria-pressed={set.done}
           aria-label={set.done ? t('gym.untickNamed', { set: number }) : t('gym.tickNamed', { set: number })}
           className={cn(
-            'relative flex size-10 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95',
+            'relative flex size-10 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 max-md:size-11',
             set.done ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40 hover:border-primary',
           )}
         >
@@ -414,7 +420,7 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
             type="button"
             onClick={() => setDetail(true)}
             className={cn(
-              'self-start rounded-md text-start text-lg font-extrabold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring',
+              'self-start rounded-md text-start text-lg font-extrabold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11',
               row.skipped ? 'text-muted-foreground line-through' : 'text-primary',
             )}
           >
@@ -452,7 +458,7 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
       {row.note && <p className="text-xs text-muted-foreground">{row.note}</p>}
       {!row.skipped && (
         <>
-          <div className="grid grid-cols-[2rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] gap-1.5 border-t pt-2 text-center text-xs text-muted-foreground" aria-hidden>
+          <div className="grid grid-cols-[2rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] max-md:grid-cols-[2.75rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] gap-1.5 border-t pt-2 text-center text-xs text-muted-foreground" aria-hidden>
             <span>{t('gym.setColumn')}</span>
             <span className="text-start">{t('gym.targetColumn')}</span>
             <span>{t(`body.unit.${unit}`)}</span>
@@ -460,8 +466,8 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
             <span />
           </div>
           <ul className="flex flex-col gap-1.5">
-            {exercise.sets.map((set) => (
-              <SetLine key={set.uuid} set={set} exercise={exercise} barred={barred} asker={asker} onTicked={startRest} onPlates={setPlates} />
+            {exercise.sets.map((set, index) => (
+              <SetLine key={set.uuid} set={set} number={index + 1} exercise={exercise} barred={barred} asker={asker} onTicked={startRest} onPlates={setPlates} />
             ))}
           </ul>
           <Button variant="ghost" size="sm" className="self-start" onClick={() => void sessions.addSet(row.uuid)}>
@@ -544,9 +550,12 @@ export function SessionScreen() {
   const [staleClosed, setStaleClosed] = useState(false);
   const staleOpen = stale && !staleClosed;
   const setStaleOpen = (open: boolean) => setStaleClosed(!open);
+  // One finish at a time: a double click neither finishes twice nor
+  // navigates twice ([[Audit-v3]] Q5-39).
+  const [finishing, once] = useBusy();
 
   const back = (
-    <Button asChild variant="ghost" size="sm" className="self-start">
+    <Button asChild variant="ghost" size="sm" className="self-start max-md:hidden">
       <Link to="/app/body/gym">
         <ArrowLeftIcon className="rtl:rotate-180" />
         {t('gym.backToGym')}
@@ -687,11 +696,11 @@ export function SessionScreen() {
         {t('gym.addExercise')}
       </Button>
       {/* The rest, the clock and Finish, where the hand is between sets. */}
-      <div className="sticky bottom-24 z-20 flex flex-col gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur md:bottom-4">
+      <div className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-20 flex flex-col gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur md:bottom-4">
         <RestBar rest={rest} />
         <div className="flex items-center justify-between gap-2">
           <ClockButton session={session} staleDays={stale ? HarvestDay.parse(session.harvestDay).daysUntil(today) : 0} onToggle={() => void (session.pausedAt === null ? sessions.pause(uuid) : sessions.resume(uuid))} />
-          <Button onClick={() => void finish()}>
+          <Button disabled={finishing} onClick={() => void once(finish)}>
             <FlagIcon />
             {t('gym.finish')}
           </Button>
@@ -730,7 +739,7 @@ export function SessionScreen() {
               <Button
                 onClick={() => {
                   setStaleOpen(false);
-                  void complete(lastActivity(tree));
+                  void once(() => complete(lastActivity(tree)));
                 }}
               >
                 {t('gym.staleFinish', { day: dayName(session.harvestDay) })}

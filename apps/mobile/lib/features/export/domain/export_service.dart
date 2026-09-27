@@ -40,11 +40,14 @@ class ExportService {
   final ArchiveService _archive;
 
   /// The whole archive. Returns the path the file landed on.
+  /// [onTooLarge] hears of each file left out for its size.
   Future<String> exportArchive({
     DateTime? now,
     void Function(ArchiveProgress)? onProgress,
     bool Function()? cancelled,
     bool includePlaces = true,
+    void Function(String path)? onTooLarge,
+    void Function(String path)? onNotHere,
   }) async {
     final at = now ?? DateTime.now();
     final bytes = await _archive.build(
@@ -52,6 +55,8 @@ class ExportService {
       onProgress: onProgress,
       cancelled: cancelled,
       includePlaces: includePlaces,
+      onTooLarge: onTooLarge,
+      onNotHere: onNotHere,
     );
     return _downloads.save(
       fileName: archiveFileName(at),
@@ -109,9 +114,15 @@ class ExportCancelled extends ExportStatus {
 }
 
 class ExportSaved extends ExportStatus {
-  const ExportSaved(this.path);
+  const ExportSaved(this.path, {this.leftOut = 0, this.notHere = 0});
 
   final String path;
+
+  /// Files too large for an archive, left out of it.
+  final int leftOut;
+
+  /// Pictures only the server holds so far, not in the archive.
+  final int notHere;
 }
 
 class ExportFailed extends ExportStatus {
@@ -147,16 +158,20 @@ class ExportController extends _$ExportController {
               .read(settingsRepositoryProvider)
               .getString(exportIncludesPlacesKey) !=
           'false';
+      var leftOut = 0;
+      var notHere = 0;
       final path = await ref
           .read(exportServiceProvider)
           .exportArchive(
             includePlaces: includePlaces,
+            onTooLarge: (_) => leftOut++,
+            onNotHere: (_) => notHere++,
             onProgress: (progress) {
               if (state is ExportRunning) state = ExportRunning(progress);
             },
             cancelled: () => _cancelled,
           );
-      state = ExportSaved(path);
+      state = ExportSaved(path, leftOut: leftOut, notHere: notHere);
     } on ArchiveCancelled {
       state = const ExportCancelled();
     } on DownloadFailure catch (failure) {

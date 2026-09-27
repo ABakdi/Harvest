@@ -321,6 +321,36 @@ class GoalsRepository {
         }
       });
 
+  /// Un-ticks what an undone check-in ticked, and only that: the item,
+  /// or the subtasks of a parent, whose tick is the check-in's own
+  /// moment ([stamps], its `loggedAt`). A subtask I ticked by hand
+  /// before or after stays ticked ([[Goals]] GL3, [[Audit-v3]] Q5-43).
+  Future<void> untickFrom(String uuid, Iterable<DateTime> stamps) =>
+      _db.transaction(() async {
+        final item = await _item(uuid);
+        if (item == null) return;
+        bool ticked(DateTime? doneAt) =>
+            doneAt != null && stamps.any(doneAt.isAtSameMomentAs);
+        final subtasks = await _subtasks(uuid);
+        if (subtasks.isNotEmpty) {
+          for (final subtask in subtasks) {
+            if (!ticked(subtask.doneAt)) continue;
+            await _writeItem(
+              subtask.uuid,
+              const GoalItemsCompanion(doneAt: Value(null)),
+            );
+          }
+          await _settleParent(uuid);
+          return;
+        }
+        if (!ticked(item.doneAt)) return;
+        await _writeItem(
+          uuid,
+          const GoalItemsCompanion(doneAt: Value(null)),
+        );
+        if (item.parentUuid != null) await _settleParent(item.parentUuid!);
+      });
+
   /// One section's order, or one parent's subtasks', as dragged.
   Future<void> reorderItems(List<String> uuids) => _db.transaction(() async {
     for (final (i, uuid) in uuids.indexed) {
@@ -448,6 +478,25 @@ class GoalsRepository {
     uuid,
     GoalItemsCompanion(commitmentUuid: Value(commitmentUuid)),
   );
+
+  /// Settles every live parent at once: after a sync merge or an
+  /// import, which write rows one by one and can leave a parent's stored
+  /// tick behind its subtasks' ([[Audit-v3]] Q5-44). A no-op for every
+  /// parent that is already right.
+  Future<void> settleAllParents() => _db.transaction(() async {
+    final parents =
+        await (_db.selectOnly(_db.goalItems, distinct: true)
+              ..addColumns([_db.goalItems.parentUuid])
+              ..where(
+                _db.goalItems.parentUuid.isNotNull() &
+                    _db.goalItems.deletedAt.isNull(),
+              ))
+            .map((row) => row.read(_db.goalItems.parentUuid)!)
+            .get();
+    for (final uuid in parents) {
+      await _settleParent(uuid);
+    }
+  });
 
   /// Writes a parent's tick as its live subtasks draw it
   /// ([parentDoneAt]): the latest of their ticks when every one is

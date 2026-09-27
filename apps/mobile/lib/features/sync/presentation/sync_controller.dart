@@ -6,6 +6,7 @@ import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/gallery/data/memory_files.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -61,6 +62,19 @@ class SyncController extends _$SyncController {
 
   static const debounce = Duration(seconds: 2);
   static const every = Duration(minutes: 15);
+
+  /// How often the key is held against the account's key check, and
+  /// how soon again at the most: the key routes allow an account 60
+  /// requests in 15 minutes.
+  static const checkEvery = Duration(minutes: 30);
+  static const checkAtMost = Duration(minutes: 2);
+
+  /// The error a sync ends with when the PIN was started over on
+  /// another device and the key here no longer fits.
+  static const pinChanged = 'pinChanged';
+
+  DateTime? _checkedAt;
+  var _lockedAtCheck = 0;
 
   @override
   SyncStatus build() {
@@ -130,21 +144,42 @@ class SyncController extends _$SyncController {
       if (me == null || !me.verified) return;
     }
     state = state.copyWith(running: true);
+    // The key is held against the account's check — another device may
+    // have started the PIN over — now and then, and always before a
+    // private row would go up sealed with it.
+    final since = _checkedAt == null
+        ? null
+        : DateTime.now().difference(_checkedAt!);
+    final service = ref.read(syncServiceProvider);
+    if (since == null ||
+        since > checkEvery ||
+        (since > checkAtMost && await service.privatePending())) {
+      if (await _pinChanged()) return;
+    }
     try {
-      final report = await ref.read(syncServiceProvider).run();
+      final report = await service.run();
+      // Rows that stopped opening say the same, sooner.
+      if (report.locked > _lockedAtCheck && await _pinChanged()) return;
+      _lockedAtCheck = report.locked;
       await _syncFiles();
       state = state.copyWith(running: false, last: report, clearError: true);
     } on ApiException catch (error) {
       state = state.copyWith(running: false, error: error.code);
-    } on SyncPassphraseMismatch {
-      // The key cannot open what the other devices sealed: forget it,
-      // and ask again, rather than sync around the rows it cannot read.
-      await ref.read(syncPassphraseProvider.notifier).forget();
-      state = state.copyWith(running: false, error: 'passphrase');
     } on Object catch (error) {
       debugPrint('[sync] failed: ${error.runtimeType}');
       state = state.copyWith(running: false, error: 'internal');
     }
+  }
+
+  /// Whether the key here no longer opens the account's check; it is
+  /// then forgotten, and the sync ends saying so ([[Accounts]]).
+  Future<bool> _pinChanged() async {
+    _checkedAt = DateTime.now();
+    final pin = ref.read(syncPassphraseProvider.notifier);
+    if (await pin.stillTheAccounts() != false) return false;
+    _lockedAtCheck = 0;
+    state = state.copyWith(running: false, error: pinChanged);
+    return true;
   }
 
   /// Pictures and recordings, after the rows ([[Sync-API]]).
@@ -158,7 +193,7 @@ class SyncController extends _$SyncController {
     final gallery = ref.read(galleryStorageProvider);
     final attachments = ref.read(attachmentStorageProvider);
     try {
-      await files.run(
+      final report = await files.run(
         // A path from a row is still a path from somewhere else's
         // archive ([[Audit-v2-Beta]] S2-01): it is checked before it
         // becomes a file to write to.
@@ -169,6 +204,9 @@ class SyncController extends _$SyncController {
             ? await attachments.fileOf(relative)
             : null,
       );
+      if (report.downloaded > 0) {
+        ref.read(fileArrivalsProvider.notifier).landed();
+      }
     } on Object catch (error) {
       debugPrint('[sync] files: ${error.runtimeType}');
     }

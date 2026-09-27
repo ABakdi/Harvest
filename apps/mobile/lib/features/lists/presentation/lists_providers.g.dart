@@ -8,16 +8,16 @@ part of 'lists_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The open estimates of every shopping list, per currency — the
-/// Granary's *Planned purchases* line ([[Lists]] L3). A plan: it sums
-/// into no wallet, budget or total.
+/// The open estimates of every shopping list but the Wishlist, per
+/// currency — the Granary's *Planned purchases* line ([[Lists]] L3). A
+/// plan: it sums into no wallet, budget or total.
 
 @ProviderFor(plannedPurchases)
 final plannedPurchasesProvider = PlannedPurchasesProvider._();
 
-/// The open estimates of every shopping list, per currency — the
-/// Granary's *Planned purchases* line ([[Lists]] L3). A plan: it sums
-/// into no wallet, budget or total.
+/// The open estimates of every shopping list but the Wishlist, per
+/// currency — the Granary's *Planned purchases* line ([[Lists]] L3). A
+/// plan: it sums into no wallet, budget or total.
 
 final class PlannedPurchasesProvider
     extends
@@ -29,9 +29,9 @@ final class PlannedPurchasesProvider
     with
         $FutureModifier<Map<Currency, int>>,
         $StreamProvider<Map<Currency, int>> {
-  /// The open estimates of every shopping list, per currency — the
-  /// Granary's *Planned purchases* line ([[Lists]] L3). A plan: it sums
-  /// into no wallet, budget or total.
+  /// The open estimates of every shopping list but the Wishlist, per
+  /// currency — the Granary's *Planned purchases* line ([[Lists]] L3). A
+  /// plan: it sums into no wallet, budget or total.
   PlannedPurchasesProvider._()
     : super(
         from: null,
@@ -58,4 +58,4 @@ final class PlannedPurchasesProvider
   }
 }
 
-String _$plannedPurchasesHash() => r'f28c93f8871ef33b0e11f7b39d16dbe2053f22c2';
+String _$plannedPurchasesHash() => r'd16e7edec09cf64e660bc1029b4becd87ed97457';

@@ -1,4 +1,4 @@
-import { buyListId } from '@harvest/contracts';
+import { buyListId, wishListId } from '@harvest/contracts';
 import { HarvestDay } from '@harvest/core';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -193,9 +193,13 @@ describe('the list item editor on a shopping list', () => {
 
   it('an edit that changes the list moves the item in the same write', async () => {
     const h = await device(new FakeServer());
-    await h.wishlist.add({ list: 'wish', title: 'Espresso machine' });
-    const kettle = await h.wishlist.add({ list: 'buy', title: 'Kettle' });
-    await h.wishlist.edit(kettle.uuid, { title: 'Steel kettle' }, 'wish');
+    await h.lists.ensureBuiltIns();
+    await h.lists.addItem(wishListId, { title: 'Espresso machine' });
+    const kettle = await h.lists.addItem(buyListId, { title: 'Kettle' });
+    await h.writer.run(async (tx) => {
+      await h.lists.editItemIn(tx, kettle.uuid, { title: 'Steel kettle' });
+      await h.lists.moveItemIn(tx, kettle.uuid, wishListId);
+    });
     expect(await h.db.rows('wishlist_items').get(kettle.uuid)).toMatchObject({ title: 'Steel kettle', list: 'wish', position: 1 });
   });
 });

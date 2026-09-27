@@ -36,7 +36,7 @@ export function ForgotPage() {
         // The same words whether or not the address has an account (AC3).
         <div role="status" className="flex flex-col gap-4">
           <p>{t('auth.forgotSent')}</p>
-          <Link to="/login" className="text-sm font-bold text-primary hover:underline">
+          <Link to="/login" className="text-sm font-bold text-primary hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
             {t('auth.backToSignIn')}
           </Link>
         </div>
@@ -63,7 +63,7 @@ export function ForgotPage() {
           <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
             {t('auth.sendLink')}
           </Button>
-          <Link to="/login" className="text-sm font-bold text-primary hover:underline">
+          <Link to="/login" className="text-sm font-bold text-primary hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
             {t('auth.backToSignIn')}
           </Link>
         </form>

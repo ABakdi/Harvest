@@ -24,7 +24,7 @@ import { useHarvest, useSyncStatus } from '../context';
 import { usePrivateKey } from '../hooks';
 import type { SyncStatus } from '../sync/engine';
 import { SessionsList } from '../screens/settings';
-import { SyncPinDialog } from './passphrase-prompt';
+import { StartOverDialog, SyncPinDialog } from './passphrase-prompt';
 import { useRelativeTime } from './relative-time';
 
 /** The circle's status mark ([[Accounts]], the account circle). */
@@ -114,6 +114,7 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
   const ago = useRelativeTime(status.lastSyncedAt);
   const [unlocking, setUnlocking] = useState(false);
   const [forgetting, setForgetting] = useState(false);
+  const [changing, setChanging] = useState(false);
   const [warning, setWarning] = useState<number | null>(null);
   const offline = status.phase === 'offline';
 
@@ -168,7 +169,18 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
                 ? t('settings.pending', { count: status.pending + status.locked })
                 : t('account.allSent')}
             </p>
-            {status.error && status.phase === 'error' && <p className="text-sm text-destructive">{status.error}</p>}
+            {status.pinChanged ? (
+              <p className="text-sm text-destructive">{t('syncPin.changedElsewhere')}</p>
+            ) : (
+              status.error && status.phase === 'error' && <p className="text-sm text-destructive">{status.error}</p>
+            )}
+            {status.refusedFor.includes('quota_exceeded') && <p className="text-sm">{t('sync.refusedQuota')}</p>}
+            {status.refusedFor.some((code) => code === 'clock_ahead' || code === 'clock_too_far') && (
+              <p className="text-sm">{t('sync.refusedClock')}</p>
+            )}
+            {status.unreadable > 0 && (
+              <p className="text-sm text-destructive">{t('sync.unreadable', { count: status.unreadable })}</p>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -193,6 +205,9 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
                   <ShieldCheckIcon />
                   {t('syncPin.setHere')}
                 </Badge>
+                <Button variant="ghost" size="sm" onClick={() => setChanging(true)}>
+                  {t('syncPin.change')}
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => setForgetting(true)}>
                   {t('syncPin.forget')}
                 </Button>
@@ -233,6 +248,18 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
       </Dialog>
 
       {unlocking && <SyncPinDialog onClose={() => setUnlocking(false)} />}
+      {changing && (
+        <StartOverDialog
+          changing
+          onClose={() => setChanging(false)}
+          onDone={() => {
+            // Changing is starting over while I still have it all: the
+            // new PIN is chosen next, and what is here goes up under it.
+            setChanging(false);
+            setUnlocking(true);
+          }}
+        />
+      )}
 
       <AlertDialog open={forgetting} onOpenChange={(next) => !next && setForgetting(false)}>
         <AlertDialogContent>

@@ -66,6 +66,8 @@ export interface OutboxRow {
   queuedAt: string;
   /** Set when the server answered `invalid`; the row is not sent again until it changes. */
   invalid?: Issue[] | null;
+  /** When it was refused: a refusal that can pass (no room, a clock ahead) is tried again an hour later. */
+  invalidAt?: string | null;
 }
 
 export interface MetaRow {
@@ -87,6 +89,18 @@ export interface SealedRow {
 }
 
 /**
+ * A pulled record this version of the app could not read: a table it
+ * does not know, or a row its schema refuses. It waits here, as it came,
+ * and is read again once the app's contract has changed (an update),
+ * rather than being skipped for good behind the cursor ([[Sync-API]]).
+ */
+export interface ParkedRow {
+  table: string;
+  uuid: string;
+  record: unknown;
+}
+
+/**
  * A picture or a recording this browser has fetched and opened, kept
  * by the name of its own bytes so it is fetched once.
  */
@@ -103,6 +117,7 @@ export class HarvestDB extends Dexie {
   meta!: Table<MetaRow, string>;
   sealed!: Table<SealedRow, [string, string]>;
   files!: Table<CachedFile, string>;
+  parked!: Table<ParkedRow, [string, string]>;
 
   constructor(name = 'harvest') {
     super(name);
@@ -127,6 +142,8 @@ export class HarvestDB extends Dexie {
     this.version(4)
       .stores({ lists })
       .upgrade((trans) => upgradeToLists(trans));
+    // Records an older app could not read wait for a newer one (Q5-11).
+    this.version(5).stores({ parked: '[table+uuid]' });
     this.on('ready', (db) => seedBuiltInLists(db as HarvestDB));
   }
 
@@ -224,7 +241,15 @@ export const metaKeys = {
   cursor: 'cursor',
   user: 'user',
   lastSyncedAt: 'lastSyncedAt',
+  /** 3.0.0's key; not read any more, and removed when a new one is kept. */
   privateKey: 'privateKey',
+  privateKeyV2: 'privateKeyV2',
+  /** Rows pulled with a clock ahead of this browser's, by `table/key`. */
+  ahead: 'syncAhead',
+  /** Rows a push found stale that the pulls have not brought back yet. */
+  stale: 'syncStale',
+  /** The contract the parked rows were last tried against. */
+  parkedFor: 'parkedFor',
 } as const;
 
 export async function getMeta<T>(db: HarvestDB, key: string): Promise<T | undefined> {

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:meta/meta.dart';
 
 /// One markdown note.
@@ -94,13 +96,51 @@ List<NoteLink> linksIn(String body) {
 }
 
 /// A filename that survives every platform, with the real title kept
-/// in the workbook beside it (ADR-007 rule 4).
+/// in the workbook beside it (ADR-007 rule 4): no `\ / : * ? " < > |`,
+/// no control characters, no leading or trailing dots, not a name
+/// Windows keeps for itself (`CON`, `LPT1`, …), and at most 120 code
+/// points and 200 UTF-8 bytes, cut between code points. Empty is
+/// `untitled`. The same rule as `safeFileName` in `packages/core`, held
+/// to `fixtures/file-names.json` ([[Audit-v3]] Q5-59).
 String safeFileName(String title) {
-  final cleaned = title
-      .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
-  final trimmed = cleaned.replaceAll(RegExp(r'^\.+'), '').trim();
-  if (trimmed.isEmpty) return 'untitled';
-  return trimmed.length > 120 ? trimmed.substring(0, 120).trim() : trimmed;
+  final cleaned = String.fromCharCodes(
+    title
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .runes
+        .where((rune) => !_unnamable(rune)),
+  );
+  final points = _trimEnds(cleaned).runes.toList();
+  if (points.length > _maxNameCodePoints) {
+    points.length = _maxNameCodePoints;
+  }
+  while (utf8.encode(String.fromCharCodes(points)).length > _maxNameBytes) {
+    points.removeLast();
+  }
+  final name = _trimEnds(String.fromCharCodes(points));
+  if (name.isEmpty) return 'untitled';
+  final dot = name.indexOf('.');
+  final base = dot < 0 ? name : name.substring(0, dot);
+  return _reservedName.hasMatch(base)
+      ? '${base}_${name.substring(base.length)}'
+      : name;
 }
+
+const _maxNameCodePoints = 120;
+const _maxNameBytes = 200;
+final _reservedName = RegExp(
+  r'^(con|prn|aux|nul|com[0-9]|lpt[0-9])$',
+  caseSensitive: false,
+);
+
+/// A control character, or a lone half of a surrogate pair.
+bool _unnamable(int rune) =>
+    rune < 0x20 ||
+    (rune >= 0x7f && rune <= 0x9f) ||
+    (rune >= 0xd800 && rune <= 0xdfff);
+
+String _trimEnds(String text) => text
+    .trim()
+    .replaceFirst(RegExp(r'^\.+'), '')
+    .replaceFirst(RegExp(r'[. ]+$'), '')
+    .trim();

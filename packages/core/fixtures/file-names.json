@@ -1,0 +1,125 @@
+{
+  "about": "Archive names and cells (ADR-007 rule 4). safeFileName(title) is the name a note, folder or album gets inside the archive; cellText(text) is what a workbook cell holds. Long inputs are written as prefix + repeat * times, and 'length' is the UTF-16 length of the result. sameFile: two paths name one file on a system that ignores case.",
+  "safeFileName": [
+    {
+      "title": "Sleep log",
+      "name": "Sleep log"
+    },
+    {
+      "why": "characters no system allows become dashes",
+      "title": "Q4: what now?",
+      "name": "Q4- what now-"
+    },
+    {
+      "why": "runs of space are one space",
+      "title": "  a \t b  ",
+      "name": "a b"
+    },
+    {
+      "why": "control characters are dropped",
+      "title": "a\u0001bc\u0085d",
+      "name": "abcd"
+    },
+    {
+      "why": "no leading or trailing dots",
+      "title": "...hidden...",
+      "name": "hidden"
+    },
+    {
+      "why": "no trailing space after the dots",
+      "title": "Notes. . .",
+      "name": "Notes"
+    },
+    {
+      "why": "a name Windows keeps for itself",
+      "title": "CON",
+      "name": "CON_"
+    },
+    {
+      "why": "with an extension too",
+      "title": "nul.backup",
+      "name": "nul_.backup"
+    },
+    {
+      "why": "a longer word is fine",
+      "title": "console",
+      "name": "console"
+    },
+    {
+      "title": "lpt9",
+      "name": "lpt9_"
+    },
+    {
+      "why": "nothing left is untitled",
+      "title": " ... ",
+      "name": "untitled"
+    },
+    {
+      "title": "",
+      "name": "untitled"
+    },
+    {
+      "why": "cut at 120 code points",
+      "title": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "why": "cut between code points, never inside a pair",
+      "title": "x😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "name": "x😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+    },
+    {
+      "why": "cut by bytes: Arabic letters are two bytes each",
+      "title": "بببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببب",
+      "name": "بببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببببب"
+    },
+    {
+      "why": "a lone half of a pair is dropped",
+      "title": "a\ud800b",
+      "name": "ab"
+    }
+  ],
+  "cellText": [
+    {
+      "why": "plain text is kept",
+      "text": "Hello",
+      "cell": "Hello"
+    },
+    {
+      "why": "tab and line breaks are kept; other controls are not",
+      "text": "a\tb\nc\rd\u000be\u0001f",
+      "cell": "a\tb\nc\rdef"
+    },
+    {
+      "why": "U+FFFE and U+FFFF are not characters",
+      "text": "a\ufffeb\uffffc",
+      "cell": "abc"
+    },
+    {
+      "why": "cut to 32767",
+      "prefix": "",
+      "repeat": "a",
+      "times": 40000,
+      "length": 32767
+    },
+    {
+      "why": "never inside a pair: the cut would fall between the halves of the last one",
+      "prefix": "",
+      "repeat": "😀",
+      "times": 20000,
+      "length": 32766
+    }
+  ],
+  "sameFile": [
+    {
+      "a": "notes/Ideas.md",
+      "b": "notes/ideas.md",
+      "same": true
+    },
+    {
+      "a": "notes/Ideas.md",
+      "b": "notes/Ideas (2).md",
+      "same": false
+    }
+  ]
+}

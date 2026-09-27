@@ -6,10 +6,12 @@ import 'package:harvest/core/db/portable_settings.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/goals/data/goals_repository.dart';
 import 'package:harvest/features/import/domain/archive_reader.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
 import 'package:harvest/features/notes/domain/note.dart';
+import 'package:harvest/features/sync/domain/sync_service.dart' show SyncKeys;
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,6 +27,10 @@ typedef ImportPreview = ({
   /// Files in the archive, and how many are not on this phone yet.
   int files,
   int newFiles,
+
+  /// Files the archive holds that were too large to take in, left out
+  /// rather than refusing the archive (Q5-06).
+  int skippedFiles,
 });
 
 /// A totals row for the preview, so a screen does not have to add up.
@@ -150,6 +156,9 @@ class ImportService {
     // The link index is derived from the bodies (rule N2), so it is
     // rebuilt rather than imported.
     await NotesRepository(_db).reindexAll();
+    // A parent's tick is drawn from its subtasks (GL3), whichever copy
+    // of each the merge kept (Q5-44).
+    await GoalsRepository(_db).settleAllParents();
     return result;
   }
 
@@ -170,7 +179,24 @@ class ImportService {
       _bodies = const {};
     }
 
-    return (tables: tables, files: bundle.files.length, newFiles: newFiles);
+    if (write && bundle.files.isNotEmpty) {
+      // Restored files already carry their names, and a name is not a
+      // file the server has: the next file pass asks about all of them.
+      await _db
+          .into(_db.kvSettings)
+          .insertOnConflictUpdate(
+            KvSettingsCompanion.insert(
+              key: SyncKeys.checkFiles,
+              valueJson: '"true"',
+            ),
+          );
+    }
+    return (
+      tables: tables,
+      files: bundle.files.length,
+      newFiles: newFiles,
+      skippedFiles: bundle.skipped,
+    );
   }
 
   /// The `.md` files the notes sheet points at, decoded once.
@@ -339,6 +365,8 @@ class ImportService {
                   deletedAt: Value(_time(row['DeletedAt'])),
                 ),
               );
+          // Like every other restored row, it travels (Q5-05).
+          await _db.logChange('memories', row['Uuid']!, 'update');
         }
       });
     }

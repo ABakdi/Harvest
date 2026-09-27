@@ -1,10 +1,10 @@
-import { SettingsIcon } from 'lucide-react';
+import { FileTextIcon, ImagesIcon, ListChecksIcon, MapIcon, SettingsIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink } from 'react-router';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { EmptyState } from '../components/bits';
+import { NavTabs } from '../components/screen-tabs';
 import { useFeatures, useFeaturesOrOff } from '../components/settings-bits';
 import type { FeatureSwitches } from '../data/settings';
 
@@ -30,7 +30,7 @@ export function RecordsOff({ feature }: { feature?: RecordsFeature }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-4">
-      {feature ? <RecordsTabs /> : <h1 className="text-2xl font-extrabold">{t('nav.records')}</h1>}
+      {feature ? <RecordsTabs always /> : <h1 className="text-2xl font-extrabold">{t('nav.records')}</h1>}
       <EmptyState
         icon={<SettingsIcon />}
         title={feature ? t(`recordsWeb.viewOff.${feature}`) : t('recordsWeb.offTitle')}
@@ -51,38 +51,18 @@ export function RecordsOff({ feature }: { feature?: RecordsFeature }) {
  * yet, and what I took and walked. A view whose feature is switched off
  * is not offered.
  */
-export function RecordsTabs() {
+export function RecordsTabs({ always = false, className }: { always?: boolean; className?: string | undefined }) {
   const { t } = useTranslation();
   const on = useFeaturesOrOff();
-  const tab = ({ isActive }: { isActive: boolean }) =>
-    cn(
-      'rounded-md px-3 py-1.5 text-sm font-extrabold outline-none focus-visible:ring-2 focus-visible:ring-ring',
-      isActive ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-    );
-  return (
-    <nav aria-label={t('records.tabs')} className="flex w-fit gap-1 rounded-lg bg-muted p-1">
-      {on.notes && (
-        <NavLink to="/app/records" end className={tab}>
-          {t('nav.notes')}
-        </NavLink>
-      )}
-      {on.lists && (
-        <NavLink to="/app/records/lists" className={tab}>
-          {t('lists.title')}
-        </NavLink>
-      )}
-      {on.gallery && (
-        <NavLink to="/app/records/gallery" className={tab}>
-          {t('gallery.title')}
-        </NavLink>
-      )}
-      {on.places && (
-        <NavLink to="/app/records/places" className={tab}>
-          {t('places.title')}
-        </NavLink>
-      )}
-    </nav>
-  );
+  const tabs = [
+    ...(on.notes ? [{ to: '/app/records', label: t('nav.notes'), icon: FileTextIcon, end: true }] : []),
+    ...(on.lists ? [{ to: '/app/records/lists', label: t('lists.title'), icon: ListChecksIcon }] : []),
+    ...(on.gallery ? [{ to: '/app/records/gallery', label: t('gallery.title'), icon: ImagesIcon }] : []),
+    ...(on.places ? [{ to: '/app/records/places', label: t('places.title'), icon: MapIcon }] : []),
+  ];
+  // One view on its own needs no row to choose it, as on the phone;
+  // [always] keeps the row where it leads away from a view that is off.
+  return tabs.length > 1 || (always && tabs.length > 0) ? <NavTabs label={t('records.tabs')} tabs={tabs} className={className} /> : null;
 }
 
 /**
