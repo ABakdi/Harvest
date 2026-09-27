@@ -18,4 +18,4 @@ Spec: [[Screen-Time]]. The hardest platform work — scheduled late deliberately
 - [ ] Optional app-block during [[Pomodoro]] focus sessions
 - [ ] Screen gauge on the Field; most-used category in weekly report
 
-**Exit:** one full week of reliable caps on my device; `v3.1.0`.
+**Exit:** one full week of reliable caps on my device; `v3.2.0` (v3.1 went to the fifth audit and the sync PIN).
