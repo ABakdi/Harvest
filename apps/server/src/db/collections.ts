@@ -5,12 +5,14 @@ import type {
   CounterDoc,
   FileDoc,
   LoginFailureDoc,
+  WindowedCountDoc,
   OneTimeTokenDoc,
   RecordDoc,
   RefreshTokenDoc,
   SessionDoc,
   UserDoc,
 } from './types.js';
+import { usersCollection } from './sessions.js';
 
 export interface Collections {
   users: Collection<UserDoc>;
@@ -23,11 +25,14 @@ export interface Collections {
   assistUsage: Collection<AssistUsageDoc>;
   assistDays: Collection<AssistDayDoc>;
   loginFailures: Collection<LoginFailureDoc>;
+  windowedCounts: Collection<WindowedCountDoc>;
+  /** GridFS's own `files` collection of the file bytes' bucket. */
+  fileBlobs: Collection;
 }
 
 export function collections(db: Db): Collections {
   return {
-    users: db.collection<UserDoc>('users'),
+    users: db.collection<UserDoc>(usersCollection),
     sessions: db.collection<SessionDoc>('sessions'),
     refreshTokens: db.collection<RefreshTokenDoc>('refresh_tokens'),
     oneTimeTokens: db.collection<OneTimeTokenDoc>('one_time_tokens'),
@@ -37,6 +42,8 @@ export function collections(db: Db): Collections {
     assistUsage: db.collection<AssistUsageDoc>('assist_usage'),
     assistDays: db.collection<AssistDayDoc>('assist_days'),
     loginFailures: db.collection<LoginFailureDoc>('login_failures'),
+    windowedCounts: db.collection<WindowedCountDoc>('windowed_counts'),
+    fileBlobs: db.collection('file_blobs.files'),
   };
 }
 
@@ -48,33 +55,41 @@ export function collections(db: Db): Collections {
  * refused by its `expiresAt` check whether or not Mongo has swept it yet.
  */
 export async function ensureIndexes(c: Collections): Promise<void> {
+  // A new index on a big collection may take longer to build than any
+  // one operation is allowed at run time: at boot it may take its time.
+  const building = { timeoutMS: 0 } as const;
   await Promise.all([
-    c.users.createIndex({ email: 1 }, { unique: true, name: 'email_unique' }),
+    c.users.createIndex({ email: 1 }, { unique: true, name: 'email_unique', ...building }),
 
-    c.sessions.createIndex({ userId: 1, lastSeenAt: -1 }, { name: 'user_sessions' }),
-    c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'sessions_ttl' }),
+    c.sessions.createIndex({ userId: 1, lastSeenAt: -1 }, { name: 'user_sessions', ...building }),
+    c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'sessions_ttl', ...building }),
 
-    c.refreshTokens.createIndex({ userId: 1, tokenHash: 1 }, { unique: true, name: 'user_token' }),
-    c.refreshTokens.createIndex({ userId: 1, sessionId: 1 }, { name: 'user_session_tokens' }),
-    c.refreshTokens.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'refresh_ttl' }),
+    c.refreshTokens.createIndex({ userId: 1, tokenHash: 1 }, { unique: true, name: 'user_token', ...building }),
+    c.refreshTokens.createIndex({ userId: 1, sessionId: 1 }, { name: 'user_session_tokens', ...building }),
+    c.refreshTokens.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'refresh_ttl', ...building }),
 
-    c.oneTimeTokens.createIndex({ userId: 1, purpose: 1, tokenHash: 1 }, { unique: true, name: 'user_purpose_token' }),
-    c.oneTimeTokens.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'one_time_ttl' }),
+    c.oneTimeTokens.createIndex({ userId: 1, purpose: 1, tokenHash: 1 }, { unique: true, name: 'user_purpose_token', ...building }),
+    c.oneTimeTokens.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'one_time_ttl', ...building }),
 
     // The row's identity: one stored copy per (user, table, key).
-    c.records.createIndex({ userId: 1, table: 1, uuid: 1 }, { unique: true, name: 'user_row' }),
+    c.records.createIndex({ userId: 1, table: 1, uuid: 1 }, { unique: true, name: 'user_row', ...building }),
     // The pull: a user's rows in sequence order.
-    c.records.createIndex({ userId: 1, seq: 1 }, { unique: true, name: 'user_seq' }),
+    c.records.createIndex({ userId: 1, seq: 1 }, { unique: true, name: 'user_seq', ...building }),
 
     // A file is named by its own contents, once per account.
-    c.files.createIndex({ userId: 1, sha256: 1 }, { unique: true, name: 'user_file' }),
+    c.files.createIndex({ userId: 1, sha256: 1 }, { unique: true, name: 'user_file', ...building }),
 
     // One row per account per day, and old days sweep themselves away.
-    c.assistUsage.createIndex({ userId: 1, day: 1 }, { unique: true, name: 'user_day' }),
-    c.assistUsage.createIndex({ lastAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60, name: 'assist_ttl' }),
-    c.assistDays.createIndex({ lastAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60, name: 'assist_days_ttl' }),
+    c.assistUsage.createIndex({ userId: 1, day: 1 }, { unique: true, name: 'user_day', ...building }),
+    c.assistUsage.createIndex({ lastAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60, name: 'assist_ttl', ...building }),
+    c.assistDays.createIndex({ lastAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60, name: 'assist_days_ttl', ...building }),
 
     // A window of failed sign-ins goes when it ends.
-    c.loginFailures.createIndex({ resetAt: 1 }, { expireAfterSeconds: 0, name: 'login_failures_ttl' }),
+    c.loginFailures.createIndex({ resetAt: 1 }, { expireAfterSeconds: 0, name: 'login_failures_ttl', ...building }),
+    c.loginFailures.createIndex({ emailKey: 1 }, { name: 'login_failures_email', ...building }),
+    c.windowedCounts.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'windowed_counts_ttl', ...building }),
+
+    // A file's bytes by their owner, to sweep up after a delete.
+    c.fileBlobs.createIndex({ 'metadata.userId': 1 }, { name: 'file_blobs_owner', ...building }),
   ]);
 }

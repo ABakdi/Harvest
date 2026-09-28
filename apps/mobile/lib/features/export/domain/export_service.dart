@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:harvest/features/export/data/downloads_gateway.dart';
 import 'package:harvest/features/export/data/export_repository.dart';
 import 'package:harvest/features/export/domain/archive_service.dart';
@@ -66,6 +65,7 @@ class ExportService {
   }
 
   /// The workbook on its own, without the files.
+  @visibleForTesting
   Future<String> exportWorkbook({DateTime? now}) async {
     final at = now ?? DateTime.now();
     final data = await _repository.read(generatedAt: at);
@@ -152,6 +152,9 @@ class ExportController extends _$ExportController {
     if (state is ExportRunning) return;
     _cancelled = false;
     state = const ExportRunning();
+    // An export running is kept, whoever still watches it: the zip is
+    // built off the UI isolate, and its answer lands later.
+    final keep = ref.keepAlive();
     try {
       final includePlaces =
           await ref
@@ -178,6 +181,8 @@ class ExportController extends _$ExportController {
       state = ExportFailed(failure.reason);
     } on Object {
       state = const ExportFailed(null);
+    } finally {
+      keep.close();
     }
   }
 }

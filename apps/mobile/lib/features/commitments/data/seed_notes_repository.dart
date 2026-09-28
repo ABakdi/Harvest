@@ -3,6 +3,7 @@ import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/commitments/domain/seed_note.dart';
+import 'package:harvest/features/commitments/domain/seed_note_rules.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -22,7 +23,7 @@ class SeedNotesRepository {
   /// The longest a note may be — the same cap the seed's own note has.
   static const maxLength = 500;
 
-  /// Every note on a seed, newest day first.
+  /// Every note on a seed, newest day first: one per day.
   Stream<List<SeedNote>> watchFor(String commitmentUuid) {
     final query = _db.select(_db.seedNotes)
       ..where(
@@ -30,49 +31,57 @@ class SeedNotesRepository {
       )
       ..orderBy([(n) => OrderingTerm.desc(n.harvestDay)]);
     return query.watch().map(
-      (rows) => rows.map(_toDomain).nonNulls.toList(),
+      (rows) => oneNotePerDay(rows).map(_toDomain).nonNulls.toList(),
     );
   }
 
-  /// Every note written on [day] — what the field's cards show.
+  /// Every note written on [day] — what the field's cards show; one per
+  /// seed.
   Stream<List<SeedNote>> watchNotesOn(HarvestDay day) {
     final query = _db.select(_db.seedNotes)
       ..where((n) => n.harvestDay.equals(day.key) & n.deletedAt.isNull());
     return query.watch().map(
-      (rows) => rows.map(_toDomain).nonNulls.toList(),
+      (rows) => oneNotePerDay(rows).map(_toDomain).nonNulls.toList(),
     );
   }
 
   Future<SeedNote?> noteOn(String commitmentUuid, HarvestDay day) async {
-    final row =
-        await (_db.select(_db.seedNotes)..where(
-              (n) =>
-                  n.commitmentUuid.equals(commitmentUuid) &
-                  n.harvestDay.equals(day.key) &
-                  n.deletedAt.isNull(),
-            ))
-            .getSingleOrNull();
+    final row = seedNoteOfDay(await _rowsOn(commitmentUuid, day)).note;
     return row == null ? null : _toDomain(row);
   }
 
+  Future<List<SeedNoteRow>> _rowsOn(String commitmentUuid, HarvestDay day) =>
+      (_db.select(_db.seedNotes)..where(
+            (n) =>
+                n.commitmentUuid.equals(commitmentUuid) &
+                n.harvestDay.equals(day.key) &
+                n.deletedAt.isNull(),
+          ))
+          .get();
+
   /// Writes [body] as the note for [day]; an empty body removes it.
+  ///
+  /// Read and written in one transaction, so two quick saves cannot both
+  /// find no note and make two. A day that already has two (written on
+  /// two devices before they met) keeps the newest, which takes this
+  /// body, and the others go ([[Audit-v3]] Q6-07).
   Future<void> write({
     required String commitmentUuid,
     required HarvestDay day,
     required String body,
-  }) async {
+  }) {
     final trimmed = body.trim();
     final capped = trimmed.length > maxLength
         ? trimmed.substring(0, maxLength)
         : trimmed;
-    final existing = await noteOn(commitmentUuid, day);
-    await _db.transaction(() async {
+    return _db.transaction(() async {
+      final found = seedNoteOfDay(await _rowsOn(commitmentUuid, day));
+      for (final extra in found.extras) {
+        await _remove(extra.uuid);
+      }
+      final existing = found.note;
       if (capped.isEmpty) {
-        if (existing == null) return;
-        await (_db.delete(
-          _db.seedNotes,
-        )..where((n) => n.uuid.equals(existing.uuid))).go();
-        await _appendOutbox(existing.uuid, 'delete');
+        if (existing != null) await _remove(existing.uuid);
         return;
       }
       if (existing != null) {
@@ -100,6 +109,11 @@ class SeedNotesRepository {
           );
       await _appendOutbox(uuid, 'insert');
     });
+  }
+
+  Future<void> _remove(String uuid) async {
+    await (_db.delete(_db.seedNotes)..where((n) => n.uuid.equals(uuid))).go();
+    await _appendOutbox(uuid, 'delete');
   }
 
   Future<void> delete(String uuid) => _db.transaction(() async {

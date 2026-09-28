@@ -15,6 +15,14 @@ export const errorStatus = {
   /** The account has kept as many file bytes as it may ([[Sync-API]]). */
   quota_exceeded: 507,
   rate_limited: 429,
+  /** A PIN proof that is not the account's ([[Sync-API]], the sync key). */
+  wrong_pin: 403,
+  /**
+   * A sealed write made under a key the account no longer has: the PIN
+   * was changed (started over) on another device. Drop the key and ask
+   * for the PIN again.
+   */
+  key_changed: 409,
   internal: 500,
   // Not in the first table of the Sync API page: the one route that
   // depends on a third party (the GitHub release proxy) needs a way to

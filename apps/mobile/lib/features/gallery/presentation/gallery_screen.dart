@@ -141,7 +141,7 @@ class _AlbumCard extends StatelessWidget {
                           Text(
                             l10n.galleryAlbumEmpty,
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: scheme.tertiary,
+                              color: scheme.tertiaryText,
                               fontWeight: FontWeight.w700,
                             ),
                           ),

@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:harvest/core/db/database.dart';
 import 'package:harvest/features/account/data/api_client.dart'
     show ApiException, Me;
 import 'package:harvest/features/account/domain/account.dart';
@@ -12,6 +15,8 @@ import 'package:harvest/features/sync/domain/sync_service.dart';
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:harvest/l10n/app_localizations_en.dart';
+
+import '../../support/fake_remote.dart';
 
 final _me = Me(
   id: 'u1',
@@ -73,12 +78,20 @@ class _Pin extends SyncPassphrase {
   /// Whether the next PIN opens the account's key check.
   bool opens = true;
 
+  /// When set, the next check waits for it.
+  Completer<void>? checking;
+
+  /// When set, the next check throws it, as the platform's crypto can.
+  Error? failure;
+
   @override
   Future<bool> build() async => initial;
 
   @override
   Future<void> set(String secret) async {
     secrets.add(secret);
+    await checking?.future;
+    if (failure case final failure?) throw failure;
     if (!opens) throw const SyncPinRefused();
     state = const AsyncData(true);
   }
@@ -128,6 +141,7 @@ void main() {
     bool prompt = false,
     Locale? locale,
     ApiException? unreachable,
+    SyncService? service,
   }) {
     sync.pin = pin;
     Widget home = Scaffold(
@@ -143,13 +157,17 @@ void main() {
         accountControllerProvider.overrideWith(() => account),
         syncPassphraseProvider.overrideWith(() => pin),
         syncControllerProvider.overrideWith(() => sync),
+        syncJoinPendingProvider.overrideWith(
+          (ref) async => await service?.joinPending() ?? false,
+        ),
+        if (service != null) syncServiceProvider.overrideWithValue(service),
         // Whether the account already has a PIN is the server's answer.
-        syncKeyShareProvider.overrideWith((ref) async {
+        syncKeyStateProvider.overrideWith((ref) async {
           if (unreachable != null) throw unreachable;
-          return SyncKeyShare(
+          return SyncKeyState(
             salt: 'salt',
-            keyShare: Uint8List(32),
-            check: sealed ? const {'v': 2, 'iv': '', 'ct': ''} : null,
+            epoch: 1,
+            keyShare: sealed ? null : Uint8List(32),
           );
         }),
       ],
@@ -274,6 +292,23 @@ void main() {
       );
     });
 
+    testWidgets('each state has its own shape, not only its colour (U6-39)', (
+      tester,
+    ) async {
+      final glyphs = {
+        for (final mark in SyncMark.values) AccountCircle.markGlyph(mark),
+      };
+      expect(glyphs, hasLength(SyncMark.values.length));
+      await expectMark(tester, SyncStatus(last: _report), SyncMark.sent);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('account-mark-sent')),
+          matching: find.byIcon(Icons.check_rounded),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a dot while the sync PIN is still to set', (tester) async {
       await tester.pumpWidget(
         app(
@@ -333,7 +368,7 @@ void main() {
       expect(find.text('maya@example.com'), findsOneWidget);
       expect(find.text(l10n.accountVerified), findsOneWidget);
       expect(find.text(l10n.accountOnline), findsOneWidget);
-      expect(find.text(l10n.accountPending(2)), findsOneWidget);
+      expect(find.text(l10n.accountChangesWaiting), findsOneWidget);
       expect(find.text(l10n.syncPinWaiting), findsOneWidget);
 
       await tester.tap(find.text(l10n.accountSyncNow));
@@ -448,6 +483,56 @@ void main() {
       expect(find.byType(SyncPinSheet), findsOneWidget);
     });
 
+    testWidgets('a session ended underneath: says so, and goes once '
+        'signed out', (tester) async {
+      final account = _Account(_me);
+      await tester.pumpWidget(
+        app(
+          account: account,
+          pin: _Pin(),
+          sync: _Sync(),
+          prompt: true,
+          unreachable: const ApiException('unauthorized', 401, 'Session ended'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(SyncPinSheet), findsOneWidget);
+      expect(find.text(l10n.syncPinSignedOut), findsOneWidget);
+      expect(find.text(l10n.accountErrorWrong), findsNothing);
+
+      await account.logout();
+      await tester.pumpAndSettle();
+      expect(find.byType(SyncPinSheet), findsNothing);
+    });
+
+    testWidgets('signed in on a phone with data of its own: asks what '
+        'becomes of it before anything syncs (U6-05)', (tester) async {
+      final db = HarvestDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final service = SyncService(db, FakeRemote());
+      await tester.runAsync(() => service.holdForJoin(hold: true));
+      final sync = _Sync();
+      await tester.pumpWidget(
+        app(
+          account: _Account(_me),
+          pin: _Pin(initial: true),
+          sync: sync,
+          prompt: true,
+          service: service,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(JoinSheet), findsOneWidget);
+      expect(sync.syncs, 0);
+
+      await tester.tap(find.text(l10n.joinBring));
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+      expect(find.byType(JoinSheet), findsNothing);
+      expect(await tester.runAsync(service.joinPending), isFalse);
+      expect(sync.syncs, 1);
+    });
+
     testWidgets('never asks with a PIN already set', (tester) async {
       await tester.pumpWidget(
         app(
@@ -513,6 +598,29 @@ void main() {
       expect(pin.secrets, ['2468']);
       expect(sync.syncs, 1);
       expect(find.byType(SyncPinSheet), findsNothing);
+    });
+
+    testWidgets('an unexpected failure is said, and the PIN can be typed '
+        'again', (tester) async {
+      final pin = _Pin()..failure = StateError('Empty key');
+      await tester.pumpWidget(
+        app(account: _Account(_me), pin: pin, sync: _Sync()),
+      );
+      await tester.pumpAndSettle();
+      await open(tester);
+      final fields = find.descendant(
+        of: find.byType(SyncPinSheet),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(fields.first, '739051');
+      await tester.enterText(fields.last, '739051');
+      await tester.pump();
+      await tester.ensureVisible(find.text(l10n.syncPinChoose));
+      await tester.tap(find.text(l10n.syncPinChoose));
+      await tester.pumpAndSettle();
+      expect(find.byType(SyncPinSheet), findsOneWidget);
+      expect(find.text(l10n.accountErrorOther('StateError')), findsOneWidget);
+      expect(find.text(l10n.syncPinChoose), findsOneWidget);
     });
 
     testWidgets('a passphrase instead: text, 8 characters', (tester) async {
@@ -664,6 +772,36 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(pin.startedOver, ['my password']);
+    });
+
+    testWidgets('a sheet checking the PIN stays until it is done, and never '
+        'closes the page under it (U6-02)', (tester) async {
+      final pin = _Pin()..checking = Completer<void>();
+      await tester.pumpWidget(
+        app(account: _Account(_me), pin: pin, sync: _Sync(), sealed: true),
+      );
+      await tester.pumpAndSettle();
+      await open(tester);
+      final fields = find.descendant(
+        of: find.byType(SyncPinSheet),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(fields.first, '2468');
+      await tester.pump();
+      await tester.ensureVisible(find.text(l10n.syncPinEnter));
+      await tester.tap(find.text(l10n.syncPinEnter));
+      await tester.pump();
+
+      // Back while it checks: the sheet stays.
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      expect(find.byType(SyncPinSheet), findsOneWidget);
+
+      pin.checking!.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(SyncPinSheet), findsNothing);
+      // The account sheet under it is still there.
+      expect(find.text(l10n.syncPinTitle), findsWidgets);
     });
   });
 }

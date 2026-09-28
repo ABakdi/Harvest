@@ -74,3 +74,18 @@ String formatNumber(BuildContext context, num value, {int decimals = 1}) {
     decimalDigits: places,
   ).format(rounded);
 }
+
+/// A length of time as a clock: `4:05` under an hour, `1:04:05` past
+/// it. The one duration formatter — the session clock, a recording and
+/// the focus timer all read through it, so none of them prints
+/// `100:05` for an hour and forty minutes. [padMinutes] writes `04:05`
+/// under an hour, the timer's face. A negative duration reads as zero.
+String formatDuration(Duration d, {bool padMinutes = false}) {
+  String two(int n) => n.toString().padLeft(2, '0');
+  final whole = d.isNegative ? 0 : d.inSeconds;
+  final hours = whole ~/ 3600;
+  final minutes = (whole % 3600) ~/ 60;
+  final seconds = two(whole % 60);
+  if (hours > 0) return '$hours:${two(minutes)}:$seconds';
+  return '${padMinutes ? two(minutes) : minutes}:$seconds';
+}

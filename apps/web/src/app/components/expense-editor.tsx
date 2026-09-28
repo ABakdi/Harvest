@@ -1,4 +1,4 @@
-import { HarvestDay, evaluateAmountToMinor } from '@harvest/core';
+import { HarvestDay, evaluateAmountToMinor, isPlausibleAmount } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { PlusIcon } from 'lucide-react';
 import { useId, useState, type FormEvent } from 'react';
@@ -30,6 +30,7 @@ import { categoryLabel } from './category';
 import { AmountField, CategoryIcon, SwitchRow, useCustomCategories } from './money-bits';
 import { CategoryCreator } from './money-categories';
 import { PassphrasePrompt } from './passphrase-prompt';
+import { runAction } from '@/lib/actions';
 
 /**
  * Log or edit an expense: the amount in the currency it was paid in,
@@ -80,6 +81,8 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
   const [confirming, setConfirming] = useState(false);
   const [fromWallet, setFromWallet] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // An amount past the shared bound, said back once before it is logged (W6-15).
+  const [askedBig, setAskedBig] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
   const chosenCurrency = currency ?? defaultCurrency;
@@ -113,6 +116,10 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
     event.preventDefault();
     if (minor === null) {
       setError(t('money.error.amount'));
+      return;
+    }
+    if (!isPlausibleAmount(minor) && askedBig !== minor) {
+      setAskedBig(minor);
       return;
     }
     const now = HarvestDay.of(clock());
@@ -170,8 +177,9 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
 
   return (
     <>
-      <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
-        <div className="flex gap-2">
+      <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
+        {/* Side by side while they fit; with large text the currency goes under (W6-06). */}
+        <div className="flex flex-wrap gap-2">
           <AmountField
             id={`${id}-amount`}
             label={t('money.amount')}
@@ -184,7 +192,7 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
             currency={chosenCurrency}
             autoFocus
             invalid={error !== null && minor === null}
-            className="flex-1"
+            className="min-w-[min(100%,12rem)] flex-1"
           />
           <div className="flex w-28 flex-col gap-2">
             <Label htmlFor={`${id}-currency`}>{t('money.currency')}</Label>
@@ -257,6 +265,11 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
             {error}
           </p>
         )}
+        {askedBig !== null && askedBig === minor && (
+          <p role="alert" className="text-sm font-semibold">
+            {t('money.bigAmount', { amount: formatMoney(minor, chosenCurrency) })}
+          </p>
+        )}
         <DialogFooter className="gap-2">
           {expense && (
             <Button variant="ghost" className="text-destructive sm:me-auto" onClick={() => setConfirming(true)}>
@@ -267,7 +280,7 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
             {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={saving}>
-            {expense ? t('common.save') : t('money.logIt')}
+            {askedBig !== null && askedBig === minor ? t('money.bigConfirm') : expense ? t('common.save') : t('money.logIt')}
           </Button>
         </DialogFooter>
       </form>
@@ -284,7 +297,7 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void remove()}>{t('common.remove')}</AlertDialogAction>
+            <AlertDialogAction onClick={() => runAction(() => remove())}>{t('common.remove')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

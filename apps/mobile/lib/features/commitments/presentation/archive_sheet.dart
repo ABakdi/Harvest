@@ -58,6 +58,7 @@ class _ArchiveSheetState extends ConsumerState<_ArchiveSheet> {
       onAction: _saving ? null : () => unawaited(_archive()),
       children: [
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _controller,
           autofocus: true,
           minLines: 2,

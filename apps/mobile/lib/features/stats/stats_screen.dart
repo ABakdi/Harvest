@@ -255,12 +255,25 @@ class _HeatMap extends StatelessWidget {
           final fit = constraints.maxWidth.isFinite
               ? (constraints.maxWidth / _columnWidth).floor() * _columnWidth
               : null;
-          return Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: SizedBox(
-              width: fit,
-              child: _weeks(weeks, locale, theme, scheme),
-            ),
+          // Room for the weekday names at the start, then as many whole
+          // week columns as fit.
+          final room = fit == null ? null : fit - _columnWidth * 2;
+          final shown = room == null
+              ? weeks.length
+              : (room / _columnWidth).floor().clamp(1, weeks.length);
+          return Row(
+            children: [
+              _weekdays(locale, theme),
+              Expanded(
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: SizedBox(
+                    width: room == null ? null : shown * _columnWidth,
+                    child: _weeks(weeks, locale, theme, scheme, shown),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -270,11 +283,41 @@ class _HeatMap extends StatelessWidget {
   /// One week's column: a 14-point square with 1.5 either side.
   static const double _columnWidth = 17;
 
+  /// Mon, Wed and Fri beside their rows, so a square says its day
+  /// (U6-21).
+  Widget _weekdays(String locale, ThemeData theme) {
+    // 2024-01-01 was a Monday.
+    String name(int offset) =>
+        DateFormat.E(locale).format(DateTime(2024, 1, 1 + offset));
+    return SizedBox(
+      width: _columnWidth * 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          for (var day = 0; day < 7; day++)
+            SizedBox(
+              height: 17,
+              child: day.isEven && day < 6
+                  ? Text(
+                      name(day),
+                      style: theme.textTheme.labelSmall,
+                      softWrap: false,
+                      overflow: TextOverflow.clip,
+                    )
+                  : null,
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _weeks(
     List<List<HarvestDay?>> weeks,
     String locale,
     ThemeData theme,
     ColorScheme scheme,
+    int shown,
   ) => SingleChildScrollView(
     scrollDirection: Axis.horizontal,
     reverse: true,
@@ -288,7 +331,12 @@ class _HeatMap extends StatelessWidget {
               SizedBox(
                 height: 16,
                 width: _columnWidth,
-                child: _monthLabel(weeks, w, locale, theme),
+                // A month whose column is just off the start would
+                // bleed its last letters in ("y" for May): it waits
+                // until its column is in view (U6-21).
+                child: w < weeks.length - shown
+                    ? null
+                    : _monthLabel(weeks, w, locale, theme),
               ),
               for (final cell in weeks[w])
                 Padding(

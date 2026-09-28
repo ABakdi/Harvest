@@ -20,6 +20,8 @@ export interface Harness {
   db: Db;
   repos: Repositories;
   mailer: MemoryMailer;
+  /** Waits for the work the app does after answering (the emailed flows). */
+  settled(): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -69,6 +71,7 @@ export async function harness(options: HarnessOptions = {}): Promise<Harness> {
     db: mongo.db,
     repos,
     mailer,
+    settled: () => (app.locals.settled as () => Promise<void>)(),
     close: async () => {
       await mongo.db.dropDatabase();
       await mongo.close();

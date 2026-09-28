@@ -14,6 +14,7 @@ import { useHarvest, useHarvestDay } from '../context';
 import { listOfItem, liveLists, type ListItemInput, type ListItemRow } from '../data/lists';
 import { useDefaultCurrency } from '../hooks';
 import { listName } from './list-bits';
+import { runAction } from '@/lib/actions';
 
 /** What the add field already knew when it opened the editor: the title typed, the link pasted. */
 export interface ListItemPrefill {
@@ -125,7 +126,7 @@ export function ListItemEditor({
           <DialogTitle>{item ? t('lists.editItem') : t('lists.newItem')}</DialogTitle>
           <DialogDescription>{kind ? t(`lists.editorLead.${kind}`) : ''}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={field('title')}>{t('lists.titleLabel')}</Label>
             <Input

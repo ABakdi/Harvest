@@ -293,6 +293,23 @@ void main() {
       expect(trail.running, isTrue);
     });
   });
+  test('a check-in on a deleted seed says it is gone (U6-26)', () async {
+    await db
+        .into(db.commitments)
+        .insert(
+          CommitmentsCompanion.insert(
+            uuid: 's1',
+            type: 'habit',
+            title: 'Read',
+          ),
+        );
+    expect(await places.detailFor('commitments', 's1'), isA<GeotagText>());
+    await (db.update(db.commitments)..where((c) => c.uuid.equals('s1'))).write(
+      CommitmentsCompanion(deletedAt: Value(now)),
+    );
+    expect(await places.detailFor('commitments', 's1'), isA<GeotagGone>());
+    expect(await places.detailFor('check_ins', 'nope'), isA<GeotagGone>());
+  });
 }
 
 /// A phone whose fix waits until the test lets it through.

@@ -25,12 +25,15 @@ typedef CalendarEntry = ({Commitment commitment, bool deadline, bool done});
 /// - a project never (it is due every day), but its deadline shows;
 /// - a deadline on its day, done when the project reached its target
 ///   (a to-do: once done; a habit: checked in that day).
-/// Archived seeds are left out; [checkIns] are the live ones.
+/// Archived seeds are left out; [checkIns] are the live ones, at least
+/// [day]'s week. [totals], the lifetime units per seed, stand in for
+/// summing [checkIns] when those are only the weeks on screen.
 List<CalendarEntry> calendarEntries(
   Iterable<Commitment> seeds,
   Iterable<CalendarCheckIn> checkIns,
-  HarvestDay day,
-) {
+  HarvestDay day, {
+  Map<String, int>? totals,
+}) {
   final weekStart = day.weekStart.key;
   final onDay = <String>{};
   final daysBefore = <String, Set<String>>{};
@@ -48,7 +51,7 @@ List<CalendarEntry> calendarEntries(
   final entries = <CalendarEntry>[];
   for (final seed in seeds) {
     if (seed.archivedAt != null) continue;
-    final ever = logged[seed.uuid] ?? 0;
+    final ever = (totals ?? logged)[seed.uuid] ?? 0;
     switch (seed.type) {
       case CommitmentType.habit:
         final doneDays = daysBefore[seed.uuid]?.length ?? 0;

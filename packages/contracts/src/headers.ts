@@ -12,3 +12,10 @@ export const fileIvHeader = 'x-harvest-iv';
 
 /** The plaintext's own length, so a reader can check what it decrypted. */
 export const filePlainBytesHeader = 'x-harvest-plain-bytes';
+
+/**
+ * The key epoch a file was sealed under (`sync-key.ts`). An upload
+ * without it, or with one that is not the account's, is refused with
+ * 409 `key_changed` and nothing is stored.
+ */
+export const fileKeyEpochHeader = 'x-harvest-key-epoch';

@@ -11,6 +11,7 @@ import { useHarvest } from '../../context';
 import { useAllExercises, useCatalogue, type Exercise } from '../../data/exercises';
 import { useBusy } from '../../components/use-busy';
 import { ExerciseDetailDialog } from './exercise-detail';
+import { runAction } from '@/lib/actions';
 
 /** How many rows are drawn before the search has to narrow it. */
 const shownAtOnce = 150;
@@ -66,7 +67,7 @@ function MineForm({ initialName, onCreated, onCancel }: { initialName: string; o
         event.preventDefault();
         if (!name.trim()) return;
         // One exercise per press, however fast the second one comes.
-        void once(() => exercises.create({ name, bodyPart, equipment, target }).then(onCreated));
+        runAction(() => once(() => exercises.create({ name, bodyPart, equipment, target }).then(onCreated)));
       }}
     >
       <p className="text-sm text-muted-foreground">{t('gym.mineBody')}</p>

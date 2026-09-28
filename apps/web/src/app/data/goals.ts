@@ -93,13 +93,39 @@ export class GoalsRepository {
     return this.write(uuid, { status: 'dropped', statusNote: note?.trim() || null });
   }
 
-  /** Soft delete, with its items (GL7); [restore] undoes it. */
+  /**
+   * Soft delete, with its items (GL7); [restore] undoes it. What
+   * achieving paid goes with the goal, as on reopening, and comes back
+   * with it: achieving and deleting over and over earns nothing
+   * ([[Audit-v3]] U6-04).
+   */
   delete(uuid: string): Promise<void> {
-    return this.writer.run((tx) => setDeleted(tx, uuid, tx.now()));
+    return this.writer.run(async (tx) => {
+      await setDeleted(tx, uuid, tx.now());
+      if ((await xpNet(tx, uuid)) > 0) {
+        await tx.ledger({
+          kind: 'xp',
+          delta: -Xp.goalAchieved,
+          reason: `goal-undo:${uuid}`,
+          harvestDay: HarvestDay.of(tx.clockNow()).key,
+        });
+      }
+    });
   }
 
   restore(uuid: string): Promise<void> {
-    return this.writer.run((tx) => setDeleted(tx, uuid, null));
+    return this.writer.run(async (tx) => {
+      await setDeleted(tx, uuid, null);
+      const goal = await tx.get('goals', uuid);
+      if (goal?.status === 'achieved' && (await xpNet(tx, uuid)) <= 0) {
+        await tx.ledger({
+          kind: 'xp',
+          delta: Xp.goalAchieved,
+          reason: `goal:${uuid}`,
+          harvestDay: HarvestDay.of(tx.clockNow()).key,
+        });
+      }
+    });
   }
 
   // ------------------------------------------------------------- items

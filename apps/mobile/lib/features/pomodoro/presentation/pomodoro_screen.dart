@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
@@ -325,11 +326,8 @@ class PomodoroScreen extends ConsumerWidget {
     return value > max ? max : value;
   }
 
-  static String _format(Duration duration) {
-    final minutes = duration.inMinutes.toString().padLeft(2, '0');
-    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
-  }
+  static String _format(Duration duration) =>
+      formatDuration(duration, padMinutes: true);
 }
 
 class _BlockDots extends StatelessWidget {

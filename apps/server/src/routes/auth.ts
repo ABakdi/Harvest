@@ -100,7 +100,7 @@ export function authRoutes(auth: AuthService, limits: Limiters, policy: CookiePo
     '/login',
     limits.login,
     ...validated({ body: loginBodySchema }, async ({ body }, req, res) => {
-      answer(res, await auth.login(body), policy, 200, req);
+      answer(res, await auth.login({ ...body, ip: req.ip }), policy, 200, req);
     }),
   );
 
@@ -129,6 +129,8 @@ export function authRoutes(auth: AuthService, limits: Limiters, policy: CookiePo
       const token = presentedToken(req, body.refreshToken);
       if (token) await auth.logout(token);
       clearRefreshCookies(res, policy);
+      // And whatever the browser cached of this origin's answers (S6-01).
+      res.set('Clear-Site-Data', '"cache"');
       res.status(204).end();
     }),
   );
@@ -146,18 +148,18 @@ export function authRoutes(auth: AuthService, limits: Limiters, policy: CookiePo
   router.post(
     '/resend-verification',
     limits.auth,
-    ...validated({ body: resendVerificationBodySchema }, async ({ body }, _req, res) => {
-      await auth.resendVerification(body.email);
+    ...validated({ body: resendVerificationBodySchema }, ({ body }, _req, res) => {
       res.status(202).end();
+      auth.later(() => auth.resendVerification(body.email));
     }),
   );
 
   router.post(
     '/forgot-password',
     limits.auth,
-    ...validated({ body: forgotPasswordBodySchema }, async ({ body }, _req, res) => {
-      await auth.forgotPassword(body.email);
+    ...validated({ body: forgotPasswordBodySchema }, ({ body }, _req, res) => {
       res.status(202).end();
+      auth.later(() => auth.forgotPassword(body.email));
     }),
   );
 
@@ -173,5 +175,3 @@ export function authRoutes(auth: AuthService, limits: Limiters, policy: CookiePo
 
   return router;
 }
-
-export { cookieOptions };

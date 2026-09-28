@@ -482,7 +482,9 @@ class _RemindersCard extends ConsumerWidget {
           SwitchListTile(
             title: Text(l10n.remindersStreak),
             subtitle: Text(l10n.remindersStreakHint(streakAt)),
-            value: reminders.streakNudge,
+            // Off while reminders are off: a disabled switch that is on
+            // drew a tinted thumb, half on to the eye (U6-38).
+            value: reminders.enabled && reminders.streakNudge,
             onChanged: reminders.enabled
                 ? (value) => unawaited(
                     ref

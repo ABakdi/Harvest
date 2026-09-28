@@ -80,6 +80,8 @@ describe('the account circle’s mark', () => {
     expect(accountMark({ ...idle, phase: 'error' })).toBe('error');
     expect(accountMark({ ...idle, phase: 'signedOut' })).toBe('error');
     expect(accountMark({ ...idle, phase: 'unverified' })).toBe('error');
+    // The browser saying the network went is enough, before any sync fails (W6-02).
+    expect(accountMark(idle, false)).toBe('offline');
   });
 });
 
@@ -98,7 +100,10 @@ describe('the account circle ([[Accounts]], on the web)', () => {
   });
 
   it('opens the sheet from the keyboard: email, sync, the PIN, devices', async () => {
-    const h = await device(new FakeServer());
+    // Another device has set the account's PIN: this browser is to enter it.
+    const server = new FakeServer();
+    server.verifier = 'a'.repeat(64);
+    const h = await device(server);
     const sync = vi.spyOn(h.engine, 'sync').mockResolvedValue();
     mount(h);
     const user = userEvent.setup();
@@ -109,7 +114,9 @@ describe('the account circle ([[Accounts]], on the web)', () => {
     expect(within(sheet).getByText(testUser.email)).toBeInTheDocument();
     expect(within(sheet).getByText('Verified')).toBeInTheDocument();
     expect(within(sheet).getByText('Online')).toBeInTheDocument();
-    expect(within(sheet).getByText(/Money, places and pictures from your other devices stay locked/)).toBeInTheDocument();
+    expect(
+      await within(sheet).findByText(/Money, places and pictures from your other devices stay locked/),
+    ).toBeInTheDocument();
     expect(await within(sheet).findByText('Pixel')).toBeInTheDocument();
 
     await user.click(within(sheet).getByRole('button', { name: 'Sync now' }));

@@ -21,7 +21,7 @@ abstract interface class DatabaseKeyStore {
 class KeystoreDatabaseKeys implements DatabaseKeyStore {
   const KeystoreDatabaseKeys();
 
-  static const _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage(aOptions: secureStorageOptions);
   static const _name = 'db.key';
 
   @override
@@ -31,6 +31,12 @@ class KeystoreDatabaseKeys implements DatabaseKeyStore {
   Future<void> write(String keyHex) =>
       _storage.write(key: _name, value: keyHex);
 }
+
+/// How the Keystore is used for every secret (S6-05). `resetOnError`
+/// off: a Keystore or cipher failure throws instead of quietly wiping
+/// every secret and answering "no key", which would make the database
+/// look keyless and start the app empty over it.
+const secureStorageOptions = AndroidOptions(resetOnError: false);
 
 /// 32 bytes from the platform's secure generator, as 64 lowercase hex
 /// digits: the form `PRAGMA key = "x'…'"` takes as a raw key, so

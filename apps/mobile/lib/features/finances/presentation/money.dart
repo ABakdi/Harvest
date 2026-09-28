@@ -10,6 +10,15 @@ const noteMaxLength = 200;
 /// an entry is a typo, and past 2^63/100 it would silently wrap.
 const maxMajorUnits = 1000000000000;
 
+/// The most an amount can plausibly be, in minor units of its own
+/// currency (`plausibleMaxMinor` in `packages/core`): DA10,000,000 or
+/// €10,000,000. Above it an entry is still allowed, but only after I
+/// say yes to it (W6-15).
+const plausibleMaxMinor = 1000000000;
+
+/// Whether [minor] can be logged without asking first.
+bool isPlausibleAmount(int minor) => minor > 0 && minor <= plausibleMaxMinor;
+
 /// Formats minor units for display: 1250 → "12.50", 500 → "5",
 /// -50 → "-0.50".
 String formatMinor(int minor) {

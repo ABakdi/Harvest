@@ -14,10 +14,10 @@ export const unnamedFileGraceMs = 30 * 24 * 60 * 60_000;
  * Lets go of files no row names any more (Q5-23).
  *
  * The server can tell which files are named because the only rows that
- * name one, `memories` and `note_attachments`, are plain tier: their
- * `fileHash` is in the clear. A row in the trash still names its file;
- * a purged one does not. A private table that one day names a file must
- * be added to `fileTables`, or its files would be swept.
+ * name one, those of `fileTables` (every table with a `fileHash`, today
+ * `memories` and `note_attachments`), are plain tier: their `fileHash`
+ * is in the clear. A row in the trash still names its file; a purged
+ * one does not.
  *
  * It runs under the account's lock, so a push naming a file and the
  * sweep deciding nobody does cannot interleave, and it leaves alone

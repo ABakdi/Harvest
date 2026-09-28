@@ -1,5 +1,6 @@
 import type { Writer } from '../data/writer';
 import type { SyncEngine } from './engine';
+import { background } from '@/lib/actions';
 
 export interface TriggerOptions {
   debounceMs?: number;
@@ -44,7 +45,7 @@ export function startSyncTriggers(engine: SyncEngine, writer: Writer, options: T
   const onVisibility = () => {
     if (visible()) kick();
   };
-  const onMessage = () => void engine.refreshCounts();
+  const onMessage = () => background(engine.refreshCounts());
   channel?.addEventListener('message', onMessage);
   window.addEventListener('focus', kick);
   window.addEventListener('online', kick);

@@ -322,12 +322,15 @@ class _Chips extends StatelessWidget {
                 ),
                 selected: list.uuid == selected,
                 onSelected: (_) => onSelect(list),
+                // 48 dp to the finger, not 40 (U6-25).
+                materialTapTargetSize: MaterialTapTargetSize.padded,
               ),
             ),
           ActionChip(
             avatar: const Icon(Icons.add, size: 18),
             label: Text(l10n.listsNew),
             onPressed: onNew,
+            materialTapTargetSize: MaterialTapTargetSize.padded,
           ),
         ],
       ),

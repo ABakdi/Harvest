@@ -343,15 +343,3 @@ List<RecordKind> recordsBeatenBy(WorkoutSet set, ExerciseRecords records) {
   }
   return beaten;
 }
-
-/// The session clock: `4:05` under an hour, `1:04:05` past it. Minutes
-/// alone read a session left open for eleven days as `15977:10`.
-String formatSessionClock(Duration elapsed) {
-  final whole = elapsed.isNegative ? 0 : elapsed.inSeconds;
-  final hours = whole ~/ 3600;
-  final minutes = (whole % 3600) ~/ 60;
-  final seconds = (whole % 60).toString().padLeft(2, '0');
-  return hours == 0
-      ? '$minutes:$seconds'
-      : '$hours:${minutes.toString().padLeft(2, '0')}:$seconds';
-}

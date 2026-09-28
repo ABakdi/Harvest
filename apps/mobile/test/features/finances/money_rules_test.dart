@@ -15,6 +15,7 @@ import 'package:harvest/features/finances/domain/day_range.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/finance_actions.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
+import 'package:harvest/features/finances/presentation/finance_charts.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 
@@ -423,6 +424,40 @@ void main() {
       }
     });
 
+    test('savings health follows the shared rule (money.json)', () {
+      final spec = jsonDecode(
+        File(
+          '../../packages/core/fixtures/money.json',
+        ).readAsStringSync(),
+      ) as Map<String, Object?>;
+      for (final raw in spec['savingsHealth']! as List<Object?>) {
+        final entry = raw! as Map<String, Object?>;
+        final rates = entry['rates']! as Map<String, Object?>;
+        double? rate(String key) => (rates[key] as num?)?.toDouble();
+        final savings = <Currency, int>{
+          for (final pair in entry['savings']! as List<Object?>)
+            if (pair case [final String code, final int minor])
+              Currency.fromCode(code): minor,
+        };
+        expect(
+          savingsHealthOf(
+            savings,
+            entry['budget'] as int?,
+            Rates(
+              defaultCurrency: Currency.fromCode(
+                rates['defaultCurrency']! as String,
+              ),
+              dzdPerUsd: rate('dzdPerUsd'),
+              dzdPerEur: rate('dzdPerEur'),
+              usdPerEur: rate('usdPerEur'),
+            ),
+          ).name,
+          entry['health'],
+          reason: entry['why'] as String?,
+        );
+      }
+    });
+
     test('switching the currency carries the budget across, and clearing '
         'leaves none', () async {
       final container = ProviderContainer(
@@ -465,6 +500,28 @@ void main() {
         day: today,
       );
       expect(await xp(), expenseLogXp);
+    });
+  });
+
+  group('Insights (U6-34)', () {
+    test("a day's average follows the shared rule (money.json)", () {
+      final spec = jsonDecode(
+        File(
+          '../../packages/core/fixtures/money.json',
+        ).readAsStringSync(),
+      ) as Map<String, Object?>;
+      for (final raw in spec['averagePerDay']! as List<Object?>) {
+        final entry = raw! as Map<String, Object?>;
+        expect(
+          averagePerDay(
+            entry['total']! as int,
+            entry['days']! as int,
+            Currency.fromCode(entry['currency']! as String),
+          ),
+          entry['average'],
+          reason: entry['why']! as String,
+        );
+      }
     });
   });
 }

@@ -63,11 +63,10 @@ class SyncController extends _$SyncController {
   static const debounce = Duration(seconds: 2);
   static const every = Duration(minutes: 15);
 
-  /// How often the key is held against the account's key check, and
-  /// how soon again at the most: the key routes allow an account 60
-  /// requests in 15 minutes.
+  /// How often the key's epoch is held against the account's when
+  /// nothing sealed waits; with sealed rows waiting it is held against it
+  /// before every run (one small request).
   static const checkEvery = Duration(minutes: 30);
-  static const checkAtMost = Duration(minutes: 2);
 
   /// The error a sync ends with when the PIN was started over on
   /// another device and the key here no longer fits.
@@ -97,8 +96,10 @@ class SyncController extends _$SyncController {
         .watchSingle()
         .listen((pending) {
           state = state.copyWith(pending: pending);
-          if (pending == 0) return;
           _debounce?.cancel();
+          // Emptied by the sync itself: nothing left to start one for
+          // (P6-12).
+          if (pending == 0) return;
           _debounce = Timer(debounce, () => unawaited(syncNow()));
         });
   }
@@ -143,26 +144,34 @@ class SyncController extends _$SyncController {
       me = (await ref.read(accountControllerProvider.future)).me;
       if (me == null || !me.verified) return;
     }
-    state = state.copyWith(running: true);
-    // The key is held against the account's check — another device may
-    // have started the PIN over — now and then, and always before a
-    // private row would go up sealed with it.
-    final since = _checkedAt == null
-        ? null
-        : DateTime.now().difference(_checkedAt!);
     final service = ref.read(syncServiceProvider);
-    if (since == null ||
-        since > checkEvery ||
-        (since > checkAtMost && await service.privatePending())) {
-      if (await _pinChanged()) return;
-    }
+    // Signed in on a phone with data of its own: nothing goes until I
+    // have said where it goes (U6-05).
+    if (await service.joinPending()) return;
+    state = state.copyWith(running: true);
+    // Everything after `running` is inside the try, the key check too: a
+    // Keystore or database failure there ends the run rather than leave
+    // it showing as syncing (Q6-11).
     try {
+      // The key's epoch is held against the account's — another device
+      // may have started the PIN over — now and then, and always before
+      // a private row would go up sealed with it.
+      final since = _checkedAt == null
+          ? null
+          : DateTime.now().difference(_checkedAt!);
+      if (since == null ||
+          since > checkEvery ||
+          await service.privatePending()) {
+        if (await _pinChanged()) return;
+      }
       final report = await service.run();
       // Rows that stopped opening say the same, sooner.
       if (report.locked > _lockedAtCheck && await _pinChanged()) return;
       _lockedAtCheck = report.locked;
       await _syncFiles();
       state = state.copyWith(running: false, last: report, clearError: true);
+    } on SyncKeyChanged {
+      await _keyChanged();
     } on ApiException catch (error) {
       state = state.copyWith(running: false, error: error.code);
     } on Object catch (error) {
@@ -180,6 +189,14 @@ class SyncController extends _$SyncController {
     _lockedAtCheck = 0;
     state = state.copyWith(running: false, error: pinChanged);
     return true;
+  }
+
+  /// The server refused a sealed write for a stale key epoch (S6-07): the
+  /// key goes, and the PIN is asked for again.
+  Future<void> _keyChanged() async {
+    await ref.read(syncPassphraseProvider.notifier).keyChanged();
+    _lockedAtCheck = 0;
+    state = state.copyWith(running: false, error: pinChanged);
   }
 
   /// Pictures and recordings, after the rows ([[Sync-API]]).
@@ -207,6 +224,8 @@ class SyncController extends _$SyncController {
       if (report.downloaded > 0) {
         ref.read(fileArrivalsProvider.notifier).landed();
       }
+    } on SyncKeyChanged {
+      rethrow;
     } on Object catch (error) {
       debugPrint('[sync] files: ${error.runtimeType}');
     }

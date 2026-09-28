@@ -4,36 +4,63 @@ import {
   checkRecord,
   clockIssues,
   deleteSyncKeyBodySchema,
-  keyCheckConflictSchema,
+  errorStatus,
   keyCheckSchema,
-  keyCheckStoredSchema,
   latestInstant,
   maxClockLeadMs,
   maxEnvelopeCtLength,
+  maxPushBytes,
   maxTextLength,
-  putKeyCheckBodySchema,
+  pullQuerySchema,
+  pushBodySchema,
   sealKeyCheck,
-  syncKeyResultSchema,
+  setSyncKeyBodySchema,
+  syncKeySetSchema,
+  syncKeyStateSchema,
+  unlockBodySchema,
+  unlockResultSchema,
+  wrongPinSchema,
 } from '../src/index.js';
 
 const b64 = (n: number) => randomBytes(n).toString('base64');
 const check = () => ({ v: 2 as const, iv: b64(12), ct: b64(33) });
+const verifier = () => randomBytes(32).toString('hex');
 
 describe('the sync key routes', () => {
-  it('parses what GET /v1/me/sync-key answers', () => {
-    expect(syncKeyResultSchema.safeParse({ salt: b64(16), keyShare: b64(32), check: null }).success).toBe(true);
-    expect(syncKeyResultSchema.safeParse({ salt: b64(16), keyShare: b64(32), check: check() }).success).toBe(true);
-    // The share is 32 bytes, never another length.
-    expect(syncKeyResultSchema.safeParse({ salt: b64(16), keyShare: b64(16), check: null }).success).toBe(false);
+  it('hands out the key share only while no PIN is set', () => {
+    const none = syncKeyStateSchema.parse({ state: 'none', salt: b64(16), epoch: 1, keyShare: b64(32) });
+    expect(none.state === 'none' && none.keyShare).toBeTruthy();
+    // Set: the share never travels in the state, and a state 'none' needs one.
+    const set = syncKeyStateSchema.parse({ state: 'set', salt: b64(16), epoch: 3, keyShare: b64(32) });
+    expect('keyShare' in set).toBe(false);
+    expect(syncKeyStateSchema.safeParse({ state: 'none', salt: b64(16), epoch: 1 }).success).toBe(false);
+    expect(syncKeyStateSchema.safeParse({ state: 'set', salt: b64(16), epoch: 0 }).success).toBe(false);
   });
 
-  it('takes a version 2 check with a 12-byte nonce, and nothing else', () => {
-    expect(putKeyCheckBodySchema.safeParse({ check: check() }).success).toBe(true);
-    expect(putKeyCheckBodySchema.safeParse({ check: { ...check(), v: 1 } }).success).toBe(false);
-    expect(putKeyCheckBodySchema.safeParse({ check: { ...check(), iv: b64(16) } }).success).toBe(false);
-    expect(putKeyCheckBodySchema.safeParse({ check: { ...check(), ct: b64(300) } }).success).toBe(false);
-    expect(putKeyCheckBodySchema.safeParse({ check: check(), more: true }).success).toBe(false);
+  it('takes a 32-byte proof to unlock, and answers the share, the check and the epoch', () => {
+    expect(unlockBodySchema.safeParse({ proof: b64(32) }).success).toBe(true);
+    expect(unlockBodySchema.safeParse({ proof: b64(31) }).success).toBe(false);
+    expect(unlockBodySchema.safeParse({ proof: b64(32), pin: '1234' }).success).toBe(false);
+    expect(unlockResultSchema.safeParse({ keyShare: b64(32), check: check(), epoch: 2 }).success).toBe(true);
+    const wrong = { error: { code: 'wrong_pin', message: 'Not this PIN' }, triesLeft: 3 };
+    expect(wrongPinSchema.parse(wrong).triesLeft).toBe(3);
+    expect(errorStatus.wrong_pin).toBe(403);
+    expect(errorStatus.key_changed).toBe(409);
+  });
+
+  it('sets a PIN with a verifier and a version 2 check, and nothing else', () => {
+    expect(setSyncKeyBodySchema.safeParse({ verifier: verifier(), check: check() }).success).toBe(true);
+    expect(setSyncKeyBodySchema.safeParse({ verifier: verifier().toUpperCase(), check: check() }).success).toBe(false);
+    expect(setSyncKeyBodySchema.safeParse({ verifier: verifier(), check: { ...check(), v: 1 } }).success).toBe(false);
+    expect(setSyncKeyBodySchema.safeParse({ verifier: verifier(), check: { ...check(), iv: b64(16) } }).success).toBe(
+      false,
+    );
+    expect(setSyncKeyBodySchema.safeParse({ verifier: verifier(), check: { ...check(), ct: b64(300) } }).success).toBe(
+      false,
+    );
+    expect(setSyncKeyBodySchema.safeParse({ verifier: verifier(), check: check(), more: 1 }).success).toBe(false);
     expect(keyCheckSchema.safeParse({ ...check(), extra: 1 }).success).toBe(false);
+    expect(syncKeySetSchema.parse({ epoch: 1 })).toEqual({ epoch: 1 });
   });
 
   it('fits the check the clients seal', async () => {
@@ -47,12 +74,11 @@ describe('the sync key routes', () => {
     expect(deleteSyncKeyBodySchema.safeParse({ password: 'x', pin: '1234' }).success).toBe(false);
   });
 
-  it('parses the 201 and the 409', () => {
-    const stored = check();
-    expect(keyCheckStoredSchema.parse({ check: stored })).toEqual({ check: stored });
-    const conflict = { error: { code: 'conflict', message: 'Another device chose first' }, check: stored };
-    expect(keyCheckConflictSchema.parse(conflict).check).toEqual(stored);
-    expect(keyCheckConflictSchema.safeParse({ error: { code: 'conflict', message: '' } }).success).toBe(false);
+  it('carries the key epoch on a push and the device on a pull', () => {
+    expect(pushBodySchema.parse({ deviceId: 'd', keyEpoch: 2, records: [] }).keyEpoch).toBe(2);
+    expect(pushBodySchema.safeParse({ deviceId: 'd', keyEpoch: 0, records: [] }).success).toBe(false);
+    expect(pullQuerySchema.parse({ after: '5', deviceId: 'd' })).toMatchObject({ after: 5, deviceId: 'd' });
+    expect(maxPushBytes).toBeLessThan(5 * 1024 * 1024);
   });
 });
 

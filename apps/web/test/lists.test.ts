@@ -227,7 +227,7 @@ describe('the browser store', () => {
 
     const db = new HarvestDB(name);
     await db.open();
-    expect(db.verno).toBe(5);
+    expect(db.verno).toBe(6);
     expect(await db.rows('lists').count()).toBe(4);
     const coat = (await db.rows('wishlist_items').get('coat'))!;
     expect(coat).toMatchObject({ listUuid: buyListId, mediaType: null, rating: null });

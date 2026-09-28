@@ -7,12 +7,20 @@ import { UpdatePrompt } from '@/components/update-prompt';
 import { Toaster } from '@/components/ui/sonner';
 import '@/i18n';
 import './index.css';
+import { listenForFailures } from '@/lib/actions';
 import { listenForInstallPrompt } from '@/lib/pwa';
+import { reloadForNewVersion } from '@/lib/reload';
 import { startTheme } from '@/lib/theme';
 import { routes } from './router';
 
 startTheme();
 listenForInstallPrompt();
+listenForFailures();
+
+// A code chunk that is gone after a deploy: reload once, saved, to pick up the new version.
+window.addEventListener('vite:preloadError', (event) => {
+  if (reloadForNewVersion()) event.preventDefault();
+});
 
 // Only the online calls go through the query cache (auth, account,
 // releases); the app's data is read live from IndexedDB instead.

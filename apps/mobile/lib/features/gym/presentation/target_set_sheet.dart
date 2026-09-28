@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/finances/presentation/guarded.dart';
 import 'package:harvest/features/gym/data/exercises_repository.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
@@ -164,8 +165,14 @@ class _TargetSetSheet extends ConsumerWidget {
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
             onPressed: () {
+              // Said when it fails, instead of dropped (Q6-12).
+              final removal = runGuarded(
+                context,
+                repository.removeSlot(slot.uuid),
+                haptic: false,
+              );
               Navigator.of(context).pop();
-              repository.removeSlot(slot.uuid).ignore();
+              unawaited(removal);
             },
             icon: Icon(Icons.delete_outline, color: scheme.error),
             label: Text(
@@ -349,22 +356,28 @@ class _EditSetState extends ConsumerState<_EditSet> {
   Future<void> _save() async {
     final unit = ref.read(weightUnitSettingProvider).value ?? WeightUnit.kg;
     final value = double.tryParse(_load.text.trim().replaceAll(',', '.'));
-    await ref
-        .read(programsRepositoryProvider)
-        .updateTargetSet(
-          widget.set.uuid,
-          reps: int.tryParse(_reps.text.trim()),
-          openEnded: _open,
-          percentTenths: _percentage && value != null
-              ? (value * 10).round()
-              : null,
-          weightGrams: !_percentage && value != null
-              ? roundLoad(unit.toGrams(value), unit: unit)
-              : null,
-          clearWeight: _percentage,
-          clearPercent: !_percentage,
-        );
-    if (mounted) Navigator.of(context).pop();
+    // A failed write says so and leaves the sheet open, instead of an
+    // uncaught error (Q6-12).
+    final saved = await runGuarded(
+      context,
+      ref
+          .read(programsRepositoryProvider)
+          .updateTargetSet(
+            widget.set.uuid,
+            reps: int.tryParse(_reps.text.trim()),
+            openEnded: _open,
+            percentTenths: _percentage && value != null
+                ? (value * 10).round()
+                : null,
+            weightGrams: !_percentage && value != null
+                ? roundLoad(unit.toGrams(value), unit: unit)
+                : null,
+            clearWeight: _percentage,
+            clearPercent: !_percentage,
+          ),
+      haptic: false,
+    );
+    if (saved && mounted) Navigator.of(context).pop();
   }
 
   @override

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useHarvest } from '../context';
 import type { HarvestDB } from '../data/db';
 import { readSavedPlaces } from '../data/places';
+import { background } from '@/lib/actions';
 
 function coord(value: number): string {
   return value.toFixed(4);
@@ -73,9 +74,9 @@ export function LocationNote({ table, uuid, className }: { table: string; uuid: 
     <button
       type="button"
       onClick={() => {
-        void navigate(
+        background(navigate(
           `/app/records/places?day=${geotag.harvestDay}&table=${encodeURIComponent(table)}&uuid=${encodeURIComponent(uuid)}`,
-        );
+        ));
       }}
       title={t('places.openOnMap')}
       className={cn(

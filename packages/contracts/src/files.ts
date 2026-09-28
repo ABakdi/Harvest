@@ -23,7 +23,7 @@ export const maxFileStoreBytes = 2 * 1024 * 1024 * 1024;
 /** How many hashes one "do you have these?" question may carry. */
 export const maxFileQuery = 500;
 
-export { fileIvHeader, filePlainBytesHeader } from './headers.js';
+export { fileIvHeader, fileKeyEpochHeader, filePlainBytesHeader } from './headers.js';
 
 export const fileUploadedSchema = z.object({
   sha256: fileHashSchema,

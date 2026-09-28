@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { type Issue, issueSchema, toIssues } from './errors.js';
+import { isSafeRelativePath, storagePathColumns } from './paths.js';
 import { isLegacySetting, isPortableSetting } from './settings.js';
 import { hasColumn, syncedTableSchema, tables, type SyncedTable } from './tables.js';
 import { instantMicros, isoInstantSchema, sameInstant } from './time.js';
@@ -191,6 +192,15 @@ export function checkRecord(raw: unknown): CheckedRecord {
       code: 'custom',
     });
   }
+  // A path into a device's storage that could lead out of it is refused
+  // here, before any device joins it onto a directory (S6-08).
+  const pathColumn = storagePathColumns[record.table];
+  if (pathColumn !== undefined) {
+    const value = row[pathColumn];
+    if (typeof value === 'string' && !isSafeRelativePath(value)) {
+      issues.push({ path: ['data', pathColumn], message: 'Not a safe relative path', code: 'custom' });
+    }
+  }
   if (issues.length > 0) return { ok: false, issues };
   return { ok: true, record: { ...record, data: row } };
 }
@@ -258,6 +268,15 @@ export const maxPullBytes = 8 * 1024 * 1024;
 export const maxPushRecords = 500;
 
 /**
+ * The most a push body may be, in bytes of its JSON (UTF-8): a client
+ * fills a batch until the next record would take it past this. It sits
+ * under the server's body limit (5 MB) and nginx's (6 MB), so a batch
+ * built to it is never refused whole; one that is anyway comes back 413
+ * `payload_too_large`, and the client halves it.
+ */
+export const maxPushBytes = 4 * 1024 * 1024;
+
+/**
  * The push body as the server parses it. Each record is only required
  * to say which row it is; the rest is checked record by record with
  * [checkRecord], so one bad row comes back `invalid` on its own and the
@@ -265,6 +284,13 @@ export const maxPushRecords = 500;
  */
 export const pushBodySchema = z.object({
   deviceId: z.string().min(1).max(200),
+  /**
+   * The key epoch the batch's sealed records were made under. Required
+   * whenever the batch carries an `enc` record; when it is not the
+   * account's, every sealed record comes back `invalid` with the issue
+   * code `key_changed`, and the plain ones still land.
+   */
+  keyEpoch: z.int().min(1).optional(),
   records: z
     .array(
       z.looseObject({
@@ -278,6 +304,7 @@ export const pushBodySchema = z.object({
 /** The push body as a client builds it. */
 export interface PushBody {
   deviceId: string;
+  keyEpoch?: number;
   records: SyncRecord[];
 }
 
@@ -306,6 +333,14 @@ export const defaultPullLimit = 500;
 
 export const pullQuerySchema = z.object({
   after: z.coerce.number().int().nonnegative().default(0),
+  /**
+   * The pulling device's id, as it pushes with. When given, the server
+   * leaves out what this device wrote itself (it has it already) and
+   * still moves the cursor past it, so a push is not downloaded again
+   * on the next pull. A device rebuilding its store from nothing leaves
+   * it out, and gets its own writes back.
+   */
+  deviceId: z.string().min(1).max(200).optional(),
   limit: z.coerce.number().int().min(1).max(maxPullLimit).default(defaultPullLimit),
 });
 export type PullQuery = z.input<typeof pullQuerySchema>;
@@ -325,7 +360,11 @@ export const pulledRecordSchema = z.object({
 
 export const pullResultSchema = z.object({
   records: z.array(pulledRecordSchema),
-  /** Where the next pull starts: the last record's `seq`, or `after` when there were none. */
+  /**
+   * Where the next pull starts: the last `seq` the page covered, which
+   * is past the last record when the device's own writes were left out,
+   * or `after` when there was nothing.
+   */
   cursor: z.int().nonnegative(),
   more: z.boolean(),
 });

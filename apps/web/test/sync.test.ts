@@ -149,6 +149,7 @@ describe('the private tier', () => {
     server.salt = v2.syncSalt;
     server.keyShare = v2.keyShare;
     server.check = v2.keyCheck as EncEnvelope as never;
+    server.verifier = v2.verifierHex;
     const row = v2.rows[0]!;
     server.stored.set(`expenses/${row.uuid}`, {
       table: 'expenses',

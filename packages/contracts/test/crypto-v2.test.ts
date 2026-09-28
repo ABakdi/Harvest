@@ -2,7 +2,12 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   clocksMatch,
+  derivePinProof,
+  deriveSyncBase,
   deriveSyncKeyV2,
+  pinProofOf,
+  pinVerifierOf,
+  syncKeyOf,
   openFile,
   opensKeyCheck,
   openRowV2,
@@ -34,11 +39,32 @@ const spec = JSON.parse(readFileSync(new URL('../fixtures/crypto-v2.json', impor
   rows: (Row & { aad: string; plaintext: string; enc: Envelope })[];
   keyCheck: Envelope;
   refused: (Row & { why: string; enc: Envelope })[];
+  proofs: { secret: string; iterations: number; baseKeyHex: string; proof: string; verifierHex: string }[];
 };
 
 const key = () => deriveSyncKeyV2(spec.secret, spec.syncSalt, spec.keyShare);
 const cheap = (secret: string, share: string | Uint8Array = spec.keyShare) =>
   deriveSyncKeyV2(secret, spec.syncSalt, share, { iterations: 1000 });
+
+describe('the PIN proof (fixtures/crypto-v2.json proofs)', () => {
+  it.each(spec.proofs)('derives the pinned proof and verifier for $secret', async (one) => {
+    const base = await deriveSyncBase(one.secret, spec.syncSalt, { iterations: one.iterations });
+    expect(Buffer.from(base).toString('hex')).toBe(one.baseKeyHex);
+    const proof = await pinProofOf(base);
+    expect(Buffer.from(proof).toString('base64')).toBe(one.proof);
+    expect(await derivePinProof(one.secret, spec.syncSalt, { iterations: one.iterations })).toBe(one.proof);
+    expect(await pinVerifierOf(one.proof)).toBe(one.verifierHex);
+    expect(await pinVerifierOf(proof)).toBe(one.verifierHex);
+  });
+
+  it('is not the key, and the key from the same base is the pinned one', async () => {
+    const base = await deriveSyncBase(spec.secret, spec.syncSalt);
+    const key = await syncKeyOf(base, spec.keyShare, { extractable: true });
+    const raw = Buffer.from(new Uint8Array(await crypto.subtle.exportKey('raw', key))).toString('hex');
+    expect(raw).toBe(spec.keyHex);
+    expect(Buffer.from(await pinProofOf(base)).toString('hex')).not.toBe(raw);
+  });
+});
 
 describe('the private tier, version 2 (fixtures/crypto-v2.json)', () => {
   it('derives the pinned key from the secret, the salt and the key share', async () => {

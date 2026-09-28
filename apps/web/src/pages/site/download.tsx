@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api, ApiError } from '@/lib/api';
 import { formatBytes, formatDate } from '@/lib/format';
 import { Markdown } from '@/lib/markdown';
+import { runAction } from '@/lib/actions';
+import { useDocumentTitle } from '@/lib/title';
 
 const releasesPage = 'https://github.com/ABakdi/Harvest/releases';
 
@@ -19,10 +21,10 @@ function CopyButton({ value, label }: { value: string; label: string }) {
       size="icon-sm"
       aria-label={copied ? t('common.copied') : label}
       onClick={() => {
-        void navigator.clipboard?.writeText(value).then(() => {
+        runAction(() => navigator.clipboard?.writeText(value).then(() => {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
-        });
+        }));
       }}
     >
       {copied ? <CheckIcon /> : <CopyIcon />}
@@ -32,6 +34,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 
 export function DownloadPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t('download.title'));
   const release = useQuery({
     queryKey: ['release', 'latest'],
     queryFn: ({ signal }) => api.latestRelease(signal),
@@ -175,7 +178,8 @@ export function DownloadPage() {
             <li>{t('download.how3')}</li>
             <li>{t('download.how4')}</li>
           </ol>
-          <p className="mt-3 text-sm text-muted-foreground">{t('download.verifyHint')}</p>
+          {/* It points at a checksum shown above, so only while there is one (W6-33). */}
+          {release.data?.apk?.sha256 && <p className="mt-3 text-sm text-muted-foreground">{t('download.verifyHint')}</p>}
         </CardContent>
       </Card>
     </div>

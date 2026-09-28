@@ -68,6 +68,17 @@ describe('password policy', () => {
     expect(isCommonPassword('harvest at three in the morning')).toBe(false);
   });
 
+  it('refuses a common one dressed up with digits, symbols or leetspeak (W6-40)', () => {
+    for (const weak of ['password12', 'Password123!', 'p@ssw0rd', 'P@ssw0rd2024', 'dragon1234', 'Qwerty123!!', 'l3tm31n99']) {
+      expect(isCommonPassword(weak), weak).toBe(true);
+      expect(passwordSchema.safeParse(weak.padEnd(10, '1')).success, weak).toBe(false);
+    }
+    for (const strong of ['correct horse battery', 'Tamarind-orchard-7', 'harvest at three in the morning', 'zq8#Lm2!pV']) {
+      expect(isCommonPassword(strong), strong).toBe(false);
+      expect(passwordSchema.safeParse(strong).success, strong).toBe(true);
+    }
+  });
+
   it('does not apply the policy to sign-in', () => {
     expect(loginBodySchema.safeParse({ email: 'me@example.com', password: 'old' }).success).toBe(true);
   });

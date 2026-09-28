@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -59,4 +61,39 @@ void main() {
     );
     expect((await sessions.once(session.uuid))!.endedAt, ended);
   });
+
+  test('the history reads as many as asked (Q6-13)', () async {
+    final made = await aDay();
+    for (var i = 0; i < 3; i++) {
+      final session = await sessions.start(
+        day: made.day,
+        programUuid: made.program.uuid,
+        title: 'Day 1',
+      );
+      await sessions.finish(session.uuid);
+    }
+    expect(await sessions.watchFinished(limit: 2).first, hasLength(2));
+    expect(await sessions.watchFinished().first, hasLength(3));
+  });
+
+  test(
+    'a burst of ticks is read once more, not once per tick (Q6-13)',
+    () async {
+      await aDay();
+      var reads = 0;
+      final first = Completer<void>();
+      final sub = sessions.watchFinished().listen((_) {
+        reads++;
+        if (!first.isCompleted) first.complete();
+      });
+      await first.future;
+      for (var i = 0; i < 6; i++) {
+        db.markTablesUpdated([db.workoutSessions]);
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await sub.cancel();
+      // The first read, then one for the burst — not one per tick.
+      expect(reads, 2);
+    },
+  );
 }

@@ -192,7 +192,8 @@ if [[ -z "$(env_get KEY_SHARE_KEY)" ]]; then
   printf '\n\033[1;33m!!\033[0m %s\n' \
     "made KEY_SHARE_KEY in $ENV_FILE. It seals every account's key share:" \
     "   lose it and every private tier on this server is unreadable, for good." \
-    "   Back up deploy/.env together with the database volume, and encrypt both."
+    "   Back it up, but not beside the database backups: keep deploy/.env in another" \
+    "   place, under another key, so a leaked database backup never comes with it."
 fi
 
 # The database's two users: root for me and for this script, and the
@@ -288,20 +289,33 @@ MONGO_SHELL='d="$(mktemp -d)"; cat >"$d/script.js"; if command -v mongosh >/dev/
 
 # Makes (or brings up to date) both users. Idempotent. [auth] is empty
 # on a database without access control yet, and the root login after.
+# A value as a single-quoted JavaScript string: backslashes and quotes
+# escaped, so a password set by hand cannot end the string early (S6-18).
+js_quote() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\'/\\\'}"
+  printf "'%s'" "$value"
+}
+
 mongo_users_js() {
   local auth="$1" root_user root_pass app_pass
   root_user="$(env_get MONGO_ROOT_USERNAME)"
+  [[ "$root_user" =~ ^[A-Za-z0-9_]+$ ]] || die "MONGO_ROOT_USERNAME may hold letters, digits and _ only"
   root_pass="$(env_get MONGO_ROOT_PASSWORD)"
   app_pass="$(env_get MONGO_APP_PASSWORD)"
+  [[ "$root_pass$app_pass" != *[[:cntrl:]]* ]] || die "the MongoDB passwords in deploy/.env may not hold control characters"
+  root_pass="$(js_quote "$root_pass")"
+  app_pass="$(js_quote "$app_pass")"
   # shellcheck disable=SC2016 # the quotes are JavaScript's; the heredoc expands
   cat <<JS
 const admin = db.getSiblingDB('admin');
-${auth:+admin.auth('$root_user', '$root_pass');}
-if (admin.getUser('$root_user')) admin.updateUser('$root_user', { pwd: '$root_pass', roles: [{ role: 'root', db: 'admin' }] });
-else admin.createUser({ user: '$root_user', pwd: '$root_pass', roles: [{ role: 'root', db: 'admin' }] });
+${auth:+admin.auth('$root_user', $root_pass);}
+if (admin.getUser('$root_user')) admin.updateUser('$root_user', { pwd: $root_pass, roles: [{ role: 'root', db: 'admin' }] });
+else admin.createUser({ user: '$root_user', pwd: $root_pass, roles: [{ role: 'root', db: 'admin' }] });
 const harvest = db.getSiblingDB('harvest');
-if (harvest.getUser('harvest')) harvest.updateUser('harvest', { pwd: '$app_pass', roles: [{ role: 'readWrite', db: 'harvest' }] });
-else harvest.createUser({ user: 'harvest', pwd: '$app_pass', roles: [{ role: 'readWrite', db: 'harvest' }] });
+if (harvest.getUser('harvest')) harvest.updateUser('harvest', { pwd: $app_pass, roles: [{ role: 'readWrite', db: 'harvest' }] });
+else harvest.createUser({ user: 'harvest', pwd: $app_pass, roles: [{ role: 'readWrite', db: 'harvest' }] });
 JS
 }
 
@@ -517,5 +531,5 @@ fi
 say "Harvest $RELEASE is live at https://$DOMAIN"
 note "update: sudo deploy/deploy.sh          (it remembers the domain)"
 note "logs:   docker compose -f deploy/compose.server.yaml --env-file deploy/.env logs -f server"
-note "backup: the MongoDB volume harvest_mongo-data AND deploy/.env (its KEY_SHARE_KEY),"
-note "        encrypted — see docs/02-Architecture/Deployment.md"
+note "backup: the MongoDB volume harvest_mongo-data, and deploy/.env (its KEY_SHARE_KEY)"
+note "        kept apart from it, each encrypted — see docs/02-Architecture/Deployment.md"

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { apiMessage, fieldMessage } from '@/lib/errors';
 import { AuthCard, FormError } from './auth-card';
+import { runAction } from '@/lib/actions';
 
 export function ForgotPage() {
   const { t } = useTranslation();
@@ -48,7 +49,7 @@ export function ForgotPage() {
           onChange={() => setFailure(null)}
           onSubmit={(event) => {
             setFailure(null);
-            void submit(event);
+            runAction(() => submit(event));
           }}
           className="flex flex-col gap-4"
         >

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
+import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/crop_card.dart';
 import 'package:harvest/core/ui/widgets/reminder_countdown.dart';
 import 'package:harvest/features/commitments/presentation/schedule_label.dart';
@@ -60,7 +61,7 @@ class AlbumCropTile extends ConsumerWidget {
                   l10n.streakCurrent(streak.current),
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
+                    color: theme.colorScheme.primaryText,
                   ),
                 ),
               ],

@@ -193,9 +193,42 @@ class GoalsRepository {
     GoalsCompanion(status: const Value('dropped'), statusNote: Value(note)),
   );
 
-  /// Soft delete, with its items (GL7). [restore] undoes it.
-  Future<void> delete(String uuid) => _setDeleted(uuid, DateTime.now());
-  Future<void> restore(String uuid) => _setDeleted(uuid, null);
+  /// Soft delete, with its items (GL7). [restore] undoes it. What
+  /// achieving paid goes with the goal, as it does on reopening, and
+  /// comes back with it: achieving and deleting over and over is not a
+  /// way to earn XP ([[Audit-v3]] U6-04).
+  Future<void> delete(String uuid) => _db.transaction(() async {
+    await _setDeleted(uuid, DateTime.now());
+    if (await _xpNet(uuid) > 0) {
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: -goalAchievedXp,
+          reason: 'goal-undo:$uuid',
+          harvestDay: HarvestDay.today().key,
+        ),
+      );
+    }
+  });
+
+  Future<void> restore(String uuid) => _db.transaction(() async {
+    await _setDeleted(uuid, null);
+    final goal = await (_db.select(
+      _db.goals,
+    )..where((g) => g.uuid.equals(uuid))).getSingleOrNull();
+    if (goal?.status == 'achieved' && await _xpNet(uuid) <= 0) {
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: goalAchievedXp,
+          reason: 'goal:$uuid',
+          harvestDay: HarvestDay.today().key,
+        ),
+      );
+    }
+  });
 
   /// Items go with the goal and come back with it — only the ones that
   /// went *with* it, which share its deletion stamp. An item deleted on

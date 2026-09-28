@@ -53,7 +53,7 @@ final class SyncControllerProvider
   }
 }
 
-String _$syncControllerHash() => r'3cb08cf220b4b81b714b78cd1e4071eb3e8bf151';
+String _$syncControllerHash() => r'2d9304b396be2f5ee5980e6a563b71a9ca615c94';
 
 /// When sync runs ([[Sync-API]]: order of a sync): on resume, two
 /// seconds after the last local write, and every fifteen minutes while

@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:harvest/features/export/data/export_repository.dart';
 import 'package:harvest/features/export/domain/archive_layout.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
@@ -13,6 +15,27 @@ import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'archive_service.g.dart';
+
+/// One entry of the zip: its bytes when they are small and made here
+/// (the workbook, a note), or the path of a picture or a recording on
+/// disk, read only by the isolate that zips it.
+typedef _Entry = ({String name, Uint8List? bytes, String? path, bool compress});
+
+/// Zips plain entries, reading each file from disk as it goes. Plain
+/// data only, so it crosses to a background isolate as it is, and the
+/// pictures are never held on the UI isolate (P6-07).
+Uint8List? _encodeZip(List<_Entry> entries) {
+  final archive = Archive();
+  for (final entry in entries) {
+    final bytes = entry.bytes ?? File(entry.path!).readAsBytesSync();
+    archive.addFile(
+      ArchiveFile(entry.name, bytes.length, bytes)..compress = entry.compress,
+    );
+  }
+  final encoded = ZipEncoder().encode(archive);
+  if (encoded == null) return null;
+  return encoded is Uint8List ? encoded : Uint8List.fromList(encoded);
+}
 
 /// The MIME type Android files a `.zip` under.
 const zipMimeType = 'application/zip';
@@ -72,7 +95,13 @@ class ArchiveService {
       generatedAt: at,
       includePlaces: includePlaces,
     );
-    final archive = Archive();
+    final entries = <_Entry>[];
+    void add(String name, {Uint8List? bytes, String? path}) => entries.add((
+      name: name,
+      bytes: bytes,
+      path: path,
+      compress: !_alreadyCompressed.hasMatch(name),
+    ));
 
     // The workbook, plus one entry per file. The count is known before
     // the slow part starts, which is the point of reporting at all.
@@ -93,19 +122,12 @@ class ArchiveService {
     }
 
     final workbook = buildWorkbook(harvestSheets(contents.data));
-    archive.addFile(
-      ArchiveFile(
-        ArchivePaths.workbook,
-        workbook.length,
-        Uint8List.fromList(workbook),
-      ),
-    );
+    add(ArchivePaths.workbook, bytes: Uint8List.fromList(workbook));
     step(ArchivePaths.workbook);
 
     for (final note in contents.notes) {
       check();
-      final bytes = _utf8(note.body);
-      archive.addFile(ArchiveFile(note.path, bytes.length, bytes));
+      add(note.path, bytes: _utf8(note.body));
       step(note.path);
     }
 
@@ -125,8 +147,7 @@ class ArchiveService {
         step(attachment.path);
         continue;
       }
-      final bytes = await file.readAsBytes();
-      archive.addFile(ArchiveFile(attachment.path, bytes.length, bytes));
+      add(attachment.path, path: file.path);
       step(attachment.path);
     }
 
@@ -145,16 +166,22 @@ class ArchiveService {
         step(memory.path);
         continue;
       }
-      final bytes = await file.readAsBytes();
-      archive.addFile(ArchiveFile(memory.path, bytes.length, bytes));
+      add(memory.path, path: file.path);
       step(memory.path);
     }
 
     check();
-    final encoded = ZipEncoder().encode(archive);
+    // Zipped off the UI isolate (P6-07); pictures and recordings are
+    // stored as they are, since deflate gains nothing on them.
+    final encoded = await compute(_encodeZip, entries);
     if (encoded == null) throw StateError('the archive would not encode');
-    return Uint8List.fromList(encoded);
+    return encoded;
   }
+
+  static final _alreadyCompressed = RegExp(
+    r'\.(jpe?g|png|webp|heic|gif|mp4|mov|m4a|aac|mp3|ogg|opus|webm)$',
+    caseSensitive: false,
+  );
 
   static Uint8List _utf8(String text) => Uint8List.fromList(utf8.encode(text));
 }

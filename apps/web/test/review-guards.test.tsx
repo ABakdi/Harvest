@@ -20,7 +20,7 @@ import { FieldScreen } from '@/app/screens/field';
 import { OnboardingScreen } from '@/app/screens/onboarding';
 import { PomodoroSection } from '@/app/screens/settings';
 import { FakeServer } from './fake-server';
-import { device } from './helpers';
+import { device, writesSettled } from './helpers';
 
 /**
  * The places a press, a sync or a clock could make the browser say or
@@ -64,7 +64,7 @@ describe('one press, one write', () => {
     submitTwice(box.closest('form')!);
 
     await waitFor(async () => expect(await h.db.rows('check_ins').count()).toBe(1));
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await writesSettled(h);
     expect(await h.db.rows('check_ins').count()).toBe(1);
     const xp = (await h.db.rows('ledger').toArray()).filter((row) => row.kind === 'xp');
     expect(xp).toHaveLength(1);
@@ -89,7 +89,7 @@ describe('one press, one write', () => {
     submitTwice(note.closest('form')!);
     await waitFor(async () => expect(await h.db.rows('seed_notes').count()).toBe(1));
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await writesSettled(h);
     expect(await h.db.rows('commitments').count()).toBe(1);
     expect(await h.db.rows('goals').count()).toBe(1);
     expect(await h.db.rows('seed_notes').count()).toBe(1);

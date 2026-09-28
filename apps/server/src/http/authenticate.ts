@@ -1,14 +1,13 @@
 import type { RequestHandler, Response } from 'express';
 import type { AccessClaims } from '../auth/tokens.js';
-import type { AuthService } from '../auth/service.js';
-import type { UsersRepository } from '../db/users.js';
+import type { AuthService, Caller } from '../auth/service.js';
 import { HttpError, unauthorized } from './errors.js';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Locals {
-      auth?: AccessClaims;
+      auth?: Caller;
       input?: unknown;
     }
   }
@@ -32,13 +31,14 @@ export function requireAuth(auth: AuthService): RequestHandler {
 
 /**
  * Sync is for verified accounts only: a mistyped address must not
- * quietly own my data ([[Accounts]]).
+ * quietly own my data ([[Accounts]]). Behind [requireAuth], which has
+ * already read whether the account is (SV-11).
  */
-export function requireVerified(users: UsersRepository): RequestHandler {
-  return async (_req, res, next) => {
-    const user = await users.findById(authOf(res).userId);
-    if (!user) throw unauthorized();
-    if (user.verifiedAt === null) throw new HttpError('forbidden', 'Confirm your email before syncing');
+export function requireVerified(): RequestHandler {
+  return (_req, res, next) => {
+    const auth = res.locals.auth;
+    if (!auth) throw new Error('requireVerified used on a route without requireAuth');
+    if (!auth.verified) throw new HttpError('forbidden', 'Confirm your email before syncing');
     next();
   };
 }

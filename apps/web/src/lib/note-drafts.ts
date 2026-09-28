@@ -52,3 +52,20 @@ export function leftDrafts(): [string, NoteDraft][] {
   }
   return found;
 }
+
+/**
+ * Forgets every draft in this browser: signing out, or a session ended
+ * elsewhere, takes them with the rest (W5, S6-11).
+ */
+export function wipeDrafts(): void {
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(prefix)) keys.push(key);
+    }
+    for (const key of keys) localStorage.removeItem(key);
+  } catch {
+    // No storage (a private window): nothing was kept.
+  }
+}

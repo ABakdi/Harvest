@@ -384,27 +384,33 @@ BudgetSnapshot? budgetSnapshot(Ref ref) {
 /// Savings health: total savings (converted) below 10% of the budget.
 enum SavingsHealth { unknown, healthy, low }
 
-@riverpod
-SavingsHealth savingsHealth(Ref ref) {
-  final budget = ref.watch(financeSettingsProvider).value?.budgetMinor;
-  final balances = ref.watch(vaultBalancesProvider).value ?? const {};
-  final savings = <Currency, int>{
-    for (final entry in balances.entries)
-      if (entry.key.$1 == MoneyAccount.savings && entry.value != 0)
-        entry.key.$2: entry.value,
+/// The rule itself (`savingsHealth` in `packages/core`, held to its
+/// fixture): savings below a tenth of the monthly budget, converted at
+/// the rates known (face value where one is missing), are low. With no
+/// savings or no budget there is nothing to say (Q6-20).
+SavingsHealth savingsHealthOf(
+  Map<Currency, int> savings,
+  int? monthlyBudget,
+  Rates rates,
+) {
+  final held = {
+    for (final entry in savings.entries)
+      if (entry.value != 0) entry.key: entry.value,
   };
-  if (savings.isEmpty || budget == null || budget <= 0) {
+  if (held.isEmpty || monthlyBudget == null || monthlyBudget <= 0) {
     return SavingsHealth.unknown;
   }
-  final ratesValue =
-      ref.watch(ratesProvider).value ??
-      const Rates(defaultCurrency: Currency.dzd);
-  var total = 0;
-  savings.forEach((currency, minor) {
-    total += ratesValue.toDefault(minor, currency) ?? minor;
-  });
-  return total < budget ~/ 10 ? SavingsHealth.low : SavingsHealth.healthy;
+  return rates.sumInDefault(held) < monthlyBudget ~/ 10
+      ? SavingsHealth.low
+      : SavingsHealth.healthy;
 }
+
+@riverpod
+SavingsHealth savingsHealth(Ref ref) => savingsHealthOf(
+  ref.watch(accountBalancesProvider(MoneyAccount.savings)),
+  ref.watch(financeSettingsProvider).value?.budgetMinor,
+  ref.watch(ratesProvider).value ?? const Rates(defaultCurrency: Currency.dzd),
+);
 
 /// The smart-repeat suggestion, refreshed as today's log changes.
 @riverpod

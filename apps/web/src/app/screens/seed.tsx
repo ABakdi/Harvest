@@ -14,6 +14,7 @@ import { useHarvest, useHarvestDay } from '../context';
 import { readSeedStory, type SeedDay } from '../data/seed-notes';
 import type { SeedRow } from '../data/seeds';
 import { useDialogs } from '../dialogs';
+import { useDocumentTitle } from '@/lib/title';
 
 /** How far back the strip looks: eight weeks. */
 const stripSpan = 56;
@@ -30,22 +31,49 @@ function Stat({ label, value }: { label: string; value: string }) {
 /** The last eight weeks as a dotted strip: filled where I showed up. */
 function RunStrip({ days, today }: { days: Set<string>; today: HarvestDay }) {
   const { t } = useTranslation();
-  const start = today.addDays(-(stripSpan - 1));
-  const shown = Array.from({ length: stripSpan }, (_, index) => start.addDays(index));
-  const active = shown.filter((day) => days.has(day.key)).length;
+  // A week per column and a weekday per row, Monday on top, ending with
+  // this week: today sits in the last column, the same shape at every
+  // width, and a month's name heads the column it starts in (W6-31).
+  const first = today.addDays(-(stripSpan - 1)).weekStart;
+  const weeks: HarvestDay[][] = [];
+  for (let monday = first; monday.key <= today.key; monday = monday.addDays(7)) {
+    weeks.push(Array.from({ length: 7 }, (_, index) => monday.addDays(index)));
+  }
+  const active = weeks.flat().filter((day) => day.key <= today.key && days.has(day.key)).length;
   return (
-    <div role="img" aria-label={t('seedDetail.runStrip', { count: active })} className="flex flex-wrap gap-1 rounded-xl border bg-card p-4">
-      {shown.map((day) => (
-        <span
-          key={day.key}
-          title={formatDay(day.key)}
-          className={cn(
-            'size-3 rounded-[4px]',
-            days.has(day.key) ? 'bg-success' : 'bg-muted',
-            day.key === today.key && 'ring-2 ring-primary ring-offset-1 ring-offset-card',
-          )}
-        />
-      ))}
+    <div role="img" aria-label={t('seedDetail.runStrip', { count: active })} className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+      <div className="flex gap-1" aria-hidden>
+        {weeks.map((week, index) => {
+          const starts = week.find((day) => day.day === 1);
+          const label = index === 0 ? week[0]! : starts;
+          return (
+            <span key={week[0]!.key} className="w-3 overflow-visible whitespace-nowrap text-[10px] font-bold text-muted-foreground">
+              {label ? formatDay(label.key, { month: 'short' }) : ''}
+            </span>
+          );
+        })}
+      </div>
+      <div className="flex gap-1">
+        {weeks.map((week) => (
+          <div key={week[0]!.key} className="flex flex-col gap-1">
+            {week.map((day) =>
+              day.key > today.key ? (
+                <span key={day.key} className="size-3" aria-hidden />
+              ) : (
+                <span
+                  key={day.key}
+                  title={formatDay(day.key)}
+                  className={cn(
+                    'size-3 rounded-[4px]',
+                    days.has(day.key) ? 'bg-success' : 'bg-muted',
+                    day.key === today.key && 'ring-2 ring-primary ring-offset-1 ring-offset-card',
+                  )}
+                />
+              ),
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -95,6 +123,7 @@ export function SeedScreen() {
   const today = useHarvestDay();
   const story = useLiveQuery(() => readSeedStory(db, uuid), [db, uuid]);
   const [writing, setWriting] = useState(false);
+  useDocumentTitle(story?.seed?.title);
   if (!story) return null;
 
   const back = (
@@ -122,7 +151,7 @@ export function SeedScreen() {
     <div className="flex flex-col gap-4">
       {back}
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="me-auto min-w-0 truncate text-2xl font-extrabold">{seed.title}</h1>
+        <h1 dir="auto" className="me-auto min-w-0 line-clamp-3 [overflow-wrap:anywhere] text-2xl font-extrabold">{seed.title}</h1>
         <Button variant="outline" size="sm" onClick={() => setWriting(true)}>
           <NotebookPenIcon />
           {t('seedDetail.notesTitle')}

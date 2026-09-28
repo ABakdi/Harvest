@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { ExpenseEditor } from '@/app/components/expense-editor';
-import { HarvestDay } from '@harvest/core';
+import { HarvestDay, averagePerDay } from '@harvest/core';
 import { HarvestContext } from '@/app/context';
 import { BudgetPanel } from '@/app/screens/budget';
 import { InsightsPanel } from '@/app/screens/insights';
@@ -56,6 +56,18 @@ describe('the vault, moved from the browser', () => {
     expect(await screen.findByText('found money')).toBeInTheDocument();
     // The ledger is written here now; nothing says otherwise.
     expect(screen.queryByText(/moved on the phone/)).not.toBeInTheDocument();
+  });
+
+  it('reads savings as low by the shared rule (Q6-20)', async () => {
+    const h = await device(new FakeServer());
+    await h.settings.setString('finance.monthlyBudgetMinor', '1200000');
+    await h.vault.depositSavings(1000_00, 'DZD', false, null);
+    show(h, <VaultPanel />);
+    fireEvent.click(await screen.findByRole('button', { name: /Savings/ }));
+    // DA1,000 kept against a DA12,000 month: under a tenth.
+    expect(await screen.findByText('Savings running low')).toBeInTheDocument();
+    await h.vault.depositSavings(500_00, 'DZD', false, null);
+    await waitFor(() => expect(screen.queryByText('Savings running low')).not.toBeInTheDocument());
   });
 
   it('will not take more than the wallet holds', async () => {
@@ -156,10 +168,11 @@ describe('insights', () => {
     await h.money.log({ amountMinor: 30_00, currency: 'DZD', category: 'transport', note: 'bus', day: '2026-09-19', fromWallet: true });
     show(h, <InsightsPanel />);
 
-    // The average divides by the days of the week that have happened.
+    // The average divides by the days of the week that have happened,
+    // in whole dinars as the phone shows it (U6-34).
     const elapsed = week.daysUntil(today) + 1;
     expect(await screen.findByText('DA100', { selector: 'span' })).toBeInTheDocument();
-    expect(screen.getByText(formatMoney(Math.trunc(100_00 / elapsed), 'DZD'))).toBeInTheDocument();
+    expect(screen.getByText(formatMoney(averagePerDay(100_00, elapsed, 'DZD'), 'DZD'))).toBeInTheDocument();
     expect(screen.getByText('70% (DA70)')).toBeInTheDocument();
     expect(screen.getByText('2 movements')).toBeInTheDocument();
 

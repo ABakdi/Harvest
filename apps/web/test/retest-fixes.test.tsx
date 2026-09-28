@@ -19,7 +19,7 @@ import { NotesScreen } from '@/app/screens/notes';
 import { RecordsView } from '@/app/screens/records';
 import { api, refreshSession, resetApiForTests } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, testUser, writesSettled } from './helpers';
 
 /** What a hands-on pass over the deployed web still found. */
 
@@ -132,7 +132,7 @@ describe('a load seeded in the unit on screen (Y8)', () => {
     const field = await within(dialog).findByLabelText('Barbell Bench Press');
     expect(field).toHaveValue('220.5');
     fireEvent.blur(field);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await writesSettled(h);
     expect((await readTrainingMaxes(h.db, uuid)).get('0025')).toBe(100_000);
   });
 

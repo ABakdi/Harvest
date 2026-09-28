@@ -36,6 +36,33 @@ void main() {
     expect(key, keyBytes);
   }, timeout: const Timeout(Duration(minutes: 2)));
 
+  test('makes the pinned PIN proof and verifier (S6-04)', () async {
+    final cases = [
+      {
+        'secret': spec['secret'],
+        'iterations': spec['iterations'],
+        'baseKeyHex': spec['baseKeyHex'],
+        'proof': spec['proof'],
+        'verifierHex': spec['verifierHex'],
+      },
+      ...list('proofs'),
+    ];
+    for (final c in cases) {
+      final base = await SyncCipher.deriveBase(
+        c['secret']! as String,
+        spec['syncSalt']! as String,
+        iterations: (c['iterations']! as num).toInt(),
+      );
+      expect(
+        base.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+        c['baseKeyHex'],
+      );
+      final proof = await SyncCipher.proofOf(base);
+      expect(base64Encode(proof), c['proof']);
+      expect(await SyncCipher.verifierOf(proof), c['verifierHex']);
+    }
+  }, timeout: const Timeout(Duration(minutes: 2)));
+
   test('binds each row to its clocks, and opens it', () async {
     final cipher = SyncCipher(keyBytes);
     for (final c in list('rows')) {

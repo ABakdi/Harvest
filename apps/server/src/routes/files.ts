@@ -1,19 +1,21 @@
+import { pipeline } from 'node:stream/promises';
 import {
   fileIvHeader,
+  fileKeyEpochHeader,
   filePlainBytesHeader,
   fileQuerySchema,
   fileHashSchema,
   maxFileBytes,
   maxFileStoreBytes,
 } from '@harvest/contracts';
-import { Binary } from 'mongodb';
 import express, { Router } from 'express';
 import { z } from 'zod';
 import type { FilesRepository } from '../db/files.js';
 import type { RecordsRepository } from '../db/records.js';
 import type { TotalsRepository } from '../db/totals.js';
+import type { UsersRepository } from '../db/users.js';
 import { authOf } from '../http/authenticate.js';
-import { HttpError, validationError } from '../http/errors.js';
+import { HttpError, unauthorized, validationError } from '../http/errors.js';
 import { validated } from '../http/validate.js';
 import { unnamedFileGraceMs } from '../sync/file-sweep.js';
 import type { KeyedMutex } from '../sync/mutex.js';
@@ -32,6 +34,16 @@ function sealOf(req: { get(name: string): string | undefined }): { iv: string; p
   return parsed.data;
 }
 
+export interface FileDeps {
+  files: FilesRepository;
+  records: RecordsRepository;
+  users: UsersRepository;
+  totals: TotalsRepository;
+  /** The account lock pushes run under ([[SyncService]]). */
+  lock: KeyedMutex;
+  now?: () => Date;
+}
+
 /**
  * Files: pictures and recordings, content-addressed and sealed by the
  * client ([[Sync-API]]).
@@ -42,16 +54,7 @@ function sealOf(req: { get(name: string): string | undefined }): { iv: string; p
  *
  * Mounted behind requireAuth and requireVerified, like sync.
  */
-export interface FileDeps {
-  files: FilesRepository;
-  records: RecordsRepository;
-  totals: TotalsRepository;
-  /** The account lock pushes run under ([[SyncService]]). */
-  lock: KeyedMutex;
-  now?: () => Date;
-}
-
-export function fileRoutes({ files, records, totals, lock, now = () => new Date() }: FileDeps): Router {
+export function fileRoutes({ files, records, users, totals, lock, now = () => new Date() }: FileDeps): Router {
   const router = Router();
 
   // Ciphertext, not JSON: the body is raw bytes and nothing parses it.
@@ -66,7 +69,8 @@ export function fileRoutes({ files, records, totals, lock, now = () => new Date(
       const { userId } = authOf(res);
       res.json({
         missing: await files.missing(userId, body.hashes, now()),
-        usedBytes: await files.usedBytes(userId),
+        // The running total, not a sum over every file (SV-06).
+        usedBytes: await totals.current(userId, 'fileBytes', () => files.usedBytes(userId)),
         quotaBytes: maxFileStoreBytes,
       });
     }),
@@ -79,6 +83,7 @@ export function fileRoutes({ files, records, totals, lock, now = () => new Date(
       const { userId } = authOf(res);
       const { sha256 } = params;
       const { iv, plainBytes } = sealOf(req);
+      const epoch = Number(req.get(fileKeyEpochHeader) ?? NaN);
       const blob = req.body as Buffer;
       if (!Buffer.isBuffer(blob) || blob.length === 0) {
         throw new HttpError('validation_failed', 'The body must be the file');
@@ -88,6 +93,15 @@ export function fileRoutes({ files, records, totals, lock, now = () => new Date(
       // back to, and the room is charged before the bytes land, so two
       // uploads at once cannot both take the last of it (audit S5-08).
       const had = await lock.run(userId.toHexString(), async () => {
+        // Deleted while the bytes were on their way: nothing is written
+        // back for it (Q6-02).
+        const user = await users.findById(userId);
+        if (!user) throw unauthorized();
+        // Sealed under a key the account no longer has (S6-07): nothing
+        // is stored, not even as "held".
+        if (epoch !== (user.keyEpoch ?? 1)) {
+          throw new HttpError('key_changed', 'Sealed under a key this account no longer has; ask for the PIN again');
+        }
         // Already held: the name is the contents, so there is nothing to
         // replace and nothing to charge for.
         if (await files.claim(userId, sha256, now())) return true;
@@ -98,16 +112,10 @@ export function fileRoutes({ files, records, totals, lock, now = () => new Date(
         let stored = false;
         try {
           const at = now();
-          stored = await files.put({
-            userId,
-            sha256,
-            bytes: blob.length,
-            iv,
-            plainBytes,
-            blob: new Binary(blob),
-            uploadedAt: at,
-            claimedAt: at,
-          });
+          stored = await files.put(
+            { userId, sha256, bytes: blob.length, iv, plainBytes, uploadedAt: at, claimedAt: at },
+            blob,
+          );
         } finally {
           if (!stored) await totals.release(userId, 'fileBytes', blob.length);
         }
@@ -126,13 +134,17 @@ export function fileRoutes({ files, records, totals, lock, now = () => new Date(
     ...validated({ params: nameSchema }, async ({ params }, _req, res) => {
       const { userId } = authOf(res);
       const doc = await files.get(userId, params.sha256);
-      if (!doc) throw new HttpError('not_found', 'No such file');
+      const stream = doc ? await files.bytesOf(doc) : null;
+      if (!doc || !stream) throw new HttpError('not_found', 'No such file');
+      // A chunk at a time: a download holds a chunk in memory, not the
+      // file (P6-05).
       res
         .status(200)
         .type('application/octet-stream')
+        .set('Content-Length', String(doc.bytes))
         .set(fileIvHeader, doc.iv)
-        .set(filePlainBytesHeader, String(doc.plainBytes))
-        .send(Buffer.from(doc.blob.buffer));
+        .set(filePlainBytesHeader, String(doc.plainBytes));
+      await pipeline(stream, res);
     }),
   );
 

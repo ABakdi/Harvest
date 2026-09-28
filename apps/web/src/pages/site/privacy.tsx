@@ -1,5 +1,6 @@
 import { ArrowUpRightIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useDocumentTitle } from '@/lib/title';
 
 /**
  * What leaves the device, in plain words. The list is the one in
@@ -11,6 +12,7 @@ const webOnly = ['site', 'fonts'] as const;
 
 export function PrivacyPage() {
   const { t } = useTranslation();
+  useDocumentTitle(t('privacy.title'));
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-10">
       <div className="flex flex-col gap-2">

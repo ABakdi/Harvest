@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
@@ -70,11 +72,61 @@ class SessionsRepository {
     return row == null ? null : _hydrate(row);
   }
 
-  Stream<List<WorkoutSession>> watchFinished({int limit = 50}) async* {
-    yield await finishedOnce(limit: limit);
-    await for (final _ in _db.tableUpdates(_sessionTables)) {
-      yield await finishedOnce(limit: limit);
+  /// The newest [limit] finished sessions, re-read as the tables change.
+  ///
+  /// Refreshes coalesce: ticks in one burst are one read, and a set
+  /// ticked while a read is under way asks for one more read, not one
+  /// per tick queued behind it (Q6-13).
+  Stream<List<WorkoutSession>> watchFinished({int limit = 50}) {
+    StreamSubscription<Set<TableUpdate>>? updates;
+    late final StreamController<List<WorkoutSession>> controller;
+    var reading = false;
+    var again = false;
+    var scheduled = false;
+
+    Future<void> refresh() async {
+      if (reading) {
+        again = true;
+        return;
+      }
+      reading = true;
+      try {
+        do {
+          again = false;
+          final sessions = await finishedOnce(limit: limit);
+          if (controller.isClosed) return;
+          controller.add(sessions);
+        } while (again);
+      } on Object catch (error, stack) {
+        if (!controller.isClosed) controller.addError(error, stack);
+      } finally {
+        reading = false;
+      }
     }
+
+    controller = StreamController<List<WorkoutSession>>(
+      onListen: () {
+        unawaited(refresh());
+        updates = _db.tableUpdates(_sessionTables).listen((_) {
+          if (reading) {
+            again = true;
+          } else if (!scheduled) {
+            // Ticks that land in one turn of the event loop are one
+            // read, taken once they have all landed.
+            scheduled = true;
+            Timer.run(() {
+              scheduled = false;
+              unawaited(refresh());
+            });
+          }
+        });
+      },
+      onCancel: () async {
+        await updates?.cancel();
+        await controller.close();
+      },
+    );
+    return controller.stream;
   }
 
   Future<List<WorkoutSession>> finishedOnce({int limit = 50}) async {
@@ -776,9 +828,11 @@ Stream<WorkoutSession?> runningSession(Ref ref) =>
 Stream<WorkoutSession?> session(Ref ref, String uuid) =>
     ref.watch(sessionsRepositoryProvider).watchOne(uuid);
 
+/// The newest [limit] finished sessions: three on the gym screen, and a
+/// page that grows as the history is scrolled (Q6-13).
 @riverpod
-Stream<List<WorkoutSession>> finishedSessions(Ref ref) =>
-    ref.watch(sessionsRepositoryProvider).watchFinished();
+Stream<List<WorkoutSession>> finishedSessions(Ref ref, {int limit = 50}) =>
+    ref.watch(sessionsRepositoryProvider).watchFinished(limit: limit);
 
 @riverpod
 Future<ExerciseRecords> exerciseRecords(Ref ref, String exerciseId) =>

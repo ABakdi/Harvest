@@ -80,11 +80,6 @@ export async function readProgram(source: RowSource, uuid: string): Promise<Prog
   return (await readPrograms(source)).find((tree) => tree.program.uuid === uuid) ?? null;
 }
 
-/** The program a seed is, if any: finishing its session checks the seed in (Y4). */
-export async function programForSeed(source: RowSource, commitmentUuid: string): Promise<ProgramTree | null> {
-  return (await readPrograms(source)).find((tree) => tree.program.commitmentUuid === commitmentUuid) ?? null;
-}
-
 /** Every training max the program has, by exercise. */
 export async function readTrainingMaxes(source: RowSource, programUuid: string): Promise<Map<string, number>> {
   const rows = await source.rows('training_maxes').toArray();

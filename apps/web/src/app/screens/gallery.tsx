@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatBytes, formatDay } from '@/lib/format';
+import { formatBytes, formatDay, shortName } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { EmptyState, StreakChip } from '../components/bits';
 import { AlbumDialog } from '../components/gallery/album-dialog';
@@ -46,6 +46,8 @@ import { useHarvest, useHarvestDay, type Harvest } from '../context';
 import type { AlbumRow, MemoryRow } from '../data/gallery';
 import { Fab } from '../components/fab';
 import { RecordsTabs } from './records';
+import { runAction } from '@/lib/actions';
+import { useDocumentTitle } from '@/lib/title';
 
 interface AlbumSummary {
   album: AlbumRow;
@@ -149,11 +151,11 @@ function UploadProblem() {
     () => files.problem,
     () => files.problem,
   );
-  if (problem !== 'quota') return null;
+  if (problem === null) return null;
   return (
     <p role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">
       <CloudOffIcon className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
-      {t('gallery.quotaExceeded')}
+      {t(problem === 'quota' ? 'gallery.quotaExceeded' : 'gallery.uploadFailing')}
     </p>
   );
 }
@@ -184,7 +186,7 @@ function AlbumCard({ summary, onOpen }: { summary: AlbumSummary; onOpen: () => v
         </span>
         <span className="flex items-center gap-3 p-3">
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate font-extrabold">{album.name}</span>
+            <span dir="auto" className="truncate font-extrabold">{album.name}</span>
             <span className="truncate text-xs text-muted-foreground">
               {t('gallery.count', { count: memories.length })}
               {scheduled ? ` · ${t('gallery.scheduled')}` : ''}
@@ -250,6 +252,7 @@ function AlbumView({ summary, onBack }: { summary: AlbumSummary; onBack: () => v
   const { t } = useTranslation();
   const { gallery } = useHarvest();
   const { album, memories: all } = summary;
+  useDocumentTitle(album.name);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
   const [overlay, setOverlay] = useState<Overlay>(null);
@@ -262,8 +265,8 @@ function AlbumView({ summary, onBack }: { summary: AlbumSummary; onBack: () => v
     setOverlay(null);
     await gallery.deleteAlbum(album.uuid);
     onBack();
-    toast(t('gallery.albumTrashed', { name: album.name }), {
-      action: { label: t('common.undo'), onClick: () => void gallery.restoreAlbum(album.uuid) },
+    toast(t('gallery.albumTrashed', { name: shortName(album.name) }), {
+      action: { label: t('common.undo'), onClick: () => runAction(() => gallery.restoreAlbum(album.uuid)) },
     });
   };
 
@@ -288,7 +291,7 @@ function AlbumView({ summary, onBack }: { summary: AlbumSummary; onBack: () => v
             />
           </div>
         ) : (
-          <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold">{album.name}</h1>
+          <h1 dir="auto" className="min-w-0 flex-1 line-clamp-3 [overflow-wrap:anywhere] text-2xl font-extrabold">{album.name}</h1>
         )}
         <Button
           variant="ghost"
@@ -378,7 +381,7 @@ function AlbumView({ summary, onBack }: { summary: AlbumSummary; onBack: () => v
         title={t('gallery.deleteAlbumTitle', { name: album.name })}
         body={t('gallery.deleteAlbumBody')}
         action={t('common.delete')}
-        onConfirm={() => void remove()}
+        onConfirm={() => runAction(() => remove())}
         onCancel={() => setOverlay(null)}
       />
     </>
@@ -430,10 +433,10 @@ function TrashView({ gallery: data, onBack }: { gallery: Gallery; onBack: () => 
               <li key={album.uuid} className="flex items-center gap-3 rounded-xl border bg-card p-3">
                 <ImageIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate font-bold">{album.name}</span>
+                  <span dir="auto" className="truncate font-bold">{album.name}</span>
                   <span className="text-xs text-muted-foreground">{t('gallery.wholeAlbum')}</span>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => void gallery.restoreAlbum(album.uuid)}>
+                <Button variant="outline" size="sm" onClick={() => runAction(() => gallery.restoreAlbum(album.uuid))}>
                   <RotateCcwIcon />
                   {t('gallery.restore')}
                 </Button>
@@ -451,7 +454,7 @@ function TrashView({ gallery: data, onBack }: { gallery: Gallery; onBack: () => 
                     {[names.get(memory.albumUuid), memory.note].filter(Boolean).join(' · ')}
                   </span>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => void gallery.restoreMemory(memory.uuid)}>
+                <Button variant="outline" size="sm" onClick={() => runAction(() => gallery.restoreMemory(memory.uuid))}>
                   <RotateCcwIcon />
                   {t('gallery.restore')}
                 </Button>
@@ -479,7 +482,7 @@ function TrashView({ gallery: data, onBack }: { gallery: Gallery; onBack: () => 
         }
         body={purge?.kind === 'memory' ? t('gallery.deleteMemoryBody') : t('gallery.emptyTrashBody')}
         action={purge?.kind === 'all' ? t('gallery.emptyTrash') : t('gallery.deleteForever')}
-        onConfirm={() => void confirmPurge()}
+        onConfirm={() => runAction(() => confirmPurge())}
         onCancel={() => setPurge(null)}
       />
     </section>

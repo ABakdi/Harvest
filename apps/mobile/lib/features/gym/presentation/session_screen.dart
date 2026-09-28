@@ -177,6 +177,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         ),
         actions: [
           PopupMenuButton<String>(
+            tooltip: l10n.gymSessionMenu,
             onSelected: (value) => switch (value) {
               'note' => unawaited(_sessionNote(session)),
               'add' => unawaited(_addExercise(session)),
@@ -475,7 +476,7 @@ class _ClockState extends State<_Clock> {
         ? AppLocalizations.of(context).gymClockDays(
             session.day.daysUntil(today),
           )
-        : formatSessionClock(session.elapsed);
+        : formatDuration(session.elapsed);
     return Text(text, style: widget.style);
   }
 }
@@ -709,6 +710,7 @@ class _ExerciseCard extends ConsumerWidget {
                   onLongPress: () => unawaited(_setRest(context, ref)),
                 ),
                 PopupMenuButton<String>(
+                  tooltip: l10n.gymExerciseMenu,
                   onSelected: (value) => switch (value) {
                     'swap' => unawaited(_swap(context, ref)),
                     'skip' => unawaited(_skip(context, ref)),

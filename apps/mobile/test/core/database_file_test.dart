@@ -206,7 +206,11 @@ void main() {
       final second = await prepareDatabaseFile(path, keys, primary: true);
       expect(second, isNot(first));
       expect(File(path).existsSync(), isFalse);
-      expect(File('$path.unreadable').existsSync(), isTrue);
+      final aside = dir
+          .listSync()
+          .where((f) => f.path.contains('.unreadable-'))
+          .toList();
+      expect(aside, hasLength(1));
 
       // And the start after that is an ordinary one.
       expect(await prepareDatabaseFile(path, keys, primary: true), second);
@@ -224,5 +228,15 @@ void main() {
     keys.failRead = false;
     expect(keys.stored, key);
     expect(File(path).existsSync(), isTrue);
+  });
+
+  test('every file set aside is kept, never replaced (S6-05)', () async {
+    File(path).writeAsStringSync('one');
+    final first = setAside(path, at: DateTime.utc(2026, 9, 27, 10));
+    File(path).writeAsStringSync('two');
+    final second = setAside(path, at: DateTime.utc(2026, 9, 27, 10));
+    expect(first, isNot(second));
+    expect(File(first).readAsStringSync(), 'one');
+    expect(File(second).readAsStringSync(), 'two');
   });
 }

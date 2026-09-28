@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database.dart';
+import 'package:harvest/features/account/data/api_client.dart'
+    show ApiException;
+import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/goals/data/goals_repository.dart';
 import 'package:harvest/features/sync/domain/row_codec.dart';
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
@@ -12,15 +15,30 @@ import 'package:uuid/uuid.dart';
 /// The server, as sync needs it: two verbs ([[Sync-API]]). The real one
 /// goes through the API client; the tests use one in memory.
 abstract interface class SyncRemote {
+  /// [keyEpoch] names the key the batch's sealed records were made
+  /// under; the server refuses them (`key_changed`) when it is stale.
   Future<({List<Map<String, Object?>> results, int cursor})> push(
     String deviceId,
-    List<Map<String, Object?>> records,
-  );
+    List<Map<String, Object?>> records, {
+    int? keyEpoch,
+  });
 
+  /// With [deviceId], the server leaves out what this device wrote itself.
   Future<({List<Map<String, Object?>> records, int cursor, bool more})> pull(
     int after,
-    int limit,
-  );
+    int limit, {
+    String? deviceId,
+  });
+}
+
+/// The biggest push body, in bytes of its JSON (`maxPushBytes` in
+/// `packages/contracts/src/sync.ts`): a batch is filled up to it.
+const int maxPushBytes = 4 * 1024 * 1024;
+
+/// A sealed write the server refused for a stale key epoch: the PIN was
+/// started over on another device, and the key here is the old one.
+class SyncKeyChanged implements Exception {
+  const SyncKeyChanged();
 }
 
 /// What one sync did, for the account screen.
@@ -90,6 +108,15 @@ abstract final class SyncKeys {
   /// Rows a push found stale that the pulls have not brought back yet:
   /// the next run pulls the history again and takes the server's copy.
   static const stale = 'sync.stale';
+
+  /// The history is being pulled again from nothing: the pulls ask for
+  /// this device's own writes too, until they are through.
+  static const rebuild = 'sync.rebuild';
+
+  /// Set on signing in on a phone that already holds data of its own:
+  /// nothing syncs until I say whether it goes into the account or the
+  /// account's data replaces it (U6-05).
+  static const joinPending = 'sync.joinPending';
 
   /// Set when the server may lack files this phone has already named:
   /// after an archive is restored, or on a new account or server. The
@@ -169,7 +196,9 @@ class SyncService {
       // A push found the server's copy newer and no pull has brought it
       // since: it is behind the cursor, so the history comes again.
       await _set(SyncKeys.cursor, '0');
+      await _set(SyncKeys.rebuild, 'true');
     }
+    _rebuilding = await _setting(SyncKeys.rebuild) == 'true';
     var pulled = await _pullAll();
     if (await _setting(SyncKeys.snapshotDone) != 'true') {
       await _snapshot(private: false);
@@ -207,20 +236,44 @@ class SyncService {
 
   Future<int> _pullAll() async {
     var cursor = int.tryParse(await _setting(SyncKeys.cursor) ?? '') ?? 0;
+    final device = await deviceId();
     var merged = 0;
     while (true) {
-      final page = await _remote.pull(cursor, batch);
+      // What this device wrote itself it has; only a history pulled
+      // again from nothing asks for its own writes back.
+      final page = await _remote.pull(
+        cursor,
+        batch,
+        deviceId: _rebuilding ? null : device,
+      );
       await _db.transaction(() async {
-        for (final record in page.records) {
-          if (await merge(record)) merged++;
+        // One read of the outbox for the whole page, not one per row
+        // (P6-06).
+        _pagePending = await _pendingFor(page.records);
+        try {
+          for (final record in page.records) {
+            if (await merge(record)) merged++;
+          }
+        } finally {
+          _pagePending = null;
         }
       });
       cursor = page.cursor;
       await _set(SyncKeys.cursor, '$cursor');
       await _saveBook();
-      if (!page.more) return merged;
+      if (!page.more) {
+        if (_rebuilding) {
+          _rebuilding = false;
+          await _remove(SyncKeys.rebuild);
+        }
+        return merged;
+      }
     }
   }
+
+  /// Pulling the history again from nothing: this device's own writes
+  /// come back too.
+  var _rebuilding = false;
 
   /// Applies one pulled record by the server's own rule: a local row
   /// missing, or older, is overwritten; anything else stays. Returns
@@ -239,7 +292,10 @@ class SyncService {
     final takeTies = _stale.remove(id);
 
     final local = await codec.read(_db, key);
-    final pending = await _pendingSince(codec.name, key);
+    final paged = _pagePending;
+    final pending = paged != null
+        ? paged[id]
+        : await _pendingSince(codec.name, key);
     if (!_wins(codec, local, stamp, pending, takeTies: takeTies)) {
       return false;
     }
@@ -280,6 +336,20 @@ class SyncService {
       }
     }
     if (data is! Map<String, Object?>) return false;
+    // A path into this phone's storage that could lead out of it is not
+    // taken (S6-08); the contract refuses it on push too.
+    final pathColumn = switch (codec.name) {
+      'memories' => 'path',
+      'note_attachments' => 'storedPath',
+      _ => null,
+    };
+    if (pathColumn != null) {
+      final path = data[pathColumn];
+      if (path is String && !GalleryStorage.isSafeRelative(path)) {
+        debugPrint('[sync] refused a ${codec.name} row with an unsafe path');
+        return false;
+      }
+    }
 
     await codec.upsert(_db, data);
     _locked.remove(id);
@@ -317,6 +387,36 @@ class SyncService {
 
   bool _ownClock(TableCodec codec) =>
       codec.has('updated_at') || codec.name == 'ledger';
+
+  /// The newest pending change per `table/key` of a page's records.
+  Map<String, DateTime>? _pagePending;
+
+  Future<Map<String, DateTime>> _pendingFor(
+    List<Map<String, Object?>> records,
+  ) async {
+    final keys = {
+      for (final record in records)
+        if (record['uuid'] is String) record['uuid']! as String,
+    }.toList();
+    final newest = <String, DateTime>{};
+    for (var i = 0; i < keys.length; i += 500) {
+      final chunk = keys.sublist(
+        i,
+        i + 500 > keys.length ? keys.length : i + 500,
+      );
+      final rows = await (_db.select(
+        _db.outbox,
+      )..where((o) => o.rowUuid.isIn(chunk))).get();
+      for (final row in rows) {
+        final id = '${row.targetTable}/${row.rowUuid}';
+        final seen = newest[id];
+        if (seen == null || row.queuedAt.isAfter(seen)) {
+          newest[id] = row.queuedAt;
+        }
+      }
+    }
+    return newest;
+  }
 
   /// The newest change to one row still waiting in the outbox, or null.
   /// Compared here rather than by SQL's `MAX`, which reads a stored
@@ -395,18 +495,13 @@ class SyncService {
         }
         records.add(await _record(codec, key, row, now));
       }
-      for (var i = 0; i < records.length; i += batch) {
-        final page = records.sublist(
-          i,
-          i + batch > records.length ? records.length : i + batch,
-        );
-        final answer = await _remote.push(await deviceId(), page);
-        // A refused row is flagged like any refused change, so it is
-        // counted rather than lost behind a finished snapshot (Q5-54).
-        for (final result in answer.results) {
-          if (result['status'] == 'invalid') _refuse(result);
-        }
+      final results = await _send(await deviceId(), records);
+      // A refused row is flagged like any refused change, so it is
+      // counted rather than lost behind a finished snapshot (Q5-54).
+      for (final result in results) {
+        if (result['status'] == 'invalid') _refuse(result);
       }
+      if (_keyChangedIn(results)) throw const SyncKeyChanged();
     }
   }
 
@@ -509,11 +604,20 @@ class SyncService {
       }
       if (records.isEmpty) continue;
 
-      final answer = await _remote.push(device, records);
-      for (final result in answer.results) {
+      final results = await _send(device, records);
+      final done = <int>[];
+      var keyChanged = false;
+      for (final result in results) {
         final id = (result['table']! as String, result['uuid']! as String);
         final seqs = sent[id] ?? const <int>[];
         final status = result['status'];
+        if (status == 'invalid' &&
+            _codesOf(result['issues']).contains('key_changed')) {
+          // Sealed under a key started over elsewhere: it stays queued,
+          // and goes again under the new key.
+          keyChanged = true;
+          continue;
+        }
         if (status == 'invalid') {
           // Flagged, not retried every run: it goes again when it
           // changes again ([[Sync-API]], Q5-54).
@@ -528,15 +632,102 @@ class SyncService {
           // behind the cursor.
           if (status == 'stale') _stale.add('${id.$1}/${id.$2}');
         }
-        await (_db.delete(_db.outbox)..where((o) => o.seq.isIn(seqs))).go();
+        done.addAll(seqs);
+      }
+      // One statement for the page's answered changes (P6-12).
+      await _drop(done);
+      if (keyChanged) {
+        await _saveBook();
+        throw const SyncKeyChanged();
       }
     }
     await _saveBook();
     return (pushed: pushed, invalid: invalid, heldBack: heldBack);
   }
 
-  Future<void> _drop(List<int> seqs) =>
-      (_db.delete(_db.outbox)..where((o) => o.seq.isIn(seqs))).go();
+  bool _keyChangedIn(List<Map<String, Object?>> results) => results.any(
+    (result) => _codesOf(result['issues']).contains('key_changed'),
+  );
+
+  /// Sends [records] in batches filled up to [maxPushBytes] and at most
+  /// [batch] records (Q6-03). A batch the server still finds too large
+  /// (413) is halved; a single record too large for any push is refused
+  /// here, with a reason, rather than blocking every change behind it.
+  Future<List<Map<String, Object?>>> _send(
+    String device,
+    List<Map<String, Object?>> records,
+  ) async {
+    final results = <Map<String, Object?>>[];
+    var chunk = <Map<String, Object?>>[];
+    var bytes = 0;
+    Future<void> flush() async {
+      if (chunk.isEmpty) return;
+      results.addAll(await _pushHalving(device, chunk));
+      chunk = [];
+      bytes = 0;
+    }
+
+    for (final record in records) {
+      final size = utf8.encode(jsonEncode(record)).length + 1;
+      if (size > maxPushBytes - 1024) {
+        results.add(_tooLarge(record));
+        continue;
+      }
+      if (chunk.length >= batch || bytes + size > maxPushBytes - 1024) {
+        await flush();
+      }
+      chunk.add(record);
+      bytes += size;
+    }
+    await flush();
+    return results;
+  }
+
+  Future<List<Map<String, Object?>>> _pushHalving(
+    String device,
+    List<Map<String, Object?>> records,
+  ) async {
+    final sealed = records.any((record) => record['enc'] != null);
+    try {
+      final answer = await _remote.push(
+        device,
+        records,
+        keyEpoch: sealed ? _cipher?.epoch : null,
+      );
+      return answer.results;
+    } on ApiException catch (error) {
+      if (error.status != 413) rethrow;
+      if (records.length == 1) return [_tooLarge(records.single)];
+      final half = records.length ~/ 2;
+      return [
+        ...await _pushHalving(device, records.sublist(0, half)),
+        ...await _pushHalving(device, records.sublist(half)),
+      ];
+    }
+  }
+
+  Map<String, Object?> _tooLarge(Map<String, Object?> record) => {
+    'table': record['table'],
+    'uuid': record['uuid'],
+    'status': 'invalid',
+    'issues': [
+      {
+        'path': <String>[],
+        'message': 'Too large for one push',
+        'code': 'too_large',
+      },
+    ],
+  };
+
+  Future<void> _drop(List<int> seqs) async {
+    for (var i = 0; i < seqs.length; i += 500) {
+      final chunk = seqs.sublist(
+        i,
+        i + 500 > seqs.length ? seqs.length : i + 500,
+      );
+      await (_db.delete(_db.outbox)..where((o) => o.seq.isIn(chunk))).go();
+    }
+  }
 
   /// [at], or just after the clock a pulled copy of the row had when
   /// that is later: a clock stays monotonic per row even when another
@@ -611,6 +802,7 @@ class SyncService {
   /// (here or on another device) the server has none of them.
   Future<void> privateTierOpened() async {
     await _set(SyncKeys.cursor, '0');
+    await _set(SyncKeys.rebuild, 'true');
     await _set(SyncKeys.privateSnapshotDone, 'false');
     await _set(SyncKeys.checkFiles, 'true');
     await _remove(SyncKeys.locked);
@@ -637,6 +829,67 @@ class SyncService {
     return id;
   }
 
+  /// The tables whose rows are something I made, not the app's own
+  /// scaffolding (built-in lists, streak rows, settings).
+  static const _ownDataTables = [
+    'commitments',
+    'check_ins',
+    'seed_notes',
+    'notes',
+    'goals',
+    'expenses',
+    'money_txns',
+    'debts',
+    'memories',
+    'sleep_sessions',
+    'body_weights',
+    'workout_sessions',
+    'wishlist_items',
+    'saved_places',
+  ];
+
+  /// Holds sync until I say what becomes of this phone's own data, or
+  /// lets it go on (U6-05).
+  Future<void> holdForJoin({required bool hold}) =>
+      hold ? _set(SyncKeys.joinPending, 'true') : _remove(SyncKeys.joinPending);
+
+  Future<bool> joinPending() async =>
+      await _setting(SyncKeys.joinPending) == 'true';
+
+  /// Whether this phone holds data of its own: what a sign-in would bring
+  /// into the account.
+  Future<bool> hasLocalData() async {
+    for (final table in _ownDataTables) {
+      final rows = await _db
+          .customSelect('SELECT 1 FROM "$table" LIMIT 1')
+          .get();
+      if (rows.isNotEmpty) return true;
+    }
+    return false;
+  }
+
+  /// Empties every synced table and the outbox, so the account's data
+  /// comes down alone. Settings stay: they are this phone's. Only called
+  /// once an archive of what was here has been saved (U6-05).
+  Future<void> forgetLocalData() async {
+    await _db.customStatement('PRAGMA foreign_keys = OFF');
+    try {
+      await _db.transaction(() async {
+        for (final codec in _codecs.values) {
+          if (codec.name == 'kv_settings') continue;
+          await _db.customStatement('DELETE FROM "${codec.name}"');
+        }
+        await _db.delete(_db.outbox).go();
+      });
+    } finally {
+      await _db.customStatement('PRAGMA foreign_keys = ON');
+    }
+    await _db.seedBuiltInLists();
+    await _set(SyncKeys.cursor, '0');
+    await _set(SyncKeys.snapshotDone, 'true');
+    await _set(SyncKeys.privateSnapshotDone, 'true');
+  }
+
   /// Forgets where sync was: signing out, or into another account.
   Future<void> reset() async {
     for (final key in [
@@ -649,6 +902,8 @@ class SyncService {
       SyncKeys.locked,
       SyncKeys.ahead,
       SyncKeys.stale,
+      SyncKeys.rebuild,
+      SyncKeys.joinPending,
       SyncKeys.legacySealedSeen,
     ]) {
       await _remove(key);

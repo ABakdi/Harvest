@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useHarvest } from '../context';
 import { type WeightUnit, healthKeys, parseWeight, weightFieldValue } from '../data/health';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
 
 /**
  * The target weight (`showTargetWeightSheet`): a line on the chart and a
@@ -35,7 +36,7 @@ export function TargetWeightDialog({ target, unit, onClose }: { target: number |
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (entered !== null) void once(() => save(weightToGrams(unit, entered)));
+    if (entered !== null) runAction(() => once(() => save(weightToGrams(unit, entered))));
   }
 
   return (
@@ -63,7 +64,7 @@ export function TargetWeightDialog({ target, unit, onClose }: { target: number |
           </div>
           <DialogFooter className="gap-2">
             {target !== null && (
-              <Button variant="ghost" className="text-destructive sm:me-auto" disabled={saving} onClick={() => void once(() => save(null))}>
+              <Button variant="ghost" className="text-destructive sm:me-auto" disabled={saving} onClick={() => runAction(() => once(() => save(null)))}>
                 {t('weightWeb.targetClear')}
               </Button>
             )}

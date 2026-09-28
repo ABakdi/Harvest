@@ -50,67 +50,73 @@ class GalleryTrashScreen extends ConsumerWidget {
               title: l10n.trashEmptyTitle,
               body: l10n.trashGalleryEmptyBody,
             )
-          : ListView(
-              padding: const EdgeInsets.all(HarvestSpacing.md),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-                  child: Text(
-                    l10n.trashKeepsFiles,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                for (final album in albums)
-                  Card(
-                    margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-                    child: ListTile(
-                      leading: const Icon(Icons.photo_library_outlined),
-                      title: Text(album.name),
-                      subtitle: Text(l10n.trashWholeAlbum),
-                      trailing: _Actions(
-                        onRestore: () => unawaited(
-                          ref
-                              .read(galleryRepositoryProvider)
-                              .restoreAlbum(album.uuid),
-                        ),
-                        onPurge: () =>
-                            unawaited(_purgeAlbum(context, ref, album)),
+          : Builder(
+              builder: (context) {
+                final rows = <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+                    child: Text(
+                      l10n.trashKeepsFiles,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
-                for (final memory in memories)
-                  Card(
-                    margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-                    clipBehavior: Clip.antiAlias,
-                    child: ListTile(
-                      leading: SizedBox(
-                        width: 46,
-                        height: 46,
-                        child: MemoryView(
-                          memory: memory,
-                          borderRadius: BorderRadius.circular(
-                            HarvestRadii.chip,
+                  for (final album in albums)
+                    Card(
+                      margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+                      child: ListTile(
+                        leading: const Icon(Icons.photo_library_outlined),
+                        title: Text(album.name),
+                        subtitle: Text(l10n.trashWholeAlbum),
+                        trailing: _Actions(
+                          onRestore: () => unawaited(
+                            ref
+                                .read(galleryRepositoryProvider)
+                                .restoreAlbum(album.uuid),
+                          ),
+                          onPurge: () =>
+                              unawaited(_purgeAlbum(context, ref, album)),
+                        ),
+                      ),
+                    ),
+                  for (final memory in memories)
+                    Card(
+                      margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        leading: SizedBox(
+                          width: 46,
+                          height: 46,
+                          child: MemoryView(
+                            memory: memory,
+                            borderRadius: BorderRadius.circular(
+                              HarvestRadii.chip,
+                            ),
                           ),
                         ),
-                      ),
-                      title: Text(formatDay(context, memory.day)),
-                      subtitle: memory.note == null
-                          ? null
-                          : Text(
-                              memory.note!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                      trailing: _Actions(
-                        onRestore: () => unawaited(_restore(ref, memory)),
-                        onPurge: () =>
-                            unawaited(_purgeMemory(context, ref, memory)),
+                        title: Text(formatDay(context, memory.day)),
+                        subtitle: memory.note == null
+                            ? null
+                            : Text(
+                                memory.note!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                        trailing: _Actions(
+                          onRestore: () => unawaited(_restore(ref, memory)),
+                          onPurge: () =>
+                              unawaited(_purgeMemory(context, ref, memory)),
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ];
+                return ListView.builder(
+                  padding: const EdgeInsets.all(HarvestSpacing.md),
+                  itemCount: rows.length,
+                  itemBuilder: (_, i) => rows[i],
+                );
+              },
             ),
     );
   }

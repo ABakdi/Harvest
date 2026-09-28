@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io' as io;
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
@@ -94,6 +96,102 @@ class ArchiveInvalid implements Exception {
   String toString() => 'ArchiveInvalid(${problem.name})';
 }
 
+/// What the workbook's own parts may weigh: any one part, all of them,
+/// and how many there are.
+abstract final class WorkbookLimits {
+  static const int partBytes = 64 * 1024 * 1024;
+  static const int totalBytes = 256 * 1024 * 1024;
+  static const int parts = 2000;
+}
+
+/// One zip entry's bytes, inflated with a hard stop at [limit]: past it,
+/// [ArchiveProblem.tooLarge], with at most a few kilobytes more than the
+/// limit ever held.
+Uint8List inflateEntry(ArchiveFile entry, {required int limit}) {
+  final raw = entry.rawContent?.toUint8List();
+  if (raw == null) throw const ArchiveInvalid(ArchiveProblem.unreadable);
+  switch (entry.compressionType) {
+    case ArchiveFile.STORE:
+      if (raw.length > limit) {
+        throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+      }
+      return raw;
+    case ArchiveFile.DEFLATE:
+      final out = _CappedSink(limit);
+      final inflater = io.ZLibDecoder(
+        raw: true,
+      ).startChunkedConversion(ByteConversionSink.from(out));
+      const chunk = 4096;
+      try {
+        for (var i = 0; i < raw.length; i += chunk) {
+          inflater.add(
+            Uint8List.sublistView(raw, i, min(i + chunk, raw.length)),
+          );
+        }
+        inflater.close();
+      } on ArchiveInvalid {
+        rethrow;
+      } on Object {
+        throw const ArchiveInvalid(ArchiveProblem.unreadable);
+      }
+      return out.bytes;
+    default:
+      throw const ArchiveInvalid(ArchiveProblem.unreadable);
+  }
+}
+
+class _CappedSink implements Sink<List<int>> {
+  _CappedSink(this.limit);
+
+  final int limit;
+  final _builder = BytesBuilder(copy: false);
+
+  Uint8List get bytes => _builder.takeBytes();
+
+  @override
+  void add(List<int> data) {
+    if (_builder.length + data.length > limit) {
+      throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+    }
+    _builder.add(data);
+  }
+
+  @override
+  void close() {}
+}
+
+/// Refuses a workbook whose own parts, inflated, would be too much: by
+/// count, and by what each one and all of them actually weigh.
+void checkWorkbookParts(Uint8List workbook) {
+  final Archive parts;
+  try {
+    parts = ZipDecoder().decodeBytes(workbook);
+  } on Object {
+    throw const ArchiveInvalid(ArchiveProblem.badWorkbook);
+  }
+  if (parts.files.length > WorkbookLimits.parts) {
+    throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+  }
+  var total = 0;
+  for (final part in parts.files) {
+    if (!part.isFile) continue;
+    total += inflateEntry(
+      part,
+      limit: min(WorkbookLimits.partBytes, WorkbookLimits.totalBytes - total),
+    ).length;
+  }
+}
+
+/// [readArchive] of the file at [path], read where this runs: on the
+/// isolate that unzips it (P6-07).
+ArchiveBundle readArchiveAt(String path) {
+  final file = io.File(path);
+  if (file.lengthSync() > ArchiveLimits.archiveBytes) {
+    throw const ArchiveInvalid(ArchiveProblem.tooLarge);
+  }
+  return readArchive(file.readAsBytesSync());
+}
+
 /// Opens a Harvest zip and reads the workbook and the files out of it.
 ///
 /// Nothing is written anywhere by this: reading is separated from
@@ -144,20 +242,18 @@ ArchiveBundle readArchive(Uint8List bytes) {
   var inflated = 0;
   for (final entry in zip.files) {
     if (!entry.isFile || oversized.contains(entry)) continue;
-    final content = entry.content;
-    if (content is! List<int>) continue;
     final isWorkbook = entry.name == ArchivePaths.workbook;
     final limit = isWorkbook
         ? ArchiveLimits.workbookBytes
         : ArchiveLimits.entryBytes;
-    // What the entry actually weighed, now that it is here: a zip that
-    // lied about its directory is refused at the first entry that
-    // proves it, and the rest is never inflated.
-    inflated += content.length;
-    if (content.length > limit || inflated > ArchiveLimits.expandedBytes) {
-      throw const ArchiveInvalid(ArchiveProblem.tooLarge);
-    }
-    final data = Uint8List.fromList(content);
+    // What the entry actually weighs, weighed while it inflates: a zip
+    // that lied about its directory is refused the moment it proves it,
+    // before the lie is in memory (S6-09).
+    final data = inflateEntry(
+      entry,
+      limit: min(limit, ArchiveLimits.expandedBytes - inflated),
+    );
+    inflated += data.length;
     if (isWorkbook) {
       workbook = data;
     } else {
@@ -167,6 +263,9 @@ ArchiveBundle readArchive(Uint8List bytes) {
   if (workbook == null) {
     throw const ArchiveInvalid(ArchiveProblem.notHarvest);
   }
+  // The workbook is a zip too: its own parts are weighed the same way
+  // before the spreadsheet library expands them (S6-09).
+  checkWorkbookParts(workbook);
 
   final Excel excel;
   try {

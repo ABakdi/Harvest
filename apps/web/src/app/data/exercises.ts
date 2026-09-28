@@ -2,8 +2,9 @@ import type { ExerciseLike } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useState } from 'react';
 import catalogue from './exercise-names.json';
-import type { HarvestDB, Row } from './db';
-import type { Writer } from './writer';
+import type { HarvestDB } from './db';
+import { mineToExercise } from './exercise-repository';
+import { background } from '@/lib/actions';
 
 /**
  * The catalogue's names, id to name.
@@ -139,25 +140,12 @@ export function useCatalogue(): Catalogue | undefined {
   const [book, setBook] = useState<Catalogue>();
   useEffect(() => {
     let live = true;
-    void loadCatalogue().then((loaded) => live && setBook(loaded));
+    background(loadCatalogue().then((loaded) => live && setBook(loaded)));
     return () => {
       live = false;
     };
   }, []);
   return book;
-}
-
-function mineToExercise(row: Row<'exercises'>): Exercise {
-  return {
-    id: row.uuid,
-    name: row.name,
-    bodyPart: row.bodyPart,
-    equipment: row.equipment,
-    target: row.target,
-    secondary: [],
-    steps: [],
-    mine: true,
-  };
 }
 
 /** Mine and the catalogue's as one list, mine first; undefined while loading. */
@@ -183,39 +171,4 @@ export function useExercise(db: HarvestDB, id: string | null): Exercise | null |
     return { id, name, bodyPart: null, equipment: null, target: null, secondary: [], steps: [], mine: false };
   }
   return mine === undefined || !book ? undefined : null;
-}
-
-/**
- * The exercises I added myself: unlike the catalogue these are my data,
- * and they travel ([[Business-Rules]] #14).
- */
-export class ExercisesRepository {
-  constructor(private readonly writer: Writer) {}
-
-  create(input: { name: string; bodyPart?: string | null; equipment?: string | null; target?: string | null }): Promise<Exercise> {
-    return this.writer.run(async (tx) => {
-      const now = tx.now();
-      const row: Row<'exercises'> = {
-        uuid: crypto.randomUUID(),
-        name: input.name.trim(),
-        bodyPart: input.bodyPart?.trim() || null,
-        equipment: input.equipment?.trim() || null,
-        target: input.target?.trim() || null,
-        note: null,
-        createdAt: now,
-        updatedAt: now,
-        deletedAt: null,
-      };
-      await tx.put('exercises', row);
-      return mineToExercise(row);
-    });
-  }
-
-  /** Soft: a log that names it still has its name. */
-  remove(uuid: string): Promise<void> {
-    return this.writer.run(async (tx) => {
-      const now = tx.now();
-      await tx.patch('exercises', uuid, { deletedAt: now, updatedAt: now });
-    });
-  }
 }

@@ -1,6 +1,7 @@
 import i18n, { type BackendModule, type ResourceKey } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { getPrefs, subscribePrefs, type Locale } from '@/lib/prefs';
+import { background } from '@/lib/actions';
 
 /**
  * Each language is its own chunk, fetched when it is first needed: the
@@ -56,7 +57,7 @@ applyDirection(i18n.language);
 i18n.on('languageChanged', applyDirection);
 subscribePrefs(() => {
   const next = resolveLocale();
-  if (next !== i18n.language) void i18n.changeLanguage(next);
+  if (next !== i18n.language) background(i18n.changeLanguage(next));
 });
 
 export default i18n;

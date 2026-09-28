@@ -172,6 +172,7 @@ class _AssistSheetState extends ConsumerState<_AssistSheet> {
           const SizedBox(height: HarvestSpacing.sm),
           TextField(
             controller: _question,
+            textCapitalization: TextCapitalization.sentences,
             autofocus: true,
             minLines: 1,
             maxLines: 3,

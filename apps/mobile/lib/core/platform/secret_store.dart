@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:harvest/core/db/database_key.dart' show secureStorageOptions;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'secret_store.g.dart';
@@ -18,16 +19,13 @@ abstract interface class SecretStore {
 class KeystoreSecretStore implements SecretStore {
   const KeystoreSecretStore();
 
-  static const _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage(aOptions: secureStorageOptions);
 
+  /// A failed read throws ([secureStorageOptions]): "could not read the
+  /// sync key" is not "there is no sync key", and must not be taken for
+  /// one.
   @override
-  Future<String?> read(String key) async {
-    try {
-      return await _storage.read(key: key);
-    } on PlatformException {
-      return null;
-    }
-  }
+  Future<String?> read(String key) => _storage.read(key: key);
 
   @override
   Future<void> write(String key, String? value) async {

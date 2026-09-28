@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -28,8 +28,12 @@ import '../../support/temp_gallery_storage.dart';
 class _Secrets implements SecretStore {
   final _values = <String, String>{};
 
+  /// Set to make every read fail, as a Keystore that will not answer.
+  bool failing = false;
+
   @override
-  Future<String?> read(String key) async => _values[key];
+  Future<String?> read(String key) async =>
+      failing ? throw PlatformException(code: 'keystore') : _values[key];
 
   @override
   Future<void> write(String key, String? value) async =>
@@ -45,8 +49,12 @@ class _Files implements FileRemote {
       hashes.where((hash) => !held.containsKey(hash)).toList();
 
   @override
-  Future<void> upload(String sha256, Uint8List sealed, String iv) async =>
-      held[sha256] = (sealed: sealed, iv: iv);
+  Future<void> upload(
+    String sha256,
+    Uint8List sealed,
+    String iv, {
+    required int keyEpoch,
+  }) async => held[sha256] = (sealed: sealed, iv: iv);
 
   @override
   Future<({Uint8List sealed, String iv})> download(String sha256) async =>
@@ -110,6 +118,7 @@ void main() {
   setUp(() {
     remote = FakeRemote();
     keys = FakeSyncKeys();
+    remote.epoch = () => keys.epoch;
     files = _Files();
     dbs = [];
     dirs = [];
@@ -127,16 +136,13 @@ void main() {
   /// One phone: its database, its keystore, its pictures, and the real
   /// PIN and sync controllers over the fake server.
   Future<({HarvestDatabase db, ProviderContainer container, Directory dir})>
-  phone({AccountController Function()? account}) async {
+  phone({AccountController Function()? account, _Secrets? store}) async {
     final db = HarvestDatabase.forTesting(NativeDatabase.memory());
     final dir = await Directory.systemTemp.createTemp('harvest-pin');
     dbs.add(db);
     dirs.add(dir);
-    final secrets = _Secrets();
-    Future<SyncCipher?> cipher() async {
-      final stored = await secrets.read(SyncPassphrase.keyName);
-      return stored == null ? null : SyncCipher(base64Decode(stored));
-    }
+    final secrets = store ?? _Secrets();
+    Future<SyncCipher?> cipher() => storedCipher(secrets);
 
     final container = ProviderContainer(
       overrides: [
@@ -147,8 +153,8 @@ void main() {
         syncKeyRemoteProvider.overrideWithValue(keys),
         // The real derivation, with fewer rounds.
         syncKeyMakerProvider.overrideWithValue(
-          (secret, salt, share) =>
-              SyncCipher.deriveKey(secret, salt, share, iterations: 1000),
+          (secret, salt) =>
+              SyncCipher.deriveBase(secret, salt, iterations: 1000),
         ),
         syncServiceProvider.overrideWith(
           (ref) => SyncService(db, remote, cipher: cipher),
@@ -195,6 +201,19 @@ void main() {
       '${dir.path}/m1.jpg',
     ).writeAsBytes(List<int>.generate(4096, (i) => i % 251));
   }
+
+  test('a Keystore failing during the key check ends the run, and it is '
+      'not left showing as syncing (Q6-11)', () async {
+    final secrets = _Secrets();
+    final a = await phone(store: secrets);
+    await logExpense(a.db);
+    secrets.failing = true;
+    final sync = a.container.read(syncControllerProvider.notifier);
+    await sync.syncNow();
+    final state = a.container.read(syncControllerProvider);
+    expect(state.running, isFalse);
+    expect(state.error, 'internal');
+  });
 
   test('money and pictures wait for the PIN, and go up sealed the moment '
       'it is set', () async {
@@ -244,17 +263,40 @@ void main() {
   });
 
   test(
-    'the first device stores the key check before it seals anything',
+    'the first device stores the verifier and the key check before it '
+    'seals anything',
     () async {
       final a = await phone();
       expect(keys.check, isNull);
       await a.container.read(syncPassphraseProvider.notifier).set('2468');
       expect(keys.check, isNotNull);
       expect(keys.check!['v'], 2);
-      // The check says nothing of the PIN to the server.
-      expect('${keys.check}', isNot(contains('2468')));
+      expect(keys.verifier, matches(RegExp(r'^[0-9a-f]{64}$')));
+      // Neither says anything of the PIN to the server.
+      expect('${keys.check}${keys.verifier}', isNot(contains('2468')));
     },
   );
+
+  test('the key share leaves the server only for the right PIN, and the '
+      'tries are limited (S6-04)', () async {
+    final a = await phone();
+    await a.container.read(syncPassphraseProvider.notifier).set('2468');
+    final b = await phone();
+    final pin = b.container.read(syncPassphraseProvider.notifier);
+    // Nothing the server hands out before a right proof opens anything.
+    expect((await keys.fetch()).keyShare, isNull);
+    for (var left = 4; left >= 0; left--) {
+      await expectLater(
+        pin.set('1357'),
+        throwsA(isA<SyncPinRefused>().having((r) => r.triesLeft, 'left', left)),
+      );
+    }
+    await expectLater(pin.set('2468'), throwsA(isA<SyncPinLimited>()));
+    expect(await b.container.read(syncPassphraseProvider.future), isFalse);
+    keys.wrong = 0;
+    await pin.set('2468');
+    expect(await b.container.read(syncPassphraseProvider.future), isTrue);
+  });
 
   test('a later device enters it once, and a wrong one is refused on the '
       'spot', () async {
@@ -267,7 +309,7 @@ void main() {
     final sync = b.container.read(syncControllerProvider.notifier);
     // The server has a check: this device enters, not chooses — decided
     // before any pull (Q5-55).
-    final share = await b.container.read(syncKeyShareProvider.future);
+    final share = await b.container.read(syncKeyStateProvider.future);
     expect(share.choosing, isFalse);
 
     final pin = b.container.read(syncPassphraseProvider.notifier);
@@ -296,9 +338,10 @@ void main() {
     final first = keys.check!;
 
     // B opened its sheet before A chose, so it offers to choose; A's
-    // check is there by the time B's arrives.
+    // PIN is there by the time B's arrives.
     keys
-      ..raced = first
+      ..raced = (verifier: keys.verifier!, check: first)
+      ..verifier = null
       ..check = null;
     final b = await phone();
     await expectLater(
@@ -336,7 +379,7 @@ void main() {
           'ct': 'AAAAAAAAAAAAAAAAAAAAAA==',
         },
       },
-    ]);
+    ], keyEpoch: 1);
     await a.container.read(syncControllerProvider.notifier).syncNow();
 
     final status = a.container.read(syncControllerProvider);
@@ -352,12 +395,38 @@ void main() {
     );
   });
 
-  test('a key kept by 3.0.0 is let go, and the PIN is asked again', () async {
+  test('a key kept under an older name is let go, and the PIN is asked '
+      'again', () async {
     final a = await phone();
     final secrets = a.container.read(secretStoreProvider);
-    await secrets.write(SyncPassphrase.legacyKeyName, 'b2xk');
+    for (final name in SyncPassphrase.legacyKeyNames) {
+      await secrets.write(name, 'b2xk');
+    }
     expect(await a.container.read(syncPassphraseProvider.future), isFalse);
-    expect(await secrets.read(SyncPassphrase.legacyKeyName), isNull);
+    for (final name in SyncPassphrase.legacyKeyNames) {
+      expect(await secrets.read(name), isNull);
+    }
+  });
+
+  test('a sealed push refused for a stale key epoch forgets the key and '
+      'asks again, and nothing is stored under it (S6-07)', () async {
+    final a = await phone();
+    await a.container.read(syncPassphraseProvider.notifier).set('2468');
+    // Started over elsewhere, between this phone's check and its push.
+    final uuid = await logExpense(a.db);
+    final sync = a.container.read(syncControllerProvider.notifier);
+    await sync.syncNow();
+    remote.epoch = () => keys.epoch + 1;
+    await FinancesRepository(a.db).log(
+      amountMinor: 300,
+      category: 'tea',
+      day: HarvestDay.today(),
+    );
+    final service = a.container.read(syncServiceProvider);
+    await expectLater(service.run(), throwsA(isA<SyncKeyChanged>()));
+    expect(remote.row('expenses', uuid), isNotNull);
+    final waiting = await a.db.select(a.db.outbox).get();
+    expect(waiting.where((o) => o.targetTable == 'expenses'), isNotEmpty);
   });
 
   test('starting over asks for the password, drops what the server kept, '
@@ -386,7 +455,7 @@ void main() {
     expect(remote.row('expenses', uuid), isNull);
     expect(files.held, isEmpty);
     expect(
-      (await a.container.read(syncKeyShareProvider.future)).choosing,
+      (await a.container.read(syncKeyStateProvider.future)).choosing,
       isTrue,
     );
 

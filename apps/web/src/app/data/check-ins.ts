@@ -16,11 +16,6 @@ async function loggedEver(tx: Tx, seedUuid: string): Promise<number> {
   return rows.reduce((sum, row) => (row.deletedAt === null ? sum + row.quantity : sum), 0);
 }
 
-/** What is left of a project's target after [logged] units; never below zero. */
-export function projectLeft(seed: Pick<SeedRow, 'totalTarget'>, logged: number): number {
-  return Math.max((seed.totalTarget ?? 0) - logged, 0);
-}
-
 /**
  * A planted to-do ticks the goal item it came from, and an undone
  * check-in un-ticks it ([[Goals]] GL3): the only change an item gets

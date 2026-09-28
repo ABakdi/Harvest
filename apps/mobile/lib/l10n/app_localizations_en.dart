@@ -161,7 +161,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String undoCheckInBody(String title) {
-    return 'This removes what you logged for \"$title\" today.';
+    return 'This removes what you logged for “$title” today.';
   }
 
   @override
@@ -547,7 +547,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String projectDoneBody(String title, int total) {
-    return '\"$title\" is fully grown — $total logged. It is archived with pride.';
+    return '“$title” is fully grown — $total logged. It is archived with pride.';
   }
 
   @override
@@ -761,11 +761,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalSpent => 'Total';
-
-  @override
-  String avgPerDay(String amount) {
-    return '$amount / day';
-  }
 
   @override
   String get noSpendingYet => 'No spending in this range yet.';
@@ -1774,7 +1769,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String notesCreateLinkTitle(String title) {
-    return 'Write \"$title\"?';
+    return 'Write “$title”?';
   }
 
   @override
@@ -1786,7 +1781,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notesDeleteBody =>
-      'It leaves the vault. You can undo this straight away.';
+      'It goes to the trash with its recordings. You can undo this straight away.';
 
   @override
   String notesBacklinks(int count) {
@@ -2478,14 +2473,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gymCatalogueHint =>
-      'Search by name, muscle or equipment — the question mid-session is usually what else hits this.';
+      'Search by name, muscle or equipment — mid-session it is usually “what else works this?”';
 
   @override
-  String gymExerciseCount(int count) {
+  String gymExerciseCount(int count, String shown) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count exercises',
+      other: '$shown exercises',
       one: '1 exercise',
       zero: 'No exercises',
     );
@@ -3410,7 +3405,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featurePlacesHint =>
-      'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.';
+      'Where you went, and what you did there: a trail and a pin on every action. Nothing leaves the phone.';
 
   @override
   String get placesDay => 'Day';
@@ -3866,17 +3861,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountNeverSynced => 'Not synced yet';
-
-  @override
-  String accountPending(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count changes waiting',
-      one: '1 change waiting',
-    );
-    return '$_temp0';
-  }
 
   @override
   String accountRefused(int count) {
@@ -4705,4 +4689,275 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String syncPinTriesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tries left.',
+      one: '1 try left.',
+      zero: 'No tries left for now.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncPinTooMany(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Too many tries. Try again in $minutes minutes.',
+      one: 'Too many tries. Try again in 1 minute.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTooManySoon => 'Too many tries. Try again later.';
+
+  @override
+  String get syncPinStartedOver =>
+      'The PIN was just started over on another device. Choose a new one.';
+
+  @override
+  String get accountServerNotSecure =>
+      'Use https:// for the server. Plain http:// is only for this device or the emulator (localhost, 127.0.0.1, 10.0.2.2).';
+
+  @override
+  String get assistBaseUrlNotSecure =>
+      'Use https:// for the assist address. Plain http:// is only for this device or the emulator.';
+
+  @override
+  String get dataUnavailableTitle => 'Can\'t open your data right now';
+
+  @override
+  String get dataUnavailableBody =>
+      'The phone\'s secure storage did not answer. Nothing has been changed or deleted. Try again, or restart the phone if it keeps happening.';
+
+  @override
+  String amountLargeTitle(String amount) {
+    return '$amount?';
+  }
+
+  @override
+  String get amountLargeBody =>
+      'That is far more than anything usually logged at once. Is the amount right?';
+
+  @override
+  String get amountLargeConfirm => 'Yes, it\'s right';
+
+  @override
+  String get perDay => 'Per day';
+
+  @override
+  String categoryRemove(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String categoryRemoved(String name) {
+    return '$name removed';
+  }
+
+  @override
+  String get gymSessionMenu => 'More for this session';
+
+  @override
+  String get gymExerciseMenu => 'More for this exercise';
+
+  @override
+  String get gymProgramMenu => 'More for this program';
+
+  @override
+  String get gymDayMenu => 'More for this day';
+
+  @override
+  String weightImplausible(String range) {
+    return 'A weight between $range';
+  }
+
+  @override
+  String get accountDevicesRetry => 'Try again';
+
+  @override
+  String accountEndSessionTitle(String name) {
+    return 'Sign out $name?';
+  }
+
+  @override
+  String get accountEndSessionBody =>
+      'That device stops syncing until someone signs in on it again. Nothing on it is deleted.';
+
+  @override
+  String accountSessionEnded(String name) {
+    return 'Signed out $name';
+  }
+
+  @override
+  String accountSignedInOn(String day) {
+    return 'signed in $day';
+  }
+
+  @override
+  String get accountChangesWaiting => 'Changes waiting to sync';
+
+  @override
+  String get syncPinForgetTitle => 'Forget the sync PIN on this phone?';
+
+  @override
+  String get syncPinForgetBody =>
+      'What is already here stays. Money, places and pictures from your other devices stay locked here, and new ones wait, until you enter the PIN again.';
+
+  @override
+  String get joinTitle => 'This phone already has data';
+
+  @override
+  String get joinBody =>
+      'You made things on this phone before signing in. Bring them into your account, or start from what the account already has?';
+
+  @override
+  String get joinBring => 'Bring this phone\'s data into the account';
+
+  @override
+  String get joinStartFromAccount => 'Start from the account\'s data';
+
+  @override
+  String get joinStartFromAccountNote =>
+      'This phone\'s data is saved first, as an archive in Downloads, then replaced by the account\'s. Nothing is lost.';
+
+  @override
+  String get joinArchiveFailed =>
+      'The archive could not be saved, so nothing was replaced. Try again, or bring the data into the account.';
+
+  @override
+  String joinArchived(String path) {
+    return 'This phone\'s data was saved to $path';
+  }
+
+  @override
+  String get obHaveAccount => 'I already have an account';
+
+  @override
+  String get assistChecking => 'Looking for the assist…';
+
+  @override
+  String dailyGoalProgress(int actions, int goal) {
+    return '$actions of $goal actions today for the daily harvest';
+  }
+
+  @override
+  String dailyGoalMet(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count actions — the daily harvest goal is met',
+      one: '1 action — the daily harvest goal is met',
+      zero: 'No actions — the daily harvest goal is met',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakZeroWhy(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other:
+          'A day joins the streak once it has $goal actions. Meet them today to start one.',
+      one: 'A day joins the streak once it has 1 action. Meet it today to start one.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakHowItGrows(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other: 'Each day with $goal actions keeps it going.',
+      one: 'Each day with 1 action keeps it going.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notesPickTitle => 'Pick a note';
+
+  @override
+  String get notesPickBody => 'Your notes are in the list, with their folders.';
+
+  @override
+  String get notesShowList => 'Show notes';
+
+  @override
+  String get goalAchievedLabel => 'Achieved';
+
+  @override
+  String goalAchievedOn(String day) {
+    return 'Achieved on $day';
+  }
+
+  @override
+  String get goalDroppedLabel => 'Dropped';
+
+  @override
+  String get goalsNoActiveTitle => 'No goal in progress';
+
+  @override
+  String goalDeleteBody(String title) {
+    return '“$title” and its items go, with what achieving it paid. Undo brings them back.';
+  }
+
+  @override
+  String cropUndoCheckIn(String title) {
+    return 'Undo today\'s check-in for $title';
+  }
+
+  @override
+  String seedPausedSnack(String title) {
+    return '“$title” is resting';
+  }
+
+  @override
+  String seedResumedSnack(String title) {
+    return '“$title” is back on the field';
+  }
+
+  @override
+  String geoGone(String kind) {
+    return '$kind · no longer here';
+  }
+
+  @override
+  String get accountEndOthers => 'Sign out all other devices';
+
+  @override
+  String get accountEndOthersTitle => 'Sign out every other device?';
+
+  @override
+  String get accountEndOthersBody =>
+      'Only this phone stays signed in. The others stop syncing until someone signs in on them again. Nothing on them is deleted.';
+
+  @override
+  String accountOthersEnded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Signed out $count other devices',
+      one: 'Signed out 1 other device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTakesTime =>
+      'Making the key is slow on purpose: a few seconds, up to about 20 on an older phone.';
+
+  @override
+  String get syncPinMenu => 'Sync PIN options';
+
+  @override
+  String get syncPinSignedOut =>
+      'This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.';
 }

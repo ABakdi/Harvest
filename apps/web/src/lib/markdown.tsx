@@ -200,6 +200,7 @@ const headingClass: Record<number, string> = {
   6: 'text-sm font-bold text-muted-foreground',
 };
 
+/** Markdown as blocks, each with a direction of its own: an English paragraph under an Arabic heading stays left to right (W6-05). */
 export function Markdown({ source, options = {}, className }: { source: string; options?: MarkdownOptions; className?: string }) {
   const blocks = parseBlocks(source);
   return (
@@ -210,34 +211,36 @@ export function Markdown({ source, options = {}, className }: { source: string; 
           case 'heading': {
             const Tag = `h${Math.min(block.level + 1, 6)}` as 'h2';
             return (
-              <Tag key={key} className={headingClass[block.level]}>
+              <Tag key={key} dir="auto" className={headingClass[block.level]}>
                 {renderInline(block.text, options, key)}
               </Tag>
             );
           }
           case 'code':
             return (
-              <pre key={key} className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-sm">
+              <pre key={key} dir="auto" className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-sm">
                 <code>{block.text}</code>
               </pre>
             );
           case 'quote':
             return (
-              <blockquote key={key} className="border-s-4 border-success/60 ps-3 text-muted-foreground">
+              <blockquote key={key} dir="auto" className="border-s-4 border-success/60 ps-3 text-muted-foreground">
                 {block.lines.map((line, n) => (
-                  <p key={n}>{renderInline(line, options, `${key}-${n}`)}</p>
+                  <p key={n} dir="auto">
+                    {renderInline(line, options, `${key}-${n}`)}
+                  </p>
                 ))}
               </blockquote>
             );
           case 'list': {
             const Tag = block.ordered ? 'ol' : 'ul';
             return (
-              <Tag key={key} className={block.ordered ? 'list-decimal ps-6' : 'list-disc ps-6'}>
+              <Tag key={key} dir="auto" className={block.ordered ? 'list-decimal ps-6' : 'list-disc ps-6'}>
                 {block.items.map((item, n) =>
                   item.task === null ? (
-                    <li key={n}>{renderInline(item.text, options, `${key}-${n}`)}</li>
+                    <li key={n} dir="auto">{renderInline(item.text, options, `${key}-${n}`)}</li>
                   ) : (
-                    <li key={n} className="list-none -ms-5 flex items-start gap-2">
+                    <li key={n} dir="auto" className="list-none -ms-5 flex items-start gap-2">
                       <input type="checkbox" checked={item.task} readOnly disabled className="mt-1.5" aria-hidden />
                       <span className={item.task ? 'text-muted-foreground line-through' : undefined}>
                         {renderInline(item.text, options, `${key}-${n}`)}
@@ -253,11 +256,11 @@ export function Markdown({ source, options = {}, className }: { source: string; 
           case 'table':
             return (
               <div key={key} className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
+                <table dir="auto" className="w-full border-collapse text-sm">
                   <thead>
                     <tr>
                       {block.head.map((cell, n) => (
-                        <th key={n} className="border px-2 py-1 text-start font-bold">
+                        <th key={n} dir="auto" className="border px-2 py-1 text-start font-bold">
                           {renderInline(cell, options, `${key}-h${n}`)}
                         </th>
                       ))}
@@ -267,7 +270,7 @@ export function Markdown({ source, options = {}, className }: { source: string; 
                     {block.rows.map((row, r) => (
                       <tr key={r}>
                         {block.head.map((_, n) => (
-                          <td key={n} className="border px-2 py-1 align-top">
+                          <td key={n} dir="auto" className="border px-2 py-1 align-top">
                             {renderInline(row[n] ?? '', options, `${key}-${r}-${n}`)}
                           </td>
                         ))}
@@ -279,7 +282,7 @@ export function Markdown({ source, options = {}, className }: { source: string; 
             );
           case 'paragraph':
             return (
-              <p key={key} className="whitespace-pre-wrap">
+              <p key={key} dir="auto" className="whitespace-pre-wrap">
                 {renderInline(block.lines.join('\n'), options, key)}
               </p>
             );

@@ -77,6 +77,11 @@ sealed class GeotagDetail {
   const GeotagDetail();
 }
 
+/// The row it pointed at is gone, or its seed was deleted (U6-26).
+final class GeotagGone extends GeotagDetail {
+  const GeotagGone();
+}
+
 /// A note's title, a seed's name, an album's name.
 final class GeotagText extends GeotagDetail {
   const GeotagText(this.text);

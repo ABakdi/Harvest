@@ -83,6 +83,37 @@ export function convertBudget(budget: number, from: CurrencyCode, to: CurrencyCo
   return converted < 1 ? 1 : converted;
 }
 
+/** How the savings stand against the budget (`SavingsHealth`). */
+export type SavingsHealth = 'unknown' | 'healthy' | 'low';
+
+/**
+ * Savings below a tenth of the monthly budget, all converted into the
+ * default currency (face value where a rate is missing), are low
+ * (`savingsHealth`, [[Finances]] The Vault). With no savings or no
+ * budget there is nothing to say. One rule for both apps (Q6-20).
+ */
+export function savingsHealth(
+  savings: Iterable<readonly [CurrencyCode, number]>,
+  monthlyBudget: number | null | undefined,
+  rates: Rates,
+): SavingsHealth {
+  const held = [...savings].filter(([, minor]) => minor !== 0);
+  if (held.length === 0 || !monthlyBudget || monthlyBudget <= 0) return 'unknown';
+  return sumInDefault(rates, held) < Math.trunc(monthlyBudget / 10) ? 'low' : 'healthy';
+}
+
+/**
+ * What a span averages per day (`averagePerDay`): the total over the
+ * days gone, truncated, and in whole dinars for the dinar, which is
+ * written in whole units everywhere else — DA71.42 a day was the one
+ * fractional dinar on the screen (U6-34). No days gone is nothing.
+ */
+export function averagePerDay(total: number, elapsedDays: number, currency: CurrencyCode): number {
+  if (elapsedDays <= 0) return 0;
+  const average = Math.trunc(total / elapsedDays);
+  return currency === 'DZD' ? Math.round(average / 100) * 100 : average;
+}
+
 /** Sums per-currency amounts into the default currency. */
 export function sumInDefault(rates: Rates, amounts: Iterable<readonly [CurrencyCode, number]>): number {
   let total = 0;
@@ -168,6 +199,20 @@ export function budgetSnapshotFor(
  * an entry is a typo (`maxMajorUnits` in `presentation/money.dart`).
  */
 export const maxMajorUnits = 1_000_000_000_000;
+
+/**
+ * The most an amount can plausibly be (`plausibleMaxMinor`), in minor
+ * units of its own currency: 1,000,000,000 — DA10,000,000, or
+ * €10,000,000. Above it an entry is still allowed, but only once I have
+ * said yes to it: DA99,999,999,999 typed by a slipped finger would
+ * otherwise dominate every total ([[Finances]], W6-15).
+ */
+export const plausibleMaxMinor = 1_000_000_000;
+
+/** Whether [minor] can be logged without asking first (`isPlausibleAmount`). */
+export function isPlausibleAmount(minor: number): boolean {
+  return Number.isSafeInteger(minor) && minor > 0 && minor <= plausibleMaxMinor;
+}
 
 /** Dart's `int.tryParse` without a radix, as `harvest-day.ts` has it. */
 function parseDartInt(raw: string): number | null {

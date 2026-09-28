@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { apiMessage, fieldMessage } from '@/lib/errors';
 import { AuthCard, FormError } from './auth-card';
+import { runAction } from '@/lib/actions';
 
 const schema = loginBodySchema.pick({ email: true, password: true });
 
@@ -41,6 +42,20 @@ export function LoginPage() {
 
   return (
     <AuthCard title={t('auth.loginTitle')} lead={t('auth.loginLead')}>
+      {/* The browser version needs an account (W5); a first visit sent here from /app learns why, and where to make one. */}
+      <div className="flex flex-col gap-3 rounded-xl bg-secondary p-4 text-sm">
+        <p>{t('auth.browserNeedsAccount')}</p>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="brand">
+            <Link to="/register">
+              {t('auth.createFree')}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/download">{t('auth.getAndroid')}</Link>
+          </Button>
+        </div>
+      </div>
       <form
         noValidate
         // A server's answer is about the values it was sent: an edit or
@@ -48,7 +63,7 @@ export function LoginPage() {
         onChange={() => setFailure(null)}
         onSubmit={(event) => {
           setFailure(null);
-          void submit(event);
+          runAction(() => submit(event));
         }}
         className="flex flex-col gap-4"
       >

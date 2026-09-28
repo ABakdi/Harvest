@@ -91,7 +91,11 @@ class GalleryStorage {
     return file.length();
   }
 
+  /// Deletes a memory's file. A path from a row is still a path from
+  /// somewhere else (S6-08): one that could lead out of the gallery is
+  /// never deleted, as every other use of it is never read or written.
   Future<void> delete(String relative) async {
+    if (!isSafeRelative(relative)) return;
     final file = await fileOf(relative);
     if (file.existsSync()) await file.delete();
   }

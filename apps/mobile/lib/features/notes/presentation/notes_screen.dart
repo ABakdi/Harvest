@@ -10,6 +10,7 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/action_snack_bar.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
+import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/assist/data/assist_settings.dart';
@@ -61,9 +62,17 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   final _body = LiveMarkdownController();
   String? _open;
 
+  /// The note made here and not yet written in: left untouched, it is
+  /// discarded rather than kept as an empty "Untitled" (U6-08).
+  String? _fresh;
+
+  // Taken while alive: `ref` refuses every call once disposing.
+  late final NotesRepository _notes;
+
   @override
   void initState() {
     super.initState();
+    _notes = ref.read(notesRepositoryProvider);
     _open = widget.initialUuid;
     if (_open != null) _remember(_open);
     // Open whatever I was last writing rather than an empty page.
@@ -74,9 +83,43 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
   @override
   void dispose() {
+    // The editor below has already queued its last save (children go
+    // first), so this runs after it and sees what was typed.
+    final fresh = _fresh;
+    if (fresh != null) _notes.discardIfBlank(fresh).ignore();
     _body.dispose();
     super.dispose();
   }
+
+  /// Leaving [_fresh] for another note, or for none: an untouched one
+  /// goes.
+  void _leaveFresh(String? next) {
+    final fresh = _fresh;
+    if (fresh == null || fresh == next) return;
+    _fresh = null;
+    // After the frame: the editor leaving with it queues its last save
+    // as it goes, and that save must land first.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notes.discardIfBlank(fresh).ignore();
+    });
+  }
+
+  /// Back on an open note closes it and shows the notes, as Back from a
+  /// page would; only a Back with nothing open leaves the tab (U6-07).
+  void _close() {
+    _leaveFresh(null);
+    setState(() => _open = null);
+    unawaited(
+      ref
+          .read(settingsRepositoryProvider)
+          .setString(SettingKeys.recordsNote, _closed),
+    );
+    _scaffold.currentState?.openDrawer();
+  }
+
+  /// Remembered when a note was closed on purpose: coming back shows the
+  /// notes, not the note I left.
+  static const _closed = '';
 
   /// The note I was last in, if it is still there; the latest otherwise.
   Future<void> _openLatest() async {
@@ -84,6 +127,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     final remembered = await settings.getString(SettingKeys.recordsNote);
     final notes = await ref.read(notesRepositoryProvider).watchAll().first;
     if (!mounted || notes.isEmpty || _open != null) return;
+    if (remembered == _closed) return;
     final last = notes.where((note) => note.uuid == remembered).firstOrNull;
     setState(() => _open = (last ?? notes.first).uuid);
   }
@@ -100,6 +144,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   }
 
   void _show(String? uuid) {
+    _leaveFresh(uuid);
     setState(() => _open = uuid);
     _remember(uuid);
     if (_scaffold.currentState?.isDrawerOpen ?? false) {
@@ -113,6 +158,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         .create(folder: normalizeFolder(folder));
     if (!mounted) return;
     _show(note.uuid);
+    _fresh = note.uuid;
   }
 
   /// The three-second path: a note named by the minute, recording at
@@ -197,7 +243,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     // Asked before anything is picked: choosing an action only to be
     // told there is nobody to send it to was a dead end. The same
     // question the sheet would ask, asked sooner.
-    final provider = await ref.read(assistProviderInUseProvider.future);
+    final provider = await _assistProvider();
     if (!mounted) return;
     if (provider == null) {
       await _assistNeedsSetup();
@@ -240,6 +286,33 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
       );
     } else {
       _insertAtCaret(outcome.text, ownLine: true);
+    }
+  }
+
+  /// Who would answer, or null for nobody. The provider is listened to
+  /// while it is asked: read on its own, an auto-disposed provider could
+  /// be torn down mid-question and its future never complete, and the
+  /// menu item then did nothing at all. A server that does not answer
+  /// in time, or answers with an error, is nobody ([[Audit-v3]] U6-01).
+  Future<AssistProvider?> _assistProvider() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final keep = ref.listenManual(assistProviderInUseProvider, (_, _) {});
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.assistChecking),
+        duration: const Duration(seconds: 10),
+      ),
+    );
+    try {
+      return await ref
+          .read(assistProviderInUseProvider.future)
+          .timeout(const Duration(seconds: 10));
+    } on Object {
+      return null;
+    } finally {
+      keep.close();
+      messenger.hideCurrentSnackBar();
     }
   }
 
@@ -404,201 +477,234 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     final opening = opened != null && !opened.hasValue;
     final writing = ref.watch(writingNoteProvider);
 
-    return Scaffold(
-      key: _scaffold,
-      drawer: NotesSidebar(
-        openUuid: _open,
-        onOpen: _show,
-        onNewNote: (folder) => unawaited(_newNote(folder)),
-        onOpenTrash: _openTrash,
-      ),
-      appBar: AppBar(
-        leading: accountLeading(context, drawer: true),
-        leadingWidth: accountLeadingWidth(context, drawer: true),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              note == null
-                  ? widget.title ?? l10n.notesTitle
-                  : note.title.isEmpty
-                  ? l10n.notesUntitled
-                  : note.title,
-              overflow: TextOverflow.ellipsis,
-            ),
-            // With the Records tabs under the title, the folder has to
-            // live up here instead ([[Checkpoint-8]]).
-            if (note != null && note.folder.isNotEmpty && widget.tabs != null)
+    final hasNotes = (ref.watch(allNotesProvider).value ?? const []).isNotEmpty;
+
+    return PopScope(
+      canPop: _open == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _open != null) _close();
+      },
+      child: Scaffold(
+        key: _scaffold,
+        drawer: NotesSidebar(
+          openUuid: _open,
+          onOpen: _show,
+          onNewNote: (folder) => unawaited(_newNote(folder)),
+          onOpenTrash: _openTrash,
+        ),
+        appBar: AppBar(
+          leading: accountLeading(context, drawer: true),
+          leadingWidth: accountLeadingWidth(context, drawer: true),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                note.folder,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                note == null
+                    ? widget.title ?? l10n.notesTitle
+                    : note.title.isEmpty
+                    ? l10n.notesUntitled
+                    : note.title,
                 overflow: TextOverflow.ellipsis,
               ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: l10n.voiceNew,
-            icon: const Icon(Icons.mic_none),
-            onPressed: () => unawaited(_newVoiceNote(note?.folder ?? '')),
+              // With the Records tabs under the title, the folder has to
+              // live up here instead ([[Checkpoint-8]]).
+              if (note != null && note.folder.isNotEmpty && widget.tabs != null)
+                Text(
+                  note.folder,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
           ),
-          IconButton(
-            tooltip: l10n.notesNew,
-            icon: const Icon(Icons.add),
-            onPressed: () => unawaited(_newNote(note?.folder ?? '')),
-          ),
-          if (note != null)
-            PopupMenuButton<String>(
-              onSelected: (value) => switch (value) {
-                'folder' => unawaited(_moveToFolder(note)),
-                'pdf' => unawaited(_sharePdf(note)),
-                'record' => unawaited(_record(note.uuid)),
-                'assist' => unawaited(_assist()),
-                'read' => unawaited(
-                  showReadAloudSheet(context, markdown: _body.text),
-                ),
-                _ => unawaited(_delete(note)),
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'assist',
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.auto_awesome_outlined),
-                    title: Text(l10n.assistTitle),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'record',
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.mic_none),
-                    title: Text(l10n.voiceRecord),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'read',
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.record_voice_over_outlined),
-                    title: Text(l10n.readAloud),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'folder',
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.folder_outlined),
-                    title: Text(l10n.notesMoveToFolder),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'pdf',
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.picture_as_pdf_outlined),
-                    title: Text(l10n.notesSharePdf),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.delete_outline),
-                    title: Text(l10n.deleteAction),
-                  ),
-                ),
-              ],
+          actions: [
+            IconButton(
+              tooltip: l10n.voiceNew,
+              icon: const Icon(Icons.mic_none),
+              onPressed: () => unawaited(_newVoiceNote(note?.folder ?? '')),
             ),
-        ],
-        // The Records tabs stay whether a note is open or not: hiding
-        // them behind an open note made the gallery unreachable to
-        // anyone who did not know to close the note first
-        // ([[Checkpoint-8]]). Alone, Notes shows the folder here.
-        bottom:
-            widget.tabs ??
-            (note == null || note.folder.isEmpty
-                ? null
-                : PreferredSize(
-                    preferredSize: const Size.fromHeight(22),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          HarvestSpacing.md,
-                          0,
-                          HarvestSpacing.md,
-                          6,
-                        ),
-                        child: Text(
-                          note.folder,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+            // With no note open, the floating button makes one.
+            if (note != null)
+              IconButton(
+                tooltip: l10n.notesNew,
+                icon: const Icon(Icons.add),
+                onPressed: () => unawaited(_newNote(note.folder)),
+              ),
+            if (note != null)
+              PopupMenuButton<String>(
+                // Read as "More", not the generic "Show menu" (U6-24).
+                tooltip: l10n.cropOptions,
+                onSelected: (value) => switch (value) {
+                  'folder' => unawaited(_moveToFolder(note)),
+                  'pdf' => unawaited(_sharePdf(note)),
+                  'record' => unawaited(_record(note.uuid)),
+                  'assist' => unawaited(_assist()),
+                  'read' => unawaited(
+                    showReadAloudSheet(context, markdown: _body.text),
+                  ),
+                  _ => unawaited(_delete(note)),
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'assist',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.auto_awesome_outlined),
+                      title: Text(l10n.assistTitle),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'record',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.mic_none),
+                      title: Text(l10n.voiceRecord),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'read',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.record_voice_over_outlined),
+                      title: Text(l10n.readAloud),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'folder',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.folder_outlined),
+                      title: Text(l10n.notesMoveToFolder),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'pdf',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.picture_as_pdf_outlined),
+                      title: Text(l10n.notesSharePdf),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.delete_outline),
+                      title: Text(l10n.deleteAction),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+          // The Records tabs stay whether a note is open or not: hiding
+          // them behind an open note made the gallery unreachable to
+          // anyone who did not know to close the note first
+          // ([[Checkpoint-8]]). Alone, Notes shows the folder here.
+          bottom:
+              widget.tabs ??
+              (note == null || note.folder.isEmpty
+                  ? null
+                  : PreferredSize(
+                      preferredSize: const Size.fromHeight(22),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            HarvestSpacing.md,
+                            0,
+                            HarvestSpacing.md,
+                            6,
+                          ),
+                          child: Text(
+                            note.folder,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )),
-      ),
-      bottomNavigationBar: writing && note != null
-          ? MarkdownToolbar(
-              controller: _body,
-              onRecord: () => unawaited(_record(note.uuid)),
-              onDictate: () => unawaited(_dictate()),
-              dictating: _dictating,
-            )
-          : null,
-      body: opening
-          ? const SizedBox.shrink()
-          : note == null
-          ? EmptyState(
-              icon: Icons.description_outlined,
-              title: l10n.notesEmpty,
-              body: l10n.notesEmptyBody,
-              color: theme.colorScheme.tertiary,
-              action: FilledButton.icon(
+                    )),
+        ),
+        // The same button as every other tab, while no note is open
+        // (U6-32).
+        floatingActionButton: note == null && !opening
+            ? HarvestFab(
                 onPressed: () => unawaited(_newNote('')),
-                icon: const Icon(Icons.add),
-                label: Text(l10n.notesNew),
+                label: l10n.notesNew,
+              )
+            : null,
+        bottomNavigationBar: writing && note != null
+            ? MarkdownToolbar(
+                controller: _body,
+                onRecord: () => unawaited(_record(note.uuid)),
+                onDictate: () => unawaited(_dictate()),
+                dictating: _dictating,
+              )
+            : null,
+        body: opening
+            ? const SizedBox.shrink()
+            : note == null
+            // Centred in the page, not pinned to its top corner (U6-32).
+            ? Center(
+                child: SingleChildScrollView(
+                  child: hasNotes
+                      ? EmptyState(
+                          icon: Icons.description_outlined,
+                          title: l10n.notesPickTitle,
+                          body: l10n.notesPickBody,
+                          color: theme.colorScheme.tertiary,
+                          action: FilledButton.icon(
+                            onPressed: () =>
+                                _scaffold.currentState?.openDrawer(),
+                            icon: const Icon(Icons.menu),
+                            label: Text(l10n.notesShowList),
+                          ),
+                        )
+                      : EmptyState(
+                          icon: Icons.description_outlined,
+                          title: l10n.notesEmpty,
+                          body: l10n.notesEmptyBody,
+                          color: theme.colorScheme.tertiary,
+                        ),
+                ),
+              )
+            : Column(
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        start: HarvestSpacing.md,
+                        top: HarvestSpacing.xs,
+                      ),
+                      // Where the note was written, if Places was
+                      // there to say ([[Places]]).
+                      child: GeotagChip(
+                        targetTable: 'notes',
+                        targetUuid: note.uuid,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: NoteEditor(
+                      key: ValueKey(note.uuid),
+                      uuid: note.uuid,
+                      controller: _body,
+                      onOpen: _show,
+                      onTranscribe: (recording) =>
+                          unawaited(_transcribe(recording)),
+                    ),
+                  ),
+                ],
               ),
-            )
-          : Column(
-              children: [
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      start: HarvestSpacing.md,
-                      top: HarvestSpacing.xs,
-                    ),
-                    // Where the note was written, if Places was
-                    // there to say ([[Places]]).
-                    child: GeotagChip(
-                      targetTable: 'notes',
-                      targetUuid: note.uuid,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: NoteEditor(
-                    key: ValueKey(note.uuid),
-                    uuid: note.uuid,
-                    controller: _body,
-                    onOpen: _show,
-                    onTranscribe: (recording) =>
-                        unawaited(_transcribe(recording)),
-                  ),
-                ),
-              ],
-            ),
+      ),
     );
   }
 }
@@ -672,6 +778,7 @@ class _NoteFolderSheetState extends ConsumerState<NoteFolderSheet> {
           )
         else
           TextField(
+            textCapitalization: TextCapitalization.sentences,
             controller: _controller,
             autofocus: true,
             textInputAction: TextInputAction.done,

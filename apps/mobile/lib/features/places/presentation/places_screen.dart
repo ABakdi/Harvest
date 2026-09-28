@@ -4,44 +4,25 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:harvest/app/router.dart';
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
-import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
 import 'package:harvest/features/account/presentation/account_circle.dart';
-import 'package:harvest/features/finances/presentation/expense_sheet.dart';
-import 'package:harvest/features/finances/presentation/money.dart';
-import 'package:harvest/features/finances/presentation/moves_ledger.dart';
 import 'package:harvest/features/places/data/location_gateway.dart';
 import 'package:harvest/features/places/data/places_repository.dart';
 import 'package:harvest/features/places/domain/place.dart';
+import 'package:harvest/features/places/presentation/place_card.dart';
 import 'package:harvest/features/places/presentation/place_form.dart';
+import 'package:harvest/features/places/presentation/places_map.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
+import 'package:harvest/features/places/presentation/places_timeline.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
-
-/// How much of the calendar the map shows at once.
-enum PlacesRange { day, week, month }
-
-/// The closest the map goes. The streets' tiles stop at 14 and are
-/// stretched past it; left unbounded, a fit around points that all sit
-/// in one spot asked for zoom 25, where the stretched buildings took the
-/// phone's memory in seconds and no tile was ever drawn.
-const placesMaxZoom = 19.0;
-
-/// How close the map comes to a single spot, or to points too near
-/// each other to be worth a box around them.
-const placesSpotZoom = 15.0;
-
-/// Points closer together than this, in degrees (about 150 m), are one
-/// spot: the map centres on them rather than fitting a box.
-const placesSpotSpan = 0.0015;
 
 /// Whether the map has ever been shown on this phone, so Records only
 /// lands on Places when it can ([[Places]]). Bookkeeping, local to the
@@ -56,85 +37,6 @@ abstract final class PlacesMapHealth {
   /// Written once the map has drawn and gone idle.
   static const shown = 'shown';
 }
-
-/// Where the camera goes to show [points]: centred on one spot, or
-/// fitted around them with room left for the timeline sheet.
-CameraUpdate placesCameraFor(List<LatLng> points) {
-  var south = points.first.latitude;
-  var north = south;
-  var west = points.first.longitude;
-  var east = west;
-  for (final p in points) {
-    south = math.min(south, p.latitude);
-    north = math.max(north, p.latitude);
-    west = math.min(west, p.longitude);
-    east = math.max(east, p.longitude);
-  }
-  // Every pin in one place — a day spent at home — has no box to fit.
-  if (north - south < placesSpotSpan && east - west < placesSpotSpan) {
-    return CameraUpdate.newLatLngZoom(
-      LatLng((south + north) / 2, (west + east) / 2),
-      placesSpotZoom,
-    );
-  }
-  return CameraUpdate.newLatLngBounds(
-    LatLngBounds(
-      southwest: LatLng(south, west),
-      northeast: LatLng(north, east),
-    ),
-    left: 48,
-    top: 48,
-    right: 48,
-    bottom: 220,
-  );
-}
-
-/// The source and layer the saved places' names are drawn from. Their
-/// own, not symbol annotations: those pass the font per feature, which
-/// the native map refuses ("text-font must be literals") and draws no
-/// name at all.
-const placeNamesSource = 'harvest-place-names';
-const placeNamesLayer = 'harvest-place-names-text';
-
-/// The saved places as GeoJSON points, each with its uuid as the
-/// feature id (what a tap on its name hands back) and its name.
-Map<String, dynamic> placeNamesGeoJson(List<SavedPlace> places) => {
-  'type': 'FeatureCollection',
-  'features': [
-    for (final place in places)
-      {
-        'type': 'Feature',
-        'id': place.uuid,
-        'properties': {'place': place.uuid, 'name': place.name},
-        'geometry': {
-          'type': 'Point',
-          'coordinates': [place.longitude, place.latitude],
-        },
-      },
-  ],
-};
-
-/// How the names look: dark text on a white halo under the red dot. The
-/// font is one literal for every name — the one font OpenFreeMap serves
-/// that every base can reach; the default stack names fonts it does not
-/// have, and draws nothing.
-SymbolLayerProperties placeNamesProperties() => const SymbolLayerProperties(
-  textField: [Expressions.get, 'name'],
-  textFont: [
-    Expressions.literal,
-    ['Noto Sans Regular'],
-  ],
-  textSize: 12.5,
-  textColor: '#202124',
-  textHaloColor: '#FFFFFF',
-  textHaloWidth: 1.5,
-  textAnchor: 'top',
-  textOffset: [
-    Expressions.literal,
-    [0, 0.4],
-  ],
-  textAllowOverlap: true,
-);
 
 /// Where I went, and what I did there ([[Places]]): a date strip, the
 /// map with the trail and a pin per action, and the day as a timeline.
@@ -330,7 +232,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
       ),
       body: Column(
         children: [
-          _DateStrip(
+          PlacesDateStrip(
             label: _label(context, span),
             range: _range,
             canGoForward:
@@ -342,7 +244,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
             onStep: _step,
             onPick: () => unawaited(_pickDay()),
           ),
-          if (state != null) _TrailStatus(state: state, today: span.to),
+          if (state != null) TrailStatusLine(state: state, today: span.to),
           Expanded(
             child: Stack(
               children: [
@@ -387,13 +289,13 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
                   bottom: 224,
                   child: Column(
                     children: [
-                      _MapButton(
+                      PlacesMapButton(
                         tooltip: l10n.placesLocateMe,
                         icon: Icons.my_location,
                         onPressed: () => unawaited(_locateMe()),
                       ),
                       const SizedBox(height: HarvestSpacing.sm),
-                      _MapButton(
+                      PlacesMapButton(
                         tooltip: l10n.placesLayers,
                         icon: Icons.layers_outlined,
                         onPressed: () => unawaited(_pickMapBase(mapBase)),
@@ -405,7 +307,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
                   initialChildSize: 0.3,
                   minChildSize: 0.12,
                   maxChildSize: 0.85,
-                  builder: (context, scroll) => _Timeline(
+                  builder: (context, scroll) => PlacesTimeline(
                     scroll: scroll,
                     tags: tags,
                     stays: stays,
@@ -651,7 +553,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
 
     final action = await showModalBottomSheet<String>(
       context: context,
-      builder: (context) => _PlaceCard(place: place),
+      builder: (context) => SavedPlaceCard(place: place),
     );
     if (action == null || !mounted) return;
     switch (action) {
@@ -933,456 +835,4 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> {
 String _hex(Color color) {
   final argb = color.toARGB32();
   return '#${(argb & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
-}
-
-/// A pin's colour, by what the action was.
-Color geotagColor(String table, ColorScheme scheme) => switch (table) {
-  'expenses' || 'money_txns' || 'debts' || 'debt_payments' => scheme.error,
-  'memories' || 'albums' => scheme.tertiary,
-  'notes' || 'note_attachments' || 'seed_notes' => scheme.secondary,
-  _ => scheme.primary,
-};
-
-/// A pin's icon and its name, by what the action was.
-({IconData icon, String label}) geotagKind(
-  String table,
-  AppLocalizations l10n,
-) => switch (table) {
-  'expenses' => (icon: Icons.payments_outlined, label: l10n.geoExpense),
-  'check_ins' => (icon: Icons.eco_outlined, label: l10n.geoCheckIn),
-  'memories' => (icon: Icons.photo_camera_outlined, label: l10n.geoPicture),
-  'albums' => (icon: Icons.photo_library_outlined, label: l10n.geoAlbum),
-  'notes' => (icon: Icons.edit_note, label: l10n.geoNote),
-  'note_attachments' => (icon: Icons.mic_none, label: l10n.geoVoice),
-  'commitments' => (icon: Icons.spa_outlined, label: l10n.geoSeed),
-  'seed_notes' => (icon: Icons.sticky_note_2_outlined, label: l10n.geoSeedNote),
-  'money_txns' => (
-    icon: Icons.account_balance_wallet_outlined,
-    label: l10n.geoMoney,
-  ),
-  'debts' => (icon: Icons.handshake_outlined, label: l10n.geoDebt),
-  'debt_payments' => (
-    icon: Icons.handshake_outlined,
-    label: l10n.geoDebtPayment,
-  ),
-  'body_weights' => (
-    icon: Icons.monitor_weight_outlined,
-    label: l10n.geoWeight,
-  ),
-  'sleep_sessions' => (icon: Icons.bedtime_outlined, label: l10n.geoNight),
-  'workout_sessions' => (icon: Icons.fitness_center, label: l10n.geoSession),
-  'goals' => (icon: Icons.flag_outlined, label: l10n.geoGoal),
-  'goal_items' => (icon: Icons.checklist, label: l10n.geoGoalItem),
-  _ => (icon: Icons.place_outlined, label: table),
-};
-
-/// A pin's line on the timeline, money written as the Granary writes
-/// it: "DA4 · Food", "+DA200 · Added to the wallet".
-String? geotagDetailText(AppLocalizations l10n, GeotagDetail? detail) =>
-    switch (detail) {
-      null => null,
-      GeotagText(:final text) => text,
-      GeotagExpense(
-        :final amountMinor,
-        :final currency,
-        :final category,
-        :final note,
-      ) =>
-        '${formatMoney(amountMinor, currency)} · '
-            '${note ?? categoryLabel(l10n, category)}',
-      GeotagMove(:final txn) =>
-        '${formatMoneySigned(txn.deltaMinor, txn.currency)} · '
-            '${txn.note ?? moveTitle(l10n, txn)}',
-    };
-
-/// Where tapping a pin goes, for the actions that have a screen.
-String? geotagRoute(Geotag tag) => switch (tag.targetTable) {
-  'notes' => '${AppRoutes.records}/note/${tag.targetUuid}',
-  'commitments' => '${AppRoutes.seed}/${tag.targetUuid}',
-  'goals' => '${AppRoutes.goal}/${tag.targetUuid}',
-  _ => null,
-};
-
-class _DateStrip extends StatelessWidget {
-  const _DateStrip({
-    required this.label,
-    required this.range,
-    required this.canGoForward,
-    required this.onRange,
-    required this.onStep,
-    required this.onPick,
-  });
-
-  final String label;
-  final PlacesRange range;
-  final bool canGoForward;
-  final ValueChanged<PlacesRange> onRange;
-  final ValueChanged<int> onStep;
-  final VoidCallback onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: HarvestSpacing.sm,
-        vertical: HarvestSpacing.xs,
-      ),
-      child: Column(
-        children: [
-          SegmentedButton<PlacesRange>(
-            segments: [
-              ButtonSegment(
-                value: PlacesRange.day,
-                label: Text(l10n.placesDay),
-              ),
-              ButtonSegment(
-                value: PlacesRange.week,
-                label: Text(l10n.placesWeek),
-              ),
-              ButtonSegment(
-                value: PlacesRange.month,
-                label: Text(l10n.placesMonth),
-              ),
-            ],
-            selected: {range},
-            showSelectedIcon: false,
-            onSelectionChanged: (s) => onRange(s.first),
-          ),
-          Row(
-            children: [
-              IconButton(
-                tooltip: l10n.placesPrevious,
-                icon: const Icon(Icons.chevron_left),
-                onPressed: () => onStep(-1),
-              ),
-              Expanded(
-                child: TextButton(
-                  onPressed: onPick,
-                  child: Text(label, textAlign: TextAlign.center),
-                ),
-              ),
-              IconButton(
-                tooltip: l10n.placesNext,
-                icon: const Icon(Icons.chevron_right),
-                onPressed: canGoForward ? () => onStep(1) : null,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One line on what the trail is doing right now.
-class _TrailStatus extends ConsumerWidget {
-  const _TrailStatus({required this.state, required this.today});
-
-  final TrailState state;
-  final HarvestDay today;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final String? text;
-    if (state.access == LocationAccess.serviceOff) {
-      text = l10n.placesServiceOff;
-    } else if (state.paused) {
-      text = l10n.placesPausedUntil(
-        TimeOfDay.fromDateTime(state.pausedUntil!).format(context),
-      );
-    } else if (state.running) {
-      final count =
-          ref
-              .watch(pointsOnProvider(ref.watch(currentHarvestDayProvider)))
-              .value ??
-          0;
-      text = l10n.placesRecording(count);
-    } else {
-      text = null;
-    }
-    if (text == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: HarvestSpacing.xs),
-      child: Text(
-        text,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-}
-
-/// The span as a list: stays and actions in the order they happened.
-class _Timeline extends ConsumerWidget {
-  const _Timeline({
-    required this.scroll,
-    required this.tags,
-    required this.stays,
-    required this.distanceM,
-    required this.selected,
-    required this.onTag,
-    required this.onStay,
-  });
-
-  final ScrollController scroll;
-  final List<Geotag> tags;
-  final List<Stay> stays;
-  final double distanceM;
-  final String? selected;
-  final ValueChanged<Geotag> onTag;
-  final ValueChanged<Stay> onStay;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final entries = <({DateTime at, Widget tile})>[
-      for (final stay in stays)
-        (
-          at: stay.from,
-          tile: ListTile(
-            leading: Icon(Icons.radio_button_checked, color: scheme.tertiary),
-            title: Text(
-              stay.place?.name ?? l10n.placesStay(_duration(stay.length)),
-            ),
-            subtitle: Text(
-              '${_time(context, stay.from)}–${_time(context, stay.to)}'
-              '${stay.place == null ? '' : ' · ${_duration(stay.length)}'}',
-            ),
-            onTap: () => onStay(stay),
-          ),
-        ),
-      for (final tag in tags)
-        (
-          at: tag.at,
-          tile: _GeotagTile(
-            tag: tag,
-            selected: tag.uuid == selected,
-            onTap: () => onTag(tag),
-          ),
-        ),
-    ]..sort((a, b) => a.at.compareTo(b.at));
-
-    return Material(
-      elevation: 3,
-      color: scheme.surface,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(HarvestRadii.sheet),
-      ),
-      child: ListView(
-        controller: scroll,
-        padding: const EdgeInsets.only(bottom: HarvestSpacing.xl),
-        children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: HarvestSpacing.sm),
-              decoration: BoxDecoration(
-                color: scheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          if (distanceM > 0)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: HarvestSpacing.md,
-              ),
-              child: Text(
-                l10n.placesDistance((distanceM / 1000).toStringAsFixed(1)),
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
-          if (entries.isEmpty)
-            EmptyState(
-              compact: true,
-              icon: Icons.place_outlined,
-              title: l10n.placesNothing,
-              body: l10n.placesNothingBody,
-            )
-          else
-            for (final entry in entries) entry.tile,
-        ],
-      ),
-    );
-  }
-
-  String _time(BuildContext context, DateTime at) =>
-      TimeOfDay.fromDateTime(at).format(context);
-
-  String _duration(Duration d) {
-    final hours = d.inHours;
-    final minutes = d.inMinutes % 60;
-    return hours == 0 ? '$minutes min' : '$hours h $minutes min';
-  }
-}
-
-class _GeotagTile extends ConsumerWidget {
-  const _GeotagTile({
-    required this.tag,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Geotag tag;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final kind = geotagKind(tag.targetTable, l10n);
-    final detail = ref
-        .watch(
-          geotagDetailProvider((table: tag.targetTable, uuid: tag.targetUuid)),
-        )
-        .value;
-    return ListTile(
-      selected: selected,
-      leading: Icon(
-        kind.icon,
-        color: tag.hasPlace
-            ? geotagColor(tag.targetTable, scheme)
-            : scheme.outline,
-      ),
-      title: Text(
-        geotagDetailText(l10n, detail) ?? kind.label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        '${TimeOfDay.fromDateTime(tag.at).format(context)} · ${kind.label}',
-      ),
-      onTap: onTap,
-    );
-  }
-}
-
-/// A floating map button, in the Google shape: a white card that casts
-/// a shadow, with an icon that darkens when touched.
-class _MapButton extends StatelessWidget {
-  const _MapButton({
-    required this.tooltip,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  final String tooltip;
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Theme.of(context).colorScheme.surface,
-        elevation: 2,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onPressed,
-          // 48 dp, the least a finger can be asked to hit (Q5-62).
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: Icon(icon, size: 22),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// One saved place, shown when its pin is tapped: the name, the note
-/// it carries, and Edit and Forget.
-class _PlaceCard extends StatelessWidget {
-  const _PlaceCard({required this.place});
-
-  final SavedPlace place;
-
-  String _coord(double value) => value.toStringAsFixed(4);
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          HarvestSpacing.md,
-          HarvestSpacing.xs,
-          HarvestSpacing.md,
-          HarvestSpacing.md,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-                decoration: BoxDecoration(
-                  color: scheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                const Icon(Icons.place, color: Color(0xFFEA4335)),
-                const SizedBox(width: HarvestSpacing.sm),
-                Expanded(
-                  child: Text(
-                    place.name,
-                    style: theme.textTheme.titleLarge,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            if (place.notes case final notes? when notes.isNotEmpty) ...[
-              const SizedBox(height: HarvestSpacing.sm),
-              Text(notes, style: theme.textTheme.bodyMedium),
-            ],
-            const SizedBox(height: HarvestSpacing.sm),
-            Text(
-              '${_coord(place.latitude)}, ${_coord(place.longitude)}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: HarvestSpacing.md),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  onPressed: () => Navigator.pop(context, 'forget'),
-                  icon: const Icon(Icons.delete_outline),
-                  label: Text(l10n.placesForgetPlace),
-                ),
-                const SizedBox(width: HarvestSpacing.sm),
-                FilledButton.icon(
-                  onPressed: () => Navigator.pop(context, 'edit'),
-                  icon: const Icon(Icons.edit_outlined),
-                  label: Text(l10n.placesEditPlace),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

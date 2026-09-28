@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useSyncExternalStore } 
 import { api } from '@/lib/api';
 import { CategoriesRepository } from './data/categories';
 import { CheckInsRepository } from './data/check-ins';
-import { ExercisesRepository } from './data/exercises';
+import { ExercisesRepository } from './data/exercise-repository';
 import { AttachmentsRepository } from './data/attachments';
 import { FileStore } from './data/files';
 import { GalleryRepository } from './data/gallery';
@@ -104,6 +104,7 @@ export function createHarvest(
     user,
     clock,
   };
+  files.onKeyChanged = () => harvest.engine.markPinChanged();
   // A new key: what this browser holds goes up again under it.
   keyring.onNewKey = async () => {
     await harvest.engine.privateTierOpened();

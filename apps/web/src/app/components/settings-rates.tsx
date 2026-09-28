@@ -10,6 +10,7 @@ import { formatDate } from '@/lib/format';
 import { useHarvest } from '../context';
 import { fetchEurUsd, parseRate, rateKeys, readSetting } from '../data/settings';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
 
 /**
  * A moment as the phone writes `rate.usdPerEurAt`: Dart's
@@ -70,9 +71,9 @@ function ManualRate({ settingKey, label, stored }: { settingKey: string; label: 
         dir="ltr"
         className="tabular"
         defaultValue={stored ?? ''}
-        onBlur={(event) => void save(event.target)}
+        onBlur={(event) => runAction(() => save(event.target))}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') void save(event.currentTarget);
+          if (event.key === 'Enter') runAction(() => save(event.currentTarget));
         }}
       />
     </div>
@@ -134,7 +135,7 @@ export function RatesCard() {
           )}
           <span className="text-xs text-muted-foreground">{t('ratesWeb.fetchNote')}</span>
         </div>
-        <Button variant="secondary" disabled={fetching} onClick={() => void once(fetchNow)}>
+        <Button variant="secondary" disabled={fetching} onClick={() => runAction(() => once(fetchNow))}>
           {fetching ? <LoaderIcon className="animate-spin" aria-hidden /> : <CloudDownloadIcon aria-hidden />}
           {t('ratesWeb.fetch')}
         </Button>

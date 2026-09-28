@@ -130,6 +130,11 @@ void main() {
     await settings.setBool(SettingKeys.appLock, value: true);
     await service.refresh(today: today);
     expect(home.data['showMoney'], false);
+    // Nothing of it, and no task title, is written out either (S6-13).
+    expect(home.data['spent'], '');
+    expect(home.data['wallet'], '');
+    expect(home.data['tasks'], '[]');
+    expect(home.data['showTasks'], false);
 
     await settings.setBool(SettingKeys.appLock, value: false);
     await service.refresh(today: today);
@@ -246,13 +251,12 @@ void main() {
       expect(home.data['showActions'], isFalse);
     });
 
-    test('the numbers are written whether or not they are shown', () async {
-      // The provider decides visibility; the service always tells the
-      // truth, so flipping a switch never needs a recompute.
+    test('money that is not shown is not written either (S6-13)', () async {
+      // The widget's file sits outside the encrypted database.
       await SettingsRepository(db).setBool(WidgetKeys.money, value: false);
       await service.refresh(today: today);
-      expect(home.data['spent'], isNotNull);
-      expect(home.data['wallet'], isNotNull);
+      expect(home.data['spent'], '');
+      expect(home.data['wallet'], '');
     });
   });
 }

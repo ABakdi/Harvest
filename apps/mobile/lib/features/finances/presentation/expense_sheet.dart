@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
@@ -21,6 +20,7 @@ import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/finances/presentation/amount_keypad.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
+import 'package:harvest/features/finances/presentation/money_sheet.dart';
 import 'package:harvest/features/places/presentation/geotag_chip.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -248,13 +248,14 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
   /// ([[Checkpoint-6]]).
   int? get _amountMinor => evaluateAmountToMinor(_amountController.text);
 
-  bool get _isSum => isAmountExpression(_amountController.text);
-
   /// Logs (or edits) the expense in one transaction, wallet movement
   /// included, and reports a failure instead of pretending it saved.
   Future<void> _log() async {
     final amount = _amountMinor;
     if (amount == null) return;
+    // A number far past any ordinary spend is asked about first (W6-15).
+    if (!await confirmLargeAmount(context, amount, _effectiveCurrency)) return;
+    if (!mounted) return;
     final note = _noteController.text.trim();
     final existing = widget.existing;
     final currency = _effectiveCurrency;
@@ -378,104 +379,86 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
       actionLabel: widget.existing == null ? l10n.log : l10n.save,
       onAction: _amountMinor == null ? null : () => unawaited(_log()),
       children: [
-        // Read-only to the system: the keypad below is the keyboard,
-        // and the phone's own must not slide up over it. The caret
-        // still shows and still moves, so a wrong digit mid-sum is a
-        // tap away.
-        TextField(
+        // The amount and its keypad; the keys a little shorter here,
+        // with the rest of the sheet below them (U6-11).
+        AmountField(
           controller: _amountController,
-          autofocus: true,
-          readOnly: true,
-          showCursor: true,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(amountCharacters),
-          ],
-          onChanged: (_) => setState(() {}),
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-          decoration: InputDecoration(
-            labelText: l10n.amountLabel,
-            prefixText: currency.symbol,
-            // What the sum comes to, live, so Log never logs a surprise.
-            helperText: !_isSum
-                ? null
-                : _amountMinor == null
-                ? l10n.amountSumIncomplete
-                : l10n.amountSum(formatMoney(_amountMinor!, currency)),
-            helperStyle: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: _amountMinor == null
-                  ? theme.colorScheme.onSurfaceVariant
-                  : theme.colorScheme.primary,
-            ),
-          ),
+          currency: currency,
+          label: l10n.amountLabel,
+          compact: true,
         ),
-        const SizedBox(height: HarvestSpacing.sm),
-        AmountKeypad(controller: _amountController),
         const SizedBox(height: HarvestSpacing.xs),
-        // Per-expense currency (checkpoint P4).
-        SegmentedButton<Currency>(
-          segments: [
-            for (final option in Currency.values)
-              ButtonSegment(
-                value: option,
-                label: Text(option.symbol),
-              ),
-          ],
-          selected: {currency},
-          onSelectionChanged: (selection) {
-            unawaited(HarvestHaptics.tick());
-            setState(() => _currency = selection.first);
-          },
-        ),
-        const SizedBox(height: HarvestSpacing.md),
-        Wrap(
-          spacing: HarvestSpacing.xs,
-          runSpacing: HarvestSpacing.xs,
-          children: [
-            for (final key in [
-              ...presetCategoryKeys,
-              ...customs.map((c) => c.name),
-            ])
-              ChoiceChip(
-                avatar: Icon(
-                  categoryIcon(key, customs: customs),
-                  size: 18,
-                ),
-                label: Text(categoryLabel(l10n, key)),
-                selected: _category == key,
-                onSelected: (_) {
-                  unawaited(HarvestHaptics.tick());
-                  setState(() => _category = key);
-                },
-              ),
-            ActionChip(
-              avatar: const Icon(Icons.add, size: 18),
-              label: Text(l10n.newCategory),
-              onPressed: () => unawaited(_createCategory(context)),
-            ),
-          ],
-        ),
-        const SizedBox(height: HarvestSpacing.sm),
+        // Per-expense currency (checkpoint P4) and the day, on one line:
+        // on a 1080×2400 phone Log was below the fold (U6-11).
         Row(
           children: [
             Expanded(
-              child: Text(
-                l10n.expenseDayLabel,
-                style: theme.textTheme.bodyMedium,
+              child: SegmentedButton<Currency>(
+                showSelectedIcon: false,
+                segments: [
+                  for (final option in Currency.values)
+                    ButtonSegment(
+                      value: option,
+                      label: Text(option.symbol),
+                    ),
+                ],
+                selected: {currency},
+                onSelectionChanged: (selection) {
+                  unawaited(HarvestHaptics.tick());
+                  setState(() => _currency = selection.first);
+                },
               ),
             ),
-            ActionChip(
-              avatar: const Icon(Icons.event_outlined, size: 18),
-              label: Text(
-                _day == null || _day == HarvestDay.today()
-                    ? l10n.dueToday
-                    : formatDay(context, _day!, weekday: true),
+            const SizedBox(width: HarvestSpacing.sm),
+            Semantics(
+              label: l10n.expenseDayLabel,
+              child: ActionChip(
+                avatar: const Icon(Icons.event_outlined, size: 18),
+                label: Text(
+                  _day == null || _day == HarvestDay.today()
+                      ? l10n.dueToday
+                      : formatDay(context, _day!, weekday: true),
+                ),
+                onPressed: () => unawaited(_pickDay()),
               ),
-              onPressed: () => unawaited(_pickDay()),
             ),
           ],
+        ),
+        const SizedBox(height: HarvestSpacing.sm),
+        // One row that scrolls sideways, not three that push Log away.
+        SizedBox(
+          height: 48,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final key in [
+                ...presetCategoryKeys,
+                ...customs.map((c) => c.name),
+              ])
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    end: HarvestSpacing.xs,
+                  ),
+                  child: ChoiceChip(
+                    avatar: Icon(
+                      categoryIcon(key, customs: customs),
+                      size: 18,
+                    ),
+                    label: Text(categoryLabel(l10n, key)),
+                    selected: _category == key,
+                    onSelected: (_) {
+                      unawaited(HarvestHaptics.tick());
+                      setState(() => _category = key);
+                    },
+                  ),
+                ),
+              ActionChip(
+                avatar: const Icon(Icons.add, size: 18),
+                label: Text(l10n.newCategory),
+                onPressed: () => unawaited(_createCategory(context)),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: HarvestSpacing.xs),
         // Where the money comes from, answered here instead of in a
@@ -501,6 +484,7 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
         ),
         const SizedBox(height: HarvestSpacing.sm),
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _noteController,
           textInputAction: TextInputAction.done,
           maxLength: noteMaxLength,
@@ -538,6 +522,7 @@ Future<String?> showCategoryCreator(BuildContext context, WidgetRef ref) {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
+                textCapitalization: TextCapitalization.sentences,
                 controller: controller,
                 autofocus: true,
                 decoration: InputDecoration(labelText: l10n.categoryName),

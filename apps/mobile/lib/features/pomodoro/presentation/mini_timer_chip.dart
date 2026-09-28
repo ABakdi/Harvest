@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_clock.dart';
@@ -38,9 +39,6 @@ class MiniTimerChip extends ConsumerWidget {
     }
 
     final remaining = snapshot.remaining(DateTime.now());
-    final clamped = remaining.isNegative ? Duration.zero : remaining;
-    final minutes = clamped.inMinutes.toString().padLeft(2, '0');
-    final seconds = (clamped.inSeconds % 60).toString().padLeft(2, '0');
     final isBreak = snapshot.phase != PomodoroPhase.focus;
     final color = isBreak
         ? theme.colorScheme.secondary
@@ -55,7 +53,7 @@ class MiniTimerChip extends ConsumerWidget {
           color: color,
         ),
         label: Text(
-          '$minutes:$seconds',
+          formatDuration(remaining, padMinutes: true),
           style: theme.textTheme.labelLarge?.copyWith(
             color: color,
             fontWeight: FontWeight.w800,

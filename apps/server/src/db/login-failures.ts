@@ -22,19 +22,26 @@ export class LoginFailuresRepository {
     return Math.max(1, Math.ceil((doc.resetAt.getTime() - now.getTime()) / 1000));
   }
 
-  /** Counts one failure in the current window, or starts a window. */
-  async fail(key: string, now: Date, windowMs: number): Promise<void> {
+  /**
+   * Counts one failure in the current window, or starts a window.
+   * [emailKey] names the address the key belongs to, so every count for
+   * one address can be cleared at once.
+   */
+  async fail(key: string, emailKey: string, now: Date, windowMs: number): Promise<void> {
     const counted = await this.failures.updateOne({ _id: key, resetAt: { $gt: now } }, { $inc: { count: 1 } });
     if (counted.matchedCount === 1) return;
     await this.failures.updateOne(
       { _id: key },
-      { $set: { count: 1, resetAt: new Date(now.getTime() + windowMs) } },
+      { $set: { count: 1, resetAt: new Date(now.getTime() + windowMs), emailKey } },
       { upsert: true },
     );
   }
 
-  /** The right password ends the window. */
-  async clear(key: string): Promise<void> {
-    await this.failures.deleteOne({ _id: key });
+  /**
+   * The right password, or a password reset, ends every window of the
+   * address, from every network.
+   */
+  async clearEmail(emailKey: string): Promise<void> {
+    await this.failures.deleteMany({ emailKey });
   }
 }

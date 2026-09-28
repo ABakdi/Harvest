@@ -1373,7 +1373,7 @@ final class SavingsHealthProvider
   }
 }
 
-String _$savingsHealthHash() => r'd3572e0849a0e993559b8be3e740959f1510d234';
+String _$savingsHealthHash() => r'8a6bc6964e21eca538d1d174597057f2d1eae8f4';
 
 /// The smart-repeat suggestion, refreshed as today's log changes.
 

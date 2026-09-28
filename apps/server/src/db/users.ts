@@ -51,15 +51,31 @@ export class UsersRepository {
     return this.findById(userId);
   }
 
-  /** Stores the key check unless there is one; answers whether this one is now stored. */
-  async setKeyCheckOnce(userId: ObjectId, keyCheck: KeyCheck): Promise<boolean> {
-    const result = await this.users.updateOne({ _id: userId, keyCheck: null }, { $set: { keyCheck } });
+  /**
+   * Sets the PIN (its sealed verifier and the key check) unless one is
+   * set; answers whether this one is now the account's.
+   */
+  async setPinOnce(userId: ObjectId, pinVerifier: SealedBytes, keyCheck: KeyCheck): Promise<boolean> {
+    const result = await this.users.updateOne(
+      { _id: userId, pinVerifier: { $exists: false }, keyShare: { $exists: true } },
+      { $set: { pinVerifier, keyCheck } },
+    );
     return result.modifiedCount === 1;
   }
 
-  /** Drops the key share and the key check: the private tier starts over. */
-  async clearSyncKey(userId: ObjectId): Promise<void> {
-    await this.users.updateOne({ _id: userId }, { $unset: { keyShare: '', keyCheck: '' } });
+  /**
+   * Drops the key share, the verifier and the key check, and moves the
+   * epoch on: the private tier starts over under a key nobody has yet.
+   * Run under the account's lock, so the read and the write agree.
+   */
+  async clearSyncKey(userId: ObjectId): Promise<number> {
+    const user = await this.users.findOne({ _id: userId }, { projection: { keyEpoch: 1 } });
+    const epoch = (user?.keyEpoch ?? 1) + 1;
+    await this.users.updateOne(
+      { _id: userId },
+      { $unset: { keyShare: '', keyCheck: '', pinVerifier: '' }, $set: { keyEpoch: epoch } },
+    );
+    return epoch;
   }
 
   async delete(userId: ObjectId): Promise<void> {

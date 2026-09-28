@@ -1,7 +1,7 @@
 import type { AuthResult, ErrorBody, Me, PullResult, SessionsResult } from '@harvest/contracts';
 import { ObjectId } from 'mongodb';
 import request from 'supertest';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { refreshGraceMs, wrongCredentials } from '../src/auth/service.js';
 import {
   bearer,
@@ -112,6 +112,7 @@ describe('verification', () => {
     const first = linkToken(h, account.email, 'verify');
 
     await request(h.app).post('/v1/auth/resend-verification').send({ email: account.email }).expect(202);
+    await h.settled();
     const second = linkToken(h, account.email, 'verify');
     expect(second).not.toBe(first);
     expectError(await request(h.app).post('/v1/auth/verify-email').send({ token: first }), 400, 'validation_failed');
@@ -119,6 +120,7 @@ describe('verification', () => {
 
     const sent = h.mailer.sent.length;
     await request(h.app).post('/v1/auth/resend-verification').send({ email: freshEmail() }).expect(202);
+    await h.settled();
     expect(h.mailer.sent).toHaveLength(sent);
   });
 });
@@ -273,6 +275,46 @@ describe('refresh tokens', () => {
     expect(refused.status).toBe(401);
     expect(String(refused.headers['set-cookie'])).toContain(`${refreshCookie}=;`);
   });
+
+  it('keep the session when a refresh fails half way, before or after the token is used (Q6-16)', async () => {
+    const account = await signUp(h);
+    const sessions = h.repos.sessions;
+
+    // The database goes away while the successor is being written.
+    const add = sessions.addToken.bind(sessions);
+    sessions.addToken = () => Promise.reject(new Error('mongo went away'));
+    expect((await refresh(account.refreshToken)).status).toBe(500);
+    sessions.addToken = add;
+
+    // The successor is written, then the database goes away before the
+    // old token is marked used.
+    const consume = sessions.consumeToken.bind(sessions);
+    sessions.consumeToken = () => Promise.reject(new Error('mongo went away'));
+    expect((await refresh(account.refreshToken)).status).toBe(500);
+    sessions.consumeToken = consume;
+    const first = (await refresh(account.refreshToken).expect(200)).body as AuthResult;
+    await me(first).expect(200);
+
+    // The token is used, then the database goes away before the answer.
+    const extend = sessions.extend.bind(sessions);
+    sessions.extend = () => Promise.reject(new Error('mongo went away'));
+    expect((await refresh(first.refreshToken!)).status).toBe(500);
+    sessions.extend = extend;
+    // The retry is not reuse: it gets the successor the lost answer carried.
+    const second = (await refresh(first.refreshToken!).expect(200)).body as AuthResult;
+    await me(second).expect(200);
+    await refresh(second.refreshToken!).expect(200);
+  });
+
+  it('give every racing refresh of one token the one successor', async () => {
+    const account = await signUp(h);
+    const answers = await Promise.all(Array.from({ length: 6 }, () => refresh(account.refreshToken)));
+    expect(answers.map((a) => a.status)).toEqual(Array(6).fill(200));
+    const tokens = new Set(answers.map((a) => (a.body as AuthResult).refreshToken));
+    expect(tokens.size).toBe(1);
+    // The losers' own successors were let go: one unused token is left.
+    expect(await h.db.collection('refresh_tokens').countDocuments({ usedAt: null })).toBe(1);
+  });
 });
 
 describe('sign-out', () => {
@@ -295,6 +337,7 @@ describe('sign-out', () => {
 describe('forgot and reset', () => {
   it('answers 202 for an unknown address and sends nothing', async () => {
     await request(h.app).post('/v1/auth/forgot-password').send({ email: freshEmail() }).expect(202);
+    await h.settled();
     expect(h.mailer.sent.filter((m) => m.purpose === 'reset')).toHaveLength(0);
   });
 
@@ -303,6 +346,7 @@ describe('forgot and reset', () => {
     const laptop = (await signIn(h, account.email).expect(200)).body as AuthResult;
 
     await request(h.app).post('/v1/auth/forgot-password').send({ email: account.email }).expect(202);
+    await h.settled();
     const token = linkToken(h, account.email, 'reset');
     const newPassword = 'a brand new passphrase';
     await request(h.app).post('/v1/auth/reset-password').send({ token, password: newPassword }).expect(204);
@@ -321,8 +365,10 @@ describe('forgot and reset', () => {
   it('only honours the newest link, and not after an hour', async () => {
     const account = await signUp(h);
     await request(h.app).post('/v1/auth/forgot-password').send({ email: account.email }).expect(202);
+    await h.settled();
     const old = linkToken(h, account.email, 'reset');
     await request(h.app).post('/v1/auth/forgot-password').send({ email: account.email }).expect(202);
+    await h.settled();
     const newest = linkToken(h, account.email, 'reset');
     expectError(
       await request(h.app).post('/v1/auth/reset-password').send({ token: old, password: 'a brand new passphrase' }),
@@ -341,6 +387,7 @@ describe('forgot and reset', () => {
   it('applies the password policy to the new password', async () => {
     const account = await signUp(h);
     await request(h.app).post('/v1/auth/forgot-password').send({ email: account.email }).expect(202);
+    await h.settled();
     const token = linkToken(h, account.email, 'reset');
     expectError(await request(h.app).post('/v1/auth/reset-password').send({ token, password: '1234567890' }), 400, 'validation_failed');
   });
@@ -431,5 +478,30 @@ describe('the account', () => {
 
     // The address is free again.
     await request(h.app).post('/v1/auth/register').send({ email: alice.email, password }).expect(201);
+  });
+});
+
+describe('what a request behind sign-in costs (SV-11)', () => {
+  it('reads the session and the account together, and writes "last seen" once a minute', async () => {
+    let clock = Date.now();
+    const timed = await harness({ now: () => new Date(clock) });
+    try {
+      const account = await signUp(timed);
+      const touch = vi.spyOn(timed.repos.sessions, 'touch');
+      const findUser = vi.spyOn(timed.repos.users, 'findById');
+      const pull = () => request(timed.app).get('/v1/sync/pull').set(bearer(account)).expect(200);
+      await pull();
+      await pull();
+      await pull();
+      expect(touch).toHaveBeenCalledTimes(1);
+      expect(findUser).not.toHaveBeenCalled();
+      clock += 61_000;
+      await pull();
+      expect(touch).toHaveBeenCalledTimes(2);
+      const session = await timed.db.collection('sessions').findOne({ userId: new ObjectId(account.userId) });
+      expect((session!.lastSeenAt as Date).getTime()).toBe(clock);
+    } finally {
+      await timed.close();
+    }
   });
 });

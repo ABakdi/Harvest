@@ -153,28 +153,36 @@ class WidgetService {
           ? l10n.widgetEmpty
           : '${data.done}/${data.due} ${l10n.widgetTasksLabel}',
     );
+    // What the widget does not show is not written either: the file its
+    // numbers live in sits outside the encrypted database (S6-13). Money
+    // is written only when it is shown; task titles never while the lock
+    // is armed.
+    final showMoney = !locked && await section(WidgetKeys.money);
     await _widget.put(
       'spent',
-      l10n.widgetSpentToday(formatAmount(data.spentToday, currency)),
+      showMoney
+          ? l10n.widgetSpentToday(formatAmount(data.spentToday, currency))
+          : '',
     );
     await _widget.put(
       'wallet',
-      l10n.widgetWallet(formatAmount(data.wallet, currency)),
+      showMoney ? l10n.widgetWallet(formatAmount(data.wallet, currency)) : '',
     );
 
     await _widget.put('actionExpense', l10n.widgetActionExpense);
     await _widget.put('actionTask', l10n.widgetActionTask);
     await _widget.put('emptyTasks', l10n.widgetAllDone);
 
-    await _widget.put('showMoney', !locked && await section(WidgetKeys.money));
-    await _widget.put('showTasks', await section(WidgetKeys.tasks));
+    await _widget.put('showMoney', showMoney);
+    await _widget.put('showTasks', !locked && await section(WidgetKeys.tasks));
     await _widget.put('showActions', await section(WidgetKeys.actions));
 
     await _widget.put(
       'tasks',
       jsonEncode([
-        for (final task in data.tasks)
-          {'uuid': task.uuid, 'title': task.title, 'done': task.done},
+        if (!locked)
+          for (final task in data.tasks)
+            {'uuid': task.uuid, 'title': task.title, 'done': task.done},
       ]),
     );
     await _widget.refresh();

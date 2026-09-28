@@ -10,4 +10,11 @@ export default [
     files: ['**/*.{ts,tsx}'],
     ...reactHooks.configs.flat['recommended-latest'],
   },
+  {
+    // A promise nobody handles is an action that fails in silence: user
+    // actions go through runAction, background work through background
+    // (src/lib/actions.ts), and a bare `void` no longer passes.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: { '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: false }] },
+  },
 ];

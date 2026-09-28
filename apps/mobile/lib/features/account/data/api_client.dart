@@ -16,6 +16,7 @@ class ApiException implements Exception {
     this.message,
     this.details,
     this.body,
+    this.retryAfter,
   ]);
 
   /// `validation_failed`, `unauthorized`, `forbidden`, `conflict`,
@@ -29,6 +30,9 @@ class ApiException implements Exception {
   /// The whole answer, for the few that carry more than the error: a
   /// 409 on the key check comes back with the check already stored.
   final Map<String, Object?>? body;
+
+  /// How long the server asked to wait (`Retry-After`), on a 429.
+  final Duration? retryAfter;
 
   bool get offline => code == 'offline';
 
@@ -68,12 +72,17 @@ class ApiClient {
     required this.tokens,
     http.Client? client,
     this.onSignedOut,
+    this.ready,
     Future<void> Function(Duration)? pause,
   }) : _client = client ?? http.Client(),
        _pause = pause ?? Future<void>.delayed;
 
   /// Up to the host, e.g. `https://harvest.example.org`.
   final Uri Function() baseUrl;
+
+  /// Done once [baseUrl] holds the saved address; every request waits
+  /// for it, so the first one after a start never goes to the default.
+  final Future<void> Function()? ready;
   final TokenStore tokens;
   final http.Client _client;
 
@@ -196,8 +205,9 @@ class ApiClient {
   }
 
   /// [_raw], asked again after the wait a `429` names in `Retry-After`
-  /// (the sync and file routes are paced per account): a busy moment
-  /// slows a sync down rather than failing it.
+  /// on the sync and file routes, which are paced per account: a busy
+  /// moment slows a sync down rather than failing it. Any other `429` —
+  /// the PIN's limit on tries — is answered at once.
   Future<http.Response> _paced(
     String method,
     String path, {
@@ -219,7 +229,9 @@ class ApiClient {
         bearer: bearer,
         accept: accept,
       );
-      if (response.statusCode != 429 || attempt >= paceAttempts) {
+      final paced =
+          path.startsWith('/v1/sync/') || path.startsWith('/v1/files');
+      if (!paced || response.statusCode != 429 || attempt >= paceAttempts) {
         return response;
       }
       final seconds = int.tryParse(
@@ -270,6 +282,7 @@ class ApiClient {
     String? bearer,
     String accept = 'application/json',
   }) async {
+    await ready?.call();
     final base = baseUrl();
     final url = base.replace(
       path: '${base.path.replaceAll(RegExp(r'/$'), '')}$path',
@@ -317,9 +330,22 @@ class ApiClient {
         error['message'] as String?,
         error['details'],
         body,
+        _retryAfter(response),
       );
     }
-    throw ApiException('internal', response.statusCode);
+    throw ApiException(
+      'internal',
+      response.statusCode,
+      null,
+      null,
+      null,
+      _retryAfter(response),
+    );
+  }
+
+  static Duration? _retryAfter(http.Response response) {
+    final seconds = int.tryParse(response.headers['retry-after']?.trim() ?? '');
+    return seconds == null ? null : Duration(seconds: seconds);
   }
 }
 

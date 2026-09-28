@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useHarvest } from '../context';
 import { builtInOf, hasDefaultName, type ListRow } from '../data/lists';
+import { runAction } from '@/lib/actions';
 
 /** A list's name as shown: a built-in one in my language while I have not renamed it ([[Lists]]). */
 export function listName(list: ListRow, t: TFunction): string {
@@ -68,7 +69,7 @@ export function ListNameDialog({
           <DialogTitle>{list ? t('lists.renameTitle') : t('lists.newList')}</DialogTitle>
           <DialogDescription>{list ? t('lists.renameLead') : t('lists.newListLead')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${id}-name`}>{t('lists.nameLabel')}</Label>
             <Input

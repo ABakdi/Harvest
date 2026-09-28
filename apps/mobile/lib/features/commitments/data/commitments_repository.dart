@@ -45,7 +45,6 @@ class CommitmentsRepository {
     return result;
   }
 
-  /// Archived seeds, most recently put away first — the archive screen.
   /// Every seed that serves [goalUuid], archived ones included — the
   /// goal shows them as archived rather than forgetting them (GL5).
   Stream<List<Commitment>> watchForGoal(String goalUuid) {
@@ -55,6 +54,7 @@ class CommitmentsRepository {
     return query.watch().map(_toDomainList);
   }
 
+  /// Archived seeds, most recently put away first — the archive screen.
   Stream<List<Commitment>> watchArchived() {
     final query = _db.select(_db.commitments)
       ..where((c) => c.archivedAt.isNotNull() & c.deletedAt.isNull())
@@ -62,9 +62,9 @@ class CommitmentsRepository {
     return query.watch().map(_toDomainList);
   }
 
-  /// One seed by uuid, archived or not; null when it is gone.
-  /// One seed, read once. For the callers that act on a seed rather
-  /// than display it — the gym checking a habit in when a session ends.
+  /// One seed, read once, archived or not; null when it is gone. For
+  /// the callers that act on a seed rather than display it — the gym
+  /// checking a habit in when a session ends.
   Future<Commitment?> once(String uuid) async {
     final row =
         await (_db.select(_db.commitments)
@@ -73,6 +73,7 @@ class CommitmentsRepository {
     return row == null ? null : toDomain(row);
   }
 
+  /// One seed by uuid, archived or not; null when it is gone.
   Stream<Commitment?> watchOne(String uuid) {
     final query = _db.select(_db.commitments)
       ..where((c) => c.uuid.equals(uuid) & c.deletedAt.isNull());
@@ -162,16 +163,37 @@ class CommitmentsRepository {
     return query.watch().map(_sumByCommitment);
   }
 
-  /// Lifetime units per commitment (project progress, todo completion).
+  /// Lifetime units per commitment (project progress, todo completion),
+  /// summed by SQLite: every check-in ever made is never carried into
+  /// Dart, where it would be mapped again on each change ([[Audit-v3]]
+  /// P6-03).
   Stream<Map<String, int>> watchTotals() {
-    final query = _db.select(_db.checkIns)..where((c) => c.deletedAt.isNull());
-    return query.watch().map(_sumByCommitment);
+    final units = _db.checkIns.quantity.sum();
+    final query = _db.selectOnly(_db.checkIns)
+      ..addColumns([_db.checkIns.commitmentUuid, units])
+      ..where(_db.checkIns.deletedAt.isNull())
+      ..groupBy([_db.checkIns.commitmentUuid]);
+    return query.watch().map(
+      (rows) => {
+        for (final row in rows)
+          row.read(_db.checkIns.commitmentUuid)!: row.read(units) ?? 0,
+      },
+    );
   }
 
-  /// Every live check-in, for the calendar's done marks and its
-  /// times-a-week count ([calendarEntries]).
-  Stream<List<CalendarCheckIn>> watchLiveCheckIns() {
-    final query = _db.select(_db.checkIns)..where((c) => c.deletedAt.isNull());
+  /// The live check-ins of [from]..[to], for the calendar's done marks
+  /// and its times-a-week count ([calendarEntries]): the weeks the grid
+  /// shows, not every check-in ever (P6-03).
+  Stream<List<CalendarCheckIn>> watchLiveCheckInsBetween(
+    HarvestDay from,
+    HarvestDay to,
+  ) {
+    final query = _db.select(_db.checkIns)
+      ..where(
+        (c) =>
+            c.deletedAt.isNull() &
+            c.harvestDay.isBetweenValues(from.key, to.key),
+      );
     return query.watch().map(
       (rows) => [
         for (final row in rows)

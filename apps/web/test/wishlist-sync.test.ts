@@ -52,7 +52,7 @@ describe('the browser store', () => {
 
     const db = new HarvestDB(name);
     await db.open();
-    expect(db.verno).toBe(5);
+    expect(db.verno).toBe(6);
     expect(await db.meta.get('kept')).toEqual({ key: 'kept', value: 42 });
     // A row as a v3 store held it, before lists.
     await db.table('wishlist_items').put({

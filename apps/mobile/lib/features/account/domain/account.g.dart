@@ -177,51 +177,51 @@ String _$syncKeyRemoteHash() => r'5084e1f1ce5c40e5ab3f735827e3de3039e9f17b';
 /// PIN is to be chosen or entered is its answer, never a guess from what
 /// this phone happens to have pulled ([[Accounts]]).
 
-@ProviderFor(syncKeyShare)
-final syncKeyShareProvider = SyncKeyShareProvider._();
+@ProviderFor(syncKeyState)
+final syncKeyStateProvider = SyncKeyStateProvider._();
 
 /// What the server says about the account's key right now: whether a
 /// PIN is to be chosen or entered is its answer, never a guess from what
 /// this phone happens to have pulled ([[Accounts]]).
 
-final class SyncKeyShareProvider
+final class SyncKeyStateProvider
     extends
         $FunctionalProvider<
-          AsyncValue<SyncKeyShare>,
-          SyncKeyShare,
-          FutureOr<SyncKeyShare>
+          AsyncValue<SyncKeyState>,
+          SyncKeyState,
+          FutureOr<SyncKeyState>
         >
-    with $FutureModifier<SyncKeyShare>, $FutureProvider<SyncKeyShare> {
+    with $FutureModifier<SyncKeyState>, $FutureProvider<SyncKeyState> {
   /// What the server says about the account's key right now: whether a
   /// PIN is to be chosen or entered is its answer, never a guess from what
   /// this phone happens to have pulled ([[Accounts]]).
-  SyncKeyShareProvider._()
+  SyncKeyStateProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'syncKeyShareProvider',
+        name: r'syncKeyStateProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$syncKeyShareHash();
+  String debugGetCreateSourceHash() => _$syncKeyStateHash();
 
   @$internal
   @override
-  $FutureProviderElement<SyncKeyShare> $createElement(
+  $FutureProviderElement<SyncKeyState> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<SyncKeyShare> create(Ref ref) {
-    return syncKeyShare(ref);
+  FutureOr<SyncKeyState> create(Ref ref) {
+    return syncKeyState(ref);
   }
 }
 
-String _$syncKeyShareHash() => r'1e153f37e7b9c36594515085d5015cb6993f1076';
+String _$syncKeyStateHash() => r'e35bdec689a00ce9b94a8c3e3a7ebf5bee144d6d';
 
 /// Files sync only once a passphrase is set: a picture is as personal
 /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
@@ -267,7 +267,7 @@ final class FileSyncProvider
   }
 }
 
-String _$fileSyncHash() => r'ab269243c6e3c1e829ccd837df197dba12cca8f3';
+String _$fileSyncHash() => r'6b8e569faaa809679272d86fbb07cbf2a59c40bf';
 
 @ProviderFor(syncService)
 final syncServiceProvider = SyncServiceProvider._();
@@ -308,7 +308,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'7b74d5b8cf5620275ddf1193c914c1fe610f0b81';
+String _$syncServiceHash() => r'09172623bc185c28a4a8759ee7e8d0feb507b635';
 
 @ProviderFor(syncKeyMaker)
 final syncKeyMakerProvider = SyncKeyMakerProvider._();
@@ -349,23 +349,23 @@ final class SyncKeyMakerProvider
   }
 }
 
-String _$syncKeyMakerHash() => r'e790c723678d17255a3b4ad70fe49c750fb873cb';
+String _$syncKeyMakerHash() => r'a28d3377fabac6a67a94579ff1def4dfc998ef87';
 
 /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
-/// Only the key derived from it is kept, in the keystore; the secret
-/// itself is gone the moment the key exists.
+/// Only the key derived from it is kept, in the keystore, with its epoch;
+/// the secret itself is gone the moment the key exists.
 
 @ProviderFor(SyncPassphrase)
 final syncPassphraseProvider = SyncPassphraseProvider._();
 
 /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
-/// Only the key derived from it is kept, in the keystore; the secret
-/// itself is gone the moment the key exists.
+/// Only the key derived from it is kept, in the keystore, with its epoch;
+/// the secret itself is gone the moment the key exists.
 final class SyncPassphraseProvider
     extends $AsyncNotifierProvider<SyncPassphrase, bool> {
   /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
-  /// Only the key derived from it is kept, in the keystore; the secret
-  /// itself is gone the moment the key exists.
+  /// Only the key derived from it is kept, in the keystore, with its epoch;
+  /// the secret itself is gone the moment the key exists.
   SyncPassphraseProvider._()
     : super(
         from: null,
@@ -385,11 +385,11 @@ final class SyncPassphraseProvider
   SyncPassphrase create() => SyncPassphrase();
 }
 
-String _$syncPassphraseHash() => r'22d2f5983a85c432a69e15b337ba6837ccb1b072';
+String _$syncPassphraseHash() => r'377de52eb087d55a2e3e006ad08dd38b7d25054d';
 
 /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
-/// Only the key derived from it is kept, in the keystore; the secret
-/// itself is gone the moment the key exists.
+/// Only the key derived from it is kept, in the keystore, with its epoch;
+/// the secret itself is gone the moment the key exists.
 
 abstract class _$SyncPassphrase extends $AsyncNotifier<bool> {
   FutureOr<bool> build();
@@ -440,7 +440,7 @@ final class AccountControllerProvider
   AccountController create() => AccountController();
 }
 
-String _$accountControllerHash() => r'5cd945401bdce73372b79c60abf8b6cb199ec0d3';
+String _$accountControllerHash() => r'0eb2958e1554069702e8b4c49d49f1a174cc9681';
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.

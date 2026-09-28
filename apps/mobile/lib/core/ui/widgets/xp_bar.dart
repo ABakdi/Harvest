@@ -35,7 +35,7 @@ class XpBar extends StatelessWidget {
             Text(
               AppLocalizations.of(context).xpAmount(xp),
               style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.tertiary,
+                color: theme.colorScheme.tertiaryText,
                 fontWeight: FontWeight.w800,
               ),
             ),

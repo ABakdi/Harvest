@@ -1,10 +1,11 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { maxRecordStoreBytes, type PullResult, type PushResult, type SyncRecord } from '@harvest/contracts';
+import { request as httpRequest } from 'node:http';
+import { maxPushBytes, maxRecordStoreBytes, type PullResult, type PushResult, type SyncRecord } from '@harvest/contracts';
 import { ObjectId } from 'mongodb';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { SyncService } from '../src/sync/service.js';
-import { bearer, expectError, harness, signUp, type Account, type Harness } from './harness.js';
+import { bearer, expectError, harness, password, signUp, type Account, type Harness } from './harness.js';
 
 let h: Harness;
 beforeEach(async () => {
@@ -15,7 +16,7 @@ afterEach(async () => {
 });
 
 async function push(account: Account, records: unknown[], deviceId = 'phone'): Promise<PushResult> {
-  const res = await request(h.app).post('/v1/sync/push').set(bearer(account)).send({ deviceId, records }).expect(200);
+  const res = await request(h.app).post('/v1/sync/push').set(bearer(account)).send({ deviceId, keyEpoch: 1, records }).expect(200);
   return res.body as PushResult;
 }
 
@@ -286,15 +287,30 @@ describe('paging', () => {
     expect(empty).toEqual({ records: [], cursor: 25, more: false });
   });
 
-  it('never skips a row when pushes race', async () => {
+  it('never skips a row when pushes race, even for a pull running beside them', async () => {
     const account = await signUp(h);
+    // A device pulls in small pages all the while the pushes land: a
+    // hole behind its cursor that filled in later would be a row it
+    // never sees.
+    const seen: number[] = [];
+    let cursor = 0;
+    let pushing = true;
+    const pulling = (async () => {
+      while (pushing) {
+        const page = await pull(account, cursor, 7);
+        seen.push(...page.records.map((r) => r.seq));
+        cursor = page.cursor;
+      }
+    })();
     await Promise.all(
       Array.from({ length: 5 }, (_, batch) =>
         push(account, Array.from({ length: 20 }, (_, i) => note(`b${batch}-${i}`, i)), `device-${batch}`),
       ),
     );
-    const records = await pullAll(account, 0, 7);
-    expect(records.map((r) => r.seq)).toEqual(Array.from({ length: 100 }, (_, i) => i + 1));
+    pushing = false;
+    await pulling;
+    seen.push(...(await pullAll(account, cursor, 7)).map((r) => r.seq));
+    expect(seen).toEqual(Array.from({ length: 100 }, (_, i) => i + 1));
   });
 });
 
@@ -488,6 +504,25 @@ describe('limits (audit S5-02, S5-11)', () => {
     expect(counted!.recordBytes).toBe(await h.repos.records.storedBytes(userId));
   });
 
+  it('gives the charge back when a write fails, wherever it fails (Q6-15)', async () => {
+    const account = await signUp(h);
+    const userId = new ObjectId(account.userId);
+    await push(account, [note('n1', 1)]);
+    const records = h.repos.records;
+    for (const step of ['takeSeqs', 'putMany'] as const) {
+      const real = records[step].bind(records);
+      (records as unknown as Record<string, unknown>)[step] = () => Promise.reject(new Error('mongo went away'));
+      const failed = await request(h.app)
+        .post('/v1/sync/push')
+        .set(bearer(account))
+        .send({ deviceId: 'phone', keyEpoch: 1, records: [note(`big-${step}`, 2, { title: 'x'.repeat(5000) })] });
+      (records as unknown as Record<string, unknown>)[step] = real;
+      expect(failed.status).toBe(500);
+      const total = await h.repos.totals.current(userId, 'recordBytes', () => records.storedBytes(userId));
+      expect(total).toBe(await records.storedBytes(userId));
+    }
+  });
+
   it('limits sync requests per account, not per address', async () => {
     const limited = await harness({ rateLimits: { syncRequests: 2 } });
     try {
@@ -510,5 +545,128 @@ describe('limits (audit S5-02, S5-11)', () => {
       .send('{"not json');
     // A 400 would mean the body was parsed first.
     expectError(res, 401, 'unauthorized');
+  });
+});
+
+describe('a push in one go (P6-02)', () => {
+  it('judges a row sent twice in one batch against its own earlier copy', async () => {
+    const account = await signUp(h);
+    const result = await push(account, [note('n1', 2, { title: 'second' }), note('n1', 1), note('n1', 3, { title: 'third' })]);
+    expect(result.results.map((r) => r.status)).toEqual(['applied', 'stale', 'applied']);
+    const rows = await pullAll(account);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.data).toMatchObject({ title: 'third' });
+    const userId = new ObjectId(account.userId);
+    expect((await h.db.collection('counters').findOne({ _id: userId }))!.recordBytes).toBe(
+      await h.repos.records.storedBytes(userId),
+    );
+  });
+
+  it('keeps the batch order in the sequence', async () => {
+    const account = await signUp(h);
+    await push(account, [note('a', 1), note('b', 1), note('c', 1)]);
+    const again = await push(account, [note('c', 2), note('a', 2)]);
+    expect(again.cursor).toBe(5);
+    const rows = await pullAll(account);
+    expect(rows.map((r) => `${r.uuid}@${r.seq}`)).toEqual(['b@2', 'c@4', 'a@5']);
+  });
+});
+
+describe('what a device gets back (P6-08, S6-16, Q6-03)', () => {
+  it('leaves out a device\'s own writes when it says who it is, and still moves the cursor', async () => {
+    const account = await signUp(h);
+    await push(account, [note('mine', 1)], 'phone');
+    await push(account, [note('theirs', 1)], 'laptop');
+    await push(account, [note('mine2', 1)], 'phone');
+    const page = (
+      await request(h.app).get('/v1/sync/pull').query({ after: 0, deviceId: 'phone' }).set(bearer(account)).expect(200)
+    ).body as PullResult;
+    expect(page.records.map((r) => r.uuid)).toEqual(['theirs']);
+    expect(page.cursor).toBe(3);
+    expect(page.more).toBe(false);
+    // Without it, a device rebuilding its store gets everything back.
+    expect((await pullAll(account)).map((r) => r.uuid)).toEqual(['mine', 'theirs', 'mine2']);
+  });
+
+  it('counts the device\'s own writes against the page size, so a page never runs long', async () => {
+    const account = await signUp(h);
+    await push(account, [note('a', 1), note('b', 1), note('c', 1)], 'phone');
+    const page = (
+      await request(h.app).get('/v1/sync/pull').query({ after: 0, limit: 2, deviceId: 'phone' }).set(bearer(account)).expect(200)
+    ).body as PullResult;
+    expect(page).toEqual({ records: [], cursor: 2, more: true });
+  });
+
+  it('takes the endpoint settings a 3.0.0 phone sends, and keeps none of them', async () => {
+    const account = await signUp(h);
+    const setting = (key: string, value: string) => ({
+      table: 'kv_settings',
+      uuid: key,
+      updatedAt: at(1),
+      deletedAt: null,
+      data: { key, valueJson: JSON.stringify(value), updatedAt: at(1) },
+    });
+    const result = await push(account, [setting('assist.baseUrl', 'https://evil.example'), setting('places.styleUrl', 'https://evil.example')]);
+    expect(result.results.map((r) => r.status)).toEqual(['applied', 'applied']);
+    expect(await h.db.collection('records').countDocuments({})).toBe(0);
+  });
+
+  it('answers a push over the body limit with payload_too_large', async () => {
+    const account = await signUp(h);
+    const big = Array.from({ length: 6 }, (_, i) => ({
+      table: 'geotags',
+      uuid: `g${i}`,
+      updatedAt: at(1),
+      deletedAt: null,
+      enc: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct: 'A'.repeat(999_996) },
+    }));
+    const res = await request(h.app).post('/v1/sync/push').set(bearer(account)).send({ deviceId: 'p', keyEpoch: 1, records: big });
+    expectError(res, 413, 'payload_too_large');
+    // A batch built to maxPushBytes fits.
+    const fits = big.slice(0, Math.floor(maxPushBytes / 1_000_200));
+    expect(JSON.stringify({ deviceId: 'p', keyEpoch: 1, records: fits }).length).toBeLessThan(maxPushBytes);
+    await request(h.app).post('/v1/sync/push').set(bearer(account)).send({ deviceId: 'p', keyEpoch: 1, records: fits }).expect(200);
+  });
+});
+
+describe('an account deleted while a push is on its way (Q6-02)', () => {
+  it('writes nothing back for it', async () => {
+    const account = await signUp(h);
+    const server = h.app.listen(0);
+    try {
+      const port = (server.address() as { port: number }).port;
+      const body = JSON.stringify({ deviceId: 'phone', keyEpoch: 1, records: [note('late', 1)] });
+      // The headers go now; the body only after the account is gone.
+      const answer = new Promise<{ status: number }>((resolve, reject) => {
+        const req = httpRequest(
+          {
+            port,
+            method: 'POST',
+            path: '/v1/sync/push',
+            headers: { authorization: `Bearer ${account.accessToken}`, 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) },
+          },
+          (res) => {
+            res.resume();
+            res.on('end', () => resolve({ status: res.statusCode ?? 0 }));
+          },
+        );
+        req.on('error', reject);
+        req.write(body.slice(0, 10));
+        setTimeout(() => {
+          void request(h.app)
+            .delete('/v1/me')
+            .set(bearer(account))
+            .send({ password })
+            .then(() => req.end(body.slice(10)));
+        }, 100);
+      });
+      const { status } = await answer;
+      expect(status).toBe(401);
+      const userId = new ObjectId(account.userId);
+      expect(await h.db.collection('records').countDocuments({ userId })).toBe(0);
+      expect(await h.db.collection('counters').countDocuments({ _id: userId })).toBe(0);
+    } finally {
+      server.close();
+    }
   });
 });

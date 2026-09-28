@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/notifications.dart';
@@ -13,6 +12,7 @@ import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
+import 'package:harvest/features/finances/presentation/amount_keypad.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/guarded.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -89,6 +89,8 @@ class _DebtSheetState extends ConsumerState<_DebtSheet> {
 
   Future<void> _save() async {
     final minor = _minor!;
+    if (!await confirmLargeAmount(context, minor, _currency)) return;
+    if (!mounted) return;
     final person = _personController.text.trim();
     final note = _noteController.text.trim();
     final remindAt = _remindAt;
@@ -207,30 +209,17 @@ class _DebtSheetState extends ConsumerState<_DebtSheet> {
           decoration: InputDecoration(labelText: l10n.debtPerson),
         ),
         const SizedBox(height: HarvestSpacing.md),
-        TextField(
+        // The app's keypad, with `+` (U6-10); the name keeps the
+        // keyboard.
+        AmountField(
           controller: _amountController,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-          ),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(amountCharacters),
-          ],
-          onChanged: (_) => setState(() {}),
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-          decoration: InputDecoration(
-            labelText: l10n.amountLabel,
-            prefixText: _currency.symbol,
-            errorText: _belowPaid
-                ? l10n.debtAmountBelowPaid(formatMoney(_paid, _currency))
-                : null,
-            helperText: amountSumHelper(
-              l10n,
-              _amountController.text,
-              _currency,
-            ),
-          ),
+          currency: _currency,
+          label: l10n.amountLabel,
+          autofocus: false,
+          onChanged: () => setState(() {}),
+          errorText: _belowPaid
+              ? l10n.debtAmountBelowPaid(formatMoney(_paid, _currency))
+              : null,
         ),
         const SizedBox(height: HarvestSpacing.sm),
         if (!currencyLocked)
@@ -283,6 +272,7 @@ class _DebtSheetState extends ConsumerState<_DebtSheet> {
         ),
         const SizedBox(height: HarvestSpacing.sm),
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _noteController,
           decoration: InputDecoration(labelText: l10n.noteLabel),
         ),

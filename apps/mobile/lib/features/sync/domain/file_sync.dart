@@ -1,10 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart' show DartSha256;
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:harvest/core/db/database.dart';
+import 'package:harvest/features/account/data/api_client.dart'
+    show ApiException;
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
@@ -23,8 +27,14 @@ abstract interface class FileRemote {
   /// Which of [hashes] the server does not have.
   Future<List<String>> missing(List<String> hashes);
 
-  /// Uploads sealed bytes under their plaintext's name.
-  Future<void> upload(String sha256, Uint8List sealed, String iv);
+  /// Uploads sealed bytes under their plaintext's name, saying which key
+  /// epoch sealed them.
+  Future<void> upload(
+    String sha256,
+    Uint8List sealed,
+    String iv, {
+    required int keyEpoch,
+  });
 
   /// Downloads sealed bytes, with the nonce they were sealed with.
   Future<({Uint8List sealed, String iv})> download(String sha256);
@@ -206,13 +216,12 @@ class FileSync {
     }
     if (taken.isEmpty) return (sent: 0, tooLarge: tooLarge, failed: 0);
 
-    final bytes = <String, Uint8List>{};
+    // Hashed as a stream, off the UI isolate, one file at a time: no
+    // batch of pictures is ever held in memory at once (P6-07).
     final named = <String, List<SyncableFile>>{};
     for (final one in taken) {
       try {
-        final plain = await one.file.readAsBytes();
-        final hash = await _hashOf(plain);
-        bytes[hash] = plain;
+        final hash = await hashFile(one.file.path);
         (named[hash] ??= []).add(one);
       } on Object catch (error) {
         debugPrint('[sync] could not read a file: ${error.runtimeType}');
@@ -224,8 +233,17 @@ class FileSync {
     final wanted = (await _remote.missing(named.keys.toList())).toSet();
     var sent = 0;
     for (final hash in wanted) {
-      final plain = bytes[hash];
-      if (plain == null) continue;
+      final one = named[hash]?.first;
+      if (one == null) continue;
+      // Read only for the files the server lacks, and only one at a time.
+      final Uint8List plain;
+      try {
+        plain = await one.file.readAsBytes();
+      } on Object {
+        failed += 1;
+        named.remove(hash);
+        continue;
+      }
       if (await _send(hash, plain)) {
         sent += 1;
       } else {
@@ -298,8 +316,19 @@ class FileSync {
   Future<bool> _send(String hash, Uint8List plain) async {
     try {
       final sealed = await _cipher.sealBytes(hash, plain);
-      await _remote.upload(hash, sealed.bytes, _base64(sealed.iv));
+      await _remote.upload(
+        hash,
+        sealed.bytes,
+        _base64(sealed.iv),
+        keyEpoch: _cipher.epoch,
+      );
       return true;
+    } on ApiException catch (error) {
+      // The PIN was started over elsewhere: nothing more goes up under
+      // this key (S6-07).
+      if (error.code == 'key_changed') throw const SyncKeyChanged();
+      debugPrint('[sync] could not send a file: ${error.code}');
+      return false;
     } on Object catch (error) {
       debugPrint('[sync] could not send a file: ${error.runtimeType}');
       return false;
@@ -404,6 +433,21 @@ class FileSync {
     }
     // The row travels again so the other devices learn the name.
     await _db.logChange(one.table, one.rowUuid, 'update');
+  }
+
+  /// The SHA-256 of the file at [path], read as a stream in a
+  /// background isolate.
+  static Future<String> hashFile(String path) =>
+      Isolate.run(() => _hashFileNow(path));
+
+  static Future<String> _hashFileNow(String path) async {
+    final sink = const DartSha256().newHashSink();
+    await File(path).openRead().forEach(sink.add);
+    sink.close();
+    final digest = await sink.hash();
+    return [
+      for (final byte in digest.bytes) byte.toRadixString(16).padLeft(2, '0'),
+    ].join();
   }
 
   static Future<String> _hashOf(List<int> bytes) async {

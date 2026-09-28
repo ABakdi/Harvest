@@ -187,15 +187,15 @@ function bytesOf(value: string | Uint8Array): Uint8Array<ArrayBuffer> {
 }
 
 /**
- * The version 2 key, from the secret, the account's salt and its key
- * share (base64, as `GET /v1/me/sync-key` gives it, or the bytes).
+ * The secret's base: PBKDF2-HMAC-SHA256 of the secret with the account's
+ * salt, 32 bytes. Both the PIN proof and the key are drawn from it, so a
+ * device runs the slow part once.
  */
-export async function deriveSyncKeyV2(
+export async function deriveSyncBase(
   secret: string,
   syncSalt: string,
-  keyShare: string | Uint8Array,
-  options: { iterations?: number; extractable?: boolean } = {},
-): Promise<CryptoKey> {
+  options: { iterations?: number } = {},
+): Promise<Uint8Array<ArrayBuffer>> {
   const password = await crypto.subtle.importKey('raw', encoder.encode(secret), 'PBKDF2', false, [
     'deriveBits',
   ]);
@@ -209,6 +209,72 @@ export async function deriveSyncKeyV2(
     password,
     256,
   );
+  return new Uint8Array(base);
+}
+
+/**
+ * The PIN proof's HKDF info. The proof is what a device shows the server
+ * to be handed the key share (`POST /v1/me/sync-key/unlock`); it is not
+ * the key, and the key cannot be had from it.
+ */
+export const syncPinProofInfo = 'harvest/sync-pin-proof/v1';
+
+/** The PIN proof, 32 bytes: HKDF-SHA256 over the base, empty salt. */
+export async function pinProofOf(base: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
+  const ikm = await crypto.subtle.importKey('raw', bytesOf(base), 'HKDF', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: encoder.encode(syncPinProofInfo) },
+    ikm,
+    256,
+  );
+  return new Uint8Array(bits);
+}
+
+/** The PIN proof straight from the secret, base64, as the unlock body carries it. */
+export async function derivePinProof(
+  secret: string,
+  syncSalt: string,
+  options: { iterations?: number } = {},
+): Promise<string> {
+  return toBase64(await pinProofOf(await deriveSyncBase(secret, syncSalt, options)));
+}
+
+/**
+ * What the server keeps instead of the proof: SHA-256 of its bytes, hex.
+ * The first device sends it with the key check.
+ */
+export async function pinVerifierOf(proof: string | Uint8Array): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytesOf(proof)));
+  return Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/** The version 2 key from a base already derived ([[deriveSyncBase]]). */
+export async function syncKeyOf(
+  base: Uint8Array,
+  keyShare: string | Uint8Array,
+  options: { extractable?: boolean } = {},
+): Promise<CryptoKey> {
+  const ikm = await crypto.subtle.importKey('raw', bytesOf(base), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: bytesOf(keyShare), info: encoder.encode(syncKeyInfoV2) },
+    ikm,
+    { name: 'AES-GCM', length: 256 },
+    options.extractable ?? false,
+    ['encrypt', 'decrypt'],
+  );
+}
+
+/**
+ * The version 2 key, from the secret, the account's salt and its key
+ * share (base64, as the server hands it out, or the bytes).
+ */
+export async function deriveSyncKeyV2(
+  secret: string,
+  syncSalt: string,
+  keyShare: string | Uint8Array,
+  options: { iterations?: number; extractable?: boolean } = {},
+): Promise<CryptoKey> {
+  const base = await deriveSyncBase(secret, syncSalt, options);
   const ikm = await crypto.subtle.importKey('raw', base, 'HKDF', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
     { name: 'HKDF', hash: 'SHA-256', salt: bytesOf(keyShare), info: encoder.encode(syncKeyInfoV2) },

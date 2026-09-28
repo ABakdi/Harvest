@@ -25,11 +25,14 @@ export interface RateLimitSettings {
   /** Key-share and key-check requests per account per window. */
   syncKeyRequests: number;
   /**
-   * Failed sign-ins per email per hour, from anywhere: the soft limit
-   * behind the per-address one, against many addresses trying one
-   * account. Kept in Mongo, so a restart does not reset it.
+   * Failed sign-ins per email per hour from one network (/24, /48): the
+   * soft limit behind the per-address one. It is keyed by the network as
+   * well as the email, so nobody can lock someone else out from one
+   * machine (S6-03). Kept in Mongo, so a restart does not reset it.
    */
   emailLoginFailures: number;
+  /** Failed sign-ins per email per hour from anywhere: the ceiling many networks share. */
+  emailGlobalLoginFailures: number;
   emailWindowMs: number;
 }
 
@@ -45,6 +48,7 @@ export const defaultRateLimits: RateLimitSettings = {
   fileRequests: 300,
   syncKeyRequests: 60,
   emailLoginFailures: 20,
+  emailGlobalLoginFailures: 200,
   emailWindowMs: 60 * 60_000,
 };
 

@@ -1,7 +1,7 @@
-import { syncPinMaxLength, syncSecretProblem, type SyncKeyResult } from '@harvest/contracts';
+import { syncPinMaxLength, syncSecretProblem, type SyncKeyState } from '@harvest/contracts';
 import { westernDigits } from '@harvest/core';
 import { KeyRoundIcon } from 'lucide-react';
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError } from '@/lib/api';
 import { useHarvest, useSyncStatus } from '../context';
-import { WrongPassphraseError } from '../sync/keyring';
+import { PinLimitedError, PinStartedOverError, WrongPassphraseError } from '../sync/keyring';
+import { background } from '@/lib/actions';
 
 /**
  * A PIN as typed: digits from any keyboard read as the ASCII digits the
@@ -32,8 +33,19 @@ export function pinDigits(typed: string): string {
  * that does not open the check is refused on the spot. Entering, a
  * forgotten PIN can be started over.
  */
-export function PassphrasePrompt({ onUnlocked }: { onUnlocked?: () => void }) {
+export function PassphrasePrompt({
+  onUnlocked,
+  Title = 'h2',
+  leadId,
+}: {
+  onUnlocked?: () => void;
+  /** What draws the heading; a dialog passes its own title, so there is one heading, not two. */
+  Title?: 'h2' | typeof DialogTitle;
+  /** The lead's id, for a dialog to be described by it. */
+  leadId?: string;
+}) {
   const { t } = useTranslation();
+  const secretField = useRef<HTMLInputElement>(null);
   const { keyring, engine, user } = useHarvest();
   const id = useId();
   const [mode, setMode] = useState<'pin' | 'passphrase'>('pin');
@@ -41,17 +53,17 @@ export function PassphrasePrompt({ onUnlocked }: { onUnlocked?: () => void }) {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [share, setShare] = useState<SyncKeyResult | null>(null);
+  const [share, setShare] = useState<SyncKeyState | null>(null);
   const [unreachable, setUnreachable] = useState(false);
   const [asked, setAsked] = useState(0);
   const [startingOver, setStartingOver] = useState(false);
   const status = useSyncStatus();
   const pin = mode === 'pin';
-  const choosing = share !== null && share.check === null;
+  const choosing = share !== null && share.state === 'none';
 
   useEffect(() => {
     let live = true;
-    keyring.share().then(
+    keyring.state().then(
       (answer) => {
         if (live) setShare(answer);
       },
@@ -88,14 +100,34 @@ export function PassphrasePrompt({ onUnlocked }: { onUnlocked?: () => void }) {
     try {
       await keyring.unlock(secret, user.syncSalt);
       await engine.openSealed();
-      void engine.sync();
+      background(engine.sync());
       onUnlocked?.();
     } catch (failure) {
       if (failure instanceof WrongPassphraseError) {
-        setError(failure.chosenElsewhere ? t('syncPin.chosenElsewhere') : t('syncPin.wrong'));
-        setSecret('');
+        const left = failure.triesLeft;
+        setError(
+          [
+            failure.chosenElsewhere ? t('syncPin.chosenElsewhere') : t('syncPin.wrong'),
+            // Said once it matters: three tries or fewer before the pause.
+            left !== null && left <= 3 ? t('syncPin.triesLeft', { count: left }) : null,
+          ]
+            .filter(Boolean)
+            .join(' '),
+        );
         setConfirm('');
-        if (failure.chosenElsewhere) setAsked((n) => n + 1);
+        if (failure.chosenElsewhere) {
+          setSecret('');
+          setAsked((n) => n + 1);
+        }
+        // The field keeps the try, selected, so the next one types over it.
+        requestAnimationFrame(() => secretField.current?.select());
+      } else if (failure instanceof PinLimitedError) {
+        const minutes = failure.retryAfter === null ? null : Math.max(1, Math.ceil(failure.retryAfter / 60));
+        setError(minutes === null ? t('syncPin.tooManySoon') : t('syncPin.tooMany', { count: minutes }));
+      } else if (failure instanceof PinStartedOverError) {
+        // Started over elsewhere a moment ago: this browser chooses now.
+        setError(t('syncPin.startedOver'));
+        setAsked((n) => n + 1);
       } else if (failure instanceof ApiError && (failure.isNetwork || failure.status >= 500)) {
         setError(t('syncPin.unreachable'));
       } else {
@@ -113,27 +145,32 @@ export function PassphrasePrompt({ onUnlocked }: { onUnlocked?: () => void }) {
   const typed = (value: string) => (pin ? pinDigits(value) : value);
 
   return (
-    <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+    <form onSubmit={(event) => background(submit(event))} className="flex flex-col gap-4" noValidate>
       <div className="flex items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
           <KeyRoundIcon className="size-5" aria-hidden />
         </span>
         <div className="flex flex-col gap-1">
-          <h2 className="font-extrabold">
+          <Title className="text-base font-extrabold">
             {/* Choose or enter is the server's answer; until it comes, neither. */}
             {share === null ? t('syncPin.title') : choosing ? t('syncPin.chooseTitle') : t('syncPin.enterTitle')}
-          </h2>
+          </Title>
           {status.pinChanged && <p className="text-sm font-semibold">{t('syncPin.changedElsewhere')}</p>}
-          <p className="text-sm text-muted-foreground">{t('syncPin.lead')}</p>
+          <p id={leadId} className="text-sm text-muted-foreground">
+            {t('syncPin.lead')}
+          </p>
         </div>
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor={`${id}-secret`}>{pin ? t('syncPin.pinLabel') : t('syncPin.passphraseLabel')}</Label>
         <Input
+          ref={secretField}
           id={`${id}-secret`}
           type="password"
           autoComplete="off"
           dir="ltr"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
           {...field}
           value={secret}
           onChange={(event) => setSecret(typed(event.target.value))}
@@ -147,6 +184,8 @@ export function PassphrasePrompt({ onUnlocked }: { onUnlocked?: () => void }) {
             type="password"
             autoComplete="off"
             dir="ltr"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${id}-error` : undefined}
             {...field}
             value={confirm}
             onChange={(event) => setConfirm(typed(event.target.value))}
@@ -154,13 +193,14 @@ export function PassphrasePrompt({ onUnlocked }: { onUnlocked?: () => void }) {
           <p className="text-xs text-muted-foreground">{pin ? t('syncPin.sixDigits') : t('syncPin.firstTime')}</p>
         </div>
       )}
+      {/* Choosing, the trade-off and the warning help; entering one set elsewhere, only which kind it was does. */}
       <div className="flex flex-col items-start gap-1">
-        <p className="text-xs text-muted-foreground">{t('syncPin.tradeOff')}</p>
+        {choosing && <p className="text-xs text-muted-foreground">{t('syncPin.tradeOff')}</p>}
         <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={switchMode}>
-          {pin ? t('syncPin.usePassphrase') : t('syncPin.usePin')}
+          {choosing ? (pin ? t('syncPin.usePassphrase') : t('syncPin.usePin')) : pin ? t('syncPin.setPassphraseInstead') : t('syncPin.setPinInstead')}
         </Button>
       </div>
-      <p className="rounded-lg bg-muted p-3 text-xs">{t('syncPin.warning')}</p>
+      {choosing && <p className="rounded-lg bg-muted p-3 text-xs">{t('syncPin.warning')}</p>}
       {unreachable && (
         <div role="alert" className="flex flex-col items-start gap-2 text-sm">
           <p>{t('syncPin.unreachable')}</p>
@@ -178,7 +218,7 @@ export function PassphrasePrompt({ onUnlocked }: { onUnlocked?: () => void }) {
         </div>
       )}
       {error && (
-        <p role="alert" className="text-sm font-semibold text-destructive">
+        <p id={`${id}-error`} role="alert" className="text-sm font-semibold text-destructive">
           {error}
         </p>
       )}
@@ -250,8 +290,9 @@ export function StartOverDialog({
         <DialogHeader>
           <DialogTitle>{changing ? t('syncPin.change') : t('syncPin.startOver')}</DialogTitle>
           <DialogDescription>{t('syncPin.startOverBody')}</DialogDescription>
+          {changing && <p className="text-sm font-semibold">{t('syncPin.changeNext')}</p>}
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-3" noValidate>
+        <form onSubmit={(event) => background(submit(event))} className="flex flex-col gap-3" noValidate>
           <Label htmlFor={`${id}-password`}>{t('syncPin.password')}</Label>
           <Input
             id={`${id}-password`}
@@ -270,7 +311,7 @@ export function StartOverDialog({
               {t('common.cancel')}
             </Button>
             <Button type="submit" variant="destructive" disabled={busy || password === ''}>
-              {t('syncPin.startOverConfirm')}
+              {changing ? t('syncPin.changeConfirm') : t('syncPin.startOverConfirm')}
             </Button>
           </div>
         </form>
@@ -281,15 +322,11 @@ export function StartOverDialog({
 
 /** The sync PIN prompt in a dialog, from wherever it is asked for. */
 export function SyncPinDialog({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation();
+  const id = useId();
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('syncPin.title')}</DialogTitle>
-          <DialogDescription className="sr-only">{t('syncPin.lead')}</DialogDescription>
-        </DialogHeader>
-        <PassphrasePrompt onUnlocked={onClose} />
+      <DialogContent aria-describedby={`${id}-lead`}>
+        <PassphrasePrompt onUnlocked={onClose} Title={DialogTitle} leadId={`${id}-lead`} />
       </DialogContent>
     </Dialog>
   );

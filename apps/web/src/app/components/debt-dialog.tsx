@@ -23,6 +23,7 @@ import type { DebtView } from '../data/vault';
 import { useDefaultCurrency } from '../hooks';
 import { AmountField, moneyError } from './money-bits';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
 
 /**
  * `09:05` from a time input into `9:05`, the way the phone's debt
@@ -117,7 +118,7 @@ export function DebtDialog({ existing, onClose }: { existing?: DebtView | undefi
           <DialogTitle>{debt ? t('vaultWeb.editDebt') : t('vault.addDebt')}</DialogTitle>
           <DialogDescription>{t('vaultWeb.debtLead')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void once(() => submit(event))} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => once(() => submit(event)))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${id}-person`}>{t('vault.debtPerson')}</Label>
             <Input id={`${id}-person`} autoFocus autoCapitalize="words" value={person} onChange={(event) => setPerson(event.target.value)} />
@@ -186,7 +187,7 @@ export function DebtDialog({ existing, onClose }: { existing?: DebtView | undefi
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={() => void once(remove)}>{t('common.delete')}</AlertDialogAction>
+              <AlertDialogAction onClick={() => runAction(() => once(remove))}>{t('common.delete')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

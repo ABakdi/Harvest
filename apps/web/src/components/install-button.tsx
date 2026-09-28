@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { isIosSafari, promptInstall, useInstallState } from '@/lib/pwa';
+import { runAction } from '@/lib/actions';
 
 /**
  * "Open Harvest in the browser", which becomes "Install Harvest" where
@@ -29,7 +30,7 @@ export function InstallButton({ size = 'lg' }: { size?: 'lg' | 'default' }) {
 
   if (canPrompt && !installed) {
     return (
-      <Button variant="brand" size={size} onClick={() => void promptInstall().then(setAccepted)}>
+      <Button variant="brand" size={size} onClick={() => runAction(() => promptInstall().then(setAccepted))}>
         <DownloadIcon />
         {t('site.install')}
       </Button>

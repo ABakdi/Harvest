@@ -48,3 +48,12 @@ export async function device(
 export function testKey(secret: string): Promise<CryptoKey> {
   return deriveSyncKeyV2(secret, testUser.syncSalt, testKeyShare, { iterations: 1 });
 }
+
+/**
+ * Waits for every write already started to land: a transaction over
+ * every table queues behind them. A test that checks a second click did
+ * nothing waits on this, not on the wall clock.
+ */
+export async function writesSettled(h: Awaited<ReturnType<typeof device>>): Promise<void> {
+  await h.writer.run(() => Promise.resolve());
+}

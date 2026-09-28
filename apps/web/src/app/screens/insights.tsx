@@ -1,4 +1,4 @@
-import { HarvestDay } from '@harvest/core';
+import { HarvestDay, averagePerDay, currencyOf } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ChartColumnIcon } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -212,7 +212,7 @@ export function InsightsPanel() {
             <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
               <span className="text-sm font-bold text-muted-foreground">{t('insights.perDay')}</span>
               <span className="text-xl font-extrabold tabular" dir="ltr">
-                {formatMoney(elapsed === 0 ? 0 : Math.trunc(view.total / elapsed), currency)}
+                {formatMoney(averagePerDay(view.total, elapsed, currencyOf(currency)), currency)}
               </span>
             </div>
           </div>

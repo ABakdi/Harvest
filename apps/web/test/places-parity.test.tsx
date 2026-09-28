@@ -15,6 +15,7 @@ import {
   SavedPlaceRepository,
 } from '@/app/data/places';
 import { PlacesScreen } from '@/app/screens/places';
+import { quietShields } from '@/app/screens/places/map';
 import { FakeServer } from './fake-server';
 import { device } from './helpers';
 
@@ -426,7 +427,9 @@ describe('the places screen', () => {
 
     // And back to streets: the same again, and nothing lost.
     await user.click(screen.getByRole('button', { name: /Map view/ }));
-    await waitFor(() => expect(map.setStyle).toHaveBeenLastCalledWith('https://tiles.openfreemap.org/styles/liberty', { diff: false }));
+    await waitFor(() =>
+      expect(map.setStyle).toHaveBeenLastCalledWith('https://tiles.openfreemap.org/styles/liberty', expect.objectContaining({ diff: false })),
+    );
     act(() => map.emit('style.load'));
     for (const id of ['trail', 'stays', 'saved', 'saved-names', 'actions']) expect(map.layers.has(id)).toBe(true);
   });
@@ -577,5 +580,24 @@ describe('the geotagging switch', () => {
     await waitFor(() => expect(toggle).toBeEnabled());
     expect(toggle).not.toBeChecked();
     expect((await h.db.rows('kv_settings').get('web.geotagging'))?.valueJson ?? null).toBeNull();
+  });
+});
+
+describe('the street style', () => {
+  it('asks whether a road has a ref_length before comparing it, so roads without one log nothing (P6-15)', () => {
+    const shield = {
+      id: 'highway-shield-non-us',
+      type: 'symbol',
+      source: 'openmaptiles',
+      'source-layer': 'transportation_name',
+      filter: ['all', ['<=', ['get', 'ref_length'], 6], ['match', ['get', 'network'], ['us-highway'], false, true]],
+    };
+    const water = { id: 'water', type: 'fill', source: 'openmaptiles', filter: ['all', ['==', ['get', 'class'], 'lake']] };
+    const style = { version: 8, sources: {}, layers: [shield, water] } as unknown as Parameters<typeof quietShields>[1];
+    const quiet = quietShields(undefined, style);
+    const filters = quiet.layers.map((layer) => ('filter' in layer ? layer.filter : undefined));
+    expect(filters[0]).toEqual(['all', ['has', 'ref_length'], ...shield.filter.slice(1)]);
+    // Every other layer is left exactly as the style has it.
+    expect(quiet.layers[1]).toBe(style.layers[1]);
   });
 });

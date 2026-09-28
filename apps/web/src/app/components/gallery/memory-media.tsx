@@ -18,6 +18,7 @@ import type { FileMiss } from '../../data/files';
 import type { MemoryRow } from '../../data/gallery';
 import { useFileRetry, useFileView, useSeen, type FileView } from '../../hooks';
 import { SyncPinDialog } from '../passphrase-prompt';
+import { background } from '@/lib/actions';
 
 /**
  * A row's file: by the hash the row carries, or, for one made in this
@@ -57,9 +58,17 @@ export function useMemoryFiles(memories: MemoryRow[]): Map<string, FileView | nu
   const { files } = useHarvest();
   const [resolved, setResolved] = useState<{ key: string; map: Map<string, Resolved | null> }>();
   const [asked, setAsked] = useState(0);
-  const key = memories.map((memory) => `${memory.uuid}:${memory.fileHash ?? ''}`).join('|');
-  // The URLs this list holds, kept across a retry so a shown frame never goes blank.
-  const held = useRef<{ key: string; map: Map<string, Resolved | null> }>({ key: '', map: new Map() });
+  // The key stands for the list: the same pictures, of the same kind, by
+  // the same bytes, are the same URLs (Q6-18).
+  const key = memories.map((memory) => `${memory.uuid}:${memory.kind}:${memory.fileHash ?? ''}`).join('|');
+  const current = useRef(memories);
+  useEffect(() => {
+    current.current = memories;
+  });
+  // The URLs held now, by memory and the name of its bytes: kept across a
+  // new list or a retry, so a shown frame never goes blank and a picture
+  // already here is never fetched again.
+  const held = useRef(new Map<string, { hash: string; got: Resolved }>());
   const waiting =
     resolved?.key === key &&
     memories.some((memory) => {
@@ -71,51 +80,57 @@ export function useMemoryFiles(memories: MemoryRow[]): Map<string, FileView | nu
 
   useEffect(() => {
     let live = true;
-    const made: string[] = [];
-    const kept = held.current.key === key ? held.current.map : new Map<string, Resolved | null>();
-    void (async () => {
+    const list = current.current;
+    background((async () => {
       const local = await files.localHashes();
       const map = new Map<string, Resolved | null>();
+      const next = new Map<string, { hash: string; got: Resolved }>();
       const resolve = async (memory: MemoryRow) => {
-        const had = kept.get(memory.uuid);
-        if (had && 'url' in had) return map.set(memory.uuid, had);
         if (memory.kind !== 'photo') return map.set(memory.uuid, null);
         const hash = memory.fileHash ?? local.get(memory.uuid) ?? null;
         if (hash === null) return map.set(memory.uuid, { miss: 'onPhone' });
+        const had = held.current.get(memory.uuid);
+        if (had && had.hash === hash && 'url' in had.got) {
+          next.set(memory.uuid, had);
+          return map.set(memory.uuid, had.got);
+        }
         const got = await files.find(hash);
         if (typeof got === 'string') return map.set(memory.uuid, { miss: got });
-        const url = URL.createObjectURL(got);
-        made.push(url);
-        return map.set(memory.uuid, { url });
+        const resolvedUrl: Resolved = { url: URL.createObjectURL(got) };
+        next.set(memory.uuid, { hash, got: resolvedUrl });
+        return map.set(memory.uuid, resolvedUrl);
       };
       // A few at a time, each bounded by the fetch's own timeout.
-      const queue = [...memories];
+      const queue = [...list];
       await Promise.all(
         Array.from({ length: Math.min(runFetches, queue.length) }, async () => {
-          for (let next = queue.shift(); next && live; next = queue.shift()) await resolve(next);
+          for (let item = queue.shift(); item && live; item = queue.shift()) await resolve(item);
         }),
       );
       if (!live) {
-        for (const url of made) URL.revokeObjectURL(url);
+        // Only what this run made and no one kept.
+        for (const [uuid, entry] of next) if (held.current.get(uuid) !== entry && 'url' in entry.got) URL.revokeObjectURL(entry.got.url);
         return;
       }
-      held.current = { key, map };
+      // The old URLs go only once the new list has its own (Q6-18).
+      for (const [uuid, entry] of held.current) {
+        if (next.get(uuid) !== entry && 'url' in entry.got) URL.revokeObjectURL(entry.got.url);
+      }
+      held.current = next;
       setResolved({ key, map });
-    })();
+    })());
     return () => {
       live = false;
     };
-    // The key stands for the list: same pictures, same URLs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files, key, retry, asked]);
 
-  // A new list, or leaving: the old URLs go.
+  // Leaving: every URL goes.
   useEffect(
     () => () => {
-      for (const got of held.current.map.values()) if (got && 'url' in got) URL.revokeObjectURL(got.url);
-      held.current = { key: '', map: new Map() };
+      for (const entry of held.current.values()) if ('url' in entry.got) URL.revokeObjectURL(entry.got.url);
+      held.current = new Map();
     },
-    [files, key],
+    [files],
   );
 
   if (resolved?.key !== key) return undefined;

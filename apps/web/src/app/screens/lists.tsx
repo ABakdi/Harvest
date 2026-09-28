@@ -46,6 +46,7 @@ import { builtInOf, listOfItem, type ListItemRow, type ListRow } from '../data/l
 import { loadListsView, type ListsView, type SeedProgress } from '../data/list-views';
 import { useDialogs } from '../dialogs';
 import { RecordsTabs } from './records';
+import { background, runAction } from '@/lib/actions';
 
 /** Open items' estimates per currency, never added across (L3). */
 function openTotals(items: ListItemRow[]): string {
@@ -143,7 +144,7 @@ export function ListsScreen() {
         <ListNameDialog
           list={naming.list}
           onClose={() => setNaming(null)}
-          onCreated={(list) => void navigate(`/app/records/lists/${list.uuid}`)}
+          onCreated={(list) => background(navigate(`/app/records/lists/${list.uuid}`))}
         />
       )}
     </div>
@@ -179,7 +180,7 @@ function ListPanel({ list, view, onRename }: { list: ListRow; view: ListsView; o
     const order = view.lists.map((row) => row.uuid);
     const [uuid] = order.splice(index, 1);
     order.splice(index + by, 0, uuid!);
-    void lists.reorderLists(order);
+    runAction(() => lists.reorderLists(order));
   };
 
   const deleteList = async () => {
@@ -188,11 +189,11 @@ function ListPanel({ list, view, onRename }: { list: ListRow; view: ListsView; o
       deleting.current = false;
       return;
     }
-    void navigate('/app/records/lists', { replace: true });
+    background(navigate('/app/records/lists', { replace: true }));
     toast(t('lists.listDeleted', { name }), {
       action: {
         label: t('common.undo'),
-        onClick: () => void lists.restoreList(list.uuid).then(() => navigate(`/app/records/lists/${list.uuid}`)),
+        onClick: () => runAction(() => lists.restoreList(list.uuid).then(() => navigate(`/app/records/lists/${list.uuid}`))),
       },
     });
   };
@@ -203,13 +204,13 @@ function ListPanel({ list, view, onRename }: { list: ListRow; view: ListsView; o
     const [uuid] = order.splice(from, 1);
     order.splice(to, 0, uuid!);
     setFocus(uuid!);
-    void lists.reorderItems(list.uuid, order);
+    runAction(() => lists.reorderItems(list.uuid, order));
   };
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h1 id={headingId} className="min-w-0 truncate text-2xl font-extrabold">
+        <h1 id={headingId} dir="auto" className="min-w-0 line-clamp-3 [overflow-wrap:anywhere] text-2xl font-extrabold">
           {name}
         </h1>
         <DropdownMenu>
@@ -233,7 +234,7 @@ function ListPanel({ list, view, onRename }: { list: ListRow; view: ListsView; o
             </DropdownMenuItem>
             {/* The built-in lists stay (L10): emptied or renamed, never deleted. */}
             {!builtInOf(list) && (
-              <DropdownMenuItem destructive onSelect={() => void deleteList()}>
+              <DropdownMenuItem destructive onSelect={() => runAction(() => deleteList())}>
                 <Trash2Icon />
                 {t('lists.deleteList')}
               </DropdownMenuItem>
@@ -370,7 +371,7 @@ function AddField({ list, name }: { list: ListRow; name: string }) {
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-2" noValidate>
+    <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-2" noValidate>
       <div className="flex gap-2">
         <Input
           ref={input}
@@ -419,7 +420,7 @@ function Rating({ row }: { row: ListItemRow }) {
           type="button"
           aria-label={t('lists.rate', { count: stars })}
           aria-pressed={row.rating === stars}
-          onClick={() => void lists.setRating(row.uuid, row.rating === stars ? null : stars)}
+          onClick={() => runAction(() => lists.setRating(row.uuid, row.rating === stars ? null : stars))}
           className="rounded p-0.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <StarIcon className={cn('size-4', row.rating !== null && stars <= row.rating ? 'fill-primary text-primary' : 'text-muted-foreground')} aria-hidden />
@@ -487,9 +488,9 @@ function ItemRow({
   };
 
   const remove = () => {
-    void lists.deleteItem(row.uuid);
+    runAction(() => lists.deleteItem(row.uuid));
     toast(t('wishlist.removed'), {
-      action: { label: t('common.undo'), onClick: () => void lists.restoreItem(row.uuid) },
+      action: { label: t('common.undo'), onClick: () => runAction(() => lists.restoreItem(row.uuid)) },
     });
   };
 
@@ -501,13 +502,13 @@ function ItemRow({
   const writeAbout = async () => {
     const existing = row.noteUuid ? await db.rows('notes').get(row.noteUuid) : undefined;
     if (existing && existing.deletedAt === null) {
-      void navigate(`/app/records/${existing.uuid}`);
+      background(navigate(`/app/records/${existing.uuid}`));
       return;
     }
     try {
       const note = await notes.create({ title: row.title });
       await lists.linkNote(row.uuid, note.uuid);
-      void navigate(`/app/records/${note.uuid}`);
+      background(navigate(`/app/records/${note.uuid}`));
     } catch {
       toast.error(t('common.saveFailed'));
     }
@@ -528,11 +529,11 @@ function ItemRow({
   if (kind === 'media' && !isDone) {
     control =
       row.startedAt === null ? (
-        <Button variant="outline" size="icon-sm" aria-label={t('lists.start', { title: row.title })} title={t('lists.startShort')} onClick={() => void lists.setStarted(row.uuid, true)}>
+        <Button variant="outline" size="icon-sm" aria-label={t('lists.start', { title: row.title })} title={t('lists.startShort')} onClick={() => runAction(() => lists.setStarted(row.uuid, true))}>
           <PlayIcon />
         </Button>
       ) : (
-        <Button variant="outline" size="icon-sm" aria-label={t('lists.finish', { title: row.title })} title={t('lists.finishShort')} onClick={() => void setDone(true)}>
+        <Button variant="outline" size="icon-sm" aria-label={t('lists.finish', { title: row.title })} title={t('lists.finishShort')} onClick={() => runAction(() => setDone(true))}>
           <CheckIcon />
         </Button>
       );
@@ -547,7 +548,7 @@ function ItemRow({
       <Checkbox
         aria-label={t(isDone ? `lists.unmark.${kind}` : `lists.mark.${kind}`, { title: row.title })}
         checked={isDone}
-        onCheckedChange={() => void setDone(!isDone)}
+        onCheckedChange={() => runAction(() => setDone(!isDone))}
       />
     );
   }
@@ -564,7 +565,7 @@ function ItemRow({
           aria-keyshortcuts={onMove ? 'Alt+ArrowUp Alt+ArrowDown' : undefined}
           className="flex min-w-0 flex-1 flex-col text-start outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11 max-md:justify-center"
         >
-          <span className={cn('truncate font-bold', isDone && buyable && 'text-muted-foreground line-through')}>{row.title}</span>
+          <span dir="auto" className={cn('truncate font-bold', isDone && buyable && 'text-muted-foreground line-through')}>{row.title}</span>
           {subtitle && <span className="truncate text-xs text-muted-foreground">{subtitle}</span>}
           {isDone && buyable && (
             <span className="truncate text-xs text-muted-foreground">{t(`lists.doneOn.${kind}`, { day: doneDay(row) })}</span>
@@ -599,13 +600,13 @@ function ItemRow({
               {t('common.edit')}
             </DropdownMenuItem>
             {kind === 'media' && !isDone && row.startedAt === null && (
-              <DropdownMenuItem onSelect={() => void setDone(true)}>
+              <DropdownMenuItem onSelect={() => runAction(() => setDone(true))}>
                 <CheckIcon />
                 {t('lists.finishShort')}
               </DropdownMenuItem>
             )}
             {kind === 'media' && !isDone && row.startedAt !== null && (
-              <DropdownMenuItem onSelect={() => void lists.setStarted(row.uuid, false)}>{t('lists.notStarted')}</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => runAction(() => lists.setStarted(row.uuid, false))}>{t('lists.notStarted')}</DropdownMenuItem>
             )}
             {onMove && (
               <>
@@ -635,7 +636,7 @@ function ItemRow({
               </DropdownMenuItem>
             )}
             {kind === 'media' && on.notes && (
-              <DropdownMenuItem onSelect={() => void writeAbout()}>
+              <DropdownMenuItem onSelect={() => runAction(() => writeAbout())}>
                 <NotebookPenIcon />
                 {row.noteUuid ? t('lists.openNote') : t('lists.writeAbout')}
               </DropdownMenuItem>
@@ -645,7 +646,7 @@ function ItemRow({
               <>
                 <DropdownMenuSeparator />
                 {others.map((other) => (
-                  <DropdownMenuItem key={other.uuid} onSelect={() => void move(other)}>
+                  <DropdownMenuItem key={other.uuid} onSelect={() => runAction(() => move(other))}>
                     {t('lists.moveTo', { name: listName(other, t) })}
                   </DropdownMenuItem>
                 ))}
@@ -665,7 +666,7 @@ function ItemRow({
           {seed && <SeedLine progress={seed} t={t} />}
           {/* The seed is done: offer to finish the item too, never do it for me. */}
           {seed?.complete && !isDone && (buyable || kind !== 'shopping') && (
-            <Button variant="secondary" size="sm" onClick={() => void setDone(true)}>
+            <Button variant="secondary" size="sm" onClick={() => runAction(() => setDone(true))}>
               {t(`lists.finishToo.${kind}`)}
             </Button>
           )}

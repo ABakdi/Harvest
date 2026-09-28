@@ -1,17 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
-import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/gauge_ring.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/core/ui/widgets/harvest_tabs.dart';
 import 'package:harvest/core/ui/widgets/hero_card.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/ledger_row.dart';
@@ -22,6 +21,7 @@ import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/finance_actions.dart';
+import 'package:harvest/features/finances/presentation/amount_keypad.dart';
 import 'package:harvest/features/finances/presentation/budget_colors.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_charts.dart';
@@ -69,26 +69,32 @@ class _GranaryScreenState extends State<GranaryScreen>
       appBar: AppBar(
         leading: accountLeading(context),
         title: Text(l10n.granaryTitle),
-        // Tabs that do not fit a phone's width in Arabic scroll,
-        // centred while they fit.
-        bottom: TabBar(
+        // The same tabs as every other screen: icon and label, the
+        // full width (U6-33).
+        bottom: HarvestTabs(
           controller: _tabs,
-          isScrollable: true,
-          tabAlignment: TabAlignment.center,
           tabs: [
-            Tab(text: l10n.todayTab),
-            Tab(text: l10n.vaultTab),
-            Tab(text: l10n.insightsTab),
+            (icon: Icons.today, label: l10n.todayTab),
+            (icon: Icons.account_balance_wallet_outlined, label: l10n.vaultTab),
+            (icon: Icons.insights, label: l10n.insightsTab),
           ],
         ),
       ),
-      floatingActionButton: AnimatedScale(
-        scale: showFab ? 1 : 0,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutBack,
-        child: HarvestFab(
-          onPressed: () => unawaited(showExpenseSheet(context)),
-          label: l10n.logExpense,
+      // Scaled away on Balances and Insights, and gone from TalkBack
+      // there too: a 0×0 "Log an expense" is still read (U6-24).
+      floatingActionButton: ExcludeSemantics(
+        excluding: !showFab,
+        child: IgnorePointer(
+          ignoring: !showFab,
+          child: AnimatedScale(
+            scale: showFab ? 1 : 0,
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutBack,
+            child: HarvestFab(
+              onPressed: () => unawaited(showExpenseSheet(context)),
+              label: l10n.logExpense,
+            ),
+          ),
         ),
       ),
       body: TabBarView(
@@ -121,8 +127,12 @@ class _PlannedPurchases extends ConsumerWidget {
             '${l10n.listsPlannedPurchases} · ${formatTotals(l10n, totals)}',
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.go(
-            '${AppRoutes.lists}?list=${BuiltInList.buy.uuid}',
+          // Pushed inside the Granary's branch: Back comes back here,
+          // and the bottom bar stays on the Granary (U6-06).
+          onTap: () => unawaited(
+            context.push(
+              '${AppRoutes.granaryLists}?list=${BuiltInList.buy.uuid}',
+            ),
           ),
         ),
       ),
@@ -171,7 +181,10 @@ class _TodayTab extends ConsumerWidget {
         const _PlannedPurchases(),
         SectionHeader(
           l10n.todaySpending,
-          subtitle: l10n.expensesToday(expenses.length),
+          // The empty card below says "nothing logged" already (U6-35).
+          subtitle: expenses.isEmpty
+              ? null
+              : l10n.expensesToday(expenses.length),
           trailing: expenses.isEmpty
               ? null
               : Text(
@@ -336,10 +349,11 @@ class _BudgetCard extends ConsumerWidget {
           title: l10n.budgetTitle,
           color: scheme.primary,
           compact: true,
-          action: BigBouncyButton(
-            icon: Icons.payments,
+          // Tonal: the log button is the screen's one loud action (U6-35).
+          action: FilledButton.tonalIcon(
+            icon: const Icon(Icons.payments),
             onPressed: () => unawaited(showBudgetSheet(context)),
-            child: Text(l10n.budgetSet),
+            label: Text(l10n.budgetSet),
           ),
         ),
       );
@@ -484,6 +498,11 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
   /// Saves, or clears with null, and says so when the write fails
   /// instead of closing on a budget that never landed.
   Future<void> _save(int? minor) async {
+    if (minor != null) {
+      final currency = ref.read(defaultCurrencyProvider);
+      if (!await confirmLargeAmount(context, minor, currency)) return;
+      if (!mounted) return;
+    }
     final notifier = ref.read(financeSettingsProvider.notifier);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -517,22 +536,12 @@ class _BudgetSheetState extends ConsumerState<_BudgetSheet> {
       actionLabel: l10n.save,
       onAction: minor == null ? null : () => unawaited(_save(minor)),
       children: [
-        TextField(
+        // The app's keypad, with `+` (U6-10).
+        AmountField(
           controller: _amountController,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(amountCharacters),
-          ],
-          onChanged: (_) => setState(() {}),
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-          decoration: InputDecoration(
-            labelText: l10n.budgetAmountLabel,
-            prefixText: currency.symbol,
-            helperText: amountSumHelper(l10n, _amountController.text, currency),
-          ),
+          currency: currency,
+          label: l10n.budgetAmountLabel,
+          onChanged: () => setState(() {}),
         ),
         const SizedBox(height: HarvestSpacing.sm),
         Text(

@@ -70,7 +70,12 @@ class PlacesRepository {
                       p.harvestDay.isSmallerThanValue(from.key) &
                       p.deletedAt.isNull(),
                 )
-                ..orderBy([(p) => OrderingTerm.desc(p.recordedAt)])
+                // By the (day, time) index, newest first: no sort of every
+                // earlier point on each new one (P6-11).
+                ..orderBy([
+                  (p) => OrderingTerm.desc(p.harvestDay),
+                  (p) => OrderingTerm.desc(p.recordedAt),
+                ])
                 ..limit(1))
               .getSingleOrNull();
       final after =
@@ -80,7 +85,10 @@ class PlacesRepository {
                       p.harvestDay.isBiggerThanValue(to.key) &
                       p.deletedAt.isNull(),
                 )
-                ..orderBy([(p) => OrderingTerm.asc(p.recordedAt)])
+                ..orderBy([
+                  (p) => OrderingTerm.asc(p.harvestDay),
+                  (p) => OrderingTerm.asc(p.recordedAt),
+                ])
                 ..limit(1))
               .getSingleOrNull();
       return [
@@ -266,6 +274,9 @@ class PlacesRepository {
   Future<GeotagDetail?> detailFor(String table, String uuid) async {
     GeotagDetail? text(String? value) =>
         value == null || value.isEmpty ? null : GeotagText(value);
+    // A seed that is gone says so on the timeline (U6-26).
+    GeotagDetail seed(String? title) =>
+        title == null ? const GeotagGone() : GeotagText(title);
     switch (table) {
       case 'expenses':
         final row = await (_db.select(
@@ -305,17 +316,21 @@ class PlacesRepository {
           )..where((n) => n.uuid.equals(uuid))).getSingleOrNull())?.title,
         );
       case 'commitments':
-        return text(await _seedTitle(uuid));
+        return seed(await _seedTitle(uuid));
       case 'check_ins':
         final row = await (_db.select(
           _db.checkIns,
         )..where((c) => c.uuid.equals(uuid))).getSingleOrNull();
-        return row == null ? null : text(await _seedTitle(row.commitmentUuid));
+        return row == null
+            ? const GeotagGone()
+            : seed(await _seedTitle(row.commitmentUuid));
       case 'seed_notes':
         final row = await (_db.select(
           _db.seedNotes,
         )..where((n) => n.uuid.equals(uuid))).getSingleOrNull();
-        return row == null ? null : text(await _seedTitle(row.commitmentUuid));
+        return row == null
+            ? const GeotagGone()
+            : seed(await _seedTitle(row.commitmentUuid));
       case 'memories':
         final row = await (_db.select(
           _db.memories,
@@ -347,9 +362,14 @@ class PlacesRepository {
     return null;
   }
 
-  Future<String?> _seedTitle(String uuid) async => (await (_db.select(
-    _db.commitments,
-  )..where((c) => c.uuid.equals(uuid))).getSingleOrNull())?.title;
+  /// The seed's name while it is there; null once deleted, so the
+  /// timeline says it is gone.
+  Future<String?> _seedTitle(String uuid) async =>
+      (await (_db.select(
+                _db.commitments,
+              )..where((c) => c.uuid.equals(uuid) & c.deletedAt.isNull()))
+              .getSingleOrNull())
+          ?.title;
 
   // -------------------------------------------------------- saved places
 

@@ -28,6 +28,14 @@ export interface UserDoc {
   keyShare?: SealedBytes;
   /** The first device's key check; absent until a PIN is chosen. */
   keyCheck?: KeyCheck | null;
+  /**
+   * SHA-256 of the PIN proof (hex), sealed like the share (additional
+   * data `pin-verifier/<user id>`): a copy of the database alone cannot
+   * even be searched for the PIN. Absent until a PIN is chosen.
+   */
+  pinVerifier?: SealedBytes;
+  /** Which key the private tier is under; 1 until the first start over. */
+  keyEpoch?: number;
 }
 
 /** Bytes sealed by the server with a key of its own, base64. */
@@ -103,6 +111,13 @@ export interface AssistDayDoc {
   lastAt: Date;
 }
 
+/** Counts in fixed windows ([[WindowedCountsRepository]]). */
+export interface WindowedCountDoc {
+  _id: string;
+  windows: { count: number; resetAt: Date }[];
+  expiresAt: Date;
+}
+
 /**
  * Failed sign-ins for one email, from any address, in the current
  * window. `_id` is the SHA-256 of the normalised email: an address
@@ -112,6 +127,8 @@ export interface LoginFailureDoc {
   _id: string;
   count: number;
   resetAt: Date;
+  /** The hashed address the count belongs to, whatever network it came from. */
+  emailKey?: string;
 }
 
 /** One file, content-addressed, its bytes sealed by the client. */
@@ -125,7 +142,10 @@ export interface FileDoc {
   iv: string;
   /** The plaintext's length, so a reader can check what it decrypted. */
   plainBytes: number;
-  blob: Binary;
+  /** The ciphertext in GridFS (`file_blobs`), for every file stored from 3.1.0 on. */
+  gridId?: ObjectId;
+  /** The ciphertext itself, for a file stored before GridFS (under 16 MB). */
+  blob?: Binary;
   uploadedAt: Date;
   /**
    * The last time a device was told the server has it (an upload, or a

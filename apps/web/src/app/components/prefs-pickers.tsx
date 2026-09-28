@@ -38,7 +38,7 @@ const presetSwatch: Record<ThemePreset, [string, string]> = {
   sunrise: ['#ff4f6d', '#ffc93c'],
   ocean: ['#0e9de9', '#10bfa5'],
   orchard: ['#1fb25a', '#f7c948'],
-  dusk: ['#8b5cf6', '#ec4899'],
+  dusk: ['#7c3aed', '#db2777'],
 };
 
 export function PresetPicker() {

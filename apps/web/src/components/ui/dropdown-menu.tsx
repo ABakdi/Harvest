@@ -2,8 +2,13 @@ import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui';
 import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Not modal: a menu does not hide the rest of the page from assistive
+ * tech (aria-hidden over focusable links), and it still closes on a
+ * click outside or Escape.
+ */
 function DropdownMenu(props: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
+  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" modal={false} {...props} />;
 }
 
 function DropdownMenuTrigger(props: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {

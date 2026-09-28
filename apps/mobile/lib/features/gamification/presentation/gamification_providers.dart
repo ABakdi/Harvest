@@ -1,7 +1,9 @@
 import 'package:harvest/core/app/current_day.dart';
+import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
 import 'package:harvest/features/gamification/domain/day_activity.dart';
+import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamification_providers.g.dart';
@@ -71,3 +73,21 @@ Stream<HarvestDay?> lastEarnedDay(Ref ref) =>
 Stream<int> weeklyXp(Ref ref) => ref
     .watch(gamificationRepositoryProvider)
     .watchXpSince(ref.watch(currentHarvestDayProvider).weekStart);
+
+/// Today's productive actions, the count the Daily Harvest Goal is
+/// judged by: what the Field shows as "1 of 3" so a streak at 0 says
+/// why ([[Audit-v3]] U6-03). Re-counted when a check-in, a seed or a
+/// scheduled album's picture changes.
+@riverpod
+Stream<int> todayActions(Ref ref) {
+  final day = ref.watch(currentHarvestDayProvider);
+  final db = ref.watch(databaseProvider);
+  final streaks = ref.watch(streakServiceProvider);
+  return db
+      .customSelect(
+        'SELECT 1',
+        readsFrom: {db.checkIns, db.commitments, db.memories, db.albums},
+      )
+      .watch()
+      .asyncMap((_) => streaks.productiveActions(day));
+}

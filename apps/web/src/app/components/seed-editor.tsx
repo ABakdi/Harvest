@@ -14,6 +14,8 @@ import i18n from '@/i18n';
 import { useHarvest, useHarvestDay } from '../context';
 import { plantSeed, type SeedInput, type SeedRow, type SeedType } from '../data/seeds';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
+import { shortName } from '@/lib/format';
 
 export interface SeedPrefill {
   title?: string;
@@ -164,7 +166,7 @@ export function SeedEditor({
         } else {
           await seeds.plant(input, prefill.linkItem);
         }
-        toast.success(t('seed.planted', { title: title.trim() }));
+        toast.success(t('seed.planted', { title: shortName(title) }));
       }
       onClose();
     } catch {
@@ -188,7 +190,7 @@ export function SeedEditor({
           <DialogTitle>{editing ? t('seed.editTitle') : t('seed.plant')}</DialogTitle>
           <DialogDescription>{t('seed.editorLead')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void once(() => submit(event))} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => once(() => submit(event)))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label id={field('type')}>{t('seed.typeLabel')}</Label>
             <ToggleGroup
@@ -305,7 +307,7 @@ export function SeedEditor({
                   <SelectContent>
                     <SelectItem value="none">{t('seed.servesNone')}</SelectItem>
                     {goals?.map((goal) => (
-                      <SelectItem key={goal.uuid} value={goal.uuid}>
+                      <SelectItem dir="auto" key={goal.uuid} value={goal.uuid}>
                         {goal.title}
                       </SelectItem>
                     ))}

@@ -15,13 +15,14 @@ void main() {
     expect(ar.dayCount(5), '5 أيام');
     expect(ar.dayCount(15), '15 يومًا');
     expect(ar.dayCount(100), '100 يوم');
-    expect(ar.gymExerciseCount(4), '4 تمارين');
-    expect(ar.gymExerciseCount(12), '12 تمرينًا');
+    expect(ar.gymExerciseCount(4, '4'), '4 تمارين');
+    expect(ar.gymExerciseCount(12, '12'), '12 تمرينًا');
     expect(ar.scheduleEveryDays(2), 'كل يومين');
     expect(ar.scheduleEveryDays(3), 'كل 3 أيام');
+    expect(ar.streakSemantics(0), 'السلسلة: لا أيام');
   });
 
-  test('every Arabic plural has the 3–10 and 11–99 forms', () {
+  test('every Arabic plural has the zero, 3–10 and 11–99 forms', () {
     final missing = <String>[];
     final text = File('lib/l10n/app_ar.arb').readAsStringSync();
     for (final match in RegExp(
@@ -29,7 +30,10 @@ void main() {
       multiLine: true,
     ).allMatches(text)) {
       final value = match.group(2)!;
-      if (!value.contains('few{') || !value.contains('many{')) {
+      // Zero too: a count that can be 0 must not read "0 يوم" (U6-13).
+      if (!value.contains('few{') ||
+          !value.contains('many{') ||
+          !value.contains('=0{')) {
         missing.add(match.group(1)!);
       }
     }

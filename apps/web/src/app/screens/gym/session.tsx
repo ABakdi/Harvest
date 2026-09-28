@@ -59,6 +59,8 @@ import { PlatesDialog } from './plates';
 import { useBusy } from '../../components/use-busy';
 import { SetBadge } from './program-editor';
 import { RestField, SetList, SetText, around, clockText, loadField, sessionClockText, prettyStoredLabel, useAsker, useLoad, useUnit, type Asker } from './shared';
+import { background, runAction } from '@/lib/actions';
+import { useDocumentTitle } from '@/lib/title';
 
 // -------------------------------------------------------------------- rest
 
@@ -286,7 +288,7 @@ function SetLine({
       {/* Dropping asks first, so a click at speed is never one slip from losing a row. */}
       <button
         type="button"
-        onClick={() => void drop()}
+        onClick={() => runAction(() => drop())}
         aria-label={t('gym.dropSetNamed', { set: number })}
         title={t('gym.dropSet')}
         className="flex justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11 max-md:items-center"
@@ -329,7 +331,7 @@ function SetLine({
         {celebrating && <span className="absolute inset-0 rounded-full bg-sun/60 motion-safe:animate-ping" aria-hidden />}
         <button
           type="button"
-          onClick={() => void once(toggle)}
+          onClick={() => runAction(() => once(toggle))}
           aria-pressed={set.done}
           aria-label={set.done ? t('gym.untickNamed', { set: number }) : t('gym.tickNamed', { set: number })}
           className={cn(
@@ -375,6 +377,7 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
   const load = useLoad();
   const unit = useUnit();
   const recordsLine = useRecordsLine();
+  const [addingSet, onceSet] = useBusy();
   const { row } = exercise;
   const named = useExercise(db, row.exerciseId);
   const replaced = row.plannedExerciseId !== null && row.plannedExerciseId !== row.exerciseId;
@@ -445,17 +448,17 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => void sessions.addSet(row.uuid)}>{t('gym.addSet')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => runAction(() => sessions.addSet(row.uuid))}>{t('gym.addSet')}</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => setSwapping(true)}>{t('gym.swap')}</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => void skip()}>{row.skipped ? t('gym.unskip') : t('gym.skip')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => runAction(() => skip())}>{row.skipped ? t('gym.unskip') : t('gym.skip')}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => setRestEditing(true)}>{t('gym.rest')}</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => void note()}>{t('gym.note')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => runAction(() => note())}>{t('gym.note')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       {row.skipped && row.skipReason && <p className="text-xs text-muted-foreground">{t('gym.skippedBecause', { reason: row.skipReason })}</p>}
-      {row.note && <p className="text-xs text-muted-foreground">{row.note}</p>}
+      {row.note && <p dir="auto" className="text-xs text-muted-foreground">{row.note}</p>}
       {!row.skipped && (
         <>
           <div className="grid grid-cols-[2rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] max-md:grid-cols-[2.75rem_minmax(0,1fr)_4.5rem_3.5rem_2.75rem] gap-1.5 border-t pt-2 text-center text-xs text-muted-foreground" aria-hidden>
@@ -470,7 +473,7 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
               <SetLine key={set.uuid} set={set} number={index + 1} exercise={exercise} barred={barred} asker={asker} onTicked={startRest} onPlates={setPlates} />
             ))}
           </ul>
-          <Button variant="ghost" size="sm" className="self-start" onClick={() => void sessions.addSet(row.uuid)}>
+          <Button variant="ghost" size="sm" className="self-start" disabled={addingSet} onClick={() => runAction(() => onceSet(() => sessions.addSet(row.uuid)))}>
             <PlusIcon />
             {t('gym.addSet')}
           </Button>
@@ -482,7 +485,7 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
           onClose={() => setSwapping(false)}
           onPick={(picked) => {
             setSwapping(false);
-            void sessions.replaceExercise(row.uuid, picked.id);
+            runAction(() => sessions.replaceExercise(row.uuid, picked.id));
           }}
         />
       )}
@@ -497,7 +500,7 @@ function ExerciseCard({ exercise, number, rest, asker }: { exercise: ExerciseInS
               seconds={row.restSeconds ?? defaultRestSeconds}
               onChange={(seconds) => {
                 setRestEditing(false);
-                void sessions.setExerciseRest(row.uuid, seconds);
+                runAction(() => sessions.setExerciseRest(row.uuid, seconds));
               }}
             />
           </DialogContent>
@@ -537,6 +540,7 @@ export function SessionScreen() {
   const navigate = useNavigate();
   const { db, sessions, clock } = useHarvest();
   const tree = useLiveQuery(async () => (await readSession(db, uuid)) ?? null, [db, uuid]);
+  useDocumentTitle(tree ? (tree.session.title ?? t('gym.session')) : undefined);
   const rest = useRestTimer(clock);
   const [asker, asking] = useAsker();
   const [adding, setAdding] = useState(false);
@@ -619,7 +623,7 @@ export function SessionScreen() {
     }
     // The picture on the way out is offered by the gym, once this screen has gone.
     const album = await albumForPicture(db, outcome.albumUuid);
-    void navigate('/app/body/gym', album ? { state: { gymPicture: album } satisfies PictureState } : undefined);
+    background(navigate('/app/body/gym', album ? { state: { gymPicture: album } satisfies PictureState } : undefined));
   }
 
   /** Drops the session; [asked] when the left-behind question was already the first asking. */
@@ -645,7 +649,7 @@ export function SessionScreen() {
     }
     rest.stop();
     await sessions.discard(uuid);
-    void navigate('/app/body/gym');
+    background(navigate('/app/body/gym'));
   }
 
   async function sessionNote() {
@@ -664,7 +668,7 @@ export function SessionScreen() {
       {back}
       <div className="flex items-start gap-2">
         <div className="flex min-w-0 flex-1 flex-col">
-          <h1 className="truncate text-2xl font-extrabold">{session.title ?? t('gym.session')}</h1>
+          <h1 dir="auto" className="line-clamp-3 text-2xl font-extrabold [overflow-wrap:anywhere]">{session.title ?? t('gym.session')}</h1>
           <p className="text-sm text-muted-foreground" aria-live="polite">
             {t('gym.sessionProgress', { done: tree.doneSets, total: tree.totalSets })}
           </p>
@@ -676,16 +680,16 @@ export function SessionScreen() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => void sessionNote()}>{t('gym.sessionNote')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => runAction(() => sessionNote())}>{t('gym.sessionNote')}</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => setAdding(true)}>{t('gym.addExercise')}</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => void discard()} className="text-destructive">
+            <DropdownMenuItem onSelect={() => runAction(() => discard())} className="text-destructive">
               {t('gym.discardSession')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      {session.note && <p className="text-sm text-muted-foreground">{session.note}</p>}
+      {session.note && <p dir="auto" className="text-sm text-muted-foreground">{session.note}</p>}
       <ul className="flex flex-col gap-3">
         {tree.exercises.map((exercise, index) => (
           <ExerciseCard key={exercise.row.uuid} exercise={exercise} number={index + 1} rest={rest} asker={asker} />
@@ -699,8 +703,8 @@ export function SessionScreen() {
       <div className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] z-20 flex flex-col gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur md:bottom-4">
         <RestBar rest={rest} />
         <div className="flex items-center justify-between gap-2">
-          <ClockButton session={session} staleDays={stale ? HarvestDay.parse(session.harvestDay).daysUntil(today) : 0} onToggle={() => void (session.pausedAt === null ? sessions.pause(uuid) : sessions.resume(uuid))} />
-          <Button disabled={finishing} onClick={() => void once(finish)}>
+          <ClockButton session={session} staleDays={stale ? HarvestDay.parse(session.harvestDay).daysUntil(today) : 0} onToggle={() => runAction(() => (session.pausedAt === null ? sessions.pause(uuid) : sessions.resume(uuid)))} />
+          <Button disabled={finishing} onClick={() => runAction(() => once(finish))}>
             <FlagIcon />
             {t('gym.finish')}
           </Button>
@@ -711,7 +715,7 @@ export function SessionScreen() {
           onClose={() => setAdding(false)}
           onPick={(picked) => {
             setAdding(false);
-            void sessions.addExercise(uuid, picked.id);
+            runAction(() => sessions.addExercise(uuid, picked.id));
           }}
         />
       )}
@@ -731,7 +735,7 @@ export function SessionScreen() {
                 className="text-destructive"
                 onClick={() => {
                   setStaleOpen(false);
-                  void discard(true);
+                  runAction(() => discard(true));
                 }}
               >
                 {t('gym.discardSession')}
@@ -739,7 +743,7 @@ export function SessionScreen() {
               <Button
                 onClick={() => {
                   setStaleOpen(false);
-                  void once(() => complete(lastActivity(tree)));
+                  runAction(() => once(() => complete(lastActivity(tree))));
                 }}
               >
                 {t('gym.staleFinish', { day: dayName(session.harvestDay) })}

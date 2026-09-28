@@ -44,6 +44,9 @@ class HarvestShell extends ConsumerStatefulWidget {
 }
 
 class _HarvestShellState extends ConsumerState<HarvestShell> {
+  /// The tabs' own messenger (U6-16).
+  final _tabMessenger = GlobalKey<ScaffoldMessengerState>();
+
   @override
   void didUpdateWidget(HarvestShell old) {
     super.didUpdateWidget(old);
@@ -54,7 +57,9 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
     if (old.navigationShell.currentIndex !=
         widget.navigationShell.currentIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) ScaffoldMessenger.maybeOf(context)?.clearSnackBars();
+        if (!mounted) return;
+        _tabMessenger.currentState?.clearSnackBars();
+        ScaffoldMessenger.maybeOf(context)?.clearSnackBars();
       });
     }
   }
@@ -179,28 +184,47 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
       // signing in and at a start without one ([[Accounts]]).
       child: SyncPinPrompt(
         child: Scaffold(
-          body: widget.navigationShell,
+          // The tabs keep their own messenger, so a snack bar shows in
+          // the tab's Scaffold and lifts its floating button, not over
+          // it (U6-16).
+          body: ScaffoldMessenger(
+            key: _tabMessenger,
+            child: widget.navigationShell,
+          ),
           bottomNavigationBar: typing
               ? null
-              : NavigationBar(
-                  selectedIndex: current < 0 ? 0 : current,
-                  onDestinationSelected: (index) {
-                    unawaited(HarvestHaptics.tick());
-                    final branch = tabs[index].branch;
-                    widget.navigationShell.goBranch(
-                      branch,
-                      initialLocation:
-                          branch == widget.navigationShell.currentIndex,
-                    );
-                  },
-                  destinations: [
-                    for (final tab in tabs)
-                      NavigationDestination(
-                        icon: Icon(tab.icon),
-                        selectedIcon: Icon(tab.active),
-                        label: tab.label,
+              // Too narrow for a word under every icon, the icons carry
+              // the bar alone (their tooltips still name them), and the
+              // labels never grow past 1.15× at a large font: "Granary"
+              // broke as "Granar/y" (U6-12).
+              : LayoutBuilder(
+                  builder: (context, constraints) =>
+                      MediaQuery.withClampedTextScaling(
+                        maxScaleFactor: 1.15,
+                        child: NavigationBar(
+                          selectedIndex: current < 0 ? 0 : current,
+                          labelBehavior: constraints.maxWidth / tabs.length < 64
+                              ? NavigationDestinationLabelBehavior.alwaysHide
+                              : null,
+                          onDestinationSelected: (index) {
+                            unawaited(HarvestHaptics.tick());
+                            final branch = tabs[index].branch;
+                            widget.navigationShell.goBranch(
+                              branch,
+                              initialLocation:
+                                  branch == widget.navigationShell.currentIndex,
+                            );
+                          },
+                          destinations: [
+                            for (final tab in tabs)
+                              NavigationDestination(
+                                icon: Icon(tab.icon),
+                                selectedIcon: Icon(tab.active),
+                                label: tab.label,
+                              ),
+                          ],
+                        ),
                       ),
-                  ],
                 ),
         ),
       ),

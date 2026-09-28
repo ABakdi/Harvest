@@ -48,7 +48,7 @@ describe('the sync PIN prompt', () => {
     expect(field).toHaveAttribute('inputmode', 'numeric');
     expect(field).toHaveAttribute('autocomplete', 'off');
     expect(field).toHaveAttribute('maxlength', '6');
-    expect(screen.getByText(/A PIN is quick; a longer passphrase keeps your data safer/)).toBeInTheDocument();
+    expect(await screen.findByText(/A PIN is quick; a longer passphrase keeps your data safer/)).toBeInTheDocument();
   });
 
   it('on the first device, has it chosen and typed twice', async () => {
@@ -124,6 +124,7 @@ describe('the sync PIN prompt', () => {
     );
     expect(await h.keyring.key(testUser.syncSalt)).toBeNull();
 
+    await user.clear(screen.getByLabelText('Sync PIN (4 to 6 digits)'));
     await user.type(screen.getByLabelText('Sync PIN (4 to 6 digits)'), '2468');
     await user.click(screen.getByRole('button', { name: 'Unlock' }));
     await waitFor(() => expect(unlocked).toHaveBeenCalled(), { timeout: 15_000 });

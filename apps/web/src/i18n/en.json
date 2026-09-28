@@ -2,6 +2,7 @@
   "account": {
     "allSent": "Everything is sent",
     "allSettings": "All account settings",
+    "devicesOffline": "Your devices appear here when you're back online.",
     "label": "Account and sync",
     "mark": {
       "error": "Sync problem",
@@ -11,7 +12,11 @@
       "synced": "Synced"
     },
     "offline": "Offline",
-    "online": "Online"
+    "online": "Online",
+    "syncWhenOnline": "Sync starts again as soon as you're back online."
+  },
+  "actions": {
+    "storageFull": "This browser has no room left for Harvest's data. Free some space and try again."
   },
   "app": {
     "bootFailedBody": "The server answered with an error. Try again in a moment.",
@@ -75,12 +80,14 @@
     "transcribeUnknown": "This is not a kind of recording the server can transcribe."
   },
   "auth": {
-    "accountOptional": "Harvest works fully without an account, forever. This one only syncs.",
+    "accountOptional": "The Android app works fully without an account, forever. In the browser, the account is what keeps your field here and brings it to your phone.",
     "backToSignIn": "Back to sign in",
+    "browserNeedsAccount": "Harvest in the browser works with a free account. The Android app works without one.",
     "checkEmailBody": "A verification link is on its way to {{email}}.",
     "checkEmailTitle": "Check your email",
     "confirmPassword": "The same, again",
     "createAccount": "Create account",
+    "createFree": "Create a free account",
     "creating": "Creating…",
     "displayName": "Name (optional)",
     "email": "Email",
@@ -95,6 +102,7 @@
     "forgotLink": "Forgot the password?",
     "forgotSent": "If that address has an account, a reset link is on its way. It works for one hour.",
     "forgotTitle": "Reset the password",
+    "getAndroid": "Get the Android app",
     "haveAccount": "I have an account",
     "linkInvalid": "This link is invalid, used or expired.",
     "loginLead": "Your field, on this browser too.",
@@ -107,8 +115,10 @@
     "resetDoneBody": "Every device was signed out. Sign in with the new password.",
     "resetDoneTitle": "Password set",
     "resetLead": "Setting it signs out every device.",
+    "resetPassword": "Reset the password",
     "resetTitle": "Set a new password",
     "sendLink": "Send the link",
+    "sendNewLink": "Send a new link",
     "setPassword": "Set the password",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
@@ -326,6 +336,14 @@
     "verifyHint": "To check the file, compare its SHA-256 with the one above (for example with sha256sum on a computer).",
     "version": "Version"
   },
+  "errorScreen": {
+    "back": "Go back",
+    "body": "This screen could not be shown. What you saved is safe; reloading usually fixes it.",
+    "newVersionBody": "A newer version is waiting. Reloading picks it up.",
+    "newVersionTitle": "Harvest was updated",
+    "reload": "Reload",
+    "title": "Something went wrong"
+  },
   "farmer": {
     "archive": "The archive",
     "archiveEmpty": "No seeds put away.",
@@ -418,7 +436,8 @@
     "xpEarned_one": "+{{count}} XP",
     "xpEarned_other": "+{{count}} XP",
     "xpToday_one": "{{count}} XP today",
-    "xpToday_other": "{{count}} XP today"
+    "xpToday_other": "{{count}} XP today",
+    "xpTotal": "{{xp}} XP"
   },
   "fileState": {
     "enterPin": "Enter sync PIN",
@@ -430,6 +449,7 @@
   "focus": {
     "abandon": "Abandon",
     "abandonBody": "The field will wait.",
+    "abandonTitle": "Abandon this block?",
     "blockDone_one": "Focus block done · +{{count}} XP. Take a break.",
     "blockDone_other": "Focus block done · +{{count}} XP. Take a break.",
     "blocksDone_one": "{{count}} block done",
@@ -438,6 +458,7 @@
     "chipLabel": "Focus timer, {{time}} left",
     "finish": "Finish session",
     "free": "Free focus",
+    "keepGoing": "Keep going",
     "lengths": "{{focus}} min focus · {{short}} min break · {{long}} min long break every {{every}} blocks",
     "pause": "Pause",
     "phase": {
@@ -556,6 +577,7 @@
     "trash_one": "Trash ({{count}})",
     "trash_other": "Trash ({{count}})",
     "untitled": "No caption",
+    "uploadFailing": "Some pictures or recordings could not be sent. They stay in this browser and are tried again later.",
     "video": "Video",
     "wholeAlbum": "The whole album"
   },
@@ -636,6 +658,7 @@
     "subtaskCountLabel": "Subtasks: {{done}} of {{total}} done",
     "subtasksOf": "Subtasks of “{{body}}”",
     "targetDay": "Target day",
+    "targetPast": "That day has already passed.",
     "tasks": "Tasks",
     "title": "What I’m working toward",
     "titleHint": "Run a half marathon",
@@ -887,7 +910,8 @@
     "unitHint": "The same setting as body weight. Loads are stored exactly; only how they read changes."
   },
   "home": {
-    "ctaBody": "Install the Android app, or open Harvest right here and add it to your home screen.",
+    "browserAccount": "Harvest in the browser works with a free account, which keeps it in step with your phone. The Android app needs no account.",
+    "ctaBody": "Install the Android app, or open Harvest right here with a free account and add it to your home screen.",
     "ctaTitle": "Start with one seed",
     "feature": {
       "field": {
@@ -901,7 +925,7 @@
         "body": "The granary logs what you spend, day by day. When it syncs, it is encrypted on your device with a sync PIN the server never sees.",
         "p1": "Amounts in DZD, USD or EUR, with categories of your own",
         "p2": "End-to-end encrypted sync for money and places",
-        "p3": "An account is optional: Harvest works fully without one",
+        "p3": "On Android an account is optional: the app works fully without one",
         "title": "Money that stays yours"
       },
       "notes": {
@@ -914,7 +938,7 @@
     },
     "kicker": "Local-first · Android and the web",
     "lead": "Your goals are seeds. Your effort is water. Distractions are weeds. Show up a little every day, keep your streak alive, and harvest the life you are growing.",
-    "offline": "Works with no connection. Your data lives on your device.",
+    "offline": "The Android app works with no connection, and your data lives on your device.",
     "pillar": {
       "finances": "Finances",
       "financesBody": "Log what you spend in seconds, keep the month in view.",
@@ -1089,6 +1113,8 @@
     "amount": "Amount",
     "amountHint": "A number or a sum, like 120+30",
     "balancesTab": "Balances",
+    "bigAmount": "That's {{amount}}. Log it?",
+    "bigConfirm": "Yes, log it",
     "cat": {
       "bills": "Bills",
       "entertainment": "Fun",
@@ -1155,7 +1181,7 @@
     "removeBody": "{{amount}} will be removed from the day, and any wallet withdrawal it made will be refunded.",
     "removeCategory": "Remove {{name}}",
     "removeTitle": "Delete this expense?",
-    "removed": "Removed",
+    "removed": "Expense removed",
     "repeatLogged": "Logged {{amount}} again",
     "repeatTitle": "Same as the last 3 days?",
     "saved": "Saved",
@@ -1183,6 +1209,7 @@
     "harvest": "Harvest",
     "health": "Health",
     "main": "Main",
+    "more": "More",
     "notes": "Notes",
     "progress": "Progress",
     "records": "Records",
@@ -1473,7 +1500,10 @@
   },
   "pwa": {
     "reload": "Reload to update",
-    "updateReady": "A new version of Harvest is ready."
+    "reloadAnyway": "Reload anyway",
+    "saveFirst": "Something being typed did not save yet, so the page was not reloaded.",
+    "updateReady": "A new version of Harvest is ready.",
+    "updatedElsewhere": "Harvest was updated in another tab. Your edits here are saved."
   },
   "ratesWeb": {
     "cleared": "Rate cleared",
@@ -1506,7 +1536,7 @@
     "goal": "Goal",
     "lead": "Type to search; arrows move, Enter opens.",
     "nothing": "Nothing matches that.",
-    "placeholder": "Search seeds, goals and notes"
+    "placeholder": "Search seeds, goals, notes and lists"
   },
   "seed": {
     "advanced": "Advanced",
@@ -1587,6 +1617,8 @@
     "account": "Account",
     "actionsADay_one": "{{count}} action a day",
     "actionsADay_other": "{{count}} actions a day",
+    "allDevices_one": "Show all {{count}}",
+    "allDevices_other": "Show all {{count}}",
     "appearance": "Appearance",
     "client": {
       "mobile": "A phone",
@@ -1601,6 +1633,7 @@
     "deleteTitle": "Delete your account?",
     "devices": "Devices",
     "enterPassphrase": "Enter your sync PIN",
+    "fewerDevices": "Show fewer",
     "harvest": "Harvest",
     "invalid_one": "{{count}} change the server refused",
     "invalid_other": "{{count}} changes the server refused",
@@ -1617,8 +1650,10 @@
       "records": "Go to records",
       "search": "Search",
       "seed": "Plant a seed",
-      "settings": "Go to settings"
+      "settings": "Go to settings",
+      "space": "Space"
     },
+    "lastSeen": "last seen {{last}}",
     "lastSynced": "Last synced",
     "locked_one": "{{count}} private change waiting for the sync PIN",
     "locked_other": "{{count}} private changes waiting for the sync PIN",
@@ -1634,6 +1669,9 @@
     "signOutAnyway": "Sign out anyway",
     "signOutDevice": "Sign out {{name}}",
     "signOutHere": "Sign out of this browser",
+    "signOutOthers": "Sign out everywhere else",
+    "signedInAgo": "Signed in {{ago}}",
+    "signedOutOthers": "Signed out everywhere else",
     "sync": "Sync",
     "syncFirst": "Sync first",
     "thisDevice": "This device",
@@ -1834,9 +1872,12 @@
   },
   "syncPin": {
     "change": "Change PIN",
+    "changeConfirm": "Continue to a new PIN",
+    "changeNext": "Next you choose the new PIN.",
     "changedElsewhere": "Your PIN was changed on another device. Enter the new one.",
     "choose": "Use it",
     "chooseTitle": "Choose a sync PIN",
+    "chooseWhy": "No sync PIN yet. Choose one to encrypt your money, places and pictures before they sync; use the same one on every device.",
     "chosenElsewhere": "Another device set the sync PIN a moment ago. Enter that one.",
     "confirmPassphrase": "The same passphrase again",
     "confirmPin": "The same PIN again",
@@ -1844,7 +1885,7 @@
     "enterTitle": "Enter your sync PIN",
     "firstTime": "Nothing encrypted has arrived here yet, so it can't be checked: type it twice. Use the same one on every device.",
     "forget": "Forget it on this browser",
-    "forgetBody": "What is already here stays. New money, places and pictures wait in this browser until you enter it again.",
+    "forgetBody": "What is already here stays in this browser, locked until you enter the PIN again: money, places and pictures are hidden until then, and new ones wait here instead of syncing.",
     "forgetTitle": "Forget the sync PIN on this browser?",
     "forgot": "Forgot the PIN? Start over",
     "forgotten": "Forgotten on this browser",
@@ -1862,12 +1903,21 @@
       "pinTooSimple": "Too easy to guess. Avoid one digit repeated, runs like 1234, and pairs like 1212."
     },
     "setHere": "Set in this browser",
+    "setPassphraseInstead": "I set a passphrase instead",
+    "setPinInstead": "I set a PIN instead",
     "sixDigits": "6 digits is best. Type it twice, and use the same one on every device.",
     "startOver": "Start the PIN over",
     "startOverBody": "This deletes the money, places and pictures kept on the server for this account, and the PIN with them. This browser then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
     "startOverConfirm": "Start over",
+    "startedOver": "The PIN was just started over on another device. Choose a new one.",
     "title": "Sync PIN",
+    "tooManySoon": "Too many tries. Try again later.",
+    "tooMany_one": "Too many tries. Try again in {{count}} minute.",
+    "tooMany_other": "Too many tries. Try again in {{count}} minutes.",
     "tradeOff": "A PIN is quick; a longer passphrase keeps your data safer if the server's database were ever copied.",
+    "triesLeft_one": "{{count}} try left.",
+    "triesLeft_other": "{{count}} tries left.",
+    "triesLeft_zero": "No tries left for now.",
     "unlock": "Unlock",
     "unreachable": "The server could not be reached to check the PIN. Try again when you're online.",
     "usePassphrase": "Use a passphrase instead",
@@ -1939,7 +1989,7 @@
     "savingsDeposit": "Save",
     "savingsLow": "Savings running low",
     "savingsWithdraw": "Withdraw",
-    "searchMoves": "Search notes",
+    "searchMoves": "Search moves",
     "settled": "Settled",
     "showPayments": "Payments · {{count}}",
     "showing": "Showing {{matches}} of {{total}}",
@@ -2020,6 +2070,7 @@
     "editOf": "Edit {{weight}}",
     "empty": "No weights yet. Log one — the line has a shape from the third.",
     "history": "Every reading",
+    "implausible": "That is outside 20–400 kg, so it looks like a typo. Check the number.",
     "label": "Weight ({{unit}})",
     "lead": "Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.",
     "log": "Log a weight",

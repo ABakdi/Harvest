@@ -15,11 +15,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { formatDay } from '@/lib/format';
+import { formatDay, shortName } from '@/lib/format';
 import { EmptyState } from '../components/bits';
 import { useHarvest } from '../context';
 import type { SeedRow } from '../data/seeds';
 import { HarvestDay } from '@harvest/core';
+import { runAction } from '@/lib/actions';
 
 const typeIcon = { habit: RepeatIcon, project: FlagIcon, todo: NotebookTextIcon } as const;
 
@@ -58,7 +59,7 @@ export function ArchiveScreen() {
                   </span>
                   <div className="flex min-w-0 flex-1 flex-col">
                     {/* The whole card opens the seed's page, as on the phone. */}
-                    <Link
+                    <Link dir="auto"
                       to={`/app/field/seed/${seed.uuid}`}
                       className="truncate text-lg font-extrabold outline-none after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:ring-2 focus-visible:ring-ring"
                     >
@@ -81,7 +82,7 @@ export function ArchiveScreen() {
                     variant="ghost"
                     size="sm"
                     className="text-primary"
-                    onClick={() => void seeds.restore(seed.uuid).then(() => toast.success(t('farmer.restoredToField', { title: seed.title })))}
+                    onClick={() => runAction(() => seeds.restore(seed.uuid).then(() => toast.success(t('farmer.restoredToField', { title: shortName(seed.title) }))))}
                   >
                     <ArchiveRestoreIcon />
                     {t('archive.restore')}

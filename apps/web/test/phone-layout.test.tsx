@@ -35,9 +35,9 @@ describe('the bottom bar on a phone-width window', () => {
     expect(barTabs({ ...none, gym: true })).toEqual(['field', 'granary', 'body', 'farmer']);
   });
 
-  it('leaves the wide rail in the order the web has always had', () => {
-    expect(railTabs(all)).toEqual(['field', 'body', 'records', 'granary', 'farmer']);
-    expect(railTabs({ ...none, health: true })).toEqual(['field', 'body', 'granary', 'farmer']);
+  it('gives the wide rail the same order, so crossing 768 px moves nothing (W6-30)', () => {
+    expect(railTabs(all)).toEqual(['field', 'granary', 'records', 'body', 'farmer']);
+    expect(railTabs({ ...none, health: true })).toEqual(['field', 'granary', 'body', 'farmer']);
   });
 
   it('lights the Farmer up on Settings, which lives under it', async () => {

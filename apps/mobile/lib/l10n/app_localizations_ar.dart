@@ -424,7 +424,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statsBestStreak => 'أفضل سلسلة';
 
   @override
-  String get statsCheckIns => 'الإنجازات';
+  String get statsCheckIns => 'التسجيلات';
 
   @override
   String get statsActivity => 'النشاط';
@@ -552,7 +552,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String projectDoneBody(String title, int total) {
-    return '\"$title\" اكتمل — سُجّل $total. يُؤرشف بفخر.';
+    return '«$title» اكتمل — سُجّل $total. يُؤرشف بفخر.';
   }
 
   @override
@@ -766,11 +766,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get totalSpent => 'الإجمالي';
-
-  @override
-  String avgPerDay(String amount) {
-    return '$amount / يوم';
-  }
 
   @override
   String get noSpendingYet => 'لا إنفاق في هذه الفترة بعد.';
@@ -1086,6 +1081,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: 'السلسلة: $count أيام',
       two: 'السلسلة: يومان',
       one: 'السلسلة: يوم واحد',
+      zero: 'السلسلة: لا أيام',
     );
     return '$_temp0';
   }
@@ -1128,6 +1124,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: 'كل $count أيام',
       two: 'كل يومين',
       one: 'كل يوم',
+      zero: 'كل يوم',
     );
     return '$_temp0';
   }
@@ -1142,6 +1139,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$count مرات في الأسبوع',
       two: 'مرتان في الأسبوع',
       one: 'مرة في الأسبوع',
+      zero: 'لا مرات في الأسبوع',
     );
     return '$_temp0 · أُنجز $done';
   }
@@ -1465,6 +1463,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$count وحدات',
       two: 'وحدتان',
       one: 'وحدة واحدة',
+      zero: 'لا وحدات',
     );
     return '$_temp0';
   }
@@ -1665,6 +1664,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$count تذكيرات صارت داخل نومك',
       two: 'تذكيران صارا داخل نومك',
       one: 'تذكير واحد صار داخل نومك',
+      zero: 'لا تذكير داخل نومك',
     );
     return '$_temp0';
   }
@@ -1833,7 +1833,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesDeleteTitle => 'أتحذف هذه الملاحظة؟';
 
   @override
-  String get notesDeleteBody => 'ستغادر الخزانة. يمكنك التراجع فورًا.';
+  String get notesDeleteBody =>
+      'تذهب إلى المهملات مع تسجيلاتها. يمكنك التراجع عن هذا فورًا.';
 
   @override
   String notesBacklinks(int count) {
@@ -1845,6 +1846,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$count ملاحظات تشير إلى هنا',
       two: 'ملاحظتان تشيران إلى هنا',
       one: 'ملاحظة واحدة تشير إلى هنا',
+      zero: 'لا ملاحظات تشير إلى هنا',
     );
     return '$_temp0';
   }
@@ -2193,6 +2195,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: 'أتفرغ المهملات — $count عناصر؟',
       two: 'أتفرغ المهملات — عنصران؟',
       one: 'أتفرغ المهملات — عنصر واحد؟',
+      zero: 'المهملات فارغة',
     );
     return '$_temp0';
   }
@@ -2531,16 +2534,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gymCatalogueHint =>
-      'ابحث بالاسم أو العضلة أو الأداة — فالسؤال أثناء الجلسة عادةً: ماذا أيضًا يشتغل على هذه.';
+      'ابحث بالاسم أو العضلة أو الأداة — أثناء الجلسة يكون السؤال عادةً: «ما الذي يشغّل هذه العضلة أيضًا؟»';
 
   @override
-  String gymExerciseCount(int count) {
+  String gymExerciseCount(int count, String shown) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count تمرين',
-      many: '$count تمرينًا',
-      few: '$count تمارين',
+      other: '$shown تمرين',
+      many: '$shown تمرينًا',
+      few: '$shown تمارين',
       two: 'تمرينان',
       one: 'تمرين واحد',
       zero: 'لا تمارين',
@@ -2803,6 +2806,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$count تمارين تحتاج حدًّا تدريبيًا',
       two: 'تمرينان يحتاجان حدًّا تدريبيًا',
       one: 'تمرين واحد يحتاج حدًّا تدريبيًا',
+      zero: 'لا تمارين تحتاج حدًّا تدريبيًا',
     );
     return '$_temp0';
   }
@@ -3143,6 +3147,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$count أيام لها وقتها',
       two: 'يومان لهما وقتهما',
       one: 'يوم له وقته',
+      zero: 'لا أيام لها وقتها',
     );
     return '$_temp0';
   }
@@ -3205,6 +3210,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$times مرات في الأسبوع',
       two: 'مرتان في الأسبوع',
       one: 'مرة في الأسبوع',
+      zero: 'لا مرات في الأسبوع',
     );
     return '$_temp0';
   }
@@ -3288,6 +3294,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$sets مجموعات',
       two: 'مجموعتان',
       one: 'مجموعة واحدة',
+      zero: 'لا مجموعات',
     );
     return '$_temp0 · $volume';
   }
@@ -3369,6 +3376,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: 'مضت $count أيام',
       two: 'مضى يومان',
       one: 'مضى يوم واحد',
+      zero: 'مضى اليوم',
     );
     return '$_temp0';
   }
@@ -3501,7 +3509,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get featurePlacesHint =>
-      'أين ذهبتُ وماذا فعلت هناك: مسار ودبوس على كل فعل. لا شيء يغادر الهاتف.';
+      'أين ذهبتَ وماذا فعلتَ هناك: مسار ودبوس على كل فعل. لا شيء يغادر الهاتف.';
 
   @override
   String get placesDay => 'يوم';
@@ -3956,20 +3964,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountNeverSynced => 'لم تتم المزامنة بعد';
 
   @override
-  String accountPending(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count تغيير ينتظر',
-      many: '$count تغييرًا ينتظر',
-      few: '$count تغييرات تنتظر',
-      two: 'تغييران ينتظران',
-      one: 'تغيير واحد ينتظر',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String accountRefused(int count) {
     return '$count تغييرات رفضها الخادم';
   }
@@ -4133,6 +4127,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: 'المجموعات الـ$done كلها تذهب نهائيًا، والجلسة معها.',
       two: 'المجموعتان اللتان سجّلتهما تذهبان نهائيًا، والجلسة معهما.',
       one: 'المجموعة التي سجّلتها تذهب نهائيًا، والجلسة معها.',
+      zero: 'لم تُسجَّل أي مجموعة، والجلسة تذهب نهائيًا.',
     );
     return '$_temp0';
   }
@@ -4829,4 +4824,299 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String syncPinTriesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بقيت $count محاولة.',
+      many: 'بقيت $count محاولة.',
+      few: 'بقيت $count محاولات.',
+      two: 'بقيت محاولتان.',
+      one: 'بقيت محاولة واحدة.',
+      zero: 'لم تبقَ محاولات الآن.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncPinTooMany(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'محاولات كثيرة. حاول بعد $minutes دقيقة.',
+      many: 'محاولات كثيرة. حاول بعد $minutes دقيقة.',
+      few: 'محاولات كثيرة. حاول بعد $minutes دقائق.',
+      two: 'محاولات كثيرة. حاول بعد دقيقتين.',
+      one: 'محاولات كثيرة. حاول بعد دقيقة.',
+      zero: 'محاولات كثيرة. حاول بعد قليل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTooManySoon => 'محاولات كثيرة. حاول لاحقًا.';
+
+  @override
+  String get syncPinStartedOver =>
+      'بدأ رمز المزامنة من جديد على جهاز آخر للتو. اختر رمزًا جديدًا.';
+
+  @override
+  String get accountServerNotSecure =>
+      'استخدم https:// للخادم. عنوان http:// العادي لهذا الجهاز أو المحاكي فقط (localhost و127.0.0.1 و10.0.2.2).';
+
+  @override
+  String get assistBaseUrlNotSecure =>
+      'استخدم https:// لعنوان المساعد. عنوان http:// العادي لهذا الجهاز أو المحاكي فقط.';
+
+  @override
+  String get dataUnavailableTitle => 'تعذّر فتح بياناتك الآن';
+
+  @override
+  String get dataUnavailableBody =>
+      'لم يستجب التخزين الآمن للهاتف. لم يتغيّر شيء ولم يُحذف شيء. حاول مجددًا، أو أعد تشغيل الهاتف إن تكرر ذلك.';
+
+  @override
+  String amountLargeTitle(String amount) {
+    return '$amount؟';
+  }
+
+  @override
+  String get amountLargeBody =>
+      'هذا أكثر بكثير مما يُسجَّل عادةً دفعة واحدة. هل المبلغ صحيح؟';
+
+  @override
+  String get amountLargeConfirm => 'نعم، صحيح';
+
+  @override
+  String get perDay => 'في اليوم';
+
+  @override
+  String categoryRemove(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
+  String categoryRemoved(String name) {
+    return 'أُزيلت $name';
+  }
+
+  @override
+  String get gymSessionMenu => 'المزيد لهذه الجلسة';
+
+  @override
+  String get gymExerciseMenu => 'المزيد لهذا التمرين';
+
+  @override
+  String get gymProgramMenu => 'المزيد لهذا البرنامج';
+
+  @override
+  String get gymDayMenu => 'المزيد لهذا اليوم';
+
+  @override
+  String weightImplausible(String range) {
+    return 'وزن بين $range';
+  }
+
+  @override
+  String get accountDevicesRetry => 'حاول مجددًا';
+
+  @override
+  String accountEndSessionTitle(String name) {
+    return 'تسجيل خروج $name؟';
+  }
+
+  @override
+  String get accountEndSessionBody =>
+      'يتوقف ذلك الجهاز عن المزامنة حتى يسجّل أحد الدخول عليه مجددًا. لا يُحذف شيء منه.';
+
+  @override
+  String accountSessionEnded(String name) {
+    return 'سُجّل خروج $name';
+  }
+
+  @override
+  String accountSignedInOn(String day) {
+    return 'سجّل الدخول $day';
+  }
+
+  @override
+  String get accountChangesWaiting => 'تغييرات تنتظر المزامنة';
+
+  @override
+  String get syncPinForgetTitle => 'أتنسى رمز المزامنة على هذا الهاتف؟';
+
+  @override
+  String get syncPinForgetBody =>
+      'ما هو هنا يبقى. المال والأماكن والصور القادمة من أجهزتك الأخرى تبقى مقفلة هنا، والجديد منها ينتظر، حتى تدخل الرمز مجددًا.';
+
+  @override
+  String get joinTitle => 'على هذا الهاتف بيانات من قبل';
+
+  @override
+  String get joinBody =>
+      'أنشأت أشياء على هذا الهاتف قبل تسجيل الدخول. أتضيفها إلى حسابك، أم تبدأ مما في الحساب؟';
+
+  @override
+  String get joinBring => 'أضف بيانات هذا الهاتف إلى الحساب';
+
+  @override
+  String get joinStartFromAccount => 'ابدأ من بيانات الحساب';
+
+  @override
+  String get joinStartFromAccountNote =>
+      'تُحفظ بيانات هذا الهاتف أولًا في أرشيف في التنزيلات، ثم تحلّ محلها بيانات الحساب. لا يضيع شيء.';
+
+  @override
+  String get joinArchiveFailed =>
+      'تعذّر حفظ الأرشيف، فلم يُستبدل شيء. حاول مجددًا، أو أضف البيانات إلى الحساب.';
+
+  @override
+  String joinArchived(String path) {
+    return 'حُفظت بيانات هذا الهاتف في $path';
+  }
+
+  @override
+  String get obHaveAccount => 'لديّ حساب من قبل';
+
+  @override
+  String get assistChecking => 'جارٍ البحث عن المساعد…';
+
+  @override
+  String dailyGoalProgress(int actions, int goal) {
+    return '$actions من $goal إنجازات اليوم لحصاد اليوم';
+  }
+
+  @override
+  String dailyGoalMet(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إنجاز — بلغت هدف حصاد اليوم',
+      many: '$count إنجازًا — بلغت هدف حصاد اليوم',
+      few: '$count إنجازات — بلغت هدف حصاد اليوم',
+      two: 'إنجازان — بلغت هدف حصاد اليوم',
+      one: 'إنجاز واحد — بلغت هدف حصاد اليوم',
+      zero: 'لا إنجازات — بلغت هدف حصاد اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakZeroWhy(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other:
+          'يدخل اليوم السلسلة حين يبلغ $goal إنجاز. ابلغها اليوم لتبدأ واحدة.',
+      many:
+          'يدخل اليوم السلسلة حين يبلغ $goal إنجازًا. ابلغها اليوم لتبدأ واحدة.',
+      few:
+          'يدخل اليوم السلسلة حين يبلغ $goal إنجازات. ابلغها اليوم لتبدأ واحدة.',
+      two: 'يدخل اليوم السلسلة حين يبلغ إنجازين. ابلغهما اليوم لتبدأ واحدة.',
+      one: 'يدخل اليوم السلسلة حين يبلغ إنجازًا واحدًا. ابلغه اليوم لتبدأ واحدة.',
+      zero: 'يدخل اليوم السلسلة حين يبلغ هدفه. ابلغه اليوم لتبدأ واحدة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakHowItGrows(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other: 'كل يوم فيه $goal إنجاز يُبقيها.',
+      many: 'كل يوم فيه $goal إنجازًا يُبقيها.',
+      few: 'كل يوم فيه $goal إنجازات يُبقيها.',
+      two: 'كل يوم فيه إنجازان يُبقيها.',
+      one: 'كل يوم فيه إنجاز واحد يُبقيها.',
+      zero: 'كل يوم يبلغ هدفه يُبقيها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notesPickTitle => 'اختر ملاحظة';
+
+  @override
+  String get notesPickBody => 'ملاحظاتك في القائمة، مع مجلداتها.';
+
+  @override
+  String get notesShowList => 'اعرض الملاحظات';
+
+  @override
+  String get goalAchievedLabel => 'تحقّق';
+
+  @override
+  String goalAchievedOn(String day) {
+    return 'تحقّق في $day';
+  }
+
+  @override
+  String get goalDroppedLabel => 'متروك';
+
+  @override
+  String get goalsNoActiveTitle => 'لا هدف قيد العمل';
+
+  @override
+  String goalDeleteBody(String title) {
+    return 'يُحذف «$title» وعناصره، ومعه ما دفعه تحقيقه. التراجع يعيدها.';
+  }
+
+  @override
+  String cropUndoCheckIn(String title) {
+    return 'تراجع عن تسجيل اليوم لـ$title';
+  }
+
+  @override
+  String seedPausedSnack(String title) {
+    return '«$title» في استراحة';
+  }
+
+  @override
+  String seedResumedSnack(String title) {
+    return '«$title» عاد إلى الحقل';
+  }
+
+  @override
+  String geoGone(String kind) {
+    return '$kind · لم يعد موجودًا';
+  }
+
+  @override
+  String get accountEndOthers => 'تسجيل خروج كل الأجهزة الأخرى';
+
+  @override
+  String get accountEndOthersTitle => 'تسجيل خروج كل جهاز آخر؟';
+
+  @override
+  String get accountEndOthersBody =>
+      'يبقى هذا الهاتف وحده مسجّل الدخول. تتوقف الأجهزة الأخرى عن المزامنة حتى يسجّل أحد الدخول عليها مجددًا. لا يُحذف شيء منها.';
+
+  @override
+  String accountOthersEnded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سُجّل خروج $count جهاز آخر',
+      many: 'سُجّل خروج $count جهازًا آخر',
+      few: 'سُجّل خروج $count أجهزة أخرى',
+      two: 'سُجّل خروج جهازين آخرين',
+      one: 'سُجّل خروج جهاز آخر واحد',
+      zero: 'لم يُسجَّل خروج أي جهاز آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTakesTime =>
+      'صنع المفتاح بطيء عمدًا: بضع ثوانٍ، وقد يصل إلى نحو 20 ثانية على هاتف قديم.';
+
+  @override
+  String get syncPinMenu => 'خيارات رمز المزامنة';
+
+  @override
+  String get syncPinSignedOut =>
+      'هذا الهاتف خارج الحساب. سجّل الدخول من جديد من دائرة الحساب، ثم أدخل الرمز.';
 }

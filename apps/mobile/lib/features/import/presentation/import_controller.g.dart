@@ -59,7 +59,7 @@ final class ImportControllerProvider
   }
 }
 
-String _$importControllerHash() => r'fc93410335466b4c54b94f7a4ffc4ce68fb82264';
+String _$importControllerHash() => r'd1948cac67ff780b21b3b5f4a9849779c90c2399';
 
 /// Picks an archive, reads it, shows what it would do, and — only if
 /// asked again — does it.

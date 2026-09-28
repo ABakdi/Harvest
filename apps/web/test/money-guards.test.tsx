@@ -13,7 +13,7 @@ import { readBudget, readVault } from '@/app/data/vault';
 import { BudgetPanel } from '@/app/screens/budget';
 import { GranaryScreen } from '@/app/screens/granary';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, testUser, writesSettled } from './helpers';
 
 // Radix's switch measures itself; jsdom has nothing to measure with.
 globalThis.ResizeObserver ??= class {
@@ -236,7 +236,7 @@ describe('the Granary’s reads', () => {
     fireEvent.click(button);
     fireEvent.click(button);
     await waitFor(async () => expect((await h.db.rows('expenses').toArray()).filter((row) => row.harvestDay === today.key)).toHaveLength(1));
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await writesSettled(h);
     expect((await h.db.rows('expenses').toArray()).filter((row) => row.harvestDay === today.key)).toHaveLength(1);
   });
 

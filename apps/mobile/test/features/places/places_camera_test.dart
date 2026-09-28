@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:harvest/features/places/presentation/places_screen.dart';
+import 'package:harvest/features/places/presentation/places_map.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 /// Where the map's camera goes for a day's points ([[Places]]).

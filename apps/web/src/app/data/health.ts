@@ -119,11 +119,6 @@ export function atMinutes(day: HarvestDay, minutes: number): Date {
   return new Date(day.year, day.month - 1, day.day, 0, minutes);
 }
 
-/** How far past the morning's local midnight [moment] is. */
-export function minutesFrom(day: HarvestDay, moment: string): number {
-  return Math.round((Date.parse(moment) - atMinutes(day, 0).getTime()) / 60_000);
-}
-
 /**
  * What the sleep card says, worked out with the same rules the phone
  * uses — `packages/core`, from the nights themselves (W2). The debt

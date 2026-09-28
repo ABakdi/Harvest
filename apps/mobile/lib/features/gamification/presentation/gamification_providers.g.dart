@@ -422,3 +422,50 @@ final class WeeklyXpProvider
 }
 
 String _$weeklyXpHash() => r'32a11417aea9c6bc3c7ecee49a85936e144dc03b';
+
+/// Today's productive actions, the count the Daily Harvest Goal is
+/// judged by: what the Field shows as "1 of 3" so a streak at 0 says
+/// why ([[Audit-v3]] U6-03). Re-counted when a check-in, a seed or a
+/// scheduled album's picture changes.
+
+@ProviderFor(todayActions)
+final todayActionsProvider = TodayActionsProvider._();
+
+/// Today's productive actions, the count the Daily Harvest Goal is
+/// judged by: what the Field shows as "1 of 3" so a streak at 0 says
+/// why ([[Audit-v3]] U6-03). Re-counted when a check-in, a seed or a
+/// scheduled album's picture changes.
+
+final class TodayActionsProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
+    with $FutureModifier<int>, $StreamProvider<int> {
+  /// Today's productive actions, the count the Daily Harvest Goal is
+  /// judged by: what the Field shows as "1 of 3" so a streak at 0 says
+  /// why ([[Audit-v3]] U6-03). Re-counted when a check-in, a seed or a
+  /// scheduled album's picture changes.
+  TodayActionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'todayActionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$todayActionsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<int> create(Ref ref) {
+    return todayActions(ref);
+  }
+}
+
+String _$todayActionsHash() => r'630a75a55cd1443830327ece5beebdf4dd9b1826';

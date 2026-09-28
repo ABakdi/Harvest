@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' show Value, Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -81,7 +81,10 @@ void main() {
     await syncB.run();
 
     await NotesRepository(b).update(note.uuid, body: 'from b');
-    await Future<void>.delayed(const Duration(seconds: 1, milliseconds: 100));
+    final fromB = await (b.select(
+      b.notes,
+    )..where((n) => n.uuid.equals(note.uuid))).getSingle();
+    await clockPast(fromB.updatedAt);
     await NotesRepository(a).update(note.uuid, body: 'from a, later');
     await syncB.run();
     await syncA.run();
@@ -270,7 +273,7 @@ void main() {
           ...stored,
           'updatedAt': '2099-01-01T00:00:00.000Z',
         }..remove('seq'),
-      ]);
+      ], keyEpoch: 1);
       final report = await sealedB.run();
       expect(report.locked, 1);
       expect((await b.select(b.expenses).getSingle()).note, 'bread');
@@ -520,6 +523,73 @@ void main() {
     }
   });
 
+  group('batches filled by bytes (Q6-03)', () {
+    Future<void> longNotes(int count, int bytes) async {
+      for (var i = 0; i < count; i++) {
+        final uuid = 'long-$i';
+        await a
+            .into(a.notes)
+            .insert(
+              NotesCompanion.insert(
+                uuid: uuid,
+                title: 'Long $i',
+                body: Value('x' * bytes),
+              ),
+            );
+        await a.logChange('notes', uuid, 'insert');
+      }
+    }
+
+    test('a batch stops before the body limit, and every row goes', () async {
+      await a.delete(a.outbox).go();
+      await syncA.run();
+      await longNotes(6, 900 * 1024);
+      await syncA.run();
+      expect(remote.batches.where((n) => n > 0).skip(1), [4, 2]);
+      expect(await a.select(a.outbox).get(), isEmpty);
+    });
+
+    test('a batch the server finds too large is halved', () async {
+      await syncA.run();
+      await longNotes(5, 10);
+      remote.tooLargeOver = 2;
+      final report = await syncA.run();
+      expect(report.invalid, 0);
+      expect(await a.select(a.outbox).get(), isEmpty);
+      for (var i = 0; i < 5; i++) {
+        expect(remote.row('notes', 'long-$i'), isNotNull);
+      }
+    });
+
+    test('one row too large for any push is refused here, with a reason, '
+        'and the rest still go', () async {
+      await syncA.run();
+      await longNotes(1, 5 * 1024 * 1024);
+      await NotesRepository(a).create(title: 'Small');
+      final report = await syncA.run();
+      expect(report.invalid, 1);
+      expect(report.refusedFor, contains('too_large'));
+      expect(remote.row('notes', 'long-0'), isNull);
+      expect(await a.select(a.outbox).get(), isEmpty);
+      expect(await b.select(b.notes).get(), isEmpty);
+      await syncB.run();
+      expect((await b.select(b.notes).get()).map((n) => n.title), ['Small']);
+    });
+  });
+
+  test("a pull leaves out this device's own writes, except when the "
+      'history is pulled again from nothing', () async {
+    await NotesRepository(a).create(title: 'Mine');
+    await syncA.run();
+    final device = await syncA.deviceId();
+    expect(remote.pulledAs, everyElement(device));
+    remote.pulledAs.clear();
+    await syncA.privateTierOpened();
+    await syncA.run();
+    expect(remote.pulledAs.first, isNull);
+    expect(remote.pulledAs.last, device);
+  });
+
   test('a row refused for a reason that can pass says why, and goes again '
       'an hour later', () async {
     final clock = _Clock(DateTime.now());
@@ -555,9 +625,10 @@ class _Refusing implements SyncRemote {
   @override
   Future<({List<Map<String, Object?>> results, int cursor})> push(
     String deviceId,
-    List<Map<String, Object?>> records,
-  ) async {
-    final answer = await _remote.push(deviceId, records);
+    List<Map<String, Object?>> records, {
+    int? keyEpoch,
+  }) async {
+    final answer = await _remote.push(deviceId, records, keyEpoch: keyEpoch);
     return (
       results: [
         for (final result in answer.results)
@@ -583,6 +654,17 @@ class _Refusing implements SyncRemote {
   @override
   Future<({List<Map<String, Object?>> records, int cursor, bool more})> pull(
     int after,
-    int limit,
-  ) => _remote.pull(after, limit);
+    int limit, {
+    String? deviceId,
+  }) => _remote.pull(after, limit, deviceId: deviceId);
+}
+
+/// Waits until the clock is a whole millisecond past [stamp], the
+/// finest a pushed stamp keeps: a condition on the clock rather than a
+/// fixed second of sleep (PH-16).
+Future<void> clockPast(DateTime stamp) async {
+  while (DateTime.now().millisecondsSinceEpoch <=
+      stamp.millisecondsSinceEpoch) {
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+  }
 }

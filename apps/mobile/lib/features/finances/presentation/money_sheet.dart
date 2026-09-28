@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/presentation/amount_keypad.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -19,18 +20,23 @@ typedef MoneyEntry = ({
   bool fromWallet,
 });
 
-/// Under an amount box holding a sum: what it comes to, or that it is
-/// not finished yet. Null for a plain number, which needs no caption.
-String? amountSumHelper(
-  AppLocalizations l10n,
-  String input,
+/// Asks before an implausibly large amount is saved: above
+/// [plausibleMaxMinor] it is far likelier a slipped finger than a
+/// purchase, and it would dominate every total (W6-15). True when the
+/// amount is ordinary or I said yes.
+Future<bool> confirmLargeAmount(
+  BuildContext context,
+  int minor,
   Currency currency,
-) {
-  if (!isAmountExpression(input)) return null;
-  final minor = evaluateAmountToMinor(input);
-  return minor == null
-      ? l10n.amountSumIncomplete
-      : l10n.amountSum(formatMoney(minor, currency));
+) async {
+  if (isPlausibleAmount(minor)) return true;
+  final l10n = AppLocalizations.of(context);
+  return confirm(
+    context,
+    title: l10n.amountLargeTitle(formatMoney(minor, currency)),
+    body: l10n.amountLargeBody,
+    confirmLabel: l10n.amountLargeConfirm,
+  );
 }
 
 /// The one way an amount is asked for in the vault: a big number, the
@@ -129,8 +135,10 @@ class _MoneySheetState extends State<_MoneySheet> {
   bool get _useWallet =>
       _hasWalletOption && (_fromWallet ?? _walletCanCover) && _walletCanCover;
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_valid) return;
+    if (!await confirmLargeAmount(context, _minor!, _currency)) return;
+    if (!mounted) return;
     unawaited(HarvestHaptics.tick());
     final note = _noteController.text.trim();
     Navigator.of(context).pop(
@@ -153,41 +161,21 @@ class _MoneySheetState extends State<_MoneySheet> {
       title: widget.title,
       subtitle: widget.subtitle,
       actionLabel: l10n.save,
-      onAction: _valid ? _submit : null,
+      onAction: _valid ? () => unawaited(_submit()) : null,
       children: [
-        TextField(
+        // The app's keypad, with `+`, as in the expense sheet (U6-10).
+        AmountField(
           controller: _amountController,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(amountCharacters),
-          ],
-          onChanged: (_) => setState(() {}),
-          onSubmitted: (_) => _submit(),
+          currency: _currency,
+          label: l10n.amountLabel,
+          onChanged: () => setState(() {}),
           style: theme.textTheme.displaySmall?.copyWith(
             fontWeight: FontWeight.w800,
             color: _overCap ? theme.colorScheme.error : accent,
           ),
-          decoration: InputDecoration(
-            hintText: '0',
-            hintStyle: theme.textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
-            ),
-            prefixText: _currency.symbol,
-            prefixStyle: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            errorText: _overCap
-                ? '${l10n.amountLabel} ≤ ${formatMoney(_cap!, _currency)}'
-                : null,
-            helperText: amountSumHelper(
-              l10n,
-              _amountController.text,
-              _currency,
-            ),
-          ),
+          errorText: _overCap
+              ? '${l10n.amountLabel} ≤ ${formatMoney(_cap!, _currency)}'
+              : null,
         ),
         const SizedBox(height: HarvestSpacing.sm),
         if (!widget.lockCurrency)
@@ -237,6 +225,7 @@ class _MoneySheetState extends State<_MoneySheet> {
         ],
         const SizedBox(height: HarvestSpacing.md),
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _noteController,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _submit(),

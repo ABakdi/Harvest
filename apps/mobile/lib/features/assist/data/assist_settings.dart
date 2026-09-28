@@ -1,5 +1,5 @@
+import 'package:harvest/core/domain/secure_address.dart';
 import 'package:harvest/core/platform/secret_store.dart';
-import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/assist/data/providers.dart';
 import 'package:harvest/features/assist/domain/assist.dart';
@@ -54,7 +54,10 @@ class AssistConfig {
   bool get ready => switch (kind) {
     AssistKind.gemini => apiKey?.isNotEmpty ?? false,
     // A local server may need no key at all; a base URL is enough.
-    AssistKind.openAiCompatible => baseUrl.isNotEmpty && model.isNotEmpty,
+    // Never over plain http to anywhere but this device (S6-12): the
+    // key and the prompt would travel in the clear.
+    AssistKind.openAiCompatible =>
+      baseUrl.isNotEmpty && model.isNotEmpty && isSecureAddress(baseUrl),
   };
 
   /// The provider this configuration names, or null until it is usable.
@@ -87,8 +90,12 @@ Future<AssistProvider?> serverAssist(Ref ref) async {
   final api = ref.watch(apiClientProvider);
   final Map<String, Object?> status;
   try {
-    status = await api.get('/v1/assist/status');
-  } on ApiException {
+    status = await api
+        .get('/v1/assist/status')
+        .timeout(const Duration(seconds: 8));
+  } on Object {
+    // Unreachable, slow or refusing: the server offers nothing now, and
+    // the note says where the assist is set up ([[Audit-v3]] U6-01).
     return null;
   }
   if (status['available'] != true) return null;

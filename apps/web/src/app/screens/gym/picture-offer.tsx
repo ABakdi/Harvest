@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { CaptureDialog } from '../../components/gallery/capture-dialog';
 import type { AlbumRow } from '../../data/gallery';
+import { background } from '@/lib/actions';
 
 /**
  * What a navigation carries when the next screen should offer the
@@ -72,7 +73,7 @@ export function usePictureOffer(): ReactNode {
     <PictureOffer
       key={album.uuid}
       album={album}
-      onDone={() => void navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null })}
+      onDone={() => background(navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null }))}
     />
   );
 }

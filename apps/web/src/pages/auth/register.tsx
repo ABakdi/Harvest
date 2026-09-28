@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { apiMessage, fieldMessage } from '@/lib/errors';
 import { AuthCard, FormError } from './auth-card';
+import { runAction } from '@/lib/actions';
 
 const schema = registerBodySchema.pick({ email: true, password: true, displayName: true });
 
@@ -62,7 +63,7 @@ export function RegisterPage() {
         onChange={() => setFailure(null)}
         onSubmit={(event) => {
           setFailure(null);
-          void submit(event);
+          runAction(() => submit(event));
         }}
         className="flex flex-col gap-4"
       >
@@ -89,6 +90,17 @@ export function RegisterPage() {
           {...form.register('displayName', { setValueAs: (value: string) => (value.trim() === '' ? undefined : value) })}
         />
         <FormError message={failure} />
+        {/* The address has an account: the ways into it, right here (W6-24). */}
+        {failure === t('auth.error.emailTaken') && (
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/login">{t('auth.signIn')}</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/forgot">{t('auth.resetPassword')}</Link>
+            </Button>
+          </div>
+        )}
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? t('auth.creating') : t('auth.createAccount')}
         </Button>

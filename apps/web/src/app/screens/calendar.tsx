@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useHarvest, useHarvestDay } from '../context';
 import { FieldTabs } from './field';
 import { type CalendarDay, readMonth } from '../data/calendar';
+import { runAction } from '@/lib/actions';
 
 /** Monday first, in the language on screen. */
 function weekdayNames(locale: string): string[] {
@@ -41,7 +42,7 @@ function Cell({
       aria-pressed={selected}
       aria-label={t('calendar.cell', { day: formatDay(day.day.key), count: due.length })}
       className={cn(
-        'flex min-h-16 flex-col items-center gap-1 rounded-lg border p-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+        'flex min-h-16 min-w-0 flex-col items-center gap-1 overflow-hidden rounded-lg border p-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
         selected ? 'border-primary bg-card' : 'border-transparent bg-card/50 hover:bg-card',
       )}
     >
@@ -104,12 +105,13 @@ export function CalendarScreen() {
   return (
     <div className="flex flex-col gap-4">
       <FieldTabs />
-      <div className="flex items-center gap-1">
-        <h1 className="me-auto text-2xl font-extrabold">{t('calendar.title')}</h1>
+      <div className="flex flex-wrap items-center gap-1">
+        {/* On a phone the app bar names it. */}
+        <h1 className="me-auto text-2xl font-extrabold max-md:sr-only">{t('calendar.title')}</h1>
         <Button variant="ghost" size="icon-sm" aria-label={t('calendar.previous')} onClick={() => setSelectedKey(first.addDays(-1).key)}>
           <ChevronLeftIcon className="rtl:rotate-180" />
         </Button>
-        <span className="min-w-36 text-center text-sm font-bold" aria-live="polite">
+        <span className="min-w-0 flex-1 text-center text-sm font-bold md:min-w-36 md:flex-none" aria-live="polite">
           {formatDate(first.toDate(), { month: 'long', year: 'numeric' })}
         </span>
         <Button
@@ -152,7 +154,7 @@ export function CalendarScreen() {
             className="flex gap-2"
             onSubmit={(event) => {
               event.preventDefault();
-              void addTodo();
+              runAction(() => addTodo());
             }}
           >
             <Label htmlFor="calendar-add" className="sr-only">
@@ -180,7 +182,7 @@ export function CalendarScreen() {
                   className="flex items-center gap-3 px-4 py-3 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className={cn('font-bold', entry.done && 'text-muted-foreground line-through')}>{entry.row.title}</span>
+                    <span dir="auto" className={cn('font-bold', entry.done && 'text-muted-foreground line-through')}>{entry.row.title}</span>
                     {entry.deadline && <span className="text-xs text-muted-foreground">{t('calendar.deadline')}</span>}
                   </span>
                   {entry.deadline && <FlagIcon className="size-4 text-destructive" aria-hidden />}

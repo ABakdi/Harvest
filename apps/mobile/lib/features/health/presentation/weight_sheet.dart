@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
@@ -50,9 +51,16 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
   double? get _entered =>
       double.tryParse(_value.text.trim().replaceAll(',', '.'));
 
+  /// A number a person can weigh, in the unit on screen: outside
+  /// 20–400 kg it is a typo, and it is refused (W6-15).
+  bool _plausible(WeightUnit unit) {
+    final entered = _entered;
+    return entered != null && isPlausibleBodyWeight(unit.toGrams(entered));
+  }
+
   Future<void> _save(WeightUnit unit) async {
     final entered = _entered;
-    if (entered == null || entered <= 0 || _saving) return;
+    if (entered == null || !_plausible(unit) || _saving) return;
     setState(() => _saving = true);
     final l10n = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
@@ -115,9 +123,7 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
       title: existing == null ? l10n.weightLog : l10n.weightEdit,
       subtitle: l10n.weightHint,
       actionLabel: l10n.save,
-      onAction: _entered != null && _entered! > 0 && !_saving
-          ? () => _save(unit)
-          : null,
+      onAction: _plausible(unit) && !_saving ? () => _save(unit) : null,
       children: [
         Row(
           children: [
@@ -133,6 +139,11 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
                 decoration: InputDecoration(
                   labelText: l10n.weightLabel,
                   suffixText: unitLabel(context, unit),
+                  errorText: _entered != null && !_plausible(unit)
+                      ? l10n.weightImplausible(
+                          formatWeightRange(context, unit),
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -225,7 +236,8 @@ class _TargetSheetState extends ConsumerState<_TargetSheet> {
       _value.text = loadFieldValue(target, unit);
     }
     final entered = _entered;
-    final valid = entered != null && entered > 0 && entered < 1000;
+    final valid =
+        entered != null && isPlausibleBodyWeight(unit.toGrams(entered));
 
     return HarvestSheet(
       title: l10n.weightTargetTitle,
@@ -251,6 +263,9 @@ class _TargetSheetState extends ConsumerState<_TargetSheet> {
           decoration: InputDecoration(
             labelText: l10n.weightLegendTarget,
             suffixText: unitLabel(context, unit),
+            errorText: entered != null && !valid
+                ? l10n.weightImplausible(formatWeightRange(context, unit))
+                : null,
           ),
         ),
         const SizedBox(height: HarvestSpacing.sm),
@@ -258,3 +273,10 @@ class _TargetSheetState extends ConsumerState<_TargetSheet> {
     );
   }
 }
+
+/// "20–400 kg" or "44–882 lb": the weights the sheet takes, in the unit
+/// on screen.
+String formatWeightRange(BuildContext context, WeightUnit unit) =>
+    '${formatNumber(context, unit.from(minBodyWeightGrams), decimals: 0)}–'
+    '${formatNumber(context, unit.from(maxBodyWeightGrams), decimals: 0)} '
+    '${unitLabel(context, unit)}';

@@ -86,6 +86,7 @@ class _PlaceFormDialogState extends State<PlaceFormDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
+            textCapitalization: TextCapitalization.sentences,
             controller: _name,
             autofocus: true,
             textInputAction: TextInputAction.next,
@@ -100,6 +101,7 @@ class _PlaceFormDialogState extends State<PlaceFormDialog> {
           ),
           const SizedBox(height: HarvestSpacing.md),
           TextField(
+            textCapitalization: TextCapitalization.sentences,
             controller: _notes,
             minLines: 2,
             maxLines: 4,

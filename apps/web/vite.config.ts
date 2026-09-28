@@ -11,7 +11,7 @@ const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 // on a laptop exactly as it does behind the production proxy.
 const apiTarget = process.env.HARVEST_API_URL ?? 'http://localhost:4000';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
@@ -29,7 +29,7 @@ export default defineConfig({
         start_url: '/app',
         scope: '/',
         display: 'standalone',
-        theme_color: '#1F8A46',
+        theme_color: '#FBF4E4',
         background_color: '#FBF4E4',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -40,11 +40,24 @@ export default defineConfig({
       },
       workbox: {
         // The shell only. Data lives in IndexedDB, and the API is never
-        // cached: a stale answer from /v1 is worse than no answer.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
+        // cached: a stale answer from /v1 is worse than no answer. The
+        // heavy parts most visits never open (the map and its worker,
+        // the whole exercise catalogue) are not installed up front: they
+        // are kept the first time they are fetched, below.
+        // The icons and the manifest come in through `includeAssets` and the manifest itself.
+        globPatterns: ['**/*.{js,css,html,woff2}'],
+        globIgnores: ['**/places-*', '**/maplibre-gl-*', '**/exercise-catalogue-*'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/v1\//],
-        runtimeCaching: [],
+        runtimeCaching: [
+          {
+            // Hashed file names never change their contents, so a copy
+            // once fetched is good until the name changes.
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/assets/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'harvest-assets', expiration: { maxEntries: 60, purgeOnQuotaError: true } },
+          },
+        ],
         cleanupOutdatedCaches: true,
       },
       devOptions: { enabled: false },
@@ -59,6 +72,10 @@ export default defineConfig({
       '@harvest/contracts/headers': here('../../packages/contracts/src/headers.ts'),
       '@harvest/contracts': here('../../packages/contracts/src/index.ts'),
       '@harvest/core': here('../../packages/core/src/index.ts'),
+      // The router's package offers its production build under no
+      // export condition Vite picks, so a production build asks for it
+      // by path: no dev warnings and no developer error box.
+      ...(mode === 'production' ? { 'react-router': here('./node_modules/react-router/dist/production/index.mjs') } : {}),
     },
   },
   server: {
@@ -83,6 +100,10 @@ export default defineConfig({
         // they get a chunk of their own that stays cached across updates.
         manualChunks(id) {
           if (/node_modules\/(\.pnpm\/)?(react|react-dom|scheduler|react-router)[@/]/.test(id)) return 'react';
+          // MapLibre, under a name the install leaves out (`places-*`
+          // above): Places draws its list first and the map when this
+          // arrives (P6-15).
+          if (/node_modules\/(\.pnpm\/)?maplibre-gl[@/]/.test(id)) return 'places-map';
           return undefined;
         },
       },
@@ -94,4 +115,4 @@ export default defineConfig({
     setupFiles: ['test/setup.ts'],
     testTimeout: 30_000,
   },
-});
+}));

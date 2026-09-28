@@ -63,13 +63,6 @@ class GalleryRepository {
     return query.watch().map((rows) => rows.map(_toMemory).toList());
   }
 
-  Stream<List<Memory>> watchAllMemories() {
-    final query = _db.select(_db.memories)
-      ..where((m) => m.deletedAt.isNull())
-      ..orderBy([(m) => OrderingTerm.desc(m.capturedAt)]);
-    return query.watch().map((rows) => rows.map(_toMemory).toList());
-  }
-
   /// Deleted memories and the albums they belonged to, newest first.
   Stream<List<Memory>> watchDeletedMemories() {
     final query = _db.select(_db.memories)

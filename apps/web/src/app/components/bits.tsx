@@ -33,11 +33,12 @@ export function StreakChip({ count, className }: { count: number; className?: st
   return (
     <span
       className={cn('inline-flex items-center gap-0.5 rounded-full bg-muted px-2 py-0.5 text-xs font-extrabold tabular', className)}
-      aria-label={t('streak.semantics', { count })}
       title={t('streak.semantics', { count })}
     >
+      {/* Read as words, not a bare number (W6-26). */}
+      <span className="sr-only">{t('streak.semantics', { count })}</span>
       <FlameIcon className={cn('size-3.5', count > 0 ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
-      {formatNumber(count)}
+      <span aria-hidden>{formatNumber(count)}</span>
     </span>
   );
 }

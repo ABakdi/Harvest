@@ -17,13 +17,11 @@ part 'exercise_catalogue.g.dart';
 /// About 0.8 MB of JSON, parsed once and held: a mid-session search has
 /// to be instant, and re-reading the file per keystroke would not be.
 class ExerciseCatalogue {
-  ExerciseCatalogue(this._exercises)
-    : _byId = {for (final exercise in _exercises) exercise.id: exercise};
+  ExerciseCatalogue(this._exercises);
 
   static const asset = 'assets/exercises/exercises.json';
 
   final List<Exercise> _exercises;
-  final Map<String, Exercise> _byId;
 
   static Future<ExerciseCatalogue> load() async {
     final raw = await rootBundle.loadString(asset);
@@ -35,8 +33,6 @@ class ExerciseCatalogue {
   }
 
   List<Exercise> get all => List.unmodifiable(_exercises);
-
-  Exercise? byId(String id) => _byId[id];
 
   /// Every body part in the catalogue, for the filter chips.
   late final List<String> bodyParts =

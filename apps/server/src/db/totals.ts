@@ -70,6 +70,12 @@ export class TotalsRepository {
     await this.counters.updateOne({ _id: userId }, { $unset: { [total]: '' } });
   }
 
+  /** Adds [delta] (either sign) to a total that is already filled in. */
+  async add(userId: ObjectId, total: Total, delta: number): Promise<void> {
+    if (delta === 0) return;
+    await this.counters.updateOne({ _id: userId, [total]: { $exists: true } }, { $inc: { [total]: delta } });
+  }
+
   /** Gives [bytes] back: a write that did not land, or a file let go. */
   async release(userId: ObjectId, total: Total, bytes: number): Promise<void> {
     if (bytes === 0) return;

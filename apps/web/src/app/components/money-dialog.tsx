@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { currencies, currencySymbol, formatAmountInput, formatMoney } from '@/lib/format';
 import { AmountField, SwitchRow, moneyError } from './money-bits';
+import { runAction } from '@/lib/actions';
 
 /** What a money dialog hands back (`MoneyEntry`). */
 export interface MoneyEntry {
@@ -91,7 +92,7 @@ export function MoneyDialog({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <AmountField
             id={`${id}-amount`}
             label={t('money.amount')}

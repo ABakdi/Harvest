@@ -9,6 +9,9 @@ import type {
   ForgotPasswordBody,
   Issue,
   KeyCheck,
+  SyncKeySet,
+  SyncKeyState,
+  UnlockResult,
   LoginBody,
   Me,
   PatchMeBody,
@@ -19,10 +22,9 @@ import type {
   Release,
   ResetPasswordBody,
   SessionsResult,
-  SyncKeyResult,
 } from '@harvest/contracts';
 // From the schema-free module: this file is on the public pages (Q5-30).
-import { fileIvHeader, filePlainBytesHeader } from '@harvest/contracts/headers';
+import { fileIvHeader, fileKeyEpochHeader, filePlainBytesHeader } from '@harvest/contracts/headers';
 
 /**
  * The web's only door to the server. Everything else it knows, it knows
@@ -55,8 +57,8 @@ export class ApiError extends Error {
     message: string,
     readonly details: Issue[] = [],
     readonly retryAfter: number | null = null,
-    /** On a 409 from the key check, the check already stored. */
-    readonly check: KeyCheck | null = null,
+    /** On a wrong PIN proof (`wrong_pin`), the tries left before the pause. */
+    readonly triesLeft: number | null = null,
   ) {
     super(message);
   }
@@ -110,10 +112,6 @@ function announce(user: Me | null): void {
   for (const listener of sessionListeners) listener(user);
 }
 
-export function sessionUser(): Me | null {
-  return currentUser;
-}
-
 // ----------------------------------------------------------- other tabs
 
 type AuthMessage =
@@ -134,6 +132,12 @@ channel?.addEventListener('message', (event: MessageEvent<AuthMessage>) => {
 
 
 function remember(result: AuthResult, broadcast = true): void {
+  // A new sign-in replaces a sign-out the server had not heard (S6-02).
+  try {
+    localStorage.removeItem('harvest.signOutPending');
+  } catch {
+    // No storage.
+  }
   const now = Date.now();
   access = { token: result.accessToken, expiresAt: now + result.expiresIn * 1000, receivedAt: now };
   refreshPause = null;
@@ -165,7 +169,7 @@ export function resumeSession(): AuthResult | null {
 async function toError(response: Response): Promise<ApiError> {
   const retryAfter = Number(response.headers.get('retry-after')) || null;
   try {
-    const body = (await response.json()) as Partial<ErrorBody> & { check?: KeyCheck };
+    const body = (await response.json()) as Partial<ErrorBody> & { triesLeft?: number };
     if (body.error) {
       return new ApiError(
         response.status,
@@ -173,7 +177,7 @@ async function toError(response: Response): Promise<ApiError> {
         body.error.message,
         body.error.details ?? [],
         retryAfter,
-        body.check ?? null,
+        typeof body.triesLeft === 'number' ? body.triesLeft : null,
       );
     }
   } catch {
@@ -358,23 +362,72 @@ export function deviceName(): string {
   return system ? `${browser} on ${system}` : browser;
 }
 
+/**
+ * A sign-out the server has not heard yet (offline, S6-02): the refresh
+ * cookie is HttpOnly and only the server can end its session, so until
+ * it has, this browser never resumes that session on its own, and says
+ * the sign-out again at every start, whenever it is back online, and
+ * before a new sign-in (which would otherwise be the session it ends).
+ */
+export const signOutPendingKey = 'harvest.signOutPending';
+
+export function signOutPending(): boolean {
+  try {
+    return localStorage.getItem(signOutPendingKey) !== null;
+  } catch {
+    return false;
+  }
+}
+
+export function markSignOut(pending: boolean): void {
+  try {
+    if (pending) localStorage.setItem(signOutPendingKey, '1');
+    else localStorage.removeItem(signOutPendingKey);
+  } catch {
+    // No storage: the sign-out is only as good as the server's answer.
+  }
+}
+
+/** Tells the server about a sign-out it missed; true once it has heard. */
+export async function finishSignOut(): Promise<boolean> {
+  if (!signOutPending()) return true;
+  try {
+    await api.logout();
+    markSignOut(false);
+    return true;
+  } catch (error) {
+    // A 401 is a session already ended: done all the same.
+    if ((error as { status?: number }).status === 401) {
+      markSignOut(false);
+      return true;
+    }
+    if (typeof window !== 'undefined') window.addEventListener('online', () => void finishSignOut().catch(() => undefined), { once: true });
+    return false;
+  }
+}
+
 export const api = {
   async login(body: Omit<LoginBody, 'client' | 'deviceName'>): Promise<AuthResult> {
+    await finishSignOut();
     const result = await request<AuthResult>('/v1/auth/login', {
       method: 'POST',
       auth: false,
       body: { ...body, client: 'web', deviceName: deviceName() } satisfies LoginBody,
     });
+    // The new cookie replaced the one the owed sign-out was about.
+    markSignOut(false);
     remember(result);
     return result;
   },
 
   async register(body: Omit<RegisterBody, 'client' | 'deviceName'>): Promise<AuthResult> {
+    await finishSignOut();
     const result = await request<AuthResult>('/v1/auth/register', {
       method: 'POST',
       auth: false,
       body: { ...body, client: 'web', deviceName: deviceName() } satisfies RegisterBody,
     });
+    markSignOut(false);
     remember(result);
     return result;
   },
@@ -444,7 +497,13 @@ export const api = {
    * and the plaintext's length ride in headers, as the phone sends them;
    * a full account answers 507 `quota_exceeded`.
    */
-  async putFile(sha256: string, sealed: ArrayBuffer, iv: string, plainBytes: number): Promise<FileUploaded> {
+  async putFile(
+    sha256: string,
+    sealed: ArrayBuffer,
+    iv: string,
+    plainBytes: number,
+    keyEpoch: number,
+  ): Promise<FileUploaded> {
     const init = (token: string | null): RequestInit => ({
       method: 'PUT',
       headers: {
@@ -452,6 +511,9 @@ export const api = {
         'content-type': 'application/octet-stream',
         [fileIvHeader]: iv,
         [filePlainBytesHeader]: String(plainBytes),
+        // The key the bytes were sealed under; a stale one is refused
+        // with nothing stored (S6-07).
+        [fileKeyEpochHeader]: String(keyEpoch),
         ...(token ? { authorization: `Bearer ${token}` } : {}),
       },
       body: sealed,
@@ -493,20 +555,27 @@ export const api = {
     return response;
   },
 
-  /** The account's salt, key share and key check ([[Sync-API]], sync key). */
-  syncKey: () => request<SyncKeyResult>('/v1/me/sync-key'),
+  /**
+   * The account's salt, its key epoch and whether a PIN is set; the key
+   * share only while none is ([[Sync-API]], sync key).
+   */
+  syncKey: () => request<SyncKeyState>('/v1/me/sync-key'),
 
   /**
-   * Stores this device's key check as the account's: null when it was
-   * stored, or the check another device stored first (409).
+   * Shows the PIN's proof; the key share, the key check and the epoch
+   * come back only for the right one. A wrong one is 403 `wrong_pin`
+   * with `triesLeft`; past the limit, 429 with `Retry-After`.
    */
-  async putKeyCheck(check: KeyCheck): Promise<KeyCheck | null> {
+  unlockSyncKey: (proof: string) =>
+    request<UnlockResult>('/v1/me/sync-key/unlock', { method: 'POST', body: { proof } }),
+
+  /** Sets the account's PIN: the epoch, or null when another device set one first (409). */
+  async setSyncKey(verifier: string, check: KeyCheck): Promise<SyncKeySet | null> {
     try {
-      await request<{ check: KeyCheck }>('/v1/me/sync-key/check', { method: 'PUT', body: { check } });
-      return null;
+      return await request<SyncKeySet>('/v1/me/sync-key', { method: 'PUT', body: { verifier, check } });
     } catch (error) {
-      if (!(error instanceof ApiError) || error.status !== 409) throw error;
-      return error.check ?? (await api.syncKey()).check;
+      if (error instanceof ApiError && error.status === 409) return null;
+      throw error;
     }
   },
 
@@ -523,7 +592,11 @@ export const api = {
   },
 
   push: (body: PushBody) => request<PushResult>('/v1/sync/push', { method: 'POST', body }),
-  pull: (after: number, limit: number) => request<PullResult>(`/v1/sync/pull?after=${after}&limit=${limit}`),
+  /** With [deviceId], the server leaves out what this device wrote itself. */
+  pull: (after: number, limit: number, deviceId?: string) =>
+    request<PullResult>(
+      `/v1/sync/pull?after=${after}&limit=${limit}${deviceId ? `&deviceId=${encodeURIComponent(deviceId)}` : ''}`,
+    ),
 };
 
 /** For tests: start from a clean, signed-out module, as a reload does. */

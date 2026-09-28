@@ -22,10 +22,11 @@ typedef RowClocks = ({String updatedAt, String? deletedAt});
 /// (`packages/contracts/src/crypto.ts`, pinned by
 /// `fixtures/crypto-v2.json`), version 2:
 ///
-/// - the key is HKDF-SHA256 over PBKDF2-HMAC-SHA256(secret, the
-///   account's `syncSalt`, 600,000 iterations), salted with the
-///   account's key share — 32 bytes only a signed-in session gets — and
-///   the info `harvest/sync-key/v2`, 32 bytes;
+/// - the base is PBKDF2-HMAC-SHA256(secret, the account's `syncSalt`,
+///   600,000 iterations); the key is HKDF-SHA256 over it, salted with the
+///   account's key share — handed out only after the PIN proof, also
+///   HKDF over the base, is shown to the server — and the info
+///   `harvest/sync-key/v2`, 32 bytes;
 /// - a row is AES-256-GCM over the JSON of its data, a fresh 12-byte IV,
 ///   the 128-bit tag appended to the ciphertext, `v: 2`;
 /// - the additional data is
@@ -36,9 +37,14 @@ typedef RowClocks = ({String updatedAt, String? deletedAt});
 /// - the account's key check is `harvest-key-check` sealed with the
 ///   additional data `key-check`.
 class SyncCipher {
-  SyncCipher(List<int> keyBytes) : _key = SecretKey(keyBytes);
+  SyncCipher(List<int> keyBytes, {this.epoch = 1}) : _key = SecretKey(keyBytes);
 
   final SecretKey _key;
+
+  /// The key epoch this key belongs to (`contracts/sync-key.ts`): every
+  /// sealed push and file upload names it, and the server refuses a stale
+  /// one, so nothing is ever stored under a key started over elsewhere.
+  final int epoch;
   static final _aes = AesGcm.with256bits();
 
   static const iterations = 600000;
@@ -48,13 +54,12 @@ class SyncCipher {
   static const checkAad = 'key-check';
   static const _tag = 16;
 
-  /// The key, from the secret, the account's salt and its key share.
-  /// Slow on purpose — it runs once, when the PIN is set, and the
-  /// result is kept in the keystore.
-  static Future<Uint8List> deriveKey(
+  /// The secret's base: PBKDF2-HMAC-SHA256 of the secret with the
+  /// account's salt, 32 bytes. Slow on purpose, and run once: both the PIN
+  /// proof and the key are drawn from it.
+  static Future<Uint8List> deriveBase(
     String secret,
-    String syncSalt,
-    List<int> keyShare, {
+    String syncSalt, {
     int iterations = iterations,
   }) async {
     final pbkdf2 = Pbkdf2(
@@ -66,14 +71,54 @@ class SyncCipher {
       secretKey: SecretKey(utf8.encode(secret)),
       nonce: utf8.encode(syncSalt),
     );
-    final hkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
-    final key = await hkdf.deriveKey(
-      secretKey: base,
+    return Uint8List.fromList(await base.extractBytes());
+  }
+
+  static const proofInfo = 'harvest/sync-pin-proof/v1';
+
+  /// What a device shows the server to be handed the key share
+  /// (`POST /v1/me/sync-key/unlock`): HKDF over the base, empty salt. It
+  /// is not the key, and the key cannot be had from it.
+  static Future<Uint8List> proofOf(List<int> base) async {
+    final proof = await Hkdf(hmac: Hmac.sha256(), outputLength: 32).deriveKey(
+      secretKey: SecretKey(base),
+      // The empty salt spelled as RFC 5869 defines it, 32 zero bytes:
+      // the same HMAC key once padded, but Android's own HMAC refuses
+      // an empty key outright.
+      nonce: Uint8List(32),
+      info: utf8.encode(proofInfo),
+    );
+    return Uint8List.fromList(await proof.extractBytes());
+  }
+
+  /// What the server keeps instead of the proof: SHA-256, lowercase hex.
+  static Future<String> verifierOf(List<int> proof) async {
+    final digest = await Sha256().hash(proof);
+    return [
+      for (final byte in digest.bytes) byte.toRadixString(16).padLeft(2, '0'),
+    ].join();
+  }
+
+  /// The key, from a base and the account's key share.
+  static Future<Uint8List> keyOf(List<int> base, List<int> keyShare) async {
+    final key = await Hkdf(hmac: Hmac.sha256(), outputLength: 32).deriveKey(
+      secretKey: SecretKey(base),
       nonce: keyShare,
       info: utf8.encode(keyInfo),
     );
     return Uint8List.fromList(await key.extractBytes());
   }
+
+  /// The key straight from the secret, the salt and the key share.
+  static Future<Uint8List> deriveKey(
+    String secret,
+    String syncSalt,
+    List<int> keyShare, {
+    int iterations = iterations,
+  }) async => keyOf(
+    await deriveBase(secret, syncSalt, iterations: iterations),
+    keyShare,
+  );
 
   /// A row's additional data: the table, the key and both clocks.
   static String rowAad(String table, String uuid, RowClocks clocks) {

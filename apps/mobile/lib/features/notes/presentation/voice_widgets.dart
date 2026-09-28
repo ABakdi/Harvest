@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
@@ -142,7 +143,7 @@ class _RecordingSheetState extends ConsumerState<_RecordingSheet> {
       children: [
         Center(
           child: Text(
-            formatClock(elapsed),
+            formatDuration(elapsed, padMinutes: true),
             style: theme.textTheme.displaySmall?.copyWith(
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
@@ -178,12 +179,6 @@ class _RecordingSheetState extends ConsumerState<_RecordingSheet> {
       ],
     );
   }
-}
-
-String formatClock(Duration d) {
-  String two(int n) => n.toString().padLeft(2, '0');
-  final minutes = d.inMinutes;
-  return '${two(minutes)}:${two(d.inSeconds % 60)}';
 }
 
 /// One recording, playable, under the note it belongs to.
@@ -316,7 +311,10 @@ class _RecordingPlayerState extends ConsumerState<RecordingPlayer> {
                                   ),
                                 ),
                                 Text(
-                                  formatClock(playing ? at : length),
+                                  formatDuration(
+                                    playing ? at : length,
+                                    padMinutes: true,
+                                  ),
                                   style: theme.textTheme.labelSmall,
                                 ),
                               ],

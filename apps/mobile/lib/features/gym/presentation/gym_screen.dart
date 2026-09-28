@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
@@ -46,7 +47,8 @@ class GymScreen extends ConsumerWidget {
     final catalogue = ref.watch(exerciseCatalogueProvider).value;
     final programs = ref.watch(programsProvider).value;
     final running = ref.watch(runningSessionProvider).value;
-    final finished = ref.watch(finishedSessionsProvider).value;
+    // Three are shown here; the rest are the history screen's.
+    final finished = ref.watch(finishedSessionsProvider(limit: 3)).value;
     final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
 
     return Scaffold(
@@ -55,11 +57,19 @@ class GymScreen extends ConsumerWidget {
         title: Text(title ?? l10n.navGym),
         bottom: tabs,
       ),
-      floatingActionButton: HarvestFab(
-        onPressed: () => unawaited(startSession(context, ref)),
-        icon: Icons.play_arrow,
-        label: running == null ? l10n.gymStart : l10n.gymResume,
-      ),
+      // With no program there is nothing to start: the button writes
+      // the first one instead of answering with a snackbar (U6-17).
+      floatingActionButton:
+          running == null && programs != null && programs.isEmpty
+          ? HarvestFab(
+              onPressed: () => unawaited(_newProgram(context, ref)),
+              label: l10n.gymNewProgram,
+            )
+          : HarvestFab(
+              onPressed: () => unawaited(startSession(context, ref)),
+              icon: Icons.play_arrow,
+              label: running == null ? l10n.gymStart : l10n.gymResume,
+            ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           HarvestSpacing.md,
@@ -138,11 +148,6 @@ class GymScreen extends ConsumerWidget {
                 body: l10n.gymNoProgramsBody,
                 compact: true,
                 color: scheme.tertiary,
-                action: FilledButton.icon(
-                  onPressed: () => unawaited(_newProgram(context, ref)),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.gymNewProgram),
-                ),
               ),
             )
           else
@@ -205,7 +210,15 @@ class GymScreen extends ConsumerWidget {
                           Text(
                             catalogue == null
                                 ? l10n.gymCatalogueLoading
-                                : l10n.gymExerciseCount(catalogue.all.length),
+                                // 1,324 grouped, as money is (U6-36).
+                                : l10n.gymExerciseCount(
+                                    catalogue.all.length,
+                                    formatNumber(
+                                      context,
+                                      catalogue.all.length,
+                                      decimals: 0,
+                                    ),
+                                  ),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
@@ -238,6 +251,8 @@ class GymScreen extends ConsumerWidget {
       title: l10n.gymNewProgram,
       hint: l10n.gymProgramNameHint,
       confirmLabel: l10n.notesCreate,
+      // Create waits for a name rather than closing on nothing (U6-17).
+      required: true,
     );
     if (name == null || name.trim().isEmpty) return;
     final program = await ref
@@ -253,7 +268,7 @@ class GymScreen extends ConsumerWidget {
   /// Browsing is picking without keeping the pick: an exercise chosen
   /// here opens its instructions rather than going anywhere.
   Future<void> _browse(BuildContext context) async {
-    final exercise = await pickExercise(context);
+    final exercise = await pickExercise(context, browsing: true);
     if (exercise == null || !context.mounted) return;
     await showExerciseDetail(context, exercise);
   }

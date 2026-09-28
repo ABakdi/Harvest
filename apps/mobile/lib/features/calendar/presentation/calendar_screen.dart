@@ -47,18 +47,30 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   static Map<HarvestDay, int> _countsAround(
     List<Commitment> commitments,
     List<CalendarCheckIn> checkIns,
+    Map<String, int> totals,
     DateTime focused,
   ) {
-    final first = HarvestDay.fromDate(DateTime(focused.year, focused.month))
-        .addDays(-7);
+    final first = _gridStart(focused);
     final counts = <HarvestDay, int>{};
     for (var i = 0; i < 7 * 8; i++) {
       final day = first.addDays(i);
-      final n = calendarEntries(commitments, checkIns, day).length;
+      final n = calendarEntries(
+        commitments,
+        checkIns,
+        day,
+        totals: totals,
+      ).length;
       if (n > 0) counts[day] = n;
     }
     return counts;
   }
+
+  /// The first day the grid around [focused] can show: a week before
+  /// the month, on its Monday.
+  static HarvestDay _gridStart(DateTime focused) =>
+      HarvestDay.fromDate(DateTime(focused.year, focused.month))
+          .addDays(-7)
+          .weekStart;
 
   Future<void> _addTodo(HarvestDay day) async {
     final title = _quickAdd.text.trim();
@@ -75,12 +87,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toString();
     final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
-    final checkIns = ref.watch(liveCheckInsProvider).value ?? const [];
     final today = ref.watch(currentHarvestDayProvider);
     final selectedDay = HarvestDay.fromDate(_selected);
+    // The weeks on screen, and the selected day's week, not every
+    // check-in ever (P6-03).
+    final start = _gridStart(_focused);
+    final from = selectedDay.weekStart.compareTo(start) < 0
+        ? selectedDay.weekStart
+        : start;
+    final end = start.addDays(7 * 9);
+    final to = selectedDay.compareTo(end) > 0 ? selectedDay : end;
+    final checkIns =
+        ref.watch(liveCheckInsProvider((from: from, to: to))).value ?? const [];
+    final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
     // One rule with the web's calendar (G5-12).
-    final entries = calendarEntries(commitments, checkIns, selectedDay);
-    final counts = _countsAround(commitments, checkIns, _focused);
+    final entries = calendarEntries(
+      commitments,
+      checkIns,
+      selectedDay,
+      totals: totals,
+    );
+    final counts = _countsAround(commitments, checkIns, totals, _focused);
     final isFuture = selectedDay.compareTo(today) >= 0;
 
     return Scaffold(
@@ -136,7 +163,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         child: Text(
                           '${events.length}',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onPrimary,
+                            color: inkOn([theme.colorScheme.primary]),
                             fontWeight: FontWeight.w800,
                             fontSize: 10,
                           ),
@@ -172,6 +199,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     gradient: theme.primaryGradient,
                     shape: BoxShape.circle,
                   ),
+                  // The gradient's own ink: white on its amber end did
+                  // not read (U6-09).
+                  selectedTextStyle: theme.textTheme.bodyMedium!.copyWith(
+                    color: theme.onPrimaryGradient,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -187,6 +220,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
                     child: TextField(
+                      textCapitalization: TextCapitalization.sentences,
                       controller: _quickAdd,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => unawaited(_addTodo(selectedDay)),

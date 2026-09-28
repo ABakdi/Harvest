@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,12 +61,8 @@ void main() {
         overrides: [
           syncPassphraseProvider.overrideWith(() => _Pin(initial: pin)),
           memoryFilesProvider.overrideWithValue(files),
-          syncKeyShareProvider.overrideWith(
-            (ref) async => SyncKeyShare(
-              salt: 'salt',
-              keyShare: Uint8List(32),
-              check: const {'v': 2, 'iv': '', 'ct': ''},
-            ),
+          syncKeyStateProvider.overrideWith(
+            (ref) async => const SyncKeyState(salt: 'salt', epoch: 1),
           ),
         ],
         child: MaterialApp(

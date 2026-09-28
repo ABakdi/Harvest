@@ -40,10 +40,11 @@ enum MediaKind {
 /// a client of their hosting and never a fourth-hand distributor
 /// ([[ADR-008-Exercise-Catalogue]]).
 ///
-/// It is also the only outbound request the app makes that is not an
-/// export I tapped ([[Business-Rules]] #13): a GET for a static file,
-/// carrying no account, no device id and no history. It reveals which
-/// file, and that is all it can reveal.
+/// It is one of the few outbound requests the app makes, each one I
+/// turned on; [[Business-Rules]] #13 keeps the complete list (S6-19).
+/// This one is a GET for a static file, carrying no account, no device
+/// id and no history. It reveals which file, and that is all it can
+/// reveal.
 class ExerciseMedia {
   ExerciseMedia(this._settings, {http.Client? client})
     : _client = client ?? http.Client();

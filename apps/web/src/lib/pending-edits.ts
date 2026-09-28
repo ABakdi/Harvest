@@ -1,3 +1,4 @@
+import { background } from './actions';
 /**
  * Editors with unsaved typing register a flush here, so a reload the
  * update toast asks for saves first (W4: an update never costs an edit).
@@ -10,11 +11,11 @@ const flushers = new Set<() => Promise<void> | void>();
 let listening = false;
 
 function onHidden() {
-  if (document.visibilityState === 'hidden') void flushPendingEdits();
+  if (document.visibilityState === 'hidden') background(flushPendingEdits());
 }
 
 function onPageHide() {
-  void flushPendingEdits();
+  background(flushPendingEdits());
 }
 
 function listen() {
@@ -30,10 +31,16 @@ export function registerPendingEdit(flush: () => Promise<void> | void): () => vo
   return () => flushers.delete(flush);
 }
 
-export async function flushPendingEdits(): Promise<void> {
-  await Promise.all(
+/**
+ * Saves every registered edit. One editor failing does not stop the
+ * others; the answer is whether all of them saved, so a caller about to
+ * reload can say so first.
+ */
+export async function flushPendingEdits(): Promise<boolean> {
+  const outcomes = await Promise.allSettled(
     [...flushers].map(async (flush) => {
       await flush();
     }),
   );
+  return outcomes.every((outcome) => outcome.status === 'fulfilled');
 }

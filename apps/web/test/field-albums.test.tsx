@@ -116,7 +116,7 @@ describe('scheduled albums on the field (G3)', () => {
     // The picture is the check-in: paid as a habit's, and the crop is done.
     await h.gallery.addMemory(face, { blob: picture(), kind: 'photo', extension: '.jpg' });
     const open = await screen.findByRole('button', { name: 'Open “Face”, today’s picture is in' }, patient);
-    expect(within(open.closest('li')!).getByLabelText('Streak: 1 day')).toBeInTheDocument();
+    expect(within(open.closest('li')!).getByText('Streak: 1 day')).toBeInTheDocument();
     await userEvent.click(open);
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent(`/app/records/gallery?album=${face.uuid}`), patient);
   });

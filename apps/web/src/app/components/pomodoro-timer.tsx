@@ -16,6 +16,7 @@ import {
   readPomodoroConfig,
   remainingMs,
 } from '../data/pomodoro';
+import { runAction } from '@/lib/actions';
 
 export interface PomodoroState {
   snapshot: PomodoroSnapshot | null;
@@ -66,7 +67,7 @@ function useAdvance(state: PomodoroState | undefined, now: Date) {
   useEffect(() => {
     if (!due || busy.current) return;
     busy.current = true;
-    void pomodoro
+    runAction(() => pomodoro
       .evaluate()
       .then((step) => {
         if (!step) return;
@@ -78,7 +79,7 @@ function useAdvance(state: PomodoroState | undefined, now: Date) {
       })
       .finally(() => {
         busy.current = false;
-      });
+      }));
   }, [due, pomodoro, t]);
 }
 

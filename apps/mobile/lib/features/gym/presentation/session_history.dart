@@ -18,14 +18,30 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// Read-only on purpose. A finished session is a record of what
 /// happened, and I am not in the business of editing what happened
 /// three weeks after it did.
-class SessionHistoryScreen extends ConsumerWidget {
+class SessionHistoryScreen extends ConsumerStatefulWidget {
   const SessionHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SessionHistoryScreen> createState() =>
+      _SessionHistoryScreenState();
+}
+
+class _SessionHistoryScreenState extends ConsumerState<SessionHistoryScreen> {
+  /// Sessions read so far. It grows a page at a time as the end comes
+  /// into view: the history used to stop silently at the newest 50,
+  /// about four months of training (Q6-13).
+  static const _page = 50;
+  int _limit = _page;
+  List<WorkoutSession>? _shown;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final sessions = ref.watch(finishedSessionsProvider).value;
+    // The page before stays on screen while the longer one is read.
+    final sessions = _shown =
+        ref.watch(finishedSessionsProvider(limit: _limit)).value ?? _shown;
     final unit = ref.watch(weightUnitSettingProvider).value ?? WeightUnit.kg;
+    final more = sessions != null && sessions.length >= _limit;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.gymHistory)),
@@ -37,12 +53,24 @@ class SessionHistoryScreen extends ConsumerWidget {
               title: l10n.gymNoHistory,
               body: l10n.gymNoHistoryBody,
             )
-          : ListView(
+          // Built as they scroll into view, not all at once (P6-14).
+          : ListView.builder(
               padding: const EdgeInsets.all(HarvestSpacing.md),
-              children: [
-                for (final session in sessions)
-                  SessionTile(session: session, unit: unit),
-              ],
+              itemCount: sessions.length + (more ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= sessions.length) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _limit <= sessions.length) {
+                      setState(() => _limit += _page);
+                    }
+                  });
+                  return const Padding(
+                    padding: EdgeInsets.all(HarvestSpacing.md),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                return SessionTile(session: sessions[index], unit: unit);
+              },
             ),
     );
   }

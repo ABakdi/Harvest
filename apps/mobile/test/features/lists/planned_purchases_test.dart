@@ -86,8 +86,9 @@ void main() {
     final router = GoRouter(
       routes: [
         GoRoute(path: '/', builder: (_, _) => const GranaryScreen()),
+        // Under the Granary, so Back comes home to it (U6-06).
         GoRoute(
-          path: AppRoutes.lists,
+          path: AppRoutes.granaryLists,
           builder: (_, state) =>
               Text('lists:${state.uri.queryParameters['list']}'),
         ),

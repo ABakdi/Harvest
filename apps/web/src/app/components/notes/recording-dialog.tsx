@@ -11,6 +11,7 @@ import { voiceFileName } from '../../data/attachments';
 import { FileTooLargeError } from '../../data/files';
 import { formatClock } from './recordings';
 import { recordingFormat } from './voice';
+import { background, runAction } from '@/lib/actions';
 
 type Phase = 'starting' | 'recording' | 'refused' | 'saving';
 
@@ -40,7 +41,7 @@ export function RecordingDialog({ noteUuid, onDone }: { noteUuid: string; onDone
     let audio: AudioContext | null = null;
     let frame = 0;
 
-    void (async () => {
+    background((async () => {
       const chosen = format.current;
       try {
         if (!chosen) throw new Error('No recorder');
@@ -78,13 +79,13 @@ export function RecordingDialog({ noteUuid, onDone }: { noteUuid: string; onDone
         };
         frame = requestAnimationFrame(measure);
       }
-    })();
+    })());
 
     return () => {
       live = false;
       clearInterval(tick);
       cancelAnimationFrame(frame);
-      void audio?.close();
+      background(audio?.close());
       // Closed any other way than Stop and keep: nothing is kept.
       if (!keep.current && recorder.current?.state === 'recording') recorder.current.stop();
       stream?.getTracks().forEach((track) => track.stop());
@@ -146,7 +147,7 @@ export function RecordingDialog({ noteUuid, onDone }: { noteUuid: string; onDone
                 <Trash2Icon />
                 {t('voice.discard')}
               </Button>
-              <Button onClick={() => void stop()} disabled={phase !== 'recording'}>
+              <Button onClick={() => runAction(() => stop())} disabled={phase !== 'recording'}>
                 <SquareIcon />
                 {t('voice.stop')}
               </Button>

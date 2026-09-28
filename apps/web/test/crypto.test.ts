@@ -12,6 +12,7 @@ import {
 import { beforeAll, describe, expect, it } from 'vitest';
 import { HarvestDB } from '@/app/data/db';
 import { Keyring } from '@/app/sync/keyring';
+import { FakeServer } from './fake-server';
 
 /**
  * The private tier, held to the contract's pinned scheme
@@ -90,37 +91,31 @@ describe.each(pinned.cases)('$table', ({ table, uuid, plaintext }) => {
 });
 
 describe('the keyring', () => {
-  const v2 = readFixture<{ secret: string; syncSalt: string; keyShare: string; keyCheck: EncEnvelope }>(
-    'crypto-v2.json',
-  );
-  const remote = {
-    syncKey: () => Promise.resolve({ salt: v2.syncSalt, keyShare: v2.keyShare, check: v2.keyCheck as never }),
-    putKeyCheck: () => Promise.resolve(null),
-    startOverSyncKey: () => Promise.resolve(),
-  };
-
-  it('keeps a non-extractable version 2 key in IndexedDB that opens the account check', async () => {
+  it('keeps a non-extractable key with its epoch in IndexedDB', async () => {
     const db = new HarvestDB('keyring-test');
     await db.open();
-    const keyring = new Keyring(db, remote);
-    await keyring.unlock(v2.secret);
+    const server = new FakeServer();
+    await new Keyring(db, server).unlock('482917', undefined, 1);
 
     // A fresh keyring on the same store: the key survived, still sealed away.
-    const stored = await new Keyring(db, remote).key(v2.syncSalt);
+    const keyring = new Keyring(db, server);
+    const stored = await keyring.key(server.salt);
     expect(stored).not.toBeNull();
     expect(stored!.extractable).toBe(false);
     await expect(crypto.subtle.exportKey('raw', stored!)).rejects.toThrow();
+    expect(await keyring.epoch()).toBe(1);
     // Another account's salt is another key: this one is not offered.
-    expect(await new Keyring(db, remote).key('another-salt')).toBeNull();
+    expect(await new Keyring(db, server).key('another-salt')).toBeNull();
     db.close();
   });
 
-  it('never uses a key 3.0.0 kept', async () => {
+  it('never uses a key kept by an older version', async () => {
     const db = new HarvestDB('keyring-legacy');
     await db.open();
     const old = await deriveSyncKey(pinned.passphrase, pinned.syncSalt);
     await db.meta.put({ key: 'privateKey', value: { key: old, salt: pinned.syncSalt } });
-    expect(await new Keyring(db, remote).key(pinned.syncSalt)).toBeNull();
+    await db.meta.put({ key: 'privateKeyV2', value: { key: old, salt: pinned.syncSalt, v: 2 } });
+    expect(await new Keyring(db, new FakeServer()).key(pinned.syncSalt)).toBeNull();
     db.close();
   });
 });

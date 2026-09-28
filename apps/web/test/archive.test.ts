@@ -725,6 +725,26 @@ describe('what an archive is trusted with', () => {
     expect([...bundle.files.keys()]).toEqual(['gallery/a.jpg']);
   });
 
+  it('refuses a workbook whose own parts inflate past their limit (S6-09)', () => {
+    // A part of zeros deflates to almost nothing and inflates to 65 MB.
+    const bomb = zipSync(
+      {
+        'xl/workbook.xml': strToU8('<workbook/>'),
+        'xl/sharedStrings.xml': new Uint8Array(65 * 1024 * 1024),
+      },
+      { level: 9 },
+    );
+    expect(bomb.length).toBeLessThan(1024 * 1024);
+    expect(problemOf(() => openArchive(zipSync({ 'harvest.xlsx': bomb }, { level: 0 })))).toBe('tooLarge');
+  });
+
+  it('refuses an entry whose directory lies about its size, as it inflates (S6-09)', () => {
+    const zip = zipSync({ 'harvest.xlsx': new Uint8Array([0]), 'gallery/big.jpg': new Uint8Array(ArchiveLimits.entryBytes + 1) }, { level: 9 });
+    // Say it is one byte: the reading still stops at the limit.
+    const lying = promising(zip, 'gallery/big.jpg', 1);
+    expect(problemOf(() => openArchive(lying))).toBe('tooLarge');
+  });
+
   it('refuses a workbook whose directory promises too much, unread', () => {
     const zip = zipSync({ 'harvest.xlsx': new Uint8Array([0]) }, { level: 0 });
     expect(problemOf(() => openArchive(promising(zip, 'harvest.xlsx', ArchiveLimits.workbookBytes + 1)))).toBe('tooLarge');

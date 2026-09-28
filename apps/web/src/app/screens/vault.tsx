@@ -1,3 +1,4 @@
+import { savingsHealth } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   ChevronDownIcon,
@@ -46,6 +47,7 @@ import {
   readVault,
 } from '../data/vault';
 import { useDefaultCurrency } from '../hooks';
+import { runAction } from '@/lib/actions';
 
 type Section = Account | 'debts';
 
@@ -233,6 +235,11 @@ function SettledDebt({
  * ledger. Every movement is a row; balances are sums (W2), and money in
  * one currency is never added to money in another.
  */
+/** Whether a list of balances says no more than its tile's total: none, or one in the default currency. */
+function sameAsTile(balances: readonly (readonly [string, number])[], currency: string): boolean {
+  return balances.length === 0 || (balances.length === 1 && balances[0]![0] === currency);
+}
+
 export function VaultPanel() {
   const { t } = useTranslation();
   const { db, vault: repository } = useHarvest();
@@ -259,8 +266,9 @@ export function VaultPanel() {
   const savings = vault.pots.find((pot) => pot.account === 'savings');
   const walletBalances = balanceMap(wallet);
   const savingsBalances = balanceMap(savings);
-  // Savings below a tenth of the monthly budget turn the section red.
-  const low = Object.keys(savingsBalances).length > 0 && (budget ?? 0) > 0 && (savings?.totalInDefault ?? 0) < Math.trunc((budget ?? 0) / 10);
+  // Savings below a tenth of the monthly budget turn the section red:
+  // the shared rule, as the phone reads it (Q6-20).
+  const low = savingsHealth(savings?.balances ?? [], budget, vault.rates) === 'low';
   const openDebts = vault.debts.filter((view) => view.debt.settledAt === null);
   const settled = vault.debts.filter((view) => view.debt.settledAt !== null);
   const owed = new Map<string, number>();
@@ -282,7 +290,7 @@ export function VaultPanel() {
     const amount = formatMoney(Math.abs(deltaMinor), currency);
     const undo = () => repository.removeMove(uuid).catch((failure: unknown) => void toast.error(moneyError(t, failure)));
     toast.success(t(deltaMinor > 0 ? 'vaultWeb.walletAdded' : 'vaultWeb.walletTaken', { amount }), {
-      action: { label: t('common.undo'), onClick: () => void undo() },
+      action: { label: t('common.undo'), onClick: () => runAction(() => undo()) },
     });
   }
 
@@ -315,7 +323,7 @@ export function VaultPanel() {
     // Undo says why ([[Audit-v3]] Q5-17).
     const undo = () => repository.restorePayment(payment.uuid).catch((failure: unknown) => void toast.error(moneyError(t, failure)));
     toast(t('vault.paymentRemoved'), {
-      action: { label: t('common.undo'), onClick: () => void undo() },
+      action: { label: t('common.undo'), onClick: () => runAction(() => undo()) },
     });
   }
 
@@ -363,7 +371,8 @@ export function VaultPanel() {
             </>
           }
         >
-          <Balances balances={wallet?.balances ?? []} rates={vault.rates} />
+          {/* The tile above already says a single balance in the default currency (W6-36). */}
+          {!sameAsTile(wallet?.balances ?? [], currency) && <Balances balances={wallet?.balances ?? []} rates={vault.rates} />}
         </Hero>
       )}
 
@@ -393,7 +402,8 @@ export function VaultPanel() {
             </>
           }
         >
-          <Balances balances={savings?.balances ?? []} rates={vault.rates} />
+          {/* The tile above already says a single balance in the default currency (W6-36). */}
+          {!sameAsTile(savings?.balances ?? [], currency) && <Balances balances={savings?.balances ?? []} rates={vault.rates} />}
         </Hero>
       )}
 
@@ -526,7 +536,7 @@ export function VaultPanel() {
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (removing) void removePayment(removing);
+                if (removing) runAction(() => removePayment(removing));
               }}
             >
               {t('common.remove')}

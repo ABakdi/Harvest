@@ -79,6 +79,7 @@ class _CaptureSheetState extends ConsumerState<_CaptureSheet> {
       subtitle: widget.album.isScheduled ? l10n.galleryCheckInHint : null,
       children: [
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _note,
           maxLines: 2,
           minLines: 1,

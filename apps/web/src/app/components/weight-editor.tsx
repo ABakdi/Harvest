@@ -1,4 +1,4 @@
-import { weightToGrams } from '@harvest/core';
+import { isPlausibleBodyWeight, weightToGrams } from '@harvest/core';
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import { useHarvest } from '../context';
 import { useSetting } from '../hooks';
 import { type WeightRow, type WeightUnit, healthKeys, parseWeight, weightFieldValue } from '../data/health';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
 
 /**
  * One number off the scale (`showWeightSheet`), in grams underneath
@@ -38,9 +39,11 @@ function WeightForm({ weight, unit, onClose }: { weight: WeightRow | null; unit:
   const [note, setNote] = useState(weight?.note ?? '');
   const [saving, once] = useBusy();
   const entered = parseWeight(value);
+  // Outside 20–400 kg it is a typo, and it is refused (W6-15, the shared rule).
+  const implausible = entered !== null && !isPlausibleBodyWeight(weightToGrams(unit, entered));
 
   async function save() {
-    if (entered === null) return;
+    if (entered === null || implausible) return;
     const unchanged = weight !== null && value.trim() === prefilled.text && unit === prefilled.unit;
     const grams = unchanged ? weight.grams : weightToGrams(unit, entered);
     try {
@@ -54,7 +57,7 @@ function WeightForm({ weight, unit, onClose }: { weight: WeightRow | null; unit:
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    void once(save);
+    runAction(() => once(save));
   }
 
   return (
@@ -75,7 +78,8 @@ function WeightForm({ weight, unit, onClose }: { weight: WeightRow | null; unit:
                 dir="ltr"
                 className="text-lg font-extrabold tabular"
                 value={value}
-                aria-invalid={value.trim() !== '' && entered === null ? true : undefined}
+                aria-invalid={(value.trim() !== '' && entered === null) || implausible ? true : undefined}
+                aria-describedby={implausible ? `${id}-implausible` : undefined}
                 onChange={(event) => setValue(event.target.value)}
               />
             </div>
@@ -91,6 +95,11 @@ function WeightForm({ weight, unit, onClose }: { weight: WeightRow | null; unit:
               <ToggleGroupItem value="lb">{t('body.unit.lb')}</ToggleGroupItem>
             </ToggleGroup>
           </div>
+          {implausible && (
+            <p id={`${id}-implausible`} role="alert" className="text-sm font-semibold text-destructive">
+              {t('weightWeb.implausible')}
+            </p>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${id}-note`}>{t('weightWeb.note')}</Label>
             <Input
@@ -105,7 +114,7 @@ function WeightForm({ weight, unit, onClose }: { weight: WeightRow | null; unit:
             <Button type="button" variant="outline" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={entered === null || saving}>
+            <Button type="submit" disabled={entered === null || implausible || saving}>
               {t('common.save')}
             </Button>
           </DialogFooter>

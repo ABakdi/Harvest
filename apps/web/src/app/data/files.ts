@@ -1,4 +1,5 @@
 import { maxFileBytes, openFile, sealFile } from '@harvest/contracts';
+import { background } from '@/lib/actions';
 import { ApiError, api } from '@/lib/api';
 import { getMeta, setMeta, type HarvestDB } from './db';
 import type { Writer } from './writer';
@@ -54,10 +55,71 @@ export interface UploadReport {
   /** Files still only in this browser. */
   waiting: number;
   quotaExceeded: boolean;
+  /** An upload was refused for a stale key epoch; the key here was forgotten. */
+  keyChanged?: boolean;
 }
 
-/** Why files are not leaving this browser, when something says so. */
-export type FileProblem = 'quota' | null;
+/**
+ * The types a file here may carry (S6-17): what a picture, a clip or a
+ * recording plays as, never a page or an image that runs script. The
+ * bytes say which; a file that is none of these stays untyped.
+ */
+const playableTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/heic',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'audio/mp4',
+  'audio/mpeg',
+  'audio/ogg',
+  'audio/webm',
+  'audio/wav',
+  'audio/aac',
+]);
+
+const untyped = 'application/octet-stream';
+
+/** The type [bytes] play as, from their first bytes, or [claimed] when that is one of ours. */
+export function playableType(bytes: Uint8Array, claimed = ''): string {
+  const at = (offset: number, text: string) =>
+    [...text].every((char, i) => bytes[offset + i] === char.charCodeAt(0));
+  const own = claimed.split(';')[0]!.trim().toLowerCase();
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+  if (bytes[0] === 0x89 && at(1, 'PNG')) return 'image/png';
+  if (at(0, 'GIF8')) return 'image/gif';
+  if (at(0, 'RIFF') && at(8, 'WEBP')) return 'image/webp';
+  if (at(0, 'RIFF') && at(8, 'WAVE')) return 'audio/wav';
+  if (at(0, 'OggS')) return 'audio/ogg';
+  if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) {
+    return own.startsWith('audio/') ? 'audio/webm' : 'video/webm';
+  }
+  if (at(4, 'ftyp')) {
+    if (at(8, 'heic') || at(8, 'heix') || at(8, 'mif1')) return 'image/heic';
+    if (at(8, 'M4A ') || own === 'audio/mp4' || own === 'audio/x-m4a') return 'audio/mp4';
+    if (at(8, 'qt  ')) return 'video/quicktime';
+    return 'video/mp4';
+  }
+  if (at(0, 'ID3')) return 'audio/mpeg';
+  return playableTypes.has(own) ? own : untyped;
+}
+
+/**
+ * Why files are not leaving this browser, when something says so: the
+ * account has no room, or a file keeps failing to go (Q6-14).
+ */
+export type FileProblem = 'quota' | 'failing' | null;
+
+/** Failed sends of one file before it is said out loud. */
+export const failuresBeforeSaying = 3;
+
+/** How long a file that failed waits before the next try: doubling, up to an hour. */
+export function retryAfterMs(failures: number): number {
+  return Math.min(60_000 * 2 ** Math.max(0, failures - 1), 3_600_000);
+}
 
 /**
  * Why a file could not be had here ([[Gallery]] G9): the server does
@@ -90,6 +152,13 @@ export class FileStore {
   private uploading: Promise<UploadReport> | null = null;
   private again: Promise<UploadReport> | null = null;
   private problemNow: FileProblem = null;
+  /** Files whose sending failed, by hash: how often, and when to try again. */
+  private readonly failures = new Map<string, { count: number; nextAt: number }>();
+  /** The clock the back-off reads; a test moves it. */
+  now: () => number = () => Date.now();
+  /** Told when an upload was refused for a stale key epoch (S6-07). */
+  onKeyChanged: (() => void) | null = null;
+
   /** How long a fetch may take; a test shortens it. */
   timeoutMs = fileFetchTimeoutMs;
 
@@ -132,7 +201,7 @@ export class FileStore {
       const plain = await openFile(key, sha256, { iv, ct: sealed });
       const bytes = plain.slice().buffer;
       if ((await sha256Of(bytes)) !== sha256) return 'failed';
-      const blob = new Blob([bytes]);
+      const blob = new Blob([bytes], { type: playableType(new Uint8Array(bytes, 0, Math.min(bytes.byteLength, 16))) });
       await this.db.files.put({ sha256, blob, fetchedAt: new Date().toISOString() });
       return blob;
     } catch (failure) {
@@ -156,7 +225,8 @@ export class FileStore {
     if (blob.size > maxFileBytes) throw new FileTooLargeError(blob.size);
     const bytes = await blob.arrayBuffer();
     const sha256 = await sha256Of(bytes);
-    await this.db.files.put({ sha256, blob: new Blob([bytes], { type: blob.type }), fetchedAt: new Date().toISOString() });
+    const type = playableType(new Uint8Array(bytes, 0, Math.min(bytes.byteLength, 16)), blob.type);
+    await this.db.files.put({ sha256, blob: new Blob([bytes], { type }), fetchedAt: new Date().toISOString() });
     return { sha256, size: bytes.byteLength };
   }
 
@@ -207,16 +277,19 @@ export class FileStore {
       );
     });
     if (!sha256) return;
-    const [memories, attachments, waiting] = await Promise.all([
-      this.db.rows('memories').toArray(),
-      this.db.rows('note_attachments').toArray(),
-      this.waiting(),
+    const waiting = await this.waiting();
+    if (!(await this.named(sha256)) && !waiting.some((entry) => entry.sha256 === sha256)) {
+      await this.db.files.delete(sha256);
+    }
+  }
+
+  /** Whether a row here names [sha256]: two indexed counts (Q6-22). */
+  private async named(sha256: string): Promise<boolean> {
+    const [memories, attachments] = await Promise.all([
+      this.db.rows('memories').where('fileHash').equals(sha256).count(),
+      this.db.rows('note_attachments').where('fileHash').equals(sha256).count(),
     ]);
-    const named =
-      memories.some((row) => row.fileHash === sha256) ||
-      attachments.some((row) => row.fileHash === sha256) ||
-      waiting.some((entry) => entry.sha256 === sha256);
-    if (!named) await this.db.files.delete(sha256);
+    return memories + attachments > 0;
   }
 
   /**
@@ -230,11 +303,7 @@ export class FileStore {
     const sha256 = typeof row.fileHash === 'string' ? row.fileHash : null;
     await this.release(String(row.uuid), sha256);
     if (!sha256 || !this.remote.forgetFile) return;
-    const [memories, attachments] = await Promise.all([
-      this.db.rows('memories').toArray(),
-      this.db.rows('note_attachments').toArray(),
-    ]);
-    if (memories.some((one) => one.fileHash === sha256) || attachments.some((one) => one.fileHash === sha256)) return;
+    if (await this.named(sha256)) return;
     await this.remote.forgetFile(sha256);
   }
 
@@ -245,20 +314,16 @@ export class FileStore {
    * before its row is written is never swept from under it.
    */
   async sweepOrphans(): Promise<number> {
-    const [memories, attachments, waiting, held] = await Promise.all([
-      this.db.rows('memories').toArray(),
-      this.db.rows('note_attachments').toArray(),
-      this.waiting(),
-      this.db.files.toArray(),
-    ]);
-    const named = new Set<string>();
-    for (const row of memories) if (row.fileHash) named.add(row.fileHash);
-    for (const row of attachments) if (row.fileHash) named.add(row.fileHash);
-    for (const entry of waiting) named.add(entry.sha256);
-    const hourAgo = Date.now() - 60 * 60_000;
-    const orphans = held
-      .filter((file) => !named.has(file.sha256) && Date.parse(file.fetchedAt) < hourAgo)
-      .map((file) => file.sha256);
+    // Only what has been here an hour is weighed, and each by its own two
+    // indexed counts rather than a read of every row (Q6-22).
+    const hourAgo = new Date(Date.now() - 60 * 60_000).toISOString();
+    const old = await this.db.files.filter((file) => file.fetchedAt < hourAgo).primaryKeys();
+    if (old.length === 0) return 0;
+    const waiting = new Set((await this.waiting()).map((entry) => entry.sha256));
+    const orphans: string[] = [];
+    for (const sha256 of old) {
+      if (!waiting.has(sha256) && !(await this.named(sha256))) orphans.push(sha256);
+    }
     if (orphans.length > 0) await this.db.files.bulkDelete(orphans);
     return orphans.length;
   }
@@ -359,9 +424,15 @@ export class FileStore {
     report.waiting = list.length - dropped.size;
 
     const key = await this.keyring.key(this.salt());
-    if (!key || !this.writer || live.length === 0) return report;
+    const keyEpoch = await this.keyring.epoch();
+    const keyId = await this.keyring.keyId();
+    if (!key || keyEpoch === null || !this.writer || live.length === 0) return report;
 
-    const taken = live.slice(0, uploadBatch);
+    // A file that failed waits its turn, so one bad file is not re-read,
+    // sealed and sent on every sync (Q6-14).
+    const due = live.filter((entry) => (this.failures.get(entry.sha256)?.nextAt ?? 0) <= this.now());
+    const taken = due.slice(0, uploadBatch);
+    if (taken.length === 0) return report;
     const hashes = [...new Set(taken.map((entry) => entry.sha256))];
     // Whatever reaches the server counts, even when a later file fails.
     const held = new Set<string>();
@@ -375,16 +446,29 @@ export class FileStore {
         try {
           const bytes = new Uint8Array(await file.blob.arrayBuffer());
           const sealed = await sealFile(key, hash, bytes);
-          await this.remote.putFile(hash, sealed.sealed, sealed.iv, bytes.byteLength);
+          await this.remote.putFile(hash, sealed.sealed, sealed.iv, bytes.byteLength, keyEpoch);
           held.add(hash);
+          this.failures.delete(hash);
           report.uploaded += 1;
         } catch (error) {
           // No room is everyone's problem; anything else is this file's,
           // and the others still go (Q5-06).
           if (error instanceof ApiError && error.code === 'quota_exceeded') throw error;
+          // Sealed under a key started over elsewhere: nothing more goes up
+          // under it, and the PIN is asked for again (S6-07).
+          if (error instanceof ApiError && error.code === 'key_changed') {
+            report.keyChanged = true;
+            await this.keyring.forgetIfStill(keyId ?? undefined);
+            this.onKeyChanged?.();
+            break;
+          }
+          const count = (this.failures.get(hash)?.count ?? 0) + 1;
+          this.failures.set(hash, { count, nextAt: this.now() + retryAfterMs(count) });
+          console.warn(`[files] could not send ${hash.slice(0, 12)} (${count})`, error);
         }
       }
-      this.setProblem(null);
+      const failing = [...this.failures.values()].some((failure) => failure.count >= failuresBeforeSaying);
+      this.setProblem(failing ? 'failing' : null);
     } catch (error) {
       // An account with no room left is said out loud; anything else
       // (offline, a server hiccup) is simply tried again next time.
@@ -434,7 +518,7 @@ export class FileStore {
       if (engine.status.lastSyncedAt === last) return;
       last = engine.status.lastSyncedAt;
       kick();
-      void this.sweepOrphans().catch(() => undefined);
+      background(this.sweepOrphans());
     });
     const offUnlock = this.keyring.onUnlock(kick);
     kick();

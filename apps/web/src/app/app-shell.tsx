@@ -3,6 +3,7 @@ import {
   ArrowLeftIcon,
   BookOpenIcon,
   CalendarDaysIcon,
+  EllipsisVerticalIcon,
   FlameIcon,
   HeartPulseIcon,
   MailWarningIcon,
@@ -10,6 +11,7 @@ import {
   SearchIcon,
   SettingsIcon,
   SproutIcon,
+  TimerIcon,
   UserRoundIcon,
   WalletIcon,
   WifiOffIcon,
@@ -22,9 +24,12 @@ import type { TFunction } from 'i18next';
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { HarvestMark } from '@/components/brand';
+import { ScreenErrorBoundary } from '@/components/error-screen';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { api } from '@/lib/api';
 import { formatNumber } from '@/lib/format';
+import { useDocumentTitle } from '@/lib/title';
 import { cn } from '@/lib/utils';
 import { AccountCircle } from './components/account-circle';
 import { AppBarSlot } from './components/app-bar';
@@ -34,21 +39,17 @@ import { useFeaturesOrOff } from './components/settings-bits';
 import { SyncIndicator } from './components/sync-indicator';
 import { useHarvest, useSyncStatus } from './context';
 import { DialogsProvider, useDialogs } from './dialogs';
-import { ArchiveScreen } from './screens/archive';
-import { CalendarScreen } from './screens/calendar';
-import { FarmerScreen, StreakDialog } from './screens/farmer';
 import { FieldScreen } from './screens/field';
-import { GoalScreen } from './screens/goal';
-import { ListsScreen } from './screens/lists';
-import { PomodoroScreen } from './screens/pomodoro';
 import { RecordsView } from './screens/records';
-import { SeedScreen } from './screens/seed';
+import { OnboardingGate } from './screens/onboarding-gate';
+import { StreakDialog } from './components/streak-dialog';
+import { useShortcuts } from './shortcuts';
+import { background } from '@/lib/actions';
 
+// Every screen but the Field loads when first opened, so the Field
+// comes up with nothing else in its bundle ([[Audit-v3]] Q5-30, P6-10).
 // The map is most of a megabyte of MapLibre, and most days nobody
 // opens it: it arrives when Places does, not when the app does.
-// The heavy screens load when first opened, so the Field comes up
-// without the gym, the notes editor, the gallery or the Granary in its
-// bundle ([[Audit-v3]] Q5-30).
 const BodyScreen = lazy(async () => ({ default: (await import('./screens/body')).BodyScreen }));
 const GalleryScreen = lazy(async () => ({ default: (await import('./screens/gallery')).GalleryScreen }));
 const GranaryScreen = lazy(async () => ({ default: (await import('./screens/granary')).GranaryScreen }));
@@ -56,10 +57,15 @@ const NotesScreen = lazy(async () => ({ default: (await import('./screens/notes'
 const ProgramEditorScreen = lazy(async () => ({ default: (await import('./screens/gym/program-editor')).ProgramEditorScreen }));
 const SessionScreen = lazy(async () => ({ default: (await import('./screens/gym/session')).SessionScreen }));
 const PlacesScreen = lazy(async () => ({ default: (await import('./screens/places')).PlacesScreen }));
-
-import { OnboardingGate, OnboardingScreen } from './screens/onboarding';
-import { SettingsScreen } from './screens/settings';
-import { useShortcuts } from './shortcuts';
+const ArchiveScreen = lazy(async () => ({ default: (await import('./screens/archive')).ArchiveScreen }));
+const CalendarScreen = lazy(async () => ({ default: (await import('./screens/calendar')).CalendarScreen }));
+const FarmerScreen = lazy(async () => ({ default: (await import('./screens/farmer')).FarmerScreen }));
+const GoalScreen = lazy(async () => ({ default: (await import('./screens/goal')).GoalScreen }));
+const ListsScreen = lazy(async () => ({ default: (await import('./screens/lists')).ListsScreen }));
+const OnboardingScreen = lazy(async () => ({ default: (await import('./screens/onboarding')).OnboardingScreen }));
+const PomodoroScreen = lazy(async () => ({ default: (await import('./screens/pomodoro')).PomodoroScreen }));
+const SeedScreen = lazy(async () => ({ default: (await import('./screens/seed')).SeedScreen }));
+const SettingsScreen = lazy(async () => ({ default: (await import('./screens/settings')).SettingsScreen }));
 
 interface Tab {
   to: string;
@@ -92,10 +98,9 @@ export function barTabs(on: Switches): TabId[] {
   ];
 }
 
-/** The rail on a wide window keeps the order the web has always had. */
+/** The rail on a wide window has the same places in the same order, so crossing 768 px moves nothing (W6-30). */
 export function railTabs(on: Switches): TabId[] {
-  const bar = barTabs(on);
-  return (['field', 'body', 'records', 'granary', 'farmer'] as const).filter((id) => bar.includes(id));
+  return barTabs(on);
 }
 
 /**
@@ -148,6 +153,16 @@ function pushedTitle(pathname: string, t: TFunction): string {
   if (pathname === '/app/field/archive') return t('archive.title');
   if (pathname === '/app/field/focus') return t('focus.timer');
   return '';
+}
+
+/** The tab's title for a route; a screen with a name of its own (a note, a seed) sets a better one. */
+function routeTitle(pathname: string, on: Switches, t: TFunction): string {
+  const pushed = pushedTitle(pathname, t);
+  if (pushed) return pushed;
+  if (pathname === '/app/field') return t('nav.field');
+  if (pathname.startsWith('/app/field/goals')) return t('field.goals');
+  if (pathname === '/app/settings') return t('nav.settings');
+  return barTitle(pathname, on, t);
 }
 
 /** The farmer's streak in the Field's app bar: the flame and the days, opening the streak sheet. */
@@ -253,10 +268,12 @@ export function BottomBar() {
             aria-current={active ? 'page' : undefined}
             className="group flex h-20 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-xs font-semibold text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring aria-[current=page]:font-extrabold aria-[current=page]:text-foreground"
           >
-            <span className="flex h-8 w-16 items-center justify-center rounded-full transition-colors group-hover:bg-accent group-aria-[current=page]:bg-secondary">
+            <span className="flex h-8 w-16 max-w-full items-center justify-center rounded-full transition-colors group-hover:bg-accent group-aria-[current=page]:bg-secondary">
               <tab.icon className="size-6" strokeWidth={1.75} aria-hidden />
             </span>
-            <span className="max-w-full truncate px-1">{tab.label}</span>
+            <span data-bar-label className="max-w-full truncate px-1">
+              {tab.label}
+            </span>
           </Link>
         );
       })}
@@ -318,20 +335,21 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
   // The Field's own two tabs carry its actions, as on the phone; a screen pushed over it does not.
   const onField = pathname === '/app/field' || pathname === '/app/field/goals';
   const back = pushedParent(pathname, search);
+  useDocumentTitle(routeTitle(pathname, on, t), 0);
   const goBack = () => {
     // Back where I came from when I came from inside the app, else up to the tab.
-    if (key !== 'default') void navigate(-1);
-    else if (back) void navigate(back);
+    if (key !== 'default') background(navigate(-1));
+    else if (back) background(navigate(back));
   };
 
   useShortcuts({
     n: () => dialogs.plantSeed(),
     e: () => dialogs.logExpense(),
     '/': () => dialogs.openSearch(),
-    ...Object.fromEntries(rail.map((tab) => [`g ${tab.key}`, () => void navigate(tab.to)])),
-    'g s': () => void navigate('/app/settings'),
-    'g g': () => void navigate('/app/field/goals'),
-    'g c': () => void navigate('/app/field/calendar'),
+    ...Object.fromEntries(rail.map((tab) => [`g ${tab.key}`, () => background(navigate(tab.to))])),
+    'g s': () => background(navigate('/app/settings')),
+    'g g': () => background(navigate('/app/field/goals')),
+    'g c': () => background(navigate('/app/field/calendar')),
   });
 
   return (
@@ -347,7 +365,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
         {/* On a phone-width window this is the phone's app bar: the
             account circle at the start, the tab's title, and its
             actions at the end. */}
-        <header className="sticky top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-1 bg-background/95 pt-[env(safe-area-inset-top)] pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur md:border-b md:bg-background/90 md:px-6">
+        <header className="@container/bar sticky top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-1 bg-background/95 pt-[env(safe-area-inset-top)] pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur md:border-b md:bg-background/90 md:px-6">
           {back ? (
             <Button variant="ghost" size="icon" className="md:hidden" aria-label={t('nav.back')} title={t('nav.back')} onClick={goBack}>
               <ArrowLeftIcon className="rtl:rotate-180" />
@@ -359,12 +377,12 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
           <div className="flex items-center gap-0.5 md:ms-auto md:gap-1">
             {onField && (
               <>
-                <Button asChild variant="ghost" size="icon" className="md:hidden" aria-label={t('calendar.title')} title={t('calendar.title')}>
+                <Button asChild variant="ghost" size="icon" className="md:hidden @max-[22rem]/bar:hidden" aria-label={t('calendar.title')} title={t('calendar.title')}>
                   <Link to="/app/field/calendar">
                     <CalendarDaysIcon />
                   </Link>
                 </Button>
-                <Button asChild variant="ghost" size="icon" aria-label={t('archive.open')} title={t('archive.title')}>
+                <Button asChild variant="ghost" size="icon" className="@max-[22rem]/bar:hidden" aria-label={t('archive.open')} title={t('archive.title')}>
                   <Link to="/app/field/archive">
                     <ArchiveIcon />
                   </Link>
@@ -372,7 +390,12 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
               </>
             )}
             <div ref={setSlot} className="flex items-center gap-0.5 empty:hidden md:hidden" />
-            <PomodoroChip />
+            {/* On the timer's own screen the ring says it already (W6-38). */}
+            {pathname !== '/app/field/focus' && (
+              <div className="flex @max-[15rem]/bar:hidden">
+                <PomodoroChip />
+              </div>
+            )}
             {onField && (
               <div className="md:hidden">
                 <FieldStreak />
@@ -381,9 +404,46 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             <div className="max-md:hidden">
               <SyncIndicator />
             </div>
-            <Button variant="ghost" size="icon" aria-label={t('app.search')} title={`${t('app.search')} (/)`} onClick={dialogs.openSearch}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="@max-[22rem]/bar:hidden"
+              aria-label={t('app.search')}
+              title={`${t('app.search')} (/)`}
+              onClick={dialogs.openSearch}
+            >
               <SearchIcon />
             </Button>
+            {/* With large text or zoom the bar has too little room: what does not fit folds into one menu (W6-06). */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="@min-[22rem]/bar:hidden md:hidden" aria-label={t('nav.more')}>
+                  <EllipsisVerticalIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onField && (
+                  <>
+                    <DropdownMenuItem onSelect={() => background(navigate('/app/field/calendar'))}>
+                      <CalendarDaysIcon />
+                      {t('calendar.title')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => background(navigate('/app/field/archive'))}>
+                      <ArchiveIcon />
+                      {t('archive.title')}
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuItem onSelect={() => background(navigate('/app/field/focus'))}>
+                  <TimerIcon />
+                  {t('focus.timer')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={dialogs.openSearch}>
+                  <SearchIcon />
+                  {t('app.search')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button size="sm" className="max-md:hidden" onClick={() => dialogs.plantSeed()} title={`${t('seed.plant')} (n)`}>
               <PlusIcon />
               <span>{t('seed.plant')}</span>
@@ -398,58 +458,61 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
           <Banners startedOffline={startedOffline} />
           <OnboardingGate />
           <AppBarSlot.Provider value={slot}>
-            <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" aria-busy />}>
-              <Routes>
-                <Route index element={<Navigate to="field" replace />} />
-                <Route path="field" element={<FieldScreen tab="today" />} />
-                <Route path="field/calendar" element={<CalendarScreen />} />
-                <Route path="field/seed/:uuid" element={<SeedScreen />} />
-                <Route path="field/focus" element={<PomodoroScreen />} />
-                <Route path="field/archive" element={<ArchiveScreen />} />
-                <Route path="field/goals" element={<FieldScreen tab="goals" />} />
-                <Route path="field/goals/:uuid" element={<GoalScreen />} />
-                {/* Keyed apart: the two paths are two screens, so following a
-                    link from one to the other opens on the tab it names. */}
-                <Route path="body" element={<BodyScreen key="health" />} />
-                <Route path="body/gym" element={<BodyScreen key="gym" tab="gym" />} />
-                <Route path="body/gym/programs/:uuid" element={<ProgramEditorScreen />} />
-                <Route path="body/gym/sessions/:uuid" element={<SessionScreen />} />
-                <Route path="records" element={<NotesScreen />} />
-                <Route
-                  path="records/gallery"
-                  element={
-                    <RecordsView feature="gallery">
-                      <GalleryScreen />
-                    </RecordsView>
-                  }
-                />
-                <Route
-                  path="records/places"
-                  element={
-                    <RecordsView feature="places">
-                      <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
-                        <PlacesScreen />
-                      </Suspense>
-                    </RecordsView>
-                  }
-                />
-                <Route
-                  path="records/lists/:listUuid?"
-                  element={
-                    <RecordsView feature="lists">
-                      <ListsScreen />
-                    </RecordsView>
-                  }
-                />
-                <Route path="records/trash" element={<NotesScreen trash />} />
-                <Route path="records/:uuid" element={<NotesScreen />} />
-                <Route path="granary" element={<GranaryScreen />} />
-                <Route path="farmer" element={<FarmerScreen />} />
-                <Route path="settings" element={<SettingsScreen />} />
-                <Route path="welcome" element={<OnboardingScreen />} />
-                <Route path="*" element={<Navigate to="/app/field" replace />} />
-              </Routes>
-            </Suspense>
+            {/* A screen that breaks, or whose code is gone after a deploy, shows so in place; the tabs stay. */}
+            <ScreenErrorBoundary resetKey={pathname}>
+              <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" aria-busy />}>
+                <Routes>
+                  <Route index element={<Navigate to="field" replace />} />
+                  <Route path="field" element={<FieldScreen tab="today" />} />
+                  <Route path="field/calendar" element={<CalendarScreen />} />
+                  <Route path="field/seed/:uuid" element={<SeedScreen />} />
+                  <Route path="field/focus" element={<PomodoroScreen />} />
+                  <Route path="field/archive" element={<ArchiveScreen />} />
+                  <Route path="field/goals" element={<FieldScreen tab="goals" />} />
+                  <Route path="field/goals/:uuid" element={<GoalScreen />} />
+                  {/* Keyed apart: the two paths are two screens, so following a
+                      link from one to the other opens on the tab it names. */}
+                  <Route path="body" element={<BodyScreen key="health" />} />
+                  <Route path="body/gym" element={<BodyScreen key="gym" tab="gym" />} />
+                  <Route path="body/gym/programs/:uuid" element={<ProgramEditorScreen />} />
+                  <Route path="body/gym/sessions/:uuid" element={<SessionScreen />} />
+                  <Route path="records" element={<NotesScreen />} />
+                  <Route
+                    path="records/gallery"
+                    element={
+                      <RecordsView feature="gallery">
+                        <GalleryScreen />
+                      </RecordsView>
+                    }
+                  />
+                  <Route
+                    path="records/places"
+                    element={
+                      <RecordsView feature="places">
+                        <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
+                          <PlacesScreen />
+                        </Suspense>
+                      </RecordsView>
+                    }
+                  />
+                  <Route
+                    path="records/lists/:listUuid?"
+                    element={
+                      <RecordsView feature="lists">
+                        <ListsScreen />
+                      </RecordsView>
+                    }
+                  />
+                  <Route path="records/trash" element={<NotesScreen trash />} />
+                  <Route path="records/:uuid" element={<NotesScreen />} />
+                  <Route path="granary" element={<GranaryScreen />} />
+                  <Route path="farmer" element={<FarmerScreen />} />
+                  <Route path="settings" element={<SettingsScreen />} />
+                  <Route path="welcome" element={<OnboardingScreen />} />
+                  <Route path="*" element={<Navigate to="/app/field" replace />} />
+                </Routes>
+              </Suspense>
+            </ScreenErrorBoundary>
           </AppBarSlot.Provider>
         </main>
       </div>

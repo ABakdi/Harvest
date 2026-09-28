@@ -27,9 +27,24 @@ class HarvestTabs extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(kTextTabBarHeight);
 
+  /// Narrower than this per tab, the row scrolls rather than squeezing
+  /// its labels until one clips or two overlap (U6-12).
+  static const double _minTabWidth = 112;
+
   @override
-  Widget build(BuildContext context) => TabBar(
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final squeezed =
+          constraints.maxWidth.isFinite &&
+          constraints.maxWidth / tabs.length < _minTabWidth;
+      return _bar(scrolls: squeezed);
+    },
+  );
+
+  Widget _bar({required bool scrolls}) => TabBar(
     controller: controller,
+    isScrollable: scrolls,
+    tabAlignment: scrolls ? TabAlignment.start : null,
     onTap: (_) => HarvestHaptics.tick().ignore(),
     tabs: [
       for (final tab in tabs)

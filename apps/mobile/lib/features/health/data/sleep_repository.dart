@@ -3,6 +3,7 @@ import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/health/domain/sleep.dart';
+import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -35,6 +36,7 @@ class SleepRepository {
     });
   }
 
+  @visibleForTesting
   Future<List<SleepNight>> recentOnce({int nights = 30}) async {
     final rows =
         await (_db.select(_db.sleepSessions)

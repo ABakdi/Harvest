@@ -29,7 +29,7 @@ export function Fab({
       {...props}
     >
       {icon}
-      {label}
+      <span data-fab-label>{label}</span>
     </Button>
   );
 }

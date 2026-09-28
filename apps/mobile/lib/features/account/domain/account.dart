@@ -47,16 +47,30 @@ TokenStore tokenStore(Ref ref) => TokenStore(ref.watch(secretStoreProvider));
 class ServerAddress {
   Uri value = Uri.parse(defaultServerUrl);
 
-  void set(String? url) => value = Uri.parse(
-    url == null || url.trim().isEmpty ? defaultServerUrl : url.trim(),
-  );
+  /// Done once the saved address has been read, or one was set.
+  final loaded = Completer<void>();
+
+  void set(String? url) {
+    value = Uri.parse(
+      url == null || url.trim().isEmpty ? defaultServerUrl : url.trim(),
+    );
+    if (!loaded.isCompleted) loaded.complete();
+  }
 }
 
 @Riverpod(keepAlive: true)
 ServerAddress serverAddress(Ref ref) {
   final settings = ref.watch(settingsRepositoryProvider);
   final address = ServerAddress();
-  unawaited(settings.getString(AccountKeys.serverUrl).then(address.set));
+  unawaited(
+    settings
+        .getString(AccountKeys.serverUrl)
+        .then(
+          address.set,
+          // Unreadable: the default, rather than every request waiting.
+          onError: (Object _) => address.set(null),
+        ),
+  );
   final subscription = settings
       .watchAll([AccountKeys.serverUrl])
       .listen((values) => address.set(values[AccountKeys.serverUrl]));
@@ -69,6 +83,7 @@ ApiClient apiClient(Ref ref) {
   final address = ref.watch(serverAddressProvider);
   return ApiClient(
     baseUrl: () => address.value,
+    ready: () => address.loaded.future,
     tokens: ref.watch(tokenStoreProvider),
     onSignedOut: () => unawaited(
       ref.read(accountControllerProvider.notifier).forget(),
@@ -85,10 +100,12 @@ class ApiRemote implements SyncRemote {
   @override
   Future<({List<Map<String, Object?>> results, int cursor})> push(
     String deviceId,
-    List<Map<String, Object?>> records,
-  ) async {
+    List<Map<String, Object?>> records, {
+    int? keyEpoch,
+  }) async {
     final json = await _api.post('/v1/sync/push', {
       'deviceId': deviceId,
+      'keyEpoch': ?keyEpoch,
       'records': records,
     });
     return (
@@ -103,11 +120,12 @@ class ApiRemote implements SyncRemote {
   @override
   Future<({List<Map<String, Object?>> records, int cursor, bool more})> pull(
     int after,
-    int limit,
-  ) async {
+    int limit, {
+    String? deviceId,
+  }) async {
     final json = await _api.get(
       '/v1/sync/pull',
-      query: {'after': '$after', 'limit': '$limit'},
+      query: {'after': '$after', 'limit': '$limit', 'deviceId': ?deviceId},
     );
     return (
       records: [
@@ -135,20 +153,33 @@ class ApiFiles implements FileRemote {
   }
 
   @override
-  Future<void> upload(String sha256, Uint8List sealed, String iv) =>
-      _api.putBytes(
-        '/v1/files/$sha256',
-        sealed,
-        headers: {
-          fileIvHeader: iv,
-          // AES-GCM adds a 16-byte tag and nothing else.
-          filePlainBytesHeader: '${sealed.length - 16}',
-        },
-      );
+  Future<void> upload(
+    String sha256,
+    Uint8List sealed,
+    String iv, {
+    required int keyEpoch,
+  }) => _api.putBytes(
+    '/v1/files/$sha256',
+    sealed,
+    headers: {
+      fileIvHeader: iv,
+      // AES-GCM adds a 16-byte tag and nothing else.
+      filePlainBytesHeader: '${sealed.length - 16}',
+      fileKeyEpochHeader: '$keyEpoch',
+    },
+  );
 
   /// Tells the server no row names this file any more, so it can stop
   /// keeping it (`DELETE /v1/files/:sha256`).
-  Future<void> forget(String sha256) => _api.delete('/v1/files/$sha256');
+  /// A 409 says a row on the server still names it: it stays, and that
+  /// is not a failure.
+  Future<void> forget(String sha256) async {
+    try {
+      await _api.delete('/v1/files/$sha256');
+    } on ApiException catch (error) {
+      if (error.status != 409) rethrow;
+    }
+  }
 
   @override
   Future<({Uint8List sealed, String iv})> download(String sha256) async {
@@ -166,47 +197,68 @@ const fileIvHeader = 'x-harvest-iv';
 /// The plaintext's length, for the server's accounting only.
 const filePlainBytesHeader = 'x-harvest-plain-bytes';
 
-/// The account's half of the private tier's key, and its key check, as
-/// `GET /v1/me/sync-key` answers ([[Sync-API]], `contracts/sync-key.ts`).
+/// The key epoch a file was sealed under; the server refuses a stale one
+/// (409 `key_changed`) and stores nothing.
+const fileKeyEpochHeader = 'x-harvest-key-epoch';
+
+/// Where the account's sync key stands, as `GET /v1/me/sync-key`
+/// answers ([[Sync-API]], `contracts/sync-key.ts`): its salt, its key
+/// epoch, and whether a PIN is set. While none is, the key share comes
+/// with it; once one is, the share is only handed over for the PIN's
+/// proof.
 @immutable
-class SyncKeyShare {
-  const SyncKeyShare({
+class SyncKeyState {
+  const SyncKeyState({
     required this.salt,
-    required this.keyShare,
-    this.check,
+    required this.epoch,
+    this.keyShare,
   });
 
-  factory SyncKeyShare.fromJson(Map<String, Object?> json) => SyncKeyShare(
+  factory SyncKeyState.fromJson(Map<String, Object?> json) => SyncKeyState(
     salt: json['salt']! as String,
-    keyShare: base64Decode(json['keyShare']! as String),
-    check: json['check'] as Map<String, Object?>?,
+    epoch: (json['epoch']! as num).toInt(),
+    keyShare: json['state'] == 'none'
+        ? base64Decode(json['keyShare']! as String)
+        : null,
   );
 
   final String salt;
 
-  /// 32 bytes only a signed-in session is given: without them the salt
-  /// and a copy of the server's data are not enough to try PINs.
-  final Uint8List keyShare;
+  /// Names the key: it moves on with every start over.
+  final int epoch;
 
-  /// The account's key check, or null while no device has chosen a PIN.
-  final Map<String, Object?>? check;
+  /// Only while no PIN is set: the first device chooses with it.
+  final Uint8List? keyShare;
 
   /// No device has chosen a PIN yet: this one *chooses*, typed twice.
   /// Otherwise it *enters* the one the others use ([[Accounts]]).
-  bool get choosing => check == null;
+  bool get choosing => keyShare != null;
 }
+
+/// What a right PIN proof is handed: the key share, the key check and
+/// the epoch.
+typedef SyncUnlock = ({
+  Uint8List keyShare,
+  Map<String, Object?> check,
+  int epoch,
+});
 
 /// The key routes, as the phone needs them.
 abstract interface class SyncKeyRemote {
-  Future<SyncKeyShare> fetch();
+  Future<SyncKeyState> fetch();
 
-  /// Stores [check] as the account's: null when it was stored, or the
-  /// check another device stored first.
-  Future<Map<String, Object?>?> putCheck(Map<String, Object?> check);
+  /// Shows the PIN proof (base64). Throws [SyncPinRefused] on a wrong
+  /// one, [SyncPinLimited] past the limit on tries, and [SyncPinChosen]
+  /// when no PIN is set any more (choose instead).
+  Future<SyncUnlock> unlock(String proof);
+
+  /// Sets the account's PIN: the verifier and the key check. The epoch
+  /// when it was stored; null when another device set one first.
+  Future<int?> setPin(String verifier, Map<String, Object?> check);
 
   /// Starts the PIN over (`DELETE /v1/me/sync-key`, with the account's
-  /// password): the key check, the key share, every private row and
-  /// every file on the server go.
+  /// password): the verifier, the check, the key share, every private
+  /// row and every file on the server go, and the epoch moves on.
   Future<void> startOver(String password);
 }
 
@@ -216,21 +268,47 @@ class ApiSyncKeys implements SyncKeyRemote {
   final ApiClient _api;
 
   @override
-  Future<SyncKeyShare> fetch() async =>
-      SyncKeyShare.fromJson(await _api.get('/v1/me/sync-key'));
+  Future<SyncKeyState> fetch() async =>
+      SyncKeyState.fromJson(await _api.get('/v1/me/sync-key'));
 
   @override
-  Future<Map<String, Object?>?> putCheck(Map<String, Object?> check) async {
+  Future<SyncUnlock> unlock(String proof) async {
+    final Map<String, Object?> json;
     try {
-      await _api.put('/v1/me/sync-key/check', {'check': check});
-      return null;
+      json = await _api.post('/v1/me/sync-key/unlock', {'proof': proof});
     } on ApiException catch (error) {
-      if (error.status != 409) rethrow;
-      final stored = error.body?['check'];
-      if (stored is Map<String, Object?>) return stored;
-      // The first device's check, asked for again.
-      final share = await fetch();
-      return share.check ?? (throw error);
+      if (error.code == 'wrong_pin') {
+        final left =
+            error.body?['triesLeft'] ??
+            (error.details is Map
+                ? (error.details! as Map)['triesLeft']
+                : null);
+        throw SyncPinRefused(triesLeft: left is num ? left.toInt() : null);
+      }
+      if (error.status == 429) {
+        throw SyncPinLimited(retryAfter: error.retryAfter);
+      }
+      if (error.status == 409) throw const SyncPinChosen();
+      rethrow;
+    }
+    return (
+      keyShare: base64Decode(json['keyShare']! as String),
+      check: json['check']! as Map<String, Object?>,
+      epoch: (json['epoch']! as num).toInt(),
+    );
+  }
+
+  @override
+  Future<int?> setPin(String verifier, Map<String, Object?> check) async {
+    try {
+      final json = await _api.put('/v1/me/sync-key', {
+        'verifier': verifier,
+        'check': check,
+      });
+      return (json['epoch']! as num).toInt();
+    } on ApiException catch (error) {
+      if (error.status == 409) return null;
+      rethrow;
     }
   }
 
@@ -247,21 +325,34 @@ SyncKeyRemote syncKeyRemote(Ref ref) =>
 /// PIN is to be chosen or entered is its answer, never a guess from what
 /// this phone happens to have pulled ([[Accounts]]).
 @riverpod
-Future<SyncKeyShare> syncKeyShare(Ref ref) =>
+Future<SyncKeyState> syncKeyState(Ref ref) =>
     ref.watch(syncKeyRemoteProvider).fetch();
+
+/// The key kept in the keystore, with the epoch it belongs to.
+Future<SyncCipher?> storedCipher(SecretStore secrets) async {
+  final stored = await secrets.read(SyncPassphrase.keyName);
+  if (stored == null) return null;
+  try {
+    final json = jsonDecode(stored) as Map<String, Object?>;
+    return SyncCipher(
+      base64Decode(json['key']! as String),
+      epoch: (json['epoch']! as num).toInt(),
+    );
+  } on Object {
+    return null;
+  }
+}
 
 /// Files sync only once a passphrase is set: a picture is as personal
 /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
 @Riverpod(keepAlive: true)
 Future<FileSync?> fileSync(Ref ref) async {
-  final stored = await ref
-      .read(secretStoreProvider)
-      .read(SyncPassphrase.keyName);
-  if (stored == null) return null;
+  final cipher = await storedCipher(ref.read(secretStoreProvider));
+  if (cipher == null) return null;
   return FileSync(
     ref.watch(databaseProvider),
     ApiFiles(ref.watch(apiClientProvider)),
-    SyncCipher(base64Decode(stored)),
+    cipher,
   );
 }
 
@@ -273,12 +364,7 @@ SyncService syncService(Ref ref) {
   return SyncService(
     db,
     ApiRemote(ref.watch(apiClientProvider)),
-    cipher: () async {
-      final stored = await ref
-          .read(secretStoreProvider)
-          .read(SyncPassphrase.keyName);
-      return stored == null ? null : SyncCipher(base64Decode(stored));
-    },
+    cipher: () => storedCipher(ref.read(secretStoreProvider)),
     // A purge that came from another device frees the file too
     // ([[Sync-API]]: tombstones).
     onPurged: PurgedFiles(
@@ -290,89 +376,122 @@ SyncService syncService(Ref ref) {
   );
 }
 
-/// Makes the private tier's key from the sync secret, the account's
-/// salt and its key share. Its own provider so the tests can make one
+/// Makes the secret's base (PBKDF2, the slow part) from the sync secret
+/// and the account's salt. Its own provider so the tests can make one
 /// without 600,000 rounds.
-typedef SyncKeyMaker = Future<Uint8List> Function(
-  String secret,
-  String salt,
-  Uint8List keyShare,
-);
+typedef SyncKeyMaker = Future<Uint8List> Function(String secret, String salt);
 
 @Riverpod(keepAlive: true)
 SyncKeyMaker syncKeyMaker(Ref ref) =>
-    (secret, salt, keyShare) => compute(
-      _derive,
-      (passphrase: secret, salt: salt, keyShare: keyShare),
-    );
+    (secret, salt) => compute(_derive, (passphrase: secret, salt: salt));
 
-/// A PIN the server's key check refused: not the account's PIN. Nothing
-/// was kept, and nothing was sealed with it.
+/// A PIN the account's check refused: not the account's PIN. Nothing was
+/// kept, and nothing was sealed with it.
 class SyncPinRefused implements Exception {
-  const SyncPinRefused({this.chosenElsewhere = false});
+  const SyncPinRefused({this.chosenElsewhere = false, this.triesLeft});
 
   /// Another device chose the account's PIN while this one was choosing.
   final bool chosenElsewhere;
+
+  /// How many wrong tries the server still allows today, when it said.
+  final int? triesLeft;
+}
+
+/// Too many wrong PINs: the server takes no more for a while.
+class SyncPinLimited implements Exception {
+  const SyncPinLimited({this.retryAfter});
+
+  /// How long, when the server said.
+  final Duration? retryAfter;
+}
+
+/// The PIN was started over meanwhile: none is set, so this device
+/// chooses one.
+class SyncPinChosen implements Exception {
+  const SyncPinChosen();
 }
 
 /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
-/// Only the key derived from it is kept, in the keystore; the secret
-/// itself is gone the moment the key exists.
+/// Only the key derived from it is kept, in the keystore, with its epoch;
+/// the secret itself is gone the moment the key exists.
 @Riverpod(keepAlive: true)
 class SyncPassphrase extends _$SyncPassphrase {
-  /// Version 2 keys only: a key 3.0.0 kept under the old name is not
-  /// one this version can use, and the PIN is asked for again.
-  static const keyName = 'sync.privateKey.v2';
-  static const legacyKeyName = 'sync.privateKey';
+  /// `{key, epoch}`; keys kept under the older names are not ones this
+  /// version can use, and the PIN is asked for again.
+  static const keyName = 'sync.privateKey.v3';
+  static const legacyKeyNames = ['sync.privateKey', 'sync.privateKey.v2'];
 
   @override
   Future<bool> build() async {
     final secrets = ref.read(secretStoreProvider);
-    if (await secrets.read(legacyKeyName) != null) {
-      await secrets.write(legacyKeyName, null);
+    for (final name in legacyKeyNames) {
+      if (await secrets.read(name) != null) await secrets.write(name, null);
     }
     return await secrets.read(keyName) != null;
   }
 
-  /// Checks the secret against the account's key check and, only when
-  /// it is the account's, keeps the key and opens the private tier: the
-  /// history is pulled again so the rows that waited for it can be read,
-  /// and this phone's own go up sealed.
+  /// Proves the secret to the server and keeps the key it opens.
   ///
-  /// The first device to choose a PIN stores the check; the key is kept
-  /// only once the server has it, and when another device got there
-  /// first, only if it opens theirs. Throws [SyncPinRefused] when it is
-  /// not the account's PIN, with nothing kept ([[Accounts]]).
+  /// Entering: the PIN's proof is shown (`unlock`) and the key share
+  /// comes back only when it is the account's; a wrong one is refused
+  /// by the server, with a limit on tries, and nothing is kept. Choosing
+  /// (no PIN set yet): the verifier and the key check go up first; when
+  /// another device set a PIN meanwhile, this secret is tried against
+  /// theirs. Either way, the history is pulled again so the rows that
+  /// waited can be read, and this phone's own go up sealed.
   Future<void> set(String secret) async {
     final me = (await ref.read(accountControllerProvider.future)).me;
     if (me == null) return;
     final remote = ref.read(syncKeyRemoteProvider);
-    final share = await remote.fetch();
-    final key = await ref.read(syncKeyMakerProvider)(
-      secret,
-      share.salt,
-      share.keyShare,
-    );
-    final cipher = SyncCipher(key);
-    final stored = share.check;
-    if (stored != null) {
-      if (!await cipher.opensCheck(stored)) throw const SyncPinRefused();
-    } else {
-      final first = await remote.putCheck(await cipher.sealCheck());
-      if (first != null && !await cipher.opensCheck(first)) {
-        ref.invalidate(syncKeyShareProvider);
-        throw const SyncPinRefused(chosenElsewhere: true);
+    final current = await remote.fetch();
+    final base = await ref.read(syncKeyMakerProvider)(secret, current.salt);
+    final proof = await SyncCipher.proofOf(base);
+    Uint8List? key;
+    var epoch = current.epoch;
+    final share = current.keyShare;
+    if (share != null) {
+      key = await SyncCipher.keyOf(base, share);
+      final stored = await remote.setPin(
+        await SyncCipher.verifierOf(proof),
+        await SyncCipher(key).sealCheck(),
+      );
+      if (stored != null) {
+        epoch = stored;
+      } else {
+        key = null;
       }
+    }
+    if (key == null) {
+      final SyncUnlock opened;
+      try {
+        opened = await remote.unlock(base64Encode(proof));
+      } on SyncPinRefused catch (refused) {
+        ref.invalidate(syncKeyStateProvider);
+        throw share != null
+            ? SyncPinRefused(
+                chosenElsewhere: true,
+                triesLeft: refused.triesLeft,
+              )
+            : refused;
+      }
+      key = await SyncCipher.keyOf(base, opened.keyShare);
+      // Belt and braces: the key must open the account's check too.
+      if (!await SyncCipher(key).opensCheck(opened.check)) {
+        throw const SyncPinRefused();
+      }
+      epoch = opened.epoch;
     }
     // A run already going started without the key; it ends first, or
     // it would put back the cursor the re-pull needs at zero.
     final service = ref.read(syncServiceProvider);
     await service.idle();
-    await ref.read(secretStoreProvider).write(keyName, base64Encode(key));
+    await ref
+        .read(secretStoreProvider)
+        .write(keyName, jsonEncode({'key': base64Encode(key), 'epoch': epoch}));
     await service.privateTierOpened();
     ref
       ..invalidate(fileSyncProvider)
-      ..invalidate(syncKeyShareProvider);
+      ..invalidate(syncKeyStateProvider);
     state = const AsyncData(true);
   }
 
@@ -383,31 +502,34 @@ class SyncPassphrase extends _$SyncPassphrase {
   Future<void> startOver(String password) async {
     await ref.read(syncKeyRemoteProvider).startOver(password);
     await forget();
-    ref.invalidate(syncKeyShareProvider);
+    ref.invalidate(syncKeyStateProvider);
   }
 
-  /// Whether the key kept here still opens the account's key check.
-  /// When it does not — the PIN was started over on another device —
-  /// the key is forgotten and false is the answer; the PIN is asked for
-  /// again, and what this phone holds goes up again under the new one.
-  /// Null when there was no key, or no answer from the server.
+  /// Whether the key kept here is still the account's: the account's
+  /// epoch, one small request, is the key's. When it is not — the PIN was
+  /// started over on another device — the key is forgotten and false is
+  /// the answer; the PIN is asked for again, and what this phone holds
+  /// goes up again under the new one. Null when there was no key, or no
+  /// answer from the server.
   Future<bool?> stillTheAccounts() async {
-    final stored = await ref.read(secretStoreProvider).read(keyName);
-    if (stored == null) return null;
-    final SyncKeyShare share;
+    final cipher = await storedCipher(ref.read(secretStoreProvider));
+    if (cipher == null) return null;
+    final SyncKeyState current;
     try {
-      share = await ref.read(syncKeyRemoteProvider).fetch();
+      current = await ref.read(syncKeyRemoteProvider).fetch();
     } on ApiException {
       return null;
     }
-    final check = share.check;
-    if (check != null &&
-        await SyncCipher(base64Decode(stored)).opensCheck(check)) {
-      return true;
-    }
-    await forget();
-    ref.invalidate(syncKeyShareProvider);
+    if (!current.choosing && current.epoch == cipher.epoch) return true;
+    await keyChanged();
     return false;
+  }
+
+  /// The server refused a sealed write for a stale epoch, or the epoch
+  /// moved on: the key is the old one, and goes.
+  Future<void> keyChanged() async {
+    await forget();
+    ref.invalidate(syncKeyStateProvider);
   }
 
   /// Forgets the key on this device; the private tier stays home again.
@@ -418,9 +540,8 @@ class SyncPassphrase extends _$SyncPassphrase {
   }
 }
 
-Future<Uint8List> _derive(
-  ({String passphrase, String salt, Uint8List keyShare}) input,
-) => SyncCipher.deriveKey(input.passphrase, input.salt, input.keyShare);
+Future<Uint8List> _derive(({String passphrase, String salt}) input) =>
+    SyncCipher.deriveBase(input.passphrase, input.salt);
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.
@@ -479,7 +600,15 @@ class AccountController extends _$AccountController {
     });
     await _api.adopt(auth);
     // Another account may have synced here before: start from nothing.
-    await ref.read(syncServiceProvider).reset();
+    final service = ref.read(syncServiceProvider);
+    await service.reset();
+    // Data made here before signing in is not sent into an account that
+    // has its own until I say so (U6-05). A new account has nothing to
+    // meet it: what is here simply goes up.
+    final joining = path == '/v1/auth/login';
+    if (joining && await service.hasLocalData()) {
+      await service.holdForJoin(hold: true);
+    }
     await _remember(Me.fromJson(auth['user']! as Map<String, Object?>));
   }
 

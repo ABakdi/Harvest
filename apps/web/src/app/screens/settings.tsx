@@ -1,8 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { KeyRoundIcon, LogOutIcon, MonitorSmartphoneIcon, RefreshCwIcon, ShieldCheckIcon, SmartphoneIcon, Trash2Icon } from 'lucide-react';
+import { KeyRoundIcon, LogOutIcon, RefreshCwIcon, ShieldCheckIcon, SmartphoneIcon, Trash2Icon } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,12 +17,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import { currencies, formatDate } from '@/lib/format';
 import { useLeave } from '../app-root';
 import { GeotagSetting } from '../components/geotag-setting';
 import { DataCard } from '../components/data-card';
-import { PassphrasePrompt } from '../components/passphrase-prompt';
+import { SessionsList } from '../components/sessions-list';
+import { SyncPinDialog } from '../components/passphrase-prompt';
 import { LanguageSelect, PresetPicker, ThemeModePicker } from '../components/prefs-pickers';
 import { useRelativeTime } from '../components/relative-time';
 import { useHarvest, useSyncStatus } from '../context';
@@ -35,6 +34,7 @@ import { RatesCard } from '../components/settings-rates';
 import { FarmerTabs } from '../components/screen-tabs';
 import { featureKeys, pomodoroSettings, settingKeys } from '../data/settings';
 import { useDefaultCurrency, usePrivateKey, useSetting } from '../hooks';
+import { runAction } from '@/lib/actions';
 
 function SyncSection() {
   const { t } = useTranslation();
@@ -45,10 +45,13 @@ function SyncSection() {
   const [unlocking, setUnlocking] = useState(false);
   return (
     <Section title={t('settings.sync')} id="settings-sync">
-      <Row label={t('settings.lastSynced')} hint={status.lastSyncedAt ? formatDate(status.lastSyncedAt, { dateStyle: 'medium', timeStyle: 'short' }) : undefined}>
+      {/* "Last synced · now" in one line, not a stray "now" beside the button (W6-34). */}
+      <Row
+        label={`${t('settings.lastSynced')} · ${status.lastSyncedAt ? ago : t('sync.notYet')}`}
+        hint={status.lastSyncedAt ? formatDate(status.lastSyncedAt, { dateStyle: 'medium', timeStyle: 'short' }) : undefined}
+      >
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{status.lastSyncedAt ? ago : t('sync.notYet')}</span>
-          <Button variant="outline" size="sm" onClick={() => void engine.sync()} disabled={status.phase === 'syncing'}>
+          <Button variant="outline" size="sm" onClick={() => runAction(() => engine.sync())} disabled={status.phase === 'syncing'}>
             <RefreshCwIcon className={status.phase === 'syncing' ? 'animate-spin' : undefined} />
             {t('sync.syncNow')}
           </Button>
@@ -74,67 +77,8 @@ function SyncSection() {
           </Button>
         )}
       </Row>
-      {unlocking && (
-        <Dialog open onOpenChange={(open) => !open && setUnlocking(false)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t('passphrase.title')}</DialogTitle>
-              <DialogDescription className="sr-only">{t('passphrase.lead')}</DialogDescription>
-            </DialogHeader>
-            <PassphrasePrompt onUnlocked={() => setUnlocking(false)} />
-          </DialogContent>
-        </Dialog>
-      )}
+      {unlocking && <SyncPinDialog onClose={() => setUnlocking(false)} />}
     </Section>
-  );
-}
-
-export function SessionsList() {
-  const { t } = useTranslation();
-  const client = useQueryClient();
-  const sessions = useQuery({ queryKey: ['sessions'], queryFn: () => api.sessions(), retry: 1 });
-  const revoke = useMutation({
-    mutationFn: (id: string) => api.revokeSession(id),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['sessions'] }),
-    onError: () => toast.error(t('common.somethingWrong')),
-  });
-  if (sessions.isPending) return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>;
-  if (sessions.isError) return <p className="text-sm text-muted-foreground">{t('settings.sessionsOffline')}</p>;
-  return (
-    <ul className="flex flex-col gap-2">
-      {sessions.data.sessions.map((session) => (
-        <li key={session.id} className="flex items-center gap-3 rounded-lg bg-muted/60 p-3">
-          <MonitorSmartphoneIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate font-bold">
-              {session.deviceName ?? t(`settings.client.${session.client}`)}
-              {session.current && (
-                <Badge variant="secondary" className="ms-2">
-                  {t('settings.thisDevice')}
-                </Badge>
-              )}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {t('settings.sessionSeen', {
-                first: formatDate(session.createdAt),
-                last: formatDate(session.lastSeenAt, { dateStyle: 'medium', timeStyle: 'short' }),
-              })}
-            </span>
-          </div>
-          {!session.current && (
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={revoke.isPending}
-              onClick={() => revoke.mutate(session.id)}
-              aria-label={t('settings.signOutDevice', { name: session.deviceName ?? t(`settings.client.${session.client}`) })}
-            >
-              {t('settings.signOut')}
-            </Button>
-          )}
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -225,7 +169,7 @@ function AccountSection() {
         <SessionsList />
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={() => void signOut()}>
+        <Button variant="outline" onClick={() => runAction(() => signOut())}>
           <LogOutIcon />
           {t('settings.signOutHere')}
         </Button>
@@ -241,7 +185,7 @@ function AccountSection() {
             <AlertDialogDescription>{t('settings.unsyncedBody', { count: warning ?? 0 })}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => void engine.sync()}>{t('settings.syncFirst')}</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => runAction(() => engine.sync())}>{t('settings.syncFirst')}</AlertDialogCancel>
             <AlertDialogAction destructive onClick={() => leave.signOut()}>
               {t('settings.signOutAnyway')}
             </AlertDialogAction>
@@ -267,7 +211,7 @@ export function HarvestSection() {
   return (
     <Section title={t('settings.harvest')} id="settings-harvest">
       <Row label={t('settings.dailyGoal')} hint={t('settings.dailyGoalHint')} htmlFor={`${id}-goal`}>
-        <Select value={goal ?? '3'} onValueChange={(value) => void settings.setString(settingKeys.dailyHarvestGoal, value)}>
+        <Select value={goal ?? '3'} onValueChange={(value) => runAction(() => settings.setString(settingKeys.dailyHarvestGoal, value))}>
           <SelectTrigger id={`${id}-goal`} className="w-full sm:w-40">
             <SelectValue />
           </SelectTrigger>
@@ -307,7 +251,7 @@ export function ExtrasSection() {
   const values = useFeaturesOrOff();
   return (
     <Section title={t('settingsWeb.extras')} id="settings-extras" lead={t('settingsWeb.extrasLead')}>
-      <FeatureSwitchList values={values} onChange={(feature, on) => void settings.setBool(featureKeys[feature], on)} />
+      <FeatureSwitchList values={values} onChange={(feature, on) => runAction(() => settings.setBool(featureKeys[feature], on))} />
     </Section>
   );
 }
@@ -324,7 +268,7 @@ export function PomodoroSection() {
             key={setting.key}
             label={t(`settingsWeb.pomodoroLen.${setting.name}`)}
             setting={setting}
-            onChange={(value) => void settings.setInt(setting.key, value)}
+            onChange={(value) => runAction(() => settings.setInt(setting.key, value))}
           />
         ))}
       </ul>
@@ -385,7 +329,7 @@ export function MoneySection() {
   return (
     <Section title={t('settingsWeb.money')} id="settings-money">
       <Row label={t('settings.defaultCurrency')} htmlFor={`${id}-currency`}>
-        <Select value={currency} onValueChange={(value) => void settings.setDefaultCurrency(value)}>
+        <Select value={currency} onValueChange={(value) => runAction(() => settings.setDefaultCurrency(value))}>
           <SelectTrigger id={`${id}-currency`} className="w-full sm:w-40">
             <SelectValue />
           </SelectTrigger>
@@ -481,7 +425,8 @@ export function SettingsScreen() {
             <div key={keys} className="flex items-center justify-between gap-3">
               <dt>{t(label)}</dt>
               <dd>
-                <kbd className="rounded-md border bg-muted px-2 py-0.5 font-mono text-xs">{keys}</kbd>
+                {/* Key names are words too: Space is مسافة in Arabic (W6-35). */}
+                <kbd className="rounded-md border bg-muted px-2 py-0.5 font-mono text-xs">{keys === 'Space' ? t('settings.keys.space') : keys}</kbd>
               </dd>
             </div>
           ))}

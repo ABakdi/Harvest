@@ -3,6 +3,7 @@ import { useEffect, useState, type RefObject } from 'react';
 import { useHarvest } from './context';
 import type { FileMiss } from './data/files';
 import { readSetting, settingKeys } from './data/settings';
+import { background } from '@/lib/actions';
 
 /** Whether this browser holds the private tier's key; undefined while it looks. */
 export function usePrivateKey(): boolean | undefined {
@@ -11,9 +12,9 @@ export function usePrivateKey(): boolean | undefined {
   useEffect(() => {
     let live = true;
     const check = () =>
-      void keyring.key(user.syncSalt).then((key) => {
+      background(keyring.key(user.syncSalt).then((key) => {
         if (live) setUnlocked(key !== null);
-      });
+      }));
     check();
     const off = keyring.onUnlock(check);
     return () => {
@@ -113,7 +114,7 @@ export function useFileView(sha256: string | null, enabled = true): FileView {
     let live = true;
     let made: string | null = null;
     // Not started at all if the tile is gone before its turn.
-    void filePool(async () => (live ? files.find(sha256) : null)).then((got) => {
+    background(filePool(async () => (live ? files.find(sha256) : null)).then((got) => {
       if (got === null) return;
       if (!live) return;
       if (typeof got === 'string') {
@@ -122,7 +123,7 @@ export function useFileView(sha256: string | null, enabled = true): FileView {
       }
       made = URL.createObjectURL(got);
       setFound({ hash: sha256, url: made });
-    });
+    }));
     return () => {
       live = false;
       if (made !== null) URL.revokeObjectURL(made);

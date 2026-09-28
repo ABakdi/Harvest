@@ -27,6 +27,17 @@ enum WeightUnit {
   );
 }
 
+/// The lightest and heaviest a body weight can be: 20 kg to 400 kg
+/// (`minBodyWeightGrams` / `maxBodyWeightGrams` in `packages/core`).
+const minBodyWeightGrams = 20000;
+const maxBodyWeightGrams = 400000;
+
+/// Whether [grams] is a weight a person can have. Outside 20–400 kg it
+/// is a typo — 900 kg, or 8.2 for 82 — and it is refused rather than
+/// drawn into the line ([[Health]] H4, W6-15).
+bool isPlausibleBodyWeight(int grams) =>
+    grams >= minBodyWeightGrams && grams <= maxBodyWeightGrams;
+
 /// One time I stood on a scale.
 @immutable
 class BodyWeight {

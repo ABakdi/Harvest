@@ -11,6 +11,7 @@ import { useHarvest } from '../../context';
 import { useExercise } from '../../data/exercises';
 import { exerciseHistory, exerciseRecords, type ExerciseOuting } from '../../data/gym';
 import { SetList, SetText, useAsker, useLoad, useUnit } from './shared';
+import { runAction } from '@/lib/actions';
 
 function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
@@ -185,7 +186,7 @@ export function ExerciseDetailDialog({ exerciseId, onClose }: { exerciseId: stri
           )}
         </section>
         {exercise?.mine && (
-          <Button variant="ghost" className="self-start text-destructive" onClick={() => void remove()}>
+          <Button variant="ghost" className="self-start text-destructive" onClick={() => runAction(() => remove())}>
             <Trash2Icon />
             {t('gym.mineRemove')}
           </Button>

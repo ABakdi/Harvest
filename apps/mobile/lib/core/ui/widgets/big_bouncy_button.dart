@@ -51,7 +51,7 @@ class _BigBouncyButtonState extends State<BigBouncyButton>
       style: theme.textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w800,
         color: _enabled
-            ? Colors.white
+            ? theme.onPrimaryGradient
             : scheme.onSurface.withValues(alpha: 0.4),
       ),
       child: widget.child,
@@ -92,7 +92,7 @@ class _BigBouncyButtonState extends State<BigBouncyButton>
                       Icon(
                         widget.icon,
                         color: _enabled
-                            ? Colors.white
+                            ? theme.onPrimaryGradient
                             : scheme.onSurface.withValues(alpha: 0.4),
                       ),
                       const SizedBox(width: HarvestSpacing.sm),

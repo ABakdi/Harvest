@@ -88,7 +88,7 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
 
     final total = dayTotals.values.fold(0, (a, b) => a + b);
     final elapsed = range.elapsedDays(today);
-    final average = elapsed == 0 ? 0 : total ~/ elapsed;
+    final average = averagePerDay(total, elapsed, currency);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -98,32 +98,45 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
         120,
       ),
       children: [
-        SegmentedButton<RangeKind>(
-          segments: [
-            ButtonSegment(
-              value: RangeKind.week,
-              icon: const Icon(Icons.view_week),
-              label: Text(l10n.rangeWeek),
-            ),
-            ButtonSegment(
-              value: RangeKind.month,
-              icon: const Icon(Icons.calendar_month),
-              label: Text(l10n.rangeMonth),
-            ),
-            ButtonSegment(
-              value: RangeKind.custom,
-              icon: const Icon(Icons.date_range),
-              label: Text(l10n.rangeCustom),
-            ),
-          ],
-          selected: {_kind},
-          onSelectionChanged: (selection) {
-            final next = selection.first;
-            if (next == RangeKind.custom) {
-              unawaited(_pickRange(today));
-              return;
-            }
-            setState(() => _kind = next);
+        // Icons only where there is room for them: at 320 dp, or with
+        // large text, "Month" broke into "Mont/h" (U6-12).
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final roomy =
+                constraints.maxWidth /
+                    MediaQuery.textScalerOf(context).scale(1) >=
+                360;
+            Widget label(String text) =>
+                Text(text, maxLines: 1, softWrap: false);
+            return SegmentedButton<RangeKind>(
+              showSelectedIcon: roomy,
+              segments: [
+                ButtonSegment(
+                  value: RangeKind.week,
+                  icon: roomy ? const Icon(Icons.view_week) : null,
+                  label: label(l10n.rangeWeek),
+                ),
+                ButtonSegment(
+                  value: RangeKind.month,
+                  icon: roomy ? const Icon(Icons.calendar_month) : null,
+                  label: label(l10n.rangeMonth),
+                ),
+                ButtonSegment(
+                  value: RangeKind.custom,
+                  icon: roomy ? const Icon(Icons.date_range) : null,
+                  label: label(l10n.rangeCustom),
+                ),
+              ],
+              selected: {_kind},
+              onSelectionChanged: (selection) {
+                final next = selection.first;
+                if (next == RangeKind.custom) {
+                  unawaited(_pickRange(today));
+                  return;
+                }
+                setState(() => _kind = next);
+              },
+            );
           },
         ),
         const SizedBox(height: HarvestSpacing.sm),
@@ -168,7 +181,7 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
                 child: StatTile(
                   icon: Icons.today,
                   color: theme.colorScheme.tertiary,
-                  label: l10n.avgPerDay(''),
+                  label: l10n.perDay,
                   value: formatMoney(average, currency),
                 ),
               ),
@@ -188,12 +201,8 @@ class _FinanceInsightsState extends ConsumerState<FinanceInsights> {
             ),
           )
         else ...[
-          SectionHeader(
-            l10n.rangeOf(
-              formatDay(context, range.from),
-              formatDay(context, range.to),
-            ),
-          ),
+          // The dates are spelled out once, under the segments (U6-34).
+          const SizedBox(height: HarvestSpacing.md),
           Card(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -283,8 +292,6 @@ class _DailyBars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = localeTag(context);
     final days = range.eachDay;
     final labelEvery = days.length <= _labelLimit;
 
@@ -293,6 +300,27 @@ class _DailyBars extends StatelessWidget {
         ? 0
         : values.reduce((a, b) => a > b ? a : b);
 
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The width each bar's column has, less a hair between labels.
+        final slot = days.isEmpty
+            ? constraints.maxWidth
+            : constraints.maxWidth / days.length - 2;
+        return _chart(context, days, values, maxValue, labelEvery, slot);
+      },
+    );
+  }
+
+  Widget _chart(
+    BuildContext context,
+    List<HarvestDay> days,
+    List<int> values,
+    int maxValue,
+    bool labelEvery,
+    double slot,
+  ) {
+    final theme = Theme.of(context);
+    final locale = localeTag(context);
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
@@ -318,11 +346,20 @@ class _DailyBars extends StatelessWidget {
                 if (!labelEvery && amount != maxValue) {
                   return const SizedBox.shrink();
                 }
-                return Text(
-                  formatMoney(amount, currency),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: theme.colorScheme.onSurface,
+                // Each label keeps to its own bar's width and shrinks to
+                // fit: side by side they read "DA300DA200" (U6-12).
+                return SizedBox(
+                  width: slot,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      formatMoney(amount, currency),
+                      maxLines: 1,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                 );
               },
@@ -390,6 +427,17 @@ class _DailyBars extends StatelessWidget {
       ),
     );
   }
+}
+
+/// What a range averages per day, in whole units of a currency that is
+/// written in whole units: DA71.42 a day was the one fractional dinar on
+/// the screen (U6-34). The rule is `averagePerDay` in `packages/core`,
+/// held to its fixture.
+int averagePerDay(int total, int elapsedDays, Currency currency) {
+  if (elapsedDays <= 0) return 0;
+  final average = total ~/ elapsedDays;
+  if (currency != Currency.dzd) return average;
+  return ((average / 100).round()) * 100;
 }
 
 /// The category split, each slice carrying its share **and** what that

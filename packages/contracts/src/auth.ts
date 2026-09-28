@@ -29,13 +29,39 @@ export const passwordMaxLength = 256;
 
 const commonPasswords: ReadonlySet<string> = new Set(commonPasswordList);
 
+/** The leetspeak a list-maker tries first, undone: `p@ssw0rd` is `password`. */
+const leet: Record<string, string> = { '0': 'o', '3': 'e', '4': 'a', '5': 's', '@': 'a', $: 's' };
+
+function unleet(value: string, one: 'i' | 'l'): string {
+  return value.replace(/[01345@$]/g, (c) => (c === '1' ? one : (leet[c] ?? c)));
+}
+
+/** Digits and the usual symbols tacked on the end: `password12`, `Password123!`. */
+const trailing = /[\d!@#$%^&*?.,;:_+=~-]+$/;
+
 /**
- * Whether [password] is one of the 10,000 most common passwords. The
- * list is lowercase, and so is the comparison: "Password12" is not a
- * better password than "password12".
+ * Whether [password] is one of the 10,000 most common passwords, or one
+ * of them dressed up (W6-40): the list is lowercase, and so is the
+ * comparison ("Password12" is no better than "password12"); digits and
+ * symbols added at the end are taken off when at least four characters
+ * are left ("password12", "Password123!"); and the common leetspeak is
+ * undone ("p@ssw0rd"). The clients' own check is this one, so what they
+ * say while I type is what the server decides.
  */
 export function isCommonPassword(password: string): boolean {
-  return commonPasswords.has(password.toLowerCase());
+  const lower = password.toLowerCase();
+  const candidates = new Set<string>([lower]);
+  const stripped = lower.replace(trailing, '');
+  if (stripped.length >= 4) candidates.add(stripped);
+  for (const base of [lower, stripped]) {
+    for (const one of ['i', 'l'] as const) {
+      const plain = unleet(base, one);
+      if (plain.length >= 4) candidates.add(plain);
+      const bare = plain.replace(trailing, '');
+      if (bare.length >= 4) candidates.add(bare);
+    }
+  }
+  return [...candidates].some((candidate) => commonPasswords.has(candidate));
 }
 
 /**

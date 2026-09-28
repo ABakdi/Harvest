@@ -725,7 +725,12 @@ class _WeightRow extends ConsumerWidget {
         content: Text(l10n.deleted),
         action: SnackBarAction(
           label: l10n.undoAction,
-          onPressed: () => repository.restoreWeight(weight.uuid).ignore(),
+          // A failed Undo says so rather than vanishing (Q6-12).
+          onPressed: () => unawaited(
+            repository.restoreWeight(weight.uuid).catchError((Object _) {
+              messenger.showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
+            }),
+          ),
         ),
       ),
     );

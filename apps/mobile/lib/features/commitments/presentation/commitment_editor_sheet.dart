@@ -336,6 +336,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           const SizedBox(height: HarvestSpacing.md),
         ],
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _titleController,
           autofocus: true,
           textInputAction: TextInputAction.done,
@@ -501,6 +502,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
       ),
       children: [
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _noteController,
           maxLines: 2,
           minLines: 1,

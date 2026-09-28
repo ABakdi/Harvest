@@ -11,14 +11,14 @@ export function syncRoutes(sync: SyncService): Router {
   router.post(
     '/push',
     ...validated({ body: pushBodySchema }, async ({ body }, _req, res) => {
-      res.json(await sync.push(authOf(res).userId, body.deviceId, body.records));
+      res.json(await sync.push(authOf(res).userId, body.deviceId, body.records, body.keyEpoch));
     }),
   );
 
   router.get(
     '/pull',
     ...validated({ query: pullQuerySchema }, async ({ query }, _req, res) => {
-      res.json(await sync.pull(authOf(res).userId, query.after, query.limit));
+      res.json(await sync.pull(authOf(res).userId, query.after, query.limit, undefined, query.deviceId));
     }),
   );
 

@@ -16,7 +16,9 @@ import { ExercisePicker } from './gym/exercise-picker';
 import { usePictureOffer } from './gym/picture-offer';
 import { SetList, UnitToggle, useAsker, useLoad, useVolume } from './gym/shared';
 import { Fab } from '../components/fab';
+import { useBusy } from '../components/use-busy';
 import { StartDialog, useStartSession } from './gym/start';
+import { background, runAction } from '@/lib/actions';
 
 /**
  * The session left running — here, or on the phone and synced — is the
@@ -48,6 +50,8 @@ function Programs() {
   const { db, programs } = useHarvest();
   const navigate = useNavigate();
   const [asker, asking] = useAsker();
+  // One program per click, however fast the clicks (Q6-21).
+  const [creating, once] = useBusy();
   const list = useLiveQuery(async () => {
     const trees = await readPrograms(db);
     return Promise.all(trees.map(async (tree) => ({ tree, next: await nextDayOf(db, tree) })));
@@ -62,7 +66,7 @@ function Programs() {
     });
     if (!name?.trim()) return;
     const row = await programs.createProgram(name);
-    void navigate(`/app/body/gym/programs/${row.uuid}`);
+    background(navigate(`/app/body/gym/programs/${row.uuid}`));
   }
 
   return (
@@ -71,10 +75,14 @@ function Programs() {
         <h2 id="gym-programs" className="text-lg font-extrabold">
           {t('gym.programs')}
         </h2>
-        <Button variant="outline" size="sm" onClick={() => void create()}>
-          <PlusIcon />
-          {t('gym.newProgram')}
-        </Button>
+        {list?.length === 0 ? (
+          <Fab wide={false} label={t('gym.newProgram')} disabled={creating} onClick={() => runAction(() => once(create))} />
+        ) : (
+          <Button variant="outline" size="sm" disabled={creating} onClick={() => runAction(() => once(create))}>
+            <PlusIcon />
+            {t('gym.newProgram')}
+          </Button>
+        )}
       </div>
       {list?.length === 0 && (
         <EmptyState
@@ -82,7 +90,7 @@ function Programs() {
           title={t('gym.noPrograms')}
           body={t('gym.noProgramsBody')}
           action={
-            <Button onClick={() => void create()}>
+            <Button disabled={creating} onClick={() => runAction(() => once(create))}>
               <PlusIcon />
               {t('gym.newProgram')}
             </Button>
@@ -104,7 +112,7 @@ function Programs() {
                 >
                   <ListIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate font-extrabold">{tree.program.name}</span>
+                    <span dir="auto" className="truncate font-extrabold">{tree.program.name}</span>
                     <span className="text-sm text-muted-foreground">{next ? `${summary} · ${t('gym.nextDay', { day: next.row.name })}` : summary}</span>
                   </span>
                   <ChevronRightIcon className="size-5 text-muted-foreground rtl:rotate-180" aria-hidden />
@@ -176,12 +184,12 @@ function History() {
                           <SetList labels={done.map((set) => `${load(set.weightGrams)}×${set.reps}`)} />
                         </span>
                       )}
-                      {row.note && <span className="basis-full text-xs text-muted-foreground">{row.note}</span>}
+                      {row.note && <span dir="auto" className="basis-full text-xs text-muted-foreground">{row.note}</span>}
                     </li>
                   );
                 })}
               </ul>
-              {session.note && <p className="text-sm text-muted-foreground">{session.note}</p>}
+              {session.note && <p dir="auto" className="text-sm text-muted-foreground">{session.note}</p>}
             </li>
           ))}
         </ul>
@@ -201,6 +209,9 @@ export function GymPanel() {
   const startSession = useStartSession();
   const [picking, setPicking] = useState(false);
   const [browsing, setBrowsing] = useState(false);
+  const { db } = useHarvest();
+  // With no program there is nothing to start: New program is the action instead (W6-19).
+  const hasPrograms = useLiveQuery(async () => (await db.rows('programs').toArray()).some((row) => row.deletedAt === null), [db]);
   // The picture after a session, when its program asks for one then.
   const picture = usePictureOffer();
 
@@ -215,7 +226,7 @@ export function GymPanel() {
       <div className="flex flex-col gap-3">
         <Running />
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Fab icon={<PlayIcon />} label={t('gym.start')} onClick={() => void start()} />
+          {hasPrograms && <Fab icon={<PlayIcon />} label={t('gym.start')} onClick={() => runAction(() => start())} />}
           <UnitToggle />
         </div>
       </div>

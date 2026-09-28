@@ -4,7 +4,7 @@ import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-extrabold transition-[color,background-color,box-shadow,transform] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap max-md:whitespace-normal max-md:text-center rounded-lg text-sm font-extrabold transition-[color,background-color,box-shadow,transform] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -17,9 +17,11 @@ const buttonVariants = cva(
         brand: 'bg-brand-gradient text-white shadow-md hover:brightness-105 [text-shadow:0_1px_1px_rgb(0_0_0/0.25)]',
       },
       size: {
-        // A phone-width window gets the phone's 44 px targets.
-        default: 'h-10 px-4 py-2 has-[>svg]:px-3 max-md:h-11 max-md:min-w-11',
-        sm: 'h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5 max-md:h-11 max-md:min-w-11',
+        // A phone-width window gets the phone's 44 px targets, and a
+        // label that no longer fits (large text, 200% zoom) wraps onto a
+        // taller button rather than spilling out of it (W6-06).
+        default: 'h-10 px-4 py-2 has-[>svg]:px-3 max-md:h-auto max-md:min-h-11 max-md:min-w-11 max-md:shrink',
+        sm: 'h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5 max-md:h-auto max-md:min-h-11 max-md:min-w-11 max-md:py-1.5 max-md:shrink',
         lg: 'h-12 px-6 text-base has-[>svg]:px-4',
         icon: 'size-10 max-md:size-11',
         'icon-sm': 'size-8 rounded-md max-md:size-11',

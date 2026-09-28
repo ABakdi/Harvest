@@ -24,7 +24,12 @@ class FakeFiles implements FileRemote {
       hashes.where((hash) => !held.containsKey(hash)).toList();
 
   @override
-  Future<void> upload(String sha256, Uint8List sealed, String iv) async {
+  Future<void> upload(
+    String sha256,
+    Uint8List sealed,
+    String iv, {
+    required int keyEpoch,
+  }) async {
     if (failing.contains(sha256)) throw StateError('connection reset');
     held[sha256] = (sealed: sealed, iv: iv);
     uploads += 1;

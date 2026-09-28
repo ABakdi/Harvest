@@ -1,7 +1,7 @@
 import { sealRow, type PushBody, type PushResult } from '@harvest/contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { getMeta, metaKeys, setMeta } from '@/app/data/db';
-import { FileStore } from '@/app/data/files';
+import { FileStore, failuresBeforeSaying, playableType, retryAfterMs } from '@/app/data/files';
 import { contractFingerprint, type SyncTransport } from '@/app/sync/engine';
 import { FakeServer } from './fake-server';
 import { device, testUser } from './helpers';
@@ -234,14 +234,15 @@ describe('the sealed rows on the web', () => {
     const server = new FakeServer();
     const a = await device(server);
     const b = await device(server);
-    // B opened its prompt before A chose; A's check is there first.
+    // B opened its prompt before A chose; A's PIN is there first.
+    const none = await server.syncKey();
     await a.keyring.unlock('2468', testUser.syncSalt, 1);
-    const stored = server.check;
-    server.check = null;
-    const put = vi.spyOn(server, 'putKeyCheck').mockResolvedValueOnce(stored);
+    vi.spyOn(server, 'syncKey').mockResolvedValueOnce(none);
     await expect(b.keyring.unlock('9731', testUser.syncSalt, 1)).rejects.toMatchObject({ chosenElsewhere: true });
-    expect(put).toHaveBeenCalled();
     expect(await b.keyring.key(testUser.syncSalt)).toBeNull();
+    // Its right PIN is the first device's.
+    await b.keyring.unlock('2468', testUser.syncSalt, 1);
+    expect(await b.keyring.key(testUser.syncSalt)).not.toBeNull();
   });
 });
 
@@ -286,5 +287,56 @@ describe('files a purge leaves behind (Q5-23)', () => {
     await a.engine.sync();
     await b.engine.sync();
     expect(released).toHaveBeenCalledWith('notes', expect.objectContaining({ uuid: note.uuid }));
+  });
+});
+
+describe('what a file is kept as (S6-17)', () => {
+  it('only as something to play, never as a page or a script', async () => {
+    const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]);
+    expect(playableType(jpeg)).toBe('image/jpeg');
+    expect(playableType(new TextEncoder().encode('<html><script>'), 'text/html')).toBe('application/octet-stream');
+    expect(playableType(new TextEncoder().encode('<svg onload='), 'image/svg+xml')).toBe('application/octet-stream');
+    expect(playableType(new Uint8Array([0x1a, 0x45, 0xdf, 0xa3]), 'audio/webm;codecs=opus')).toBe('audio/webm');
+    const h = await device(new FakeServer());
+    // The test store does not keep a Blob: what is handed to it is checked.
+    const put = vi.spyOn(h.db.files, 'put');
+    await h.files.keep(new Blob(['<svg onload="alert(1)"/>'], { type: 'image/svg+xml' }));
+    expect(put.mock.calls[0]![0].blob.type).toBe('application/octet-stream');
+  });
+});
+
+describe('a file that keeps failing to go (Q6-14)', () => {
+  it('waits longer each time, and is said out loud after a few tries', async () => {
+    const server = new FakeServer();
+    const h = await device(server);
+    await h.keyring.unlock('2468', testUser.syncSalt, 1);
+    const putFile = vi.fn().mockRejectedValue(new Error('server hiccup'));
+    const store = new FileStore(h.db, h.keyring, () => testUser.syncSalt, h.writer, {
+      file: vi.fn(),
+      filesMissing: (hashes: string[]) => Promise.resolve({ missing: hashes, usedBytes: 0, quotaBytes: 1 << 30 }),
+      putFile,
+    });
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    let now = 1_000_000;
+    store.now = () => now;
+    const { sha256 } = await store.keep(new Blob([new Uint8Array([1, 2, 3])]));
+    // The test store does not keep a Blob: the bytes are handed back as kept.
+    const blob = new Blob([new Uint8Array([1, 2, 3])]);
+    vi.spyOn(h.db.files, 'get').mockResolvedValue({ sha256, blob, fetchedAt: '2026-09-19T12:00:00.000Z' });
+    await h.db.rows('memories').put({ uuid: 'm1', fileHash: null, deletedAt: null } as never);
+    await store.queue('memories', 'm1', sha256);
+
+    await store.upload();
+    expect(putFile).toHaveBeenCalledTimes(1);
+    // Straight after, it is not re-read and sent again.
+    await store.upload();
+    expect(putFile).toHaveBeenCalledTimes(1);
+    for (let i = 1; i < failuresBeforeSaying; i += 1) {
+      now += retryAfterMs(i);
+      await store.upload();
+    }
+    expect(putFile).toHaveBeenCalledTimes(failuresBeforeSaying);
+    expect(store.problem).toBe('failing');
+    expect(retryAfterMs(20)).toBe(3_600_000);
   });
 });

@@ -47,7 +47,8 @@ void main() {
         dayUuid: next?.uuid,
       );
       await finisher.finish(bare);
-      await Future<void>.delayed(const Duration(seconds: 1));
+      // Two sessions started in the same instant still order by row id,
+      // so no wait is needed between them (PH-16).
       expect((await sessions.nextDay(loaded))?.uuid, expected.uuid);
     }
   });

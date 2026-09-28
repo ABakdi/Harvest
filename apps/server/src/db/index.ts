@@ -7,6 +7,7 @@ import { OneTimeTokensRepository } from './one-time-tokens.js';
 import { RecordsRepository } from './records.js';
 import { SessionsRepository } from './sessions.js';
 import { TotalsRepository } from './totals.js';
+import { WindowedCountsRepository } from './windowed-counts.js';
 import { UsersRepository } from './users.js';
 
 export interface Repositories {
@@ -18,6 +19,7 @@ export interface Repositories {
   assistUsage: AssistUsageRepository;
   totals: TotalsRepository;
   loginFailures: LoginFailuresRepository;
+  windowedCounts: WindowedCountsRepository;
 }
 
 export async function createRepositories(db: Db): Promise<Repositories> {
@@ -28,10 +30,11 @@ export async function createRepositories(db: Db): Promise<Repositories> {
     sessions: new SessionsRepository(c.sessions, c.refreshTokens),
     oneTimeTokens: new OneTimeTokensRepository(c.oneTimeTokens),
     records: new RecordsRepository(c.records, c.counters),
-    files: new FilesRepository(c.files),
+    files: new FilesRepository(c.files, db),
     assistUsage: new AssistUsageRepository(c.assistUsage, c.assistDays),
     totals: new TotalsRepository(c.counters),
     loginFailures: new LoginFailuresRepository(c.loginFailures),
+    windowedCounts: new WindowedCountsRepository(c.windowedCounts),
   };
 }
 

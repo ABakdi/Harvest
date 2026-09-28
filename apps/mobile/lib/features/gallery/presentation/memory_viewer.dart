@@ -129,8 +129,17 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
         content: Text(l10n.galleryMovedToTrash),
         action: SnackBarAction(
           label: l10n.undoAction,
-          onPressed: () =>
-              service.restore(memory, album: widget.album).ignore(),
+          // A refused undo says so rather than leaving the picture
+          // gone with no word ([[Audit-v3]] Q6-12).
+          onPressed: () => unawaited(
+            service.restore(memory, album: widget.album).catchError((
+              Object _,
+            ) {
+              messenger.showSnackBar(
+                SnackBar(content: Text(l10n.saveFailed)),
+              );
+            }),
+          ),
         ),
       ),
     );

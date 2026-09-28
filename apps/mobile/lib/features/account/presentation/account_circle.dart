@@ -9,6 +9,7 @@ import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/account/presentation/account_card.dart';
 import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
+import 'package:harvest/features/export/domain/export_service.dart';
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -56,6 +57,16 @@ class AccountCircle extends ConsumerWidget {
     SyncMark.error => scheme.error,
   };
 
+  /// A shape per state, so the mark never says it by colour alone
+  /// (U6-39): a tick, an arrow going up, a slash, a "!".
+  static IconData? markGlyph(SyncMark mark) => switch (mark) {
+    SyncMark.none => null,
+    SyncMark.sent => Icons.check_rounded,
+    SyncMark.pending => Icons.arrow_upward_rounded,
+    SyncMark.offline => Icons.block_rounded,
+    SyncMark.error => Icons.priority_high_rounded,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -73,7 +84,7 @@ class AccountCircle extends ConsumerWidget {
         SyncMark.none => null,
         SyncMark.sent => l10n.accountAllSent,
         SyncMark.pending =>
-          sync.pending > 0 ? l10n.accountPending(sync.pending) : null,
+          sync.pending > 0 ? l10n.accountChangesWaiting : null,
         SyncMark.offline => l10n.accountOffline,
         SyncMark.error => accountError(l10n, ApiException(sync.error!, 0)),
       },
@@ -126,9 +137,10 @@ class AccountCircle extends ConsumerWidget {
                   bottom: -1,
                   child: _Dot(
                     key: ValueKey('account-mark-${mark.name}'),
-                    size: 11,
+                    size: 14,
                     color: markColor(mark, scheme),
                     ring: scheme.surface,
+                    glyph: markGlyph(mark),
                   ),
                 ),
               if (pinMissing)
@@ -155,12 +167,14 @@ class _Dot extends StatelessWidget {
     required this.size,
     required this.color,
     required this.ring,
+    this.glyph,
     super.key,
   });
 
   final double size;
   final Color color;
   final Color ring;
+  final IconData? glyph;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -171,6 +185,17 @@ class _Dot extends StatelessWidget {
       shape: BoxShape.circle,
       border: Border.all(color: ring, width: 1.5),
     ),
+    alignment: Alignment.center,
+    child: glyph == null
+        ? null
+        : Icon(
+            glyph,
+            size: size - 5,
+            // Dark on the light marks (amber, grey), white on the rest.
+            color: color.computeLuminance() > 0.3
+                ? Colors.black87
+                : Colors.white,
+          ),
   );
 }
 
@@ -246,12 +271,7 @@ class AccountSheet extends ConsumerWidget {
     AppLocalizations l10n,
     Me me,
   ) {
-    final theme = Theme.of(context);
     final sync = ref.watch(syncControllerProvider);
-    final last = sync.last;
-    final muted = theme.textTheme.bodySmall?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
-    );
     return [
       ListTile(
         contentPadding: EdgeInsets.zero,
@@ -261,29 +281,7 @@ class AccountSheet extends ConsumerWidget {
           me.verified ? l10n.accountVerified : l10n.accountUnverified,
         ),
       ),
-      if (sync.offline)
-        Text(l10n.accountOffline, style: theme.textTheme.bodyMedium)
-      else if (last != null && sync.error == null)
-        Text(l10n.accountOnline, style: theme.textTheme.bodyMedium),
-      Text(
-        last == null
-            ? l10n.accountNeverSynced
-            : l10n.accountLastSynced(
-                TimeOfDay.fromDateTime(last.at).format(context),
-              ),
-        style: muted,
-      ),
-      Text(
-        sync.pending > 0
-            ? l10n.accountPending(sync.pending)
-            : l10n.accountAllSent,
-        style: muted,
-      ),
-      if (sync.error != null && !sync.offline)
-        Text(
-          accountError(l10n, ApiException(sync.error!, 0)),
-          style: TextStyle(color: theme.colorScheme.error),
-        ),
+      ...syncStatusLines(context, l10n, sync),
       const SizedBox(height: HarvestSpacing.sm),
       FilledButton.tonalIcon(
         // Unverified too: the sync asks the server again first.
@@ -345,7 +343,8 @@ class AccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsAccount)),
+      // Named as the account sheet's row that opens it (U6-20).
+      appBar: AppBar(title: Text(l10n.accountPage)),
       body: ListView(
         padding: const EdgeInsets.all(HarvestSpacing.md),
         children: [AccountCard(creating: creating)],
@@ -413,17 +412,26 @@ class _SyncPinPromptState extends ConsumerState<SyncPinPrompt> {
   /// After the frame: the listeners fire while the tree is building,
   /// and nothing may change then.
   void _consider({bool forgetAsked = false, bool changedElsewhere = false}) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final asked = ref.read(syncPinAskedProvider.notifier);
       if (forgetAsked) asked.asked = false;
       if (_showing) return;
       final me = ref.read(accountControllerProvider).value?.me;
+      // First, what becomes of this phone's own data (U6-05).
+      if (me != null && await _joinPending()) {
+        if (!mounted || _showing) return;
+        _showing = true;
+        await showJoinSheet(context);
+        _showing = false;
+        if (!mounted) return;
+      }
       final set = ref.read(syncPassphraseProvider);
       if (me == null || !set.hasValue || set.value!) return;
       if (asked.asked) return;
       asked.asked = true;
       _showing = true;
+      if (!mounted) return;
       unawaited(
         showSyncPinSheet(
           context,
@@ -437,6 +445,121 @@ class _SyncPinPromptState extends ConsumerState<SyncPinPrompt> {
     });
   }
 
+  Future<bool> _joinPending() async {
+    try {
+      return await ref.read(syncJoinPendingProvider.future);
+    } on Object {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+/// Whether sync waits for me to say what becomes of this phone's own
+/// data (U6-05).
+final FutureProvider<bool> syncJoinPendingProvider =
+    FutureProvider.autoDispose<bool>(
+      (ref) => ref.read(syncServiceProvider).joinPending(),
+    );
+
+/// Asks, on signing in on a phone that already holds data of its own,
+/// what becomes of it (U6-05): brought into the account, or kept aside in
+/// an archive while the account's data comes down in its place. Nothing
+/// syncs until one is chosen.
+Future<void> showJoinSheet(BuildContext context) =>
+    showHarvestSheet<void>(context, builder: (_) => const JoinSheet());
+
+class JoinSheet extends ConsumerStatefulWidget {
+  const JoinSheet({super.key});
+
+  @override
+  ConsumerState<JoinSheet> createState() => _JoinSheetState();
+}
+
+class _JoinSheetState extends ConsumerState<JoinSheet> {
+  var _busy = false;
+  String? _error;
+
+  Future<void> _bring() async {
+    final navigator = Navigator.of(context);
+    final service = ref.read(syncServiceProvider);
+    final sync = ref.read(syncControllerProvider.notifier);
+    setState(() => _busy = true);
+    await service.holdForJoin(hold: false);
+    if (mounted) navigator.pop();
+    unawaited(sync.syncNow());
+  }
+
+  Future<void> _startFromAccount() async {
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(syncServiceProvider);
+    final sync = ref.read(syncControllerProvider.notifier);
+    final export = ref.read(exportServiceProvider);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final String path;
+    try {
+      // Kept first, in an archive of its own: nothing here is lost.
+      path = await export.exportArchive();
+    } on Object {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = l10n.joinArchiveFailed;
+        });
+      }
+      return;
+    }
+    await service.forgetLocalData();
+    await service.holdForJoin(hold: false);
+    if (mounted) navigator.pop();
+    messenger.showSnackBar(SnackBar(content: Text(l10n.joinArchived(path))));
+    unawaited(sync.syncNow());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return PopScope(
+      canPop: !_busy,
+      child: HarvestSheet(
+        title: l10n.joinTitle,
+        children: [
+          Text(l10n.joinBody),
+          const SizedBox(height: HarvestSpacing.md),
+          FilledButton(
+            onPressed: _busy ? null : () => unawaited(_bring()),
+            child: Text(l10n.joinBring),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          OutlinedButton(
+            onPressed: _busy ? null : () => unawaited(_startFromAccount()),
+            child: Text(l10n.joinStartFromAccount),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          Text(
+            l10n.joinStartFromAccountNote,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: HarvestSpacing.sm),
+            Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+          ],
+          if (_busy) ...[
+            const SizedBox(height: HarvestSpacing.md),
+            const LinearProgressIndicator(),
+          ],
+        ],
+      ),
+    );
+  }
 }

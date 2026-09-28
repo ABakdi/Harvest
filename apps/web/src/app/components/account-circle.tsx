@@ -23,9 +23,11 @@ import { useLeave } from '../app-root';
 import { useHarvest, useSyncStatus } from '../context';
 import { usePrivateKey } from '../hooks';
 import type { SyncStatus } from '../sync/engine';
-import { SessionsList } from '../screens/settings';
+import { SessionsList } from './sessions-list';
 import { StartOverDialog, SyncPinDialog } from './passphrase-prompt';
+import { useOnline, usePinChosen } from './pin-state';
 import { useRelativeTime } from './relative-time';
+import { background, runAction } from '@/lib/actions';
 
 /** The circle's status mark ([[Accounts]], the account circle). */
 export type AccountMark = 'synced' | 'pending' | 'offline' | 'error';
@@ -35,8 +37,9 @@ export type AccountMark = 'synced' | 'pending' | 'offline' | 'error';
  * offline, red when sync cannot go on (a failure, a session that ended,
  * an address not verified yet).
  */
-export function accountMark(status: SyncStatus): AccountMark {
-  if (status.phase === 'offline') return 'offline';
+export function accountMark(status: SyncStatus, online = true): AccountMark {
+  // The browser's own word that the network went is taken at once, not after a sync fails (W6-02).
+  if (status.phase === 'offline' || !online) return 'offline';
   if (status.phase === 'error' || status.phase === 'signedOut' || status.phase === 'unverified') return 'error';
   if (status.phase === 'syncing' || status.pending + status.locked > 0) return 'pending';
   return 'synced';
@@ -68,7 +71,8 @@ export function AccountCircle({ className }: { className?: string }) {
   const unlocked = usePrivateKey();
   const [open, setOpen] = useState(false);
   const id = useId();
-  const mark = accountMark(status);
+  const online = useOnline();
+  const mark = accountMark(status, online);
   const noPin = unlocked === false;
   const described = [t(`account.mark.${mark}`), noPin ? t('account.mark.noPin') : null].filter(Boolean).join('. ');
 
@@ -116,7 +120,9 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
   const [forgetting, setForgetting] = useState(false);
   const [changing, setChanging] = useState(false);
   const [warning, setWarning] = useState<number | null>(null);
-  const offline = status.phase === 'offline';
+  const online = useOnline();
+  const offline = status.phase === 'offline' || !online;
+  const pinChosen = usePinChosen();
 
   // W5, as in Settings: signing out deletes what has not been sent, so it is said first.
   const signOut = async () => {
@@ -185,12 +191,18 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
               variant="outline"
               size="sm"
               className="self-start"
-              onClick={() => void engine.sync()}
-              disabled={status.phase === 'syncing'}
+              onClick={() => background(engine.sync())}
+              disabled={status.phase === 'syncing' || offline}
+              aria-describedby={offline ? 'account-offline-reason' : undefined}
             >
               <RefreshCwIcon className={status.phase === 'syncing' ? 'animate-spin' : undefined} />
               {t('sync.syncNow')}
             </Button>
+            {offline && (
+              <p id="account-offline-reason" className="text-xs text-muted-foreground">
+                {t('account.syncWhenOnline')}
+              </p>
+            )}
           </section>
 
           <Separator />
@@ -205,19 +217,20 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
                   <ShieldCheckIcon />
                   {t('syncPin.setHere')}
                 </Badge>
-                <Button variant="ghost" size="sm" onClick={() => setChanging(true)}>
+                <Button variant="link" size="sm" className="h-auto px-0" onClick={() => setChanging(true)}>
                   {t('syncPin.change')}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setForgetting(true)}>
+                <Button variant="link" size="sm" className="h-auto px-0" onClick={() => setForgetting(true)}>
                   {t('syncPin.forget')}
                 </Button>
               </div>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground">{t('syncPin.waiting')}</p>
+                {/* None chosen yet on any device: choose one; else enter the one there is (W6-08). */}
+                <p className="text-sm text-muted-foreground">{pinChosen === false ? t('syncPin.chooseWhy') : t('syncPin.waiting')}</p>
                 <Button size="sm" className="self-start" onClick={() => setUnlocking(true)} disabled={unlocked === undefined}>
                   <KeyRoundIcon />
-                  {t('syncPin.enter')}
+                  {pinChosen === false ? t('syncPin.chooseTitle') : t('syncPin.enter')}
                 </Button>
               </>
             )}
@@ -229,11 +242,11 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
             <h3 id="account-devices" className="text-sm font-bold">
               {t('settings.devices')}
             </h3>
-            <SessionsList />
+            {offline ? <p className="text-sm text-muted-foreground">{t('account.devicesOffline')}</p> : <SessionsList />}
           </section>
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Button variant="outline" onClick={() => void signOut()}>
+            <Button variant="outline" onClick={() => runAction(signOut)}>
               <LogOutIcon />
               {t('settings.signOutHere')}
             </Button>
@@ -269,7 +282,7 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction destructive onClick={() => void forget()}>
+            <AlertDialogAction destructive onClick={() => runAction(forget)}>
               {t('syncPin.forget')}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -283,7 +296,7 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
             <AlertDialogDescription>{t('settings.unsyncedBody', { count: warning ?? 0 })}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => void engine.sync()}>{t('settings.syncFirst')}</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => background(engine.sync())}>{t('settings.syncFirst')}</AlertDialogCancel>
             <AlertDialogAction destructive onClick={() => leave.signOut()}>
               {t('settings.signOutAnyway')}
             </AlertDialogAction>

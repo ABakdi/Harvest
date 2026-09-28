@@ -5,6 +5,7 @@ import type { ObjectId } from 'mongodb';
 import type { Logger } from 'pino';
 import { isDuplicateKey, type RefreshTokenDoc, type Repositories, type SessionDoc, type UserDoc } from '../db/index.js';
 import { HttpError, unauthorized } from '../http/errors.js';
+import { networkOf } from '../http/ip.js';
 import { KeyedMutex } from '../sync/mutex.js';
 import type { Mailer, MailMessage } from '../mail/mailer.js';
 import { resetMail, verificationMail } from '../mail/templates.js';
@@ -30,8 +31,32 @@ export const resetLinkMs = 60 * 60_000;
  */
 export const refreshGraceMs = 30_000;
 
+/** How often a session's "last seen" is written. */
+const touchEveryMs = 60_000;
+
+/** Who is asking, as a request behind sign-in knows it. */
+export interface Caller extends AccessClaims {
+  /** Whether the account has confirmed its email. */
+  verified: boolean;
+}
+
+/** Mails to one address: three an hour, ten a day (S6-14). */
+const mailWindows = [
+  { max: 3, ms: 60 * 60_000 },
+  { max: 10, ms: 24 * 60 * 60_000 },
+] as const;
+
 /** One message for every failed sign-in, so it never says which half was wrong (AC3). */
 export const wrongCredentials = 'Wrong email or password';
+
+/** The soft per-email sign-in limits (S5-06, S6-03). */
+export interface EmailLimit {
+  /** Per email and network (/24, /48). */
+  failures: number;
+  /** Per email, from anywhere. */
+  globalFailures: number;
+  windowMs: number;
+}
 
 export interface SignedIn {
   accessToken: string;
@@ -54,7 +79,7 @@ export interface AuthDeps {
    */
   accountLock?: KeyedMutex;
   /** The soft per-email sign-in limit (audit S5-06). */
-  emailLimit?: { failures: number; windowMs: number };
+  emailLimit?: EmailLimit;
 }
 
 export function toMe(user: UserDoc): Me {
@@ -88,13 +113,16 @@ export class AuthService {
   private readonly repos: Repositories;
   private readonly now: () => Date;
   private readonly lock: KeyedMutex;
-  private readonly emailLimit: { failures: number; windowMs: number };
+  private readonly emailLimit: EmailLimit;
+  private readonly pending = new Set<Promise<void>>();
+  /** When this process last wrote each session's "last seen". */
+  private readonly touched = new Map<string, number>();
 
   constructor(private readonly deps: AuthDeps) {
     this.repos = deps.repos;
     this.now = deps.now ?? (() => new Date());
     this.lock = deps.accountLock ?? new KeyedMutex();
-    this.emailLimit = deps.emailLimit ?? { failures: 20, windowMs: 60 * 60_000 };
+    this.emailLimit = deps.emailLimit ?? { failures: 20, globalFailures: 200, windowMs: 60 * 60_000 };
   }
 
   // ---------------------------------------------------------- sign-up
@@ -137,8 +165,39 @@ export class AuthService {
   async resendVerification(email: string): Promise<void> {
     const user = await this.repos.users.findByEmail(email);
     if (!user || user.verifiedAt !== null) return;
+    if (!(await this.mayMail(user.email))) return;
     await this.repos.oneTimeTokens.invalidate(user._id, 'verify', this.now());
-    await this.sendVerification(user);
+    await this.sendVerification(user, false);
+  }
+
+  /**
+   * Runs [task] after the answer has gone: "resend" and "forgot" answer
+   * 202 before looking anything up, so an address with an account does
+   * not take longer to answer than one without (S6-10). A failure is
+   * logged, never answered.
+   */
+  later(task: () => Promise<void>): void {
+    const run = new Promise<void>((resolve) => setImmediate(resolve))
+      .then(task)
+      .catch((error: unknown) => this.deps.logger.error({ err: error }, 'background work failed'))
+      .finally(() => this.pending.delete(run));
+    this.pending.add(run);
+  }
+
+  /** Waits for everything [later] started, for tests and a clean stop. */
+  async settled(): Promise<void> {
+    while (this.pending.size > 0) await Promise.all([...this.pending]);
+  }
+
+  /**
+   * Whether another mail may go to [email]: three an hour and ten a
+   * day, whoever asks (S6-14). Past that nothing is sent, and nobody is
+   * told: the answer is 202 either way.
+   */
+  private async mayMail(email: string): Promise<boolean> {
+    const key = `mail/${createHash('sha256').update(`mail/${email}`).digest('hex')}`;
+    const taken = await this.repos.windowedCounts.take(key, mailWindows, this.now());
+    return taken.ok;
   }
 
   async verifyEmail(token: string): Promise<void> {
@@ -157,10 +216,18 @@ export class AuthService {
     password: string;
     client: ClientKind;
     deviceName?: string | undefined;
+    /** The client's address, for the per-network count. */
+    ip?: string | undefined;
   }): Promise<SignedIn> {
     const now = this.now();
-    const key = emailKey(input.email);
-    const wait = await this.repos.loginFailures.blockedFor(key, now, this.emailLimit.failures);
+    const everywhere = emailKey(input.email);
+    const here = createHash('sha256').update(`${everywhere}/${networkOf(input.ip)}`).digest('hex');
+    // Counted per email *and network*: one machine can only lock the
+    // email out for itself. The ceiling from anywhere is ten times
+    // higher, far past what one network may send (S6-03).
+    const wait =
+      (await this.repos.loginFailures.blockedFor(here, now, this.emailLimit.failures)) ??
+      (await this.repos.loginFailures.blockedFor(everywhere, now, this.emailLimit.globalFailures));
     if (wait !== null) {
       // Before the hash: an account under a guessing run costs nothing
       // more. Every address is counted alike, so this says nothing about
@@ -172,10 +239,11 @@ export class AuthService {
     const user = await this.repos.users.findByEmail(input.email);
     const ok = await verifyPassword(user?.passwordHash ?? null, input.password);
     if (!user || !ok) {
-      await this.repos.loginFailures.fail(key, now, this.emailLimit.windowMs);
+      await this.repos.loginFailures.fail(here, everywhere, now, this.emailLimit.windowMs);
+      await this.repos.loginFailures.fail(everywhere, everywhere, now, this.emailLimit.windowMs);
       throw unauthorized(wrongCredentials);
     }
-    await this.repos.loginFailures.clear(key);
+    await this.repos.loginFailures.clearEmail(everywhere);
     return this.startSession(user, input.client, input.deviceName ?? null);
   }
 
@@ -195,40 +263,49 @@ export class AuthService {
     if (!read) throw unauthorized();
     const now = this.now();
 
-    const consumed = await this.repos.sessions.consumeToken(read.userId, read.hash, now);
-    if (!consumed) {
-      const known = await this.repos.sessions.findToken(read.userId, read.hash);
-      if (known) {
-        const retried = await this.retry(token, read.userId, known, now);
-        if (retried) return retried;
-        await this.repos.sessions.revoke(read.userId, known.sessionId, now);
-        this.deps.logger.warn(
-          { userId: read.userId.toHexString(), sessionId: known.sessionId.toHexString() },
-          'refresh token reused; session revoked',
-        );
+    let known = await this.repos.sessions.findToken(read.userId, read.hash);
+    if (!known) throw unauthorized();
+    if (known.usedAt === null) {
+      if (known.expiresAt <= now) throw unauthorized();
+      const session = await this.repos.sessions.findLive(read.userId, known.sessionId, now);
+      const user = session ? await this.repos.users.findById(read.userId) : null;
+      if (!session || !user) throw unauthorized();
+
+      // The successor is written first, and the old token is marked used
+      // together with it: whatever fails in between, a retry finds either
+      // an unused token or a used one that names its successor, never a
+      // used one with none, which would read as theft (Q6-16).
+      const next = createOpaqueToken(user._id);
+      const expiresAt = new Date(now.getTime() + refreshTokenMs);
+      await this.repos.sessions.addToken({ userId: user._id, sessionId: session._id, tokenHash: next.hash, expiresAt }, now);
+      const sealed = seal(successorKey(token), Buffer.from(next.token), 'refresh-successor');
+      const consumed = await this.repos.sessions.consumeToken(read.userId, read.hash, now, sealed);
+      if (consumed) {
+        await this.repos.sessions.extend(user._id, session._id, expiresAt, now);
+        await this.repos.users.touch(user._id, now);
+        return {
+          accessToken: await signAccessToken(this.deps.keys.privateKey, { userId: user._id, sessionId: session._id }),
+          expiresIn: accessTokenSeconds,
+          refreshToken: next.token,
+          client: session.client,
+          user: toMe(user),
+        };
       }
-      throw unauthorized();
+      // Another request exchanged it a moment ago: this successor was
+      // never handed out, and the other one's is.
+      await this.repos.sessions.dropUnused(user._id, next.hash);
+      known = await this.repos.sessions.findToken(read.userId, read.hash);
+      if (!known) throw unauthorized();
     }
-    if (consumed.expiresAt <= now) throw unauthorized();
 
-    const session = await this.repos.sessions.findLive(read.userId, consumed.sessionId, now);
-    const user = session ? await this.repos.users.findById(read.userId) : null;
-    if (!session || !user) throw unauthorized();
-
-    const next = createOpaqueToken(user._id);
-    const expiresAt = new Date(now.getTime() + refreshTokenMs);
-    await this.repos.sessions.addToken({ userId: user._id, sessionId: session._id, tokenHash: next.hash, expiresAt }, now);
-    await this.repos.sessions.setSuccessor(user._id, consumed._id, seal(successorKey(token), Buffer.from(next.token), 'refresh-successor'));
-    await this.repos.sessions.extend(user._id, session._id, expiresAt, now);
-    await this.repos.users.touch(user._id, now);
-
-    return {
-      accessToken: await signAccessToken(this.deps.keys.privateKey, { userId: user._id, sessionId: session._id }),
-      expiresIn: accessTokenSeconds,
-      refreshToken: next.token,
-      client: session.client,
-      user: toMe(user),
-    };
+    const retried = await this.retry(token, read.userId, known, now);
+    if (retried) return retried;
+    await this.repos.sessions.revoke(read.userId, known.sessionId, now);
+    this.deps.logger.warn(
+      { userId: read.userId.toHexString(), sessionId: known.sessionId.toHexString() },
+      'refresh token reused; session revoked',
+    );
+    throw unauthorized();
   }
 
   /**
@@ -243,14 +320,10 @@ export class AuthService {
     now: Date,
   ): Promise<SignedIn | null> {
     if (!known.usedAt || now.getTime() - known.usedAt.getTime() > refreshGraceMs) return null;
-    // The first exchange may still be writing its successor down.
-    let sealed = known.successor;
-    for (let tries = 0; !sealed && tries < 20; tries += 1) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      sealed = (await this.repos.sessions.findToken(userId, known.tokenHash))?.successor;
-    }
-    if (!sealed) return null;
-    const successor = open(successorKey(token), sealed, 'refresh-successor')?.toString();
+    // Marked used and given its successor in one write, so there is no
+    // half-exchanged token to wait for.
+    if (!known.successor) return null;
+    const successor = open(successorKey(token), known.successor, 'refresh-successor')?.toString();
     const next = successor ? readOpaqueToken(successor) : null;
     if (!successor || !next || !next.userId.equals(userId)) return null;
     const unused = await this.repos.sessions.findToken(userId, next.hash);
@@ -273,7 +346,13 @@ export class AuthService {
     const read = readOpaqueToken(token);
     if (!read) return;
     const known = await this.repos.sessions.findToken(read.userId, read.hash);
-    if (known) await this.repos.sessions.revoke(read.userId, known.sessionId, this.now());
+    if (!known) return;
+    const now = this.now();
+    // Only the device's current token signs it out, or one exchanged
+    // moments ago (the grace): an old one from a log or a backup is not
+    // enough to end a session (S6-15).
+    if (known.usedAt && now.getTime() - known.usedAt.getTime() > refreshGraceMs) return;
+    await this.repos.sessions.revoke(read.userId, known.sessionId, now);
   }
 
   /**
@@ -282,14 +361,32 @@ export class AuthService {
    * request, and buys a sign-out (or a reset, or a deleted account) that
    * takes effect now rather than fifteen minutes from now.
    */
-  async authenticate(accessToken: string): Promise<AccessClaims | null> {
+  async authenticate(accessToken: string): Promise<Caller | null> {
     const claims = await verifyAccessToken(this.deps.keys.publicKey, accessToken);
     if (!claims) return null;
     const now = this.now();
-    const session = await this.repos.sessions.findLive(claims.userId, claims.sessionId, now);
-    if (!session) return null;
+    // The session and the account in one read, not two (SV-11).
+    const live = await this.repos.sessions.findLiveCaller(claims.userId, claims.sessionId, now);
+    if (!live) return null;
+    await this.touch(claims, now);
+    return { ...claims, verified: live.verified };
+  }
+
+  /**
+   * "Last seen" is written at most once a minute per session; this
+   * process remembers when it last wrote, so the other requests of that
+   * minute send nothing at all (SV-11).
+   */
+  private async touch(claims: AccessClaims, now: Date): Promise<void> {
+    const key = claims.sessionId.toHexString();
+    const last = this.touched.get(key);
+    if (last !== undefined && now.getTime() - last < touchEveryMs && now.getTime() >= last) return;
+    if (this.touched.size >= 10_000) {
+      for (const [id, at] of this.touched) if (now.getTime() - at >= touchEveryMs) this.touched.delete(id);
+      if (this.touched.size >= 10_000) this.touched.clear();
+    }
+    this.touched.set(key, now.getTime());
     await this.repos.sessions.touch(claims.userId, claims.sessionId, now);
-    return claims;
   }
 
   // ----------------------------------------------------------- resets
@@ -297,6 +394,8 @@ export class AuthService {
   async forgotPassword(email: string): Promise<void> {
     const user = await this.repos.users.findByEmail(email);
     if (!user) return;
+    // Past the limit the links already sent stay good: nothing changes.
+    if (!(await this.mayMail(user.email))) return;
     const now = this.now();
     await this.repos.oneTimeTokens.invalidate(user._id, 'reset', now);
     const link = createOpaqueToken(user._id);
@@ -316,6 +415,9 @@ export class AuthService {
       throw invalidLink();
     }
     await this.repos.users.setPassword(read.userId, await hashPassword(password));
+    // A new password is a fresh start for sign-in too (S6-03).
+    const owner = await this.repos.users.findById(read.userId);
+    if (owner) await this.repos.loginFailures.clearEmail(emailKey(owner.email));
     await this.repos.users.markVerified(read.userId, now);
     await this.repos.oneTimeTokens.invalidate(read.userId, 'reset', now);
     await this.repos.sessions.revokeAll(read.userId, now);
@@ -400,7 +502,8 @@ export class AuthService {
     };
   }
 
-  private async sendVerification(user: UserDoc): Promise<void> {
+  private async sendVerification(user: UserDoc, count = true): Promise<void> {
+    if (count && !(await this.mayMail(user.email))) return;
     const link = createOpaqueToken(user._id);
     await this.repos.oneTimeTokens.create(user._id, 'verify', link.hash, this.now(), verifyLinkMs);
     this.deliver(verificationMail(user.email, this.deps.appUrl, link.token));

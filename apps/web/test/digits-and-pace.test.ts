@@ -1,9 +1,8 @@
-import { westernDigits } from '@harvest/core';
+import { evaluateAmountToMinor, westernDigits } from '@harvest/core';
 import digits from '../../../packages/core/fixtures/digits.json';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { pinDigits } from '@/app/components/passphrase-prompt';
 import { api, longestPaceMs, resetApiForTests, setPauseForTests } from '@/lib/api';
-import { parseAmount } from '@/lib/format';
 
 const spec = digits as { cases: { input: string; expected: string }[] };
 
@@ -13,8 +12,8 @@ describe('one digit normaliser (Q5-36, core/fixtures/digits.json)', () => {
   });
 
   it('is what an amount and the PIN are read through, Persian digits too', () => {
-    expect(parseAmount('۱۲۵۰')).toBe(125_000);
-    expect(parseAmount('١٢.٥')).toBe(1250);
+    expect(evaluateAmountToMinor('۱۲۵۰')).toBe(125_000);
+    expect(evaluateAmountToMinor('١٢.٥')).toBe(1250);
     expect(pinDigits('۲۴٦8')).toBe('2468');
   });
 });

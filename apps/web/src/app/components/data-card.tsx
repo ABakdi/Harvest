@@ -11,6 +11,7 @@ import type { ArchiveProgress } from '../data/export';
 import type { ArchiveBundle, ImportPreview, ImportProgress } from '../data/import';
 import { useSetting } from '../hooks';
 import { PassphrasePrompt } from './passphrase-prompt';
+import { runAction } from '@/lib/actions';
 
 /**
  * "My data" (Business Rules #11): the archive out, and an archive back
@@ -90,7 +91,7 @@ function ExportPart() {
   const running = state.kind === 'running';
 
   const setIncludePlaces = (on: boolean) =>
-    void harvest.writer.run((tx) => tx.put('kv_settings', { key: exportIncludesPlacesKey, valueJson: JSON.stringify(on), updatedAt: tx.now() }));
+    runAction(() => harvest.writer.run((tx) => tx.put('kv_settings', { key: exportIncludesPlacesKey, valueJson: JSON.stringify(on), updatedAt: tx.now() })));
 
   async function run() {
     if (running) return;
@@ -158,7 +159,7 @@ function ExportPart() {
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={() => void run()} disabled={running}>
+        <Button onClick={() => runAction(() => run())} disabled={running}>
           {running ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />}
           {running ? t('data.export.running') : t('data.export.action')}
         </Button>
@@ -267,7 +268,7 @@ function ImportPart() {
         className="sr-only"
         tabIndex={-1}
         aria-labelledby={`${id}-title`}
-        onChange={(event) => void choose(event)}
+        onChange={(event) => runAction(() => choose(event))}
       />
       <div>
         <Button variant="outline" disabled={busy} onClick={() => input.current?.click()}>
@@ -288,7 +289,7 @@ function ImportPart() {
           name={state.name}
           preview={state.preview}
           onCancel={() => setState({ kind: 'idle' })}
-          onConfirm={() => void apply(state.bundle)}
+          onConfirm={() => runAction(() => apply(state.bundle))}
         />
       )}
       <div role="status" aria-live="polite" className="flex flex-col gap-1 text-sm font-semibold empty:hidden">

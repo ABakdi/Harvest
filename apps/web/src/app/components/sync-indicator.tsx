@@ -11,7 +11,9 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useHarvest, useSyncStatus } from '../context';
+import { useOnline } from './pin-state';
 import { useRelativeTime } from './relative-time';
+import { runAction } from '@/lib/actions';
 
 /** The sync status, always in view; clicking it syncs now. */
 export function SyncIndicator({ compact = false }: { compact?: boolean }) {
@@ -19,6 +21,8 @@ export function SyncIndicator({ compact = false }: { compact?: boolean }) {
   const { engine } = useHarvest();
   const status = useSyncStatus();
   const ago = useRelativeTime(status.lastSyncedAt);
+  // The browser's word that the network went counts at once (W6-02).
+  const phase = useOnline() ? status.phase : 'offline';
 
   const view = {
     idle: { icon: CloudCheckIcon, label: status.lastSyncedAt ? t('sync.syncedAgo', { ago }) : t('sync.notYet') },
@@ -27,7 +31,7 @@ export function SyncIndicator({ compact = false }: { compact?: boolean }) {
     signedOut: { icon: UserXIcon, label: t('sync.signedOut') },
     unverified: { icon: MailWarningIcon, label: t('sync.unverified') },
     error: { icon: CloudAlertIcon, label: t('sync.error') },
-  }[status.phase];
+  }[phase];
   const Icon = view.icon;
   const waiting = status.pending + status.locked;
 
@@ -35,7 +39,7 @@ export function SyncIndicator({ compact = false }: { compact?: boolean }) {
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => void engine.sync()}
+      onClick={() => runAction(() => engine.sync())}
       aria-label={`${view.label}. ${waiting ? t('sync.waiting', { count: waiting }) : ''} ${t('sync.syncNow')}`}
       title={t('sync.syncNow')}
       className="gap-1.5 font-bold"

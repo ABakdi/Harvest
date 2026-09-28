@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { notePath, safeFileName } from '@/app/data/archive';
 import { fairShare } from '@/app/components/search-dialog';
 import { loadField } from '@/app/data/field';
+import { notesFor, notesOn } from '@/app/data/seed-notes';
 import { settleGoalParents } from '@/app/data/goals';
 import { boundsOf, readDay } from '@/app/data/places';
 import { fetchPool } from '@/app/hooks';
@@ -267,5 +268,51 @@ describe('the gallery asks for files a few at a time (Q5-32)', () => {
     );
     expect(most).toBe(5);
     expect(done).toEqual(Array.from({ length: 40 }, (_, i) => i));
+  });
+});
+
+describe('one note per seed-day (Q6-07)', () => {
+  it('reads the newest of two, and folds them on the next write', async () => {
+    const h = await device(new FakeServer());
+    const seed = await h.seeds.plant({ type: 'habit', title: 'Read', schedule: { type: 'daily' } });
+    const row = (uuid: string, body: string, at: string) => ({
+      uuid,
+      commitmentUuid: seed.uuid,
+      harvestDay: today.key,
+      body,
+      loggedAt: at,
+      deletedAt: null,
+      updatedAt: at,
+    });
+    await h.db.rows('seed_notes').bulkPut([
+      row('a', 'from the phone', '2026-09-19T10:00:00.000Z'),
+      row('b', 'from the web', '2026-09-19T11:00:00.000Z'),
+    ]);
+    expect((await notesOn(h.db, today)).get(seed.uuid)).toBe('from the web');
+    expect(await notesFor(h.db, seed.uuid)).toHaveLength(1);
+
+    await h.seedNotes.write(seed.uuid, today, 'both');
+    const rows = (await h.db.rows('seed_notes').toArray()).filter((r) => r.deletedAt === null);
+    expect(rows.map((r) => [r.uuid, r.body])).toEqual([['b', 'both']]);
+  });
+});
+
+describe('achieving then deleting a goal (U6-04)', () => {
+  it('takes the XP back, and an undo pays it again', async () => {
+    const h = await device(new FakeServer());
+    const goal = await h.goals.create({ title: 'Farm' });
+    const net = async () =>
+      (await h.db.rows('ledger').toArray())
+        .filter((row) => row.kind === 'xp' && row.reason.endsWith(goal.uuid))
+        .reduce((sum, row) => sum + row.delta, 0);
+    await h.goals.achieve(goal.uuid);
+    expect(await net()).toBe(50);
+    await h.goals.delete(goal.uuid);
+    expect(await net()).toBe(0);
+    await h.goals.restore(goal.uuid);
+    expect(await net()).toBe(50);
+    await h.goals.delete(goal.uuid);
+    await h.goals.delete(goal.uuid);
+    expect(await net()).toBe(0);
   });
 });

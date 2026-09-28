@@ -116,6 +116,19 @@ class FinancesRepository {
     await _db.logChange('expense_categories', uuid, 'delete');
   });
 
+  /// Puts back a category removed by mistake (the snackbar's Undo).
+  Future<void> restoreCategory(String uuid) => _db.transaction(() async {
+    await (_db.update(
+      _db.expenseCategories,
+    )..where((c) => c.uuid.equals(uuid))).write(
+      ExpenseCategoriesCompanion(
+        deletedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _db.logChange('expense_categories', uuid, 'update');
+  });
+
   /// Smart repeats: an (amount, category) pair logged on each of the
   /// three days before [day] — and not yet today — becomes a suggestion.
   Future<RepeatSuggestion?> repeatSuggestion(HarvestDay day) async {

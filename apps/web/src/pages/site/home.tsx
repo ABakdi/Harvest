@@ -8,6 +8,7 @@ import {
   LockIcon,
   SmartphoneIcon,
   SproutIcon,
+  UserRoundIcon,
   WalletIcon,
   WifiOffIcon,
 } from 'lucide-react';
@@ -131,8 +132,13 @@ export function HomePage() {
             <InstallButton />
           </div>
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <WifiOffIcon className="size-4" aria-hidden />
+            <WifiOffIcon className="size-4 shrink-0" aria-hidden />
             {t('home.offline')}
+          </p>
+          {/* The browser needs an account (W5); said here, before the button leads to a sign-in. */}
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <UserRoundIcon className="size-4 shrink-0" aria-hidden />
+            {t('home.browserAccount')}
           </p>
         </div>
         <div className="flex justify-center">

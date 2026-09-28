@@ -187,16 +187,24 @@ bool encryptInPlace(String path, String keyHex) {
 }
 
 /// Moves an unreadable file (and its companions) out of the way, to
-/// `<path>.unreadable`, replacing an older one.
-void setAside(String path) {
-  final aside = '$path.unreadable';
-  [aside, ...companionsOf(aside)].forEach(_deleteIfPresent);
+/// `<path>.unreadable-<time>`. Every one is kept, and none is ever
+/// deleted by the app (S6-05): if the key comes back, the file can.
+String setAside(String path, {DateTime? at}) {
+  final stamp = (at ?? DateTime.now()).toUtc().toIso8601String().replaceAll(
+    ':',
+    '-',
+  );
+  var aside = '$path.unreadable-$stamp';
+  for (var n = 2; File(aside).existsSync(); n++) {
+    aside = '$path.unreadable-$stamp-$n';
+  }
   File(path).renameSync(aside);
   for (final name in companionsOf(path)) {
     if (File(name).existsSync()) {
       File(name).renameSync(name.replaceFirst(path, aside));
     }
   }
+  return aside;
 }
 
 void _deleteIfPresent(String path) {
@@ -227,15 +235,33 @@ class DatabaseLockedException implements Exception {
 /// - an encrypted file the key opens: the normal case.
 /// - an encrypted file with no key, or one the key does not open (the
 ///   Keystore lost it): it cannot be read by anyone, so it is set aside
-///   and the app starts empty, like a fresh install, rather than failing
-///   on every start.
+///   — kept, under a name with the time — and the app starts empty,
+///   like a fresh install, rather than failing on every start.
+/// - the Keystore failing to answer at all is none of these: it throws,
+///   and the app says it cannot open the data, with *Try again*, rather
+///   than start empty over a file a later read may open (S6-05).
 Future<String?> prepareDatabaseFile(
   String path,
   DatabaseKeyStore keys, {
   required bool primary,
   bool? linked,
 }) async {
-  final hasCipher = linked ?? await Isolate.run<bool>(cipherLinked);
+  // The file is looked at on one isolate while the Keystore is asked on
+  // this one: a cold start pays for the slower of the two, not both
+  // (P6-13).
+  final looking = Isolate.run(
+    () => (linked: linked ?? cipherLinked(), state: databaseFileState(path)),
+  );
+  String? key;
+  Object? keyFailure;
+  StackTrace? keyTrace;
+  try {
+    key = await keys.read();
+  } on Object catch (error, trace) {
+    keyFailure = error;
+    keyTrace = trace;
+  }
+  final (linked: hasCipher, :state) = await looking;
   if (!hasCipher) {
     // A build without SQLCipher is a build mistake, not a state to live
     // with quietly.
@@ -243,16 +269,11 @@ Future<String?> prepareDatabaseFile(
     debugPrint('[db] SQLCipher is not linked: the database stays plain');
     return null;
   }
-
-  final state = await Isolate.run(() => databaseFileState(path));
-  String? key;
-  try {
-    key = await keys.read();
-  } on Object {
+  if (keyFailure != null) {
     // The Keystore failed to answer. A plain file still opens without
     // it; an encrypted one cannot, and a new key would lose it for good.
     if (state == DatabaseFileState.plaintext) return null;
-    rethrow;
+    Error.throwWithStackTrace(keyFailure, keyTrace!);
   }
   if (key != null && !isDatabaseKey(key)) key = null;
 

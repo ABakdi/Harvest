@@ -1,5 +1,5 @@
 {
-  "about": "The private tier, version 2 (Sync-API). base = PBKDF2-HMAC-SHA256(utf8(secret), salt = utf8(syncSalt), iterations, 32 bytes), as in version 1. key = HKDF-SHA256(ikm = base, salt = keyShare bytes (base64 here, as GET /v1/me/sync-key gives it), info = utf8(\"harvest/sync-key/v2\"), 32 bytes). Envelope {v: 2, iv, ct}: AES-256-GCM, 12-byte IV, 128-bit tag appended to ct, standard base64. A row's additional data is utf8(\"row/<table>/<uuid>/<updatedAt micros>/<deletedAt micros or empty>\"), the micros being instantMicros of the record's clocks, so any spelling of the same instant gives the same aad. After opening, the row's own updatedAt/deletedAt, where its table has those columns, must be the same instants as the record's. Files: aad utf8(\"file/<sha256>\") with this key. keyCheck seals utf8(\"harvest-key-check\") with aad utf8(\"key-check\"). Every case in refused must fail to open.",
+  "about": "The private tier, version 2 (Sync-API). base = PBKDF2-HMAC-SHA256(utf8(secret), salt = utf8(syncSalt), iterations, 32 bytes), as in version 1. key = HKDF-SHA256(ikm = base, salt = keyShare bytes (base64 here, as the server hands it out), info = utf8(\"harvest/sync-key/v2\"), 32 bytes). Envelope {v: 2, iv, ct}: AES-256-GCM, 12-byte IV, 128-bit tag appended to ct, standard base64. A row's additional data is utf8(\"row/<table>/<uuid>/<updatedAt micros>/<deletedAt micros or empty>\"), the micros being instantMicros of the record's clocks, so any spelling of the same instant gives the same aad. After opening, the row's own updatedAt/deletedAt, where its table has those columns, must be the same instants as the record's. Files: aad utf8(\"file/<sha256>\") with this key. keyCheck seals utf8(\"harvest-key-check\") with aad utf8(\"key-check\"). Every case in refused must fail to open. PIN proof (for POST /v1/me/sync-key/unlock): proof = HKDF-SHA256(ikm = base, salt = empty, info = utf8(\"harvest/sync-pin-proof/v1\"), 32 bytes), sent base64; the server keeps verifier = hex(SHA-256(proof)), never the proof. The proofs cases pin it for other secrets and iteration counts.",
   "secret": "482913",
   "syncSalt": "k3Qv9xY2mN8pR4tW6zB1cD5fH7jL0sA",
   "keyShare": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYY=",
@@ -112,6 +112,24 @@
         "iv": "AQ4bKDVCT1xpdoOQ",
         "ct": "CyraZTujJWItuxfgBPOJq93oIOMmyMMF7GLXrayOrnxiSG0z2YJQFbVnMRr9eKkn2bnG2pQ0xvMj7lFQg7mYzEfTKtS2gsPuIOT2PrcsDMTDYtAFllNwbG+W30uk+5TRZasxQvVb8+xAE87hpkDyjdDHgxITSoTPWVzH5BdWyunPU6t1NoYDrXarsR19jyOpN2K3DOSOuEBsvz4f3kBadvRkS3c26+ltX35XYMoEd32iv/jV4E0N1SzITs6dSDaD/mlDSrwPwbjypzR9Q84GEUbaErBDZJEf5uweeUZNuxNUjzgcw8UVphv7BUgzi1nciTdgbXi6Qv5CM019TDxC+WJ2YClQIc7QQxXg"
       }
+    }
+  ],
+  "proof": "VUZYUh8oqhvQaagtzQmulomGTJVv6vcEiNy34Xhs380=",
+  "verifierHex": "8a520d18dbd2feab50747fb37f259edf10356997629752156c5f2f640771c01d",
+  "proofs": [
+    {
+      "secret": "482913",
+      "iterations": 600000,
+      "baseKeyHex": "37eba267736da9feb014547400b79cd99f8ad172331a0642999b0ad8326fefe9",
+      "proof": "VUZYUh8oqhvQaagtzQmulomGTJVv6vcEiNy34Xhs380=",
+      "verifierHex": "8a520d18dbd2feab50747fb37f259edf10356997629752156c5f2f640771c01d"
+    },
+    {
+      "secret": "0417",
+      "iterations": 1000,
+      "baseKeyHex": "291ee500496cf70efd6444244e3dc3f228f6305099650713b4c3404b75c5c337",
+      "proof": "3FgRL3XZBN/sNto246RhaQZHu0EZXI4Dbfbabjnxans=",
+      "verifierHex": "8a7b64dfebf3f962161957ae603e9a1bdf317b2e9302111ce1b5f9deed741333"
     }
   ]
 }

@@ -1,15 +1,26 @@
 import type { Me } from '@harvest/contracts';
 import { LoaderIcon, WifiOffIcon } from 'lucide-react';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useLocation } from 'react-router';
 import { HarvestMark } from '@/components/brand';
 import { Button } from '@/components/ui/button';
-import { api, isServerTrouble, onSessionChange, refreshSession, resumeSession } from '@/lib/api';
+import {
+  api,
+  finishSignOut,
+  isServerTrouble,
+  markSignOut,
+  onSessionChange,
+  refreshSession,
+  resumeSession,
+  signOutPending,
+} from '@/lib/api';
 import { AppShell } from './app-shell';
 import { createHarvest, HarvestContext, type Harvest } from './context';
 import { getMeta, HarvestDB, metaKeys, setMeta } from './data/db';
 import { startSyncTriggers } from './sync/triggers';
+import { wipeDrafts } from '@/lib/note-drafts';
+import { background } from '@/lib/actions';
 
 /** The one local store of this browser, opened only when /app is. */
 let database: HarvestDB | null = null;
@@ -27,7 +38,11 @@ export async function wipeLocal(): Promise<void> {
   db.close();
   await db.delete();
   database = null;
+  // Unsaved note drafts live in localStorage: they go too (S6-11).
+  wipeDrafts();
 }
+
+export { finishSignOut, signOutPendingKey } from '@/lib/api';
 
 export type Boot =
   | { kind: 'loading' }
@@ -50,6 +65,11 @@ export type Boot =
  * then this browser forgets the account's data (S5-15).
  */
 export async function boot(): Promise<Boot> {
+  // A sign-out still owed to the server: never pick that session up again.
+  if (signOutPending()) {
+    await finishSignOut();
+    return { kind: 'signedOut' };
+  }
   let db = localDb();
   await db.open();
   const known = (await getMeta<Me>(db, metaKeys.user)) ?? null;
@@ -110,27 +130,32 @@ export function AppRoot() {
 
   useEffect(() => {
     let live = true;
-    void boot().then((next) => {
+    background(boot().then((next) => {
       if (live) setState(next);
-    });
+    }));
     return () => {
       live = false;
     };
   }, []);
 
   const harvest = state.kind === 'ready' ? state.harvest : null;
+  // Bumped when the session brings a fresher account (verified in
+  // another tab, say), so what shows it — the verify banner, the account
+  // circle — draws again (Q6-18). The object itself stays the one the
+  // sync engine and the file store read the salt from.
+  const [freshUser, setFreshUser] = useState<Me | null>(null);
+  const provided = useMemo(() => (harvest && freshUser ? { ...harvest, user: freshUser } : harvest), [harvest, freshUser]);
 
   useEffect(() => {
     if (state.kind !== 'leaving') return;
-    void (async () => {
-      try {
-        await api.logout();
-      } catch {
-        // Offline: the cookie dies with its expiry; this browser forgets now.
-      }
+    background((async () => {
+      // Remembered until the server has heard it: offline, the cookie and
+      // the session would otherwise outlive the sign-out (S6-02).
+      markSignOut(true);
+      await finishSignOut();
       await wipeLocal();
       setState({ kind: 'left' });
-    })();
+    })());
   }, [state]);
 
   const leave: Leave = {
@@ -152,25 +177,29 @@ export function AppRoot() {
 
   useEffect(() => {
     if (!harvest) return;
-    void harvest.engine.refreshCounts();
+    background(harvest.engine.refreshCounts());
     const stop = startSyncTriggers(harvest.engine, harvest.writer);
+    // Each change here counts as waiting at once, not only after the next sync runs (W6-02).
+    const offWrite = harvest.writer.onWrite(() => background(harvest.engine.refreshCounts()));
     // Signed out in another tab, or the session ended: this one follows.
     const off = onSessionChange((user) => {
       if (user) {
         harvest.user = user;
-        void setMeta(harvest.db, metaKeys.user, user);
+        setFreshUser(user);
+        background(setMeta(harvest.db, metaKeys.user, user));
       } else if (!leaving.current) {
         // Ended elsewhere, or refused on refresh: the shell comes down,
         // and then the store, as on signing out (S5-15).
         leaving.current = true;
         setState({ kind: 'ending' });
-        void wipeLocal().then(() => setState({ kind: 'signedOut' }));
+        background(wipeLocal().then(() => setState({ kind: 'signedOut' })));
       }
     });
     // Ask the browser not to evict the store under storage pressure.
-    void navigator.storage?.persist?.();
+    background(navigator.storage?.persist?.());
     return () => {
       stop();
+      offWrite();
       off();
     };
   }, [harvest]);
@@ -209,7 +238,7 @@ export function AppRoot() {
   }
   return (
     <LeaveContext.Provider value={leave}>
-      <HarvestContext.Provider value={state.harvest}>
+      <HarvestContext.Provider value={provided ?? state.harvest}>
         <AppShell startedOffline={state.offline} />
       </HarvestContext.Provider>
     </LeaveContext.Provider>

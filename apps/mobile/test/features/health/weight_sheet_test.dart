@@ -94,4 +94,27 @@ void main() {
     );
     await settle(tester);
   });
+
+  testWidgets('a weight nobody weighs is refused (W6-15)', (tester) async {
+    await tester.pumpWidget(
+      app(
+        (context) => TextButton(
+          onPressed: () => showWeightSheet(context),
+          child: const Text('open'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '900');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('A weight between'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final saved = await tester.runAsync(
+      () => HealthRepository(db).watchWeights().first,
+    );
+    expect(saved, isEmpty);
+    await settle(tester);
+  });
 }

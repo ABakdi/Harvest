@@ -20,6 +20,7 @@ import { useHarvest } from '../context';
 import { readSleepTargets, sleepNightKey } from '../data/health';
 import { type SleepClash, cycleClashes, readCycle } from '../data/settings';
 import { ClockInput, SettingsRow, clockLabel } from './settings-bits';
+import { runAction } from '@/lib/actions';
 
 /** Eight is the target and five the floor (`DailyCycle.recommended`, `shortest`). */
 const recommendedMinutes = 8 * 60;
@@ -55,10 +56,10 @@ export function DailyCycleCard() {
   return (
     <div className="flex flex-col gap-3">
       <SettingsRow label={t('settingsWeb.cycleBedTime')} htmlFor={`${id}-bed`}>
-        <ClockInput id={`${id}-bed`} value={cycle.bedTime} onCommit={(bedTime) => void change({ ...cycle, bedTime })} />
+        <ClockInput id={`${id}-bed`} value={cycle.bedTime} onCommit={(bedTime) => runAction(() => change({ ...cycle, bedTime }))} />
       </SettingsRow>
       <SettingsRow label={t('settingsWeb.cycleWakeTime')} htmlFor={`${id}-wake`}>
-        <ClockInput id={`${id}-wake`} value={cycle.wakeTime} onCommit={(wakeTime) => void change({ ...cycle, wakeTime })} />
+        <ClockInput id={`${id}-wake`} value={cycle.wakeTime} onCommit={(wakeTime) => runAction(() => change({ ...cycle, wakeTime }))} />
       </SettingsRow>
       <p className={cn('flex items-start gap-2 text-sm', short ? 'font-extrabold text-destructive' : 'text-muted-foreground')}>
         {short ? <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" aria-hidden /> : <MoonIcon className="mt-0.5 size-4 shrink-0" aria-hidden />}
@@ -86,7 +87,7 @@ export function DailyCycleCard() {
             <AlertDialogCancel>{t('settingsWeb.clashKeep')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (asking) void settings.shiftReminders(asking);
+                if (asking) runAction(() => settings.shiftReminders(asking));
                 setAsking(null);
               }}
             >
@@ -118,7 +119,7 @@ export function SleepNightsCard() {
   if (!targets) return null;
 
   const write = (weekday: number, cycle: Cycle | null) =>
-    void settings.setString(sleepNightKey(weekday), cycle === null ? '' : encodeCycle(cycle));
+    runAction(() => settings.setString(sleepNightKey(weekday), cycle === null ? '' : encodeCycle(cycle)));
 
   return (
     <ul className="flex flex-col divide-y">

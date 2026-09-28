@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @undoCheckInBody.
   ///
   /// In en, this message translates to:
-  /// **'This removes what you logged for \"{title}\" today.'**
+  /// **'This removes what you logged for “{title}” today.'**
   String undoCheckInBody(String title);
 
   /// No description provided for @undo.
@@ -1067,7 +1067,7 @@ abstract class AppLocalizations {
   /// No description provided for @projectDoneBody.
   ///
   /// In en, this message translates to:
-  /// **'\"{title}\" is fully grown — {total} logged. It is archived with pride.'**
+  /// **'“{title}” is fully grown — {total} logged. It is archived with pride.'**
   String projectDoneBody(String title, int total);
 
   /// No description provided for @toTheBarn.
@@ -1447,12 +1447,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total'**
   String get totalSpent;
-
-  /// No description provided for @avgPerDay.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} / day'**
-  String avgPerDay(String amount);
 
   /// No description provided for @noSpendingYet.
   ///
@@ -2993,7 +2987,7 @@ abstract class AppLocalizations {
   /// No description provided for @notesCreateLinkTitle.
   ///
   /// In en, this message translates to:
-  /// **'Write \"{title}\"?'**
+  /// **'Write “{title}”?'**
   String notesCreateLinkTitle(String title);
 
   /// No description provided for @notesCreateLinkBody.
@@ -3011,7 +3005,7 @@ abstract class AppLocalizations {
   /// No description provided for @notesDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'It leaves the vault. You can undo this straight away.'**
+  /// **'It goes to the trash with its recordings. You can undo this straight away.'**
   String get notesDeleteBody;
 
   /// No description provided for @notesBacklinks.
@@ -4175,14 +4169,14 @@ abstract class AppLocalizations {
   /// No description provided for @gymCatalogueHint.
   ///
   /// In en, this message translates to:
-  /// **'Search by name, muscle or equipment — the question mid-session is usually what else hits this.'**
+  /// **'Search by name, muscle or equipment — mid-session it is usually “what else works this?”'**
   String get gymCatalogueHint;
 
   /// No description provided for @gymExerciseCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{No exercises} =1{1 exercise} other{{count} exercises}}'**
-  String gymExerciseCount(int count);
+  /// **'{count, plural, =0{No exercises} =1{1 exercise} other{{shown} exercises}}'**
+  String gymExerciseCount(int count, String shown);
 
   /// No description provided for @gymNoExercise.
   ///
@@ -5627,7 +5621,7 @@ abstract class AppLocalizations {
   /// No description provided for @featurePlacesHint.
   ///
   /// In en, this message translates to:
-  /// **'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.'**
+  /// **'Where you went, and what you did there: a trail and a pin on every action. Nothing leaves the phone.'**
   String get featurePlacesHint;
 
   /// No description provided for @placesDay.
@@ -6469,12 +6463,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not synced yet'**
   String get accountNeverSynced;
-
-  /// No description provided for @accountPending.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 change waiting} other{{count} changes waiting}}'**
-  String accountPending(int count);
 
   /// No description provided for @accountRefused.
   ///
@@ -7795,6 +7783,360 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 picture not downloaded to this phone yet is not in it.} other{{count} pictures not downloaded to this phone yet are not in it.}}'**
   String exportNotHere(int count);
+
+  /// No description provided for @syncPinTriesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No tries left for now.} =1{1 try left.} other{{count} tries left.}}'**
+  String syncPinTriesLeft(int count);
+
+  /// No description provided for @syncPinTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{Too many tries. Try again in 1 minute.} other{Too many tries. Try again in {minutes} minutes.}}'**
+  String syncPinTooMany(int minutes);
+
+  /// No description provided for @syncPinTooManySoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Try again later.'**
+  String get syncPinTooManySoon;
+
+  /// No description provided for @syncPinStartedOver.
+  ///
+  /// In en, this message translates to:
+  /// **'The PIN was just started over on another device. Choose a new one.'**
+  String get syncPinStartedOver;
+
+  /// No description provided for @accountServerNotSecure.
+  ///
+  /// In en, this message translates to:
+  /// **'Use https:// for the server. Plain http:// is only for this device or the emulator (localhost, 127.0.0.1, 10.0.2.2).'**
+  String get accountServerNotSecure;
+
+  /// No description provided for @assistBaseUrlNotSecure.
+  ///
+  /// In en, this message translates to:
+  /// **'Use https:// for the assist address. Plain http:// is only for this device or the emulator.'**
+  String get assistBaseUrlNotSecure;
+
+  /// No description provided for @dataUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t open your data right now'**
+  String get dataUnavailableTitle;
+
+  /// No description provided for @dataUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone\'s secure storage did not answer. Nothing has been changed or deleted. Try again, or restart the phone if it keeps happening.'**
+  String get dataUnavailableBody;
+
+  /// No description provided for @amountLargeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}?'**
+  String amountLargeTitle(String amount);
+
+  /// No description provided for @amountLargeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'That is far more than anything usually logged at once. Is the amount right?'**
+  String get amountLargeBody;
+
+  /// No description provided for @amountLargeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, it\'s right'**
+  String get amountLargeConfirm;
+
+  /// No description provided for @perDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Per day'**
+  String get perDay;
+
+  /// No description provided for @categoryRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String categoryRemove(String name);
+
+  /// No description provided for @categoryRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed'**
+  String categoryRemoved(String name);
+
+  /// No description provided for @gymSessionMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this session'**
+  String get gymSessionMenu;
+
+  /// No description provided for @gymExerciseMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this exercise'**
+  String get gymExerciseMenu;
+
+  /// No description provided for @gymProgramMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this program'**
+  String get gymProgramMenu;
+
+  /// No description provided for @gymDayMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this day'**
+  String get gymDayMenu;
+
+  /// No description provided for @weightImplausible.
+  ///
+  /// In en, this message translates to:
+  /// **'A weight between {range}'**
+  String weightImplausible(String range);
+
+  /// No description provided for @accountDevicesRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get accountDevicesRetry;
+
+  /// No description provided for @accountEndSessionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out {name}?'**
+  String accountEndSessionTitle(String name);
+
+  /// No description provided for @accountEndSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'That device stops syncing until someone signs in on it again. Nothing on it is deleted.'**
+  String get accountEndSessionBody;
+
+  /// No description provided for @accountSessionEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed out {name}'**
+  String accountSessionEnded(String name);
+
+  /// No description provided for @accountSignedInOn.
+  ///
+  /// In en, this message translates to:
+  /// **'signed in {day}'**
+  String accountSignedInOn(String day);
+
+  /// No description provided for @accountChangesWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes waiting to sync'**
+  String get accountChangesWaiting;
+
+  /// No description provided for @syncPinForgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget the sync PIN on this phone?'**
+  String get syncPinForgetTitle;
+
+  /// No description provided for @syncPinForgetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What is already here stays. Money, places and pictures from your other devices stay locked here, and new ones wait, until you enter the PIN again.'**
+  String get syncPinForgetBody;
+
+  /// No description provided for @joinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone already has data'**
+  String get joinTitle;
+
+  /// No description provided for @joinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You made things on this phone before signing in. Bring them into your account, or start from what the account already has?'**
+  String get joinBody;
+
+  /// No description provided for @joinBring.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring this phone\'s data into the account'**
+  String get joinBring;
+
+  /// No description provided for @joinStartFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from the account\'s data'**
+  String get joinStartFromAccount;
+
+  /// No description provided for @joinStartFromAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s data is saved first, as an archive in Downloads, then replaced by the account\'s. Nothing is lost.'**
+  String get joinStartFromAccountNote;
+
+  /// No description provided for @joinArchiveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The archive could not be saved, so nothing was replaced. Try again, or bring the data into the account.'**
+  String get joinArchiveFailed;
+
+  /// No description provided for @joinArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s data was saved to {path}'**
+  String joinArchived(String path);
+
+  /// No description provided for @obHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account'**
+  String get obHaveAccount;
+
+  /// No description provided for @assistChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for the assist…'**
+  String get assistChecking;
+
+  /// No description provided for @dailyGoalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{actions} of {goal} actions today for the daily harvest'**
+  String dailyGoalProgress(int actions, int goal);
+
+  /// No description provided for @dailyGoalMet.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No actions — the daily harvest goal is met} =1{1 action — the daily harvest goal is met} other{{count} actions — the daily harvest goal is met}}'**
+  String dailyGoalMet(int count);
+
+  /// No description provided for @streakZeroWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'{goal, plural, =1{A day joins the streak once it has 1 action. Meet it today to start one.} other{A day joins the streak once it has {goal} actions. Meet them today to start one.}}'**
+  String streakZeroWhy(int goal);
+
+  /// No description provided for @streakHowItGrows.
+  ///
+  /// In en, this message translates to:
+  /// **'{goal, plural, =1{Each day with 1 action keeps it going.} other{Each day with {goal} actions keeps it going.}}'**
+  String streakHowItGrows(int goal);
+
+  /// No description provided for @notesPickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a note'**
+  String get notesPickTitle;
+
+  /// No description provided for @notesPickBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes are in the list, with their folders.'**
+  String get notesPickBody;
+
+  /// No description provided for @notesShowList.
+  ///
+  /// In en, this message translates to:
+  /// **'Show notes'**
+  String get notesShowList;
+
+  /// No description provided for @goalAchievedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved'**
+  String get goalAchievedLabel;
+
+  /// No description provided for @goalAchievedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved on {day}'**
+  String goalAchievedOn(String day);
+
+  /// No description provided for @goalDroppedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropped'**
+  String get goalDroppedLabel;
+
+  /// No description provided for @goalsNoActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal in progress'**
+  String get goalsNoActiveTitle;
+
+  /// No description provided for @goalDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” and its items go, with what achieving it paid. Undo brings them back.'**
+  String goalDeleteBody(String title);
+
+  /// No description provided for @cropUndoCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo today\'s check-in for {title}'**
+  String cropUndoCheckIn(String title);
+
+  /// No description provided for @seedPausedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” is resting'**
+  String seedPausedSnack(String title);
+
+  /// No description provided for @seedResumedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” is back on the field'**
+  String seedResumedSnack(String title);
+
+  /// No description provided for @geoGone.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} · no longer here'**
+  String geoGone(String kind);
+
+  /// No description provided for @accountEndOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out all other devices'**
+  String get accountEndOthers;
+
+  /// No description provided for @accountEndOthersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out every other device?'**
+  String get accountEndOthersTitle;
+
+  /// No description provided for @accountEndOthersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this phone stays signed in. The others stop syncing until someone signs in on them again. Nothing on them is deleted.'**
+  String get accountEndOthersBody;
+
+  /// No description provided for @accountOthersEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Signed out 1 other device} other{Signed out {count} other devices}}'**
+  String accountOthersEnded(int count);
+
+  /// No description provided for @syncPinTakesTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the key is slow on purpose: a few seconds, up to about 20 on an older phone.'**
+  String get syncPinTakesTime;
+
+  /// No description provided for @syncPinMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync PIN options'**
+  String get syncPinMenu;
+
+  /// No description provided for @syncPinSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.'**
+  String get syncPinSignedOut;
 }
 
 class _AppLocalizationsDelegate

@@ -38,6 +38,7 @@ import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/presentation/album_crop_tile.dart';
 import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
+import 'package:harvest/features/gamification/presentation/daily_goal_line.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
 import 'package:harvest/features/goals/presentation/goal_editor_sheet.dart';
@@ -269,6 +270,8 @@ class _FieldHeader extends ConsumerWidget {
               xpPerRank: FarmerRank.xpPerRank,
               rankLabel: rankLabel,
             ),
+            const SizedBox(height: HarvestSpacing.sm),
+            const DailyGoalLine(),
             if (snap != null) ...[
               const Divider(height: HarvestSpacing.lg),
               InkWell(
@@ -389,6 +392,7 @@ class _CropTile extends ConsumerWidget {
       },
       done: item.isDone,
       busy: busy,
+      paused: commitment.isPaused,
       progress: commitment.type == CommitmentType.project
           ? item.projectProgress
           : null,
@@ -643,11 +647,20 @@ class _TomorrowCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // The day on a line of its own: "Sep 28" no longer
+                    // breaks in two on a narrow phone (U6-12).
                     Text(
-                      '${l10n.tomorrowTitle} · '
-                      '${formatDay(context, tomorrow, weekday: true)}',
+                      l10n.tomorrowTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      formatDay(context, tomorrow, weekday: true),
+                      softWrap: false,
+                      overflow: TextOverflow.fade,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -664,11 +677,11 @@ class _TomorrowCard extends ConsumerWidget {
               Text(
                 l10n.planTomorrow,
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.primary,
+                  color: scheme.primaryText,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              Icon(Icons.chevron_right, color: scheme.primary),
+              Icon(Icons.chevron_right, color: scheme.primaryText),
             ],
           ),
         ),

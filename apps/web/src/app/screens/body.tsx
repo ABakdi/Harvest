@@ -64,6 +64,7 @@ import {
 } from '../data/health';
 import { useSetting } from '../hooks';
 import { GymPanel } from './gym';
+import { runAction } from '@/lib/actions';
 
 /** `7h 20m`, from minutes. */
 function useDuration() {
@@ -267,7 +268,7 @@ function NightsCard({ onEdit }: { onEdit: (editing: NonNullable<NightEditing>) =
             <AlertDialogAction
               destructive
               onClick={() => {
-                if (removing) void health.removeNight(removing.uuid);
+                if (removing) runAction(() => health.removeNight(removing.uuid));
                 setRemoving(null);
               }}
             >
@@ -432,7 +433,7 @@ function WeightHistory({ onEdit }: { onEdit: (weight: WeightRow) => void }) {
   const remove = async (weight: WeightRow) => {
     await health.removeWeight(weight.uuid);
     toast(t('weightWeb.deleted'), {
-      action: { label: t('common.undo'), onClick: () => void health.restoreWeight(weight.uuid) },
+      action: { label: t('common.undo'), onClick: () => runAction(() => health.restoreWeight(weight.uuid)) },
     });
   };
 
@@ -477,7 +478,7 @@ function WeightHistory({ onEdit }: { onEdit: (weight: WeightRow) => void }) {
             <AlertDialogAction
               destructive
               onClick={() => {
-                if (removing) void remove(removing);
+                if (removing) runAction(() => remove(removing));
                 setRemoving(null);
               }}
             >
@@ -521,7 +522,7 @@ function StepsSettingsDialog({ goal, stride, onClose }: { goal: number; stride: 
           <DialogTitle>{t('stepsWeb.settings')}</DialogTitle>
           <DialogDescription className="sr-only">{t('stepsWeb.goalHint')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${id}-goal`}>{t('stepsWeb.goal')}</Label>
             <Input

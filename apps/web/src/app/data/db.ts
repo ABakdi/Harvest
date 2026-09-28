@@ -1,5 +1,5 @@
 import type { EncEnvelope, Issue, SyncedTable, TableData } from '@harvest/contracts';
-import { builtInLists, builtInListsStampedAt, listUuidOfItem } from '@harvest/contracts';
+import { builtInLists, builtInListsStampedAt, listUuidOfItem, tables } from '@harvest/contracts';
 import Dexie, { type IndexableType, type Table, type Transaction } from 'dexie';
 
 /**
@@ -144,6 +144,12 @@ export class HarvestDB extends Dexie {
       .upgrade((trans) => upgradeToLists(trans));
     // Records an older app could not read wait for a newer one (Q5-11).
     this.version(5).stores({ parked: '[table+uuid]' });
+    // Whether any row still names a file is a count, not a read of every
+    // picture and recording (Q6-22).
+    this.version(6).stores({
+      memories: 'uuid, albumUuid, harvestDay, fileHash',
+      note_attachments: 'uuid, noteUuid, fileHash',
+    });
     this.on('ready', (db) => seedBuiltInLists(db as HarvestDB));
   }
 
@@ -161,20 +167,12 @@ export function primaryKeyOf(table: SyncedTable, key: string): IndexableType {
   return key;
 }
 
-/** The record key of a stored row, as the contract defines it. */
+/**
+ * The record key of a stored row, as the contract defines it: its own
+ * `keyOf`, so a new keyed table can never quietly be keyed by uuid.
+ */
 export function recordKeyOf(table: SyncedTable, row: Record<string, unknown>): string {
-  switch (table) {
-    case 'step_days':
-      return row.harvestDay as string;
-    case 'streaks':
-      return row.scope as string;
-    case 'kv_settings':
-      return row.key as string;
-    case 'training_maxes':
-      return `${row.programUuid as string}/${row.exerciseId as string}`;
-    default:
-      return row.uuid as string;
-  }
+  return (tables[table].keyOf as (row: Record<string, unknown>) => string)(row);
 }
 
 // ----------------------------------------------------------------- lists
@@ -244,6 +242,10 @@ export const metaKeys = {
   /** 3.0.0's key; not read any more, and removed when a new one is kept. */
   privateKey: 'privateKey',
   privateKeyV2: 'privateKeyV2',
+  /** The key, its epoch and its id (`keyring.ts`). */
+  privateKeyV3: 'privateKeyV3',
+  /** The history is being pulled again from nothing (own writes come back too). */
+  rebuild: 'syncRebuild',
   /** Rows pulled with a clock ahead of this browser's, by `table/key`. */
   ahead: 'syncAhead',
   /** Rows a push found stale that the pulls have not brought back yet. */

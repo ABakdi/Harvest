@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -48,6 +49,12 @@ class _ExerciseImageState extends ConsumerState<ExerciseImage> {
     if (_for == key && _file != null) return _file!;
     _for = key;
     final media = ref.read(exerciseMediaProvider);
+    // An animation fetched for the detail brings its thumbnail along, so
+    // the list shows the picture next time instead of the same dumbbell
+    // on every row (U6-37).
+    if (widget.fetch && widget.kind == MediaKind.animation) {
+      unawaited(media.get(stem, MediaKind.thumbnail));
+    }
     return _file = widget.fetch
         ? media.get(stem, widget.kind)
         : media.cached(stem, widget.kind);

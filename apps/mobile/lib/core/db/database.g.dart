@@ -427,7 +427,7 @@ class $CommitmentsTable extends Commitments
 }
 
 class CommitmentRow extends DataClass implements Insertable<CommitmentRow> {
-  /// Client-generated UUID; will become the server `_id` when sync arrives.
+  /// Client-generated UUID; also the row's `_id` on the sync server.
   final String uuid;
 
   /// `habit` | `project` | `todo`.
@@ -3513,8 +3513,8 @@ class MemoryRow extends DataClass implements Insertable<MemoryRow> {
   ///
   /// A file is named by its own contents on the server, so this is
   /// both the name to fetch it by and the proof that what arrived is
-  /// what left ([[Sync-API]]). Null means it has never been uploaded,
-  /// which is every file until sync is switched on.
+  /// what left ([[Sync-API]]). Null means it has not been uploaded yet,
+  /// which is every file while sync is off.
   final String? fileHash;
   final DateTime capturedAt;
   final DateTime updatedAt;
@@ -20500,8 +20500,8 @@ class NoteAttachmentRow extends DataClass
   ///
   /// A file is named by its own contents on the server, so this is
   /// both the name to fetch it by and the proof that what arrived is
-  /// what left ([[Sync-API]]). Null means it has never been uploaded,
-  /// which is every file until sync is switched on.
+  /// what left ([[Sync-API]]). Null means it has not been uploaded yet,
+  /// which is every file while sync is off.
   final String? fileHash;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -20911,9 +20911,73 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
   late final $NoteAttachmentsTable noteAttachments = $NoteAttachmentsTable(
     this,
   );
+  late final Index checkInsDay = Index(
+    'check_ins_day',
+    'CREATE INDEX check_ins_day ON check_ins (harvest_day)',
+  );
+  late final Index checkInsSeed = Index(
+    'check_ins_seed',
+    'CREATE INDEX check_ins_seed ON check_ins (commitment_uuid)',
+  );
+  late final Index seedNotesSeedDay = Index(
+    'seed_notes_seed_day',
+    'CREATE INDEX seed_notes_seed_day ON seed_notes (commitment_uuid, harvest_day)',
+  );
+  late final Index noteLinksFrom = Index(
+    'note_links_from',
+    'CREATE INDEX note_links_from ON note_links (from_uuid)',
+  );
+  late final Index noteLinksTo = Index(
+    'note_links_to',
+    'CREATE INDEX note_links_to ON note_links (to_uuid)',
+  );
+  late final Index memoriesAlbumDay = Index(
+    'memories_album_day',
+    'CREATE INDEX memories_album_day ON memories (album_uuid, harvest_day)',
+  );
+  late final Index sessionExercisesSession = Index(
+    'session_exercises_session',
+    'CREATE INDEX session_exercises_session ON session_exercises (session_uuid)',
+  );
+  late final Index workoutSetsExercise = Index(
+    'workout_sets_exercise',
+    'CREATE INDEX workout_sets_exercise ON workout_sets (session_exercise_uuid)',
+  );
+  late final Index ledgerReason = Index(
+    'ledger_reason',
+    'CREATE INDEX ledger_reason ON ledger (reason)',
+  );
+  late final Index ledgerDay = Index(
+    'ledger_day',
+    'CREATE INDEX ledger_day ON ledger (harvest_day)',
+  );
+  late final Index expensesDay = Index(
+    'expenses_day',
+    'CREATE INDEX expenses_day ON expenses (harvest_day)',
+  );
+  late final Index moneyTxnsDay = Index(
+    'money_txns_day',
+    'CREATE INDEX money_txns_day ON money_txns (harvest_day)',
+  );
+  late final Index debtPaymentsDebt = Index(
+    'debt_payments_debt',
+    'CREATE INDEX debt_payments_debt ON debt_payments (debt_uuid)',
+  );
+  late final Index outboxRow = Index(
+    'outbox_row',
+    'CREATE INDEX outbox_row ON outbox (target_table, row_uuid)',
+  );
+  late final Index goalItemsGoal = Index(
+    'goal_items_goal',
+    'CREATE INDEX goal_items_goal ON goal_items (goal_uuid)',
+  );
   late final Index locationPointsDay = Index(
     'location_points_day',
     'CREATE INDEX location_points_day ON location_points (harvest_day)',
+  );
+  late final Index locationPointsDayTime = Index(
+    'location_points_day_time',
+    'CREATE INDEX location_points_day_time ON location_points (harvest_day, recorded_at)',
   );
   late final Index geotagsTarget = Index(
     'geotags_target',
@@ -20966,7 +21030,23 @@ abstract class _$HarvestDatabase extends GeneratedDatabase {
     geotags,
     savedPlaces,
     noteAttachments,
+    checkInsDay,
+    checkInsSeed,
+    seedNotesSeedDay,
+    noteLinksFrom,
+    noteLinksTo,
+    memoriesAlbumDay,
+    sessionExercisesSession,
+    workoutSetsExercise,
+    ledgerReason,
+    ledgerDay,
+    expensesDay,
+    moneyTxnsDay,
+    debtPaymentsDebt,
+    outboxRow,
+    goalItemsGoal,
     locationPointsDay,
+    locationPointsDayTime,
     geotagsTarget,
     geotagsDay,
   ];

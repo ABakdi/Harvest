@@ -15,6 +15,7 @@ import { useHarvest, useHarvestDay } from '../context';
 import { settingKeys } from '../data/settings';
 import { readBudget } from '../data/vault';
 import { useDefaultCurrency } from '../hooks';
+import { runAction } from '@/lib/actions';
 
 /**
  * The budget sheet: one number, the month's budget, in the default
@@ -45,7 +46,7 @@ function BudgetDialog({ current, onClose }: { current: number; onClose: () => vo
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (minor !== null) void save(String(minor), t('budget.saved'));
+    if (minor !== null) runAction(() => save(String(minor), t('budget.saved')));
   }
 
   return (
@@ -59,7 +60,7 @@ function BudgetDialog({ current, onClose }: { current: number; onClose: () => vo
           <AmountField id={`${id}-amount`} label={t('budget.amountLabel')} value={amount} onChange={setAmount} currency={currency} autoFocus />
           <DialogFooter className="gap-2">
             {current > 0 && (
-              <Button variant="ghost" className="text-destructive sm:me-auto" disabled={saving} onClick={() => void save('', t('budget.cleared'))}>
+              <Button variant="ghost" className="text-destructive sm:me-auto" disabled={saving} onClick={() => runAction(() => save('', t('budget.cleared')))}>
                 {t('budget.clear')}
               </Button>
             )}
