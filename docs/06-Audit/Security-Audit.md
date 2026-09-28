@@ -4,7 +4,7 @@
 
 The question I asked: does the app keep the promise in [[Finances]] — money data never leaves the device in plaintext — and is the attack surface as small as a local-first app can make it?
 
-Scope: `/home/abakdi/Dev-Home/Harvest` at commit `0f929f3` (main, clean tree). All line numbers refer to the current files. 
+Scope: the repository at commit `0f929f3` (main, clean tree). All line numbers refer to the current files. 
 
 ## Findings (ordered by severity)
 
