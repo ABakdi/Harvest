@@ -167,7 +167,8 @@ describe('pushed screens on a phone-width window', () => {
     expect(pushedParent('/app/body/gym/sessions/abc')).toBe('/app/body/gym');
     expect(pushedParent('/app/records')).toBeNull();
     expect(pushedParent('/app/records/lists/abc')).toBeNull();
-    expect(pushedParent('/app/records/abc')).toBe('/app/records');
+    // A note opens in place with its drawer, as on the phone; the trash is pushed.
+    expect(pushedParent('/app/records/abc')).toBeNull();
     expect(pushedParent('/app/records/trash')).toBe('/app/records');
     expect(pushedParent('/app/records/gallery')).toBeNull();
     expect(pushedParent('/app/records/gallery', '?album=abc')).toBe('/app/records/gallery');

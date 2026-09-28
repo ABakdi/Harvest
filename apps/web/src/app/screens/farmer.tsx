@@ -170,7 +170,7 @@ function Heat({ stats }: { stats: StatsView }) {
   return (
     <div className="flex flex-col gap-2">
       <div
-        className="flex gap-1 overflow-x-auto pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="no-scrollbar flex gap-1 overflow-x-auto pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         tabIndex={0}
         role="img"
         aria-label={t('stats.heatLabel', { count: stats.heat.length })}

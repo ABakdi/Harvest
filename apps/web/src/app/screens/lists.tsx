@@ -107,7 +107,7 @@ export function ListsScreen() {
     <div className="flex flex-col gap-4">
       <RecordsTabs />
       <div className="flex items-center gap-2">
-        <nav aria-label={t('lists.chips')} className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+        <nav aria-label={t('lists.chips')} className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
           {view.lists.map((list) => (
             <Link
               key={list.uuid}

@@ -42,7 +42,7 @@ function Strip({
   return (
     <div className="flex flex-col gap-1">
       <span className="px-3 text-xs text-white/70">{label}</span>
-      <div role="group" aria-label={label} className="flex gap-1 overflow-x-auto px-2 pb-1">
+      <div role="group" aria-label={label} className="no-scrollbar flex gap-1 overflow-x-auto px-2 pb-1">
         {memories.map((memory, index) => {
           const view = views?.get(memory.uuid);
           return (

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:harvest/app/bootstrap.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/app/splash_screen.dart';
 import 'package:harvest/core/app/current_day.dart';
+import 'package:harvest/core/ui/scroll_behavior.dart';
 import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
@@ -22,31 +22,6 @@ import 'package:harvest/features/settings/presentation/settings_controllers.dart
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/features/widget/domain/widget_service.dart';
 import 'package:harvest/l10n/app_localizations.dart';
-
-/// Gentle bounce at list edges everywhere — never the stretch effect
-/// that deforms cards (checkpoint bug B1).
-class _HarvestScrollBehavior extends MaterialScrollBehavior {
-  const _HarvestScrollBehavior();
-
-  @override
-  ScrollPhysics getScrollPhysics(BuildContext context) =>
-      const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
-
-  @override
-  Widget buildOverscrollIndicator(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) => child;
-
-  @override
-  Set<PointerDeviceKind> get dragDevices => const {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad,
-    PointerDeviceKind.stylus,
-  };
-}
 
 class HarvestApp extends ConsumerStatefulWidget {
   const HarvestApp({super.key});
@@ -148,7 +123,7 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
       );
     }
     return MaterialApp.router(
-      scrollBehavior: const _HarvestScrollBehavior(),
+      scrollBehavior: const HarvestScrollBehavior(),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       // Above the navigator, so the lock covers every route, sheet and
       // dialog at once instead of being one screen among many.

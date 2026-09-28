@@ -31,7 +31,7 @@ function ChipRow({
     // shrink-0: in a dialog capped at the screen's height a scrolling row
     // may otherwise be squeezed and cut its chips off at the bottom; the
     // padding keeps room for the focus ring.
-    <div role="group" aria-label={label} className="-mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 py-1">
+    <div role="group" aria-label={label} className="no-scrollbar -mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 py-1">
       {values.map((value) => (
         <Button
           key={value}

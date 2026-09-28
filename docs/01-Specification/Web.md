@@ -64,6 +64,31 @@ On a wide window it is laid out like the phone but for a wide screen:
 - the screen in the middle. Notes open beside their list; a seed, a
   goal or a program opens as its own page, and an expense in a dialog.
 
+Notes on a wide window is laid out the way Obsidian's desktop app is:
+the vault as a tree of folders and notes down the side (folding
+chevrons, a small row of new note, new folder, new voice note, sort and
+fold-all, the open note marked, its edge dragged wider or narrower), and
+the note beside it in a readable column about 700 px wide, its title a
+large heading, under a thin bar with its path, the Read/Write switch and
+its actions. Switching Read and Write keeps my place. The page fills the
+window and never scrolls itself: the tree and the note each scroll on
+their own.
+
+Below 768 px Notes is the phone's Notes: one note in place, the vault in
+a drawer from the ☰ beside the account circle, the note's title (and its
+folder) in the app bar with the microphone, *+* and ⋮ (Assist, Record,
+Read aloud, Move to folder, Print, Delete — which asks first). It opens
+on the note I was last in; Back closes a note and shows the notes, and
+a note closed that way stays closed the next time. The note reads as
+rendered markdown and a tap writes where it lands, with the markdown
+toolbar on the keyboard while I write; links on the caret's line and
+the notes that link here are chips. A note made and left empty is
+dropped when I leave it.
+
+Scrollbars are thin, in the theme's colours, with no arrows, and show
+only while the pointer is over what scrolls; strips of tabs and chips
+that scroll by swipe show none.
+
 Below 768 px it *is* the phone's layout: the bottom bar with the same
 tabs, the account circle and the tab's title in the app bar (a back
 arrow on a screen pushed over a tab), the tab row under it, the

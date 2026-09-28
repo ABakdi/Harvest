@@ -137,6 +137,22 @@ export class NotesRepository {
     return this.writer.run((tx) => tx.purge('notes', uuid));
   }
 
+  /**
+   * A note made and left untouched goes rather than stay as an empty
+   * "Untitled" (`discardIfBlank`, U6-08): nothing in its title or body
+   * and no recording filed under it. Says whether it went.
+   */
+  discardIfBlank(uuid: string): Promise<boolean> {
+    return this.writer.run(async (tx) => {
+      const row = await tx.get('notes', uuid);
+      if (!row || row.deletedAt !== null || row.title.trim() || row.body.trim()) return false;
+      const attached = await tx.rows('note_attachments').where('noteUuid').equals(uuid).count();
+      if (attached > 0) return false;
+      await tx.purge('notes', uuid);
+      return true;
+    });
+  }
+
   /** Empties the trash: the one step that is not undoable. */
   emptyTrash(): Promise<number> {
     return this.writer.run(async (tx) => {

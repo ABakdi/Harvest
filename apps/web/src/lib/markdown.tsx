@@ -87,14 +87,16 @@ export function renderInline(text: string, options: MarkdownOptions = {}, keyPre
   return nodes;
 }
 
-type Block =
+/** A block, with the line of the source it starts on. */
+type Block = { line: number } & (
   | { kind: 'heading'; level: number; text: string }
   | { kind: 'code'; text: string }
   | { kind: 'quote'; lines: string[] }
   | { kind: 'list'; ordered: boolean; items: { text: string; task: boolean | null }[] }
   | { kind: 'rule' }
   | { kind: 'table'; head: string[]; rows: string[][] }
-  | { kind: 'paragraph'; lines: string[] };
+  | { kind: 'paragraph'; lines: string[] }
+);
 
 /**
  * Line bodies are `[^\n]*` and never `.*`: `.` stops at U+2028/U+2029, so
@@ -125,29 +127,30 @@ export function parseBlocks(source: string): Block[] {
       i++;
       continue;
     }
+    const start = i;
     if (/^\s{0,3}```/.test(line)) {
       const body: string[] = [];
       i++;
       while (i < lines.length && !/^\s{0,3}```/.test(lines[i]!)) body.push(lines[i++]!);
       i++;
-      blocks.push({ kind: 'code', text: body.join('\n') });
+      blocks.push({ line: start, kind: 'code', text: body.join('\n') });
       continue;
     }
     const heading = /^\s{0,3}(#{1,6})\s+([^\n]*)$/.exec(line);
     if (heading) {
-      blocks.push({ kind: 'heading', level: heading[1]!.length, text: heading[2]!.replace(/\s+#+\s*$/, '') });
+      blocks.push({ line: start, kind: 'heading', level: heading[1]!.length, text: heading[2]!.replace(/\s+#+\s*$/, '') });
       i++;
       continue;
     }
     if (/^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(line)) {
-      blocks.push({ kind: 'rule' });
+      blocks.push({ line: start, kind: 'rule' });
       i++;
       continue;
     }
     if (/^\s{0,3}>/.test(line)) {
       const quote: string[] = [];
       while (i < lines.length && /^\s{0,3}>/.test(lines[i]!)) quote.push(lines[i++]!.replace(/^\s{0,3}>\s?/, ''));
-      blocks.push({ kind: 'quote', lines: quote });
+      blocks.push({ line: start, kind: 'quote', lines: quote });
       continue;
     }
     if (tableAt(lines, i)) {
@@ -155,7 +158,7 @@ export function parseBlocks(source: string): Block[] {
       const rows: string[][] = [];
       i += 2;
       while (i < lines.length && /^\s*\|/.test(lines[i]!)) rows.push(cellsOf(lines[i++]!));
-      blocks.push({ kind: 'table', head, rows });
+      blocks.push({ line: start, kind: 'table', head, rows });
       continue;
     }
     const first = listItem.exec(line);
@@ -169,7 +172,7 @@ export function parseBlocks(source: string): Block[] {
         items.push(task ? { text: task[2]!, task: task[1] !== ' ' } : { text: item[2]!, task: null });
         i++;
       }
-      blocks.push({ kind: 'list', ordered, items });
+      blocks.push({ line: start, kind: 'list', ordered, items });
       continue;
     }
     const paragraph: string[] = [];
@@ -186,7 +189,7 @@ export function parseBlocks(source: string): Block[] {
     // them all and be refused here too, it is kept as text and passed, so
     // no input can stall the loop.
     if (paragraph.length === 0) paragraph.push(lines[i++]!);
-    blocks.push({ kind: 'paragraph', lines: paragraph });
+    blocks.push({ line: start, kind: 'paragraph', lines: paragraph });
   }
   return blocks;
 }
@@ -211,20 +214,20 @@ export function Markdown({ source, options = {}, className }: { source: string; 
           case 'heading': {
             const Tag = `h${Math.min(block.level + 1, 6)}` as 'h2';
             return (
-              <Tag key={key} dir="auto" className={headingClass[block.level]}>
+              <Tag key={key} data-line={block.line} dir="auto" className={headingClass[block.level]}>
                 {renderInline(block.text, options, key)}
               </Tag>
             );
           }
           case 'code':
             return (
-              <pre key={key} dir="auto" className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-sm">
+              <pre key={key} data-line={block.line} dir="auto" className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-sm">
                 <code>{block.text}</code>
               </pre>
             );
           case 'quote':
             return (
-              <blockquote key={key} dir="auto" className="border-s-4 border-success/60 ps-3 text-muted-foreground">
+              <blockquote key={key} data-line={block.line} dir="auto" className="border-s-4 border-success/60 ps-3 text-muted-foreground">
                 {block.lines.map((line, n) => (
                   <p key={n} dir="auto">
                     {renderInline(line, options, `${key}-${n}`)}
@@ -235,7 +238,7 @@ export function Markdown({ source, options = {}, className }: { source: string; 
           case 'list': {
             const Tag = block.ordered ? 'ol' : 'ul';
             return (
-              <Tag key={key} dir="auto" className={block.ordered ? 'list-decimal ps-6' : 'list-disc ps-6'}>
+              <Tag key={key} data-line={block.line} dir="auto" className={block.ordered ? 'list-decimal ps-6' : 'list-disc ps-6'}>
                 {block.items.map((item, n) =>
                   item.task === null ? (
                     <li key={n} dir="auto">{renderInline(item.text, options, `${key}-${n}`)}</li>
@@ -252,10 +255,10 @@ export function Markdown({ source, options = {}, className }: { source: string; 
             );
           }
           case 'rule':
-            return <hr key={key} className="border-border" />;
+            return <hr key={key} data-line={block.line} className="border-border" />;
           case 'table':
             return (
-              <div key={key} className="overflow-x-auto">
+              <div key={key} data-line={block.line} className="overflow-x-auto">
                 <table dir="auto" className="w-full border-collapse text-sm">
                   <thead>
                     <tr>
@@ -282,7 +285,7 @@ export function Markdown({ source, options = {}, className }: { source: string; 
             );
           case 'paragraph':
             return (
-              <p key={key} dir="auto" className="whitespace-pre-wrap">
+              <p key={key} data-line={block.line} dir="auto" className="whitespace-pre-wrap">
                 {renderInline(block.lines.join('\n'), options, key)}
               </p>
             );

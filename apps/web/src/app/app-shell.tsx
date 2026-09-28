@@ -32,7 +32,7 @@ import { formatNumber } from '@/lib/format';
 import { useDocumentTitle } from '@/lib/title';
 import { cn } from '@/lib/utils';
 import { AccountCircle } from './components/account-circle';
-import { AppBarSlot } from './components/app-bar';
+import { AppBarLeadingSlot, AppBarSlot, AppBarTitleSlot } from './components/app-bar';
 import { useKeyboardMark } from './components/keyboard';
 import { PomodoroChip } from './components/pomodoro-timer';
 import { useFeaturesOrOff } from './components/settings-bits';
@@ -141,10 +141,22 @@ export function pushedParent(pathname: string, search = ''): string | null {
   if (section === 'body') return second === 'gym' && third ? '/app/body/gym' : null;
   if (section === 'records') {
     if (second === 'gallery') return new URLSearchParams(search).has('album') ? '/app/records/gallery' : null;
-    if (!second || second === 'lists' || second === 'places') return null;
-    return '/app/records';
+    // A note opens in place with its drawer, as on the phone; only the
+    // trash is a screen pushed over Notes.
+    return second === 'trash' ? '/app/records' : null;
   }
   return null;
+}
+
+/**
+ * Whether a route is Notes, which fills the window as the phone's and
+ * Obsidian's do: the list and the note each scroll on their own, and
+ * the page never does.
+ */
+export function fillsViewport(pathname: string): boolean {
+  const [section, second, ...rest] = pathname.split('/').slice(2).filter(Boolean);
+  if (section !== 'records' || rest.length > 0) return false;
+  return second === undefined || !['lists', 'gallery', 'places'].includes(second);
 }
 
 /** The title a pushed screen's app bar carries, when the screen does not carry its own. */
@@ -152,6 +164,7 @@ function pushedTitle(pathname: string, t: TFunction): string {
   if (pathname === '/app/field/calendar') return t('calendar.title');
   if (pathname === '/app/field/archive') return t('archive.title');
   if (pathname === '/app/field/focus') return t('focus.timer');
+  if (pathname === '/app/records/trash') return t('notes.trashTitle');
   return '';
 }
 
@@ -281,14 +294,14 @@ export function BottomBar() {
   );
 }
 
-function Banners({ startedOffline }: { startedOffline: boolean }) {
+function Banners({ startedOffline, className }: { startedOffline: boolean; className?: string | undefined }) {
   const { t } = useTranslation();
   const { user } = useHarvest();
   const status = useSyncStatus();
   const [sent, setSent] = useState(false);
   const offline = status.phase === 'offline' || (startedOffline && status.phase !== 'idle');
   return (
-    <div className="flex flex-col gap-2 empty:hidden" aria-live="polite">
+    <div className={cn('flex flex-col gap-2 empty:hidden', className)} aria-live="polite">
       {user.verifiedAt === null && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm">
           <MailWarningIcon className="size-4" aria-hidden />
@@ -331,6 +344,9 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
   const rail = railTabs(on).map((id) => byId[id]);
   const { search, key } = useLocation();
   const [slot, setSlot] = useState<HTMLDivElement | null>(null);
+  const [leadingSlot, setLeadingSlot] = useState<HTMLDivElement | null>(null);
+  const [titleSlot, setTitleSlot] = useState<HTMLDivElement | null>(null);
+  const fills = fillsViewport(pathname);
   useKeyboardMark();
   // The Field's own two tabs carry its actions, as on the phone; a screen pushed over it does not.
   const onField = pathname === '/app/field' || pathname === '/app/field/goals';
@@ -353,7 +369,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
   });
 
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
+    <div className={cn('flex min-h-dvh flex-col md:flex-row', fills && 'h-dvh overflow-hidden')}>
       <a
         href="#app-main"
         className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-card focus:p-2"
@@ -361,7 +377,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
         {t('common.skipToContent')}
       </a>
       <Rail />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className={cn('flex min-w-0 flex-1 flex-col', fills && 'min-h-0')}>
         {/* On a phone-width window this is the phone's app bar: the
             account circle at the start, the tab's title, and its
             actions at the end. */}
@@ -373,7 +389,11 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
           ) : (
             <AccountCircle className="ms-1 md:hidden max-md:touch-target" />
           )}
-          <p className="min-w-0 flex-1 truncate ps-2 text-lg font-extrabold md:hidden">{back ? pushedTitle(pathname, t) : barTitle(pathname, on, t)}</p>
+          <div ref={setLeadingSlot} className="flex items-center empty:hidden md:hidden" />
+          <div ref={setTitleSlot} className="peer min-w-0 flex-1 ps-2 empty:hidden md:hidden" />
+          <p className="min-w-0 flex-1 truncate ps-2 text-lg font-extrabold md:hidden peer-[:not(:empty)]:hidden">
+            {back ? pushedTitle(pathname, t) : barTitle(pathname, on, t)}
+          </p>
           <div className="flex items-center gap-0.5 md:ms-auto md:gap-1">
             {onField && (
               <>
@@ -391,8 +411,9 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             )}
             <div ref={setSlot} className="flex items-center gap-0.5 empty:hidden md:hidden" />
             {/* On the timer's own screen the ring says it already (W6-38). */}
+            {/* Notes on a phone has the phone's bar: its own actions and no more (the timer and search stay on a wide window). */}
             {pathname !== '/app/field/focus' && (
-              <div className="flex @max-[15rem]/bar:hidden">
+              <div className={cn('flex @max-[15rem]/bar:hidden', fills && 'max-md:hidden')}>
                 <PomodoroChip />
               </div>
             )}
@@ -407,7 +428,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             <Button
               variant="ghost"
               size="icon"
-              className="@max-[22rem]/bar:hidden"
+              className={cn('@max-[22rem]/bar:hidden', fills && 'max-md:hidden')}
               aria-label={t('app.search')}
               title={`${t('app.search')} (/)`}
               onClick={dialogs.openSearch}
@@ -417,7 +438,7 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
             {/* With large text or zoom the bar has too little room: what does not fit folds into one menu (W6-06). */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="@min-[22rem]/bar:hidden md:hidden" aria-label={t('nav.more')}>
+                <Button variant="ghost" size="icon" className={cn('@min-[22rem]/bar:hidden md:hidden', fills && 'hidden')} aria-label={t('nav.more')}>
                   <EllipsisVerticalIcon />
                 </Button>
               </DropdownMenuTrigger>
@@ -453,67 +474,78 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
         <main
           id="app-main"
           tabIndex={-1}
-          className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 py-4 pr-[max(0.75rem,env(safe-area-inset-right))] pb-[calc(11rem+env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] outline-none md:px-6 md:pb-4"
+          data-fill={fills ? '' : undefined}
+          className={
+            fills
+              ? // The whole window below the bar, and nothing past it: the
+                // screen scrolls inside itself (above the bottom bar on a phone).
+                'flex min-h-0 w-full flex-1 flex-col overflow-hidden pr-[env(safe-area-inset-right)] pb-[calc(5rem+env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] outline-none md:pb-0'
+              : 'mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 py-4 pr-[max(0.75rem,env(safe-area-inset-right))] pb-[calc(11rem+env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] outline-none md:px-6 md:pb-4'
+          }
         >
-          <Banners startedOffline={startedOffline} />
+          <Banners startedOffline={startedOffline} className={fills ? 'mx-3 mt-3 md:mx-6' : undefined} />
           <OnboardingGate />
-          <AppBarSlot.Provider value={slot}>
-            {/* A screen that breaks, or whose code is gone after a deploy, shows so in place; the tabs stay. */}
-            <ScreenErrorBoundary resetKey={pathname}>
-              <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" aria-busy />}>
-                <Routes>
-                  <Route index element={<Navigate to="field" replace />} />
-                  <Route path="field" element={<FieldScreen tab="today" />} />
-                  <Route path="field/calendar" element={<CalendarScreen />} />
-                  <Route path="field/seed/:uuid" element={<SeedScreen />} />
-                  <Route path="field/focus" element={<PomodoroScreen />} />
-                  <Route path="field/archive" element={<ArchiveScreen />} />
-                  <Route path="field/goals" element={<FieldScreen tab="goals" />} />
-                  <Route path="field/goals/:uuid" element={<GoalScreen />} />
-                  {/* Keyed apart: the two paths are two screens, so following a
-                      link from one to the other opens on the tab it names. */}
-                  <Route path="body" element={<BodyScreen key="health" />} />
-                  <Route path="body/gym" element={<BodyScreen key="gym" tab="gym" />} />
-                  <Route path="body/gym/programs/:uuid" element={<ProgramEditorScreen />} />
-                  <Route path="body/gym/sessions/:uuid" element={<SessionScreen />} />
-                  <Route path="records" element={<NotesScreen />} />
-                  <Route
-                    path="records/gallery"
-                    element={
-                      <RecordsView feature="gallery">
-                        <GalleryScreen />
-                      </RecordsView>
-                    }
-                  />
-                  <Route
-                    path="records/places"
-                    element={
-                      <RecordsView feature="places">
-                        <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
-                          <PlacesScreen />
-                        </Suspense>
-                      </RecordsView>
-                    }
-                  />
-                  <Route
-                    path="records/lists/:listUuid?"
-                    element={
-                      <RecordsView feature="lists">
-                        <ListsScreen />
-                      </RecordsView>
-                    }
-                  />
-                  <Route path="records/trash" element={<NotesScreen trash />} />
-                  <Route path="records/:uuid" element={<NotesScreen />} />
-                  <Route path="granary" element={<GranaryScreen />} />
-                  <Route path="farmer" element={<FarmerScreen />} />
-                  <Route path="settings" element={<SettingsScreen />} />
-                  <Route path="welcome" element={<OnboardingScreen />} />
-                  <Route path="*" element={<Navigate to="/app/field" replace />} />
-                </Routes>
-              </Suspense>
-            </ScreenErrorBoundary>
-          </AppBarSlot.Provider>
+          <AppBarLeadingSlot.Provider value={leadingSlot}>
+            <AppBarTitleSlot.Provider value={titleSlot}>
+              <AppBarSlot.Provider value={slot}>
+                {/* A screen that breaks, or whose code is gone after a deploy, shows so in place; the tabs stay. */}
+                <ScreenErrorBoundary resetKey={pathname}>
+                  <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" aria-busy />}>
+                    <Routes>
+                      <Route index element={<Navigate to="field" replace />} />
+                      <Route path="field" element={<FieldScreen tab="today" />} />
+                      <Route path="field/calendar" element={<CalendarScreen />} />
+                      <Route path="field/seed/:uuid" element={<SeedScreen />} />
+                      <Route path="field/focus" element={<PomodoroScreen />} />
+                      <Route path="field/archive" element={<ArchiveScreen />} />
+                      <Route path="field/goals" element={<FieldScreen tab="goals" />} />
+                      <Route path="field/goals/:uuid" element={<GoalScreen />} />
+                      {/* Keyed apart: the two paths are two screens, so following a
+                          link from one to the other opens on the tab it names. */}
+                      <Route path="body" element={<BodyScreen key="health" />} />
+                      <Route path="body/gym" element={<BodyScreen key="gym" tab="gym" />} />
+                      <Route path="body/gym/programs/:uuid" element={<ProgramEditorScreen />} />
+                      <Route path="body/gym/sessions/:uuid" element={<SessionScreen />} />
+                      <Route path="records" element={<NotesScreen />} />
+                      <Route
+                        path="records/gallery"
+                        element={
+                          <RecordsView feature="gallery">
+                            <GalleryScreen />
+                          </RecordsView>
+                        }
+                      />
+                      <Route
+                        path="records/places"
+                        element={
+                          <RecordsView feature="places">
+                            <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted" />}>
+                              <PlacesScreen />
+                            </Suspense>
+                          </RecordsView>
+                        }
+                      />
+                      <Route
+                        path="records/lists/:listUuid?"
+                        element={
+                          <RecordsView feature="lists">
+                            <ListsScreen />
+                          </RecordsView>
+                        }
+                      />
+                      <Route path="records/trash" element={<NotesScreen trash />} />
+                      <Route path="records/:uuid" element={<NotesScreen />} />
+                      <Route path="granary" element={<GranaryScreen />} />
+                      <Route path="farmer" element={<FarmerScreen />} />
+                      <Route path="settings" element={<SettingsScreen />} />
+                      <Route path="welcome" element={<OnboardingScreen />} />
+                      <Route path="*" element={<Navigate to="/app/field" replace />} />
+                    </Routes>
+                  </Suspense>
+                </ScreenErrorBoundary>
+              </AppBarSlot.Provider>
+            </AppBarTitleSlot.Provider>
+          </AppBarLeadingSlot.Provider>
         </main>
       </div>
       {/* The first run fills the phone's screen, with no bar under it. */}
