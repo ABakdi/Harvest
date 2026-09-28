@@ -16,7 +16,7 @@ import { GoalScreen } from '@/app/screens/goal';
 import { GoalsBoard } from '@/app/screens/goals-board';
 import { RecordsTabs } from '@/app/screens/records';
 import { FakeServer } from './fake-server';
-import { device } from './helpers';
+import { device, openStored, syncing } from './helpers';
 
 /**
  * Requirements, tasks and subtasks ([[Goals]] GL2, GL7, GL8): one level
@@ -232,11 +232,11 @@ describe('subtasks in the repository', () => {
 
   it('carries subtasks to another browser', async () => {
     const server = new FakeServer();
-    const a = await device(server);
+    const a = await syncing(server);
     const { task, find } = await race(a);
     await a.engine.sync();
-    expect(server.get('goal_items', find.uuid)?.data).toMatchObject({ parentUuid: task.uuid });
-    const b = await device(server);
+    expect(await openStored(server.get('goal_items', find.uuid))).toMatchObject({ parentUuid: task.uuid });
+    const b = await syncing(server);
     await b.engine.sync();
     expect(await item(b, find.uuid)).toEqual(await item(a, find.uuid));
   });

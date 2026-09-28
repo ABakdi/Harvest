@@ -41,7 +41,47 @@ class FakeRemote implements SyncRemote {
     _bySeq.removeWhere((_, id) => tables.contains(id.$1));
   }
 
+  /// Drops every record, as starting the PIN over does on the server
+  /// now that every row is sealed.
+  void dropAll() {
+    _rows.clear();
+    _bySeq.clear();
+  }
+
   Map<String, Object?>? row(String table, String key) => _rows[(table, key)];
+
+  /// Stores [record] as the server kept it before Phase 7 (in the clear,
+  /// or a point of the trail sealed on its own), written by another
+  /// device.
+  void seedPlain(Map<String, Object?> record) {
+    final id = (record['table']! as String, record['uuid']! as String);
+    final seq = ++_seq;
+    _rows[id] = {...record, 'seq': seq};
+    _writtenBy[id] = 'a-device-from-before';
+    _bySeq.removeWhere((_, value) => value == id);
+    _bySeq[seq] = id;
+  }
+
+  /// The rows still kept in the clear.
+  int get plain => _rows.values.where((row) => row['data'] != null).length;
+
+  /// Every `POST /v1/sync/sealed`, as its key epoch, in order.
+  final sealedCalls = <int>[];
+
+  @override
+  Future<int> sealed(String deviceId, int keyEpoch) async {
+    if (keyEpoch != epoch()) throw const ApiException('key_changed', 409);
+    sealedCalls.add(keyEpoch);
+    final gone = [
+      for (final MapEntry(:key, :value) in _rows.entries)
+        if (value['data'] != null || key.$1 == 'location_points') key,
+    ];
+    for (final id in gone) {
+      _rows.remove(id);
+      _bySeq.removeWhere((_, value) => value == id);
+    }
+    return gone.length;
+  }
 
   @override
   Future<({List<Map<String, Object?>> results, int cursor})> push(
@@ -62,6 +102,38 @@ class FakeRemote implements SyncRemote {
         results.add({'table': id.$1, 'uuid': id.$2, 'status': 'invalid'});
         continue;
       }
+      if (id.$1 == 'location_points' && record['purged'] != true) {
+        results.add({
+          'table': id.$1,
+          'uuid': id.$2,
+          'status': 'invalid',
+          'issues': [
+            {
+              'path': ['table'],
+              'message': 'retired',
+              'code': 'retired_table',
+            },
+          ],
+        });
+        continue;
+      }
+      if (record['data'] != null || record['enc'] == null) {
+        if (record['purged'] != true) {
+          results.add({
+            'table': id.$1,
+            'uuid': id.$2,
+            'status': 'invalid',
+            'issues': [
+              {
+                'path': ['data'],
+                'message': 'travels sealed',
+                'code': 'sealed_required',
+              },
+            ],
+          });
+          continue;
+        }
+      }
       if (record['enc'] != null && keyEpoch != epoch()) {
         results.add({
           'table': id.$1,
@@ -75,8 +147,15 @@ class FakeRemote implements SyncRemote {
       }
       final stored = _rows[id];
       final incoming = DateTime.parse(record['updatedAt']! as String);
-      if (stored != null &&
-          !incoming.isAfter(DateTime.parse(stored['updatedAt']! as String))) {
+      final storedAt = stored == null
+          ? null
+          : DateTime.parse(stored['updatedAt']! as String);
+      // A sealed copy replaces one kept in the clear at the same clock.
+      final sealsPlain =
+          stored?['data'] != null &&
+          record['enc'] != null &&
+          !incoming.isBefore(storedAt!);
+      if (stored != null && !sealsPlain && !incoming.isAfter(storedAt!)) {
         results.add({'table': id.$1, 'uuid': id.$2, 'status': 'stale'});
         continue;
       }

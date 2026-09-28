@@ -139,7 +139,7 @@ describe('money', () => {
   }>('money');
 
   it.each(spec.conversions)('converting: $why', ({ rates, minor, from, result }) => {
-    expect(toDefault(rates, minor, from as Rates['defaultCurrency'])).toBe(result);
+    expect(toDefault(rates, minor, from)).toBe(result);
   });
 
   it.each(spec.budgetSwitches)('switching the currency carries the budget: $why', ({ rates, budget, from, to, result }) => {

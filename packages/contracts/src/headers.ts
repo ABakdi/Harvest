@@ -10,7 +10,11 @@
  */
 export const fileIvHeader = 'x-harvest-iv';
 
-/** The plaintext's own length, so a reader can check what it decrypted. */
+/**
+ * The length of what was sealed, so a reader can check what it
+ * decrypted: since Phase 7 the padded length, which the ciphertext's
+ * own length already says, and never the file's.
+ */
 export const filePlainBytesHeader = 'x-harvest-plain-bytes';
 
 /**

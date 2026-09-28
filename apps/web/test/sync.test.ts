@@ -4,14 +4,14 @@ import { HarvestDay } from '@harvest/core';
 import { describe, expect, it } from 'vitest';
 import { WrongPassphraseError } from '@/app/sync/keyring';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, openStored, syncing, testUser } from './helpers';
 
 const today = HarvestDay.parse('2026-09-19');
 
 describe('the sync engine', () => {
   it('carries a day from one browser to another, and echoes nothing back', async () => {
     const server = new FakeServer();
-    const a = await device(server);
+    const a = await syncing(server);
     const seed = await a.seeds.plant({ type: 'habit', title: 'Walk', schedule: { type: 'weekly', weekdays: new Set([1, 3, 5]) } });
     await a.checkIns.checkIn(seed, today);
     await a.engine.sync();
@@ -19,9 +19,10 @@ describe('the sync engine', () => {
     expect(a.engine.status.phase).toBe('idle');
     expect(await a.db.outbox.count()).toBe(0);
     const stored = server.get('commitments', seed.uuid);
-    expect(stored?.data).toMatchObject({ title: 'Walk', scheduleJson: '{"type":"weekly","weekdays":[1,3,5]}' });
+    expect(stored?.data).toBeUndefined();
+    expect(await openStored(stored)).toMatchObject({ title: 'Walk', scheduleJson: '{"type":"weekly","weekdays":[1,3,5]}' });
 
-    const b = await device(server);
+    const b = await syncing(server);
     await b.engine.sync();
     expect(await b.db.rows('commitments').get(seed.uuid)).toEqual(await a.db.rows('commitments').get(seed.uuid));
     expect(await b.db.rows('check_ins').count()).toBe(1);
@@ -36,8 +37,8 @@ describe('the sync engine', () => {
 
   it('lets the later edit win on both sides, whoever syncs last', async () => {
     const server = new FakeServer();
-    const a = await device(server);
-    const b = await device(server);
+    const a = await syncing(server);
+    const b = await syncing(server);
     const seed = await a.seeds.plant({ type: 'todo', title: 'Dentist' });
     await a.engine.sync();
     await b.engine.sync();
@@ -58,8 +59,8 @@ describe('the sync engine', () => {
 
   it('purges on every device what one of them emptied from the trash', async () => {
     const server = new FakeServer();
-    const a = await device(server);
-    const b = await device(server);
+    const a = await syncing(server);
+    const b = await syncing(server);
     const note = await a.notes.create({ title: 'Scratch', body: 'gone soon' });
     await a.engine.sync();
     await b.engine.sync();
@@ -71,7 +72,7 @@ describe('the sync engine', () => {
     await a.notes.emptyTrash();
     await a.engine.sync();
     expect(server.get('notes', note.uuid)).toMatchObject({ purged: true });
-    expect(server.get('notes', note.uuid)?.data).toBeUndefined();
+    expect(server.get('notes', note.uuid)?.enc).toBeUndefined();
 
     await b.engine.sync();
     expect(await b.db.rows('notes').get(note.uuid)).toBeUndefined();
@@ -79,7 +80,7 @@ describe('the sync engine', () => {
 
   it('keeps an invalid row home and does not send it again until it changes', async () => {
     const server = new FakeServer();
-    const a = await device(server);
+    const a = await syncing(server);
     // A row the contract refuses, slipped past the writer as a bad import would.
     await a.db.rows('notes').put({
       uuid: 'n1',
@@ -100,15 +101,17 @@ describe('the sync engine', () => {
 
   it('pages a long pull, and remembers where it stopped', async () => {
     const server = new FakeServer();
-    const a = await device(server);
+    const a = await syncing(server);
     for (let i = 0; i < 7; i++) await a.notes.create({ title: `Note ${i}` });
     await a.engine.sync();
 
-    const b = await device(server);
+    const b = await syncing(server);
     Object.assign(b.engine, { pullLimit: 3 });
     await b.engine.sync();
     expect(await b.db.rows('notes').count()).toBe(7);
-    expect(await b.db.meta.get('cursor')).toEqual({ key: 'cursor', value: 7 });
+    expect(b.engine.status.sealed).toBe(0);
+    const { cursor } = await server.pull(0, 1000);
+    expect(await b.db.meta.get('cursor')).toEqual({ key: 'cursor', value: cursor });
   });
 });
 
@@ -133,14 +136,15 @@ describe('the private tier', () => {
     const b = await device(server);
     await b.engine.sync();
     expect(await b.db.rows('expenses').count()).toBe(0);
-    expect(b.engine.status.sealed).toBe(1);
+    expect(await b.db.sealed.where('table').equals('expenses').count()).toBe(1);
 
     await expect(b.keyring.unlock('the wrong words', testUser.syncSalt)).rejects.toBeInstanceOf(WrongPassphraseError);
     await b.keyring.unlock('olive trees in october', testUser.syncSalt);
-    expect(await b.engine.openSealed()).toBe(1);
+    expect(await b.engine.openSealed()).toBeGreaterThanOrEqual(1);
     expect(await b.db.rows('expenses').get(uuid)).toEqual(await a.db.rows('expenses').get(uuid));
     expect(b.engine.status.sealed).toBe(0);
-    expect(await b.db.outbox.count()).toBe(0);
+    // Opened, not written here: nothing of it goes back up.
+    expect(await b.db.outbox.where('table').equals('expenses').count()).toBe(0);
   });
 
   it('opens a row the phone sealed, once the passphrase is typed', async () => {
@@ -167,20 +171,24 @@ describe('the private tier', () => {
     expect(await b.db.rows('expenses').get(row.uuid)).toEqual(JSON.parse(row.plaintext));
   });
 
-  it('holds private writes until the passphrase is set, and sends the rest meanwhile', async () => {
+  it('holds every write until the PIN is set, a note as much as an expense (Phase 7)', async () => {
     const server = new FakeServer();
     const a = await device(server);
     await a.money.log(expense);
-    await a.notes.create({ title: 'Plain' });
+    const note = await a.notes.create({ title: 'Plans', body: 'Not for the server' });
     await a.engine.sync();
 
-    expect(server.stored.size).toBeGreaterThan(0);
-    expect([...server.stored.values()].some((record) => record.table === 'expenses')).toBe(false);
+    expect(server.stored.size).toBe(0);
+    expect(server.pushes).toBe(0);
     expect(a.engine.status.locked).toBeGreaterThan(0);
 
     await a.keyring.unlock('olive trees in october', testUser.syncSalt);
     await a.engine.sync();
     expect([...server.stored.values()].filter((record) => record.table === 'expenses')).toHaveLength(1);
+    const stored = server.get('notes', note.uuid)!;
+    expect(stored.data).toBeUndefined();
+    expect(JSON.stringify(stored)).not.toContain('Not for the server');
+    expect([...server.stored.values()].every((record) => record.data === undefined)).toBe(true);
     expect(a.engine.status.locked).toBe(0);
   });
 });

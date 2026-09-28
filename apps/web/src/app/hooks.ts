@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState, type RefObject } from 'react';
 import { useHarvest } from './context';
 import type { FileMiss } from './data/files';
-import { readSetting, settingKeys } from './data/settings';
+import { fallbackCurrency, readDefaultCurrency, readSetting } from './data/settings';
 import { background } from '@/lib/actions';
 
 /** Whether this browser holds the private tier's key; undefined while it looks. */
@@ -31,8 +31,14 @@ export function useSetting(key: string): string | null | undefined {
   return useLiveQuery(() => readSetting(db, key), [db, key]);
 }
 
+/**
+ * The default currency: the one chosen, or, before any is, the dinar for
+ * an account with money logged and where this browser is for a new one
+ * ([[currencyWithNoneChosen]]).
+ */
 export function useDefaultCurrency(): string {
-  return useSetting(settingKeys.defaultCurrency) ?? 'DZD';
+  const { db } = useHarvest();
+  return useLiveQuery(() => readDefaultCurrency(db), [db]) ?? fallbackCurrency();
 }
 
 /**

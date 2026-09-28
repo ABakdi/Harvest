@@ -3,18 +3,9 @@
   "uuid": "a8c3f6e1-7d4b-4a9c-b2e5-9d6a3c8f1e45",
   "updatedAt": "2026-09-05T12:00:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "a8c3f6e1-7d4b-4a9c-b2e5-9d6a3c8f1e45",
-    "goalUuid": "4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38",
-    "kind": "need",
-    "body": "Running shoes with 500 km left in them",
-    "note": null,
-    "doneAt": "2026-09-05T12:00:00.000Z",
-    "position": 0,
-    "commitmentUuid": null,
-    "parentUuid": null,
-    "createdAt": "2026-09-01T07:03:00.000Z",
-    "updatedAt": "2026-09-05T12:00:00.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "l5iYR9ZOqOzRU0w/",
+    "ct": "4ZpAeQ17v/aKk03tr8D/RW6VaeB57ksD3v5tDocm3wJ6ummLeW2CWE0fGo/9TkWCAb/2l7MYav9IBsadtq2oO8DpEu9538MoBJnFGUfPjQOq80qr3W0j5rMR08kdf5S9VmQblHcmKp7VaVrXStM5DfNrj3y0ndptUbXB1RbUBQMqLJqxgz9M2QRLJhe1eyoH+1wzrkc477xtfqt6rRwPaU5iAmXuaJ0/1BwDr/VucZrXqmQb0x6NE973XmE5Jq3E+M2LgE4oWDWoxoMm9O56+9BASWyVDmXxsd5N4wNLDZIh7/fo7fepHsHqFmknXmgiwmxHDw+B4pCviPc6k4VBNhZHDgej7sUH309GxkstvdklLYqf1Jz7VbLImvQDl4lr7XGikgXrEO3ZcCelXV26xir+/dduGwS/o31Gu07Vir6mTxhnxgaOU7Z6LRLdLoRkigkFIVBkXXrzJ51v1xY49l4irK22iW18ZjRPU7hI/mJenNxDCqWfDeGLXxB9xLvb"
   }
 }

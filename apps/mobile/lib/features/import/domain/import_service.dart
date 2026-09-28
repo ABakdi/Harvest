@@ -410,7 +410,7 @@ class ImportService {
         final path = p.posix.join(folder, name);
         if (bytes != null && GalleryStorage.isSafeRelative(path)) {
           final reserved = await _attachments.reserve(folder, name);
-          await reserved.file.writeAsBytes(bytes);
+          await _attachments.write(reserved.relative, bytes);
         }
         written.add((row: row, name: name, path: path, size: bytes?.length));
       }

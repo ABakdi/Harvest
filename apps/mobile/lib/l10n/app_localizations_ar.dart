@@ -794,9 +794,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ratesDzdEur => 'دينار لكل 1 يورو';
 
   @override
-  String get ratesEurUsd => 'يورو ← دولار (يُجلب)';
-
-  @override
   String get fetchNow => 'جلب';
 
   @override
@@ -1032,7 +1029,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ratesExplainer =>
-      'تُستخدم لعرض مبالغ الدولار واليورو بعملتك الافتراضية.';
+      'تُستخدم لعرض المبالغ بالعملات الأخرى بعملتك الافتراضية.';
 
   @override
   String get settingsMoney => 'المال';
@@ -3969,7 +3966,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get accountHeldBack => 'المال والأماكن والصور تنتظر رمز المزامنة.';
+  String get accountHeldBack => 'لا شيء يُزامَن حتى تضبط رمز المزامنة.';
 
   @override
   String get accountDevices => 'الأجهزة';
@@ -4164,11 +4161,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ratesDzdManual =>
-      'أسعار الدينار تُكتب يدوياً: لا يوجد مصدر مجاني لسعر الدينار في السوق. الجلب يحدّث اليورو ← الدولار فقط.';
-
-  @override
-  String get ratesFetchedEurUsd =>
-      'حُدّث سعر اليورو ← الدولار. تبقى أسعار الدينار كما كتبتها.';
+      'سعر الدينار في السوق يُكتب يدويًا: لا يوجد مصدر مجاني له. الجلب يحدّث كل العملات الأخرى.';
 
   @override
   String get accountServerExample =>
@@ -4559,11 +4552,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncPinChooseBody =>
-      'يُشفَّر المال والأماكن والصور على هذا الهاتف بمفتاح مصنوع من هذا الرمز. لا يراه الخادم أبدًا. استخدم الرمز نفسه على كل جهاز.';
+      'يُشفَّر كل شيء على هذا الهاتف بمفتاح مصنوع من هذا الرمز قبل أن يُزامَن: الملاحظات والمال والصحة والأماكن والصور. لا يراه الخادم أبدًا. استخدم الرمز نفسه على كل جهاز.';
 
   @override
   String get syncPinEnterBody =>
-      'أجهزتك الأخرى تستخدم رمز مزامنة بالفعل. أدخل الرمز نفسه هنا لتصلك أموالك وأماكنك وصورك.';
+      'أجهزتك الأخرى تستخدم رمز مزامنة بالفعل. أدخل الرمز نفسه هنا لتصلك بياناتك.';
 
   @override
   String get syncPinLoss =>
@@ -4571,7 +4564,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncPinCost =>
-      'الرمز سريع الكتابة، لكن من يملك نسخة من بيانات الخادم يستطيع تجربة كل الرموز. عبارة مرور من 8 أحرف أو أكثر تصمد أمام ذلك.';
+      'الرمز سريع الكتابة، لكنه يسقط في دقائق أمام من يملك قاعدة بيانات الخادم ومفاتيحه. عبارة المرور تصمد.';
 
   @override
   String get syncPinField => 'الرمز';
@@ -4625,12 +4618,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get syncPinLater => 'لاحقًا';
 
   @override
-  String get syncPinWaiting =>
-      'المال والأماكن والصور تبقى على هذا الهاتف حتى تضبط رمز المزامنة.';
+  String get syncPinWaiting => 'لا شيء يغادر هذا الهاتف حتى تضبط رمز المزامنة.';
 
   @override
-  String get syncPinIsSet =>
-      'مضبوط: المال والأماكن والصور تُزامَن مشفّرة من طرف إلى طرف.';
+  String get syncPinIsSet => 'مضبوط: كل شيء يُزامَن مشفّرًا من طرف إلى طرف.';
 
   @override
   String get syncPinSetAction => 'اضبط رمز المزامنة';
@@ -4791,7 +4782,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncPinStartOverBody =>
-      'يحذف هذا المال والأماكن والصور المحفوظة على الخادم لهذا الحساب، ومعها الرمز. ثم يرسل هذا الهاتف ما لديه من جديد تحت الرمز الجديد. وما كان على جهاز آخر وحده يضيع، إلا إذا بقي على ذلك الجهاز فأرسله من جديد.';
+      'يحذف هذا كل ما هو محفوظ على الخادم لهذا الحساب، ومعه الرمز. ثم يرسل هذا الهاتف ما لديه من جديد تحت الرمز الجديد. وما كان على جهاز آخر وحده يضيع، إلا إذا بقي على ذلك الجهاز فأرسله من جديد.';
 
   @override
   String get syncPinStartOverConfirm => 'ابدأ من جديد';
@@ -5123,4 +5114,167 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get accountNameIsPassword =>
       'هذه كلمة مرورك. اكتب اسمًا يمكن للآخرين رؤيته، أو اتركه فارغًا.';
+
+  @override
+  String get ratesFetched => 'حُدّثت الأسعار.';
+
+  @override
+  String get ratesSource => 'الأسعار من Exchange Rate API';
+
+  @override
+  String ratesOneUsd(String amount) {
+    return '1 دولار = $amount';
+  }
+
+  @override
+  String ratesOn(String day) {
+    return 'أسعار $day';
+  }
+
+  @override
+  String get ratesNone => 'لم تُجلب أسعار بعد.';
+
+  @override
+  String get currencyPickerTitle => 'اختر عملة';
+
+  @override
+  String get currencySearchHint => 'الاسم أو الرمز أو العلامة';
+
+  @override
+  String get currencyNoMatch => 'لا عملة تطابق.';
+
+  @override
+  String get currencyMore => 'عملة أخرى';
+
+  @override
+  String get syncPassphraseTitle => 'عبارة المزامنة';
+
+  @override
+  String get syncPassphraseAdvice =>
+      'بضع كلمات لا يجمعها غيرك، مثل «زيتون نهر فانوس»، تصمد آلاف السنين أمام من يملك بيانات الخادم.';
+
+  @override
+  String get syncSecretField => 'عبارة المرور أو الرمز';
+
+  @override
+  String get syncSecretShow => 'إظهار';
+
+  @override
+  String get syncSecretHide => 'إخفاء';
+
+  @override
+  String get syncSecretWeak => 'ضعيفة';
+
+  @override
+  String get syncSecretFair => 'مقبولة';
+
+  @override
+  String get syncSecretStrong => 'قوية';
+
+  @override
+  String syncSecretStands(String time) {
+    return 'تصمد $time أمام من يملك بيانات الخادم.';
+  }
+
+  @override
+  String get syncSecretUnderSecond => 'أقل من ثانية';
+
+  @override
+  String syncSecretSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ثانية',
+      many: '$count ثانية',
+      few: '$count ثوانٍ',
+      two: 'ثانيتين',
+      one: 'ثانية واحدة',
+      zero: 'أقل من ثانية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتين',
+      one: 'دقيقة واحدة',
+      zero: 'أقل من دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساعة',
+      many: '$count ساعة',
+      few: '$count ساعات',
+      two: 'ساعتين',
+      one: 'ساعة واحدة',
+      zero: 'أقل من ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يومًا واحدًا',
+      zero: 'أقل من يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سنة',
+      many: '$count سنة',
+      few: '$count سنوات',
+      two: 'سنتين',
+      one: 'سنة واحدة',
+      zero: 'أقل من سنة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncSecretThousands => 'آلاف السنين';
+
+  @override
+  String get syncSecretForever => 'إلى الأبد تقريبًا';
+
+  @override
+  String get exportConfirmPassword => 'كلمة مرور حسابك، لإخراج بياناتك';
+
+  @override
+  String get exportConfirmReason => 'افتح القفل لإخراج بياناتك من Harvest';
+
+  @override
+  String get exportConfirmRefused => 'لم تُؤخذ: لم يُفتح قفل الهاتف.';
+
+  @override
+  String exportConfirmLimited(int minutes) {
+    return 'كلمات مرور خاطئة كثيرة. حاول مجددًا بعد $minutes د.';
+  }
+
+  @override
+  String get exportConfirmOffline =>
+      'تعذّر الوصول إلى الخادم للتحقق من كلمة المرور. حاول مجددًا حين تتصل بالإنترنت.';
 }

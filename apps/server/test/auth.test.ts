@@ -444,13 +444,13 @@ describe('the account', () => {
       uuid,
       updatedAt: '2026-09-19T10:00:00.000Z',
       deletedAt: null,
-      data: { key: uuid, valueJson: '"dark"', updatedAt: '2026-09-19T10:00:00.000Z' },
+      enc: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct: 'c2VhbGVk' },
     });
     for (const account of [alice, bob]) {
       await request(h.app)
         .post('/v1/sync/push')
         .set(bearer(account))
-        .send({ deviceId: 'phone', records: [record('themeMode')] })
+        .send({ deviceId: 'phone', keyEpoch: 1, records: [record('themeMode')] })
         .expect(200);
     }
 

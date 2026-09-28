@@ -226,13 +226,22 @@ describe('unlocking (S6-04)', () => {
 describe('starting over (a forgotten PIN)', () => {
   const at = '2026-09-19T10:00:00.000Z';
   const sealedRow = { table: 'geotags', uuid: 'g1', updatedAt: at, deletedAt: null, enc: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct: 'q83vEjRWeJA=' } };
-  const plainRow = {
-    table: 'notes',
-    uuid: 'n1',
-    updatedAt: at,
-    deletedAt: null,
-    data: { uuid: 'n1', title: 'Kept', folder: '', body: 'b', createdAt: at, updatedAt: at, deletedAt: null },
-  };
+  /** A row stored in the clear before Phase 7, as the server still holds it until a device seals it. */
+  async function storePlain(account: Account, uuid = 'n1'): Promise<void> {
+    const userId = new ObjectId(account.userId);
+    const seq = await h.repos.records.takeSeqs(userId, 1);
+    await h.db.collection('records').insertOne({
+      userId,
+      table: 'notes',
+      uuid,
+      updatedAt: at,
+      deletedAt: null,
+      stamp: Date.parse(at) * 1000,
+      data: { uuid, title: 'Kept', folder: '', body: 'b', createdAt: at, updatedAt: at, deletedAt: null },
+      seq,
+      deviceId: 'old-phone',
+    });
+  }
   const reset = (account: Session, pass: string, extra: object = {}) =>
     request(h.app).delete('/v1/me/sync-key').set(bearer(account)).send({ password: pass, ...extra });
   const push = (account: Session, records: object[], keyEpoch?: number) =>
@@ -252,11 +261,12 @@ describe('starting over (a forgotten PIN)', () => {
 
   async function filled(account: Account) {
     await choosePin(account, '482913');
-    await push(account, [sealedRow, plainRow], 1).expect(200);
+    await storePlain(account);
+    await push(account, [sealedRow], 1).expect(200);
     await upload(account, randomBytes(500), '1').expect(201);
   }
 
-  it('drops the verifier, the check, the share, the private rows and the files, moves the epoch, keeps the plain tier', async () => {
+  it('drops the verifier, the check, the share, the sealed rows and the files, moves the epoch, keeps rows from before Phase 7', async () => {
     const account = await signUp(h);
     const share = ((await read(account).expect(200)).body as { keyShare: string }).keyShare;
     await filled(account);
@@ -292,9 +302,9 @@ describe('starting over (a forgotten PIN)', () => {
     await filled(account);
     await reset(account, password).expect(204);
 
-    // A sealed push under epoch 1: every sealed record refused, the plain one still lands.
-    const res = (await push(account, [{ ...sealedRow, uuid: 'g-late' }, { ...plainRow, uuid: 'n2', data: { ...plainRow.data, uuid: 'n2' } }], 1).expect(200))
-      .body as PushResult;
+    // A sealed push under epoch 1: every sealed record refused, a tombstone still lands.
+    const tombstone = { table: 'notes', uuid: 'n2', updatedAt: at, deletedAt: at, purged: true };
+    const res = (await push(account, [{ ...sealedRow, uuid: 'g-late' }, tombstone], 1).expect(200)).body as PushResult;
     expect(res.results.map((r) => r.status)).toEqual(['invalid', 'applied']);
     expect(res.results[0]!.issues![0]!.code).toBe('key_changed');
     // No epoch at all is no better.

@@ -5,8 +5,8 @@ import {
   filePlainBytesHeader,
   fileQuerySchema,
   fileHashSchema,
-  maxFileBytes,
   maxFileStoreBytes,
+  maxSealedFileBytes,
 } from '@harvest/contracts';
 import express, { Router } from 'express';
 import { z } from 'zod';
@@ -28,7 +28,7 @@ const nameSchema = z.object({ sha256: fileHashSchema });
 /** The two headers an upload carries beside its bytes. */
 function sealOf(req: { get(name: string): string | undefined }): { iv: string; plainBytes: number } {
   const parsed = z
-    .object({ iv: ivSchema, plainBytes: z.coerce.number().int().nonnegative().max(maxFileBytes) })
+    .object({ iv: ivSchema, plainBytes: z.coerce.number().int().nonnegative().max(maxSealedFileBytes) })
     .safeParse({ iv: req.get(fileIvHeader) ?? '', plainBytes: req.get(filePlainBytesHeader) ?? '0' });
   if (!parsed.success) throw validationError(parsed.error, 'body');
   return parsed.data;
@@ -58,7 +58,7 @@ export function fileRoutes({ files, records, users, totals, lock, now = () => ne
   const router = Router();
 
   // Ciphertext, not JSON: the body is raw bytes and nothing parses it.
-  const bytes = express.raw({ type: 'application/octet-stream', limit: maxFileBytes + 4096 });
+  const bytes = express.raw({ type: 'application/octet-stream', limit: maxSealedFileBytes + 4096 });
   // 500 hashes of 64 characters, and room around them.
   const json = express.json({ limit: '64kb' });
 

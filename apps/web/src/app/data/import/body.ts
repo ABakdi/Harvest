@@ -1,9 +1,9 @@
-import type { SyncedTable } from '@harvest/contracts';
+import type { StoredTable } from '../db';
 import { boolOf, dayOf, intOf } from '../archive';
 import { spec, uuidOf, text, at, updated, type Spec } from './sheet-spec';
 
 /** The Body: health, then the gym, parents first. */
-export const bodySheets: Spec<SyncedTable>[] = [
+export const bodySheets: Spec<StoredTable>[] = [
   spec({
     sheet: 'steps',
     table: 'step_days',

@@ -26,6 +26,30 @@ String? syncSecretMessage(AppLocalizations l10n, SyncSecretProblem? problem) =>
       SyncSecretProblem.passphraseTooShort => l10n.syncPassphraseShort,
     };
 
+/// How long [seconds] is, in words: "12 minutes", "thousands of years".
+String standsFor(AppLocalizations l10n, int seconds) {
+  const minute = 60;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const year = 365 * day;
+  if (seconds < 1) return l10n.syncSecretUnderSecond;
+  if (seconds < minute) return l10n.syncSecretSeconds(seconds);
+  if (seconds < hour) return l10n.syncSecretMinutes(seconds ~/ minute);
+  if (seconds < day) return l10n.syncSecretHours(seconds ~/ hour);
+  if (seconds < year) return l10n.syncSecretDays(seconds ~/ day);
+  if (seconds < 1000 * year) return l10n.syncSecretYears(seconds ~/ year);
+  if (seconds < maxStrengthSeconds) return l10n.syncSecretThousands;
+  return l10n.syncSecretForever;
+}
+
+/// The secret as the key is made from it: typed as it is, except a PIN
+/// typed on an Arabic keyboard, whose digits are the ASCII ones they
+/// are, as the PIN field writes them.
+String syncSecretOf(String typed) {
+  final western = westernDigits(typed);
+  return isSyncPin(western) ? western : typed;
+}
+
 /// A PIN field's input: digits only, at most six, and an Arabic
 /// keyboard's digits (٠–٩, and the Persian ۰–۹) written as the ASCII
 /// ones they are — the web does the same, so the same keys give the
@@ -54,10 +78,14 @@ class PinDigitsFormatter extends TextInputFormatter {
   }
 }
 
-/// Asks for the sync PIN ([[Accounts]]): *chosen*, typed twice, while
+/// Asks for the sync secret ([[Accounts]]): *chosen*, typed twice, while
 /// the account has no key check on the server; *entered*, once, when it
-/// has one — and a PIN that does not open the check is refused on the
+/// has one — and a secret that does not open the check is refused on the
 /// spot. The server decides which, not what this phone has pulled.
+///
+/// Choosing, a passphrase comes first, with how long it would hold; a PIN
+/// is one tap away, with what it costs beside it (Phase 7, M7.5).
+/// Entering takes either in the one field.
 /// [asking] is the prompt that follows sign-in, which can be put off
 /// with *Later*; [changedElsewhere] says the PIN was started over on
 /// another device, which is why it is asked for again.
@@ -130,9 +158,13 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
   final _first = TextEditingController();
   final _second = TextEditingController();
 
-  /// A passphrase rather than a PIN, for whoever wants more ([[Accounts]]:
-  /// what a PIN costs).
-  var _passphrase = false;
+  /// A passphrase rather than a PIN: the first thing offered, because
+  /// only a passphrase holds against someone with the server's database
+  /// and its keys ([[Accounts]]: what a PIN costs).
+  var _passphrase = true;
+
+  /// Whether what is typed shows.
+  var _shown = false;
   _Phase _phase = _Phase.typing;
   var _tried = false;
   String? _error;
@@ -160,11 +192,10 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
     return problem;
   }
 
+  String get _secret => syncSecretOf(_first.text);
+
   String? _problem(AppLocalizations l10n, {required bool entering}) {
-    final rule = syncSecretMessage(
-      l10n,
-      _rule(_first.text, entering: entering),
-    );
+    final rule = syncSecretMessage(l10n, _rule(_secret, entering: entering));
     if (rule != null) return rule;
     if (!entering && _first.text != _second.text) return l10n.syncPinMismatch;
     return null;
@@ -188,7 +219,7 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
     setState(() => _phase = _Phase.deriving);
     String? error;
     try {
-      await secret.set(_first.text);
+      await secret.set(_secret);
     } on SyncPinRefused catch (refused) {
       final left = refused.triesLeft;
       error = [
@@ -255,25 +286,68 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
     String? helper,
     String? error,
     bool autofocus = false,
-  }) => TextField(
-    controller: controller,
-    autofocus: autofocus,
-    obscureText: true,
-    autocorrect: false,
-    enableSuggestions: false,
-    enabled: _phase == _Phase.typing,
-    keyboardType: _passphrase
-        ? TextInputType.visiblePassword
-        : TextInputType.number,
-    inputFormatters: _passphrase ? null : const [PinDigitsFormatter()],
-    onChanged: (_) => setState(() {}),
-    onSubmitted: (_) => unawaited(_save()),
-    decoration: InputDecoration(
-      labelText: label,
-      helperText: helper,
-      errorText: error,
-    ),
-  );
+    bool toggle = false,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    return TextField(
+      controller: controller,
+      autofocus: autofocus,
+      obscureText: !_shown,
+      autocorrect: false,
+      enableSuggestions: false,
+      enabled: _phase == _Phase.typing,
+      keyboardType: _passphrase
+          ? TextInputType.visiblePassword
+          : TextInputType.number,
+      inputFormatters: _passphrase ? null : const [PinDigitsFormatter()],
+      onChanged: (_) => setState(() {}),
+      onSubmitted: (_) => unawaited(_save()),
+      decoration: InputDecoration(
+        labelText: label,
+        helperText: helper,
+        errorText: error,
+        suffixIcon: toggle
+            ? IconButton(
+                tooltip: _shown ? l10n.syncSecretHide : l10n.syncSecretShow,
+                icon: Icon(
+                  _shown
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+                onPressed: () => setState(() => _shown = !_shown),
+              )
+            : null,
+      ),
+    );
+  }
+
+  /// How strong the passphrase being chosen is, and how long it would
+  /// hold, as the web shows it.
+  Widget _meter(AppLocalizations l10n, ThemeData theme) {
+    final strength = syncSecretStrength(_secret);
+    final (label, color) = switch (strength.level) {
+      SyncSecretLevel.strong => (l10n.syncSecretStrong, Colors.green.shade700),
+      SyncSecretLevel.fair => (l10n.syncSecretFair, Colors.amber.shade800),
+      _ => (l10n.syncSecretWeak, theme.colorScheme.error),
+    };
+    return Column(
+      key: const ValueKey('secret-strength'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: HarvestSpacing.sm),
+        LinearProgressIndicator(
+          value: (strength.bits / 70).clamp(0.05, 1).toDouble(),
+          color: color,
+          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        ),
+        const SizedBox(height: HarvestSpacing.xs),
+        Text(
+          '$label · ${l10n.syncSecretStands(standsFor(l10n, strength.seconds))}',
+          style: theme.textTheme.bodySmall?.copyWith(color: color),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -329,17 +403,18 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
       );
     }
 
+    // Entering, one field takes either: whatever the account has.
+    if (entering && !_passphrase) _passphrase = true;
     final problem = _problem(l10n, entering: entering);
-    final rule = syncSecretMessage(
-      l10n,
-      _rule(_first.text, entering: entering),
-    );
+    final rule = syncSecretMessage(l10n, _rule(_secret, entering: entering));
 
     // While the key is made and checked, the sheet stays (U6-02).
     return PopScope(
       canPop: !working,
       child: HarvestSheet(
-        title: l10n.syncPinTitle,
+        title: entering || !_passphrase
+            ? l10n.syncPinTitle
+            : l10n.syncPassphraseTitle,
         actionLabel: switch (_phase) {
           _Phase.deriving =>
             entering ? l10n.syncPinChecking : l10n.syncPinWorking,
@@ -366,18 +441,29 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
           ],
           Text(entering ? l10n.syncPinEnterBody : l10n.syncPinChooseBody),
           const SizedBox(height: HarvestSpacing.md),
+          if (!entering && _passphrase) ...[
+            Text(l10n.syncPassphraseAdvice, style: muted),
+            const SizedBox(height: HarvestSpacing.sm),
+          ],
           _field(
             controller: _first,
             autofocus: true,
-            label: _passphrase ? l10n.syncPassphraseField : l10n.syncPinField,
+            toggle: true,
+            label: entering
+                ? l10n.syncSecretField
+                : _passphrase
+                ? l10n.syncPassphraseField
+                : l10n.syncPinField,
             // Six digits suggested when choosing; entering, the one there is.
-            helper: _passphrase
-                ? l10n.syncPassphraseRule
-                : entering
+            helper: entering
                 ? null
+                : _passphrase
+                ? l10n.syncPassphraseRule
                 : l10n.syncPinRule,
             error: _tried ? rule : null,
           ),
+          if (!entering && _passphrase && _first.text.isNotEmpty)
+            _meter(l10n, theme),
           if (!entering) ...[
             const SizedBox(height: HarvestSpacing.sm),
             _field(
@@ -394,15 +480,22 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
             const SizedBox(height: HarvestSpacing.sm),
             Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
           ],
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton(
-              onPressed: working ? null : _switchKind,
-              child: Text(
-                _passphrase ? l10n.syncPinUsePin : l10n.syncPinUsePassphrase,
+          if (!entering) ...[
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                onPressed: working ? null : _switchKind,
+                child: Text(
+                  _passphrase ? l10n.syncPinUsePin : l10n.syncPinUsePassphrase,
+                ),
               ),
             ),
-          ),
+            // What a PIN costs, beside the way to it.
+            if (_passphrase) ...[
+              Text(l10n.syncPinCost, style: muted),
+              const SizedBox(height: HarvestSpacing.sm),
+            ],
+          ],
           if (entering)
             Align(
               alignment: AlignmentDirectional.centerStart,
@@ -425,7 +518,7 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
           // Said plainly, and said twice ([[Accounts]]): once here, once
           // in what it costs.
           Text(l10n.syncPinLoss, style: muted),
-          if (!_passphrase) ...[
+          if (!entering && !_passphrase) ...[
             const SizedBox(height: HarvestSpacing.sm),
             Text(l10n.syncPinCost, style: muted),
           ],

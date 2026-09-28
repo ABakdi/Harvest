@@ -368,7 +368,9 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
       );
       return;
     }
-    final bytes = await file.readAsBytes();
+    final bytes = await ref
+        .read(attachmentStorageProvider)
+        .read(recording.storedPath);
     if (!mounted) return;
     final outcome = await showAssistSheet(
       context,

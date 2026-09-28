@@ -1,10 +1,10 @@
-import { sealRow, type PushBody, type PushResult } from '@harvest/contracts';
+import { sealRow, sealRowV2, type PushBody, type PushResult } from '@harvest/contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { getMeta, metaKeys, setMeta } from '@/app/data/db';
 import { FileStore, failuresBeforeSaying, playableType, retryAfterMs } from '@/app/data/files';
 import { contractFingerprint, type SyncTransport } from '@/app/sync/engine';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, openStored, syncing, testKey, testUser } from './helpers';
 
 const expense = { amountMinor: 45_000, currency: 'DZD', category: 'food', note: 'Couscous', fromWallet: false, day: '2026-09-19' };
 
@@ -20,10 +20,16 @@ function noteRecord(uuid: string, at: string, body: string, seq: number) {
   };
 }
 
+/** The same note, sealed as another device with the test PIN would send it. */
+async function sealedNoteRecord(uuid: string, at: string, body: string, seq: number) {
+  const { data, ...record } = noteRecord(uuid, at, body, seq);
+  return { ...record, enc: await sealRowV2(await testKey(), 'notes', uuid, record, data) };
+}
+
 describe('the merge rules on the web', () => {
   it('a delete still waiting to go up is a tombstone, stamped when it was made (Q5-09)', async () => {
     const server = new FakeServer();
-    const b = await device(server);
+    const b = await syncing(server);
     const note = await b.notes.create({ title: 'Gone' });
     await b.engine.sync();
     b.clock.set('2026-09-19T12:30:00.000Z');
@@ -60,7 +66,7 @@ describe('the merge rules on the web', () => {
 
   it('an edit made after a row from a clock ahead of this one still wins (Q5-10)', async () => {
     const server = new FakeServer();
-    const b = await device(server);
+    const b = await syncing(server);
     const uuid = crypto.randomUUID();
     // Another device, an hour ahead of this browser, wrote the note.
     server.stored.set(`notes/${uuid}`, noteRecord(uuid, '2026-09-19T13:00:00.000Z', 'from the fast clock', 1));
@@ -69,15 +75,15 @@ describe('the merge rules on the web', () => {
     await b.notes.update(uuid, { body: 'edited here, after' });
     await b.engine.sync();
     const stored = server.get('notes', uuid)!;
-    expect((stored.data as { body: string }).body).toBe('edited here, after');
+    expect((await openStored(stored))?.body).toBe('edited here, after');
     expect(Date.parse(stored.updatedAt)).toBeGreaterThan(Date.parse('2026-09-19T13:00:00.000Z'));
   });
 
   it('a push the server finds stale takes the server copy (Q5-10)', async () => {
     const server = new FakeServer();
-    const b = await device(server);
+    const b = await syncing(server);
     const uuid = crypto.randomUUID();
-    server.stored.set(`notes/${uuid}`, noteRecord(uuid, '2026-09-19T11:00:00.000Z', 'theirs', 1));
+    server.stored.set(`notes/${uuid}`, await sealedNoteRecord(uuid, '2026-09-19T11:00:00.000Z', 'theirs', 1));
     await b.engine.sync();
     // The same clock, other words, queued here: the server keeps its own.
     await b.db.rows('notes').update(uuid, { body: 'mine' });
@@ -127,22 +133,31 @@ describe('the merge rules on the web', () => {
   it('says why a row was refused, and sends one refused for a clock again an hour later', async () => {
     const server = new FakeServer();
     let refuse = true;
-    const paced: SyncTransport = {
+    const paced: SyncTransport & Pick<FakeServer, 'syncKey' | 'unlockSyncKey' | 'setSyncKey' | 'startOverSyncKey'> = {
+      syncKey: () => server.syncKey(),
+      unlockSyncKey: (proof) => server.unlockSyncKey(proof),
+      setSyncKey: (verifier, check) => server.setSyncKey(verifier, check),
+      startOverSyncKey: (password) => server.startOverSyncKey(password),
       pull: (after, limit) => server.pull(after, limit),
       async push(body: PushBody): Promise<PushResult> {
         const answer = await server.push(body);
         if (!refuse) return answer;
         return {
           ...answer,
-          results: answer.results.map((result) => ({
-            ...result,
-            status: 'invalid' as const,
-            issues: [{ path: ['updatedAt'], message: 'ahead', code: 'clock_ahead' }],
-          })),
+          // The note; the built-in lists the PIN sent again land.
+          results: answer.results.map((result) =>
+            result.table !== 'notes'
+              ? result
+              : {
+                  ...result,
+                  status: 'invalid' as const,
+                  issues: [{ path: ['updatedAt'], message: 'ahead', code: 'clock_ahead' }],
+                },
+          ),
         };
       },
     };
-    const b = await device(paced);
+    const b = await syncing(paced);
     await b.notes.create({ title: 'Later' });
     await b.engine.sync();
     expect(b.engine.status.invalid).toBe(1);
@@ -188,7 +203,7 @@ describe('the sealed rows on the web', () => {
 
     const b = await device(server);
     await b.engine.sync();
-    expect(b.engine.status.sealed).toBe(1);
+    expect(await b.db.sealed.where('table').equals('expenses').count()).toBe(1);
     // A newer copy of the row is already here.
     const row = (await a.db.rows('expenses').get(uuid))!;
     await b.db.rows('expenses').put({ ...row, note: 'newer here', updatedAt: '2026-09-20T12:00:00.000Z' });
@@ -276,8 +291,8 @@ describe('files a purge leaves behind (Q5-23)', () => {
 
   it('the sync hands every purged row to the file store', async () => {
     const server = new FakeServer();
-    const a = await device(server);
-    const b = await device(server);
+    const a = await syncing(server);
+    const b = await syncing(server);
     const note = await a.notes.create({ title: 'Gone' });
     await a.engine.sync();
     await b.engine.sync();

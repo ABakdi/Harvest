@@ -1,9 +1,9 @@
-import type { SyncedTable } from '@harvest/contracts';
+import type { StoredTable } from '../db';
 import { dayOf, realOf } from '../archive';
 import { spec, uuidOf, text, at, updated, type Spec } from './sheet-spec';
 
 /** Places: the places I kept, the trail, and where things happened. */
-export const placeSheets: Spec<SyncedTable>[] = [
+export const placeSheets: Spec<StoredTable>[] = [
   // Places. A blank coordinate reads as 0 rather than failing the
   // table; the archive I wrote never has one.
   spec({

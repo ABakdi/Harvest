@@ -153,9 +153,11 @@ timeline and stays still list everything, because they are local.
 
 ## Privacy
 
-- Location is the most sensitive data in the app. It is in the
-  **private tier** with finances ([[Sync-Strategy]]): end-to-end
-  encrypted when synced, and never readable by the server.
+- Location is the most sensitive data in the app. Like everything
+  since Phase 7 it is end-to-end encrypted when synced and never
+  readable by the server ([[Sync-Strategy]]), and the trail travels one
+  day at a time, stamped by the hour, so the server cannot even tell
+  when I moved ([[Sync-API]], `trail_days`).
 - **Export** carries the `LocationPoints`, `Geotags` and
   `SavedPlaces` sheets ([[Business-Rules]] #11). The archive screen says
   so beside the switch that leaves them out of a given export.

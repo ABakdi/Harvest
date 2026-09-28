@@ -1,9 +1,9 @@
-import type { SyncedTable } from '@harvest/contracts';
+import type { StoredTable } from '../db';
 import { dayOf, intOf } from '../archive';
 import { spec, uuidOf, text, at, updated, type Spec } from './sheet-spec';
 
 /** The Granary: expenses, their categories, money and debts. */
-export const moneySheets: Spec<SyncedTable>[] = [
+export const moneySheets: Spec<StoredTable>[] = [
   spec({
     sheet: 'expenses',
     table: 'expenses',

@@ -76,4 +76,36 @@ Where I am today, for the record:
 - [ ] [[Accounts]], [[Sync-API]] (*What the server can see*) and [[Deployment]] brought up to it; a data map page listing every field and where it lives.
 - [ ] An audit of this phase alone, by hand, with a server dump read as its operator would.
 
+## Decided while building (2026-09-28)
+
+Where the plan above met the code and changed:
+
+- **Geotags stay rows of their own** (M7.3). Sealed, a geotag tells the
+  server only that an action was tagged at the moment the action's own
+  row already shows; folding it into every table that can be tagged
+  would change a dozen row shapes for no less metadata. The trail was
+  the real leak — a row a point, stamped as I moved — and it now
+  travels by the day, stamped by the hour, keyed by a hash of the day
+  (`trail_days`; `location_points` retired).
+- **Clocks stay exact** (M7.3). The conflict rule needs them, and a
+  coarser clock would lose edits. The server sees *when* rows change;
+  what is left of that is written down in [[Sync-API]] and the
+  [[Data-Map]]. The arrival time is gone.
+- **The browser's store is not sealed again** (M7.4). A key the page
+  could keep lives in the same browser profile as the data, so sealing
+  IndexedDB under it protects nothing against a copy of the profile —
+  the one thing it was meant to stop. Written down plainly instead, in
+  the [[Data-Map]] and on the privacy page; signing out wipes it.
+- **No address-based guess for the currency** (M7.8). The SIM, the
+  network, the time zone and the language name the country for nearly
+  everyone, and asking the server would mean the server looking at my
+  address for me. The dinar is the default of last resort, as before.
+- **Amounts stay in hundredths for every currency** (M7.8), so no row
+  changes; a currency's minor units only set the decimals shown.
+- **The display name is sealed by the server**, under a key from its
+  environment, like the address (M7.7), not with the sync key: the web
+  shows it before any sync secret is entered.
+- **Rates come from `open.er-api.com`** (M7.8): free, daily, every
+  currency, the dinar included, with attribution.
+
 **Exit:** a dump of the production database and its logs, read by me as the operator, shows no note, no file, no place, no health figure, no email and no IP address; both apps work as before on top of it; `v3.2.0`, then production.

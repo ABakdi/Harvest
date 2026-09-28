@@ -171,6 +171,15 @@ export type PatchMeBody = z.input<typeof patchMeBodySchema>;
 export const deleteMeBodySchema = z.strictObject({ password: loginPasswordSchema });
 export type DeleteMeBody = z.input<typeof deleteMeBodySchema>;
 
+/**
+ * `POST /v1/me/reauth`: the password again, before this device writes
+ * my data out (the archive, the spreadsheet; Phase 7, M7.6), so a
+ * session left open is not enough to take everything. 204 for the right
+ * one, 403 `forbidden` for a wrong one, counted with *Delete account*.
+ */
+export const reauthBodySchema = z.strictObject({ password: loginPasswordSchema });
+export type ReauthBody = z.input<typeof reauthBodySchema>;
+
 export const sessionParamsSchema = z.object({
   id: z.string().regex(/^[0-9a-f]{24}$/, { message: 'Not a session id' }),
 });

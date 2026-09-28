@@ -179,7 +179,7 @@ class _Balances extends StatelessWidget {
       ..sort((a, b) {
         if (a.key == defaultCurrency) return -1;
         if (b.key == defaultCurrency) return 1;
-        return a.key.index.compareTo(b.key.index);
+        return a.key.code.compareTo(b.key.code);
       });
     if (entries.isEmpty) {
       return Text(

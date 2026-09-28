@@ -3,15 +3,9 @@
   "uuid": "3f8b2d6a-9c4e-4b7f-a1d5-5e9c3b8f2a16",
   "updatedAt": "2026-09-03T19:00:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "3f8b2d6a-9c4e-4b7f-a1d5-5e9c3b8f2a16",
-    "name": "Landmine press",
-    "bodyPart": "shoulders",
-    "equipment": "barbell",
-    "target": "delts",
-    "note": "Half-kneeling",
-    "createdAt": "2026-09-03T19:00:00.000Z",
-    "updatedAt": "2026-09-03T19:00:00.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "JBroCsvZcKKflv4B",
+    "ct": "sr3/dybLSip6Ao5f+VHi5WTZMhq4mnOfKyOSeJODnKlPSuV4ImjJCE22ad/Uo14LGsEVnbNy7V+uDzRRyu1sV2on+cfEeA2O8DjK1zDjfSqoJvQRzw3Ci2aTjWFEJgg+uAljzRot4gtN6xiEFkl8YL+YjOawmStAkwtwRHiMUe8c1uxLLTAOidHuOEGNQBcaxiOSxmEQh4IpAjqberSxI9lNJO04lHHU2dbVgxwtugF1rP9LusQmtbON0zVplOYK85UHuVAHgh8Hm96qdPtXFiAVOloBgrePWRpkAmkn7z5COnFh3Y86CvH3lyMsLQ9wHl0j1ENVB8Ok3C6v9m+AumTgfDkL1BJMOvYTEOVq2M4="
   }
 }

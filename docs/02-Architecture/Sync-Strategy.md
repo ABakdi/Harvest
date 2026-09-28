@@ -36,26 +36,17 @@ sequenceDiagram
 
 ## Privacy tiers
 
-| Data | Sync behavior |
-| :--- | :--- |
-| Commitments, check-ins, gamification | Synced plainly (needed for rankings) |
-| Expenses | End-to-end encrypted, or local-only by choice |
-| Sleep & screen details | Aggregates only (durations), never app-by-app lists |
+There is one tier now. Since Phase 7 ([[Phase-7-Privacy-and-Currencies]])
+**every** synced row and file is end-to-end encrypted, or it does not
+leave the device: until then only the finance tables (`expenses`,
+`money_txns`, `debts`, `debt_payments`, `expense_categories`) and, from
+[[Phase-5-Goals-Places-and-Voice]], the location ones (`location_points`,
+`geotags`, `saved_places`) were, and the rest — commitments, check-ins,
+notes, gym, body, sleep, settings — went up readable by the server
+(audit S-10). Rankings ([[Phase-9-Social-and-Reach]]) will never read my
+rows; they will be a number I choose to publish, separately.
 
-Rankings/leaderboards consume only the gamification aggregates — total XP, streak length — pseudonymous by design.
-
-## Privacy tiers (audit S-10)
-
-The finance tables — `expenses`, `money_txns`, `debts`, `debt_payments`,
-`expense_categories` — and, from [[Phase-5-Goals-Places-and-Voice]], the
-location tables — `location_points`, `geotags`, `saved_places`
-([[Places]] PL6) — sync **end-to-end encrypted or not at all**, my
-choice, and `debts` holds third-party names, so it never leaves the
-device in plaintext under any setting. Everything else (commitments,
-check-ins, streaks, the ledger) syncs under the ordinary account
-encryption.
-
-The encrypted tier's envelope is version 2 ([[Sync-API]]): the key is
+The envelope is version 2 ([[Sync-API]]): the key is
 made from the sync PIN, the account's salt and a key share the server
 keeps outside its database, so a leaked backup alone cannot be used to
 try PINs; each row's ciphertext is bound to its table, its key and its

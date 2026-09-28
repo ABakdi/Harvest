@@ -1,9 +1,9 @@
-import type { SyncedTable } from '@harvest/contracts';
+import type { StoredTable } from '../db';
 import { dayOf, intOf } from '../archive';
 import { spec, uuidOf, text, at, updated, type Spec } from './sheet-spec';
 
 /** The Farmer: focus sessions, the ledger and the streaks. */
-export const farmerSheets: Spec<SyncedTable>[] = [
+export const farmerSheets: Spec<StoredTable>[] = [
   spec({
     sheet: 'focus',
     table: 'pomodoro_sessions',

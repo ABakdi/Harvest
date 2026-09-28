@@ -18,10 +18,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { currencies, formatAmountInput, formatMoney } from '@/lib/format';
+import { formatAmountInput, formatMoney } from '@/lib/format';
 import { useHarvest, useHarvestDay } from '../context';
 import { presetCategories, type ExpenseRow } from '../data/money';
 import { isUpcoming } from '../data/vault';
@@ -31,6 +30,7 @@ import { AmountField, CategoryIcon, SwitchRow, useCustomCategories } from './mon
 import { CategoryCreator } from './money-categories';
 import { PassphrasePrompt } from './passphrase-prompt';
 import { runAction } from '@/lib/actions';
+import { CurrencyPicker } from './currency-picker';
 
 /**
  * Log or edit an expense: the amount in the currency it was paid in,
@@ -196,18 +196,7 @@ function ExpenseForm({ expense, prefill = {}, onClose }: { expense: ExpenseRow |
           />
           <div className="flex w-28 flex-col gap-2">
             <Label htmlFor={`${id}-currency`}>{t('money.currency')}</Label>
-            <Select value={chosenCurrency} onValueChange={setCurrency}>
-              <SelectTrigger id={`${id}-currency`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {currencies.map((code) => (
-                  <SelectItem key={code} value={code}>
-                    {code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CurrencyPicker id={`${id}-currency`} value={chosenCurrency} onChange={setCurrency} className="w-full" />
           </div>
         </div>
 

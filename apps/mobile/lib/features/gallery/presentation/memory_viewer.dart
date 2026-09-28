@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
@@ -104,9 +105,13 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
         return;
       }
     }
+    // Sealed on disk: what is shared is a plain copy in the app's cache,
+    // which the other app may still be reading after the sheet closes;
+    // it goes at the next start (`FileVault.clearCopies`).
+    final copy = await ref.read(fileVaultProvider).openCopy(file);
     await SharePlus.instance.share(
       ShareParams(
-        files: [XFile(file.path)],
+        files: [XFile(copy.path)],
         text: memory.note,
       ),
     );
@@ -269,6 +274,10 @@ class _VideoMemory extends ConsumerStatefulWidget {
 class _VideoMemoryState extends ConsumerState<_VideoMemory> {
   VideoPlayerController? _controller;
 
+  /// The video opened into a temporary file to play: sealed on disk, it
+  /// is let go with the player.
+  File? _opened;
+
   @override
   void initState() {
     super.initState();
@@ -280,7 +289,13 @@ class _VideoMemoryState extends ConsumerState<_VideoMemory> {
         .read(galleryRepositoryProvider)
         .fileOf(widget.memory);
     if (!mounted || !file.existsSync()) return;
-    final controller = VideoPlayerController.file(File(file.path));
+    final opened = await ref.read(fileVaultProvider).openCopy(file);
+    if (!mounted) {
+      await FileVault.release(opened);
+      return;
+    }
+    _opened = opened;
+    final controller = VideoPlayerController.file(opened);
     try {
       await controller.initialize();
     } on Object {
@@ -298,7 +313,12 @@ class _VideoMemoryState extends ConsumerState<_VideoMemory> {
 
   @override
   void dispose() {
-    unawaited(_controller?.dispose());
+    final opened = _opened;
+    unawaited(
+      (_controller?.dispose() ?? Future<void>.value()).whenComplete(
+        () => FileVault.release(opened),
+      ),
+    );
     super.dispose();
   }
 

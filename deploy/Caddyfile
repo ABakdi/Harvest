@@ -9,8 +9,9 @@
 		Referrer-Policy no-referrer
 		Permissions-Policy "camera=(self), microphone=(self), geolocation=(self)"
 		# Map tiles and fonts (OpenFreeMap), satellite tiles (Esri), the
-		# rates I ask for; nothing else leaves the page (Business rule 13).
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; font-src 'self' data:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://api.frankfurter.dev; worker-src 'self' blob:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		# rates I ask for (open.er-api.com, every currency, Phase 7 M7.8);
+		# nothing else leaves the page (Business rule 13).
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; font-src 'self' data:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://open.er-api.com; worker-src 'self' blob:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 	}
 }
 

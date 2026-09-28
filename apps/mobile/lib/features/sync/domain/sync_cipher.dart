@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
 /// A sealed row this key cannot read: sealed with another key, for
 /// another row or other clocks, or in the version 1 envelope 3.0.0 wrote.
@@ -33,13 +34,26 @@ typedef RowClocks = ({String updatedAt, String? deletedAt});
 ///   `row/<table>/<uuid>/<updatedAt micros>/<deletedAt micros or "">`,
 ///   so a ciphertext moved to another row, or offered under a newer
 ///   clock, fails to open instead of becoming that row;
-/// - a file's additional data is `file/<sha256>`;
 /// - the account's key check is `harvest-key-check` sealed with the
 ///   additional data `key-check`.
+///
+/// Phase 7 adds (`fixtures/crypto-v3.json`):
+///
+/// - a row's JSON is padded with spaces to [paddedLength] before sealing,
+///   which JSON ignores, so a row's size says little about what it is;
+/// - a file is named on the server by [nameOf], an HMAC of its plaintext's
+///   SHA-256 under a key drawn from this one, so a server holding a known
+///   picture cannot tell whether an account has it;
+/// - a file's bytes are padded (`0x80`, then zeros) and sealed with the
+///   additional data `file/v3/<name>`; one sealed before, under
+///   `file/<name>` and unpadded, still opens.
 class SyncCipher {
-  SyncCipher(List<int> keyBytes, {this.epoch = 1}) : _key = SecretKey(keyBytes);
+  SyncCipher(List<int> keyBytes, {this.epoch = 1})
+    : _key = SecretKey(keyBytes),
+      _keyBytes = List.unmodifiable(keyBytes);
 
   final SecretKey _key;
+  final List<int> _keyBytes;
 
   /// The key epoch this key belongs to (`contracts/sync-key.ts`): every
   /// sealed push and file upload names it, and the server refuses a stale
@@ -52,6 +66,7 @@ class SyncCipher {
   static const keyInfo = 'harvest/sync-key/v2';
   static const checkPlaintext = 'harvest-key-check';
   static const checkAad = 'key-check';
+  static const nameInfo = 'harvest/file-name/v1';
   static const _tag = 16;
 
   /// The secret's base: PBKDF2-HMAC-SHA256 of the secret with the
@@ -173,7 +188,7 @@ class SyncCipher {
     Map<String, Object?> data, {
     List<int>? iv,
   }) => _sealText(
-    utf8.encode(jsonEncode(data)),
+    padRow(utf8.encode(jsonEncode(data))),
     rowAad(table, uuid, clocks),
     iv: iv,
   );
@@ -212,19 +227,58 @@ class SyncCipher {
     }
   }
 
-  /// Seals a file's bytes: the same cipher, the same key, and the
-  /// file's own name as the additional data, so ciphertext offered
-  /// under another name fails to open ([[Sync-API]]).
-  Future<({Uint8List iv, Uint8List bytes})> sealBytes(
-    String sha256,
+  /// The name key: HKDF-SHA256 over this key's bytes, the empty salt
+  /// spelled as 32 zero bytes, the info `harvest/file-name/v1`. It only
+  /// ever signs names.
+  late final Future<SecretKey> _nameKey =
+      Hkdf(
+        hmac: Hmac.sha256(),
+        outputLength: 32,
+      ).deriveKey(
+        secretKey: SecretKey(_keyBytes),
+        nonce: Uint8List(32),
+        info: utf8.encode(nameInfo),
+      );
+
+  /// The name key's bytes, for the tests that pin it.
+  @visibleForTesting
+  Future<List<int>> nameKeyBytes() async => (await _nameKey).extractBytes();
+
+  /// A file's name on the server, from its plaintext's SHA-256 (lowercase
+  /// hex): HMAC-SHA256 under the name key, lowercase hex. Every device
+  /// with this key names a file the same; nobody without it can.
+  Future<String> nameOf(String sha256) async {
+    final mac = await Hmac.sha256().calculateMac(
+      utf8.encode(sha256),
+      secretKey: await _nameKey,
+    );
+    return _hex(mac.bytes);
+  }
+
+  /// The record key of a day of the trail (`trail_days`): the first 16
+  /// bytes of HMAC-SHA256 of `trail/<day>` under the name key, in hex, so
+  /// every device agrees on it and the server cannot tell which day it is.
+  Future<String> trailKeyOf(String harvestDay) async {
+    final mac = await Hmac.sha256().calculateMac(
+      utf8.encode('trail/$harvestDay'),
+      secretKey: await _nameKey,
+    );
+    return _hex(mac.bytes.sublist(0, 16));
+  }
+
+  /// Seals a file's bytes, padded, under its server [name]: the same
+  /// cipher and key, with `file/v3/<name>` as the additional data, so
+  /// ciphertext offered under another name fails to open ([[Sync-API]]).
+  Future<({Uint8List iv, Uint8List bytes})> sealFile(
+    String name,
     List<int> plain, {
     List<int>? iv,
   }) async {
     final box = await _aes.encrypt(
-      plain,
+      padFile(plain),
       secretKey: _key,
       nonce: iv ?? _aes.newNonce(),
-      aad: utf8.encode('file/$sha256'),
+      aad: utf8.encode('file/v3/$name'),
     );
     return (
       iv: Uint8List.fromList(box.nonce),
@@ -232,9 +286,10 @@ class SyncCipher {
     );
   }
 
-  /// Opens a file's bytes.
-  Future<Uint8List> openBytes(
-    String sha256,
+  /// Opens a file's bytes stored under [name], however they were sealed:
+  /// padded under `file/v3/<name>`, or as before Phase 7.
+  Future<Uint8List> openFile(
+    String name,
     List<int> iv,
     List<int> sealed,
   ) async {
@@ -243,15 +298,68 @@ class SyncCipher {
       nonce: iv,
       mac: Mac(sealed.sublist(sealed.length - _tag)),
     );
-    return Uint8List.fromList(
-      await _aes.decrypt(
+    try {
+      final padded = await _aes.decrypt(
         box,
         secretKey: _key,
-        aad: utf8.encode('file/$sha256'),
-      ),
-    );
+        aad: utf8.encode('file/v3/$name'),
+      );
+      return unpadFile(padded);
+    } on SecretBoxAuthenticationError {
+      return Uint8List.fromList(
+        await _aes.decrypt(
+          box,
+          secretKey: _key,
+          aad: utf8.encode('file/$name'),
+        ),
+      );
+    }
   }
 }
+
+/// The smallest a sealed row's plaintext is: below it, every row looks
+/// the same (`minPaddedRowBytes`).
+const minPaddedBytes = 256;
+
+/// The length [n] bytes are padded to, as `paddedLength` in the contract:
+/// at least [minimum], and above it the Padmé rule, which rounds to a
+/// number with few significant bits and costs at most about 12%.
+int paddedLength(int n, {int minimum = minPaddedBytes}) {
+  if (n <= minimum) return minimum;
+  if (n < 4) return n;
+  final e = n.bitLength - 1;
+  final s = e.bitLength;
+  final step = 1 << (e - s);
+  return (n + step - 1) ~/ step * step;
+}
+
+/// A row's JSON, spaces after it up to [paddedLength].
+Uint8List padRow(List<int> json) => Uint8List(paddedLength(json.length))
+  ..fillRange(0, paddedLength(json.length), 0x20)
+  ..setRange(0, json.length, json);
+
+/// A file's bytes, then `0x80`, then zeros, up to [paddedLength] of one
+/// byte more.
+Uint8List padFile(List<int> bytes) => Uint8List(paddedLength(bytes.length + 1))
+  ..setRange(0, bytes.length, bytes)
+  ..[bytes.length] = 0x80;
+
+/// The bytes [padFile] padded; throws [UnreadableRow] when the padding is
+/// not there.
+Uint8List unpadFile(List<int> padded) {
+  var end = padded.length - 1;
+  while (end >= 0 && padded[end] == 0) {
+    end--;
+  }
+  if (end < 0 || padded[end] != 0x80) {
+    throw const UnreadableRow('a file without its padding');
+  }
+  return Uint8List.fromList(padded.sublist(0, end));
+}
+
+String _hex(List<int> bytes) => [
+  for (final byte in bytes) byte.toRadixString(16).padLeft(2, '0'),
+].join();
 
 final _instant = RegExp(
   r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?Z$',

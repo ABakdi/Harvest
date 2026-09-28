@@ -39,6 +39,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Local-Database]] — Drift schema and repositories
 - [[Sync-Strategy]] — local-first, with an optional account behind it
 - [[Sync-API]] — the wire contract: records, push, pull, files, errors
+- [[Data-Map]] — where every piece of what I keep lives, and who can read it
 - [[Deployment]] — the server's image, the database, the static site
 - [[Theming-and-Design-System]] — colors, type, motion, dark/light
 - [[Localization]] — English + Arabic, RTL

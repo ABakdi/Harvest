@@ -7,6 +7,7 @@ import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/presentation/currency_picker.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/lists/data/lists_repository.dart';
 import 'package:harvest/features/lists/domain/lists.dart';
@@ -323,15 +324,10 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
         ),
       ),
       const SizedBox(height: HarvestSpacing.sm),
-      SegmentedButton<Currency>(
-        segments: [
-          for (final currency in Currency.values)
-            // The same pills as the expense sheet: DA, $, €.
-            ButtonSegment(value: currency, label: Text(currency.symbol)),
-        ],
-        selected: {_currency},
-        onSelectionChanged: (selection) =>
-            setState(() => _currency = selection.first),
+      // The same pills as the expense sheet, and every other currency.
+      CurrencyChoice(
+        selected: _currency,
+        onChanged: (currency) => setState(() => _currency = currency),
       ),
       const SizedBox(height: HarvestSpacing.sm),
       ListTile(

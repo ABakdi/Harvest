@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
   checkRecord,
+  checkRow,
   clockIssues,
   deleteSyncKeyBodySchema,
   errorStatus,
@@ -102,23 +103,18 @@ describe('record limits (audit S5-02, S5-11)', () => {
   });
 
   it('caps a text column and a sealed row', () => {
+    const record = { table: 'notes' as const, uuid: 'n1', updatedAt: '2026-09-19T10:00:00Z', deletedAt: null };
     const note = (body: string) => ({
-      table: 'notes',
       uuid: 'n1',
+      title: 'T',
+      folder: '',
+      body,
+      createdAt: '2026-09-19T10:00:00Z',
       updatedAt: '2026-09-19T10:00:00Z',
       deletedAt: null,
-      data: {
-        uuid: 'n1',
-        title: 'T',
-        folder: '',
-        body,
-        createdAt: '2026-09-19T10:00:00Z',
-        updatedAt: '2026-09-19T10:00:00Z',
-        deletedAt: null,
-      },
     });
-    expect(checkRecord(note('x'.repeat(maxTextLength))).ok).toBe(true);
-    expect(checkRecord(note('x'.repeat(maxTextLength + 1))).ok).toBe(false);
+    expect(checkRow(record, note('x'.repeat(maxTextLength))).ok).toBe(true);
+    expect(checkRow(record, note('x'.repeat(maxTextLength + 1))).ok).toBe(false);
 
     const sealed = (ct: string) => ({
       table: 'geotags',

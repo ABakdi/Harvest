@@ -1,27 +1,35 @@
 import {
+  checkRow,
+  fileNameOf,
   hasColumn,
   instantMicros,
   isPortableSetting,
   openRowV2,
+  retiredTables,
   sealRowV2,
+  trailKeyOf,
   isSyncedTable,
+  maxEnvelopeCtLength,
   maxPushBytes,
   maxPushRecords,
   tables,
-  tierOf,
   type EncEnvelope,
   type Issue,
   type PulledRecord,
   type PullResult,
   type PushBody,
   type PushResult,
+  type SealedBody,
+  type SealedResult,
   type SyncedTable,
   type SyncRecord,
+  type TableData,
 } from '@harvest/contracts';
 import type { IndexableType, Table } from 'dexie';
 import {
   deviceIdOf,
   getMeta,
+  isStoredTable,
   metaKeys,
   primaryKeyOf,
   setMeta,
@@ -30,6 +38,7 @@ import {
   type OutboxRow,
   type ParkedRow,
   type SealedRow,
+  type StoredTable,
 } from '../data/db';
 import type { Keyring } from './keyring';
 import { background } from '@/lib/actions';
@@ -39,6 +48,11 @@ export interface SyncTransport {
   push(body: PushBody): Promise<PushResult>;
   /** With [deviceId], the server leaves out what this device wrote itself. */
   pull(after: number, limit: number, deviceId?: string): Promise<PullResult>;
+  /**
+   * Tells the server everything here has gone up sealed, so it can let
+   * go of the rows it still keeps in the clear (Phase 7, M7.1).
+   */
+  sealed?(body: SealedBody): Promise<SealedResult>;
 }
 
 /**
@@ -72,14 +86,14 @@ export interface SyncStatus {
   invalid: number;
   /** Why they were refused, by issue code (`quota_exceeded`, `clock_ahead`, …). */
   refusedFor: string[];
-  /** Private-tier rows that came down before this browser had the passphrase. */
+  /** Rows that came down sealed before this browser had the sync PIN. */
   sealed: number;
   /**
    * Sealed rows the key here cannot open: sealed by 3.0.0, or not what
    * they claim to be. Counted, never fatal ([[Sync-API]]).
    */
   unreadable: number;
-  /** Private-tier rows written here and waiting for the passphrase to leave. */
+  /** Rows written here and waiting for the sync PIN to leave: every row does, since Phase 7. */
   locked: number;
   /** No sync has finished yet: whatever the phone sent is still on its way. */
   firstSync: boolean;
@@ -138,10 +152,46 @@ const retryRefusedAfterMs = 60 * 60_000;
 const checkEveryMs = 30 * 60_000;
 
 type Prepared =
-  | { kind: 'row'; table: SyncedTable; uuid: string; stamp: number; updatedAt: string; data: Record<string, unknown> }
-  | { kind: 'purge'; table: SyncedTable; uuid: string; stamp: number }
+  | {
+      kind: 'row';
+      table: StoredTable;
+      uuid: string;
+      stamp: number;
+      updatedAt: string;
+      data: Record<string, unknown>;
+      /** The sealed entry this row was opened from, when it is not the row's own (a day of the trail). */
+      sealedAs?: [string, string];
+    }
+  | { kind: 'purge'; table: StoredTable; uuid: string; stamp: number }
   | { kind: 'seal'; row: SealedRow; stamp: number }
   | { kind: 'park'; row: ParkedRow };
+
+/**
+ * What an opened record puts here: the row itself, or, for a day of the
+ * trail (Phase 7, M7.3), each of its points as a row of
+ * `location_points`, merged on its own clock — a point missing from a
+ * newer copy of the day stays, and one goes only by its own `deletedAt`.
+ */
+function rowsOf(
+  record: Pick<SyncRecord, 'table' | 'uuid' | 'updatedAt'>,
+  data: Record<string, unknown>,
+): Extract<Prepared, { kind: 'row' }>[] {
+  if (record.table === 'trail_days') {
+    const day = data as TableData<'trail_days'>;
+    return day.points.map((point) => ({
+      kind: 'row' as const,
+      table: 'location_points' as const,
+      uuid: point.uuid,
+      stamp: instantMicros(point.updatedAt),
+      updatedAt: point.updatedAt,
+      data: { ...point, harvestDay: day.harvestDay },
+      sealedAs: ['trail_days', record.uuid] as [string, string],
+    }));
+  }
+  if (!isStoredTable(record.table)) return [];
+  const stamp = instantMicros(record.updatedAt);
+  return [{ kind: 'row', table: record.table, uuid: record.uuid, stamp, updatedAt: record.updatedAt, data }];
+}
 
 export interface SyncEngineOptions {
   db: HarvestDB;
@@ -153,6 +203,14 @@ export interface SyncEngineOptions {
   onPurged?: (table: SyncedTable, row: Record<string, unknown>) => Promise<void>;
   /** Run once after a sync that took any goal item: a parent's tick is settled again (Q5-44). */
   onGoalItems?: () => Promise<void>;
+  /** Every row here was queued again under the key: the files go again too. */
+  onResealed?: () => Promise<void>;
+  /**
+   * Sends what files wait, and says whether every file a row here names
+   * is now on the server under its Phase 7 name. Until then the server
+   * is not told everything has gone up sealed.
+   */
+  filesSettled?: () => Promise<boolean>;
   pullLimit?: number;
   pushBatch?: number;
   now?: () => Date;
@@ -204,6 +262,8 @@ export class SyncEngine {
   private stale = new Set<string>();
   private purged: { table: SyncedTable; row: Record<string, unknown> }[] = [];
   private goalItemsTaken = false;
+  /** The day each merged group of points goes up as, for this push. */
+  private trailDays = new Map<OutboxRow[], string>();
   private checkedAt: number | null = null;
   private unreadableAtCheck = 0;
 
@@ -259,7 +319,7 @@ export class SyncEngine {
       if (entry.invalid) {
         invalid.add(id);
         for (const issue of entry.invalid) if (issue.code) refusedFor.add(issue.code);
-      } else if (!key && tierOf(entry.table) === 'private') locked.add(id);
+      } else if (!key) locked.add(id);
       else pending.add(id);
     }
     const lastSyncedAt = (await getMeta<string>(this.db, metaKeys.lastSyncedAt)) ?? null;
@@ -324,6 +384,7 @@ export class SyncEngine {
       await this.pushAll();
       await this.pullAll();
       await this.openSealed();
+      await this.finishSealing();
       await this.saveBook();
       await this.releasePurged();
       if (this.goalItemsTaken) {
@@ -365,13 +426,9 @@ export class SyncEngine {
     return true;
   }
 
+  /** Whether anything waits to go up sealed: every row does, since Phase 7. */
   private async privatePending(): Promise<boolean> {
-    const privateTables = (Object.keys(tables) as SyncedTable[]).filter((table) => tierOf(table) === 'private');
-    const entry = await this.db.outbox
-      .where('table')
-      .anyOf(privateTables)
-      .filter((row) => !row.invalid)
-      .first();
+    const entry = await this.db.outbox.filter((row) => !row.invalid).first();
     return entry !== undefined;
   }
 
@@ -430,10 +487,23 @@ export class SyncEngine {
       if (record.table === 'kv_settings' && !isPortableSetting(record.uuid)) continue;
       const stamp = instantMicros(record.updatedAt);
       if (record.purged) {
-        prepared.push({ kind: 'purge', table: record.table, uuid: record.uuid, stamp });
+        // A day of the trail is never taken back whole: its points go by their own deletedAt.
+        if (isStoredTable(record.table)) prepared.push({ kind: 'purge', table: record.table, uuid: record.uuid, stamp });
         continue;
       }
-      if (tierOf(record.table) === 'private') {
+      if (record.data !== undefined && record.enc === undefined) {
+        // Stored in the clear before Phase 7, until a device seals it:
+        // this account's own row, taken after the checks an opened row gets.
+        const checked = checkRow(record, record.data);
+        if (!checked.ok) {
+          this.log(`parked an unreadable ${record.table} row`, checked.issues);
+          prepared.push({ kind: 'park', row: { table: record.table, uuid: record.uuid, record } });
+          continue;
+        }
+        prepared.push(...rowsOf(record, checked.data));
+        continue;
+      }
+      {
         const enc = record.enc;
         if (!enc) continue;
         const sealedRow: SealedRow = {
@@ -448,27 +518,8 @@ export class SyncEngine {
           continue;
         }
         const data = await this.openRecord(key, sealedRow);
-        prepared.push(
-          data
-            ? { kind: 'row', table: record.table, uuid: record.uuid, stamp, updatedAt: record.updatedAt, data }
-            : { kind: 'seal', row: sealedRow, stamp },
-        );
-        continue;
+        prepared.push(...(data ? rowsOf(record, data) : [{ kind: 'seal' as const, row: sealedRow, stamp }]));
       }
-      const parsed = tables[record.table].data.safeParse(record.data);
-      if (!parsed.success) {
-        this.log(`parked an unreadable ${record.table} row`, parsed.error.issues);
-        prepared.push({ kind: 'park', row: { table: record.table, uuid: record.uuid, record } });
-        continue;
-      }
-      prepared.push({
-        kind: 'row',
-        table: record.table,
-        uuid: record.uuid,
-        stamp,
-        updatedAt: record.updatedAt,
-        data: parsed.data,
-      });
     }
     return prepared;
   }
@@ -476,9 +527,10 @@ export class SyncEngine {
   private async openRecord(key: CryptoKey, row: SealedRow): Promise<Record<string, unknown> | null> {
     try {
       const opened = await openRowV2(key, row.table, row.uuid, row, row.enc);
-      const parsed = tables[row.table].data.safeParse(opened);
-      if (parsed.success) return parsed.data;
-      this.log(`skipped an unreadable ${row.table} row`, parsed.error.issues);
+      // What the server cannot check, the row itself, is checked here.
+      const checked = checkRow(row, opened);
+      if (checked.ok) return checked.data;
+      this.log(`skipped an unreadable ${row.table} row`, checked.issues);
       return null;
     } catch {
       // Sealed with another key, by 3.0.0, or for another clock: it stays
@@ -557,7 +609,7 @@ export class SyncEngine {
       for (const item of merged) {
         // Opened, or purged: nothing of it waits sealed any more, whether
         // or not it wins below (Q5-12).
-        if (tierOf(item.table) === 'private') sealedDeletes.push([item.table, item.uuid]);
+        sealedDeletes.push(item.kind === 'row' && item.sealedAs ? item.sealedAs : [item.table, item.uuid]);
         if (item.table === 'goal_items') this.goalItemsTaken = true;
         const id = `${item.table}/${item.uuid}`;
         const takeTies = this.stale.delete(id);
@@ -609,10 +661,7 @@ export class SyncEngine {
     const opened: Prepared[] = [];
     for (const row of waiting) {
       const data = await this.openRecord(key, row);
-      if (data) {
-        const stamp = instantMicros(row.updatedAt);
-        opened.push({ kind: 'row', table: row.table, uuid: row.uuid, stamp, updatedAt: row.updatedAt, data });
-      }
+      if (data) opened.push(...rowsOf(row, data));
     }
     await this.applyPage(opened);
     await this.refreshCounts();
@@ -676,28 +725,35 @@ export class SyncEngine {
   private async pushAll(): Promise<void> {
     const deviceId = await deviceIdOf(this.db);
     const key = await this.keyring.key(this.options.salt());
+    const nameKey = await this.keyring.nameKey(this.options.salt());
     const keyId = await this.keyring.keyId();
     const keyEpoch = await this.keyring.epoch();
+    // Every row goes sealed or not at all: without the key, nothing leaves.
+    if (!key || !nameKey) return;
     const entries = await this.db.outbox.orderBy('seq').toArray();
     const groups = new Map<string, OutboxRow[]>();
     for (const entry of entries) {
       if (entry.invalid) continue;
-      if (!key && tierOf(entry.table) === 'private') continue;
       const id = `${entry.table}/${entry.key}`;
       const group = groups.get(id);
       if (group) group.push(entry);
       else groups.set(id, [entry]);
     }
-    const all = [...groups.values()];
+    const all = await this.gatherTrail([...groups.values()]);
     for (let start = 0; start < all.length; start += this.pushBatch) {
       const slice = all.slice(start, start + this.pushBatch);
-      const records = await this.recordsFor(slice, key);
+      const records = await this.recordsFor(slice, key, nameKey);
       let chunk: { group: OutboxRow[]; record: SyncRecord }[] = [];
       let bytes = bodyOverhead;
       for (const [index, group] of slice.entries()) {
         const record = records[index]!;
+        if (Array.isArray(record)) {
+          await this.refuseHere(group, record);
+          continue;
+        }
         const size = sizeOf(record);
-        if (size + bodyOverhead > maxPushBytes) {
+        // Past a push, or past what the server keeps of one sealed row.
+        if (size + bodyOverhead > maxPushBytes || (record.enc?.ct.length ?? 0) > maxEnvelopeCtLength) {
           await this.refuseHere(group);
           continue;
         }
@@ -713,11 +769,69 @@ export class SyncEngine {
     }
   }
 
-  /** A change too large for any push: flagged here, with its reason. */
-  private async refuseHere(group: OutboxRow[]): Promise<void> {
-    const issues: Issue[] = [{ path: [], message: 'Too large for one push', code: 'too_large' }];
+  /**
+   * Points never travel one by one any more (Phase 7, M7.3): the changed
+   * points of a day go as that whole day of the trail, one record. A
+   * point gone for good still goes as its own tombstone, which the server
+   * takes for a retired table, so every device lets it go too.
+   */
+  private async gatherTrail(groups: OutboxRow[][]): Promise<OutboxRow[][]> {
+    this.trailDays = new Map();
+    const points = groups.filter((group) => group[0]!.table === 'location_points');
+    if (points.length === 0) return groups;
+    const rows = await this.db.rows('location_points').bulkGet(points.map((group) => group[0]!.key));
+    const days = new Map<string, OutboxRow[]>();
+    const gone: OutboxRow[][] = [];
+    points.forEach((group, index) => {
+      const row = rows[index];
+      if (!row) gone.push(group);
+      else days.set(row.harvestDay, [...(days.get(row.harvestDay) ?? []), ...group]);
+    });
+    const merged = [...days].map(([day, entries]) => {
+      this.trailDays.set(entries, day);
+      return entries;
+    });
+    return [...groups.filter((group) => group[0]!.table !== 'location_points'), ...gone, ...merged];
+  }
+
+  /**
+   * A day of the trail as one record: every point this browser holds for
+   * it, live or deleted, under the day's keyed name. Its clock is the
+   * hour, and always past the one it was last sent with, so the server
+   * learns roughly when, and never the moment of a point.
+   */
+  private async trailRecordFor(day: string, key: CryptoKey, nameKey: CryptoKey): Promise<SyncRecord | Issue[]> {
+    const points = await this.db.rows('location_points').where('harvestDay').equals(day).toArray();
+    const trailKey = await trailKeyOf(nameKey, day);
+    const sent = (await getMeta<Record<string, string>>(this.db, metaKeys.trailSentAt)) ?? {};
+    const hour = Math.floor(this.now().getTime() / 3_600_000) * 3_600_000;
+    const last = sent[trailKey] === undefined ? null : Date.parse(sent[trailKey]);
+    const updatedAt = new Date(last !== null && last >= hour ? last + 1000 : hour).toISOString();
+    await setMeta(this.db, metaKeys.trailSentAt, { ...sent, [trailKey]: updatedAt });
+    const data = {
+      key: trailKey,
+      harvestDay: day,
+      points: points.map(({ harvestDay: _day, ...point }) => point),
+      updatedAt,
+    };
+    const clocks = { updatedAt, deletedAt: null };
+    const checked = checkRow({ table: 'trail_days', uuid: trailKey, ...clocks }, data);
+    if (!checked.ok) return checked.issues;
+    const enc = await sealRowV2(key, 'trail_days', trailKey, clocks, data);
+    return { table: 'trail_days', uuid: trailKey, ...clocks, enc };
+  }
+
+  /**
+   * A change too large for any push, or one the contract would refuse
+   * once opened: flagged here, with its reason, since the server cannot
+   * see inside a sealed row to say so.
+   */
+  private async refuseHere(
+    group: OutboxRow[],
+    issues: Issue[] = [{ path: [], message: 'Too large for one push', code: 'too_large' }],
+  ): Promise<void> {
     const at = this.now().toISOString();
-    this.log(`too large to send: ${group[0]!.table}/${group[0]!.key}`);
+    this.log(`cannot send ${group[0]!.table}/${group[0]!.key}`, issues);
     await this.db.outbox.bulkUpdate(group.map((entry) => ({ key: entry.seq!, changes: { invalid: issues, invalidAt: at } })));
   }
 
@@ -752,10 +866,15 @@ export class SyncEngine {
     await this.db.transaction('rw', this.db.outbox, async (trans) => {
       const outbox = trans.table('outbox') as Table<OutboxRow, number>;
       const done: number[] = [];
-      for (const [index, { group }] of chunk.entries()) {
+      for (const [index, { group, record }] of chunk.entries()) {
         const result = answer.results[index];
         const seqs = group.map((entry) => entry.seq!);
         if (!result) continue;
+        // A day of the trail the server has a later copy of: its points
+        // stay queued and go again, the day's clock moved past it, once
+        // the pull has brought the other copy's points in.
+        // One only sent again for the sealing is fine either way.
+        if (record.table === 'trail_days' && result.status === 'stale' && !group.every((entry) => entry.resend)) continue;
         const id = `${group[0]!.table}/${group[0]!.key}`;
         if (result.status === 'invalid' && result.issues?.some((issue) => issue.code === 'key_changed')) {
           // Sealed under a key started over elsewhere: it stays queued,
@@ -767,11 +886,12 @@ export class SyncEngine {
           this.log(`the server refused ${id}`, result.issues);
           await outbox.bulkUpdate(seqs.map((seq) => ({ key: seq, changes: { invalid: result.issues ?? [], invalidAt: at } })));
         } else {
-          this.ahead.delete(id);
+          if (!group.every((entry) => entry.resend)) this.ahead.delete(id);
           // The server's copy won (Q5-10): the pull that follows takes
           // it, even on a tie, and the next run pulls again if it is
           // behind the cursor.
-          if (result.status === 'stale') this.stale.add(id);
+          // A row only sent again sealed, unchanged, is not behind.
+          if (result.status === 'stale' && !group.every((entry) => entry.resend)) this.stale.add(id);
           done.push(...seqs);
         }
       }
@@ -785,8 +905,8 @@ export class SyncEngine {
   }
 
   /** The records for a batch of changes, each table's rows read in one go. */
-  private async recordsFor(groups: OutboxRow[][], key: CryptoKey | null): Promise<SyncRecord[]> {
-    const byTable = new Map<SyncedTable, OutboxRow[][]>();
+  private async recordsFor(groups: OutboxRow[][], key: CryptoKey, nameKey: CryptoKey): Promise<(SyncRecord | Issue[])[]> {
+    const byTable = new Map<StoredTable, OutboxRow[][]>();
     for (const group of groups) {
       const table = group[0]!.table;
       (byTable.get(table) ?? byTable.set(table, []).get(table)!).push(group);
@@ -799,8 +919,11 @@ export class SyncEngine {
       )[];
       list.forEach((group, index) => rows.set(group, found[index]));
     }
-    const records: SyncRecord[] = [];
-    for (const group of groups) records.push(await this.recordFor(group, key, rows.get(group)));
+    const records: (SyncRecord | Issue[])[] = [];
+    for (const group of groups) {
+      const day = this.trailDays.get(group);
+      records.push(day !== undefined ? await this.trailRecordFor(day, key, nameKey) : await this.recordFor(group, key, nameKey, rows.get(group)));
+    }
     return records;
   }
 
@@ -808,15 +931,20 @@ export class SyncEngine {
    * The record for a row as it is now; a row that is gone travels as
    * purged, stamped when it was deleted. A row last seen with a clock
    * ahead of this browser's is moved just after it first, quietly, so
-   * the record and the row tell the same story (Q5-10).
+   * the record and the row tell the same story (Q5-10). A row that names
+   * a file says which, by its name on the server, beside the envelope.
+   * A row the contract would refuse once opened is not sealed at all:
+   * its issues come back instead, as the server's would have before.
    */
   private async recordFor(
     group: OutboxRow[],
-    key: CryptoKey | null,
+    key: CryptoKey,
+    nameKey: CryptoKey,
     found: Record<string, unknown> | undefined,
-  ): Promise<SyncRecord> {
+  ): Promise<SyncRecord | Issue[]> {
     const { table, key: uuid } = group[0]!;
-    const seen = this.ahead.get(`${table}/${uuid}`);
+    // A row only sent again sealed goes as it is, clock and all.
+    const seen = group.every((entry) => entry.resend) ? undefined : this.ahead.get(`${table}/${uuid}`);
     let queuedAt = group[group.length - 1]!.queuedAt;
     if (seen) queuedAt = later(queuedAt, justAfter(seen));
     const store = this.db.rows(table);
@@ -828,37 +956,106 @@ export class SyncEngine {
     }
     const updatedAt = clockOfRow(table, row) ?? queuedAt;
     const deletedAt = hasColumn(table, 'deletedAt') ? ((row.deletedAt as string | null) ?? null) : null;
-    if (tierOf(table) === 'private') {
-      const enc: EncEnvelope = await sealRowV2(key!, table, uuid, { updatedAt, deletedAt }, row);
-      return { table, uuid, updatedAt, deletedAt, enc };
-    }
-    return { table, uuid, updatedAt, deletedAt, data: row };
+    const checked = checkRow({ table, uuid, updatedAt, deletedAt }, row);
+    if (!checked.ok) return checked.issues;
+    const enc: EncEnvelope = await sealRowV2(key, table, uuid, { updatedAt, deletedAt }, row);
+    const fileHash = hasColumn(table, 'fileHash') ? row.fileHash : null;
+    const file = typeof fileHash === 'string' ? { file: await fileNameOf(nameKey, fileHash) } : {};
+    return { table, uuid, updatedAt, deletedAt, enc, ...file };
   }
 
   /**
-   * A new key was just kept: every private row this browser holds goes
-   * up again under it, each moved on by a millisecond so it wins over
-   * its own copy sealed under the old key and loses to anything newer
-   * ([[Accounts]], start over). The rows that waited sealed are opened
-   * by the sync that follows.
+   * A new key was just kept: every row this browser holds goes up again
+   * under it, each moved on by a millisecond so it wins over its own copy
+   * sealed under the old key and loses to anything newer ([[Accounts]],
+   * start over). The rows that waited sealed are opened by the sync that
+   * follows. Without [restamp], the rows go as they are: a sealed row
+   * replaces the server's copy kept in the clear at the same clock.
    */
-  async privateTierOpened(): Promise<void> {
+  async privateTierOpened({ restamp = true }: { restamp?: boolean } = {}): Promise<void> {
     // A key entered again: the word that it was changed elsewhere goes.
     if (this.snapshot.pinChanged) this.update({ pinChanged: false, error: null, phase: 'idle' });
     const queuedAt = this.now().toISOString();
-    const privateTables = (Object.keys(tables) as SyncedTable[]).filter((table) => tierOf(table) === 'private');
+    // A table the contract knows and this browser keeps no store for yet has nothing to send.
+    const stores = new Set(this.db.tables.map((store) => store.name));
     await this.db.transaction('rw', this.db.tables, async (trans) => {
       const outbox = trans.table('outbox') as Table<OutboxRow, number>;
-      for (const table of privateTables) {
+      for (const table of Object.keys(tables) as SyncedTable[]) {
+        // Points go up as whole days of the trail, never as themselves.
+        if (!isStoredTable(table) || !stores.has(table) || (retiredTables as readonly string[]).includes(table)) continue;
         const store = trans.table(table);
+        const keyOf = tables[table].keyOf as (row: Record<string, unknown>) => string;
         const rows = (await store.toArray()) as Record<string, unknown>[];
         for (const row of rows) {
-          const key = String(row.uuid);
-          if (hasColumn(table, 'updatedAt')) await store.put({ ...row, updatedAt: justAfter(row.updatedAt as string) });
-          await outbox.add({ table, key, op: 'upsert', queuedAt });
+          const key = keyOf(row);
+          // This browser's own settings stay here.
+          if (table === 'kv_settings' && !isPortableSetting(key)) continue;
+          if (restamp && hasColumn(table, 'updatedAt')) {
+            await store.put({ ...row, updatedAt: justAfter(row.updatedAt as string) });
+          }
+          await outbox.add({ table, key, op: 'upsert', queuedAt, ...(restamp ? {} : { resend: true }) });
         }
       }
     });
     await this.refreshCounts();
+  }
+
+  /**
+   * Every point this browser holds, live or deleted, queued to go up again
+   * packed as its day of the trail (M7.3): the server deletes the points
+   * it kept one by one once told everything is sealed, and a point no
+   * phone has sent again as a day would be lost with them.
+   */
+  private async requeueTrail(): Promise<void> {
+    const queuedAt = this.now().toISOString();
+    const keys = (await this.db.rows('location_points').toCollection().primaryKeys()) as string[];
+    if (keys.length === 0) return;
+    await this.db.outbox.bulkAdd(keys.map((key) => ({ table: 'location_points' as const, key, op: 'upsert' as const, queuedAt, resend: true })));
+  }
+
+  /**
+   * Phase 7's one move, once per key epoch (M7.1): every row and file
+   * here goes up sealed — again, if the new key did not already send
+   * them — and once the outbox has drained with nothing refused or
+   * waiting, and every file is on the server under its keyed name, the
+   * server is told, and lets go of the rows it kept in the clear. Runs
+   * only after a pull that reached the end, so nothing the server holds
+   * is missing here: the rows go again from here even when the new key
+   * already sent them, since a pull may have brought more in the clear.
+   */
+  private async finishSealing(): Promise<void> {
+    if (!this.transport.sealed) return;
+    const key = await this.keyring.key(this.options.salt());
+    const keyEpoch = await this.keyring.epoch();
+    const keyId = await this.keyring.keyId();
+    if (!key || keyEpoch === null) return;
+    if ((await getMeta<number>(this.db, metaKeys.sealedFor)) === keyEpoch) return;
+    if ((await getMeta<number>(this.db, metaKeys.resealedFor)) !== keyEpoch) {
+      await this.privateTierOpened({ restamp: false });
+      await this.requeueTrail();
+      await this.options.onResealed?.();
+      await setMeta(this.db, metaKeys.resealedFor, keyEpoch);
+      await this.pushAll();
+    }
+    if (this.options.filesSettled && !(await this.options.filesSettled())) return;
+    // The rows the file pass named go up too.
+    await this.pushAll();
+    // A retired table's rows the server deletes anyway: what waits of
+    // them here, refused or not, holds nothing up.
+    const retired = (table: string) => (retiredTables as readonly string[]).includes(table);
+    if ((await this.db.outbox.filter((entry) => !(retired(entry.table) && entry.invalid)).count()) > 0) return;
+    // A row from before Phase 7 this version could not read is not let go.
+    const unread = await this.db.parked
+      .filter((row) => (row.record as { data?: unknown }).data !== undefined && !retired(row.table))
+      .count();
+    if (unread > 0) return;
+    try {
+      await this.transport.sealed({ deviceId: await deviceIdOf(this.db), keyEpoch });
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== 'key_changed') throw error;
+      await this.keyring.forgetIfStill(keyId ?? undefined);
+      throw new KeyChangedError('The PIN was changed on another device');
+    }
+    await setMeta(this.db, metaKeys.sealedFor, keyEpoch);
   }
 }

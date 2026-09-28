@@ -1,4 +1,4 @@
-import { HarvestDay, type CurrencyCode } from '@harvest/core';
+import { currencyInfo, displayDecimals, HarvestDay, isCurrencyCode } from '@harvest/core';
 import i18n from '@/i18n';
 
 /**
@@ -17,23 +17,36 @@ export function formatNumber(value: number, options?: Intl.NumberFormatOptions):
 // The currencies are the shared rule's ([[Finances]]); only how each is drawn lives here.
 export { currencies, type CurrencyCode } from '@harvest/core';
 
-const symbols: Partial<Record<CurrencyCode, string>> = { DZD: 'DA', USD: '$', EUR: '€' };
-
+/**
+ * What stands beside an amount: the currency's own sign (DA, €, ¥), or
+ * its code where it has none, or a code Harvest does not know as it is.
+ */
 export function currencySymbol(code: string): string {
-  return symbols[code as CurrencyCode] ?? code;
+  return isCurrencyCode(code) ? currencyInfo(code).symbol : code;
 }
 
-/** `DA36,900.50`: the symbol first, grouped, cents only when there are some. */
+/**
+ * `DA36,900.50`: the sign first, grouped, the fraction only when there
+ * is one, and never more of it than the currency shows (none for the
+ * yen, `¥1,235`). A sign that is only the code is set apart:
+ * `KWD 12.50`. Amounts are hundredths, whatever the currency.
+ */
 export function formatMoney(minor: number, currency: string): string {
   const sign = minor < 0 ? '-' : '';
-  const abs = Math.abs(minor);
+  const decimals = isCurrencyCode(currency) ? displayDecimals(currency) : 2;
+  const abs = decimals === 0 ? Math.round(Math.abs(minor) / 100) * 100 : Math.abs(minor);
   const whole = Math.trunc(abs / 100);
   const cents = abs % 100;
   const body = new Intl.NumberFormat('en').format(whole) + (cents ? `.${String(cents).padStart(2, '0')}` : '');
-  return `${sign}${currencySymbol(currency)}${body}`;
+  const symbol = currencySymbol(currency);
+  return `${sign}${symbol}${/^[A-Z]{3}$/.test(symbol) ? '\u00a0' : ''}${body}`;
 }
 
-export function formatAmountInput(minor: number): string {
+/** An amount as a field holds it; whole units for a currency shown without a fraction. */
+export function formatAmountInput(minor: number, currency?: string): string {
+  if (currency !== undefined && isCurrencyCode(currency) && displayDecimals(currency) === 0) {
+    return String(Math.round(minor / 100));
+  }
   const whole = Math.trunc(minor / 100);
   const cents = minor % 100;
   return cents ? `${whole}.${String(cents).padStart(2, '0')}` : String(whole);

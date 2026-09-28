@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { isSafeRelativePath } from '../src/paths.js';
-import { checkRecord } from '../src/sync.js';
+import { checkRow } from '../src/sync.js';
 
-const memory = (path: string) => ({
-  table: 'memories',
+const record = {
+  table: 'memories' as const,
   uuid: 'm1',
   updatedAt: '2026-09-20T10:00:00.000Z',
   deletedAt: '2026-09-20T10:00:00.000Z',
-  data: {
+};
+const memory = (path: string) => ({
     uuid: 'm1',
     albumUuid: 'a1',
     harvestDay: '2026-09-20',
@@ -18,7 +19,6 @@ const memory = (path: string) => ({
     capturedAt: '2026-09-20T10:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z',
     deletedAt: '2026-09-20T10:00:00.000Z',
-  },
 });
 
 describe('paths into a device’s storage (S6-08)', () => {
@@ -33,10 +33,10 @@ describe('paths into a device’s storage (S6-08)', () => {
     },
   );
 
-  it('a memory naming a path outside the storage is refused on push', () => {
-    const refused = checkRecord(memory('/data/data/app/databases/harvest.sqlite'));
+  it('a memory naming a path outside the storage is refused once opened', () => {
+    const refused = checkRow(record, memory('/data/data/app/databases/harvest.sqlite'));
     expect(refused.ok).toBe(false);
-    const taken = checkRecord(memory('album/one.jpg'));
+    const taken = checkRow(record, memory('album/one.jpg'));
     expect(taken.ok, JSON.stringify(taken)).toBe(true);
   });
 });

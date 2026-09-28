@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import secrets from '../../../packages/contracts/fixtures/sync-secret.json';
-import { PassphrasePrompt, pinDigits } from '@/app/components/passphrase-prompt';
+import { howLongItStands, PassphrasePrompt, pinDigits } from '@/app/components/passphrase-prompt';
 import { HarvestContext } from '@/app/context';
 import { FakeServer } from './fake-server';
 import { device, testUser } from './helpers';
@@ -40,15 +40,54 @@ describe('the sync secret rule on the web ([[Accounts]] AC7)', () => {
 });
 
 describe('the sync PIN prompt', () => {
-  it('asks for a PIN by default: the number pad, obscured, never saved', async () => {
+  it('asks for a passphrase by default (M7.5): hidden until shown, never saved, and how long it would stand', async () => {
     const h = await device(new FakeServer());
     prompt(h);
-    const field = await screen.findByLabelText('Sync PIN (4 to 6 digits)');
+    const field = await screen.findByLabelText('Passphrase (a few words, 8 characters or more)');
+    expect(field).toHaveAttribute('type', 'password');
+    expect(field).not.toHaveAttribute('inputmode');
+    expect(field).toHaveAttribute('autocomplete', 'off');
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Show' }));
+    expect(field).toHaveAttribute('type', 'text');
+    await user.click(screen.getByRole('button', { name: 'Hide' }));
+    expect(field).toHaveAttribute('type', 'password');
+
+    // The trade-off sits beside the way to a PIN.
+    expect(screen.getByText(/could try every PIN in minutes/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Use a PIN instead' })).toBeInTheDocument();
+
+    fireEvent.change(field, { target: { value: 'olives' } });
+    expect(await screen.findByText('Weak:')).toBeInTheDocument();
+    fireEvent.change(field, { target: { value: 'olive tamarind harbour lantern' } });
+    expect(await screen.findByText('Strong:')).toBeInTheDocument();
+    expect(screen.getByText(/it would stand millions of years/)).toBeInTheDocument();
+  });
+
+  it('keeps a PIN one tap away: the number pad, obscured, and what it would stand said plainly', async () => {
+    const h = await device(new FakeServer());
+    prompt(h);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Use a PIN instead' }));
+    const field = screen.getByLabelText('Sync PIN (4 to 6 digits)');
     expect(field).toHaveAttribute('type', 'password');
     expect(field).toHaveAttribute('inputmode', 'numeric');
-    expect(field).toHaveAttribute('autocomplete', 'off');
     expect(field).toHaveAttribute('maxlength', '6');
-    expect(await screen.findByText(/A PIN is quick; a longer passphrase keeps your data safer/)).toBeInTheDocument();
+    expect(screen.getByText(/A PIN falls in minutes/)).toBeInTheDocument();
+    fireEvent.change(field, { target: { value: '482917' } });
+    expect(await screen.findByText('A PIN:')).toBeInTheDocument();
+    expect(screen.getByText(/it would stand about 26 seconds/)).toBeInTheDocument();
+  });
+
+  it('tells how long a secret stands in words, to the largest unit, and past a thousand years only its order', () => {
+    expect(howLongItStands(0.4)).toEqual({ key: 'instantly' });
+    expect(howLongItStands(26)).toEqual({ key: 'seconds', count: 26 });
+    expect(howLongItStands(52 * 60)).toEqual({ key: 'minutes', count: 52 });
+    expect(howLongItStands(5 * 3600)).toEqual({ key: 'hours', count: 5 });
+    expect(howLongItStands(40 * 86_400)).toEqual({ key: 'days', count: 40 });
+    expect(howLongItStands(12 * 365 * 86_400)).toEqual({ key: 'years', count: 12 });
+    expect(howLongItStands(3570 * 365 * 86_400)).toEqual({ key: 'thousandsOfYears' });
+    expect(howLongItStands(1e15)).toEqual({ key: 'millionsOfYears' });
   });
 
   it('on the first device, has it chosen and typed twice', async () => {
@@ -56,6 +95,7 @@ describe('the sync PIN prompt', () => {
     const unlocked = prompt(h);
     expect(await screen.findByRole('heading', { name: 'Choose a sync PIN' })).toBeInTheDocument();
     const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Use a PIN instead' }));
     await user.type(screen.getByLabelText('Sync PIN (4 to 6 digits)'), '123');
     await user.type(screen.getByLabelText('The same PIN again'), '123');
     await user.click(screen.getByRole('button', { name: 'Use it' }));
@@ -80,12 +120,12 @@ describe('the sync PIN prompt', () => {
     expect(await h.keyring.key(testUser.syncSalt)).not.toBeNull();
   }, 20_000);
 
-  it('switches to a passphrase of 8 characters or more, and back', async () => {
+  it('refuses a passphrase under 8 characters, and switches to a PIN and back', async () => {
     const h = await device(new FakeServer());
     prompt(h);
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'Use a passphrase instead' }));
-    const field = screen.getByLabelText('Passphrase (8 characters or more)');
+    expect(await screen.findByRole('heading', { name: 'Choose a sync PIN' })).toBeInTheDocument();
+    const field = screen.getByLabelText('Passphrase (a few words, 8 characters or more)');
     expect(field).not.toHaveAttribute('inputmode');
     await user.type(field, 'short');
     await user.type(screen.getByLabelText('The same passphrase again'), 'short');
@@ -94,6 +134,8 @@ describe('the sync PIN prompt', () => {
 
     await user.click(screen.getByRole('button', { name: 'Use a PIN instead' }));
     expect(screen.getByLabelText('Sync PIN (4 to 6 digits)')).toHaveValue('');
+    await user.click(screen.getByRole('button', { name: 'Use a passphrase instead' }));
+    expect(screen.getByLabelText('Passphrase (a few words, 8 characters or more)')).toHaveValue('');
   });
 
   it('once the account has a PIN, enters it once, and a wrong one is refused on the spot', async () => {
@@ -117,15 +159,18 @@ describe('the sync PIN prompt', () => {
     expect(screen.queryByLabelText('The same PIN again')).toBeNull();
     const user = userEvent.setup();
 
-    await user.type(screen.getByLabelText('Sync PIN (4 to 6 digits)'), '1357');
+    // Entering, one field takes either: a PIN typed there is the PIN.
+    const field = screen.getByLabelText('Sync passphrase or PIN');
+    await user.type(field, '1357');
     await user.click(screen.getByRole('button', { name: 'Unlock' }));
     expect(await screen.findByRole('alert', {}, { timeout: 15_000 })).toHaveTextContent(
       "That isn't the PIN your other devices use.",
     );
     expect(await h.keyring.key(testUser.syncSalt)).toBeNull();
 
-    await user.clear(screen.getByLabelText('Sync PIN (4 to 6 digits)'));
-    await user.type(screen.getByLabelText('Sync PIN (4 to 6 digits)'), '2468');
+    // In the digits of an Arabic keypad, all the same.
+    await user.clear(field);
+    await user.type(field, '٢٤٦٨');
     await user.click(screen.getByRole('button', { name: 'Unlock' }));
     await waitFor(() => expect(unlocked).toHaveBeenCalled(), { timeout: 15_000 });
     expect(await h.db.rows('expenses').get(uuid)).toMatchObject({ amountMinor: 45_000 });
@@ -149,7 +194,7 @@ describe('the sync PIN prompt', () => {
     prompt(h);
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Forgot the PIN? Start over' }));
-    expect(await screen.findByText(/This deletes the money, places and pictures kept on the server/)).toBeInTheDocument();
+    expect(await screen.findByText(/This deletes everything kept on the server for this account/)).toBeInTheDocument();
     await user.type(screen.getByLabelText('Your account password'), 'not it');
     await user.click(screen.getByRole('button', { name: 'Start over' }));
     expect(await screen.findByText("That isn't this account's password.")).toBeInTheDocument();

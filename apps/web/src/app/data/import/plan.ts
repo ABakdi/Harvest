@@ -1,7 +1,7 @@
-import { instantMicros, tables, tierOf, type SyncedTable } from '@harvest/contracts';
+import { instantMicros, tables, tierOf } from '@harvest/contracts';
 import { instantOf } from '../archive';
 import type { SheetRows } from '../archive-xlsx';
-import { primaryKeyOf, recordKeyOf, type HarvestDB } from '../db';
+import { primaryKeyOf, recordKeyOf, type HarvestDB, type StoredTable } from '../db';
 import type { PendingUpload } from '../files';
 import type { Context, Spec } from './sheet-spec';
 import type { ImportCount } from '../import';
@@ -28,7 +28,7 @@ export function micros(iso: string | null | undefined): number | null {
  * this browser holds only sealed counts too: it is here, just not
  * opened yet, and the merge must not call it new.
  */
-export async function localStamps(db: HarvestDB, table: SyncedTable, column: string | null): Promise<Map<string, number>> {
+export async function localStamps(db: HarvestDB, table: StoredTable, column: string | null): Promise<Map<string, number>> {
   const stamps = new Map<string, number>();
   for (const row of (await db.rows(table).toArray()) as Record<string, unknown>[]) {
     stamps.set(recordKeyOf(table, row), column === null ? epoch : (micros(row[column] as string) ?? epoch));
@@ -42,7 +42,7 @@ export async function localStamps(db: HarvestDB, table: SyncedTable, column: str
 }
 
 interface Pending {
-  table: SyncedTable;
+  table: StoredTable;
   row: Record<string, unknown>;
 }
 
@@ -66,7 +66,7 @@ export function emptyCount(): ImportCount {
  * leaves out a row the contract would refuse.
  */
 export function decide(
-  table: SyncedTable,
+  table: StoredTable,
   built: Record<string, unknown>,
   local: number | undefined,
   incoming: number | null,
@@ -91,7 +91,7 @@ export function decide(
   return true;
 }
 
-export async function planRows(db: HarvestDB, item: Spec<SyncedTable>, rows: SheetRows, context: Context): Promise<Planned> {
+export async function planRows(db: HarvestDB, item: Spec<StoredTable>, rows: SheetRows, context: Context): Promise<Planned> {
   const planned: Planned = { count: emptyCount(), pending: [], files: new Map(), uploads: [], newFiles: 0 };
   const local = await localStamps(db, item.table, item.stamp?.local ?? null);
   const store = db.rows(item.table);

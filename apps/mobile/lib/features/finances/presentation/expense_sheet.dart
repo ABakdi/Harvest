@@ -18,6 +18,7 @@ import 'package:harvest/features/finances/domain/expense.dart';
 import 'package:harvest/features/finances/domain/finance_actions.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/finances/presentation/amount_keypad.dart';
+import 'package:harvest/features/finances/presentation/currency_picker.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/finances/presentation/money_sheet.dart';
@@ -393,20 +394,10 @@ class _ExpenseSheetState extends ConsumerState<_ExpenseSheet> {
         Row(
           children: [
             Expanded(
-              child: SegmentedButton<Currency>(
+              child: CurrencyChoice(
                 showSelectedIcon: false,
-                segments: [
-                  for (final option in Currency.values)
-                    ButtonSegment(
-                      value: option,
-                      label: Text(option.symbol),
-                    ),
-                ],
-                selected: {currency},
-                onSelectionChanged: (selection) {
-                  unawaited(HarvestHaptics.tick());
-                  setState(() => _currency = selection.first);
-                },
+                selected: currency,
+                onChanged: (chosen) => setState(() => _currency = chosen),
               ),
             ),
             const SizedBox(width: HarvestSpacing.sm),

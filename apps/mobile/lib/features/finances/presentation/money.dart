@@ -40,9 +40,12 @@ String formatGrouped(int minor) {
   return text.endsWith('.00') ? text.substring(0, text.length - 3) : text;
 }
 
-/// Symbol + grouped amount: "DA66,667.76".
+final _groupedWhole = NumberFormat('#,##0', 'en');
+
+/// Symbol + grouped amount: "DA66,667.76", or "¥1,235" for a currency
+/// shown without decimals (the amount is still kept in hundredths).
 String formatAmount(int minor, Currency currency) =>
-    '${currency.symbol}${formatGrouped(minor)}';
+    '${currency.symbol}${currency.displayDecimals == 0 ? _groupedWhole.format((minor / 100).round()) : formatGrouped(minor)}';
 
 /// Signed display: "+DA500" / "−DA500".
 String formatSigned(int minor, Currency currency) =>

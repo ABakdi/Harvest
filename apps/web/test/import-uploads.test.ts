@@ -8,7 +8,7 @@ import { sha256Of } from '@/app/data/files';
 import { applyImport, openArchive } from '@/app/data/import';
 import { api } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, testFileName, testUser } from './helpers';
 
 /**
  * What an archive brings in reaches the server like a picture taken
@@ -74,8 +74,9 @@ async function withFiles(pictureHash: string | null = null) {
   };
 }
 
-function fakeFileServer(has: string[] = []) {
-  const held = new Set(has);
+/** A file server that holds [has], by the names a device with the test's passphrase gives them. */
+async function fakeFileServer(has: string[] = []) {
+  const held = new Set(await Promise.all(has.map((sha) => testFileName(sha, 'a long passphrase'))));
   const put = vi.spyOn(api, 'putFile').mockImplementation((sha, sealed) => {
     held.add(sha);
     return Promise.resolve({ sha256: sha, bytes: sealed.byteLength, had: false });
@@ -89,7 +90,7 @@ function fakeFileServer(has: string[] = []) {
 describe('files an archive brings in', () => {
   it('wait unnamed in the upload queue, then are sent sealed and their rows stamped', async () => {
     const h = await device(new FakeServer());
-    const { put } = fakeFileServer();
+    const { put } = await fakeFileServer();
     const { bundle, pictureHash, recordingHash } = await withFiles();
 
     await applyImport(h.writer, bundle, { files: h.files });
@@ -107,7 +108,8 @@ describe('files an archive brings in', () => {
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     const report = await h.files.upload();
     expect(report).toMatchObject({ uploaded: 2, stamped: 2, waiting: 0 });
-    expect(put.mock.calls.map(([sha]) => sha).sort()).toEqual([pictureHash, recordingHash].sort());
+    const names = await Promise.all([pictureHash, recordingHash].map((sha) => testFileName(sha, 'a long passphrase')));
+    expect(put.mock.calls.map(([name]) => name).sort()).toEqual(names.sort());
     expect((await h.db.rows('memories').get('m1'))!.fileHash).toBe(pictureHash);
     expect((await h.db.rows('note_attachments').get('r1'))!.fileHash).toBe(recordingHash);
     // Stamped rows travel again, so the other devices learn the names.
@@ -117,7 +119,7 @@ describe('files an archive brings in', () => {
   it('starts a pass on its own once the import is done, when the passphrase is set', async () => {
     const h = await device(new FakeServer());
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
-    const { put } = fakeFileServer();
+    const { put } = await fakeFileServer();
     const { bundle, pictureHash } = await withFiles();
 
     await applyImport(h.writer, bundle, { files: h.files });
@@ -130,7 +132,7 @@ describe('files an archive brings in', () => {
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     const { pictureHash, recordingHash } = await withFiles();
     // The recording is there already; the picture is not.
-    const { put } = fakeFileServer([recordingHash]);
+    const { put } = await fakeFileServer([recordingHash]);
     const { bundle } = await withFiles(pictureHash);
 
     await applyImport(h.writer, bundle, { files: h.files });
@@ -138,7 +140,7 @@ describe('files an archive brings in', () => {
     expect(before.fileHash).toBe(pictureHash);
     await waitFor(async () => expect(await h.files.localHashes()).toEqual(new Map()));
 
-    expect(put.mock.calls.map(([sha]) => sha)).toEqual([pictureHash]);
+    expect(put.mock.calls.map(([name]) => name)).toEqual([await testFileName(pictureHash, 'a long passphrase')]);
     // Named already: not stamped again, so it does not travel for nothing.
     expect((await h.db.rows('memories').get('m1'))!.updatedAt).toBe(before.updatedAt);
     // Unnamed, and the server had it: stamped without sending.
@@ -148,7 +150,7 @@ describe('files an archive brings in', () => {
   it('keeps a file past 25 MB here, and never sends it', async () => {
     const h = await device(new FakeServer());
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
-    const { put, missing } = fakeFileServer();
+    const { put, missing } = await fakeFileServer();
     const big = new Uint8Array(maxFileBytes + 1);
     const bundle = openArchive(
       archive(

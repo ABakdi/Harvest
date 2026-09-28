@@ -1,7 +1,7 @@
 import type { CurrencyCode, Rates } from '@harvest/core';
 import { HarvestDay, budgetSnapshotFor, currencyOf, sumInDefault } from '@harvest/core';
 import type { HarvestDB, Row } from './db';
-import { readSetting, settingKeys } from './settings';
+import { currencyWithNoneChosen, perUsdOf, rateKeys, readSetting, settingKeys } from './settings';
 import type { Tx, Writer } from './writer';
 
 export type TxnRow = Row<'money_txns'>;
@@ -14,18 +14,20 @@ export type Account = (typeof accounts)[number];
 
 /** What the exchange card last knew, as the rules want it. */
 export async function readRates(db: HarvestDB): Promise<Rates> {
-  const [currency, usd, eur, usdPerEur] = await Promise.all([
+  const [currency, usd, eur, usdPerEur, perUsd] = await Promise.all([
     readSetting(db, settingKeys.defaultCurrency),
     readSetting(db, 'rate.dzdPerUsd'),
     readSetting(db, 'rate.dzdPerEur'),
     readSetting(db, 'rate.usdPerEur'),
+    readSetting(db, rateKeys.perUsd),
   ]);
   const number = (raw: string | null) => {
     const value = Number(raw);
     return raw !== null && Number.isFinite(value) && value > 0 ? value : null;
   };
   return {
-    defaultCurrency: currencyOf(currency),
+    defaultCurrency: currencyOf(currency, await currencyWithNoneChosen(db)),
+    perUsd: perUsdOf(perUsd),
     dzdPerUsd: number(usd),
     dzdPerEur: number(eur),
     usdPerEur: number(usdPerEur),

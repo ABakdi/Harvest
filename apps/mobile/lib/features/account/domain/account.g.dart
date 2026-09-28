@@ -89,7 +89,7 @@ final class ServerAddressProvider
   }
 }
 
-String _$serverAddressHash() => r'b19ae076ee68f3772d88d7d26efb845f609911ec';
+String _$serverAddressHash() => r'49f520cfd8fcda8d44d26caea458d1f618951dfa';
 
 @ProviderFor(apiClient)
 final apiClientProvider = ApiClientProvider._();
@@ -130,7 +130,7 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'8e9a9bac28b70238ea27c5cd5cd9bb587d67bd76';
+String _$apiClientHash() => r'e3021e6c48785be6ccfd16fcb415fcadec1d6af6';
 
 @ProviderFor(syncKeyRemote)
 final syncKeyRemoteProvider = SyncKeyRemoteProvider._();
@@ -223,14 +223,14 @@ final class SyncKeyStateProvider
 
 String _$syncKeyStateHash() => r'e35bdec689a00ce9b94a8c3e3a7ebf5bee144d6d';
 
-/// Files sync only once a passphrase is set: a picture is as personal
-/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+/// Files sync only once a sync PIN is set: like every row, a picture
+/// goes up sealed or not at all ([[Sync-API]]).
 
 @ProviderFor(fileSync)
 final fileSyncProvider = FileSyncProvider._();
 
-/// Files sync only once a passphrase is set: a picture is as personal
-/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+/// Files sync only once a sync PIN is set: like every row, a picture
+/// goes up sealed or not at all ([[Sync-API]]).
 
 final class FileSyncProvider
     extends
@@ -240,8 +240,8 @@ final class FileSyncProvider
           FutureOr<FileSync?>
         >
     with $FutureModifier<FileSync?>, $FutureProvider<FileSync?> {
-  /// Files sync only once a passphrase is set: a picture is as personal
-  /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+  /// Files sync only once a sync PIN is set: like every row, a picture
+  /// goes up sealed or not at all ([[Sync-API]]).
   FileSyncProvider._()
     : super(
         from: null,
@@ -308,7 +308,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'09172623bc185c28a4a8759ee7e8d0feb507b635';
+String _$syncServiceHash() => r'098c974ea3a6b866f69a0470474290b7eb392107';
 
 @ProviderFor(syncKeyMaker)
 final syncKeyMakerProvider = SyncKeyMakerProvider._();

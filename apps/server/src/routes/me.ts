@@ -1,4 +1,10 @@
-import { deleteMeBodySchema, patchMeBodySchema, sessionParamsSchema, type SessionsResult } from '@harvest/contracts';
+import {
+  deleteMeBodySchema,
+  patchMeBodySchema,
+  reauthBodySchema,
+  sessionParamsSchema,
+  type SessionsResult,
+} from '@harvest/contracts';
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
 import { toMe, toSession, type AuthService } from '../auth/service.js';
@@ -38,6 +44,17 @@ export function meRoutes(auth: AuthService, repos: Repositories, policy: CookieP
     ...validated({ body: deleteMeBodySchema }, async ({ body }, _req, res) => {
       await auth.deleteAccount(authOf(res).userId, body.password);
       clearRefreshCookies(res, policy);
+      res.status(204).end();
+    }),
+  );
+
+  // The password again before an export (Phase 7, M7.6): the same
+  // guesses, counted against the same limit as deleting the account.
+  router.post(
+    '/reauth',
+    limits.deleteAccount,
+    ...validated({ body: reauthBodySchema }, async ({ body }, _req, res) => {
+      await auth.reauth(authOf(res).userId, body.password);
       res.status(204).end();
     }),
   );

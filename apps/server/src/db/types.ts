@@ -8,6 +8,11 @@ import type { Binary, ObjectId } from 'mongodb';
  * handler cannot forget.
  */
 
+/**
+ * An account as the code sees it, with its address and name in the
+ * clear. The database never holds those as themselves ([[StoredUserDoc]]);
+ * the users repository seals and opens them.
+ */
 export interface UserDoc {
   _id: ObjectId;
   /** Normalised: trimmed and lowercase. */
@@ -37,6 +42,24 @@ export interface UserDoc {
   /** Which key the private tier is under; 1 until the first start over. */
   keyEpoch?: number;
 }
+
+/**
+ * An account as the database holds it (Phase 7, M7.7): the address
+ * found by its keyed hash and kept sealed, the name sealed, both under
+ * keys drawn from the environment (`people-keys.ts`), so a copy of the
+ * database holds no readable address or name.
+ */
+export type StoredUserDoc = Omit<UserDoc, 'email' | 'displayName'> & {
+  /** HMAC-SHA256 of the normalised address under the lookup key, hex. */
+  emailLookup: string;
+  /** The address, sealed (additional data `email/<user id>`). */
+  emailSealed: SealedBytes;
+  /** The display name, sealed (additional data `name/<user id>`), or null for none. */
+  nameSealed: SealedBytes | null;
+  /** Only on an account stored before Phase 7, until the server's start seals it. */
+  email?: string;
+  displayName?: string | null;
+};
 
 /** Bytes sealed by the server with a key of its own, base64. */
 export interface SealedBytes {
@@ -166,14 +189,20 @@ export interface RecordDoc {
   deletedAt: string | null;
   /** `updatedAt` in epoch microseconds: what the conflict rule compares. */
   stamp: number;
+  /** Only on a row stored in the clear before Phase 7, until a device seals it. */
   data?: Record<string, unknown>;
   enc?: EncEnvelope;
+  /** The name of the file a sealed row names, in the clear, for the sweep. */
+  file?: string;
   purged?: true;
   /** The user's sequence value at the last stored write. */
   seq: number;
-  /** Which device wrote it last; kept for debugging, never returned. */
+  /**
+   * Which device wrote it last, so a pull can leave out a device's own
+   * writes; never returned. No arrival time is kept beside it (Phase 7,
+   * M7.3): the sequence is all a pull needs.
+   */
   deviceId: string;
-  receivedAt: Date;
   /** The stored payload's size (`payloadBytes`); absent on rows from before it was kept. */
   bytes?: number;
 }

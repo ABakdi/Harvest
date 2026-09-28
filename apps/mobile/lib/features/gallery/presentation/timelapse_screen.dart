@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/security/file_vault.dart';
+import 'package:harvest/core/security/vault_image.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
@@ -88,7 +90,14 @@ class _TimelapseScreenState extends ConsumerState<TimelapseScreen> {
     if (files == null || files.isEmpty) return;
     for (var i = 1; i <= _lookahead; i++) {
       final file = files[(_index + i) % files.length];
-      if (file != null) unawaited(precacheImage(FileImage(file), context));
+      if (file != null) {
+        unawaited(
+          precacheImage(
+            VaultFileImage(file, ref.read(fileVaultProvider)),
+            context,
+          ),
+        );
+      }
     }
   }
 
@@ -252,14 +261,14 @@ class _TimelapseScreenState extends ConsumerState<TimelapseScreen> {
 /// an empty black screen that looks like the end of the album. A
 /// picture that is not here says why, as it does in the grid
 /// ([[Gallery]] G9), and comes down while the album plays.
-class _Frame extends StatelessWidget {
+class _Frame extends ConsumerWidget {
   const _Frame({required this.file, required this.memory});
 
   final File? file;
   final Memory memory;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (file == null && memory.kind != MemoryKind.video) {
       return MemoryAbsent(
         key: ValueKey(memory.uuid),
@@ -278,8 +287,8 @@ class _Frame extends StatelessWidget {
         ),
       );
     }
-    return Image.file(
-      file!,
+    return Image(
+      image: VaultFileImage(file!, ref.watch(fileVaultProvider)),
       fit: BoxFit.contain,
       gaplessPlayback: true,
       errorBuilder: (context, error, stack) => const Center(

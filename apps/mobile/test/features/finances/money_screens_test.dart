@@ -174,7 +174,7 @@ void main() {
               context,
               title: 'Deposit',
               initialCurrency: Currency.dzd,
-              walletBalances: const {Currency.dzd: 1000000},
+              walletBalances: {Currency.dzd: 1000000},
             );
           }),
         ),
@@ -241,7 +241,7 @@ void main() {
               context,
               title: 'Take',
               initialCurrency: Currency.dzd,
-              maxMinor: const {Currency.dzd: 500000},
+              maxMinor: {Currency.dzd: 500000},
             ),
           ),
         ),

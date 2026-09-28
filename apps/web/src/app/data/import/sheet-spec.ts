@@ -1,6 +1,5 @@
-import type { SyncedTable } from '@harvest/contracts';
 import { instantOf } from '../archive';
-import type { Row } from '../db';
+import type { Row, StoredTable } from '../db';
 import type { SheetKey } from '../export-sheets';
 
 /*
@@ -23,7 +22,7 @@ export interface Context {
 }
 
 /** How one sheet merges into one table. */
-export interface Spec<T extends SyncedTable> {
+export interface Spec<T extends StoredTable> {
   sheet: SheetKey;
   table: T;
   keyOf: (row: SheetRow) => string | null | undefined;
@@ -37,7 +36,7 @@ export interface Spec<T extends SyncedTable> {
   accept?: (row: SheetRow) => boolean;
 }
 
-export function spec<T extends SyncedTable>(value: Spec<T>): Spec<SyncedTable> {
+export function spec<T extends StoredTable>(value: Spec<T>): Spec<StoredTable> {
   return value;
 }
 

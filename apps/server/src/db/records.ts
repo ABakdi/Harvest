@@ -1,4 +1,4 @@
-import { hasColumn, privateTables, syncedTables, type SyncedTable } from '@harvest/contracts';
+import { hasColumn, retiredTables, syncedTables, type SyncedTable } from '@harvest/contracts';
 import { BSON, type Collection, type ObjectId } from 'mongodb';
 import type { CounterDoc, RecordDoc } from './types.js';
 
@@ -24,13 +24,15 @@ export interface StoredStamp {
   _id: ObjectId;
   stamp: number;
   bytes: number;
+  /** Stored in the clear before Phase 7: its sealed copy replaces it at the same clock. */
+  plain?: boolean;
 }
 
 /**
- * The tables whose rows name a file by its hash, in `data.fileHash`:
- * every table the contract gives that column, so a new one cannot be
- * missed and its files swept (SV-12). Each must be plain tier, or the
- * server could not read the name; a test holds that.
+ * The tables whose rows name a file: every table the contract gives a
+ * `fileHash` column, so a new one cannot be missed and its files swept
+ * (SV-12). A sealed row says which in its clear `file`; a row stored
+ * before Phase 7 in `data.fileHash`.
  */
 export const fileTables: readonly SyncedTable[] = syncedTables.filter((table) => hasColumn(table, 'fileHash'));
 
@@ -55,12 +57,27 @@ export class RecordsRepository {
     const docs = await this.records
       .find(
         { userId, $or: [...byTable].map(([table, uuids]) => ({ table, uuid: { $in: uuids } })) },
-        { projection: { _id: 1, table: 1, uuid: 1, stamp: 1, bytes: 1 } },
+        {
+          projection: {
+            _id: 1,
+            table: 1,
+            uuid: 1,
+            stamp: 1,
+            bytes: 1,
+            plain: { $ne: [{ $type: '$data' }, 'missing'] },
+          },
+        },
       )
       .toArray();
     const unmeasured: ObjectId[] = [];
-    for (const doc of docs) {
-      found.set(`${doc.table}/${doc.uuid}`, { _id: doc._id, stamp: doc.stamp, bytes: doc.bytes ?? -1 });
+    for (const raw of docs) {
+      const doc = raw as typeof raw & { plain?: boolean };
+      found.set(`${doc.table}/${doc.uuid}`, {
+        _id: doc._id,
+        stamp: doc.stamp,
+        bytes: doc.bytes ?? -1,
+        plain: doc.plain === true,
+      });
       if (typeof doc.bytes !== 'number') unmeasured.push(doc._id);
     }
     // Rows stored before sizes were kept: measured once, here.
@@ -184,16 +201,17 @@ export class RecordsRepository {
   }
 
   /**
-   * Every file hash a row still names: the rows of [fileTables] that
-   * are not purged. A row in the trash still names its file, because it
-   * can come back.
+   * Every file name a row still names: the rows of [fileTables] that
+   * are not purged, by their clear `file` or, stored before Phase 7,
+   * their `data.fileHash`. A row in the trash still names its file,
+   * because it can come back.
    */
   async namedFiles(userId: ObjectId): Promise<Set<string>> {
-    // Read a hash at a time, not as one `distinct` answer, which stops
+    // Read a name at a time, not as one `distinct` answer, which stops
     // at 16 MB (SV-16).
     const cursor = this.records.aggregate<{ _id: unknown }>([
       { $match: { userId, table: { $in: [...fileTables] }, purged: { $ne: true } } },
-      { $group: { _id: '$data.fileHash' } },
+      { $group: { _id: { $ifNull: ['$file', '$data.fileHash'] } } },
     ]);
     const named = new Set<string>();
     for await (const { _id: hash } of cursor) if (typeof hash === 'string') named.add(hash);
@@ -201,20 +219,40 @@ export class RecordsRepository {
   }
 
   /**
-   * Hard-deletes every private-tier row of the account: sealed under a
-   * key nobody has any more, they cannot be read by anyone. No
-   * tombstone is left; a pull simply never hands them out again.
-   * Answers how many went.
+   * Hard-deletes every sealed row of the account, and every tombstone:
+   * sealed under a key nobody has any more, they cannot be read by
+   * anyone. What is left is only what was stored in the clear before
+   * Phase 7 and not sealed since. No tombstone is left; a pull simply
+   * never hands them out again. Answers how many went.
    */
-  async deletePrivate(userId: ObjectId): Promise<number> {
-    const result = await this.records.deleteMany({ userId, table: { $in: [...privateTables] } });
+  async deleteSealed(userId: ObjectId): Promise<number> {
+    const result = await this.records.deleteMany({ userId, data: { $exists: false } });
     return result.deletedCount;
   }
 
-  /** Whether any row of [fileTables] still names [sha256] (in the trash counts). */
-  async namesFile(userId: ObjectId, sha256: string): Promise<boolean> {
+  /**
+   * Hard-deletes every row the account still keeps in the clear, stored
+   * before Phase 7, and every row of a retired table (a trail point of
+   * 3.1's, now inside its day): a device has sent all of them again
+   * sealed (`POST /v1/sync/sealed`). Answers how many went.
+   */
+  async deletePlain(userId: ObjectId): Promise<number> {
+    const result = await this.records.deleteMany({
+      userId,
+      $or: [{ data: { $exists: true } }, { table: { $in: [...retiredTables] } }],
+    });
+    return result.deletedCount;
+  }
+
+  /** Whether any row of [fileTables] still names [name] (in the trash counts). */
+  async namesFile(userId: ObjectId, name: string): Promise<boolean> {
     const found = await this.records.countDocuments(
-      { userId, table: { $in: [...fileTables] }, purged: { $ne: true }, 'data.fileHash': sha256 },
+      {
+        userId,
+        table: { $in: [...fileTables] },
+        purged: { $ne: true },
+        $or: [{ file: name }, { 'data.fileHash': name }],
+      },
       { limit: 1 },
     );
     return found > 0;

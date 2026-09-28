@@ -90,12 +90,34 @@ The whole point is a **sub-5-second log**:
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 
-Stored as integer minor units (cents) — never floats, and always in
-the currency the money was in. **Three currencies are supported** —
-one default chosen in settings, and any amount logged in another is
-converted for the totals at the rate I last fetched, never rewritten
-([[Audit-v2]] D3-08). An earlier line here called multi-currency out
-of scope; it was out of date the day the Vault shipped.
+Stored as integer hundredths of the currency — never floats, and always
+in the currency the money was in. **Every currency in circulation is
+supported** since Phase 7 (160 of them, ISO 4217, with their names in
+English and Arabic; [[Phase-7-Privacy-and-Currencies]] M7.8), where 3.1
+knew the dinar, the dollar and the euro. One is the default, chosen in
+settings, and any amount logged in another is converted for the totals
+at the rate I last fetched, never rewritten ([[Audit-v2]] D3-08).
+Hundredths for every currency, even the yen's and the Kuwaiti dinar's,
+so nothing stored had to change: a currency's own minor units only say
+how many decimals are shown — none for the yen, two at most for anyone.
+
+- **The default follows where I am.** A new install starts with the
+  currency of the first country the device can name: on the phone its
+  SIM's, then its network's; then the time zone's country; then each
+  language's region. With none, the dinar. The server is never asked:
+  an address-based guess would be one more thing it could learn about
+  me. Always changeable in Settings › Money, from a list I can search by
+  name, code or symbol (`defaultCurrencyFor`, pinned by
+  `fixtures/currency-defaults.json`).
+- **Rates for every currency** come from `open.er-api.com` (what one
+  dollar buys of each, updated daily; "Rates by Exchange Rate API"),
+  fetched by the device when I tap *Fetch*, kept with their date, and
+  shown with it. Any two currencies convert through the dollar.
+- **The dinar's parallel market** — DZD against the euro and the
+  dollar, typed by hand, because the official rate is not what a euro
+  buys in Algiers — shows only when my currency is the dinar, and when
+  set it wins over the fetched rate for any leg through the dinar.
+  Nobody else sees the dinar, the euro or the dollar singled out.
 
 ## Smart repeats
 
@@ -123,8 +145,8 @@ If the same amount+category (e.g., "Coffee — $5, Food") appears 3 days running
 - A settled debt keeps its payments: removing one — a last payment made
   by mistake — reopens the debt, with Undo. Settling says so, with a
   small celebration.
-- The dinar rates are typed by hand; *Fetch* brings only EUR → USD, and
-  the card says so beside the dinar fields.
+- The dinar's parallel rates are typed by hand; *Fetch* brings the
+  official ones for every currency, and the card says which wins.
 - In Arabic an amount is held left to right as one piece, so its sign
   sits before the number, and every number in the app — amounts, dates,
   times, counts — uses the same Western digits.

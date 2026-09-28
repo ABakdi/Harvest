@@ -1,6 +1,5 @@
 import {
   checkRecord,
-  tierOf,
   pinVerifierOf,
   type KeyCheck,
   type SyncKeySet,
@@ -12,14 +11,18 @@ import {
   type PushBody,
   type PushResult,
   type PushResultItem,
+  type SealedBody,
+  type SealedResult,
   type SyncRecord,
 } from '@harvest/contracts';
 import type { SyncTransport } from '@/app/sync/engine';
 
 /**
  * The server's sync rules in memory (apps/server/src/sync/service.ts):
- * the contract's checks, last writer wins on the record's stamp, a tie
- * is stale, a purge keeps only its tombstone, and every stored write
+ * the contract's checks (a row in the clear is refused, `sealed_required`),
+ * last writer wins on the record's stamp, a tie is stale — except a
+ * sealed row over one kept in the clear from before Phase 7, which it
+ * replaces — a purge keeps only its tombstone, and every stored write
  * takes the next sequence number.
  */
 /** The key share every fresh fake account starts with. */
@@ -45,6 +48,8 @@ export class FakeServer implements SyncTransport {
   keyAsks = 0;
   /** When set, a push of more records than this answers 413. */
   tooLargeOver: number | null = null;
+  /** Every `POST /v1/sync/sealed`, as it came. */
+  readonly sealedCalls: SealedBody[] = [];
   /** Every push body's record count, and every pull's deviceId. */
   readonly batches: number[] = [];
   readonly pulledAs: (string | undefined)[] = [];
@@ -87,7 +92,7 @@ export class FakeServer implements SyncTransport {
     this.check = null;
     this.epoch++;
     this.keyShare = Buffer.from(Array.from({ length: 32 }, (_, i) => (i * 7 + this.epoch) % 256)).toString('base64');
-    for (const [id, record] of this.stored) if (tierOf(record.table) === 'private') this.stored.delete(id);
+    this.stored.clear();
     return Promise.resolve();
   }
 
@@ -112,7 +117,8 @@ export class FakeServer implements SyncTransport {
       const record: SyncRecord = checked.record;
       const id = `${record.table}/${record.uuid}`;
       const existing = this.stored.get(id);
-      if (existing && recordStamp(record) <= recordStamp(existing)) {
+      const sealsPlain = existing?.data !== undefined && record.enc !== undefined;
+      if (existing && (sealsPlain ? recordStamp(record) < recordStamp(existing) : recordStamp(record) <= recordStamp(existing))) {
         results.push({ ...identity, status: 'stale' });
         continue;
       }
@@ -128,6 +134,32 @@ export class FakeServer implements SyncTransport {
     return Promise.resolve({ results, cursor: this.seq });
   }
 
+  /**
+   * A row kept in the clear from before Phase 7, as a 3.1 device left it:
+   * what the migration has to seal and the server then lets go of.
+   */
+  storePlain(record: Omit<SyncRecord, 'enc'> & { data: Record<string, unknown> }, deviceId = 'a 3.1 phone'): void {
+    const id = `${record.table}/${record.uuid}`;
+    this.writtenBy.set(id, deviceId);
+    this.stored.set(id, { ...structuredClone(record), seq: ++this.seq });
+  }
+
+  sealed(body: SealedBody): Promise<SealedResult> {
+    this.sealedCalls.push(body);
+    if (this.verifier === null) return Promise.reject(Object.assign(new Error('No PIN'), { status: 409, code: 'conflict' }));
+    if (body.keyEpoch !== this.epoch) {
+      return Promise.reject(Object.assign(new Error('stale key'), { status: 409, code: 'key_changed' }));
+    }
+    let dropped = 0;
+    for (const [id, record] of this.stored) {
+      if (record.data !== undefined) {
+        this.stored.delete(id);
+        dropped++;
+      }
+    }
+    return Promise.resolve({ dropped });
+  }
+
   pull(after: number, limit: number, deviceId?: string): Promise<PullResult> {
     this.pulls++;
     this.pulledAs.push(deviceId);
@@ -140,7 +172,8 @@ export class FakeServer implements SyncTransport {
     // The device's own writes are left out; the cursor still moves past them.
     const records = taken
       .filter((record) => deviceId === undefined || this.writtenBy.get(`${record.table}/${record.uuid}`) !== deviceId)
-      .map((record) => structuredClone(record));
+      // The file a row names is for the server; a pull does not carry it.
+      .map(({ file: _file, ...record }) => structuredClone(record));
     return Promise.resolve({ records, cursor: taken.at(-1)?.seq ?? after, more });
   }
 

@@ -1,9 +1,10 @@
-import { listUuidOfItem, type SyncedTable } from '@harvest/contracts';
+import { listUuidOfItem } from '@harvest/contracts';
+import type { StoredTable } from '../db';
 import { dayOf, intOf } from '../archive';
 import { ratingOf, spec, uuidOf, text, at, updated, type Spec } from './sheet-spec';
 
 /** The Field: seeds, goals, lists and what hangs off a seed. */
-export const fieldSheets: Spec<SyncedTable>[] = [
+export const fieldSheets: Spec<StoredTable>[] = [
   spec({
     sheet: 'seeds',
     table: 'commitments',

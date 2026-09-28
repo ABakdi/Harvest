@@ -5,6 +5,7 @@ import {
   deriveSyncKey,
   openRow,
   privateTables,
+  retiredTables,
   sealRow,
   type EncEnvelope,
   type SyncedTable,
@@ -61,8 +62,20 @@ describe('the pinned key', () => {
     expect(Buffer.from(raw).toString('hex')).toBe(pinned.keyHex);
   });
 
-  it('covers every private table', () => {
-    expect(pinned.cases.map((c) => c.table).sort()).toEqual([...privateTables].sort());
+  it('covers the eight tables 3.0.0 sealed, the ones version 1 ever wrote', () => {
+    expect(pinned.cases.map((c) => c.table).sort()).toEqual(
+      [
+        'debt_payments',
+        'debts',
+        'expense_categories',
+        'expenses',
+        'geotags',
+        'location_points',
+        'money_txns',
+        'saved_places',
+      ].sort(),
+    );
+    for (const table of pinned.cases.map((c) => c.table)) expect(privateTables).toContain(table);
   });
 });
 
@@ -80,7 +93,13 @@ describe.each(pinned.cases)('$table', ({ table, uuid, plaintext }) => {
   it('seals the row to the same bytes with the same nonce', async () => {
     const envelope = await sealRow(key, table, uuid, JSON.parse(plaintext) as Record<string, unknown>, fromBase64(record.enc.iv));
     expect(envelope).toEqual(record.enc);
-    expect(checkRecord({ ...record, enc: envelope }).ok).toBe(true);
+    const checked = checkRecord({ ...record, enc: envelope });
+    // A point is no row of its own any more (Phase 7, M7.3): only its tombstone is taken.
+    if ((retiredTables as readonly string[]).includes(table)) {
+      expect(checked.ok ? [] : checked.issues.map((issue) => issue.code)).toContain('retired_table');
+    } else {
+      expect(checked.ok).toBe(true);
+    }
   });
 
   it('refuses the envelope on another row or another table', async () => {

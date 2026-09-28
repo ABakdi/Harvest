@@ -3,12 +3,9 @@
   "uuid": "global",
   "updatedAt": "2026-09-19T03:00:04.000Z",
   "deletedAt": null,
-  "data": {
-    "scope": "global",
-    "current": 23,
-    "best": 41,
-    "lastEarnedDay": "2026-09-18",
-    "freezesStored": 1,
-    "updatedAt": "2026-09-19T03:00:04.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "q5b2G1NBtrP7DFks",
+    "ct": "qWTASH9PcgoV3y1nmENY4+sJk6RBeC29lw6Oh9kUVESrGXocgqzzuRe0RdKnHZJVO8t8k6Dv6jE6bRcyGdAarLGQ9OD+XMRfHX6XvOf8fEVHLCPTCd46YbrXdhymynDx1SXT2jLkqA8+5dPharX49BUcENitulP5xJUyR7V2ijZUTmLxb7aF4FOGBRPpGtYP6NoK5vHV21O1DBzmWUU/w33m8MF5+ilUFjHXfgrnP3yG9oMwhOqqQ+x7pHv6ckb+o/2PaX71vgGlYNBmdb0tgRx6baKWeZ4gnxQsGP9X8UKsDcTBBvCxfGlkDGvFkaZ0cSSYtbrVQk+y8RRQsOF+Sv/SFVbqfI9MSgX7VVXxBII="
   }
 }

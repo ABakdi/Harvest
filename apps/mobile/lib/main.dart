@@ -4,8 +4,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/app/app.dart';
+import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/day_reset.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/core/ui/format.dart';
+import 'package:harvest/features/finances/data/currency_guess.dart';
+import 'package:harvest/features/gallery/data/gallery_storage.dart';
+import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:harvest/features/security/domain/app_lock.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
@@ -42,6 +47,17 @@ Future<void> start() async {
     runApp(DataUnavailableApp(onRetry: () => unawaited(start())));
     return;
   }
+  // A new install starts in the currency of where the phone is; a
+  // failure only leaves the dinar, as before.
+  unawaited(
+    guessDefaultCurrency(
+      container.read(databaseProvider),
+    ).catchError((Object _) => null),
+  );
+  // Pictures and recordings from before Phase 7 are sealed where they
+  // lie, a file at a time; the copies opened to play or share last time
+  // go (M7.4).
+  unawaited(sealFilesAtRest(container));
   container.read(onboardingDoneProvider.notifier).set(done: done);
   container.read(appLockProvider.notifier).start(enabled: locked);
 
@@ -110,4 +126,21 @@ class DataUnavailableApp extends StatelessWidget {
       },
     ),
   );
+}
+
+/// Seals every picture, video and recording still plain on disk, and
+/// clears what was opened to play or share. A failure here leaves the
+/// files as they were, readable, for the next start to try again.
+Future<void> sealFilesAtRest(ProviderContainer container) async {
+  final vault = container.read(fileVaultProvider);
+  try {
+    await vault.clearCopies();
+    final sealed = await vault.sealAll([
+      await container.read(galleryStorageProvider).root(),
+      await container.read(attachmentStorageProvider).root(),
+    ]);
+    if (sealed > 0) debugPrint('[vault] sealed $sealed files at rest');
+  } on Object catch (error) {
+    debugPrint('[vault] could not seal the files: ${error.runtimeType}');
+  }
 }

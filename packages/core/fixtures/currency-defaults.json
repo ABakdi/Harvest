@@ -1,0 +1,16 @@
+{
+  "about": "defaultCurrencyFor (core currencies.ts, the phone's currency_defaults.dart): the first of countries, the time zone's country, then each locale's region, that has a currency; else DZD. Amounts are in hundredths for every currency; decimals is how many are shown.",
+  "cases": [
+    { "why": "an Algerian phone", "countries": ["DZ"], "timeZone": "Africa/Algiers", "locales": ["ar_DZ"], "currency": "DZD" },
+    { "why": "the SIM wins over the language", "countries": ["dz"], "timeZone": null, "locales": ["en-US"], "currency": "DZD" },
+    { "why": "a browser in Paris, in English", "countries": [], "timeZone": "Europe/Paris", "locales": ["en-US", "en"], "currency": "EUR" },
+    { "why": "the zone wins over the language", "countries": [], "timeZone": "Asia/Tokyo", "locales": ["en-GB"], "currency": "JPY" },
+    { "why": "an old zone name", "countries": [], "timeZone": "Asia/Calcutta", "locales": [], "currency": "INR" },
+    { "why": "UTC says nothing; the language's region does", "countries": [], "timeZone": "UTC", "locales": ["ar", "ar-SA"], "currency": "SAR" },
+    { "why": "a script subtag is not a region", "countries": [], "timeZone": null, "locales": ["zh-Hant-TW"], "currency": "TWD" },
+    { "why": "a numeric region names no one country", "countries": [], "timeZone": null, "locales": ["es-419"], "currency": "DZD" },
+    { "why": "nothing at all", "countries": [null], "timeZone": null, "locales": [], "currency": "DZD" },
+    { "why": "Kosovo, which zone.tab does not know by its own zone", "countries": ["XK"], "timeZone": null, "locales": [], "currency": "EUR" }
+  ],
+  "decimals": { "DZD": 2, "USD": 2, "EUR": 2, "JPY": 0, "KWD": 2, "TND": 2, "KRW": 0 }
+}

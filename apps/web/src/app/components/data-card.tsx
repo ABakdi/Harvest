@@ -1,8 +1,9 @@
 import { DownloadIcon, FileArchiveIcon, FolderOpenIcon, KeyRoundIcon, Loader2Icon } from 'lucide-react';
-import { useId, useRef, useState, type ChangeEvent } from 'react';
+import { useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useHarvest, useSyncStatus } from '../context';
@@ -11,7 +12,8 @@ import type { ArchiveProgress } from '../data/export';
 import type { ArchiveBundle, ImportPreview, ImportProgress } from '../data/import';
 import { useSetting } from '../hooks';
 import { PassphrasePrompt } from './passphrase-prompt';
-import { runAction } from '@/lib/actions';
+import { background, runAction } from '@/lib/actions';
+import { ApiError, api } from '@/lib/api';
 
 /**
  * "My data" (Business Rules #11): the archive out, and an archive back
@@ -78,6 +80,83 @@ function Progress({ fraction, label }: { fraction: number | null; label: string 
   );
 }
 
+/**
+ * Taking everything out asks who is taking it (Phase 7, M7.6): the
+ * account's password, checked by the server (`POST /v1/me/reauth`), so a
+ * session left open, or taken, is not enough to walk off with the lot.
+ * Nothing is written until it passes; a wrong one counts against the
+ * same limit as signing in.
+ */
+export function ReauthDialog({ onPassed, onClose }: { onPassed: () => void; onClose: () => void }) {
+  const { t } = useTranslation();
+  const id = useId();
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (password === '' || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.reauth(password);
+      onPassed();
+    } catch (failure) {
+      if (failure instanceof ApiError && (failure.status === 403 || failure.status === 401)) {
+        setError(t('data.reauth.wrong'));
+      } else if (failure instanceof ApiError && failure.status === 429) {
+        const minutes = failure.retryAfter === null ? null : Math.max(1, Math.ceil(failure.retryAfter / 60));
+        setError(minutes === null ? t('data.reauth.tooManySoon') : t('data.reauth.tooMany', { count: minutes }));
+      } else if (failure instanceof ApiError && failure.isNetwork) {
+        setError(t('data.reauth.offline'));
+      } else {
+        setError(t('common.somethingWrong'));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('data.reauth.title')}</DialogTitle>
+          <DialogDescription>{t('data.reauth.body')}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={(event) => background(submit(event))} className="flex flex-col gap-3" noValidate>
+          <Label htmlFor={`${id}-password`}>{t('data.reauth.password')}</Label>
+          <Input
+            id={`${id}-password`}
+            type="password"
+            autoComplete="current-password"
+            autoFocus
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${id}-error` : undefined}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+          {error && (
+            <p id={`${id}-error`} role="alert" className="text-sm font-semibold text-destructive">
+              {error}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={busy || password === ''}>
+              {busy ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />}
+              {t('data.reauth.confirm')}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ExportPart() {
   const { t } = useTranslation();
   const harvest = useHarvest();
@@ -87,6 +166,7 @@ function ExportPart() {
   const includePlaces = useSetting(exportIncludesPlacesKey) !== 'false';
   const [state, setState] = useState<ExportState>({ kind: 'idle' });
   const [unlocking, setUnlocking] = useState(false);
+  const [asking, setAsking] = useState(false);
   const cancelled = useRef(false);
   const running = state.kind === 'running';
 
@@ -159,7 +239,7 @@ function ExportPart() {
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={() => runAction(() => run())} disabled={running}>
+        <Button onClick={() => setAsking(true)} disabled={running}>
           {running ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />}
           {running ? t('data.export.running') : t('data.export.action')}
         </Button>
@@ -191,6 +271,15 @@ function ExportPart() {
         {state.kind === 'stopped' && <span>{t('data.export.stopped')}</span>}
         {state.kind === 'failed' && <span className="text-destructive">{t('data.export.failed')}</span>}
       </div>
+      {asking && (
+        <ReauthDialog
+          onClose={() => setAsking(false)}
+          onPassed={() => {
+            setAsking(false);
+            runAction(() => run());
+          }}
+        />
+      )}
       {unlocking && (
         <Dialog open onOpenChange={(open) => !open && setUnlocking(false)}>
           <DialogContent>

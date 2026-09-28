@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart' show compute;
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/features/export/data/export_repository.dart';
 import 'package:harvest/features/export/domain/archive_layout.dart';
 import 'package:harvest/features/export/domain/harvest_workbook.dart';
@@ -21,13 +22,22 @@ part 'archive_service.g.dart';
 /// disk, read only by the isolate that zips it.
 typedef _Entry = ({String name, Uint8List? bytes, String? path, bool compress});
 
-/// Zips plain entries, reading each file from disk as it goes. Plain
-/// data only, so it crosses to a background isolate as it is, and the
-/// pictures are never held on the UI isolate (P6-07).
-Uint8List? _encodeZip(List<_Entry> entries) {
+/// Zips plain entries, reading each file from disk as it goes, opened
+/// with the files' `key` when they are sealed ([FileVault]): the archive
+/// is mine to take elsewhere, so it holds them plain. Plain data only, so
+/// it crosses to a background isolate as it is, and the pictures are
+/// never held on the UI isolate (P6-07).
+Future<Uint8List?> _encodeZip(
+  ({List<_Entry> entries, List<int>? key}) job,
+) async {
   final archive = Archive();
-  for (final entry in entries) {
-    final bytes = entry.bytes ?? File(entry.path!).readAsBytesSync();
+  for (final entry in job.entries) {
+    final key = job.key;
+    final bytes =
+        entry.bytes ??
+        (key == null
+            ? File(entry.path!).readAsBytesSync()
+            : await openFileNow(key, entry.path!));
     archive.addFile(
       ArchiveFile(entry.name, bytes.length, bytes)..compress = entry.compress,
     );
@@ -173,7 +183,12 @@ class ArchiveService {
     check();
     // Zipped off the UI isolate (P6-07); pictures and recordings are
     // stored as they are, since deflate gains nothing on them.
-    final encoded = await compute(_encodeZip, entries);
+    // The files' key only when a file goes in: an archive of rows alone
+    // never makes one.
+    final key = entries.any((entry) => entry.path != null)
+        ? await (_storage.vault ?? _attachments.vault)?.key()
+        : null;
+    final encoded = await compute(_encodeZip, (entries: entries, key: key));
     if (encoded == null) throw StateError('the archive would not encode');
     return encoded;
   }

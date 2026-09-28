@@ -195,7 +195,7 @@ export class AuthService {
    * told: the answer is 202 either way.
    */
   private async mayMail(email: string): Promise<boolean> {
-    const key = `mail/${createHash('sha256').update(`mail/${email}`).digest('hex')}`;
+    const key = `mail/${this.repos.users.lookup(`mail/${email}`)}`;
     const taken = await this.repos.windowedCounts.take(key, mailWindows, this.now());
     return taken.ok;
   }
@@ -220,8 +220,8 @@ export class AuthService {
     ip?: string | undefined;
   }): Promise<SignedIn> {
     const now = this.now();
-    const everywhere = emailKey(input.email);
-    const here = createHash('sha256').update(`${everywhere}/${networkOf(input.ip)}`).digest('hex');
+    const everywhere = this.emailKey(input.email);
+    const here = this.repos.users.lookup(`${everywhere}/${networkOf(input.ip)}`);
     // Counted per email *and network*: one machine can only lock the
     // email out for itself. The ceiling from anywhere is ten times
     // higher, far past what one network may send (S6-03).
@@ -417,7 +417,7 @@ export class AuthService {
     await this.repos.users.setPassword(read.userId, await hashPassword(password));
     // A new password is a fresh start for sign-in too (S6-03).
     const owner = await this.repos.users.findById(read.userId);
-    if (owner) await this.repos.loginFailures.clearEmail(emailKey(owner.email));
+    if (owner) await this.repos.loginFailures.clearEmail(this.emailKey(owner.email));
     await this.repos.users.markVerified(read.userId, now);
     await this.repos.oneTimeTokens.invalidate(read.userId, 'reset', now);
     await this.repos.sessions.revokeAll(read.userId, now);
@@ -437,6 +437,14 @@ export class AuthService {
    * even if a later step fails; the user goes last, so a retry can
    * still find it.
    */
+  /** Whether [password] is the account's, for a device about to write my data out; 403 when not. */
+  async reauth(userId: ObjectId, password: string): Promise<void> {
+    const user = await this.me(userId);
+    if (!(await verifyPassword(user.passwordHash, password))) {
+      throw new HttpError('forbidden', 'Wrong password');
+    }
+  }
+
   async deleteAccount(userId: ObjectId, password: string): Promise<void> {
     const user = await this.me(userId);
     if (!(await verifyPassword(user.passwordHash, password))) {
@@ -459,8 +467,9 @@ export class AuthService {
    * Starts the private tier over ([[Accounts]], a forgotten PIN, or a new
    * one): with the password, drops the key check, the key share (a new
    * one is made on the next read, so nothing sealed before can be opened
-   * again, even with the old PIN), every private-tier row and every file.
-   * The plain tier stays. Under the account's lock, like a push.
+   * again, even with the old PIN), every sealed row and every file. Only
+   * rows still in the clear from before Phase 7 stay. Under the
+   * account's lock, like a push.
    */
   async resetSyncKey(userId: ObjectId, password: string): Promise<void> {
     const user = await this.me(userId);
@@ -469,7 +478,7 @@ export class AuthService {
     }
     await this.lock.run(userId.toHexString(), async () => {
       await this.repos.users.clearSyncKey(userId);
-      await this.repos.records.deletePrivate(userId);
+      await this.repos.records.deleteSealed(userId);
       await this.repos.files.deleteAllFor(userId);
       // Filled in again from what is left, the next time they are needed.
       await this.repos.totals.forget(userId, 'recordBytes');
@@ -478,6 +487,15 @@ export class AuthService {
   }
 
   // ---------------------------------------------------------- helpers
+
+  /**
+   * A sign-in's per-email key: the address under the server's lookup
+   * key, so none is kept as itself and none can be found by hashing a
+   * guess without the environment (Phase 7, M7.7).
+   */
+  private emailKey(email: string): string {
+    return this.repos.users.lookup(`login/${email}`);
+  }
 
   private async startSession(user: UserDoc, client: ClientKind, deviceName: string | null): Promise<SignedIn> {
     const now = this.now();
@@ -532,10 +550,6 @@ export class AuthService {
   }
 }
 
-/** A sign-in's per-email key: the address, hashed, so none is kept as itself. */
-function emailKey(email: string): string {
-  return createHash('sha256').update(`login/${email}`).digest('hex');
-}
 
 /**
  * The key a token's successor is sealed under: derived from the token

@@ -83,6 +83,8 @@ export function createHarvest(
       now: clock,
       onPurged: (table, row) => files.releasePurged(table, row),
       onGoalItems: () => settleGoalParents(writer),
+      onResealed: () => files.requeueHeld(),
+      filesSettled: () => files.settle(),
     }),
     seeds: new SeedsRepository(writer),
     checkIns: new CheckInsRepository(writer),

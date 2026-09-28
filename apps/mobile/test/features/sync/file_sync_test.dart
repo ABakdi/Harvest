@@ -1,11 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart' show Sha256;
+import 'package:cryptography/cryptography.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
+import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/sync/domain/file_sync.dart';
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart' show SyncKeys;
@@ -16,29 +18,29 @@ class FakeFiles implements FileRemote {
   final Map<String, ({Uint8List sealed, String iv})> held = {};
   int uploads = 0;
 
-  /// Hashes whose upload fails, as a flaky network would.
+  /// Names whose upload fails, as a flaky network would.
   final failing = <String>{};
 
   @override
-  Future<List<String>> missing(List<String> hashes) async =>
-      hashes.where((hash) => !held.containsKey(hash)).toList();
+  Future<List<String>> missing(List<String> names) async =>
+      names.where((name) => !held.containsKey(name)).toList();
 
   @override
   Future<void> upload(
-    String sha256,
+    String name,
     Uint8List sealed,
     String iv, {
     required int keyEpoch,
   }) async {
-    if (failing.contains(sha256)) throw StateError('connection reset');
-    held[sha256] = (sealed: sealed, iv: iv);
+    if (failing.contains(name)) throw StateError('connection reset');
+    held[name] = (sealed: sealed, iv: iv);
     uploads += 1;
   }
 
   @override
-  Future<({Uint8List sealed, String iv})> download(String sha256) async {
-    final one = held[sha256];
-    if (one == null) throw StateError('no such file');
+  Future<({Uint8List sealed, String iv})> download(String name) async {
+    final one = held[name];
+    if (one == null) throw const ApiException('not_found', 404);
     return one;
   }
 }
@@ -109,9 +111,10 @@ void main() {
     final up = await run(a, phoneA);
     expect(up.uploaded, 1);
 
-    // What the server holds is not the picture.
+    // What the server holds is not the picture, nor its size.
     final stored = remote.held.values.single.sealed;
     expect(stored, isNot(equals(bytes)));
+    expect(stored.length, paddedLength(bytes.length + 1) + 16);
 
     // The row travels with its hash, as sync would carry it.
     final hash = (await a.select(a.memories).getSingle()).fileHash;
@@ -145,9 +148,11 @@ void main() {
 
     expect(remote.uploads, 1);
     expect(remote.held, hasLength(1));
-    // Both rows carry the name, because both files are that file.
+    // Both rows carry the hash, because both files are that file; the
+    // server knows it only by its keyed name.
     final second = await b.select(b.memories).getSingle();
-    expect(second.fileHash, remote.held.keys.single);
+    expect(await cipher.nameOf(second.fileHash!), remote.held.keys.single);
+    expect(remote.held.keys.single, isNot(second.fileHash));
   });
 
   test('an upload happens once, however often sync runs', () async {
@@ -166,14 +171,40 @@ void main() {
     final hash = (await a.select(a.memories).getSingle()).fileHash!;
 
     // The server hands back something else under that name.
-    final lie = await cipher.sealBytes(hash, List<int>.filled(128, 9));
-    remote.held[hash] = (sealed: lie.bytes, iv: remote.held[hash]!.iv);
+    final name = await cipher.nameOf(hash);
+    final lie = await cipher.sealFile(name, List<int>.filled(128, 9));
+    remote.held[name] = (sealed: lie.bytes, iv: base64Encode(lie.iv));
     await picture(b, phoneB, 'm1', bytes, write: false, fileHash: hash);
 
     final report = await run(b, phoneB);
     expect(report.downloaded, isZero);
     expect(report.missing, 1);
     expect(File('${phoneB.path}/m1.jpg').existsSync(), isFalse);
+  });
+
+  test('a file sent before Phase 7, under its plain hash, still comes '
+      'down until it is swept', () async {
+    final bytes = List<int>.generate(200, (index) => index % 11);
+    final sha = await Sha256().hash(bytes);
+    final hash = sha.bytes
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+    // As 3.1 sealed it: the plain hash for a name, unpadded.
+    final aes = AesGcm.with256bits();
+    final box = await aes.encrypt(
+      bytes,
+      secretKey: SecretKey(List<int>.generate(32, (index) => index)),
+      nonce: aes.newNonce(),
+      aad: utf8.encode('file/$hash'),
+    );
+    remote.held[hash] = (
+      sealed: Uint8List.fromList([...box.cipherText, ...box.mac.bytes]),
+      iv: base64Encode(box.nonce),
+    );
+    await picture(b, phoneB, 'm1', bytes, write: false, fileHash: hash);
+    final report = await run(b, phoneB);
+    expect(report.downloaded, 1);
+    expect(await File('${phoneB.path}/m1.jpg').readAsBytes(), bytes);
   });
 
   test('a file the server does not have leaves the row alone', () async {
@@ -219,7 +250,9 @@ void main() {
     await picture(a, phoneA, 'good', List<int>.filled(64, 6));
     final sha = await Sha256().hash(bad);
     remote.failing.add(
-      sha.bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+      await cipher.nameOf(
+        sha.bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+      ),
     );
 
     final report = await run(a, phoneA);
@@ -256,7 +289,7 @@ void main() {
           ),
         );
     expect((await run(a, phoneA)).uploaded, 1);
-    expect(remote.held.keys, [hash]);
+    expect(remote.held.keys, [await cipher.nameOf(hash)]);
     // Asked once: the flag goes when everything is there.
     expect(
       await (a.select(

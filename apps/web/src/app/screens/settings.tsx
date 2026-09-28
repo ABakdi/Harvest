@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ApiError } from '@/lib/api';
-import { currencies, formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { useLeave } from '../app-root';
 import { GeotagSetting } from '../components/geotag-setting';
 import { DataCard } from '../components/data-card';
@@ -35,6 +35,7 @@ import { FarmerTabs } from '../components/screen-tabs';
 import { featureKeys, pomodoroSettings, settingKeys } from '../data/settings';
 import { useDefaultCurrency, usePrivateKey, useSetting } from '../hooks';
 import { runAction } from '@/lib/actions';
+import { CurrencyPicker } from '../components/currency-picker';
 
 function SyncSection() {
   const { t } = useTranslation();
@@ -329,18 +330,12 @@ export function MoneySection() {
   return (
     <Section title={t('settingsWeb.money')} id="settings-money">
       <Row label={t('settings.defaultCurrency')} htmlFor={`${id}-currency`}>
-        <Select value={currency} onValueChange={(value) => runAction(() => settings.setDefaultCurrency(value))}>
-          <SelectTrigger id={`${id}-currency`} className="w-full sm:w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {currencies.map((code) => (
-              <SelectItem key={code} value={code}>
-                {code}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <CurrencyPicker
+          id={`${id}-currency`}
+          value={currency}
+          onChange={(value) => runAction(() => settings.setDefaultCurrency(value))}
+          className="w-full sm:w-48"
+        />
       </Row>
       <div className="border-t pt-4">
         <RatesCard />

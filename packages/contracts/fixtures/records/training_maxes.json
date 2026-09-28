@@ -3,10 +3,9 @@
   "uuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82/0025",
   "updatedAt": "2026-09-10T08:00:00.000Z",
   "deletedAt": null,
-  "data": {
-    "programUuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
-    "exerciseId": "0025",
-    "grams": 92500,
-    "updatedAt": "2026-09-10T08:00:00.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "PSkZzok0Psj64tfF",
+    "ct": "6aJMDyIkdOfPWgQvK1VF46jljAUNEoz9kg0XVuCK92z3/MZNbsOJ+/ndRq5kL8u0yYEraI6TM5AoQM3kPZPlhNPf3UXMxLn5topPN0oXrrEl2MRcZZKeh7ihyiX8ZZoCJWsXFAbGuze/SlHrnCVEUOs0FlZQeCsIW4+yK5eKw3CIzQDgVCw8KuV6e3OosxTW9PMDvOJeYQOpH5SuwHyGt5/kTqxbf9ZJD0Guv1UQb9SOnzaRAiiHXqcO4Ij+sWvpsBd1HskTnpl7oM9p9N+xgXR6DS85ZeZ3N+Vd8Yah9WtYx8u34uv0E8eM96/W7eKbZA4DGEgTpcH5ico9UC8ppT+WXRga6CNEv54YubUIcCM="
   }
 }

@@ -115,7 +115,7 @@ describe('the account circle ([[Accounts]], on the web)', () => {
     expect(within(sheet).getByText('Verified')).toBeInTheDocument();
     expect(within(sheet).getByText('Online')).toBeInTheDocument();
     expect(
-      await within(sheet).findByText(/Money, places and pictures from your other devices stay locked/),
+      await within(sheet).findByText(/Nothing syncs in this browser until you enter your sync PIN/),
     ).toBeInTheDocument();
     expect(await within(sheet).findByText('Pixel')).toBeInTheDocument();
 
@@ -123,7 +123,7 @@ describe('the account circle ([[Accounts]], on the web)', () => {
     expect(sync).toHaveBeenCalled();
 
     await user.click(within(sheet).getByRole('button', { name: 'Enter your sync PIN' }));
-    expect(await screen.findByLabelText('Sync PIN (4 to 6 digits)')).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^(Passphrase \(a few words|Sync passphrase or PIN)/)).toBeInTheDocument();
   });
 
   it('forgets the PIN on this browser, after asking', async () => {

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/painting.dart' show FileImage;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/security/vault_image.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
@@ -69,7 +69,7 @@ class MemoryFiles {
     }
     _failedAt.remove(hash);
     // A picture drawn from the old bytes is drawn again from the new.
-    if (again) unawaited(FileImage(file).evict());
+    if (again) unawaited(VaultFileImage(file, null).evict());
     _ref.read(fileArrivalsProvider.notifier).landed();
     return landed;
   }

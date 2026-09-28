@@ -10,12 +10,13 @@ import {
   type PullResult,
   type PushResult,
   type PushResultItem,
+  type SealedResult,
   type SyncRecord,
 } from '@harvest/contracts';
 import type { ObjectId } from 'mongodb';
 import type { RecordDoc, Repositories } from '../db/index.js';
 import { payloadBytes, type StoredStamp } from '../db/records.js';
-import { unauthorized } from '../http/errors.js';
+import { HttpError, unauthorized } from '../http/errors.js';
 import { KeyedMutex } from './mutex.js';
 
 /** A record that passed every check and is newer than what is stored. */
@@ -53,6 +54,11 @@ export class SyncService {
    * more than a day ahead of the server's, one that would take the
    * account past its row quota (issue code `quota_exceeded`), and a
    * sealed one made under a key the account no longer has (`key_changed`).
+   *
+   * Every row arrives sealed ([[Phase-7-Privacy-and-Currencies]]); one
+   * in the clear is `invalid` with `sealed_required`. A sealed row
+   * replaces its own copy stored in the clear before Phase 7 even at the
+   * same clock, since it is that row, sealed.
    *
    * The whole batch costs a handful of round trips, not a handful per
    * row (P6-02): one read of the stored clocks, one of the running total,
@@ -116,16 +122,17 @@ export class SyncService {
         const stamp = recordStamp(record);
         const earlier = latest.get(id);
         const current = earlier ? { stamp: earlier.doc.stamp, bytes: earlier.doc.bytes ?? 0 } : stored.get(id);
-        if (current && stamp <= current.stamp) {
+        // A row stored in the clear before Phase 7 gives way to its own
+        // sealed copy at the same clock: that is the device sealing it.
+        const sealing = current !== undefined && 'plain' in current && current.plain === true && record.enc !== undefined;
+        if (current && (stamp < current.stamp || (stamp === current.stamp && !sealing))) {
           results[index] = { ...identify(record), status: 'stale' };
           continue;
         }
         // A purged row keeps only its tombstone; whatever it held is dropped.
-        const payload: Pick<RecordDoc, 'data' | 'enc' | 'purged'> = record.purged
+        const payload: Pick<RecordDoc, 'enc' | 'file' | 'purged'> = record.purged
           ? { purged: true as const }
-          : record.enc
-            ? { enc: record.enc }
-            : { data: record.data ?? {} };
+          : { enc: record.enc!, ...(record.file === undefined ? {} : { file: record.file }) };
         const bytes = payloadBytes(payload);
         const delta = bytes - (current?.bytes ?? 0);
         if (delta > 0 && room + delta > maxRecordStoreBytes) {
@@ -146,7 +153,6 @@ export class SyncService {
             stamp,
             ...payload,
             deviceId,
-            receivedAt: now,
             bytes,
           },
           previous: earlier ? earlier.previous : (stored.get(id) ?? null),
@@ -186,6 +192,28 @@ export class SyncService {
         }
       }
       return { results, cursor: await this.repos.records.currentSeq(userId) };
+    });
+  }
+
+  /**
+   * A device has sent every row it holds sealed, under [keyEpoch]: what
+   * is still stored in the clear goes (`POST /v1/sync/sealed`). Refused
+   * with no sync secret set, or under a key the account no longer has.
+   */
+  async sealed(userId: ObjectId, keyEpoch: number): Promise<SealedResult> {
+    return this.accountLock.run(userId.toHexString(), async () => {
+      const user = await this.repos.users.findById(userId);
+      if (!user) throw unauthorized();
+      if (!user.pinVerifier || !user.keyCheck) {
+        throw new HttpError('conflict', 'No sync secret is set, so nothing can have been sealed');
+      }
+      if (keyEpoch !== (user.keyEpoch ?? 1)) {
+        throw new HttpError('key_changed', 'Sealed under a key this account no longer has; ask for the PIN again');
+      }
+      const dropped = await this.repos.records.deletePlain(userId);
+      // Counted again from what is left, the next time it is needed.
+      if (dropped > 0) await this.repos.totals.forget(userId, 'recordBytes');
+      return { dropped };
     });
   }
 

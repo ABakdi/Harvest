@@ -789,9 +789,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ratesDzdEur => 'DZD per 1 EUR';
 
   @override
-  String get ratesEurUsd => 'EUR → USD (fetched)';
-
-  @override
   String get fetchNow => 'Fetch';
 
   @override
@@ -1015,7 +1012,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ratesExplainer =>
-      'Used to show \$ and € amounts in your default currency.';
+      'Used to show amounts in other currencies in your default currency.';
 
   @override
   String get settingsMoney => 'Money';
@@ -3868,8 +3865,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get accountHeldBack =>
-      'Money, places and pictures wait for your sync PIN.';
+  String get accountHeldBack => 'Nothing syncs until you set your sync PIN.';
 
   @override
   String get accountDevices => 'Devices';
@@ -4061,11 +4057,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ratesDzdManual =>
-      'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.';
-
-  @override
-  String get ratesFetchedEurUsd =>
-      'EUR → USD updated. The dinar rates stay as you typed them.';
+      'The dinar\'s market rate is typed by hand: no free source has it. Fetch updates every other currency.';
 
   @override
   String get accountServerExample =>
@@ -4439,11 +4431,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncPinChooseBody =>
-      'Money, places and pictures are encrypted on this phone with a key made from this PIN. The server never sees it. Use the same PIN on every device.';
+      'Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.';
 
   @override
   String get syncPinEnterBody =>
-      'Your other devices already use a sync PIN. Enter the same one here to bring over your money, places and pictures.';
+      'Your other devices already use a sync PIN. Enter the same one here to bring your data over.';
 
   @override
   String get syncPinLoss =>
@@ -4451,7 +4443,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncPinCost =>
-      'A PIN is quick to type, but someone holding a copy of the server\'s data could try every one. A passphrase of 8 characters or more holds against that.';
+      'A PIN is quick to type, but it falls in minutes to someone holding the server\'s database and its keys. A passphrase holds.';
 
   @override
   String get syncPinField => 'PIN';
@@ -4506,11 +4498,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncPinWaiting =>
-      'Money, places and pictures stay on this phone until you set your sync PIN.';
+      'Nothing leaves this phone until you set your sync PIN.';
 
   @override
-  String get syncPinIsSet =>
-      'Set: money, places and pictures sync end-to-end encrypted.';
+  String get syncPinIsSet => 'Set: everything syncs end-to-end encrypted.';
 
   @override
   String get syncPinSetAction => 'Set your sync PIN';
@@ -4659,7 +4650,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncPinStartOverBody =>
-      'This deletes the money, places and pictures kept on the server for this account, and the PIN with them. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.';
+      'This deletes everything kept on the server for this account, and the PIN with it. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.';
 
   @override
   String get syncPinStartOverConfirm => 'Start over';
@@ -4964,4 +4955,149 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountNameIsPassword =>
       'That\'s your password. Use a name others may see, or leave it empty.';
+
+  @override
+  String get ratesFetched => 'Rates updated.';
+
+  @override
+  String get ratesSource => 'Rates by Exchange Rate API';
+
+  @override
+  String ratesOneUsd(String amount) {
+    return '1 USD = $amount';
+  }
+
+  @override
+  String ratesOn(String day) {
+    return 'Rates of $day';
+  }
+
+  @override
+  String get ratesNone => 'No rates fetched yet.';
+
+  @override
+  String get currencyPickerTitle => 'Choose a currency';
+
+  @override
+  String get currencySearchHint => 'Name, code or sign';
+
+  @override
+  String get currencyNoMatch => 'No currency matches.';
+
+  @override
+  String get currencyMore => 'Another currency';
+
+  @override
+  String get syncPassphraseTitle => 'Sync passphrase';
+
+  @override
+  String get syncPassphraseAdvice =>
+      'A few words only you would put together, like olive river lantern, hold for thousands of years against someone holding the server\'s data.';
+
+  @override
+  String get syncSecretField => 'Passphrase or PIN';
+
+  @override
+  String get syncSecretShow => 'Show';
+
+  @override
+  String get syncSecretHide => 'Hide';
+
+  @override
+  String get syncSecretWeak => 'Weak';
+
+  @override
+  String get syncSecretFair => 'Fair';
+
+  @override
+  String get syncSecretStrong => 'Strong';
+
+  @override
+  String syncSecretStands(String time) {
+    return 'Would hold $time against someone with the server\'s data.';
+  }
+
+  @override
+  String get syncSecretUnderSecond => 'under a second';
+
+  @override
+  String syncSecretSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years',
+      one: '1 year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncSecretThousands => 'thousands of years';
+
+  @override
+  String get syncSecretForever => 'for ever, near enough';
+
+  @override
+  String get exportConfirmPassword =>
+      'Your account password, to take your data out';
+
+  @override
+  String get exportConfirmReason => 'Unlock to take your data out of Harvest';
+
+  @override
+  String get exportConfirmRefused =>
+      'Not taken: the phone\'s lock was not opened.';
+
+  @override
+  String exportConfirmLimited(int minutes) {
+    return 'Too many wrong passwords. Try again in $minutes min.';
+  }
+
+  @override
+  String get exportConfirmOffline =>
+      'The server can\'t be reached to check the password. Try again when you\'re online.';
 }

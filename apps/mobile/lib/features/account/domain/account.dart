@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/platform/secret_store.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
@@ -136,6 +137,15 @@ class ApiRemote implements SyncRemote {
       more: json['more'] == true,
     );
   }
+
+  @override
+  Future<int> sealed(String deviceId, int keyEpoch) async {
+    final json = await _api.post('/v1/sync/sealed', {
+      'deviceId': deviceId,
+      'keyEpoch': keyEpoch,
+    });
+    return (json['dropped'] as num? ?? 0).toInt();
+  }
 }
 
 /// The file routes, over the same client ([[Sync-API]]).
@@ -145,8 +155,8 @@ class ApiFiles implements FileRemote {
   final ApiClient _api;
 
   @override
-  Future<List<String>> missing(List<String> hashes) async {
-    final json = await _api.post('/v1/files/missing', {'hashes': hashes});
+  Future<List<String>> missing(List<String> names) async {
+    final json = await _api.post('/v1/files/missing', {'hashes': names});
     return [
       for (final item in json['missing']! as List<Object?>) item! as String,
     ];
@@ -154,36 +164,37 @@ class ApiFiles implements FileRemote {
 
   @override
   Future<void> upload(
-    String sha256,
+    String name,
     Uint8List sealed,
     String iv, {
     required int keyEpoch,
   }) => _api.putBytes(
-    '/v1/files/$sha256',
+    '/v1/files/$name',
     sealed,
     headers: {
       fileIvHeader: iv,
-      // AES-GCM adds a 16-byte tag and nothing else.
+      // AES-GCM adds a 16-byte tag and nothing else: this is the padded
+      // length, which the ciphertext says anyway, never the file's own.
       filePlainBytesHeader: '${sealed.length - 16}',
       fileKeyEpochHeader: '$keyEpoch',
     },
   );
 
   /// Tells the server no row names this file any more, so it can stop
-  /// keeping it (`DELETE /v1/files/:sha256`).
+  /// keeping it (`DELETE /v1/files/:name`, the file's server name).
   /// A 409 says a row on the server still names it: it stays, and that
   /// is not a failure.
-  Future<void> forget(String sha256) async {
+  Future<void> forget(String name) async {
     try {
-      await _api.delete('/v1/files/$sha256');
+      await _api.delete('/v1/files/$name');
     } on ApiException catch (error) {
       if (error.status != 409) rethrow;
     }
   }
 
   @override
-  Future<({Uint8List sealed, String iv})> download(String sha256) async {
-    final answer = await _api.getBytes('/v1/files/$sha256');
+  Future<({Uint8List sealed, String iv})> download(String name) async {
+    final answer = await _api.getBytes('/v1/files/$name');
     final iv = answer.headers[fileIvHeader];
     if (iv == null) throw const ApiException('internal', 500, 'No nonce');
     return (sealed: answer.bytes, iv: iv);
@@ -194,7 +205,7 @@ class ApiFiles implements FileRemote {
 /// (`packages/contracts/src/files.ts`).
 const fileIvHeader = 'x-harvest-iv';
 
-/// The plaintext's length, for the server's accounting only.
+/// The sealed plaintext's length, padded, for the server's accounting only.
 const filePlainBytesHeader = 'x-harvest-plain-bytes';
 
 /// The key epoch a file was sealed under; the server refuses a stale one
@@ -343,8 +354,8 @@ Future<SyncCipher?> storedCipher(SecretStore secrets) async {
   }
 }
 
-/// Files sync only once a passphrase is set: a picture is as personal
-/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+/// Files sync only once a sync PIN is set: like every row, a picture
+/// goes up sealed or not at all ([[Sync-API]]).
 @Riverpod(keepAlive: true)
 Future<FileSync?> fileSync(Ref ref) async {
   final cipher = await storedCipher(ref.read(secretStoreProvider));
@@ -353,6 +364,7 @@ Future<FileSync?> fileSync(Ref ref) async {
     ref.watch(databaseProvider),
     ApiFiles(ref.watch(apiClientProvider)),
     cipher,
+    vault: ref.watch(fileVaultProvider),
   );
 }
 
@@ -371,7 +383,14 @@ SyncService syncService(Ref ref) {
       db,
       gallery: gallery.delete,
       attachments: attachments.delete,
-      forget: ApiFiles(ref.watch(apiClientProvider)).forget,
+      // Named for the server by the key; without one nothing was sent.
+      forget: (hash) async {
+        final cipher = await storedCipher(ref.read(secretStoreProvider));
+        if (cipher == null) return;
+        await ApiFiles(
+          ref.read(apiClientProvider),
+        ).forget(await cipher.nameOf(hash));
+      },
     ).release,
   );
 }

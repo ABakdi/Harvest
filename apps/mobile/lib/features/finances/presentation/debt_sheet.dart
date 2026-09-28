@@ -13,6 +13,7 @@ import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/finances/presentation/amount_keypad.dart';
+import 'package:harvest/features/finances/presentation/currency_picker.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/guarded.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -223,14 +224,9 @@ class _DebtSheetState extends ConsumerState<_DebtSheet> {
         ),
         const SizedBox(height: HarvestSpacing.sm),
         if (!currencyLocked)
-          SegmentedButton<Currency>(
-            segments: [
-              for (final option in Currency.values)
-                ButtonSegment(value: option, label: Text(option.symbol)),
-            ],
-            selected: {_currency},
-            onSelectionChanged: (selection) =>
-                setState(() => _currency = selection.first),
+          CurrencyChoice(
+            selected: _currency,
+            onChanged: (currency) => setState(() => _currency = currency),
           ),
         const SizedBox(height: HarvestSpacing.md),
         _OptionRow(

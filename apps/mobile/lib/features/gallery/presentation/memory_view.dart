@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/security/file_vault.dart';
+import 'package:harvest/core/security/vault_image.dart';
 import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
@@ -96,11 +98,15 @@ class MemoryView extends ConsumerWidget {
         // strip, the album covers — gets the right decode without
         // having to know its own size.
         return LayoutBuilder(
-          builder: (context, constraints) => Image.file(
-            file,
+          // Sealed on disk: opened in memory, never written out plain.
+          builder: (context, constraints) => Image(
+            image: ResizeImage.resizeIfNeeded(
+              decodeWidth(context, constraints.maxWidth),
+              null,
+              VaultFileImage(file, ref.watch(fileVaultProvider)),
+            ),
             fit: fit,
             gaplessPlayback: true,
-            cacheWidth: decodeWidth(context, constraints.maxWidth),
             errorBuilder: (context, error, stack) =>
                 MemoryAbsent(memory: memory, failed: true),
           ),

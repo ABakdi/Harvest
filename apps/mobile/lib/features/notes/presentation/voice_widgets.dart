@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
@@ -12,6 +13,8 @@ import 'package:harvest/features/notes/data/voice_gateways.dart';
 import 'package:harvest/features/notes/domain/voice.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 /// Records into [noteUuid] and returns the recording, or null when it
 /// was discarded or the microphone was refused ([[Notes]] N7).
@@ -42,6 +45,10 @@ class _RecordingSheetState extends ConsumerState<_RecordingSheet> {
   StreamSubscription<double>? _levels;
   double _level = 0;
   ({String relative, File file})? _slot;
+
+  /// Where the recorder writes, outside the attachments: the recording is
+  /// sealed into its place when it is kept (Phase 7, M7.4).
+  File? _staging;
   String? _fileName;
   var _refused = false;
   var _done = false;
@@ -56,11 +63,15 @@ class _RecordingSheetState extends ConsumerState<_RecordingSheet> {
     final taken = await _attachments.takenNames();
     final name = voiceFileName(DateTime.now(), taken: taken);
     final slot = await _attachments.storage.reserve(widget.noteUuid, name);
-    final ok = await _recorder.start(slot.file.path);
+    final staging = File(
+      p.join((await getTemporaryDirectory()).path, 'recording-$name'),
+    );
+    final ok = await _recorder.start(staging.path);
     if (!mounted) {
       if (ok) await _recorder.cancel();
       return;
     }
+    _staging = staging;
     if (!ok) {
       setState(() => _refused = true);
       return;
@@ -90,7 +101,13 @@ class _RecordingSheetState extends ConsumerState<_RecordingSheet> {
       navigator.pop();
       return;
     }
-    final size = slot.file.existsSync() ? slot.file.lengthSync() : 0;
+    final staging = _staging;
+    final size = staging != null && staging.existsSync()
+        ? staging.lengthSync()
+        : 0;
+    if (staging != null && staging.existsSync()) {
+      await _attachments.storage.keep(staging, slot.relative);
+    }
     final attachment = await _attachments.add(
       noteUuid: widget.noteUuid,
       fileName: name,
@@ -110,6 +127,7 @@ class _RecordingSheetState extends ConsumerState<_RecordingSheet> {
     await _recorder.cancel();
     final slot = _slot;
     if (slot != null) await _attachments.storage.delete(slot.relative);
+    await _dropStaging();
     navigator.pop();
   }
 
@@ -122,8 +140,19 @@ class _RecordingSheetState extends ConsumerState<_RecordingSheet> {
       unawaited(_recorder.cancel());
       final slot = _slot;
       if (slot != null) unawaited(_attachments.storage.delete(slot.relative));
+      unawaited(_dropStaging());
     }
     super.dispose();
+  }
+
+  Future<void> _dropStaging() async {
+    final staging = _staging;
+    if (staging == null) return;
+    try {
+      if (staging.existsSync()) await staging.delete();
+    } on FileSystemException catch (error) {
+      debugPrint('[notes] staging left behind: ${error.osError?.message}');
+    }
   }
 
   @override
@@ -203,16 +232,21 @@ class _RecordingPlayerState extends ConsumerState<RecordingPlayer> {
   var _missing = false;
   var _loaded = false;
 
+  /// The recording opened into a temporary file to play: sealed on disk,
+  /// it is let go when the player goes.
+  File? _opened;
+
   Future<void> _ensureLoaded() async {
     if (_loaded) return;
-    final file = await ref
-        .read(attachmentStorageProvider)
-        .fileOf(widget.attachment.storedPath);
+    final storage = ref.read(attachmentStorageProvider);
+    final file = await storage.fileOf(widget.attachment.storedPath);
     if (!file.existsSync()) {
       if (mounted) setState(() => _missing = true);
       return;
     }
-    await _player.setFilePath(file.path);
+    final opened = await storage.openCopy(widget.attachment.storedPath);
+    _opened = opened;
+    await _player.setFilePath(opened.path);
     _loaded = true;
   }
 
@@ -231,7 +265,7 @@ class _RecordingPlayerState extends ConsumerState<RecordingPlayer> {
 
   @override
   void dispose() {
-    unawaited(_player.dispose());
+    unawaited(_player.dispose().whenComplete(() => FileVault.release(_opened)));
     super.dispose();
   }
 

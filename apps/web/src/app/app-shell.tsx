@@ -6,6 +6,7 @@ import {
   EllipsisVerticalIcon,
   FlameIcon,
   HeartPulseIcon,
+  KeyRoundIcon,
   MailWarningIcon,
   PlusIcon,
   SearchIcon,
@@ -34,10 +35,13 @@ import { cn } from '@/lib/utils';
 import { AccountCircle } from './components/account-circle';
 import { AppBarLeadingSlot, AppBarSlot, AppBarTitleSlot } from './components/app-bar';
 import { useKeyboardMark } from './components/keyboard';
+import { SyncPinDialog } from './components/passphrase-prompt';
+import { usePinChosen } from './components/pin-state';
 import { PomodoroChip } from './components/pomodoro-timer';
 import { useFeaturesOrOff } from './components/settings-bits';
 import { SyncIndicator } from './components/sync-indicator';
 import { useHarvest, useSyncStatus } from './context';
+import { usePrivateKey } from './hooks';
 import { DialogsProvider, useDialogs } from './dialogs';
 import { FieldScreen } from './screens/field';
 import { RecordsView } from './screens/records';
@@ -299,9 +303,11 @@ function Banners({ startedOffline, className }: { startedOffline: boolean; class
   const { user } = useHarvest();
   const status = useSyncStatus();
   const [sent, setSent] = useState(false);
+  const unlocked = usePrivateKey();
   const offline = status.phase === 'offline' || (startedOffline && status.phase !== 'idle');
   return (
     <div className={cn('flex flex-col gap-2 empty:hidden', className)} aria-live="polite">
+      {user.verifiedAt !== null && unlocked === false && <PinBanner />}
       {user.verifiedAt === null && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm">
           <MailWarningIcon className="size-4" aria-hidden />
@@ -330,6 +336,27 @@ function Banners({ startedOffline, className }: { startedOffline: boolean; class
       {status.phase === 'syncing' && status.firstSync && (
         <div className="rounded-lg bg-muted px-3 py-2 text-sm">{t('app.firstSyncBanner')}</div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Since Phase 7 nothing leaves this browser unsealed, so without the
+ * sync PIN nothing syncs at all: said here, on every screen, with the
+ * way to enter it (or choose it, on the first device).
+ */
+function PinBanner() {
+  const { t } = useTranslation();
+  const chosen = usePinChosen();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm">
+      <KeyRoundIcon className="size-4" aria-hidden />
+      <span className="flex-1">{t('app.pinBanner')}</span>
+      <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+        {chosen === false ? t('syncPin.chooseTitle') : t('syncPin.enter')}
+      </Button>
+      {open && <SyncPinDialog onClose={() => setOpen(false)} />}
     </div>
   );
 }

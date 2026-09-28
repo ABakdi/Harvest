@@ -3,6 +3,7 @@ import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/data/rates_service.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/day_range.dart';
@@ -118,18 +119,9 @@ class FinanceSettings extends _$FinanceSettings {
         budget,
         from: from,
         to: currency,
-        rates: Rates(
-          defaultCurrency: currency,
-          dzdPerUsd: double.tryParse(
-            await settings.getString('rate.dzdPerUsd') ?? '',
-          ),
-          dzdPerEur: double.tryParse(
-            await settings.getString('rate.dzdPerEur') ?? '',
-          ),
-          usdPerEur: double.tryParse(
-            await settings.getString('rate.usdPerEur') ?? '',
-          ),
-        ),
+        rates: ratesFrom({
+          for (final key in RateKeys.all) key: await settings.getString(key),
+        }, currency),
       );
       if (converted != budget) await setBudget(converted);
     });
@@ -145,12 +137,7 @@ int convertBudget(
   required Rates rates,
 }) {
   if (from == to) return budget;
-  final converted = Rates(
-    defaultCurrency: to,
-    dzdPerUsd: rates.dzdPerUsd,
-    dzdPerEur: rates.dzdPerEur,
-    usdPerEur: rates.usdPerEur,
-  ).toDefault(budget, from);
+  final converted = rates.withDefault(to).toDefault(budget, from);
   if (converted == null) return budget;
   return converted < 1 ? 1 : converted;
 }
@@ -240,19 +227,8 @@ Stream<Rates> rates(Ref ref) {
       ref.watch(financeSettingsProvider).value?.defaultCurrency ?? Currency.dzd;
   return ref
       .watch(settingsRepositoryProvider)
-      .watchAll(const [
-        'rate.dzdPerUsd',
-        'rate.dzdPerEur',
-        'rate.usdPerEur',
-      ])
-      .map(
-        (values) => Rates(
-          defaultCurrency: defaultCurrency,
-          dzdPerUsd: double.tryParse(values['rate.dzdPerUsd'] ?? ''),
-          dzdPerEur: double.tryParse(values['rate.dzdPerEur'] ?? ''),
-          usdPerEur: double.tryParse(values['rate.usdPerEur'] ?? ''),
-        ),
-      );
+      .watchAll(RateKeys.all)
+      .map((values) => ratesFrom(values, defaultCurrency));
 }
 
 // ------------------------------------------------------------ aggregation

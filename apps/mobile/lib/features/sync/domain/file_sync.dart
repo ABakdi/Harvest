@@ -7,6 +7,7 @@ import 'package:cryptography/dart.dart' show DartSha256;
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:harvest/core/db/database.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/features/account/data/api_client.dart'
     show ApiException;
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
@@ -22,22 +23,24 @@ const int maxFileBytes = 25 * 1024 * 1024;
 /// (`maxFileQuery`).
 const int maxFileQuery = 500;
 
-/// The file routes, as the phone needs them ([[Sync-API]]).
+/// The file routes, as the phone needs them ([[Sync-API]]). Every name
+/// here is the file's name on the server ([[SyncCipher.nameOf]]), never
+/// the plaintext's SHA-256.
 abstract interface class FileRemote {
-  /// Which of [hashes] the server does not have.
-  Future<List<String>> missing(List<String> hashes);
+  /// Which of [names] the server does not have.
+  Future<List<String>> missing(List<String> names);
 
-  /// Uploads sealed bytes under their plaintext's name, saying which key
+  /// Uploads sealed bytes under their server name, saying which key
   /// epoch sealed them.
   Future<void> upload(
-    String sha256,
+    String name,
     Uint8List sealed,
     String iv, {
     required int keyEpoch,
   });
 
   /// Downloads sealed bytes, with the nonce they were sealed with.
-  Future<({Uint8List sealed, String iv})> download(String sha256);
+  Future<({Uint8List sealed, String iv})> download(String name);
 }
 
 /// One local file a row points at.
@@ -89,20 +92,36 @@ class FileReport {
 
 /// Pictures and recordings, up and down ([[Sync-API]]).
 ///
-/// A file is named by the SHA-256 of its own bytes, so the same picture
-/// on two phones is one file on the server and travels once. The bytes
-/// go sealed with the private tier's key, which is why this runs only
+/// A file is known here by the SHA-256 of its own bytes, and on the
+/// server by a keyed hash of that ([[SyncCipher.nameOf]]), so the same
+/// picture on two phones is one file on the server and travels once,
+/// and the server cannot tell which picture it is. The bytes go padded
+/// and sealed with the private tier's key, which is why this runs only
 /// once a passphrase is set: a picture is as personal as an expense.
 ///
 /// Nothing here blocks a row. A file that fails to upload is tried
 /// again on the next sync, and a row whose file has not arrived yet
 /// shows as a picture on another device ([[Gallery]]).
 class FileSync {
-  FileSync(this._db, this._remote, this._cipher, {this.batch = 20});
+  FileSync(
+    this._db,
+    this._remote,
+    this._cipher, {
+    this.batch = 20,
+    this.vault,
+  });
 
   final HarvestDatabase _db;
   final FileRemote _remote;
   final SyncCipher _cipher;
+
+  /// Where the files are sealed on this phone ([FileVault]): read and
+  /// written through it. Null only in a test with no Keystore.
+  final FileVault? vault;
+
+  Future<Uint8List> _read(File file) => vault?.read(file) ?? file.readAsBytes();
+
+  Future<String> _hash(File file) => vault?.hashOf(file) ?? hashFile(file.path);
 
   /// How many files one sync carries, so a year of pictures is spread
   /// over several runs rather than one very long one.
@@ -221,7 +240,7 @@ class FileSync {
     final named = <String, List<SyncableFile>>{};
     for (final one in taken) {
       try {
-        final hash = await hashFile(one.file.path);
+        final hash = await _hash(one.file);
         (named[hash] ??= []).add(one);
       } on Object catch (error) {
         debugPrint('[sync] could not read a file: ${error.runtimeType}');
@@ -230,7 +249,13 @@ class FileSync {
     }
     if (named.isEmpty) return (sent: 0, tooLarge: tooLarge, failed: failed);
 
-    final wanted = (await _remote.missing(named.keys.toList())).toSet();
+    final names = {
+      for (final hash in named.keys) await _cipher.nameOf(hash): hash,
+    };
+    final wanted = {
+      for (final name in await _remote.missing(names.keys.toList()))
+        if (names[name] != null) names[name]!,
+    };
     var sent = 0;
     for (final hash in wanted) {
       final one = named[hash]?.first;
@@ -238,7 +263,7 @@ class FileSync {
       // Read only for the files the server lacks, and only one at a time.
       final Uint8List plain;
       try {
-        plain = await one.file.readAsBytes();
+        plain = await _read(one.file);
       } on Object {
         failed += 1;
         named.remove(hash);
@@ -271,13 +296,19 @@ class FileSync {
     for (final one in named) {
       byHash.putIfAbsent(one.hash!, () => one);
     }
-    final hashes = byHash.keys.toList();
+    final hashOf = {
+      for (final hash in byHash.keys) await _cipher.nameOf(hash): hash,
+    };
+    final names = hashOf.keys.toList();
     final missing = <String>[];
-    for (var i = 0; i < hashes.length; i += maxFileQuery) {
-      final end = i + maxFileQuery > hashes.length
-          ? hashes.length
+    for (var i = 0; i < names.length; i += maxFileQuery) {
+      final end = i + maxFileQuery > names.length
+          ? names.length
           : i + maxFileQuery;
-      missing.addAll(await _remote.missing(hashes.sublist(i, end)));
+      for (final name in await _remote.missing(names.sublist(i, end))) {
+        final hash = hashOf[name];
+        if (hash != null) missing.add(hash);
+      }
     }
     var sent = 0;
     var tooLarge = 0;
@@ -296,7 +327,7 @@ class FileSync {
       }
       tried += 1;
       try {
-        final plain = await one.file.readAsBytes();
+        final plain = await _read(one.file);
         // A file that is no longer what its name says is not sent under
         // that name.
         if (await _hashOf(plain) != hash) continue;
@@ -315,9 +346,10 @@ class FileSync {
 
   Future<bool> _send(String hash, Uint8List plain) async {
     try {
-      final sealed = await _cipher.sealBytes(hash, plain);
+      final name = await _cipher.nameOf(hash);
+      final sealed = await _cipher.sealFile(name, plain);
       await _remote.upload(
-        hash,
+        name,
         sealed.bytes,
         _base64(sealed.iv),
         keyEpoch: _cipher.epoch,
@@ -392,24 +424,35 @@ class FileSync {
 
   /// Fetches one file and writes it where its row says it lives.
   ///
-  /// The bytes are checked against the name they came under before they
-  /// are written: a file that does not hash to its own name is not the
-  /// file the row means, and is dropped rather than saved.
+  /// The bytes are checked against the hash the row names before they
+  /// are written: a file that does not hash to it is not the file the
+  /// row means, and is dropped rather than saved.
   Future<bool> _fetch(String hash, File destination) async {
     final Uint8List plain;
     try {
-      final answer = await _remote.download(hash);
-      plain = await _cipher.openBytes(
-        hash,
-        _bytes(answer.iv),
-        answer.sealed,
-      );
+      var name = await _cipher.nameOf(hash);
+      ({Uint8List sealed, String iv}) answer;
+      try {
+        answer = await _remote.download(name);
+      } on ApiException catch (error) {
+        // Sent before Phase 7, under the plaintext's own hash, and not
+        // sent again or swept yet.
+        if (error.status != 404) rethrow;
+        name = hash;
+        answer = await _remote.download(name);
+      }
+      plain = await _cipher.openFile(name, _bytes(answer.iv), answer.sealed);
     } on Object {
       return false;
     }
     if (await _hashOf(plain) != hash) return false;
     await destination.parent.create(recursive: true);
-    await destination.writeAsBytes(plain, flush: true);
+    final vault = this.vault;
+    if (vault == null) {
+      await destination.writeAsBytes(plain, flush: true);
+    } else {
+      await vault.write(destination, plain);
+    }
     return true;
   }
 
@@ -468,7 +511,8 @@ class FileSync {
 /// A row another device purged is gone here too; its picture or
 /// recording goes with it, unless another row still names the same
 /// file. When no row names the file's hash any more, the server is told
-/// it can let it go as well.
+/// it can let it go as well ([forget] takes the plaintext's hash, and
+/// names it for the server itself).
 class PurgedFiles {
   PurgedFiles(
     this._db, {

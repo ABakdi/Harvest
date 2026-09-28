@@ -15,7 +15,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "e2e": "tsx scripts/e2e-server.ts"
+    "e2e": "tsx scripts/e2e-server.ts",
+    "operator-view": "tsx scripts/operator-view.ts"
   },
   "dependencies": {
     "@harvest/contracts": "workspace:*",

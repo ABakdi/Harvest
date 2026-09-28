@@ -4,7 +4,7 @@ import {
   fileIvHeader,
   fileKeyEpochHeader,
   filePlainBytesHeader,
-  maxFileBytes,
+  maxSealedFileBytes,
   maxFileStoreBytes,
   tierOf,
 } from '@harvest/contracts';
@@ -98,7 +98,7 @@ describe('files', () => {
     const bytes = randomBytes(64);
     expectError(await upload(account, 'not-a-hash', bytes), 400, 'validation_failed');
 
-    const huge = Buffer.alloc(maxFileBytes + 8192);
+    const huge = Buffer.alloc(maxSealedFileBytes + 8192);
     expectError(await upload(account, nameOf(huge), huge), 413, 'payload_too_large');
   });
 
@@ -125,9 +125,9 @@ describe('files', () => {
 });
 
 describe('the tables that name files (SV-12)', () => {
-  it('are every table with a fileHash, and each is plain, so the sweep can read the names', () => {
+  it('are every table with a fileHash, each sealed, naming its file in the clear `file`', () => {
     expect(fileTables).toEqual(expect.arrayContaining(['memories', 'note_attachments']));
-    for (const table of fileTables) expect(tierOf(table)).toBe('plain');
+    for (const table of fileTables) expect(tierOf(table)).toBe('private');
   });
 });
 
@@ -193,10 +193,8 @@ describe('room (audit S5-08, Q5-23)', () => {
       uuid,
       updatedAt: at,
       deletedAt,
-      data: {
-        uuid, albumUuid: 'album', harvestDay: at.slice(0, 10), path: `${uuid}.jpg`, kind: 'photo',
-        note: null, fileHash: hash, capturedAt: at, updatedAt: at, deletedAt,
-      },
+      enc: { v: 2, iv, ct: 'c2VhbGVk' },
+      file: hash,
     });
     const live = randomBytes(64);
     const trashed = randomBytes(64);
@@ -205,7 +203,7 @@ describe('room (audit S5-08, Q5-23)', () => {
     await request(h.app)
       .post('/v1/sync/push')
       .set(bearer(account))
-      .send({ deviceId: 'phone', records: [memory('m1', nameOf(live), null), memory('m2', nameOf(trashed), at)] })
+      .send({ deviceId: 'phone', keyEpoch: 1, records: [memory('m1', nameOf(live), null), memory('m2', nameOf(trashed), at)] })
       .expect(200);
     await age(account, nameOf(live));
     await age(account, nameOf(trashed));
@@ -257,22 +255,12 @@ describe('room (audit S5-08, Q5-23)', () => {
           uuid,
           updatedAt: at,
           deletedAt: fields.deletedAt ?? null,
-          data: {
-            uuid,
-            albumUuid: 'album',
-            harvestDay: at.slice(0, 10),
-            path: `${uuid}.jpg`,
-            kind: 'photo',
-            note: null,
-            fileHash: hash,
-            capturedAt: at,
-            updatedAt: at,
-            deletedAt: fields.deletedAt ?? null,
-          },
+          enc: { v: 2, iv, ct: 'c2VhbGVk' },
+          file: hash,
         };
       };
       const pushRows = (records: unknown[]) =>
-        request(timed.app).post('/v1/sync/push').set(bearer(account)).send({ deviceId: 'phone', records }).expect(200);
+        request(timed.app).post('/v1/sync/push').set(bearer(account)).send({ deviceId: 'phone', keyEpoch: 1, records }).expect(200);
 
       const kept = randomBytes(100);
       const trashed = randomBytes(100);

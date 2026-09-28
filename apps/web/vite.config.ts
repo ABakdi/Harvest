@@ -114,5 +114,9 @@ export default defineConfig(({ mode }) => ({
     include: ['test/**/*.test.{ts,tsx}'],
     setupFiles: ['test/setup.ts'],
     testTimeout: 30_000,
+    // The clock the tests are written on, and the zone a browser with no
+    // currency chosen reads its currency from (the dinar's): the same on
+    // every machine that runs them.
+    env: { TZ: 'Africa/Algiers' },
   },
 }));

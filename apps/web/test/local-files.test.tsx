@@ -1,5 +1,5 @@
 import { Blob as NodeBlob } from 'node:buffer';
-import { sealFile } from '@harvest/contracts';
+import { sealFileV3 } from '@harvest/contracts';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { unzipSync } from 'fflate';
 import type { ReactNode } from 'react';
@@ -13,7 +13,7 @@ import { sha256Of } from '@/app/data/files';
 import { useFile } from '@/app/hooks';
 import { api } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser, testKey } from './helpers';
+import { device, testFileName, testUser, testKey } from './helpers';
 
 type Device = Awaited<ReturnType<typeof device>>;
 
@@ -95,7 +95,7 @@ describe('a picture that could not be had yet', () => {
   async function sealed(bytes: Uint8Array<ArrayBuffer>) {
     const sha256 = await sha256Of(bytes.slice().buffer);
     const key = await testKey('a long passphrase');
-    const box = await sealFile(key, sha256, bytes);
+    const box = await sealFileV3(key, await testFileName(sha256, 'a long passphrase'), bytes);
     return { sha256, box };
   }
 

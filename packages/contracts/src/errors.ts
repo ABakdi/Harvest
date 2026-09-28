@@ -62,6 +62,8 @@ export function toIssues(error: z.ZodError): Issue[] {
   return error.issues.map((issue) => ({
     path: issue.path.map((part) => (typeof part === 'symbol' ? String(part) : part)),
     message: issue.message,
-    code: issue.code,
+    // A custom check may name its own code (`sealed_required`), so a
+    // client can tell that refusal from any other.
+    code: issue.code === 'custom' && typeof issue.params?.code === 'string' ? issue.params.code : issue.code,
   }));
 }

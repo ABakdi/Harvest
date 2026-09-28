@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { buildArchive } from '@/app/data/export';
 import { applyImport, openArchive } from '@/app/data/import';
 import { FakeServer } from './fake-server';
-import { device } from './helpers';
+import { device, syncing } from './helpers';
 
 /** A parent's tick is drawn from its subtasks after a sync or an import ([[Goals]] GL3, Q5-44). */
 describe("a parent's tick, settled again", () => {
   it('after a sync brought subtasks from two devices', async () => {
     const server = new FakeServer();
-    const a = await device(server);
-    const b = await device(server);
+    const a = await syncing(server);
+    const b = await syncing(server);
     const goal = await a.goals.create({ title: 'Move' });
     const parent = await a.goals.addItem(goal.uuid, 'Pack');
     const first = (await a.goals.addSubtask(parent.uuid, 'Books'))!;

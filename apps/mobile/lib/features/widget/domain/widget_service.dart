@@ -8,6 +8,7 @@ import 'package:harvest/core/l10n_loader.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
+import 'package:harvest/features/finances/data/rates_service.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
@@ -228,17 +229,10 @@ class WidgetService {
     return total;
   }
 
-  Future<Rates> _rates() async {
-    double? rate(String? raw) => double.tryParse(raw ?? '');
-    return Rates(
-      defaultCurrency: Currency.fromCode(
-        await _settings.getString(FinanceKeys.defaultCurrency),
-      ),
-      dzdPerUsd: rate(await _settings.getString('rate.dzdPerUsd')),
-      dzdPerEur: rate(await _settings.getString('rate.dzdPerEur')),
-      usdPerEur: rate(await _settings.getString('rate.usdPerEur')),
-    );
-  }
+  Future<Rates> _rates() async => ratesFrom(
+    {for (final key in RateKeys.all) key: await _settings.getString(key)},
+    Currency.fromCode(await _settings.getString(FinanceKeys.defaultCurrency)),
+  );
 }
 
 @Riverpod(keepAlive: true)

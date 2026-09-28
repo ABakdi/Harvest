@@ -1,5 +1,5 @@
 import { Blob as NodeBlob } from 'node:buffer';
-import { sealFile } from '@harvest/contracts';
+import { sealFileV3 } from '@harvest/contracts';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -13,7 +13,7 @@ import { sha256Of } from '@/app/data/files';
 import type { MemoryRow } from '@/app/data/gallery';
 import { api, ApiError } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser, testKey } from './helpers';
+import { device, testFileName, testUser, testKey } from './helpers';
 
 type Device = Awaited<ReturnType<typeof device>>;
 
@@ -43,7 +43,7 @@ async function sealedPicture() {
   const bytes = new Uint8Array(96).map((_, i) => (i * 11 + 3) % 256);
   const sha256 = await sha256Of(bytes.slice().buffer);
   const key = await testKey('2468');
-  return { sha256, box: await sealFile(key, sha256, bytes) };
+  return { sha256, box: await sealFileV3(key, await testFileName(sha256, '2468'), bytes) };
 }
 
 function memory(uuid: string, fileHash: string | null, day = '2026-09-19'): MemoryRow {
@@ -71,8 +71,10 @@ describe('why a file is not here ([[Gallery]] G9)', () => {
     expect(await h.files.find('a'.repeat(64))).toBe('locked');
 
     await h.keyring.unlock('2468', testUser.syncSalt, 1);
-    vi.spyOn(api, 'file').mockRejectedValueOnce(new ApiError(404, 'not_found', 'No such file'));
+    // Under neither its keyed name nor, from before Phase 7, its hash.
+    vi.spyOn(api, 'file').mockRejectedValue(new ApiError(404, 'not_found', 'No such file'));
     expect(await h.files.find('b'.repeat(64))).toBe('onPhone');
+    vi.restoreAllMocks();
 
     vi.spyOn(api, 'file').mockRejectedValueOnce(new ApiError(0, 'network', 'Offline'));
     expect(await h.files.find('c'.repeat(64))).toBe('failed');
@@ -111,7 +113,7 @@ describe('why a file is not here ([[Gallery]] G9)', () => {
     expect(await screen.findByText(locked)).toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole('button', { name: 'Enter sync PIN' }));
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByLabelText('Sync PIN (4 to 6 digits)')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/^(Passphrase \(a few words|Sync passphrase or PIN)/)).toBeInTheDocument();
 
     // Entered elsewhere just as well: the picture follows on its own.
     await h.keyring.unlock('2468', testUser.syncSalt, 1);

@@ -16,14 +16,14 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { currencies, currencySymbol, formatAmountInput, formatMoney } from '@/lib/format';
+import { formatAmountInput, formatMoney } from '@/lib/format';
 import { useHarvest, useHarvestDay } from '../context';
 import type { DebtView } from '../data/vault';
 import { useDefaultCurrency } from '../hooks';
 import { AmountField, moneyError } from './money-bits';
 import { useBusy } from './use-busy';
 import { runAction } from '@/lib/actions';
+import { CurrencyPicker } from './currency-picker';
 
 /**
  * `09:05` from a time input into `9:05`, the way the phone's debt
@@ -133,13 +133,7 @@ export function DebtDialog({ existing, onClose }: { existing?: DebtView | undefi
           {paid === 0 && (
           <div className="flex flex-col gap-2">
             <Label id={`${id}-currency`}>{t('money.currency')}</Label>
-            <ToggleGroup type="single" value={currency} onValueChange={(value) => value && setCurrency(value)} aria-labelledby={`${id}-currency`}>
-              {currencies.map((code) => (
-                <ToggleGroupItem key={code} value={code} aria-label={code}>
-                  {currencySymbol(code)}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            <CurrencyPicker id={`${id}-currency-pick`} labelledBy={`${id}-currency`} value={currency} onChange={setCurrency} className="self-start" />
           </div>
           )}
           <div className="grid gap-3 sm:grid-cols-2">

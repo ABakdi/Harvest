@@ -3,13 +3,9 @@
   "uuid": "b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
   "updatedAt": "2026-09-18T22:41:05.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
-    "commitmentUuid": "6f1c2a9e-4b7d-4e2a-9c1f-2d8b5e7a3c10",
-    "harvestDay": "2026-09-18",
-    "quantity": 1,
-    "loggedAt": "2026-09-18T22:41:05.000Z",
-    "deletedAt": null,
-    "updatedAt": "2026-09-18T22:41:05.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "2XPJwf0OrohhXRBi",
+    "ct": "NYZ0BKKRu/pkMe5G4mObrR/0yymwJNcMSl/dZUBSdxqPSm38Wp7iglj08nf4z4Ysd2yhYy0bIVGxNPTt3rbFuNgVQe1wN2o8ZFdoELFdI7g/AiEqsMSmAsfS4mldZEQ38qCVcQWgr+kdzh+RTbA+cPG1TtMyEKZDvTaiSGpjwoicZI577KrbqzrIoXZtHjah9H7u5l87OF7nLMdMreaK0Jbu/w2a1Zl/bIeaggM9DfYUUqzTFibZydCu2C3WrCcsNakvqcaSv4fEoVu5mjrYXqC0g6ZBvNIANcH5R3Na0myv4Rm10BoRoxcSF+gTFw+2t88UmuDD16q1aVSfedBYRCZRNUEIrIwz4SO/C+7fZTg="
   }
 }

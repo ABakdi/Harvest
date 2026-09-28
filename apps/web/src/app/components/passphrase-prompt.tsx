@@ -1,6 +1,6 @@
-import { syncPinMaxLength, syncSecretProblem, type SyncKeyState } from '@harvest/contracts';
+import { isSyncPin, syncPinMaxLength, syncSecretProblem, syncSecretStrength, type SyncKeyState, type SyncSecretLevel } from '@harvest/contracts';
 import { westernDigits } from '@harvest/core';
-import { KeyRoundIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, KeyRoundIcon } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -22,9 +22,63 @@ export function pinDigits(typed: string): string {
 }
 
 /**
- * The sync PIN, entered once per browser ([[Accounts]], Sync PIN): a PIN
- * of 4 to 6 digits by default, or a passphrase of 8 characters or more
- * for whoever wants more, by the contract's rule (`syncSecretProblem`).
+ * How long a secret would stand against someone trying every one of its
+ * kind with the server's database and its keys in hand, as words: the
+ * contract's estimate (`syncSecretStrength`) in the largest unit that
+ * fits, and past a thousand years only its order.
+ */
+export function howLongItStands(seconds: number): { key: string; count?: number } {
+  const minute = 60;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const year = 365 * day;
+  if (seconds < 1) return { key: 'instantly' };
+  if (seconds < minute) return { key: 'seconds', count: Math.round(seconds) };
+  if (seconds < hour) return { key: 'minutes', count: Math.round(seconds / minute) };
+  if (seconds < day) return { key: 'hours', count: Math.round(seconds / hour) };
+  if (seconds < year) return { key: 'days', count: Math.round(seconds / day) };
+  if (seconds < 1000 * year) return { key: 'years', count: Math.round(seconds / year) };
+  if (seconds < 1_000_000 * year) return { key: 'thousandsOfYears' };
+  return { key: 'millionsOfYears' };
+}
+
+const meterFill: Record<SyncSecretLevel, { bars: number; colour: string }> = {
+  pin: { bars: 1, colour: 'bg-destructive' },
+  weak: { bars: 1, colour: 'bg-destructive' },
+  fair: { bars: 2, colour: 'bg-amber-500' },
+  strong: { bars: 3, colour: 'bg-emerald-500' },
+};
+
+/** The meter under a secret being chosen: how strong, and how long it would stand, in words. */
+export function StrengthMeter({ secret, id }: { secret: string; id: string }) {
+  const { t } = useTranslation();
+  const strength = syncSecretStrength(secret);
+  const { bars, colour } = meterFill[strength.level];
+  const time = howLongItStands(strength.seconds);
+  return (
+    <div id={id} className="flex flex-col gap-1" aria-live="polite">
+      <div className="flex gap-1" aria-hidden>
+        {[0, 1, 2].map((bar) => (
+          <span key={bar} className={`h-1.5 flex-1 rounded-full ${bar < bars ? colour : 'bg-muted'}`} />
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground" data-level={strength.level}>
+        <span className="font-semibold text-foreground">{t(`syncPin.strength.level.${strength.level}`)}</span>{' '}
+        {t('syncPin.strength.stands', {
+          time: t(`syncPin.strength.time.${time.key}`, time.count === undefined ? {} : { count: time.count }),
+        })}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * The sync secret, entered once per browser ([[Accounts]], Sync PIN): a
+ * passphrase by default, since Phase 7 (M7.5), shown or hidden, with a
+ * meter of how long it would stand; or, one tap away and with the
+ * trade-off said beside it, a PIN of 4 to 6 digits. Both by the
+ * contract's rule (`syncSecretProblem`). Entering, either is taken as
+ * typed: a secret of digits alone is read as the PIN it is.
  *
  * Whether it is chosen or entered is the server's answer, never a guess
  * from what this browser has pulled ([[Accounts]]): while the account
@@ -48,7 +102,8 @@ export function PassphrasePrompt({
   const secretField = useRef<HTMLInputElement>(null);
   const { keyring, engine, user } = useHarvest();
   const id = useId();
-  const [mode, setMode] = useState<'pin' | 'passphrase'>('pin');
+  const [mode, setMode] = useState<'pin' | 'passphrase'>('passphrase');
+  const [shown, setShown] = useState(false);
   const [secret, setSecret] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +141,11 @@ export function PassphrasePrompt({
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-    const problem = syncSecretProblem(secret);
+    // Entering, a PIN typed in the passphrase field is still the PIN,
+    // whatever keyboard's digits it came in.
+    const asPin = pinDigits(secret);
+    const secretNow = !choosing && !pin && isSyncPin(asPin) && westernDigits(secret).trim() === asPin ? asPin : secret;
+    const problem = syncSecretProblem(secretNow);
     // Entering, the PIN is the one already chosen: the check judges it.
     if (problem && !(problem === 'pinTooSimple' && !choosing)) {
       setError(t(`syncPin.problem.${problem}`));
@@ -98,7 +157,7 @@ export function PassphrasePrompt({
     }
     setBusy(true);
     try {
-      await keyring.unlock(secret, user.syncSalt);
+      await keyring.unlock(secretNow, user.syncSalt);
       await engine.openSealed();
       background(engine.sync());
       onUnlocked?.();
@@ -162,26 +221,46 @@ export function PassphrasePrompt({
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${id}-secret`}>{pin ? t('syncPin.pinLabel') : t('syncPin.passphraseLabel')}</Label>
-        <Input
-          ref={secretField}
-          id={`${id}-secret`}
-          type="password"
-          autoComplete="off"
-          dir="ltr"
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${id}-error` : undefined}
-          {...field}
-          value={secret}
-          onChange={(event) => setSecret(typed(event.target.value))}
-        />
+        <Label htmlFor={`${id}-secret`}>
+          {pin ? t('syncPin.pinLabel') : choosing ? t('syncPin.passphraseLabel') : t('syncPin.secretLabel')}
+        </Label>
+        <div className="flex gap-2">
+          <Input
+            ref={secretField}
+            id={`${id}-secret`}
+            type={shown && !pin ? 'text' : 'password'}
+            autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            dir="ltr"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={[error ? `${id}-error` : null, choosing && secret !== '' ? `${id}-strength` : null].filter(Boolean).join(' ') || undefined}
+            {...field}
+            value={secret}
+            onChange={(event) => setSecret(typed(event.target.value))}
+          />
+          {!pin && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-pressed={shown}
+              aria-label={shown ? t('syncPin.hide') : t('syncPin.show')}
+              title={shown ? t('syncPin.hide') : t('syncPin.show')}
+              onClick={() => setShown((now) => !now)}
+            >
+              {shown ? <EyeOffIcon /> : <EyeIcon />}
+            </Button>
+          )}
+        </div>
+        {choosing && secret !== '' && <StrengthMeter secret={secret} id={`${id}-strength`} />}
       </div>
       {choosing && (
         <div className="flex flex-col gap-2">
           <Label htmlFor={`${id}-confirm`}>{pin ? t('syncPin.confirmPin') : t('syncPin.confirmPassphrase')}</Label>
           <Input
             id={`${id}-confirm`}
-            type="password"
+            type={shown && !pin ? 'text' : 'password'}
             autoComplete="off"
             dir="ltr"
             aria-invalid={error ? true : undefined}
@@ -195,7 +274,7 @@ export function PassphrasePrompt({
       )}
       {/* Choosing, the trade-off and the warning help; entering one set elsewhere, only which kind it was does. */}
       <div className="flex flex-col items-start gap-1">
-        {choosing && <p className="text-xs text-muted-foreground">{t('syncPin.tradeOff')}</p>}
+        {choosing && <p className="text-xs text-muted-foreground">{pin ? t('syncPin.tradeOffPin') : t('syncPin.tradeOff')}</p>}
         <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={switchMode}>
           {choosing ? (pin ? t('syncPin.usePassphrase') : t('syncPin.usePin')) : pin ? t('syncPin.setPassphraseInstead') : t('syncPin.setPinInstead')}
         </Button>

@@ -565,6 +565,9 @@ void main() {
       );
       await tester.pumpAndSettle();
       await open(tester);
+      // A passphrase comes first; a PIN is one tap away.
+      await tester.tap(find.text(l10n.syncPinUsePin));
+      await tester.pumpAndSettle();
 
       final fields = find.descendant(
         of: find.byType(SyncPinSheet),
@@ -612,6 +615,7 @@ void main() {
         of: find.byType(SyncPinSheet),
         matching: find.byType(TextField),
       );
+      // Digits in the passphrase field are a PIN, all the same.
       await tester.enterText(fields.first, '739051');
       await tester.enterText(fields.last, '739051');
       await tester.pump();
@@ -623,15 +627,17 @@ void main() {
       expect(find.text(l10n.syncPinChoose), findsOneWidget);
     });
 
-    testWidgets('a passphrase instead: text, 8 characters', (tester) async {
+    testWidgets('a passphrase first: text, 8 characters, how long it would '
+        'hold, and what a PIN costs beside the way to one', (tester) async {
       final pin = _Pin();
       await tester.pumpWidget(
         app(account: _Account(_me), pin: pin, sync: _Sync()),
       );
       await tester.pumpAndSettle();
       await open(tester);
-      await tester.tap(find.text(l10n.syncPinUsePassphrase));
-      await tester.pumpAndSettle();
+      expect(find.text(l10n.syncPassphraseTitle), findsOneWidget);
+      expect(find.text(l10n.syncPinUsePin), findsOneWidget);
+      expect(find.text(l10n.syncPinCost), findsOneWidget);
 
       final fields = find.descendant(
         of: find.byType(SyncPinSheet),
@@ -641,6 +647,30 @@ void main() {
         tester.widget<TextField>(fields.first).keyboardType,
         TextInputType.visiblePassword,
       );
+      // Shown on a tap, hidden on another.
+      expect(tester.widget<TextField>(fields.first).obscureText, isTrue);
+      await tester.tap(find.byTooltip(l10n.syncSecretShow).first);
+      await tester.pump();
+      expect(tester.widget<TextField>(fields.first).obscureText, isFalse);
+
+      await tester.enterText(fields.first, 'olive river lantern');
+      await tester.pump();
+      expect(find.byKey(const ValueKey('secret-strength')), findsOneWidget);
+      expect(
+        find.textContaining(l10n.syncSecretStrong),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('secret-strength')),
+          matching: find.textContaining(l10n.syncSecretThousands),
+        ),
+        findsOneWidget,
+      );
+      await tester.enterText(fields.first, 'password');
+      await tester.pump();
+      expect(find.textContaining(l10n.syncSecretWeak), findsOneWidget);
+      expect(find.textContaining(l10n.syncSecretUnderSecond), findsOneWidget);
       await tester.enterText(fields.first, 'short');
       await tester.enterText(fields.last, 'short');
       await tester.pump();
@@ -685,15 +715,28 @@ void main() {
       expect(find.text(l10n.syncPinWrong), findsOneWidget);
       expect(find.byType(SyncPinSheet), findsOneWidget);
 
-      pin.opens = true;
-      // Entering, the PIN is the one already chosen: an easy one is the
-      // check's to judge, not the chooser's rule.
-      await tester.enterText(fields.first, '1234');
+      // One field takes either, and an Arabic keyboard's digits are the
+      // PIN they spell.
+      expect(
+        tester.widget<TextField>(fields.first).keyboardType,
+        TextInputType.visiblePassword,
+      );
+      expect(find.text(l10n.syncPinUsePin), findsNothing);
+      await tester.enterText(fields.first, 'olive river lantern');
       await tester.pump();
       await tester.ensureVisible(find.text(l10n.syncPinEnter));
       await tester.tap(find.text(l10n.syncPinEnter));
       await tester.pumpAndSettle();
-      expect(pin.secrets, ['1357', '1234']);
+
+      pin.opens = true;
+      // Entering, the PIN is the one already chosen: an easy one is the
+      // check's to judge, not the chooser's rule.
+      await tester.enterText(fields.first, '١٢٣٤');
+      await tester.pump();
+      await tester.ensureVisible(find.text(l10n.syncPinEnter));
+      await tester.tap(find.text(l10n.syncPinEnter));
+      await tester.pumpAndSettle();
+      expect(pin.secrets, ['1357', 'olive river lantern', '1234']);
       expect(sync.syncs, 1);
       expect(find.byType(SyncPinSheet), findsNothing);
     });
@@ -705,6 +748,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       await open(tester);
+      await tester.tap(find.text(l10n.syncPinUsePin));
+      await tester.pumpAndSettle();
       expect(find.text(l10n.syncPinRule), findsOneWidget);
 
       final fields = find.descendant(

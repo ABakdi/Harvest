@@ -195,8 +195,10 @@ class PlacesRepository {
     await _db.delete(_db.locationPoints).go();
     await _db.delete(_db.geotags).go();
     await _db.delete(_db.savedPlaces).go();
-    for (final row in points) {
-      await _db.logChange('location_points', row.uuid, 'delete');
+    // The trail travels a day at a time: each day goes as a whole,
+    // and with no point left it goes as a tombstone.
+    for (final day in {for (final row in points) row.harvestDay}) {
+      await _db.logChange('trail_days', day, 'delete');
     }
     for (final row in tags) {
       await _db.logChange('geotags', row.uuid, 'delete');

@@ -42,13 +42,13 @@ export interface HarnessOptions {
  */
 export async function harness(options: HarnessOptions = {}): Promise<Harness> {
   const mongo = await connectMongo(inject('mongoUrl'), `harvest_test_${randomUUID().slice(0, 8)}`);
-  const repos = await createRepositories(mongo.db);
   const config = await loadConfig({
     NODE_ENV: 'test',
     CORS_ORIGINS: appOrigin,
     APP_URL: appOrigin,
     ...options.env,
   });
+  const repos = await createRepositories(mongo.db, config.keyShareKey);
   const mailer = new MemoryMailer();
   const app = createApp({
     config,

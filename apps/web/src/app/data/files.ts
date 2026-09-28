@@ -1,4 +1,4 @@
-import { maxFileBytes, openFile, sealFile } from '@harvest/contracts';
+import { fileNameOf, maxFileBytes, openFileAny, sealFileV3 } from '@harvest/contracts';
 import { background } from '@/lib/actions';
 import { ApiError, api } from '@/lib/api';
 import { getMeta, setMeta, type HarvestDB } from './db';
@@ -133,8 +133,11 @@ export type FileMiss = 'onPhone' | 'locked' | 'failed';
 export const fileFetchTimeoutMs = 30_000;
 
 /**
- * Pictures and recordings, fetched by the name of their own bytes and
- * sent the same way ([[Sync-API]], files).
+ * Pictures and recordings, known here by the hash of their own bytes
+ * and on the server by a keyed hash of it (`fileNameOf`, Phase 7), so
+ * the server cannot tell which files an account holds ([[Sync-API]],
+ * files). A file still stored under its plain hash, from before, is
+ * fetched by that name when the keyed one is not there yet.
  *
  * What comes back is opened with the private tier's key and hashed
  * again: bytes that do not hash to the name they came under are not
@@ -189,7 +192,8 @@ export class FileStore {
 
   private async fetch(sha256: string): Promise<Blob | FileMiss> {
     const key = await this.keyring.key(this.salt());
-    if (!key) return 'locked';
+    const nameKey = await this.keyring.nameKey(this.salt());
+    if (!key || !nameKey) return 'locked';
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       // A request that never answers would leave a frame loading for
@@ -197,8 +201,7 @@ export class FileStore {
       const late = new Promise<never>((_, reject) => {
         timer = setTimeout(() => reject(new Error('timeout')), this.timeoutMs);
       });
-      const { sealed, iv } = await Promise.race([this.remote.file(sha256), late]);
-      const plain = await openFile(key, sha256, { iv, ct: sealed });
+      const plain = await Promise.race([this.download(key, nameKey, sha256), late]);
       const bytes = plain.slice().buffer;
       if ((await sha256Of(bytes)) !== sha256) return 'failed';
       const blob = new Blob([bytes], { type: playableType(new Uint8Array(bytes, 0, Math.min(bytes.byteLength, 16))) });
@@ -211,6 +214,22 @@ export class FileStore {
       return 'failed';
     } finally {
       clearTimeout(timer);
+    }
+  }
+
+  /**
+   * A file's bytes from the server, opened: under its keyed name, or,
+   * not there yet, under the plain hash it was stored by before Phase 7.
+   */
+  private async download(key: CryptoKey, nameKey: CryptoKey, sha256: string): Promise<Uint8Array> {
+    const name = await fileNameOf(nameKey, sha256);
+    try {
+      const { sealed, iv } = await this.remote.file(name);
+      return await openFileAny(key, name, { iv, ct: sealed });
+    } catch (failure) {
+      if (!(failure instanceof ApiError) || failure.status !== 404) throw failure;
+      const { sealed, iv } = await this.remote.file(sha256);
+      return await openFileAny(key, sha256, { iv, ct: sealed });
     }
   }
 
@@ -304,6 +323,9 @@ export class FileStore {
     await this.release(String(row.uuid), sha256);
     if (!sha256 || !this.remote.forgetFile) return;
     if (await this.named(sha256)) return;
+    const nameKey = await this.keyring.nameKey(this.salt());
+    if (nameKey) await this.remote.forgetFile(await fileNameOf(nameKey, sha256));
+    // A copy from before Phase 7, under the plain hash, goes too.
     await this.remote.forgetFile(sha256);
   }
 
@@ -415,7 +437,9 @@ export class FileStore {
       const held = await this.db.files.get(entry.sha256);
       if (!row || !held || (row.fileHash === entry.sha256 && !entry.check)) dropped.add(entry.uuid);
       // Past 25 MB the server refuses it: it stays here, and only here.
-      else if (row.deletedAt === null && held.blob.size <= maxFileBytes) {
+      // A file asked about again goes even from the trash, which can
+      // give its row back.
+      else if ((row.deletedAt === null || entry.check) && held.blob.size <= maxFileBytes) {
         live.push(entry);
         if (row.fileHash === entry.sha256) named.add(entry.uuid);
       }
@@ -424,9 +448,10 @@ export class FileStore {
     report.waiting = list.length - dropped.size;
 
     const key = await this.keyring.key(this.salt());
+    const nameKey = await this.keyring.nameKey(this.salt());
     const keyEpoch = await this.keyring.epoch();
     const keyId = await this.keyring.keyId();
-    if (!key || keyEpoch === null || !this.writer || live.length === 0) return report;
+    if (!key || !nameKey || keyEpoch === null || !this.writer || live.length === 0) return report;
 
     // A file that failed waits its turn, so one bad file is not re-read,
     // sealed and sent on every sync (Q6-14).
@@ -434,19 +459,25 @@ export class FileStore {
     const taken = due.slice(0, uploadBatch);
     if (taken.length === 0) return report;
     const hashes = [...new Set(taken.map((entry) => entry.sha256))];
+    // Asked about and sent under their names on the server, never their hashes.
+    const hashOf = new Map<string, string>();
+    for (const hash of hashes) hashOf.set(await fileNameOf(nameKey, hash), hash);
     // Whatever reaches the server counts, even when a later file fails.
     const held = new Set<string>();
     try {
-      const { missing } = await this.remote.filesMissing(hashes);
-      const wanted = new Set(missing);
+      const { missing } = await this.remote.filesMissing([...hashOf.keys()]);
+      const wanted = new Set(missing.map((name) => hashOf.get(name)));
       for (const hash of hashes) if (!wanted.has(hash)) held.add(hash);
-      for (const hash of missing) {
+      for (const name of missing) {
+        const hash = hashOf.get(name);
+        if (!hash) continue;
         const file = await this.db.files.get(hash);
         if (!file) continue;
         try {
           const bytes = new Uint8Array(await file.blob.arrayBuffer());
-          const sealed = await sealFile(key, hash, bytes);
-          await this.remote.putFile(hash, sealed.sealed, sealed.iv, bytes.byteLength, keyEpoch);
+          const sealed = await sealFileV3(key, name, bytes);
+          // The sealed length, less the tag: the padded length, not the file's.
+          await this.remote.putFile(name, sealed.sealed, sealed.iv, sealed.sealed.byteLength - 16, keyEpoch);
           held.add(hash);
           this.failures.delete(hash);
           report.uploaded += 1;
@@ -494,6 +525,85 @@ export class FileStore {
       report.waiting -= done.length;
     }
     return report;
+  }
+
+  /**
+   * Phase 7's move for files (M7.1, M7.2): every file a row here names
+   * that the server does not hold under its keyed name yet is fetched
+   * from its old name when this browser does not have it, and queued to
+   * go again under the new one. Answers whether every such file is
+   * either here, queued, or already there.
+   */
+  async migrateLegacy(): Promise<boolean> {
+    const nameKey = await this.keyring.nameKey(this.salt());
+    if (!nameKey) return false;
+    const rows: { table: FileTable; uuid: string; sha256: string }[] = [];
+    for (const table of ['memories', 'note_attachments'] as const) {
+      for (const row of await this.db.rows(table).toArray()) {
+        if (row.fileHash) rows.push({ table, uuid: row.uuid, sha256: row.fileHash });
+      }
+    }
+    if (rows.length === 0) return true;
+    const byName = new Map<string, string>();
+    for (const { sha256 } of rows) byName.set(await fileNameOf(nameKey, sha256), sha256);
+    const names = [...byName.keys()];
+    const missing = new Set<string>();
+    // The server takes a few hundred names a question.
+    for (let start = 0; start < names.length; start += 500) {
+      const answer = await this.remote.filesMissing(names.slice(start, start + 500));
+      for (const name of answer.missing) missing.add(byName.get(name)!);
+    }
+    if (missing.size === 0) return true;
+    let settled = true;
+    const entries: PendingUpload[] = [];
+    for (const row of rows) {
+      if (!missing.has(row.sha256)) continue;
+      // Not here: fetched under the old name, opened and kept, to go again.
+      if (!(await this.db.files.get(row.sha256))) {
+        const found = await this.find(row.sha256);
+        // On the server under neither name: nothing there to lose, and
+        // the device that has it sends it under the new one.
+        if (found === 'onPhone') continue;
+        if (typeof found === 'string') {
+          settled = false;
+          continue;
+        }
+      }
+      entries.push({ ...row, check: true });
+    }
+    await this.queueAll(entries);
+    return settled;
+  }
+
+  /**
+   * Sends every file that waits, pass after pass, and says whether none
+   * is left: what the one-time sealing waits for before the server is
+   * told everything went up (`SyncEngine`).
+   */
+  async settle(): Promise<boolean> {
+    let migrated: boolean;
+    try {
+      migrated = await this.migrateLegacy();
+    } catch {
+      return false;
+    }
+    for (;;) {
+      const before = await this.sendable();
+      if (before === 0) return migrated;
+      const report = await this.upload();
+      if (report.quotaExceeded || report.keyChanged) return false;
+      if ((await this.sendable()) >= before) return false;
+    }
+  }
+
+  /** How many waiting files could still go: past 25 MB, one never will. */
+  private async sendable(): Promise<number> {
+    let count = 0;
+    for (const entry of await this.waiting()) {
+      const held = await this.db.files.get(entry.sha256);
+      if (!held || held.blob.size <= maxFileBytes) count += 1;
+    }
+    return count;
   }
 
   private async forgetEntries(uuids: Set<string>): Promise<void> {

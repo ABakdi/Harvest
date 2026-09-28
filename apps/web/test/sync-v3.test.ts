@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { HarvestDB } from '@/app/data/db';
 import { Keyring, PinLimitedError, WrongPassphraseError } from '@/app/sync/keyring';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, openStored, syncing, testUser } from './helpers';
 
 const expense = { amountMinor: 45_000, currency: 'DZD', category: 'food', note: 'Couscous', fromWallet: false, day: '2026-09-19' };
 
@@ -46,17 +46,18 @@ describe('the key epoch on every sealed write (S6-07)', () => {
     expect(await b.db.outbox.where('table').equals('expenses').count()).toBeGreaterThan(0);
   });
 
-  it('names the epoch with every sealed batch, and none with a plain one', async () => {
+  it('sends nothing before the PIN, and names the epoch with every batch after (Phase 7)', async () => {
     const server = new FakeServer();
     const b = await device(server);
     const push = vi.spyOn(server, 'push');
     await b.notes.create({ title: 'Plain' });
     await b.engine.sync();
-    expect(push.mock.calls.at(-1)![0]).not.toHaveProperty('keyEpoch');
+    expect(push).not.toHaveBeenCalled();
     await b.keyring.unlock('2468', testUser.syncSalt, 1);
     await b.money.log(expense);
     await b.engine.sync();
-    expect(push.mock.calls.at(-1)![0]).toMatchObject({ keyEpoch: 1 });
+    expect(push).toHaveBeenCalled();
+    for (const [body] of push.mock.calls) expect(body).toMatchObject({ keyEpoch: 1 });
   });
 });
 
@@ -79,23 +80,23 @@ describe('batches filled by bytes (Q6-03)', () => {
 
   it('stops a batch before the body limit, and every row goes', async () => {
     const server = new FakeServer();
-    const h = await device(server);
-    // Straight to the store, past the notes' own length rule.
-    for (let i = 0; i < 6; i++) {
+    const h = await syncing(server);
+    // Straight to the store, near the longest a note may be.
+    for (let i = 0; i < 8; i++) {
       const now = h.clock().toISOString();
-      await h.db.rows('notes').put({ uuid: `long-${i}`, title: `Long ${i}`, folder: '', body: 'x'.repeat(900 * 1024), createdAt: now, updatedAt: now, deletedAt: null });
+      await h.db.rows('notes').put({ uuid: `long-${i}`, title: `Long ${i}`, folder: '', body: 'x'.repeat(480 * 1024), createdAt: now, updatedAt: now, deletedAt: null });
       await h.db.outbox.add({ table: 'notes', key: `long-${i}`, op: 'upsert', queuedAt: now });
     }
     await h.engine.sync();
-    expect(server.batches).toEqual([4, 2]);
-    // Every one was answered (the fake refuses a body this long; the
-    // point is that each batch was taken whole).
-    expect(await h.db.outbox.filter((entry) => !entry.invalid).count()).toBe(0);
+    // The four built-in lists the PIN sent again and six sealed notes
+    // fill a push; the last two go in the next.
+    expect(server.batches.slice(0, 2)).toEqual([10, 2]);
+    expect(await h.db.outbox.count()).toBe(0);
   });
 
   it('halves a batch the server finds too large (413)', async () => {
     const server = new FakeServer();
-    const h = await device(server);
+    const h = await syncing(server);
     await longNotes(h, 5, 10);
     server.tooLargeOver = 2;
     await h.engine.sync();
@@ -106,16 +107,22 @@ describe('batches filled by bytes (Q6-03)', () => {
 
   it('refuses here, with a reason, one change too large for any push, and sends the rest', async () => {
     const server = new FakeServer();
-    const h = await device(server);
+    const h = await syncing(server);
     const now = h.clock().toISOString();
-    await h.db.rows('notes').put({ uuid: 'huge', title: 'Huge', folder: '', body: 'x'.repeat(5 * 1024 * 1024), createdAt: now, updatedAt: now, deletedAt: null });
+    // Within every column's length, and still past a push once sealed:
+    // three bytes a character, in two columns.
+    const wide = '€'.repeat(499_000);
+    await h.db.rows('notes').put({ uuid: 'huge', title: wide, folder: '', body: wide, createdAt: now, updatedAt: now, deletedAt: null });
     await h.db.outbox.add({ table: 'notes', key: 'huge', op: 'upsert', queuedAt: now });
     await h.notes.create({ title: 'Small' });
     await h.engine.sync();
     expect(h.engine.status.invalid).toBe(1);
     expect(h.engine.status.refusedFor).toContain('too_large');
     expect(server.get('notes', 'huge')).toBeUndefined();
-    expect([...server.stored.values()].some((record) => (record.data as { title?: string } | undefined)?.title === 'Small')).toBe(true);
+    const titles = await Promise.all(
+      [...server.stored.values()].filter((record) => record.table === 'notes').map(async (record) => (await openStored(record))?.title),
+    );
+    expect(titles).toContain('Small');
   });
 });
 

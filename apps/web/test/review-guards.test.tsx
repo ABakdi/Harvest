@@ -7,7 +7,7 @@ import { GoalEditor } from '@/app/components/goal-editor';
 import { SeedEditor } from '@/app/components/seed-editor';
 import { SeedLogDialog } from '@/app/components/seed-log-dialog';
 import { SeedNoteDialog } from '@/app/components/seed-note-dialog';
-import { RatesCard, localIsoString } from '@/app/components/settings-rates';
+import { RatesCard } from '@/app/components/settings-rates';
 import { SleepEditor } from '@/app/components/sleep-editor';
 import { WeightEditor } from '@/app/components/weight-editor';
 import { HarvestContext, type Harvest } from '@/app/context';
@@ -173,11 +173,10 @@ describe('a project done for today', () => {
   });
 });
 
-describe('the fetched rate', () => {
-  it('is stamped as the phone stamps it: local wall time, no offset', async () => {
-    expect(localIsoString(new Date(2026, 8, 19, 7, 5, 3, 9))).toBe('2026-09-19T07:05:03.009');
+describe('the fetched rates', () => {
+  it('are fetched once for a double tap, and dated by the source, as the phone dates them', async () => {
     const h = await device(new FakeServer());
-    const get = vi.fn(() => Promise.resolve(new Response(JSON.stringify({ rates: { USD: 1.17 } }), { status: 200 })));
+    const get = vi.fn(() => Promise.resolve(new Response(JSON.stringify({ result: 'success', base_code: 'USD', time_last_update_unix: 1758240001, rates: { USD: 1, EUR: 0.85, DZD: 131.2, JPY: 147.3 } }), { status: 200 })));
     vi.stubGlobal('fetch', get);
     render(wrap(h, <RatesCard />));
     const button = await screen.findByRole('button', { name: 'Fetch' });
@@ -185,10 +184,9 @@ describe('the fetched rate', () => {
       fireEvent.click(button);
       fireEvent.click(button);
     });
-    await waitFor(async () => expect(await readSetting(h.db, 'rate.usdPerEur')).toBe('1.17'));
+    await waitFor(async () => expect(await readSetting(h.db, 'rate.perUsdAt')).toBe('2025-09-19T00:00:01.000Z'));
     expect(get).toHaveBeenCalledTimes(1);
-    const at = await readSetting(h.db, 'rate.usdPerEurAt');
-    expect(at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/);
+    expect(await readSetting(h.db, 'rate.usdPerEurAt')).toBe('2025-09-19T00:00:01.000Z');
   });
 });
 

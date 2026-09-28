@@ -254,7 +254,7 @@ void main() {
         SyncService(b, ApiRemote(apiB), cipher: cipher).run(),
         throwsA(isA<SyncKeyChanged>()),
       );
-      final stale = await SyncCipher(key).sealBytes('ab' * 32, [1, 2, 3]);
+      final stale = await SyncCipher(key).sealFile('ab' * 32, [1, 2, 3]);
       await expectLater(
         ApiFiles(apiB).upload(
           'ab' * 32,

@@ -1,7 +1,6 @@
-import type { SyncedTable } from '@harvest/contracts';
 import { nextProgramDay, recordsFrom, setVolumeGrams, type ExerciseRecords } from '@harvest/core';
 import type { IndexableType, Table } from 'dexie';
-import type { HarvestDB, Row } from './db';
+import type { HarvestDB, Row, StoredTable } from './db';
 
 export type ProgramRow = Row<'programs'>;
 export type DayRow = Row<'program_days'>;
@@ -13,7 +12,7 @@ export type SetRow = Row<'workout_sets'>;
 
 /** Anything rows can be read from: the store, or a write's own transaction. */
 export interface RowSource {
-  rows<T extends SyncedTable>(table: T): Table<Row<T>, IndexableType>;
+  rows<T extends StoredTable>(table: T): Table<Row<T>, IndexableType>;
 }
 
 // --------------------------------------------------------------- programs

@@ -30,6 +30,21 @@ void main() {
     }
   });
 
+  test('estimates every pinned strength as the contract does', () {
+    final strength = [
+      for (final item in spec['strength']! as List<Object?>)
+        item! as Map<String, Object?>,
+    ];
+    expect(strength, isNotEmpty);
+    for (final c in strength) {
+      final input = c['input']! as String;
+      final got = syncSecretStrength(input);
+      expect(got.bits, c['bits'], reason: jsonEncode(input));
+      expect(got.level.name, c['level'], reason: jsonEncode(input));
+      expect(got.seconds, (c['seconds']! as num).toInt(), reason: input);
+    }
+  });
+
   test('the fixture pins every answer the rule can give', () {
     expect(cases.map((c) => c['expected']).toSet(), {
       for (final problem in SyncSecretProblem.values) problem.name,
@@ -83,5 +98,29 @@ void main() {
     expect(PinDigitsFormatter.digitsOf('١٢٣٤٥٦٧٨'), '123456');
     // What it gives is a PIN by the shared rule.
     expect(syncSecretProblem(PinDigitsFormatter.digitsOf('٢٤٦٨')), isNull);
+  });
+
+  test('says how long a secret would hold in words', () {
+    final l10n = AppLocalizationsEn();
+    expect(standsFor(l10n, 0), 'under a second');
+    expect(standsFor(l10n, 26), '26 seconds');
+    expect(standsFor(l10n, 90), '1 minute');
+    expect(standsFor(l10n, 7200), '2 hours');
+    expect(standsFor(l10n, 3 * 86400), '3 days');
+    expect(standsFor(l10n, 214748), '2 days');
+    expect(standsFor(l10n, 40 * 365 * 86400), '40 years');
+    expect(standsFor(l10n, 1801439850948), 'thousands of years');
+    expect(
+      standsFor(l10n, maxStrengthSeconds.toInt()),
+      'for ever, near enough',
+    );
+  });
+
+  test('a PIN typed on an Arabic keyboard is the PIN it spells; anything '
+      'else is kept as typed', () {
+    expect(syncSecretOf('٢٤٦٨'), '2468');
+    expect(syncSecretOf('۱۳۵۷۹۰'), '135790');
+    expect(syncSecretOf('olive ٣ river'), 'olive ٣ river');
+    expect(syncSecretOf(' 2468'), ' 2468');
   });
 }

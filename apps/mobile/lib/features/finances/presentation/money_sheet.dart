@@ -8,6 +8,7 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/domain/amount_expression.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/amount_keypad.dart';
+import 'package:harvest/features/finances/presentation/currency_picker.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -179,16 +180,9 @@ class _MoneySheetState extends State<_MoneySheet> {
         ),
         const SizedBox(height: HarvestSpacing.sm),
         if (!widget.lockCurrency)
-          SegmentedButton<Currency>(
-            segments: [
-              for (final option in Currency.values)
-                ButtonSegment(value: option, label: Text(option.symbol)),
-            ],
-            selected: {_currency},
-            onSelectionChanged: (selection) {
-              unawaited(HarvestHaptics.tick());
-              setState(() => _currency = selection.first);
-            },
+          CurrencyChoice(
+            selected: _currency,
+            onChanged: (currency) => setState(() => _currency = currency),
           ),
         if (_cap != null && !_overCap)
           Padding(

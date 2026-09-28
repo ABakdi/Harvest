@@ -5,7 +5,7 @@ import { strToU8, unzipSync, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import { ArchiveInvalid, ArchiveLimits, instantOf, isSafeRelative } from '@/app/data/archive';
 import { buildWorkbook, ExportSheet, parseWorkbook, type CellValue } from '@/app/data/archive-xlsx';
-import { primaryKeyOf, recordKeyOf } from '@/app/data/db';
+import { isStoredTable, primaryKeyOf, recordKeyOf } from '@/app/data/db';
 import { buildArchive } from '@/app/data/export';
 import { harvestSheets, SheetNames, sheetHeaders, sheetOrder, type ExportData } from '@/app/data/export-sheets';
 import { sha256Of } from '@/app/data/files';
@@ -447,6 +447,8 @@ async function seed(h: Device): Promise<void> {
 async function snapshot(h: Device, skip: (table: SyncedTable, key: string) => boolean = () => false) {
   const out: Record<string, Record<string, unknown>> = {};
   for (const table of syncedTables) {
+    // A day of the trail has no store here: its points are location_points.
+    if (!isStoredTable(table)) continue;
     for (const row of (await h.db.rows(table).toArray()) as Record<string, unknown>[]) {
       const key = recordKeyOf(table, row);
       if (!skip(table, key)) out[`${table}/${key}`] = row;
@@ -814,7 +816,7 @@ describe('one format on two clients', () => {
     expect(totalOf(result).skipped).toBe(0);
     // A row in every sheet on the phone is a row in every table here.
     for (const table of syncedTables) {
-      if (table === 'note_links') continue;
+      if (table === 'note_links' || !isStoredTable(table)) continue;
       expect(await h.db.rows(table).count(), table).toBeGreaterThan(0);
     }
     const seedRow = (await h.db.rows('commitments').get('p-seed-1'))!;

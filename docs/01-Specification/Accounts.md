@@ -10,11 +10,11 @@ the server assist.
 
 | Field | Why |
 | :--- | :--- |
-| Email | To sign in, and for the two emails the server ever sends: verify, and reset |
+| Email | To sign in, and for the two emails the server ever sends: verify, and reset. Kept as a keyed hash to find it by and a sealed copy for the mail, both under keys from the server's environment (Phase 7, M7.7): a copy of the database holds no readable address |
 | Password hash | argon2id ([[ADR-011-Backend]]); the password itself never touches the disk |
-| Display name | Shown in the app's header on the web; nothing else |
+| Display name | Shown in the app's header on the web; nothing else. Sealed like the address |
 | Verified at | Unverified accounts can sign in but not sync, so a mistyped email cannot quietly own my data |
-| Sync salt | The public half of the key derivation for the private tier ([[Sync-Strategy]]) |
+| Sync salt | The public half of the key derivation for everything that syncs ([[Sync-Strategy]]) |
 | Created at, last seen | So the devices page can say which session is stale |
 
 It holds nothing else: no phone number, no birthday, no avatar upload.
@@ -60,14 +60,21 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
   said once it is done. The current one is marked. With two or more
   others, *Sign out all other devices* ends them together; a list that
   could not be read offers *Try again*.
-- **Sync PIN**: set once, on the first device, to encrypt the private
-  tier — money, places, and the pictures and recordings. A **PIN of 4
-  to 6 digits** (the screen suggests 6), or, for whoever wants more, a
-  **passphrase of 8 characters or more** ("Use a passphrase instead").
+- **Sync secret**: set once, on the first device, to encrypt
+  **everything that syncs** — since Phase 7 every row and every file,
+  not only money, places and pictures ([[Phase-7-Privacy-and-Currencies]]).
+  Without it nothing leaves the device. The screen **recommends a
+  passphrase** of a few words (8 characters or more), with a meter of
+  how long it would stand, and keeps a **PIN of 4 to 6 digits** one tap
+  away (*Use a PIN instead*), with the trade-off written beside it: a
+  PIN falls in minutes to whoever holds the server's database and its
+  keys together, a passphrase of four random words in thousands of
+  years (`syncSecretStrength`, the same estimate on both clients, at ten
+  thousand tries a second against the 600,000 rounds of PBKDF2).
   A PIN anyone would try first is refused when it is chosen: one digit
   repeated (`0000`), a run up or down (`1234`, `987654`), or two digits
   taking turns (`1212`). It is not the password and is never sent.
-  Losing it means the private tier cannot be read on a new device, only
+  Losing it means what the server holds cannot be read on a new device, only
   re-uploaded from a device that still has it. The screen says so
   plainly, twice. It is changed only by starting over (below): the
   server keeps a file under its hash and cannot re-seal it in place, so
@@ -93,9 +100,8 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
     many) and the rest of sync goes on.
   - **Asked for, not hidden.** Signing in on a device that has no PIN
     asks for it straight after, and until it is given the account circle
-    carries a mark and says what is waiting: *"Money, places and
-    pictures stay on this phone until you set your sync PIN."* Nothing
-    private is ever sent without it.
+    carries a mark and says what is waiting: nothing syncs until the
+    sync secret is set. Nothing is ever sent without it.
   - **Forgot the PIN? Start over.** With the account's password, the
     account page drops everything private the server holds: the money,
     the places and the pictures and recordings stored there, the key
@@ -103,9 +109,10 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
     first device, and the old one opens nothing any more. Each device
     that still has those rows and files sends them again, sealed under
     the new PIN. **Whatever no device still holds is gone for good** —
-    the server has no way to read it, and neither does anyone else. The
-    plain tier (habits, notes, gym, and the rest) is not touched. This
-    is also how the PIN is changed. On the phone it is *Forgot the PIN?
+    the server has no way to read it, and neither does anyone else.
+    Since everything is sealed, that is everything the server holds;
+    only rows still in the clear from before Phase 7 stay. This is also
+    how the PIN is changed, and how a PIN becomes a passphrase. On the phone it is *Forgot the PIN?
     Start over* on the sheet that asks for the PIN, and *Change PIN* on
     the PIN tile while I still have it; both say plainly what goes and
     ask for the password first, and then every private row and file
@@ -135,8 +142,21 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
     sealed, under a key it does not hold, so it opens nothing either.
     What remains is **whoever holds the whole server**, the database
     and its environment together: they could try every PIN, since a PIN
-    has at most a million values. A passphrase holds against that too. On a server I run myself, that is the trade I choose —
-    and the screen offers the passphrase to anyone who doesn't.
+    has at most a million values. A passphrase holds against that too.
+  - **Why a passphrase first.** From the outside an account with a PIN
+    and one with a passphrase look the same, so someone who takes the
+    server cannot pick out the weak ones without trying them all — a
+    kind of herd protection. But trying all of them is cheap when they
+    are PINs: every PIN of every account falls in minutes. Only a
+    passphrase stands against that, which is why it is the default and
+    the PIN is the exception I choose knowingly.
+- **Download my data** (the archive, the spreadsheet) asks for the
+  account's password first, checked by the server (`POST /v1/me/reauth`,
+  counted with the wrong passwords of *Delete account*), so a session
+  left open is not enough to take everything; signed out, the phone asks
+  for its own lock (fingerprint or screen lock) instead. Nothing is
+  written before it passes. The files themselves stay unencrypted on
+  purpose: they are mine, to take elsewhere.
 - **Delete account**: requires the password. It deletes every record,
   every token and the user at once, and then signs out everywhere. The
   data on my devices is untouched, because it was always theirs. Five
@@ -186,7 +206,7 @@ Settings gains **Account** (before *My data*):
 
 `/login`, `/register`, `/forgot`, `/reset/:token` and
 `/verify/:token` are the public account routes ([[Web]]). Everything
-under `/app` needs a session, and for the private tier, the sync PIN
+under `/app` needs a session, and, for anything to sync, the sync secret
 entered once per browser. The same account circle sits at the top of
 the app's rail, with the same sheet, and there *Forget it on this
 browser* drops the key (what the browser already holds stays), and
@@ -213,12 +233,14 @@ that sends other digits is read as those.
 | # | Rule |
 | :-- | :--- |
 | AC1 | An account is never required for anything but sync and the server assist. No screen may nag for one. |
-| AC2 | The server stores a hash of the password and nothing that can decrypt the private tier: the key share is half of an input, and the key check only says whether a key is the right one. |
+| AC2 | The server stores a hash of the password and nothing that can decrypt what syncs: the key share is half of an input, and the key check only says whether a key is the right one. |
 | AC3 | A sign-in failure never says whether the email is registered. Sign-up is the one exception, by design (see Flows), and is rate-limited hardest. |
 | AC4 | Refresh tokens rotate on every use; a reused one revokes its family. |
 | AC5 | Resetting the password signs out every device. |
 | AC6 | Deleting the account deletes all of it on the server, immediately, and none of it on my devices. |
-| AC7 | The sync secret is a PIN of 4–6 digits (not a trivially guessable one) or a passphrase of 8 characters or more, the same rule on every client (`packages/contracts` `syncSecretProblem`). A device without it sends nothing private, and says so. |
+| AC7 | The sync secret is a passphrase of 8 characters or more, recommended, or a PIN of 4–6 digits (not a trivially guessable one), the same rule on every client (`packages/contracts` `syncSecretProblem`, `syncSecretStrength`). A device without it sends nothing, and says so. |
+| AC9 | The server keeps no address, no name and no IP address readable from its database or its logs: addresses and names are sealed under keys from its environment, the request logs keep none (Phase 7). |
+| AC10 | My data is written out only after the password (or, signed out, the device's lock) is given again. |
 | AC8 | Whether a device chooses the PIN or enters it is decided by the account's key check on the server, and a PIN that does not open the check is never kept. |
 
 Related: [[Sync-API]] · [[Sync-Strategy]] · [[ADR-011-Backend]] · [[Web]]

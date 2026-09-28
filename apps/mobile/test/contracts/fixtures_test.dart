@@ -313,6 +313,24 @@ void main() {
   });
 
   group('contracts', () {
+    test('a day of the trail holds location_points rows, less their day', () {
+      final db = HarvestDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final day = _read('$_contracts/private-data/trail_days.json');
+      final columns = {
+        for (final column in db.locationPoints.$columns)
+          _camel(column.$name): column,
+      }..remove('harvestDay');
+      expect(day.keys.toSet(), {'key', 'harvestDay', 'points', 'updatedAt'});
+      for (final point in day['points']! as List<Object?>) {
+        final data = point! as Map<String, dynamic>;
+        expect(data.keys.toSet(), columns.keys.toSet());
+        for (final MapEntry(:key, :value) in data.entries) {
+          _expectColumnValue(columns[key]!, value, 'trail_days.points.$key');
+        }
+      }
+    });
+
     late HarvestDatabase db;
     setUp(() => db = HarvestDatabase.forTesting(NativeDatabase.memory()));
     tearDown(() async => db.close());
@@ -328,7 +346,10 @@ void main() {
           .map((name) => name.substring(0, name.length - 5))
           .toSet();
       final tables = db.allTables.map((t) => t.actualTableName).toSet()
-        ..removeAll(['outbox', 'quests']);
+        ..removeAll(['outbox', 'quests'])
+        // The trail on the wire, a record a day: no table of its own here,
+        // its points are `location_points` rows (Phase 7, M7.3).
+        ..add('trail_days');
       expect(records, tables);
     });
 
@@ -361,6 +382,7 @@ void main() {
 
     for (final record in [...plain, ...private]) {
       final table = record['table'] as String;
+      if (table == 'trail_days') continue;
       test('$table: data is exactly the Drift columns, typed', () {
         final data = record['data'] as Map<String, dynamic>;
         final columns = {

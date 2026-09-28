@@ -18,9 +18,12 @@ import type {
   PullResult,
   PushBody,
   PushResult,
+  ReauthBody,
   RegisterBody,
   Release,
   ResetPasswordBody,
+  SealedBody,
+  SealedResult,
   SessionsResult,
 } from '@harvest/contracts';
 // From the schema-free module: this file is on the public pages (Q5-30).
@@ -460,6 +463,12 @@ export const api = {
     forget();
   },
   sessions: () => request<SessionsResult>('/v1/me/sessions'),
+  /**
+   * The account's password again, before this browser writes out
+   * everything it holds (Phase 7, M7.6): 204 when it is right, 403
+   * `forbidden` when it is not, 429 with `Retry-After` past the limit.
+   */
+  reauth: (password: string) => request<void>('/v1/me/reauth', { method: 'POST', body: { password } satisfies ReauthBody }),
   revokeSession: (id: string) => request<void>(`/v1/me/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   latestRelease: (signal?: AbortSignal) =>
@@ -493,9 +502,10 @@ export const api = {
     request<FileQueryResult>('/v1/files/missing', { method: 'POST', body: { hashes } satisfies FileQuery }),
 
   /**
-   * One file's sealed bytes, under the name of its plaintext. The nonce
-   * and the plaintext's length ride in headers, as the phone sends them;
-   * a full account answers 507 `quota_exceeded`.
+   * One file's sealed bytes, under its name on the server (a keyed hash
+   * of its plaintext's, since Phase 7). The nonce and the sealed length
+   * ride in headers, as the phone sends them; a full account answers
+   * 507 `quota_exceeded`.
    */
   async putFile(
     sha256: string,
@@ -592,6 +602,8 @@ export const api = {
   },
 
   push: (body: PushBody) => request<PushResult>('/v1/sync/push', { method: 'POST', body }),
+  /** Everything here has gone up sealed: the server lets go of what it kept in the clear. */
+  sealed: (body: SealedBody) => request<SealedResult>('/v1/sync/sealed', { method: 'POST', body }),
   /** With [deviceId], the server leaves out what this device wrote itself. */
   pull: (after: number, limit: number, deviceId?: string) =>
     request<PullResult>(

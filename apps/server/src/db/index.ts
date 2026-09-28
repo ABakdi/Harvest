@@ -1,3 +1,4 @@
+import { peopleKeys } from '../auth/people-keys.js';
 import type { Db } from 'mongodb';
 import { collections, ensureIndexes } from './collections.js';
 import { AssistUsageRepository } from './assist-usage.js';
@@ -22,11 +23,17 @@ export interface Repositories {
   windowedCounts: WindowedCountsRepository;
 }
 
-export async function createRepositories(db: Db): Promise<Repositories> {
+/**
+ * The repositories over [db]. [secret] is KEY_SHARE_KEY, from which the
+ * keys that seal addresses and names are drawn (`people-keys.ts`).
+ */
+export async function createRepositories(db: Db, secret: Buffer): Promise<Repositories> {
   const c = collections(db);
   await ensureIndexes(c);
+  const users = new UsersRepository(c.users, peopleKeys(secret));
+  await users.sealLegacy();
   return {
-    users: new UsersRepository(c.users),
+    users,
     sessions: new SessionsRepository(c.sessions, c.refreshTokens),
     oneTimeTokens: new OneTimeTokensRepository(c.oneTimeTokens),
     records: new RecordsRepository(c.records, c.counters),

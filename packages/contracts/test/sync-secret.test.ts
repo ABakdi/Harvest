@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { isSimplePin, isSyncPin, syncSecretProblem } from '../src/sync-secret.js';
+import { isSimplePin, isSyncPin, syncSecretProblem, syncSecretStrength } from '../src/sync-secret.js';
 
 const spec = JSON.parse(readFileSync(new URL('../fixtures/sync-secret.json', import.meta.url), 'utf8')) as {
   cases: { input: string; expected: string | null }[];
@@ -29,5 +29,22 @@ describe('the sync secret (fixtures/sync-secret.json)', () => {
     for (const pin of ['2468', '1357', '7890', '8901', '1122', '1221', '1231', '120120']) {
       expect(isSimplePin(pin)).toBe(false);
     }
+  });
+});
+
+describe('how long a secret stands (fixtures/sync-secret.json strength, Phase 7 M7.5)', () => {
+  const pinned = (
+    JSON.parse(readFileSync(new URL('../fixtures/sync-secret.json', import.meta.url), 'utf8')) as {
+      strength: { input: string; bits: number; level: string; seconds: number }[];
+    }
+  ).strength;
+
+  it.each(pinned)('rates $input as $level ($bits bits)', ({ input, bits, level, seconds }) => {
+    expect(syncSecretStrength(input)).toEqual({ bits, level, seconds });
+  });
+
+  it('puts every PIN below a passphrase of four words', () => {
+    expect(syncSecretStrength('482913').seconds).toBeLessThan(120);
+    expect(syncSecretStrength('dune cedar wool lamp').level).toBe('strong');
   });
 });

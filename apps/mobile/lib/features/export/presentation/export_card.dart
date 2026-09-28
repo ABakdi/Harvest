@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/export/domain/export_service.dart';
+import 'package:harvest/features/export/presentation/export_gate.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -11,6 +12,9 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// "My data": one button that drops the whole database in Downloads as
 /// a zip — the spreadsheet with its formulas already wired up, the
 /// notes as a vault, and every picture in its album's folder.
+///
+/// Before anything is written it asks who is there: the account's
+/// password, or the phone's own lock when signed out ([confirmItsMe]).
 ///
 /// It shows a count while it works and can be stopped, because a
 /// five-year gallery takes long enough that a still button reads as a
@@ -60,9 +64,13 @@ class ExportCard extends ConsumerWidget {
             FilledButton.icon(
               onPressed: running
                   ? null
-                  : () => unawaited(
-                      ref.read(exportControllerProvider.notifier).run(),
-                    ),
+                  : () async {
+                      // Nothing is written before it is known who asks.
+                      if (!await confirmItsMe(context, ref)) return;
+                      unawaited(
+                        ref.read(exportControllerProvider.notifier).run(),
+                      );
+                    },
               icon: running
                   ? const SizedBox.square(
                       dimension: 18,

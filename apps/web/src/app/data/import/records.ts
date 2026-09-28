@@ -1,8 +1,8 @@
-import type { SyncedTable } from '@harvest/contracts';
+import type { StoredTable } from '../db';
 import { spec, uuidOf, text, at, updated, type Spec } from './sheet-spec';
 
 /** Records: the notes and the albums (their files are planned apart). */
-export const recordSheets: Spec<SyncedTable>[] = [
+export const recordSheets: Spec<StoredTable>[] = [
   spec({
     sheet: 'notes',
     table: 'notes',

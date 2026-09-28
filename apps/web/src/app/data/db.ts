@@ -12,7 +12,21 @@ import Dexie, { type IndexableType, type Table, type Transaction } from 'dexie';
  * The first key of each schema string is the record key: `uuid` for
  * most tables, and the few natural keys the contract lists.
  */
-export const tableSchemas: Record<SyncedTable, string> = {
+/**
+ * A synced table this browser keeps no store for: a day of the trail
+ * (`trail_days`, Phase 7 M7.3) travels only on the wire, and is opened
+ * into its points, which live in `location_points` as before.
+ */
+export const virtualTables = ['trail_days'] as const satisfies readonly SyncedTable[];
+export type VirtualTable = (typeof virtualTables)[number];
+/** A synced table with a store of its own here. */
+export type StoredTable = Exclude<SyncedTable, VirtualTable>;
+
+export function isStoredTable(table: SyncedTable): table is StoredTable {
+  return !(virtualTables as readonly string[]).includes(table);
+}
+
+export const tableSchemas: Record<StoredTable, string> = {
   commitments: 'uuid, goalUuid, type',
   check_ins: 'uuid, commitmentUuid, harvestDay, [commitmentUuid+harvestDay]',
   seed_notes: 'uuid, commitmentUuid, harvestDay',
@@ -57,7 +71,7 @@ export const tableSchemas: Record<SyncedTable, string> = {
  */
 export interface OutboxRow {
   seq?: number;
-  table: SyncedTable;
+  table: StoredTable;
   /** The record key (`uuid`, or the table's natural key). */
   key: string;
   /** `delete` when the row was hard-deleted and must travel as purged. */
@@ -68,6 +82,11 @@ export interface OutboxRow {
   invalid?: Issue[] | null;
   /** When it was refused: a refusal that can pass (no room, a clock ahead) is tried again an hour later. */
   invalidAt?: string | null;
+  /**
+   * Queued only to go up again sealed, unchanged (Phase 7): a `stale`
+   * answer means the server has this very row already, not a newer one.
+   */
+  resend?: boolean;
 }
 
 export interface MetaRow {
@@ -153,7 +172,7 @@ export class HarvestDB extends Dexie {
     this.on('ready', (db) => seedBuiltInLists(db as HarvestDB));
   }
 
-  rows<T extends SyncedTable>(table: T): Table<Row<T>, IndexableType> {
+  rows<T extends StoredTable>(table: T): Table<Row<T>, IndexableType> {
     return this.table(table);
   }
 }
@@ -242,8 +261,16 @@ export const metaKeys = {
   /** 3.0.0's key; not read any more, and removed when a new one is kept. */
   privateKey: 'privateKey',
   privateKeyV2: 'privateKeyV2',
-  /** The key, its epoch and its id (`keyring.ts`). */
+  /** 3.1's key, with no name key beside it; not read any more (Phase 7). */
   privateKeyV3: 'privateKeyV3',
+  /** The key, the file name key, its epoch and its id (`keyring.ts`). */
+  privateKeyV4: 'privateKeyV4',
+  /** The key epoch every row and file here was sent again under, after a whole pull. */
+  resealedFor: 'resealedFor',
+  /** The key epoch the server was told everything here has gone up sealed. */
+  sealedFor: 'sealedFor',
+  /** The clock each day of the trail was last sent with, by its record key. */
+  trailSentAt: 'trailSentAt',
   /** The history is being pulled again from nothing (own writes come back too). */
   rebuild: 'syncRebuild',
   /** Rows pulled with a clock ahead of this browser's, by `table/key`. */

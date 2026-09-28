@@ -10,12 +10,12 @@ import type {
   RecordDoc,
   RefreshTokenDoc,
   SessionDoc,
-  UserDoc,
+  StoredUserDoc,
 } from './types.js';
 import { usersCollection } from './sessions.js';
 
 export interface Collections {
-  users: Collection<UserDoc>;
+  users: Collection<StoredUserDoc>;
   sessions: Collection<SessionDoc>;
   refreshTokens: Collection<RefreshTokenDoc>;
   oneTimeTokens: Collection<OneTimeTokenDoc>;
@@ -32,7 +32,7 @@ export interface Collections {
 
 export function collections(db: Db): Collections {
   return {
-    users: db.collection<UserDoc>(usersCollection),
+    users: db.collection<StoredUserDoc>(usersCollection),
     sessions: db.collection<SessionDoc>('sessions'),
     refreshTokens: db.collection<RefreshTokenDoc>('refresh_tokens'),
     oneTimeTokens: db.collection<OneTimeTokenDoc>('one_time_tokens'),
@@ -58,8 +58,17 @@ export async function ensureIndexes(c: Collections): Promise<void> {
   // A new index on a big collection may take longer to build than any
   // one operation is allowed at run time: at boot it may take its time.
   const building = { timeoutMS: 0 } as const;
+  // Before Phase 7 an address was unique as itself; sealed, every account
+  // would be missing it at once, so that index goes first (M7.7).
+  const legacyIndex = await c.users.indexExists('email_unique').catch(() => false);
+  if (legacyIndex) await c.users.dropIndex('email_unique', building);
   await Promise.all([
-    c.users.createIndex({ email: 1 }, { unique: true, name: 'email_unique', ...building }),
+    // An address is found by its keyed hash (Phase 7, M7.7); an account
+    // from before is sealed at start, and has none until then.
+    c.users.createIndex(
+      { emailLookup: 1 },
+      { unique: true, name: 'email_lookup_unique', partialFilterExpression: { emailLookup: { $exists: true } }, ...building },
+    ),
 
     c.sessions.createIndex({ userId: 1, lastSeenAt: -1 }, { name: 'user_sessions', ...building }),
     c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'sessions_ttl', ...building }),
@@ -92,4 +101,7 @@ export async function ensureIndexes(c: Collections): Promise<void> {
     // A file's bytes by their owner, to sweep up after a delete.
     c.fileBlobs.createIndex({ 'metadata.userId': 1 }, { name: 'file_blobs_owner', ...building }),
   ]);
+  // Rows stored before Phase 7 kept when they arrived; nothing needs it
+  // (M7.3), so it goes, once, and a later start finds nothing to do.
+  await c.records.updateMany({ receivedAt: { $exists: true } }, { $unset: { receivedAt: '' } }, building);
 }

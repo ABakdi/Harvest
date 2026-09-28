@@ -1,0 +1,16 @@
+{
+  "why": "a file's name is 64 lowercase hex characters",
+  "path": "file",
+  "record": {
+    "table": "memories",
+    "uuid": "m1",
+    "updatedAt": "2026-09-18T13:10:00.000Z",
+    "deletedAt": null,
+    "enc": {
+      "v": 2,
+      "iv": "AAAAAAAAAAAAAAAA",
+      "ct": "c2VhbGVkIGJ5dGVzLCBub3QgYSByZWFsIHJvdw=="
+    },
+    "file": "../etc/passwd"
+  }
+}

@@ -303,7 +303,7 @@ export async function sealRowV2(
   const ct = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv, additionalData: encoder.encode(rowAadV2(table, uuid, clocks)), tagLength: 128 },
     key,
-    encoder.encode(JSON.stringify(data)),
+    padRowText(encoder.encode(JSON.stringify(data))),
   );
   return { v: 2, iv: toBase64(iv), ct: toBase64(new Uint8Array(ct)) };
 }
@@ -393,4 +393,165 @@ export async function opensKeyCheck(
   } catch {
     return false;
   }
+}
+
+// ------------------------------------------------ Phase 7: names, sizes
+
+/**
+ * What Phase 7 adds ([[Phase-7-Privacy-and-Currencies]], M7.2), pinned by
+ * `fixtures/crypto-v3.json`:
+ *
+ * - **A file's name on the server** is HMAC-SHA256 of its plaintext's
+ *   SHA-256 (the lowercase hex, as UTF-8) under the *name key*, in
+ *   lowercase hex. Two devices with the same key agree on it; a server
+ *   holding a known picture cannot tell whether an account has it.
+ * - The name key is HKDF-SHA256 over the sync key's 32 bytes, with the
+ *   empty salt spelled as 32 zero bytes and the info
+ *   `harvest/file-name/v1`.
+ * - **Sizes are padded** before sealing ([[paddedLength]]): a row's JSON
+ *   with trailing spaces, which JSON ignores, so nothing changes for a
+ *   reader; a file's bytes with `0x80` and then zeros (ISO/IEC 7816-4),
+ *   sealed with the additional data `file/v3/<name>`. A file sealed
+ *   before, under `file/<name>` and unpadded, still opens ([[openFileAny]]).
+ */
+export const fileNameInfo = 'harvest/file-name/v1';
+
+/** The smallest a sealed row's plaintext is: below it, every row looks the same. */
+export const minPaddedRowBytes = 256;
+
+/**
+ * The length [n] bytes are padded to: at least [minimum], and above it
+ * the Padmé rule (Nikitin et al., 2019), which rounds to a number with
+ * few significant bits, costs at most about 12% and leaves only
+ * O(log log n) bits of the length to be read.
+ */
+export function paddedLength(n: number, minimum = minPaddedRowBytes): number {
+  if (n <= minimum) return minimum;
+  if (n < 4) return n;
+  const e = Math.floor(Math.log2(n));
+  const s = Math.floor(Math.log2(e)) + 1;
+  const lastBits = e - s;
+  const mask = 2 ** lastBits - 1;
+  // Math, not bitwise: a length past 2^31 still rounds right.
+  return Math.ceil(n / (mask + 1)) * (mask + 1);
+}
+
+/** A row's JSON, padded with spaces to [paddedLength]. */
+export function padRowText(json: Uint8Array): Uint8Array<ArrayBuffer> {
+  const padded = new Uint8Array(paddedLength(json.length)).fill(0x20);
+  padded.set(json);
+  return padded;
+}
+
+/** A file's bytes, `0x80` and zeros after them, to [paddedLength] of one byte more. */
+export function padFileBytes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
+  const padded = new Uint8Array(paddedLength(bytes.length + 1));
+  padded.set(bytes);
+  padded[bytes.length] = 0x80;
+  return padded;
+}
+
+/** The bytes [padFileBytes] padded, or throws when the padding is not there. */
+export function unpadFileBytes(padded: Uint8Array): Uint8Array {
+  let end = padded.length - 1;
+  while (end >= 0 && padded[end] === 0) end--;
+  if (end < 0 || padded[end] !== 0x80) throw new UnreadableRowError('A file without its padding');
+  return padded.subarray(0, end);
+}
+
+/**
+ * The most a sealed file may be, in bytes: the biggest file padded,
+ * with the tag.
+ */
+export function maxSealedBytes(maxPlainBytes: number): number {
+  return paddedLength(maxPlainBytes + 1) + 16;
+}
+
+/** The sync key's 32 bytes, from a base and the account's key share ([[syncKeyOf]] as bits). */
+export async function syncKeyBitsOf(base: Uint8Array, keyShare: string | Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
+  const ikm = await crypto.subtle.importKey('raw', bytesOf(base), 'HKDF', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'HKDF', hash: 'SHA-256', salt: bytesOf(keyShare), info: encoder.encode(syncKeyInfoV2) },
+    ikm,
+    256,
+  );
+  return new Uint8Array(bits);
+}
+
+/** The sync key itself from its bytes, as a non-extractable AES-GCM key unless asked. */
+export function syncKeyFromBits(bits: Uint8Array, options: { extractable?: boolean } = {}): Promise<CryptoKey> {
+  return crypto.subtle.importKey('raw', bytesOf(bits), { name: 'AES-GCM', length: 256 }, options.extractable ?? false, [
+    'encrypt',
+    'decrypt',
+  ]);
+}
+
+/** The name key, from the sync key's bytes: an HMAC-SHA256 key that only signs. */
+export async function fileNameKeyOf(
+  keyBits: Uint8Array,
+  options: { extractable?: boolean } = {},
+): Promise<CryptoKey> {
+  const ikm = await crypto.subtle.importKey('raw', bytesOf(keyBits), 'HKDF', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(32), info: encoder.encode(fileNameInfo) },
+    ikm,
+    256,
+  );
+  return crypto.subtle.importKey('raw', bits, { name: 'HMAC', hash: 'SHA-256' }, options.extractable ?? false, [
+    'sign',
+  ]);
+}
+
+/** A file's name on the server, from its plaintext's SHA-256. */
+export async function fileNameOf(nameKey: CryptoKey, sha256: string): Promise<string> {
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', nameKey, encoder.encode(sha256)));
+  return Array.from(mac, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/** Seals a file's bytes, padded, under its server name. */
+export async function sealFileV3(
+  key: CryptoKey,
+  name: string,
+  bytes: Uint8Array,
+  iv: Uint8Array<ArrayBuffer> = crypto.getRandomValues(new Uint8Array(12)),
+): Promise<{ iv: string; sealed: ArrayBuffer }> {
+  const sealed = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, additionalData: encoder.encode(`file/v3/${name}`), tagLength: 128 },
+    key,
+    padFileBytes(bytes),
+  );
+  return { iv: toBase64(iv), sealed };
+}
+
+/**
+ * Opens a file's bytes under its server name, whichever way it was
+ * sealed: padded under `file/v3/<name>`, or as before Phase 7.
+ */
+export async function openFileAny(
+  key: CryptoKey,
+  name: string,
+  envelope: { iv: string; ct: ArrayBuffer },
+): Promise<Uint8Array> {
+  const iv = fromBase64(envelope.iv);
+  try {
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, additionalData: encoder.encode(`file/v3/${name}`), tagLength: 128 },
+      key,
+      envelope.ct,
+    );
+    return unpadFileBytes(new Uint8Array(plain));
+  } catch (error) {
+    if (error instanceof UnreadableRowError) throw error;
+    return openFile(key, name, envelope);
+  }
+}
+
+/**
+ * The record key of a day of the trail (`trail_days`): the name key's
+ * HMAC of `trail/<harvest day>`, the first 16 bytes in hex, so two
+ * devices agree on it and the server cannot tell which day it is.
+ */
+export async function trailKeyOf(nameKey: CryptoKey, harvestDay: string): Promise<string> {
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', nameKey, encoder.encode(`trail/${harvestDay}`)));
+  return Array.from(mac.subarray(0, 16), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }

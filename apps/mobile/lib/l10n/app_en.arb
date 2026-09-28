@@ -434,7 +434,6 @@
   "defaultCurrencyLabel": "Default currency",
   "ratesDzdUsd": "DZD per 1 USD",
   "ratesDzdEur": "DZD per 1 EUR",
-  "ratesEurUsd": "EUR → USD (fetched)",
   "fetchNow": "Fetch",
   "ratesUpdated": "Updated {when}",
   "@ratesUpdated": {
@@ -572,7 +571,7 @@
   "rateSaved": "Rate saved",
   "rateCleared": "Rate cleared",
   "rateInvalid": "That is not a usable rate",
-  "ratesExplainer": "Used to show $ and € amounts in your default currency.",
+  "ratesExplainer": "Used to show amounts in other currencies in your default currency.",
   "settingsMoney": "Money",
   "startupProblem": "A startup step failed: {error}. Restart the app; if it keeps happening, back up and reinstall.",
   "@startupProblem": {
@@ -1637,7 +1636,7 @@
   "accountNeverSynced": "Not synced yet",
   "accountRefused": "{count} changes the server refused",
   "@accountRefused": { "placeholders": { "count": { "type": "int" } } },
-  "accountHeldBack": "Money, places and pictures wait for your sync PIN.",
+  "accountHeldBack": "Nothing syncs until you set your sync PIN.",
   "accountDevices": "Devices",
   "accountThisDevice": "This device",
   "accountEndSession": "Sign out there",
@@ -1697,8 +1696,7 @@
   "gymRestOverTitle": "Rest is up",
   "gymRestOverBody": "Next set.",
   "stepsDeniedHealthConnect": "Not allowed yet. Health Connect's settings can always allow it: open them, allow Steps for Harvest, and come back.",
-  "ratesDzdManual": "The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.",
-  "ratesFetchedEurUsd": "EUR → USD updated. The dinar rates stay as you typed them.",
+  "ratesDzdManual": "The dinar's market rate is typed by hand: no free source has it. Fetch updates every other currency.",
   "accountServerExample": "Your Harvest server's address, like https://harvest.example.com",
   "accountServerInvalid": "Enter the server's address, starting with https://",
   "accountEmailMissing": "Enter your email.",
@@ -1816,10 +1814,10 @@
   "mediaPodcast": "Podcast",
   "mediaOther": "Other",
   "syncPinTitle": "Sync PIN",
-  "syncPinChooseBody": "Money, places and pictures are encrypted on this phone with a key made from this PIN. The server never sees it. Use the same PIN on every device.",
-  "syncPinEnterBody": "Your other devices already use a sync PIN. Enter the same one here to bring over your money, places and pictures.",
+  "syncPinChooseBody": "Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.",
+  "syncPinEnterBody": "Your other devices already use a sync PIN. Enter the same one here to bring your data over.",
   "syncPinLoss": "If you lose it, what is encrypted cannot be read on a new device — only sent again from one that still has it. Nobody can reset it.",
-  "syncPinCost": "A PIN is quick to type, but someone holding a copy of the server's data could try every one. A passphrase of 8 characters or more holds against that.",
+  "syncPinCost": "A PIN is quick to type, but it falls in minutes to someone holding the server's database and its keys. A passphrase holds.",
   "syncPinField": "PIN",
   "syncPinRepeat": "The same PIN, again",
   "syncPinRule": "6 digits is best; 4 to 6",
@@ -1837,8 +1835,8 @@
   "syncPinChecking": "Checking it against your other devices…",
   "syncPinWrong": "That isn't the PIN your other devices use.",
   "syncPinLater": "Later",
-  "syncPinWaiting": "Money, places and pictures stay on this phone until you set your sync PIN.",
-  "syncPinIsSet": "Set: money, places and pictures sync end-to-end encrypted.",
+  "syncPinWaiting": "Nothing leaves this phone until you set your sync PIN.",
+  "syncPinIsSet": "Set: everything syncs end-to-end encrypted.",
   "syncPinSetAction": "Set your sync PIN",
   "syncPinForget": "Forget it on this device",
   "accountCircleLabel": "Account and sync",
@@ -1882,7 +1880,7 @@
   "syncPinForgot": "Forgot the PIN? Start over",
   "syncPinChange": "Change PIN",
   "syncPinStartOver": "Start the PIN over",
-  "syncPinStartOverBody": "This deletes the money, places and pictures kept on the server for this account, and the PIN with them. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
+  "syncPinStartOverBody": "This deletes everything kept on the server for this account, and the PIN with it. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
   "syncPinStartOverConfirm": "Start over",
   "syncPinChangedElsewhere": "Your PIN was changed on another device. Enter the new one.",
   "syncRefusedQuota": "The server has no room left for this account.",
@@ -1970,5 +1968,99 @@
   "syncPinTakesTime": "Making the key is slow on purpose: a few seconds, up to about 20 on an older phone.",
   "syncPinMenu": "Sync PIN options",
   "syncPinSignedOut": "This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.",
-  "accountNameIsPassword": "That's your password. Use a name others may see, or leave it empty."
+  "accountNameIsPassword": "That's your password. Use a name others may see, or leave it empty.",
+  "ratesFetched": "Rates updated.",
+  "ratesSource": "Rates by Exchange Rate API",
+  "ratesOneUsd": "1 USD = {amount}",
+  "@ratesOneUsd": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "ratesOn": "Rates of {day}",
+  "@ratesOn": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "ratesNone": "No rates fetched yet.",
+  "currencyPickerTitle": "Choose a currency",
+  "currencySearchHint": "Name, code or sign",
+  "currencyNoMatch": "No currency matches.",
+  "currencyMore": "Another currency",
+  "syncPassphraseTitle": "Sync passphrase",
+  "syncPassphraseAdvice": "A few words only you would put together, like olive river lantern, hold for thousands of years against someone holding the server's data.",
+  "syncSecretField": "Passphrase or PIN",
+  "syncSecretShow": "Show",
+  "syncSecretHide": "Hide",
+  "syncSecretWeak": "Weak",
+  "syncSecretFair": "Fair",
+  "syncSecretStrong": "Strong",
+  "syncSecretStands": "Would hold {time} against someone with the server's data.",
+  "@syncSecretStands": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncSecretUnderSecond": "under a second",
+  "syncSecretSeconds": "{count, plural, =1{1 second} other{{count} seconds}}",
+  "@syncSecretSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@syncSecretMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretHours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@syncSecretHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@syncSecretDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretYears": "{count, plural, =1{1 year} other{{count} years}}",
+  "@syncSecretYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretThousands": "thousands of years",
+  "syncSecretForever": "for ever, near enough",
+  "exportConfirmPassword": "Your account password, to take your data out",
+  "exportConfirmReason": "Unlock to take your data out of Harvest",
+  "exportConfirmRefused": "Not taken: the phone's lock was not opened.",
+  "exportConfirmLimited": "Too many wrong passwords. Try again in {minutes} min.",
+  "@exportConfirmLimited": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "exportConfirmOffline": "The server can't be reached to check the password. Try again when you're online."
 }

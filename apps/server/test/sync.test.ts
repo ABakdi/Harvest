@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { request as httpRequest } from 'node:http';
-import { maxPushBytes, maxRecordStoreBytes, type PullResult, type PushResult, type SyncRecord } from '@harvest/contracts';
+import { maxEnvelopeCtLength, maxPushBytes, maxRecordStoreBytes, retiredTables, type PullResult, type PushResult, type SyncRecord } from '@harvest/contracts';
 import { ObjectId } from 'mongodb';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -43,24 +43,49 @@ async function pullAll(account: Account, after = 0, limit = 1000): Promise<PullR
 
 const at = (minute: number) => `2026-09-19T10:${String(minute).padStart(2, '0')}:00.000Z`;
 
-function note(uuid: string, minute: number, fields: { title?: string; deletedAt?: string | null } = {}): SyncRecord {
-  const updatedAt = at(minute);
-  const deletedAt = fields.deletedAt ?? null;
+/**
+ * A row sealed the way these tests seal one: the "ciphertext" is the
+ * row's JSON in base64. The server cannot tell it from the real thing,
+ * which is the point, and a test can read it back with [opened].
+ */
+function sealed(
+  table: string,
+  uuid: string,
+  updatedAt: string,
+  deletedAt: string | null,
+  row: Record<string, unknown>,
+  extra: { file?: string } = {},
+): SyncRecord {
   return {
-    table: 'notes',
+    table,
     uuid,
     updatedAt,
     deletedAt,
-    data: {
-      uuid,
-      title: fields.title ?? `Note ${uuid}`,
-      folder: '',
-      body: 'Body',
-      createdAt: at(0),
-      updatedAt,
-      deletedAt,
-    },
-  };
+    enc: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct: Buffer.from(JSON.stringify(row)).toString('base64') },
+    ...extra,
+  } as SyncRecord;
+}
+
+function opened(record: { enc?: { ct: string } }): Record<string, unknown> {
+  return JSON.parse(Buffer.from(record.enc!.ct, 'base64').toString('utf8')) as Record<string, unknown>;
+}
+
+function note(
+  uuid: string,
+  minute: number,
+  fields: { title?: string; deletedAt?: string | null; updatedAt?: string; body?: string } = {},
+): SyncRecord {
+  const updatedAt = fields.updatedAt ?? at(minute);
+  const deletedAt = fields.deletedAt ?? null;
+  return sealed('notes', uuid, updatedAt, deletedAt, {
+    uuid,
+    title: fields.title ?? `Note ${uuid}`,
+    folder: '',
+    body: fields.body ?? 'Body',
+    createdAt: at(0),
+    updatedAt,
+    deletedAt,
+  });
 }
 
 const envelope = { v: 1, iv: 'AAAAAAAAAAAAAAAB', ct: 'q83vEjRWeJA=' };
@@ -134,10 +159,12 @@ describe('push and pull', () => {
   it('lands every contract fixture', async () => {
     const account = await signUp(h);
     const dir = new URL('../../../packages/contracts/fixtures/records/', import.meta.url);
-    const records = readdirSync(dir).map((file) => JSON.parse(readFileSync(new URL(file, dir), 'utf8')) as unknown);
+    const records = readdirSync(dir).map((file) => JSON.parse(readFileSync(new URL(file, dir), 'utf8')) as { table: string });
     const result = await push(account, records);
-    expect(result.results.filter((r) => r.status !== 'applied')).toEqual([]);
-    expect((await pullAll(account)).length).toBe(records.length);
+    // All but a table no device sends any more (M7.3).
+    const retired = new Set<string>(retiredTables);
+    expect(result.results.filter((r) => r.status !== 'applied').map((r) => r.table)).toEqual([...retired]);
+    expect((await pullAll(account)).length).toBe(records.filter((r) => !retired.has(r.table)).length);
   });
 
   it('refuses a malformed batch whole, and one of more than 500 records', async () => {
@@ -169,7 +196,7 @@ describe('conflicts', () => {
 
     const records = await pullAll(account);
     expect(records).toHaveLength(1);
-    expect(records[0]!.data!.title).toBe('Seven');
+    expect(opened(records[0]!).title).toBe('Seven');
   });
 
   it('treats an equal stamp as the same write coming back', async () => {
@@ -177,7 +204,7 @@ describe('conflicts', () => {
     await push(account, [note('a', 5, { title: 'Mine' })]);
     const echo = await push(account, [note('a', 5, { title: 'Different body, same clock' })]);
     expect(echo.results[0]!.status).toBe('stale');
-    expect((await pullAll(account))[0]!.data!.title).toBe('Mine');
+    expect(opened((await pullAll(account))[0]!).title).toBe('Mine');
     expect(echo.cursor).toBe(1);
   });
 
@@ -185,13 +212,9 @@ describe('conflicts', () => {
     const account = await signUp(h);
     const base = note('a', 5);
     await push(account, [base]);
-    const sameMoment = { ...base, updatedAt: '2026-09-19T10:05:00Z', data: { ...base.data, updatedAt: '2026-09-19T10:05:00Z' } };
+    const sameMoment = note('a', 5, { updatedAt: '2026-09-19T10:05:00Z' });
     expect((await push(account, [sameMoment])).results[0]!.status).toBe('stale');
-    const oneMicroLater = {
-      ...base,
-      updatedAt: '2026-09-19T10:05:00.000001Z',
-      data: { ...base.data, updatedAt: '2026-09-19T10:05:00.000001Z', title: 'Later' },
-    };
+    const oneMicroLater = note('a', 5, { updatedAt: '2026-09-19T10:05:00.000001Z', title: 'Later' });
     expect((await push(account, [oneMicroLater])).results[0]!.status).toBe('applied');
   });
 
@@ -219,7 +242,7 @@ describe('two devices', () => {
 
     expect([...phone.rows.keys()].sort()).toEqual(['notes/l1', 'notes/p1', 'notes/shared']);
     expect(Object.fromEntries(phone.rows)).toEqual(Object.fromEntries(laptop.rows));
-    expect(phone.rows.get('notes/shared')!.data!.title).toBe('Laptop edit');
+    expect(opened(phone.rows.get('notes/shared')!).title).toBe('Laptop edit');
   });
 
   it('lose a stale offline edit to a newer remote one', async () => {
@@ -235,7 +258,7 @@ describe('two devices', () => {
 
     const result = await phone.sync([offline]);
     expect(result.results[0]!.status).toBe('stale');
-    expect(phone.rows.get('notes/n')!.data!.title).toBe('Laptop, later');
+    expect(opened(phone.rows.get('notes/n')!).title).toBe('Laptop, later');
   });
 
   it('propagate a soft delete and a purge', async () => {
@@ -325,29 +348,38 @@ describe('isolation', () => {
     const result = await push(bob, [note('same-uuid', 1, { title: "Bob's" })]);
     expect(result.results[0]!.status).toBe('applied');
     expect(result.cursor).toBe(1);
-    expect((await pullAll(alice))[0]!.data!.title).toBe("Alice's");
-    expect((await pullAll(bob))[0]!.data!.title).toBe("Bob's");
+    expect(opened((await pullAll(alice))[0]!).title).toBe("Alice's");
+    expect(opened((await pullAll(bob))[0]!).title).toBe("Bob's");
   });
 });
 
 describe('what the server checks', () => {
-  it('stores the private tier as an opaque envelope, and refuses it in the clear', async () => {
+  it('stores every row as an opaque envelope, and refuses one in the clear (Phase 7)', async () => {
     const account = await signUp(h);
-    const sealed = { table: 'expenses', uuid: 'e1', updatedAt: at(1), deletedAt: null, enc: envelope };
-    const clear = {
-      table: 'debts',
-      uuid: 'd1',
+    const expense = { table: 'expenses', uuid: 'e1', updatedAt: at(1), deletedAt: null, enc: envelope };
+    const clear = (table: string, uuid: string, data: Record<string, unknown>) => ({
+      table,
+      uuid,
       updatedAt: at(1),
       deletedAt: null,
-      data: { uuid: 'd1', person: 'Karim' },
-    };
-    const result = await push(account, [sealed, clear]);
-    expect(result.results.map((r) => r.status)).toEqual(['applied', 'invalid']);
+      data,
+    });
+    const result = await push(account, [
+      expense,
+      clear('debts', 'd1', { uuid: 'd1', person: 'Karim' }),
+      clear('notes', 'n1', { uuid: 'n1', title: 'Diary', body: 'Dear diary' }),
+      clear('body_weights', 'w1', { uuid: 'w1', grams: 71_500 }),
+    ]);
+    expect(result.results.map((r) => r.status)).toEqual(['applied', 'invalid', 'invalid', 'invalid']);
+    for (const refused of result.results.slice(1)) {
+      expect(refused.issues).toContainEqual(expect.objectContaining({ path: ['data'], code: 'sealed_required' }));
+    }
 
     const [record] = await pullAll(account);
-    expect(record).toEqual({ ...sealed, seq: 1 });
-    // The name never reached the database.
-    expect(JSON.stringify(await h.db.collection('records').find().toArray())).not.toContain('Karim');
+    expect(record).toEqual({ ...expense, seq: 1 });
+    // Nothing in the clear reached the database.
+    const stored = JSON.stringify(await h.db.collection('records').find().toArray());
+    for (const text of ['Karim', 'Dear diary', '71500']) expect(stored).not.toContain(text);
   });
 
   it('checks the envelope and nothing more', async () => {
@@ -360,13 +392,7 @@ describe('what the server checks', () => {
 
   it('keeps device settings home', async () => {
     const account = await signUp(h);
-    const setting = (key: string) => ({
-      table: 'kv_settings',
-      uuid: key,
-      updatedAt: at(1),
-      deletedAt: null,
-      data: { key, valueJson: 'true', updatedAt: at(1) },
-    });
+    const setting = (key: string) => sealed('kv_settings', key, at(1), null, { key, valueJson: 'true', updatedAt: at(1) });
     const result = await push(account, [setting('features.places'), setting('lock.armed'), setting('streak.lastJudgedDay')]);
     expect(result.results.map((r) => [r.uuid, r.status])).toEqual([
       ['features.places', 'applied'],
@@ -378,7 +404,8 @@ describe('what the server checks', () => {
 
   it('isolates an invalid record: the rest of the batch lands', async () => {
     const account = await signUp(h);
-    const broken = { ...note('bad', 2), data: { ...note('bad', 2).data, title: 42 } };
+    const { enc: _enc, ...bare } = note('bad', 2);
+    const broken = { ...bare, data: { title: 42 } };
     const result = await push(account, [note('a', 1), broken, { nonsense: true, table: 'x', uuid: 'y' }, note('b', 3)]);
     expect(result.results.map((r) => [r.table, r.uuid, r.status])).toEqual([
       ['notes', 'a', 'applied'],
@@ -387,26 +414,26 @@ describe('what the server checks', () => {
       ['notes', 'b', 'applied'],
     ]);
     expect(result.results[1]!.issues).toEqual([
-      expect.objectContaining({ path: ['data', 'title'] }),
+      expect.objectContaining({ path: ['data'], code: 'sealed_required' }),
+      expect.objectContaining({ path: ['enc'] }),
     ]);
     expect((await pullAll(account)).map((r) => r.uuid)).toEqual(['a', 'b']);
   });
 
   it('keys a step day by its Harvest Day', async () => {
     const account = await signUp(h);
-    const day = {
-      table: 'step_days',
-      uuid: '2026-09-18',
-      updatedAt: at(1),
-      deletedAt: null,
-      data: { harvestDay: '2026-09-18', steps: 9000, lastCounter: null, updatedAt: at(1) },
-    };
-    expect((await push(account, [day])).results[0]!.status).toBe('applied');
-    const later = { ...day, updatedAt: at(2), data: { ...day.data, steps: 12000, updatedAt: at(2) } };
-    expect((await push(account, [later])).results[0]!.status).toBe('applied');
+    const day = (minute: number, steps: number) =>
+      sealed('step_days', '2026-09-18', at(minute), null, {
+        harvestDay: '2026-09-18',
+        steps,
+        lastCounter: null,
+        updatedAt: at(minute),
+      });
+    expect((await push(account, [day(1, 9000)])).results[0]!.status).toBe('applied');
+    expect((await push(account, [day(2, 12000)])).results[0]!.status).toBe('applied');
     const records = await pullAll(account);
     expect(records).toHaveLength(1);
-    expect(records[0]!.data!.steps).toBe(12000);
+    expect(opened(records[0]!).steps).toBe(12000);
   });
 });
 
@@ -414,11 +441,7 @@ describe('limits (audit S5-02, S5-11)', () => {
   it('refuses a clock more than a day ahead of the server, or past 2200', async () => {
     const account = await signUp(h);
     const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
-    const make = (uuid: string, updatedAt: string): SyncRecord => ({
-      ...note(uuid, 1),
-      updatedAt,
-      data: { ...note(uuid, 1).data, updatedAt },
-    });
+    const make = (uuid: string, updatedAt: string): SyncRecord => note(uuid, 1, { updatedAt });
     const result = await push(account, [
       make('n-soon', ahead(60 * 60_000)),
       make('n-tomorrow', ahead(2 * 24 * 60 * 60_000)),
@@ -429,30 +452,23 @@ describe('limits (audit S5-02, S5-11)', () => {
     expect(result.results[2]!.issues).toEqual([expect.objectContaining({ path: ['updatedAt'], code: 'clock_too_far' })]);
   });
 
-  it('refuses a text past its cap and a sealed row past its', async () => {
+  it('refuses a sealed row past its cap', async () => {
     const account = await signUp(h);
-    const long = note('n-long', 1);
-    long.data = { ...long.data, body: 'x'.repeat(500_001) };
-    const sealed = {
-      table: 'geotags',
-      uuid: 'g-big',
+    const big = (ct: string) => ({
+      table: 'notes',
+      uuid: 'n-big',
       updatedAt: at(1),
       deletedAt: null,
-      enc: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct: 'A'.repeat(1_000_004) },
-    };
-    const result = await push(account, [long, sealed]);
-    expect(result.results.map((r) => r.status)).toEqual(['invalid', 'invalid']);
-    expect(result.results[0]!.issues![0]!.path).toEqual(['data', 'body']);
-    expect(result.results[1]!.issues![0]!.path).toEqual(['enc', 'ct']);
+      enc: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct },
+    });
+    const result = await push(account, [big('A'.repeat(maxEnvelopeCtLength + 4))]);
+    expect(result.results.map((r) => r.status)).toEqual(['invalid']);
+    expect(result.results[0]!.issues![0]!.path).toEqual(['enc', 'ct']);
   });
 
   it('pages a pull by bytes as well as by count', async () => {
     const account = await signUp(h);
-    const big = (uuid: string, minute: number) => {
-      const record = note(uuid, minute);
-      record.data = { ...record.data, body: 'b'.repeat(3000) };
-      return record;
-    };
+    const big = (uuid: string, minute: number) => note(uuid, minute, { body: 'b'.repeat(2000) });
     await push(account, [big('a', 1), big('b', 2), big('c', 3), big('d', 4)]);
 
     const sync = new SyncService(h.repos);
@@ -555,7 +571,7 @@ describe('a push in one go (P6-02)', () => {
     expect(result.results.map((r) => r.status)).toEqual(['applied', 'stale', 'applied']);
     const rows = await pullAll(account);
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.data).toMatchObject({ title: 'third' });
+    expect(opened(rows[0]!)).toMatchObject({ title: 'third' });
     const userId = new ObjectId(account.userId);
     expect((await h.db.collection('counters').findOne({ _id: userId }))!.recordBytes).toBe(
       await h.repos.records.storedBytes(userId),
@@ -599,13 +615,8 @@ describe('what a device gets back (P6-08, S6-16, Q6-03)', () => {
 
   it('takes the endpoint settings a 3.0.0 phone sends, and keeps none of them', async () => {
     const account = await signUp(h);
-    const setting = (key: string, value: string) => ({
-      table: 'kv_settings',
-      uuid: key,
-      updatedAt: at(1),
-      deletedAt: null,
-      data: { key, valueJson: JSON.stringify(value), updatedAt: at(1) },
-    });
+    const setting = (key: string, value: string) =>
+      sealed('kv_settings', key, at(1), null, { key, valueJson: JSON.stringify(value), updatedAt: at(1) });
     const result = await push(account, [setting('assist.baseUrl', 'https://evil.example'), setting('places.styleUrl', 'https://evil.example')]);
     expect(result.results.map((r) => r.status)).toEqual(['applied', 'applied']);
     expect(await h.db.collection('records').countDocuments({})).toBe(0);
@@ -668,5 +679,139 @@ describe('an account deleted while a push is on its way (Q6-02)', () => {
     } finally {
       server.close();
     }
+  });
+});
+
+describe('sealing what was stored in the clear (Phase 7)', () => {
+  /** A row as the server kept it before Phase 7: in the clear, in `data`. */
+  async function storePlain(account: Account, uuid: string, minute: number, fields: Record<string, unknown> = {}) {
+    const userId = new ObjectId(account.userId);
+    const seq = await h.repos.records.takeSeqs(userId, 1);
+    const row = { uuid, title: `Note ${uuid}`, folder: '', body: 'In the clear', createdAt: at(0), updatedAt: at(minute), deletedAt: null, ...fields };
+    await h.db.collection('records').insertOne({
+      userId,
+      table: 'notes',
+      uuid,
+      updatedAt: at(minute),
+      deletedAt: null,
+      stamp: Date.parse(at(minute)) * 1000,
+      data: row,
+      seq,
+      deviceId: 'old-phone',
+    });
+  }
+
+  const choosePin = (account: Account) =>
+    request(h.app)
+      .put('/v1/me/sync-key')
+      .set(bearer(account))
+      .send({ verifier: 'ab'.repeat(32), check: { v: 2, iv: 'AAAAAAAAAAAAAAAB', ct: 'c2VhbGVkIGNoZWNrIGJ5dGVz' } })
+      .expect(201);
+  const sealedCall = (account: Account, keyEpoch: number) =>
+    request(h.app).post('/v1/sync/sealed').set(bearer(account)).send({ deviceId: 'phone', keyEpoch });
+
+  it('hands a row kept in the clear out as it is, until a device seals it', async () => {
+    const account = await signUp(h);
+    await storePlain(account, 'old', 1);
+    const [record] = await pullAll(account);
+    expect(record).toMatchObject({ table: 'notes', uuid: 'old', data: { body: 'In the clear' } });
+    expect(record!.enc).toBeUndefined();
+  });
+
+  it('lets a row’s sealed copy replace its copy in the clear at the same clock, and only then', async () => {
+    const account = await signUp(h);
+    await storePlain(account, 'same', 5);
+    await storePlain(account, 'newer', 5);
+    const result = await push(account, [note('same', 5, { title: 'Sealed' }), note('newer', 4)]);
+    expect(result.results.map((r) => r.status)).toEqual(['applied', 'stale']);
+
+    const stored = await h.db.collection('records').findOne({ userId: new ObjectId(account.userId), uuid: 'same' });
+    expect(stored!.data).toBeUndefined();
+    expect(opened(stored as unknown as { enc: { ct: string } }).title).toBe('Sealed');
+    // Sealed once, the same clock is the same write again.
+    expect((await push(account, [note('same', 5, { title: 'Again' })])).results[0]!.status).toBe('stale');
+    const userId = new ObjectId(account.userId);
+    expect((await h.db.collection('counters').findOne({ _id: userId }))!.recordBytes).toBe(
+      await h.repos.records.storedBytes(userId),
+    );
+  });
+
+  it('deletes what is left in the clear once a device says all of it is sealed', async () => {
+    const account = await signUp(h);
+    const userId = new ObjectId(account.userId);
+    await storePlain(account, 'left', 1);
+    await storePlain(account, 'sealed', 1);
+    await push(account, [
+      note('sealed', 1),
+      note('mine', 2),
+      { table: 'notes', uuid: 'gone', updatedAt: at(3), deletedAt: at(3), purged: true },
+    ]);
+
+    // Nothing can have been sealed without a secret.
+    expectError(await sealedCall(account, 1), 409, 'conflict');
+    await choosePin(account);
+    // Nor under a key the account no longer has.
+    expectError(await sealedCall(account, 2), 409, 'key_changed');
+
+    const res = await sealedCall(account, 1).expect(200);
+    expect(res.body).toEqual({ dropped: 1 });
+    const left = await h.db.collection('records').find({ userId }).toArray();
+    expect(left.map((doc) => String(doc.uuid)).sort()).toEqual(['gone', 'mine', 'sealed']);
+    expect(left.every((doc) => doc.data === undefined)).toBe(true);
+    expect(JSON.stringify(left)).not.toContain('In the clear');
+    // The room is counted again from what is left.
+    await push(account, [note('after', 4)]);
+    expect((await h.db.collection('counters').findOne({ _id: userId }))!.recordBytes).toBe(
+      await h.repos.records.storedBytes(userId),
+    );
+    // Asked again, there is nothing more to drop.
+    expect((await sealedCall(account, 1).expect(200)).body).toEqual({ dropped: 0 });
+  });
+
+  it('refuses a trail point of 3.1’s, and drops the ones it holds once all is sealed (M7.3)', async () => {
+    const account = await signUp(h);
+    const userId = new ObjectId(account.userId);
+    const point = sealed('location_points', 'p1', at(1), null, { uuid: 'p1' });
+    const refused = await push(account, [point]);
+    expect(refused.results[0]).toMatchObject({ status: 'invalid' });
+    expect(refused.results[0]!.issues![0]!.code).toBe('retired_table');
+    // As 3.1 stored them, sealed, one a point.
+    const seq = await h.repos.records.takeSeqs(userId, 1);
+    await h.db.collection('records').insertOne({ ...point, userId, stamp: Date.parse(at(1)) * 1000, seq, deviceId: 'old-phone' });
+    // A purge of one still goes through, like any tombstone.
+    const purge = { table: 'location_points', uuid: 'p2', updatedAt: at(2), deletedAt: at(2), purged: true };
+    expect((await push(account, [purge])).results[0]!.status).toBe('applied');
+    await push(account, [sealed('trail_days', 'k1', at(3), null, { key: 'k1' })]);
+
+    await choosePin(account);
+    expect((await sealedCall(account, 1).expect(200)).body).toEqual({ dropped: 2 });
+    expect((await pullAll(account)).map((r) => r.table)).toEqual(['trail_days']);
+  });
+
+  it('takes only a device and an epoch', async () => {
+    const account = await signUp(h);
+    expectError(await request(h.app).post('/v1/sync/sealed').set(bearer(account)).send({ deviceId: 'p' }), 400, 'validation_failed');
+    expectError(
+      await request(h.app).post('/v1/sync/sealed').set(bearer(account)).send({ deviceId: 'p', keyEpoch: 1, all: true }),
+      400,
+      'validation_failed',
+    );
+    expectError(await request(h.app).post('/v1/sync/sealed').send({ deviceId: 'p', keyEpoch: 1 }), 401, 'unauthorized');
+  });
+
+  it('knows the files a sealed row names by its clear name, and a row from before by its data', async () => {
+    const account = await signUp(h);
+    const userId = new ObjectId(account.userId);
+    const sealedName = 'c'.repeat(64);
+    const oldName = 'd'.repeat(64);
+    await storePlain(account, 'old-memory', 1);
+    await h.db
+      .collection('records')
+      .updateOne({ userId, uuid: 'old-memory' }, { $set: { table: 'memories', 'data.fileHash': oldName } });
+    await push(account, [sealed('memories', 'm1', at(2), null, { path: 'a.jpg' }, { file: sealedName })]);
+    expect([...(await h.repos.records.namedFiles(userId))].sort()).toEqual([sealedName, oldName]);
+    expect(await h.repos.records.namesFile(userId, sealedName)).toBe(true);
+    expect(await h.repos.records.namesFile(userId, oldName)).toBe(true);
+    expect(await h.repos.records.namesFile(userId, 'e'.repeat(64))).toBe(false);
   });
 });

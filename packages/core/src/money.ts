@@ -10,22 +10,42 @@
  */
 
 import type { HarvestDay } from './harvest-day.js';
+import { currencyData } from './currency-data.js';
 import { westernDigits } from './digits.js';
 
-export const currencies = ['DZD', 'USD', 'EUR'] as const;
-export type CurrencyCode = (typeof currencies)[number];
+/**
+ * A currency, by its ISO 4217 code: any of [currencies], every one in
+ * circulation since Phase 7 ([[Finances]], M7.8), where 3.1 knew three.
+ */
+export type CurrencyCode = string;
 
-export function currencyOf(code: string | null | undefined): CurrencyCode {
-  return (currencies as readonly string[]).includes(code ?? '') ? (code as CurrencyCode) : 'DZD';
+/** Every currency Harvest knows, by code ([[currencyInfo]] has the rest). */
+export const currencies: readonly CurrencyCode[] = currencyData.map((currency) => currency.code);
+const known = new Set<string>(currencies);
+
+export function isCurrencyCode(code: string | null | undefined): code is CurrencyCode {
+  return code !== null && code !== undefined && known.has(code);
+}
+
+/** [code] when Harvest knows it, else [fallback] (the dinar, as it always was). */
+export function currencyOf(code: string | null | undefined, fallback: CurrencyCode = 'DZD'): CurrencyCode {
+  return isCurrencyCode(code) ? code : fallback;
 }
 
 /**
- * The rates as the settings hold them: the DZD legs typed by hand, the
- * EUR→USD one fetched. A rate that is not finite and positive is no
- * rate at all, exactly as `Rates._sane` decides it.
+ * The rates as the settings hold them:
+ * - `perUsd`, what one US dollar buys of every currency, fetched by the
+ *   device and cached with its day ([[Finances]], M7.8);
+ * - the dinar's parallel market, typed by hand (`dzdPerUsd`,
+ *   `dzdPerEur`), which wins over any fetched rate for a leg through the
+ *   dinar — the official one is not what a euro buys in Algiers;
+ * - `usdPerEur`, what 3.1 fetched, still read when `perUsd` is not there.
+ * A rate that is not finite and positive is no rate at all, exactly as
+ * `Rates._sane` decides it.
  */
 export interface Rates {
   readonly defaultCurrency: CurrencyCode;
+  readonly perUsd?: Readonly<Record<string, number>> | null;
   readonly dzdPerUsd?: number | null;
   readonly dzdPerEur?: number | null;
   readonly usdPerEur?: number | null;
@@ -40,8 +60,11 @@ function dartRound(value: number): number {
   return Math.sign(value) * Math.round(Math.abs(value));
 }
 
-function factor(rates: Rates, from: CurrencyCode, to: CurrencyCode): number | null {
-  const usdPerEur = sane(rates.usdPerEur);
+const firstThree = new Set(['DZD', 'USD', 'EUR']);
+
+/** How 3.1 converted between the dinar, the dollar and the euro, unchanged. */
+function firstThreeFactor(rates: Rates, from: CurrencyCode, to: CurrencyCode): number | null {
+  const usdPerEur = sane(rates.usdPerEur) ?? fetchedUsdPerEur(rates);
   if (from === 'EUR' && to === 'USD' && usdPerEur !== null) return usdPerEur;
   if (from === 'USD' && to === 'EUR' && usdPerEur !== null) return 1 / usdPerEur;
   const viaDzd = (currency: CurrencyCode): number | null =>
@@ -50,6 +73,45 @@ function factor(rates: Rates, from: CurrencyCode, to: CurrencyCode): number | nu
   const toDzd = viaDzd(to);
   if (fromDzd === null || toDzd === null) return null;
   return fromDzd / toDzd;
+}
+
+function fetchedUsdPerEur(rates: Rates): number | null {
+  const eur = sane(rates.perUsd?.EUR);
+  return eur === null ? null : 1 / eur;
+}
+
+/**
+ * What one US dollar buys of [currency]: fetched, except for the dinar
+ * when its parallel rate was typed, straight or through the euro.
+ */
+function unitsPerUsd(rates: Rates, currency: CurrencyCode): number | null {
+  if (currency === 'USD') return 1;
+  if (currency === 'DZD') {
+    const byHand = sane(rates.dzdPerUsd);
+    if (byHand !== null) return byHand;
+    const perEur = sane(rates.dzdPerEur);
+    const eur = unitsPerUsd(rates, 'EUR');
+    if (perEur !== null && eur !== null) return perEur * eur;
+  }
+  const fetched = sane(rates.perUsd?.[currency]);
+  if (fetched !== null) return fetched;
+  if (currency === 'EUR') {
+    const usdPerEur = sane(rates.usdPerEur);
+    return usdPerEur === null ? null : 1 / usdPerEur;
+  }
+  return null;
+}
+
+function factor(rates: Rates, from: CurrencyCode, to: CurrencyCode): number | null {
+  if (from === to) return 1;
+  if (firstThree.has(from) && firstThree.has(to)) {
+    const old = firstThreeFactor(rates, from, to);
+    if (old !== null) return old;
+  }
+  const fromUnits = unitsPerUsd(rates, from);
+  const toUnits = unitsPerUsd(rates, to);
+  if (fromUnits === null || toUnits === null) return null;
+  return toUnits / fromUnits;
 }
 
 /** [minor] units of [from] in the default currency; null when a rate is missing. */

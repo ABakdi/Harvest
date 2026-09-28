@@ -3,12 +3,9 @@
   "uuid": "f2c6a8d4-5e1b-4c9f-b3a7-1d5e9c2f6b34",
   "updatedAt": "2026-09-04T20:12:31.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "f2c6a8d4-5e1b-4c9f-b3a7-1d5e9c2f6b34",
-    "programUuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
-    "name": "Day 1 · Bench",
-    "position": 0,
-    "week": null,
-    "accessories": "Back, Abs"
+  "enc": {
+    "v": 2,
+    "iv": "J8Wyg408vBH+hxQc",
+    "ct": "X7WdsM+OpjMec5Cx9cSPOz0iaJULokyJ8xXokHeYj5OyuXajvnuN4CrSsT8W+2gLtJ72KQNWn+qsG1P5JI6HD6lsFC/RhLMwBShAJPZAQfI3s6cnirlPb5nC6OL4EJBlWLaiLwk2GbjxKALvK98L4MzqxaMu9jNY+8Cfquy9uuTt9pdKbUyLmi3dCBlhIb8pcMiL9BCFBSb0HV6Wl++mdKxelIqcoqiIqy5RTereRgmTSNbKpOxW2IxENKGbwnLSURG96t3p0OSW6/Ow142G9XXB7f9HoRM/jmucy7Ch9skegyKwONndSQ0VAPG2gq35owFnNzDPZ6HZwWMmSSlOXii/L8XaUCx0DfVy2h9rv7I="
   }
 }

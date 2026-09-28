@@ -39,9 +39,13 @@ run:
    `/v1/assist` (recordings, and the streamed answers), long-cached
    assets, the shell always asked again, source maps kept back, no
    nginx version on any page, the emailed `/verify/…` and `/reset/…`
-   links kept out of the access log (their token is in the path), and
-   the same Content-Security-Policy as the Caddy file on the site — the
-   API's own headers come from the server;
+   links kept out of the access log (their token is in the path), an
+   access log of its own (`/var/log/nginx/harvest.access.log`) that
+   keeps the time, the method, the path, the status, the size and how
+   long it took, and **no address, query or referrer**, an error log that
+   keeps only what is critical (nginx names the client in every error
+   line), and the same Content-Security-Policy as the Caddy file on the
+   site — the API's own headers come from the server;
 5. leaves renewals to certbot's own timer, with a hook that reloads
    nginx.
 
@@ -55,12 +59,14 @@ one is put back.
 ### The key-share key: back it up
 
 `KEY_SHARE_KEY` seals every account's key share, the half of the
-private tier's key the server keeps ([[Sync-API]], the sync key). It is
-in `deploy/.env` and the server's environment, never in the database,
-which is the point: a copy of the database alone cannot be used to try
-anyone's PIN. It also means that **losing it makes every private tier
-on the server unreadable, for good** — expenses, debts and places
-stay on the devices, but no new device can open what the server holds.
+sync key the server keeps ([[Sync-API]], the sync key), and, since
+Phase 7, the keys every address and display name are sealed and looked
+up under (`people-keys.ts`). It is in `deploy/.env` and the server's
+environment, never in the database, which is the point: a copy of the
+database alone cannot be used to try anyone's PIN, or read anyone's
+address. It also means that **losing it makes the server's accounts
+unreadable, for good** — no one can sign in, and no new device can
+open what the server holds; the devices keep their own copies.
 So:
 
 - back up `deploy/.env` every time the database volume is backed up:
@@ -189,8 +195,29 @@ under another key, never beside the database backup. File bytes live in
 the same database, in the GridFS bucket `file_blobs`, so one `mongodump`
 takes them along. The
 phone is the first copy and this is the second, but an account holding
-the only copy of a year of pictures is an account worth
-`mongodump`-ing on a schedule.
+the only copy of a year of pictures is an account worth backing up on a
+schedule.
+
+`deploy/backup.sh` does it the one way I allow (Phase 7, M7.7): it runs
+`mongodump` inside the database's container and pipes it straight into
+[`age`](https://age-encryption.org), encrypted to the public key in
+`HARVEST_BACKUP_RECIPIENT`, so nothing unencrypted ever touches the
+disk. The key pair is made on another machine (`age-keygen -o
+harvest.key`) and its private half never comes to the server, so a
+backup is of no use to whoever reads the server. It keeps the newest
+seven (`--keep`), names any unencrypted dump it finds in the backup
+directory, and deletes them with `--purge-plain`. Copy the `.age` files
+off the server; they are safe anywhere. A cron line for it:
+
+```sh
+17 3 * * * root /opt/harvest/deploy/backup.sh >/var/log/harvest-backup.log 2>&1
+```
+
+**The disk is encrypted, or the host says so.** The rows and files are
+sealed by the devices and the addresses by the environment, but the
+volume still holds session and sign-in bookkeeping. A production host
+runs the database volume on an encrypted disk (LUKS on a host I own, or
+a provider's encrypted volume) — a requirement, not a nicety.
 
 ## The web
 

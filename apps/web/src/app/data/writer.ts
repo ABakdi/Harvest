@@ -1,6 +1,6 @@
-import { isPortableSetting, tables, type SyncedTable } from '@harvest/contracts';
+import { isPortableSetting, tables } from '@harvest/contracts';
 import type { IndexableType, Table, Transaction } from 'dexie';
-import type { HarvestDB, OutboxRow, Row } from './db';
+import type { HarvestDB, OutboxRow, Row, StoredTable } from './db';
 import { primaryKeyOf, recordKeyOf } from './db';
 
 /**
@@ -30,7 +30,7 @@ export interface LedgerEntry {
  */
 export interface InsertHook {
   readonly tables: ReadonlySet<string>;
-  inserted(tx: Tx, table: SyncedTable, key: string): Promise<void>;
+  inserted(tx: Tx, table: StoredTable, key: string): Promise<void>;
 }
 
 export class Tx {
@@ -47,7 +47,7 @@ export class Tx {
    * a lost operation runs in a transaction of its own while this one
    * commits half-done. Explicitly bound tables cannot get lost.
    */
-  rows<T extends SyncedTable>(table: T): Table<Row<T>, IndexableType> {
+  rows<T extends StoredTable>(table: T): Table<Row<T>, IndexableType> {
     return this.trans.table(table) as Table<Row<T>, IndexableType>;
   }
 
@@ -65,11 +65,11 @@ export class Tx {
     return this.clock();
   }
 
-  get<T extends SyncedTable>(table: T, key: string): Promise<Row<T> | undefined> {
+  get<T extends StoredTable>(table: T, key: string): Promise<Row<T> | undefined> {
     return this.rows(table).get(primaryKeyOf(table, key));
   }
 
-  async put<T extends SyncedTable>(table: T, row: Row<T>): Promise<void> {
+  async put<T extends StoredTable>(table: T, row: Row<T>): Promise<void> {
     const checked = tables[table].data.parse(row) as Row<T>;
     const key = recordKeyOf(table, checked);
     const hook = this.hook?.tables.has(table) ? this.hook : null;
@@ -82,7 +82,7 @@ export class Tx {
   }
 
   /** Changes some columns of a stored row; a missing row is left missing. */
-  async patch<T extends SyncedTable>(table: T, key: string, changes: Partial<Row<T>>): Promise<Row<T> | undefined> {
+  async patch<T extends StoredTable>(table: T, key: string, changes: Partial<Row<T>>): Promise<Row<T> | undefined> {
     const row = await this.get(table, key);
     if (!row) return undefined;
     const next = { ...row, ...changes } as Row<T>;
@@ -91,7 +91,7 @@ export class Tx {
   }
 
   /** A hard delete, which travels as a purged record. */
-  async purge(table: SyncedTable, key: string): Promise<void> {
+  async purge(table: StoredTable, key: string): Promise<void> {
     await this.rows(table).delete(primaryKeyOf(table, key));
     await this.outbox.add({ table, key, op: 'delete', queuedAt: this.queuedAt });
   }

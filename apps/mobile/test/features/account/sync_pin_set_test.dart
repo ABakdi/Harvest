@@ -17,7 +17,6 @@ import 'package:harvest/features/finances/data/finances_repository.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/sync/domain/file_sync.dart';
-import 'package:harvest/features/sync/domain/row_codec.dart' show privateTables;
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
 import 'package:harvest/features/sync/domain/sync_service.dart';
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
@@ -45,20 +44,20 @@ class _Files implements FileRemote {
   final held = <String, ({Uint8List sealed, String iv})>{};
 
   @override
-  Future<List<String>> missing(List<String> hashes) async =>
-      hashes.where((hash) => !held.containsKey(hash)).toList();
+  Future<List<String>> missing(List<String> names) async =>
+      names.where((name) => !held.containsKey(name)).toList();
 
   @override
   Future<void> upload(
-    String sha256,
+    String name,
     Uint8List sealed,
     String iv, {
     required int keyEpoch,
-  }) async => held[sha256] = (sealed: sealed, iv: iv);
+  }) async => held[name] = (sealed: sealed, iv: iv);
 
   @override
-  Future<({Uint8List sealed, String iv})> download(String sha256) async =>
-      held[sha256] ?? (throw StateError('no such file'));
+  Future<({Uint8List sealed, String iv})> download(String name) async =>
+      held[name] ?? (throw StateError('no such file'));
 }
 
 class _Account extends AccountController {
@@ -243,8 +242,8 @@ void main() {
     expect(state.error, 'internal');
   });
 
-  test('money and pictures wait for the PIN, and go up sealed the moment '
-      'it is set', () async {
+  test('everything waits for the PIN, and goes up sealed the moment it is '
+      'set', () async {
     final a = await phone();
     final uuid = await logExpense(a.db);
     await picture(a.db, a.dir);
@@ -253,7 +252,11 @@ void main() {
     await sync.syncNow();
     expect(remote.row('expenses', uuid), isNull);
     expect(files.held, isEmpty);
-    expect(a.container.read(syncControllerProvider).last!.heldBack, 1);
+    expect(
+      a.container.read(syncControllerProvider).last!.heldBack,
+      greaterThan(0),
+    );
+    expect(remote.offered, isEmpty, reason: 'nothing leaves before the PIN');
 
     await a.container.read(syncPassphraseProvider.notifier).set('2468');
     await sync.syncNow();
@@ -360,8 +363,8 @@ void main() {
     expect(await b.db.select(b.db.expenses).get(), isEmpty);
     expect(
       remote.row('kv_settings', 'themeMode'),
-      isNotNull,
-      reason: 'the plain tier syncs meanwhile',
+      isNull,
+      reason: 'nothing leaves before the PIN, not even a setting',
     );
 
     await pin.set('2468');
@@ -369,6 +372,7 @@ void main() {
     expect(await b.container.read(syncPassphraseProvider.future), isTrue);
     final row = await b.db.select(b.db.expenses).getSingle();
     expect(row.note, 'bread');
+    expect(remote.row('kv_settings', 'themeMode')?['enc'], isNotNull);
   });
 
   test('two devices choosing at once: the second is checked against the '
@@ -472,7 +476,7 @@ void main() {
   test('starting over asks for the password, drops what the server kept, '
       'and everything here goes up again under the new PIN', () async {
     keys.onStartOver = () {
-      remote.dropTables(privateTables);
+      remote.dropAll();
       files.held.clear();
     };
     final a = await phone();
@@ -507,7 +511,7 @@ void main() {
 
   test('a PIN started over on another device is asked for again here, and '
       "this phone's own rows go up under it", () async {
-    keys.onStartOver = () => remote.dropTables(privateTables);
+    keys.onStartOver = () => remote.dropAll();
     final a = await phone();
     final b = await phone();
     await a.container.read(syncPassphraseProvider.notifier).set('2468');

@@ -2,21 +2,13 @@ import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/portable_settings.dart';
 
-/// The tables whose rows travel as ciphertext only ([[Sync-API]]):
-/// money and location. Until a sync passphrase exists they stay home.
-const privateTables = {
-  'expenses',
-  'money_txns',
-  'debts',
-  'debt_payments',
-  'expense_categories',
-  'location_points',
-  'geotags',
-  'saved_places',
-};
-
 /// Not synced: the change log itself, and the parked quests.
 const unsyncedTables = {'outbox', 'quests'};
+
+/// Whether [table] is a synced table. Every one travels as ciphertext
+/// only, since Phase 7 ([[Sync-API]]): until a sync PIN exists, nothing
+/// leaves the phone.
+bool isSynced(String table) => !unsyncedTables.contains(table);
 
 /// How one Drift table becomes records and back, read from the table's
 /// own column list so a column added in a migration travels without a
@@ -28,7 +20,6 @@ class TableCodec {
   final TableInfo<Table, dynamic> table;
 
   String get name => table.actualTableName;
-  bool get private => privateTables.contains(name);
 
   late final List<GeneratedColumn<Object>> _columns = table.$columns;
   late final Set<String> _names = {for (final c in _columns) c.name};
@@ -96,6 +87,11 @@ class TableCodec {
     final value = column == null ? null : sqlRow[column];
     return value == null ? fallback : _dateOf(value);
   }
+
+  /// The hash of the file this row names, when it names one: its name on
+  /// the server goes beside the sealed row, in the clear, as `file`.
+  String? fileHashOf(Map<String, Object?> sqlRow) =>
+      has('file_hash') ? sqlRow['file_hash'] as String? : null;
 
   /// Whether a row may leave the phone at all: a setting only when it
   /// is one of mine rather than the app's bookkeeping.

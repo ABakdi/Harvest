@@ -1,0 +1,95 @@
+{
+  "about": "What Phase 7 adds to the private tier (Sync-API; Phase-7-Privacy-and-Currencies M7.2), on top of crypto-v2.json, whose key it uses. nameKey = HKDF-SHA256(ikm = the sync key's 32 bytes, salt = 32 zero bytes, info = utf8(\"harvest/file-name/v1\"), 32 bytes), an HMAC-SHA256 key. A file's name on the server = lowercase hex of HMAC-SHA256(nameKey, utf8(lowercase hex SHA-256 of the plaintext)). paddedLength(n, min = 256) = min when n <= min, else Padmé: E = floor(log2 n), S = floor(log2 E) + 1, step = 2^(E - S), n rounded up to a multiple of step. A row is sealed as in version 2, its JSON followed by spaces (0x20) up to paddedLength(its length); openers change nothing, since JSON ignores the spaces. A file is sealed as its bytes, then 0x80, then zeros up to paddedLength(length + 1), with the additional data utf8(\"file/v3/<name>\"); the plain-bytes header carries the padded length. A file sealed before Phase 7 (aad \"file/<name>\", no padding) still opens. A day of the trail (trail_days) is keyed by the first 16 bytes, in hex, of HMAC-SHA256(nameKey, utf8(\"trail/<harvest day>\")); trailKeys pins two. records/*.json are sealed with this key and the nonce the first 12 bytes of SHA-256(\"iv/<table>\"), and carry `file` where their row names one.",
+  "keyHex": "7fb57309c5d32921a194493201e6b999e8efcd3c9ded59f2a03c0a8ac5631d2e",
+  "trailKeys": [
+    {
+      "day": "2026-09-17",
+      "key": "a6967485f995be1f5798deafc3fbc388"
+    },
+    {
+      "day": "2026-12-31",
+      "key": "fa01dd4428bc4b97205ceaa8b5e31305"
+    }
+  ],
+  "nameKeyHex": "6cec86d276831b272c46cc3f467f539c869ef0399ebd1376f7ec4ad3bfff1c97",
+  "names": [
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "56cae2fed30969b0228be403951fc421ce8f7f10c4adec6dae8b395b7036e210"
+    },
+    {
+      "sha256": "d087ee8196afa2ff461aed248e9b90d5cca64e9fa0dfdbec351849610ae12c47",
+      "name": "cecee4f49bc462bba590dab8dd7a097d8a6e72629916d8683d901318624957c4"
+    },
+    {
+      "sha256": "9f5598fa7cf2107aae40e23cd64efc3b444eba7e3736b7e9f72b7bee2e74b635",
+      "name": "27bdb9cdb7d62f0e45af647bc1eedbbf7e3446c41219f3e1d8f1ee4b15032bf9"
+    }
+  ],
+  "padding": [
+    {
+      "n": 0,
+      "padded": 256
+    },
+    {
+      "n": 1,
+      "padded": 256
+    },
+    {
+      "n": 255,
+      "padded": 256
+    },
+    {
+      "n": 256,
+      "padded": 256
+    },
+    {
+      "n": 257,
+      "padded": 272
+    },
+    {
+      "n": 300,
+      "padded": 304
+    },
+    {
+      "n": 1000,
+      "padded": 1024
+    },
+    {
+      "n": 4097,
+      "padded": 4352
+    },
+    {
+      "n": 65537,
+      "padded": 67584
+    },
+    {
+      "n": 1000000,
+      "padded": 1015808
+    },
+    {
+      "n": 26214401,
+      "padded": 26738688
+    }
+  ],
+  "row": {
+    "table": "notes",
+    "uuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
+    "updatedAt": "2026-09-12T09:15:22.000Z",
+    "deletedAt": null,
+    "aad": "row/notes/2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71/1789204522000000/",
+    "plaintext": "{\"uuid\":\"2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71\",\"title\":\"Half marathon plan\",\"folder\":\"Running/2026\",\"body\":\"# Half marathon plan\\n\\nLong run on Saturdays. See [[Shoes]].\\n\\n![[memo-2026-09-12.m4a]]\\n\",\"createdAt\":\"2026-09-02T18:20:00.000Z\",\"updatedAt\":\"2026-09-12T09:15:22.000Z\",\"deletedAt\":null}",
+    "enc": {
+      "v": 2,
+      "iv": "Km7szM/H8DcUMgTe",
+      "ct": "P/kdxaSBM464Ew3XOOtdq0zfCaJoUWWnCg2lV8KWKjhKZYy/nP9b8z4P/kr4D/avkl5C7+yYXyP61vdjBp7BuNm40hsJskt/VvbifTHAazO1U/ZkvuCHoLfWUyADZTTKzLMtgx6UBwxDNW80ZAp/FtO/nuuyGL7pZGXTHwTaKUlLhagZFnC6bsxpCxB6d2AARN8v7j9rrZkYCdfGiY5eer3n671hD4pBXdsK6R/2tYSRf2NJwW62C1u/Kjpi85MtKkO+bM4MJ4bThTUl65FI5FRKIKfXzdtGCszsamumFN6q2rDomoqoh4fGHoKC3WEvTSyguW5s176dkUj/6JE/GNkbmEErrvBvEwQwHRpbYFCOIJoHrVgiY1s8Bk5zmamHqNOXa2G6hzPXCp4tukrLQca0IyycqZLxB8RM8i0PDgQ="
+    }
+  },
+  "file": {
+    "plaintextBase64": "Tm90IHJlYWxseSBhIHBpY3R1cmUsIGJ1dCBieXRlcyBhbGwgdGhlIHNhbWUu",
+    "name": "c3e8239e032ccf01e8ffdf922c91df0e0ba48246d4ec4594d008f6c91eeb6eea",
+    "aad": "file/v3/c3e8239e032ccf01e8ffdf922c91df0e0ba48246d4ec4594d008f6c91eeb6eea",
+    "iv": "m14Wpmys3ll1oZ7Q",
+    "sealedBase64": "FFBQW722bVAFapsN+GHiIyOiTQVccLbvCjz4A8Lb9Xc91Jo1eLmHdbOwwvlC7eoai3ovjnUqWOaIVrLRcES6i1cRBKscThddk9Cf7O0aMsLa33mQbzI//xoajgz3YnraqRkzFwF/Cm5GphqVGxkjGUV0EHnAU2Uh8fM7WVXlMt/8rmbK5VSldKVhOh+H2a5iGMqQZAXOloDcniIDoFHRGILl86adVtaq4rhSQxyRQm1akzV2iz2vrkAlBonbG3DD9ZCIcn2kt0CultDPuGLN/Sm2WrE3KWDU1L4MpjzW6duwmDrydiHYvcu4EAFNla766kea6TDf+GbWxwIXpZnSqyAU4h3u5jjRYZduQopBgV4="
+  }
+}

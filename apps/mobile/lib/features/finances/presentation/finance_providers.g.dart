@@ -202,7 +202,7 @@ final class FinanceSettingsProvider
   FinanceSettings create() => FinanceSettings();
 }
 
-String _$financeSettingsHash() => r'fc9d9bf75e943a869034a8260b18ac5be6995bea';
+String _$financeSettingsHash() => r'1beb80a87779551529bda48a2a1c64e1a931e7c8';
 
 /// Budget, currency, and expectation settings. Savings moved to the
 /// vault's transaction ledger (checkpoint round 3).
@@ -764,7 +764,7 @@ final class RatesProvider
   }
 }
 
-String _$ratesHash() => r'5fe8a66e65e3acd2694c10b2b11d1ada7acb380c';
+String _$ratesHash() => r'24ca9ff275e01f1ea73ae3e8ee62be10eec24cdf';
 
 /// Every expense in a span — the one source the Insights page reads,
 /// whichever of the three ranges is chosen.

@@ -1,4 +1,15 @@
-import { type Clock, type Cycle, convertBudget, currencyOf, fallbackCycle, formatClock, parseClock } from '@harvest/core';
+import {
+  type Clock,
+  type CurrencyCode,
+  type Cycle,
+  convertBudget,
+  currencyOf,
+  defaultCurrencyFor,
+  fallbackCycle,
+  formatClock,
+  isCurrencyCode,
+  parseClock,
+} from '@harvest/core';
 import type { HarvestDB } from './db';
 import type { Tx, Writer } from './writer';
 
@@ -49,12 +60,56 @@ export const pomodoroSettings = [
   { key: 'pomodoro.blocksPerLongBreak', name: 'blocks', fallback: 4, min: 2, max: 8, step: 1 },
 ] as const;
 
-/** Exchange rates (`RateKeys`): two by hand, one fetched with its moment. */
+/**
+ * The currency a browser with none chosen goes by ([[Finances]], Phase 7
+ * M7.8): where the browser says it is — its time zone, then its
+ * languages' regions — and the dinar with neither. Never the network's
+ * address, and never written: whatever the account chooses, on any
+ * device, is what is kept. An account that has logged money already has
+ * been on the dinar all along without choosing it, and stays there
+ * ([[currencyWithNoneChosen]]).
+ */
+export function fallbackCurrency(): CurrencyCode {
+  let timeZone: string | null = null;
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    // A browser that cannot say: the languages still can.
+  }
+  const locales = typeof navigator === 'undefined' ? [] : navigator.languages;
+  return defaultCurrencyFor({ timeZone, locales });
+}
+
+/**
+ * The default currency when none was chosen: the dinar for an account
+ * with money already logged, whose totals must not turn into another
+ * currency on an update, and otherwise where this browser is.
+ */
+export async function currencyWithNoneChosen(db: HarvestDB): Promise<CurrencyCode> {
+  const logged = await Promise.all(
+    (['expenses', 'money_txns', 'debts'] as const).map((table) => db.rows(table).limit(1).count()),
+  );
+  return logged.some((count) => count > 0) ? 'DZD' : fallbackCurrency();
+}
+
+/** The default currency, chosen or not. */
+export async function readDefaultCurrency(db: HarvestDB): Promise<CurrencyCode> {
+  return currencyOf(await readSetting(db, settingKeys.defaultCurrency), await currencyWithNoneChosen(db));
+}
+
+/**
+ * Exchange rates (`RateKeys`): the dinar's two legs by hand; what a US
+ * dollar buys of every currency, fetched, as JSON, with the moment the
+ * source last updated it (Phase 7, M7.8); and EUR→USD as 3.1 kept it,
+ * still written for a device not updated yet.
+ */
 export const rateKeys = {
   dzdPerUsd: 'rate.dzdPerUsd',
   dzdPerEur: 'rate.dzdPerEur',
   usdPerEur: 'rate.usdPerEur',
   usdPerEurAt: 'rate.usdPerEurAt',
+  perUsd: 'rate.perUsd',
+  perUsdAt: 'rate.perUsdAt',
 } as const;
 
 export function settingText(valueJson: string | undefined | null): string | null {
@@ -176,24 +231,53 @@ export function parseRate(text: string): number | null {
   return text.trim() !== '' && isSaneRate(value) ? value : null;
 }
 
-/** The one request this screen makes, and only on a tap (Business rule 13). */
-export const rateEndpoint = 'https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD';
+/**
+ * The one request this screen makes, and only on a tap (Business rule
+ * 13): Exchange Rate API's open endpoint, every currency against the
+ * dollar, updated daily, with no key and nothing of mine in it.
+ */
+export const rateEndpoint = 'https://open.er-api.com/v6/latest/USD';
+
+/** Where the rates come from, credited beside them as the source asks. */
+export const rateSourceUrl = 'https://www.exchangerate-api.com';
+
+/** The fetched rates of [raw] (`rate.perUsd`): only currencies Harvest knows, and only rates that are rates. */
+export function perUsdOf(raw: string | null | undefined): Record<string, number> | null {
+  if (!raw) return null;
+  try {
+    const decoded: unknown = JSON.parse(raw);
+    if (typeof decoded !== 'object' || decoded === null || Array.isArray(decoded)) return null;
+    const rates: Record<string, number> = {};
+    for (const [code, value] of Object.entries(decoded)) {
+      if (typeof value === 'number' && isSaneRate(value) && isCurrencyCode(code)) rates[code] = value;
+    }
+    return rates;
+  } catch {
+    return null;
+  }
+}
 
 /**
- * EUR→USD, as `RatesService.fetchEurUsd` checks it: a small body, a
- * number where the number goes, and a value inside the band EUR/USD has
- * lived in for decades. Null for anything else; never throws.
+ * Every currency against the dollar, as the phone's `RatesService`
+ * checks it: a small body that says it succeeded for USD, rates that are
+ * rates of currencies Harvest knows, and a euro inside the band it has
+ * lived in for decades. With the moment the source last updated them.
+ * Null for anything else; never throws.
  */
-export async function fetchEurUsd(get: typeof fetch = fetch): Promise<number | null> {
+export async function fetchPerUsd(get: typeof fetch = fetch, now: () => Date = () => new Date()): Promise<{ rates: Record<string, number>; at: string } | null> {
   try {
     const response = await get(rateEndpoint, { credentials: 'omit', signal: AbortSignal.timeout(10_000) });
     if (response.status !== 200) return null;
     const text = await response.text();
     if (text.length > 64 * 1024) return null;
-    const body: unknown = JSON.parse(text);
-    const raw = (body as { rates?: { USD?: unknown } } | null)?.rates?.USD;
-    if (typeof raw !== 'number' || !isSaneRate(raw) || raw < 0.5 || raw > 2) return null;
-    return raw;
+    const body = JSON.parse(text) as { result?: unknown; base_code?: unknown; rates?: unknown; time_last_update_unix?: unknown } | null;
+    if (body === null || body.result !== 'success' || body.base_code !== 'USD') return null;
+    const rates = perUsdOf(JSON.stringify(body.rates ?? null));
+    const eur = rates?.EUR;
+    if (!rates || eur === undefined || eur < 0.5 || eur > 2) return null;
+    const seconds = body.time_last_update_unix;
+    const at = typeof seconds === 'number' && Number.isFinite(seconds) ? new Date(seconds * 1000) : now();
+    return { rates, at: at.toISOString() };
   } catch {
     return null;
   }
@@ -231,7 +315,7 @@ export class SettingsRepository {
   setDefaultCurrency(code: string): Promise<void> {
     return this.writer.run(async (tx) => {
       const read = async (key: string) => settingText((await tx.get('kv_settings', key))?.valueJson);
-      const from = currencyOf(await read(settingKeys.defaultCurrency));
+      const from = currencyOf(await read(settingKeys.defaultCurrency), await currencyWithNoneChosen(this.writer.db));
       const to = currencyOf(code);
       if (from === to) return;
       await writeSetting(tx, settingKeys.defaultCurrency, to);
@@ -243,6 +327,7 @@ export class SettingsRepository {
       };
       const converted = convertBudget(budget, from, to, {
         defaultCurrency: to,
+        perUsd: perUsdOf(await read(rateKeys.perUsd)),
         dzdPerUsd: await rate('rate.dzdPerUsd'),
         dzdPerEur: await rate('rate.dzdPerEur'),
         usdPerEur: await rate('rate.usdPerEur'),

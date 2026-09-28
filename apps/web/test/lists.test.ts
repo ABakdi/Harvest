@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { HarvestDB, listsFeatureKey, tableSchemas } from '@/app/data/db';
 import { hasDefaultName, itemsOfList, liveLists, openCounts } from '@/app/data/lists';
 import { FakeServer } from './fake-server';
-import { device } from './helpers';
+import { device, openStored, syncing } from './helpers';
 
 /** Phase 6, M6.12: the data under Lists ([[Lists]] L1–L10), as the phone keeps it. */
 
@@ -180,19 +180,19 @@ describe('deletion (L6, L10)', () => {
 describe('sync', () => {
   it('two devices share the built-ins, and a rename wins over a late seed', async () => {
     const server = new FakeServer();
-    const a = await device(server);
+    const a = await syncing(server);
     await a.lists.renameList(readListId, 'Reading pile');
     const dune = await a.lists.addItem(readListId, { title: 'Dune', mediaType: 'book' });
     await a.engine.sync();
 
-    const b = await device(server);
+    const b = await syncing(server);
     await b.engine.sync();
     expect(await b.db.rows('lists').count()).toBe(4);
     expect((await b.db.rows('lists').get(readListId))!.name).toBe('Reading pile');
     expect((await itemsOfList(b.db, readListId)).map((row) => row.uuid)).toEqual([dune.uuid]);
     // Every row the server holds is one the contract takes.
     for (const record of server.stored.values()) {
-      if (record.table === 'lists') expect(tables.lists.data.safeParse(record.data).success).toBe(true);
+      if (record.table === 'lists') expect(tables.lists.data.safeParse(await openStored(record)).success).toBe(true);
     }
   });
 });

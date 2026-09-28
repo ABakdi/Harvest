@@ -448,6 +448,8 @@ if [[ -n "$WITH_WWW" ]]; then
     listen [::]:443 ssl$h2_listen;
     $h2_directive
     server_name www.$DOMAIN;
+    access_log /var/log/nginx/harvest.access.log harvest_noip;
+    error_log /var/log/nginx/harvest.error.log crit;
     ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
     return 301 https://$DOMAIN\$request_uri;

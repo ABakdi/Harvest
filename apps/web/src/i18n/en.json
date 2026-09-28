@@ -30,7 +30,8 @@
     "search": "Search",
     "verifyBanner": "Verify {{email}} to start syncing. Everything works here meanwhile.",
     "verifyResend": "Send the link again",
-    "verifySent": "Sent"
+    "verifySent": "Sent",
+    "pinBanner": "Nothing syncs until you enter your sync PIN: everything is encrypted in this browser before it leaves. Everything works here meanwhile."
   },
   "archive": {
     "archivedOn": "Archived {{day}}",
@@ -307,7 +308,18 @@
       "Weights": "Weights",
       "Wishlist": "Wishlist"
     },
-    "title": "My data"
+    "title": "My data",
+    "reauth": {
+      "title": "Your password, first",
+      "body": "Everything you keep leaves this browser in the clear in an archive, so it asks who is taking it. Nothing is written until the password is right.",
+      "password": "Account password",
+      "confirm": "Download",
+      "wrong": "That isn't this account's password.",
+      "tooMany_one": "Too many tries. Try again in {{count}} minute.",
+      "tooMany_other": "Too many tries. Try again in {{count}} minutes.",
+      "tooManySoon": "Too many tries. Try again in a little while.",
+      "offline": "The password is checked by the server, and it cannot be reached. Try again once you are online."
+    }
   },
   "download": {
     "apk": "Download {{name}}",
@@ -1350,7 +1362,7 @@
     "confirm": "The same, again",
     "firstTime": "Nothing sealed has arrived yet, so it cannot be checked: type it twice. Use the same one on every device.",
     "label": "Passphrase",
-    "lead": "It encrypts your money, places, pictures and recordings on your devices before they sync. It is not your password, and it is never sent.",
+    "lead": "It encrypts everything — notes, seeds, money, places, health, pictures and recordings — on your devices before it syncs. It is not your password, and it is never sent.",
     "mismatch": "The two do not match.",
     "opening": "Making the key…",
     "title": "Sync PIN",
@@ -1484,44 +1496,114 @@
     "themeNow": "Theme: {{mode}}. Switch to {{next}}"
   },
   "privacy": {
+    "title": "Privacy",
+    "lead": "Harvest keeps what you log on your device. When it syncs, it encrypts everything first, with a secret only you know, so the server stores what it cannot read. This page is the whole of it.",
+    "leavesTitle": "What leaves your device",
+    "nothingElse": "Anything else would be a bug, not a feature.",
+    "serverTitle": "What the server holds, and cannot read",
+    "serverLead": "Whoever runs a Harvest server — us, or you on your own — holds these, and none of them in a form they can read.",
+    "seesTitle": "What the server still sees",
+    "seesBody": "How your store is shaped, not what it says: that your account exists, which kinds of rows it has (notes, expenses…) and roughly how big each is, when your devices sync and when a row changes, and how many pictures you keep. Not what any of it says, not where you were, not what you weigh. The trail of where you were travels one day at a time, stamped by the hour, so the server cannot tell when you moved.",
+    "devicesTitle": "On your devices",
+    "secretTitle": "Your sync secret",
+    "secretBody": "Everything is encrypted with a key made from your sync secret, which never leaves your device. A passphrase of a few words is what we recommend: from the outside, an account with a PIN looks like any other, but someone who took the server's database and its keys together could try every PIN of every account in minutes. A passphrase of four random words would take them thousands of years. Forget it, and what the server holds cannot be read by anyone, you included; your devices keep their own copies.",
+    "keptTitle": "How long anything is kept",
+    "yoursTitle": "Taking it with you, and taking it away",
+    "yoursBody": "Download my data gives you everything, as an archive or a spreadsheet, unencrypted on purpose: it is yours to take elsewhere. It asks for your password first (or, signed out, your phone's own lock), so a session left open is not enough to take it. Deleting your account deletes everything the server holds, at once; what is on your devices stays yours.",
+    "signOutBody": "Signing out of the web app deletes everything it stored in this browser, after warning you about anything not synced yet.",
+    "webTitle": "On the web, too",
     "item": {
       "assist": {
-        "body": "It carries exactly what its sheet names, and nothing more.",
-        "title": "An assist action you tap"
+        "title": "An assist action you tap",
+        "body": "It carries exactly what its sheet names, and nothing more."
       },
       "exercise": {
-        "body": "A plain download of a static file, with no account, device id or history attached.",
-        "title": "An exercise animation you open"
+        "title": "An exercise animation you open",
+        "body": "A plain download of a static file, with no account, device id or history attached."
       },
       "fonts": {
-        "body": "Fonts and icons are served with the app. There are no analytics, no ads and no trackers.",
-        "title": "No third parties"
+        "title": "No third parties",
+        "body": "Fonts and icons are served with the app. There are no analytics, no ads and no trackers."
       },
       "rates": {
-        "body": "A request to api.frankfurter.dev for today’s EUR to USD rate. It carries nothing about you.",
-        "title": "Exchange rates, when you tap Fetch"
+        "title": "Exchange rates, when you tap Fetch",
+        "body": "A request to open.er-api.com for today's rates of every currency against the dollar. It carries nothing about you."
       },
       "site": {
-        "body": "Your browser downloads the app from this server. Once installed, it opens with no connection at all.",
-        "title": "Loading this site"
+        "title": "Loading this site",
+        "body": "Your browser downloads the app from this server. Once installed, it opens with no connection at all."
       },
       "sync": {
-        "body": "Your rows go to the Harvest server so your devices agree. Money, places and pictures are encrypted on your device first, with a sync PIN the server never sees.",
-        "title": "Sync, once you have signed in"
+        "title": "Sync, once you have signed in and set your sync secret",
+        "body": "Every row and every file is encrypted on your device before it goes, with a key made from your sync secret, which the server never sees. Without the secret, nothing syncs."
       },
       "tiles": {
-        "body": "The tile server learns the area on screen, never your trail.",
-        "title": "Map tiles while you look at Places"
+        "title": "Map tiles while you look at Places",
+        "body": "The tile server learns the area on screen, never your trail."
+      },
+      "mail": {
+        "title": "Two emails, and only two",
+        "body": "To verify your address and to reset your password, the server hands your address and a link to its mail provider. Nothing else is ever emailed."
       }
     },
-    "lead": "Nothing leaves your device unless you ask. This is the complete list.",
-    "leavesTitle": "The only requests Harvest makes",
-    "nothingElse": "Anything else would be a bug, not a feature.",
-    "signOutBody": "Signing out of the web app deletes everything it stored in this browser, after warning you about anything not synced yet.",
-    "staysBody": "Everything else: your field, notes, goals and money live on your device. In a browser they live in its local storage, and the app works from there even offline.",
-    "staysTitle": "What stays",
-    "title": "What leaves your device",
-    "webTitle": "On the web, too"
+    "server": {
+      "rows": {
+        "title": "Your rows",
+        "body": "Every note, seed, check-in, expense, place, workout, weight and setting, encrypted on your device and padded so its length gives little away. The server keeps the ciphertext and the clocks that decide which edit wins."
+      },
+      "files": {
+        "title": "Your pictures and recordings",
+        "body": "Encrypted and padded the same way, under a name made from a key only your devices have, so a server holding a known picture cannot tell whether you have it."
+      },
+      "account": {
+        "title": "Your email and name",
+        "body": "Encrypted with a key kept outside the database, and found by a keyed hash, so a copy of the database holds no readable address. The server opens it only to send the two emails."
+      },
+      "password": {
+        "title": "Your password",
+        "body": "Never stored: only an argon2id hash of it."
+      },
+      "logs": {
+        "title": "Its logs",
+        "body": "The method, the path, the status and the time of each request. No IP address, no body, no query string."
+      },
+      "backups": {
+        "title": "Its backups",
+        "body": "Encrypted before they touch the disk, to a key that is not on the server."
+      }
+    },
+    "devices": {
+      "phone": {
+        "title": "On your phone",
+        "body": "The database is encrypted, and so is every picture, video and recording, with keys the phone's secure hardware keeps. A copy of the app's files taken off the phone shows nothing."
+      },
+      "browser": {
+        "title": "In your browser",
+        "body": "What the web app has opened lives in this browser's storage, protected by your computer's account and its disk encryption. A key a web page could keep would sit in the same place, so encrypting it again would protect nothing; on a shared computer, sign out, and it is all deleted."
+      },
+      "exports": {
+        "title": "What you download",
+        "body": "An archive or a spreadsheet is yours, and unencrypted on purpose, so keep it somewhere safe."
+      }
+    },
+    "kept": {
+      "rows": {
+        "title": "Your data",
+        "body": "Until you delete it, or your account. A row in the trash is kept until you empty the trash; a picture no row names is let go after 30 days."
+      },
+      "sessions": {
+        "title": "Your sign-ins",
+        "body": "Each device stays signed in for up to 30 days without being used; signing out ends it at once."
+      },
+      "counts": {
+        "title": "Counts that stop guessing",
+        "body": "Wrong passwords and PINs are counted against a keyed hash, never your address, and forgotten within the hour, or the day for PINs. Assist use is counted per day and forgotten after 60."
+      },
+      "account": {
+        "title": "Your account",
+        "body": "Deleting it deletes everything the server holds about it, immediately. Backups made before roll away within a week."
+      }
+    }
   },
   "pwa": {
     "reload": "Reload to update",
@@ -1534,14 +1616,17 @@
     "cleared": "Rate cleared",
     "dzdEur": "DZD per 1 EUR",
     "dzdUsd": "DZD per 1 USD",
-    "eurUsd": "EUR → USD (fetched)",
-    "explainer": "Used to show $ and € amounts in your default currency.",
+    "explainer": "Used to show amounts in other currencies in {{currency}}, your default currency.",
     "fetch": "Fetch",
     "fetchFailed": "Couldn't fetch — check the connection.",
-    "fetchNote": "Fetching asks api.frankfurter.dev for today's rate, and sends nothing about you.",
+    "fetchNote": "Fetching asks open.er-api.com for today's rates of every currency against the dollar, and sends nothing about you.",
     "invalid": "That is not a usable rate",
     "saved": "Rate saved",
-    "updated": "Updated {{when}}"
+    "updated": "Rates of {{when}}",
+    "byHand": "The dinar's parallel market, typed by hand: it is used over the official rate wherever the dinar is on one side.",
+    "oneIs": "1 {{base}} = {{amount}} {{currency}}",
+    "none": "No rates fetched yet.",
+    "attribution": "Rates by Exchange Rate API"
   },
   "records": {
     "tabs": "Records"
@@ -1902,7 +1987,7 @@
     "changedElsewhere": "Your PIN was changed on another device. Enter the new one.",
     "choose": "Use it",
     "chooseTitle": "Choose a sync PIN",
-    "chooseWhy": "No sync PIN yet. Choose one to encrypt your money, places and pictures before they sync; use the same one on every device.",
+    "chooseWhy": "No sync PIN yet, so nothing syncs. Choose one to encrypt everything — notes, seeds, money, places, health and pictures — before it leaves this browser; use the same one on every device.",
     "chosenElsewhere": "Another device set the sync PIN a moment ago. Enter that one.",
     "confirmPassphrase": "The same passphrase again",
     "confirmPin": "The same PIN again",
@@ -1910,14 +1995,14 @@
     "enterTitle": "Enter your sync PIN",
     "firstTime": "Nothing encrypted has arrived here yet, so it can't be checked: type it twice. Use the same one on every device.",
     "forget": "Forget it on this browser",
-    "forgetBody": "What is already here stays in this browser, locked until you enter the PIN again: money, places and pictures are hidden until then, and new ones wait here instead of syncing.",
+    "forgetBody": "What is already here stays in this browser, and nothing syncs until you enter the PIN again: what your other devices send stays locked, and what you write here waits.",
     "forgetTitle": "Forget the sync PIN on this browser?",
     "forgot": "Forgot the PIN? Start over",
     "forgotten": "Forgotten on this browser",
-    "lead": "It encrypts your money, places, pictures and recordings on your devices before they sync. It is not your password, and it is never sent. Enter it once in this browser.",
+    "lead": "It encrypts everything — notes, seeds, money, places, health, pictures and recordings — on your devices before it syncs. It is not your password, and it is never sent. Enter it once in this browser.",
     "mismatch": "The two do not match.",
     "opening": "Making the key…",
-    "passphraseLabel": "Passphrase (8 characters or more)",
+    "passphraseLabel": "Passphrase (a few words, 8 characters or more)",
     "password": "Your account password",
     "pinLabel": "Sync PIN (4 to 6 digits)",
     "problem": {
@@ -1932,14 +2017,14 @@
     "setPinInstead": "I set a PIN instead",
     "sixDigits": "6 digits is best. Type it twice, and use the same one on every device.",
     "startOver": "Start the PIN over",
-    "startOverBody": "This deletes the money, places and pictures kept on the server for this account, and the PIN with them. This browser then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
+    "startOverBody": "This deletes everything kept on the server for this account, and the PIN with it. This browser then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
     "startOverConfirm": "Start over",
     "startedOver": "The PIN was just started over on another device. Choose a new one.",
     "title": "Sync PIN",
     "tooManySoon": "Too many tries. Try again later.",
     "tooMany_one": "Too many tries. Try again in {{count}} minute.",
     "tooMany_other": "Too many tries. Try again in {{count}} minutes.",
-    "tradeOff": "A PIN is quick; a longer passphrase keeps your data safer if the server's database were ever copied.",
+    "tradeOff": "A PIN is quicker to type, but someone holding the server's database and its keys could try every PIN in minutes. A passphrase of a few words stands for thousands of years.",
     "triesLeft_one": "{{count}} try left.",
     "triesLeft_other": "{{count}} tries left.",
     "triesLeft_zero": "No tries left for now.",
@@ -1947,10 +2032,38 @@
     "unreachable": "The server could not be reached to check the PIN. Try again when you're online.",
     "usePassphrase": "Use a passphrase instead",
     "usePin": "Use a PIN instead",
-    "waiting": "Money, places and pictures from your other devices stay locked in this browser until you enter your sync PIN.",
+    "waiting": "Nothing syncs in this browser until you enter your sync PIN: what your other devices sent stays locked, and what you write here waits.",
     "warning": "If you lose it, what is encrypted can't be read on a new device — only sent again from one that still has it.",
     "wrong": "That isn't the PIN your other devices use.",
-    "wrongPassword": "That isn't this account's password."
+    "wrongPassword": "That isn't this account's password.",
+    "secretLabel": "Sync passphrase or PIN",
+    "show": "Show",
+    "hide": "Hide",
+    "tradeOffPin": "A PIN falls in minutes to someone holding the server's database and its keys; a passphrase of a few words does not.",
+    "strength": {
+      "level": {
+        "pin": "A PIN:",
+        "weak": "Weak:",
+        "fair": "Fair:",
+        "strong": "Strong:"
+      },
+      "stands": "it would stand {{time}} against someone holding the server's database and its keys.",
+      "time": {
+        "instantly": "less than a second",
+        "seconds_one": "about {{count}} second",
+        "seconds_other": "about {{count}} seconds",
+        "minutes_one": "about {{count}} minute",
+        "minutes_other": "about {{count}} minutes",
+        "hours_one": "about {{count}} hour",
+        "hours_other": "about {{count}} hours",
+        "days_one": "about {{count}} day",
+        "days_other": "about {{count}} days",
+        "years_one": "about {{count}} year",
+        "years_other": "about {{count}} years",
+        "thousandsOfYears": "thousands of years",
+        "millionsOfYears": "millions of years"
+      }
+    }
   },
   "vault": {
     "addDebt": "Log a debt",
@@ -2145,5 +2258,10 @@
     "today": "Today",
     "inDays_one": "Tomorrow",
     "inDays_other": "In {{count}} days"
+  },
+  "currency": {
+    "pick": "Choose a currency",
+    "search": "Search by name, code or sign",
+    "none": "No currency by that name."
   }
 }

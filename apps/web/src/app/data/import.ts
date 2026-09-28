@@ -1,4 +1,4 @@
-import { isPortableSetting, type SyncedTable } from '@harvest/contracts';
+import { isPortableSetting } from '@harvest/contracts';
 import { unzipSync } from 'fflate';
 import { boundedUnzip, ZipTooLargeError } from './bounded-zip';
 import { ArchiveInvalid, ArchiveLimits, ArchivePaths } from './archive';
@@ -6,6 +6,7 @@ import { readWorkbook, type SheetRows } from './archive-xlsx';
 import { SheetNames } from './export-sheets';
 import type { FileStore } from './files';
 import type { Writer } from './writer';
+import type { StoredTable } from './db';
 import { settleGoalParents } from './goals';
 import { spec, at, updated, type Context, type Spec } from './import/sheet-spec';
 import { fieldSheets } from './import/field';
@@ -166,7 +167,7 @@ export function totalOf(preview: ImportPreview): ImportCount {
  * order. Recordings are merged right after the notes, and memories
  * right after the albums (see [merge]).
  */
-const specs: Spec<SyncedTable>[] = [
+const specs: Spec<StoredTable>[] = [
   ...fieldSheets,
   ...moneySheets,
   ...farmerSheets,

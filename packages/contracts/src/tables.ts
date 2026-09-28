@@ -7,14 +7,16 @@ import { isHarvestDayKey, isoInstantSchema } from './time.js';
  * `apps/mobile/lib/core/db/database.dart`.
  *
  * Each entry says three things:
- * - **tier**: `plain` rows travel as `data`; `private` rows (finance
- *   and location) travel only as an encrypted `enc` envelope, and the
- *   server never sees their columns ([[Sync-Strategy]], audit S-10).
+ * - **tier**: every table is `private` since Phase 7: its rows travel
+ *   only as an encrypted `enc` envelope, and the server never sees a
+ *   column ([[Phase-7-Privacy-and-Currencies]], M7.1). Until then only
+ *   finance and location were; the rest travelled as `data`, and rows
+ *   stored that way are still handed out until a device seals them.
  * - **data**: the row itself, every column of the Drift table under its
  *   camelCase getter name, with timestamps as ISO-8601 UTC, booleans as
- *   booleans, reals as numbers and integers as integers. For the private
- *   tier this is what goes *inside* the envelope, so a client can check
- *   a row after decrypting it; the server never applies it.
+ *   booleans, reals as numbers and integers as integers. It is what goes
+ *   *inside* the envelope, so a client can check a row after decrypting
+ *   it; the server never applies it.
  * - **key**: what identifies the row. A record's `uuid` field carries
  *   it, and for most tables that is the row's own `uuid` column. A few
  *   tables are keyed by something else, and for those the record's
@@ -102,6 +104,11 @@ const anyJson = z.string().max(maxTextLength).refine(parsesAs(z.unknown()), { me
 
 // -------------------------------------------------------------- registry
 
+/**
+ * `plain` is what a table was before Phase 7, when its rows could travel
+ * as `data`; no table is plain now, and the word stays for the rows
+ * stored that way before, which a client still reads ([[Sync-API]]).
+ */
 export type Tier = 'plain' | 'private';
 
 export interface TableSpec<S extends z.ZodObject = z.ZodObject> {
@@ -111,20 +118,16 @@ export interface TableSpec<S extends z.ZodObject = z.ZodObject> {
   readonly keyOf: (data: z.output<S>) => string;
 }
 
-function plain<S extends z.ZodObject>(
+function secret<S extends z.ZodObject>(
   data: S,
   keyOf: (row: z.output<S>) => string = (row) => (row as { uuid: string }).uuid,
 ): TableSpec<S> {
-  return { tier: 'plain', data, keyOf };
-}
-
-function secret<S extends z.ZodObject>(data: S): TableSpec<S> {
-  return { tier: 'private', data, keyOf: (row) => (row as { uuid: string }).uuid };
+  return { tier: 'private', data, keyOf };
 }
 
 export const tables = {
   // --------------------------------------------------------- the field
-  commitments: plain(
+  commitments: secret(
     z.strictObject({
       uuid: id,
       type: z.enum(['habit', 'project', 'todo']),
@@ -145,7 +148,7 @@ export const tables = {
       updatedAt: instant,
     }),
   ),
-  check_ins: plain(
+  check_ins: secret(
     z.strictObject({
       uuid: id,
       commitmentUuid: id,
@@ -156,7 +159,7 @@ export const tables = {
       updatedAt: instant,
     }),
   ),
-  seed_notes: plain(
+  seed_notes: secret(
     z.strictObject({
       uuid: id,
       commitmentUuid: id,
@@ -169,7 +172,7 @@ export const tables = {
   ),
 
   // ---------------------------------------------------- notes, gallery
-  notes: plain(
+  notes: secret(
     z.strictObject({
       uuid: id,
       title: text,
@@ -180,7 +183,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  note_links: plain(
+  note_links: secret(
     z.strictObject({
       uuid: id,
       fromUuid: id,
@@ -188,7 +191,7 @@ export const tables = {
       toUuid: id.nullable(),
     }),
   ),
-  note_attachments: plain(
+  note_attachments: secret(
     z.strictObject({
       uuid: id,
       noteUuid: id,
@@ -203,7 +206,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  albums: plain(
+  albums: secret(
     z.strictObject({
       uuid: id,
       name: text,
@@ -215,7 +218,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  memories: plain(
+  memories: secret(
     z.strictObject({
       uuid: id,
       albumUuid: id,
@@ -231,7 +234,7 @@ export const tables = {
   ),
 
   // ------------------------------------------------------------ health
-  step_days: plain(
+  step_days: secret(
     z.strictObject({
       harvestDay: day,
       steps: int,
@@ -240,7 +243,7 @@ export const tables = {
     }),
     (row) => row.harvestDay,
   ),
-  body_weights: plain(
+  body_weights: secret(
     z.strictObject({
       uuid: id,
       grams: int,
@@ -251,7 +254,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  sleep_sessions: plain(
+  sleep_sessions: secret(
     z.strictObject({
       uuid: id,
       harvestDay: day,
@@ -267,7 +270,7 @@ export const tables = {
   ),
 
   // --------------------------------------------------------------- gym
-  exercises: plain(
+  exercises: secret(
     z.strictObject({
       uuid: id,
       name: text,
@@ -280,7 +283,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  programs: plain(
+  programs: secret(
     z.strictObject({
       uuid: id,
       name: text,
@@ -294,7 +297,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  program_days: plain(
+  program_days: secret(
     z.strictObject({
       uuid: id,
       programUuid: id,
@@ -304,7 +307,7 @@ export const tables = {
       accessories: text.nullable(),
     }),
   ),
-  program_slots: plain(
+  program_slots: secret(
     z.strictObject({
       uuid: id,
       dayUuid: id,
@@ -315,7 +318,7 @@ export const tables = {
       note: text.nullable(),
     }),
   ),
-  target_sets: plain(
+  target_sets: secret(
     z.strictObject({
       uuid: id,
       slotUuid: id,
@@ -326,7 +329,7 @@ export const tables = {
       openEnded: bool,
     }),
   ),
-  training_maxes: plain(
+  training_maxes: secret(
     z.strictObject({
       programUuid: id,
       exerciseId: id,
@@ -335,7 +338,7 @@ export const tables = {
     }),
     (row) => `${row.programUuid}/${row.exerciseId}`,
   ),
-  workout_sessions: plain(
+  workout_sessions: secret(
     z.strictObject({
       uuid: id,
       programUuid: id.nullable(),
@@ -351,7 +354,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  session_exercises: plain(
+  session_exercises: secret(
     z.strictObject({
       uuid: id,
       sessionUuid: id,
@@ -366,7 +369,7 @@ export const tables = {
       barGrams: int,
     }),
   ),
-  workout_sets: plain(
+  workout_sets: secret(
     z.strictObject({
       uuid: id,
       sessionExerciseUuid: id,
@@ -381,7 +384,7 @@ export const tables = {
   ),
 
   // ------------------------------------------------------ gamification
-  streaks: plain(
+  streaks: secret(
     z.strictObject({
       scope: id,
       current: int,
@@ -392,7 +395,7 @@ export const tables = {
     }),
     (row) => row.scope,
   ),
-  ledger: plain(
+  ledger: secret(
     z.strictObject({
       uuid: id,
       kind: z.enum(['xp', 'coin']),
@@ -402,7 +405,7 @@ export const tables = {
       loggedAt: instant,
     }),
   ),
-  pomodoro_sessions: plain(
+  pomodoro_sessions: secret(
     z.strictObject({
       uuid: id,
       commitmentUuid: id.nullable(),
@@ -414,7 +417,7 @@ export const tables = {
   ),
 
   // ------------------------------------------------------------- goals
-  goals: plain(
+  goals: secret(
     z.strictObject({
       uuid: id,
       title: text,
@@ -429,7 +432,7 @@ export const tables = {
       deletedAt: instant.nullable(),
     }),
   ),
-  goal_items: plain(
+  goal_items: secret(
     z.strictObject({
       uuid: id,
       goalUuid: id,
@@ -449,7 +452,7 @@ export const tables = {
   ),
 
   // -------------------------------------------------------------- lists
-  lists: plain(
+  lists: secret(
     z.strictObject({
       uuid: id,
       name: text,
@@ -464,7 +467,7 @@ export const tables = {
   ),
   // The table keeps the Wishlist's name so the beta devices and archives
   // out there keep working; its rows are every list's items ([[Lists]]).
-  wishlist_items: plain(
+  wishlist_items: secret(
     z.strictObject({
       uuid: id,
       // Before lists, which of the two shopping lists; still written
@@ -495,7 +498,7 @@ export const tables = {
   ),
 
   // ---------------------------------------------------------- settings
-  kv_settings: plain(
+  kv_settings: secret(
     z.strictObject({
       key: id,
       valueJson: anyJson,
@@ -504,7 +507,7 @@ export const tables = {
     (row) => row.key,
   ),
 
-  // ------------------------------------------- private tier: finances
+  // ---------------------------------------------------------- finances
   expenses: secret(
     z.strictObject({
       uuid: id,
@@ -572,7 +575,7 @@ export const tables = {
     }),
   ),
 
-  // -------------------------------------------- private tier: places
+  // ------------------------------------------------------------ places
   location_points: secret(
     z.strictObject({
       uuid: id,
@@ -586,6 +589,37 @@ export const tables = {
       updatedAt: instant,
       deletedAt: instant.nullable(),
     }),
+  ),
+  /**
+   * The trail, one row per day (Phase 7, M7.3), in place of a row per
+   * point: the server sees one row that changes a few times a day, not
+   * the moment of every point. Its record key is `key`, a keyed hash of
+   * the day the devices agree on (`trailKeyOf`), so not even the day is
+   * in the clear. A point is never dropped from a day by a newer copy
+   * that lacks it; it goes by its own `deletedAt`.
+   */
+  trail_days: secret(
+    z.strictObject({
+      key: id,
+      harvestDay: day,
+      points: z
+        .array(
+          z.strictObject({
+            uuid: id,
+            recordedAt: instant,
+            latitude: real,
+            longitude: real,
+            accuracyM: real.nullable(),
+            speedMps: real.nullable(),
+            altitudeM: real.nullable(),
+            updatedAt: instant,
+            deletedAt: instant.nullable(),
+          }),
+        )
+        .max(20_000),
+      updatedAt: instant,
+    }),
+    (row) => row.key,
   ),
   geotags: secret(
     z.strictObject({
@@ -620,6 +654,15 @@ export const tables = {
 
 export type SyncedTable = keyof typeof tables;
 
+/**
+ * Tables no device sends any more, kept so what 3.1 stored can still be
+ * opened: `location_points`, a row a point, gave way to `trail_days`
+ * (Phase 7, M7.3). A push of one is refused (`retired_table`), and the
+ * server deletes what it holds of them when a device says it has sealed
+ * everything (`POST /v1/sync/sealed`).
+ */
+export const retiredTables: readonly SyncedTable[] = ['location_points'];
+
 export const syncedTables = Object.keys(tables) as [SyncedTable, ...SyncedTable[]];
 
 export const syncedTableSchema = z.enum(syncedTables);
@@ -628,7 +671,6 @@ export const syncedTableSchema = z.enum(syncedTables);
 export type TableData<T extends SyncedTable> = z.output<(typeof tables)[T]['data']>;
 
 export const privateTables = syncedTables.filter((name) => tables[name].tier === 'private');
-export const plainTables = syncedTables.filter((name) => tables[name].tier === 'plain');
 
 export function isSyncedTable(name: string): name is SyncedTable {
   return Object.hasOwn(tables, name);

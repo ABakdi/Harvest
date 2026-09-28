@@ -1,10 +1,12 @@
 import {
   deriveSyncBase,
+  fileNameKeyOf,
   opensKeyCheck,
   pinProofOf,
   pinVerifierOf,
   sealKeyCheck,
-  syncKeyOf,
+  syncKeyBitsOf,
+  syncKeyFromBits,
   type KeyCheck,
   type SyncKeySet,
   type SyncKeyState,
@@ -14,13 +16,25 @@ import { getMeta, metaKeys, setMeta, type HarvestDB } from '../data/db';
 
 interface StoredKey {
   key: CryptoKey;
+  /** The HMAC key a file's name on the server is drawn with (`fileNameOf`). */
+  nameKey: CryptoKey;
   /** The salt it was derived with: a key for another account is no key. */
   salt: string;
   /** The key epoch it belongs to (`sync-key.ts`): named on every sealed write. */
   epoch: number;
   /** This key's own id, so a tab never forgets a newer key another tab kept. */
   id: string;
-  v: 3;
+  v: 4;
+}
+
+/** The keys a secret opens: the row and file key, and the name key, both kept only as CryptoKeys. */
+async function keysOf(base: Uint8Array, keyShare: string): Promise<{ key: CryptoKey; nameKey: CryptoKey }> {
+  const bits = await syncKeyBitsOf(base, keyShare);
+  try {
+    return { key: await syncKeyFromBits(bits), nameKey: await fileNameKeyOf(bits) };
+  } finally {
+    bits.fill(0);
+  }
 }
 
 /** The key routes, as the keyring needs them ([[Sync-API]], sync key). */
@@ -88,9 +102,12 @@ function statusOf(error: unknown): Answer {
 /**
  * Where this browser keeps the private tier's key: in IndexedDB, as a
  * non-extractable CryptoKey with its epoch, so the PIN is typed once per
- * browser and the key itself can never be read back out. The scheme is
- * the contract's (`deriveSyncBase`, `pinProofOf`, `syncKeyOf`), the same
- * on the phone: the secret is never sent and never stored.
+ * browser and the key itself can never be read back out. Beside it is
+ * the name key files are named with on the server (Phase 7); a key kept
+ * by 3.1, which has none, is not used, and the PIN is asked once more.
+ * The scheme is the contract's (`deriveSyncBase`, `pinProofOf`,
+ * `syncKeyBitsOf`, `fileNameKeyOf`), the same on the phone: the secret
+ * is never sent and never stored.
  *
  * Whether a secret is the account's is the server's to say, online,
  * with a limit on tries ([[Accounts]], S6-04): the key share is handed
@@ -124,14 +141,20 @@ export class Keyring {
 
   private async stored(): Promise<StoredKey | null> {
     if (this.cached !== undefined) return this.cached;
-    const stored = await getMeta<StoredKey>(this.db, metaKeys.privateKeyV3);
-    this.cached = stored && stored.v === 3 ? stored : null;
+    const stored = await getMeta<StoredKey>(this.db, metaKeys.privateKeyV4);
+    this.cached = stored && stored.v === 4 ? stored : null;
     return this.cached;
   }
 
   async key(salt: string | null): Promise<CryptoKey | null> {
     const stored = await this.stored();
     return stored && (salt === null || stored.salt === salt) ? stored.key : null;
+  }
+
+  /** The key a file's name on the server is drawn with, beside [key]. */
+  async nameKey(salt: string | null): Promise<CryptoKey | null> {
+    const stored = await this.stored();
+    return stored && (salt === null || stored.salt === salt) ? stored.nameKey : null;
   }
 
   /** The epoch the key here belongs to, or null with no key. */
@@ -158,16 +181,16 @@ export class Keyring {
     const state = await this.remote.syncKey();
     const base = await deriveSyncBase(secret, state.salt, iterations === undefined ? {} : { iterations });
     const proof = await pinProofOf(base);
-    let key: CryptoKey | null = null;
+    let keys: { key: CryptoKey; nameKey: CryptoKey } | null = null;
     let epoch = state.epoch;
     const choosing = state.state === 'none';
     if (state.state === 'none') {
-      key = await syncKeyOf(base, state.keyShare);
-      const set = await this.remote.setSyncKey(await pinVerifierOf(proof), (await sealKeyCheck(key)) as KeyCheck);
+      keys = await keysOf(base, state.keyShare);
+      const set = await this.remote.setSyncKey(await pinVerifierOf(proof), (await sealKeyCheck(keys.key)) as KeyCheck);
       if (set) epoch = set.epoch;
-      else key = null;
+      else keys = null;
     }
-    if (!key) {
+    if (!keys) {
       let opened: UnlockResult;
       try {
         opened = await this.remote.unlockSyncKey(toBase64(proof));
@@ -180,16 +203,17 @@ export class Keyring {
         if (status === 409) throw new PinStartedOverError('No PIN is set any more');
         throw error;
       }
-      key = await syncKeyOf(base, opened.keyShare);
+      keys = await keysOf(base, opened.keyShare);
       // Belt and braces: the key must open the account's check too.
-      if (!(await opensKeyCheck(key, opened.check))) {
+      if (!(await opensKeyCheck(keys.key, opened.check))) {
         throw new WrongPassphraseError('The key does not open the key check');
       }
       epoch = opened.epoch;
     }
-    await this.db.meta.bulkDelete([metaKeys.privateKey, metaKeys.privateKeyV2]);
-    const stored: StoredKey = { key, salt: state.salt, epoch, id: crypto.randomUUID(), v: 3 };
-    await setMeta(this.db, metaKeys.privateKeyV3, stored);
+    base.fill(0);
+    await this.db.meta.bulkDelete([metaKeys.privateKey, metaKeys.privateKeyV2, metaKeys.privateKeyV3]);
+    const stored: StoredKey = { ...keys, salt: state.salt, epoch, id: crypto.randomUUID(), v: 4 };
+    await setMeta(this.db, metaKeys.privateKeyV4, stored);
     this.cached = stored;
     await this.onNewKey?.();
     this.announce();
@@ -220,10 +244,10 @@ export class Keyring {
    * has kept a newer one meanwhile. True when it went.
    */
   async forgetIfStill(id?: string): Promise<boolean> {
-    const current = await getMeta<StoredKey>(this.db, metaKeys.privateKeyV3);
+    const current = await getMeta<StoredKey>(this.db, metaKeys.privateKeyV4);
     if (current && id !== undefined && current.id !== id) {
       // A newer key, kept by another tab: this one never wipes it.
-      this.cached = current.v === 3 ? current : null;
+      this.cached = current.v === 4 ? current : null;
       return false;
     }
     await this.clear();
@@ -262,7 +286,12 @@ export class Keyring {
    * hears of it.
    */
   async clear(): Promise<void> {
-    await this.db.meta.bulkDelete([metaKeys.privateKey, metaKeys.privateKeyV2, metaKeys.privateKeyV3]);
+    await this.db.meta.bulkDelete([
+      metaKeys.privateKey,
+      metaKeys.privateKeyV2,
+      metaKeys.privateKeyV3,
+      metaKeys.privateKeyV4,
+    ]);
     this.cached = null;
     this.announce();
   }

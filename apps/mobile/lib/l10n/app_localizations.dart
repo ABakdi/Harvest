@@ -1496,12 +1496,6 @@ abstract class AppLocalizations {
   /// **'DZD per 1 EUR'**
   String get ratesDzdEur;
 
-  /// No description provided for @ratesEurUsd.
-  ///
-  /// In en, this message translates to:
-  /// **'EUR → USD (fetched)'**
-  String get ratesEurUsd;
-
   /// No description provided for @fetchNow.
   ///
   /// In en, this message translates to:
@@ -1847,7 +1841,7 @@ abstract class AppLocalizations {
   /// No description provided for @ratesExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Used to show \$ and € amounts in your default currency.'**
+  /// **'Used to show amounts in other currencies in your default currency.'**
   String get ratesExplainer;
 
   /// No description provided for @settingsMoney.
@@ -6473,7 +6467,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountHeldBack.
   ///
   /// In en, this message translates to:
-  /// **'Money, places and pictures wait for your sync PIN.'**
+  /// **'Nothing syncs until you set your sync PIN.'**
   String get accountHeldBack;
 
   /// No description provided for @accountDevices.
@@ -6797,14 +6791,8 @@ abstract class AppLocalizations {
   /// No description provided for @ratesDzdManual.
   ///
   /// In en, this message translates to:
-  /// **'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.'**
+  /// **'The dinar\'s market rate is typed by hand: no free source has it. Fetch updates every other currency.'**
   String get ratesDzdManual;
-
-  /// No description provided for @ratesFetchedEurUsd.
-  ///
-  /// In en, this message translates to:
-  /// **'EUR → USD updated. The dinar rates stay as you typed them.'**
-  String get ratesFetchedEurUsd;
 
   /// No description provided for @accountServerExample.
   ///
@@ -7391,13 +7379,13 @@ abstract class AppLocalizations {
   /// No description provided for @syncPinChooseBody.
   ///
   /// In en, this message translates to:
-  /// **'Money, places and pictures are encrypted on this phone with a key made from this PIN. The server never sees it. Use the same PIN on every device.'**
+  /// **'Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.'**
   String get syncPinChooseBody;
 
   /// No description provided for @syncPinEnterBody.
   ///
   /// In en, this message translates to:
-  /// **'Your other devices already use a sync PIN. Enter the same one here to bring over your money, places and pictures.'**
+  /// **'Your other devices already use a sync PIN. Enter the same one here to bring your data over.'**
   String get syncPinEnterBody;
 
   /// No description provided for @syncPinLoss.
@@ -7409,7 +7397,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncPinCost.
   ///
   /// In en, this message translates to:
-  /// **'A PIN is quick to type, but someone holding a copy of the server\'s data could try every one. A passphrase of 8 characters or more holds against that.'**
+  /// **'A PIN is quick to type, but it falls in minutes to someone holding the server\'s database and its keys. A passphrase holds.'**
   String get syncPinCost;
 
   /// No description provided for @syncPinField.
@@ -7517,13 +7505,13 @@ abstract class AppLocalizations {
   /// No description provided for @syncPinWaiting.
   ///
   /// In en, this message translates to:
-  /// **'Money, places and pictures stay on this phone until you set your sync PIN.'**
+  /// **'Nothing leaves this phone until you set your sync PIN.'**
   String get syncPinWaiting;
 
   /// No description provided for @syncPinIsSet.
   ///
   /// In en, this message translates to:
-  /// **'Set: money, places and pictures sync end-to-end encrypted.'**
+  /// **'Set: everything syncs end-to-end encrypted.'**
   String get syncPinIsSet;
 
   /// No description provided for @syncPinSetAction.
@@ -7745,7 +7733,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncPinStartOverBody.
   ///
   /// In en, this message translates to:
-  /// **'This deletes the money, places and pictures kept on the server for this account, and the PIN with them. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.'**
+  /// **'This deletes everything kept on the server for this account, and the PIN with it. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.'**
   String get syncPinStartOverBody;
 
   /// No description provided for @syncPinStartOverConfirm.
@@ -8143,6 +8131,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That\'s your password. Use a name others may see, or leave it empty.'**
   String get accountNameIsPassword;
+
+  /// No description provided for @ratesFetched.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates updated.'**
+  String get ratesFetched;
+
+  /// No description provided for @ratesSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates by Exchange Rate API'**
+  String get ratesSource;
+
+  /// No description provided for @ratesOneUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'1 USD = {amount}'**
+  String ratesOneUsd(String amount);
+
+  /// No description provided for @ratesOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates of {day}'**
+  String ratesOn(String day);
+
+  /// No description provided for @ratesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No rates fetched yet.'**
+  String get ratesNone;
+
+  /// No description provided for @currencyPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a currency'**
+  String get currencyPickerTitle;
+
+  /// No description provided for @currencySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, code or sign'**
+  String get currencySearchHint;
+
+  /// No description provided for @currencyNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No currency matches.'**
+  String get currencyNoMatch;
+
+  /// No description provided for @currencyMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Another currency'**
+  String get currencyMore;
+
+  /// No description provided for @syncPassphraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync passphrase'**
+  String get syncPassphraseTitle;
+
+  /// No description provided for @syncPassphraseAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'A few words only you would put together, like olive river lantern, hold for thousands of years against someone holding the server\'s data.'**
+  String get syncPassphraseAdvice;
+
+  /// No description provided for @syncSecretField.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase or PIN'**
+  String get syncSecretField;
+
+  /// No description provided for @syncSecretShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get syncSecretShow;
+
+  /// No description provided for @syncSecretHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get syncSecretHide;
+
+  /// No description provided for @syncSecretWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get syncSecretWeak;
+
+  /// No description provided for @syncSecretFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get syncSecretFair;
+
+  /// No description provided for @syncSecretStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get syncSecretStrong;
+
+  /// No description provided for @syncSecretStands.
+  ///
+  /// In en, this message translates to:
+  /// **'Would hold {time} against someone with the server\'s data.'**
+  String syncSecretStands(String time);
+
+  /// No description provided for @syncSecretUnderSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'under a second'**
+  String get syncSecretUnderSecond;
+
+  /// No description provided for @syncSecretSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 second} other{{count} seconds}}'**
+  String syncSecretSeconds(int count);
+
+  /// No description provided for @syncSecretMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String syncSecretMinutes(int count);
+
+  /// No description provided for @syncSecretHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String syncSecretHours(int count);
+
+  /// No description provided for @syncSecretDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String syncSecretDays(int count);
+
+  /// No description provided for @syncSecretYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year} other{{count} years}}'**
+  String syncSecretYears(int count);
+
+  /// No description provided for @syncSecretThousands.
+  ///
+  /// In en, this message translates to:
+  /// **'thousands of years'**
+  String get syncSecretThousands;
+
+  /// No description provided for @syncSecretForever.
+  ///
+  /// In en, this message translates to:
+  /// **'for ever, near enough'**
+  String get syncSecretForever;
+
+  /// No description provided for @exportConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account password, to take your data out'**
+  String get exportConfirmPassword;
+
+  /// No description provided for @exportConfirmReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to take your data out of Harvest'**
+  String get exportConfirmReason;
+
+  /// No description provided for @exportConfirmRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Not taken: the phone\'s lock was not opened.'**
+  String get exportConfirmRefused;
+
+  /// No description provided for @exportConfirmLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many wrong passwords. Try again in {minutes} min.'**
+  String exportConfirmLimited(int minutes);
+
+  /// No description provided for @exportConfirmOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The server can\'t be reached to check the password. Try again when you\'re online.'**
+  String get exportConfirmOffline;
 }
 
 class _AppLocalizationsDelegate

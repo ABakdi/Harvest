@@ -17,12 +17,12 @@ import { ReleaseSource } from '../src/releases/github.js';
 const port = Number(process.env.E2E_PORT ?? 4100);
 const mongod = await MongoMemoryServer.create();
 const mongo = await connectMongo(mongod.getUri(), 'harvest_e2e');
-const repos = await createRepositories(mongo.db);
 const config = await loadConfig({
   NODE_ENV: 'test',
   CORS_ORIGINS: 'http://localhost:5173',
   APP_URL: 'http://localhost:5173',
 });
+const repos = await createRepositories(mongo.db, config.keyShareKey);
 const app = createApp({
   config,
   db: mongo.db,

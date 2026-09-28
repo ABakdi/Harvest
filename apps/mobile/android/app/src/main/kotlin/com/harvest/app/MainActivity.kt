@@ -5,11 +5,13 @@ import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.telephony.TelephonyManager
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
+import java.util.TimeZone
 
 /**
  * FlutterFragmentActivity, not FlutterActivity: the biometric prompt
@@ -107,6 +109,13 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WHERE_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "where" -> result.success(where())
+                    else -> result.notImplemented()
+                }
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SECURITY_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -117,6 +126,27 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /**
+     * Where the phone says it is, for the default currency of a new
+     * install ([[Finances]], Phase 7 M7.8): the SIM's country, the
+     * network's, and the time zone. Nothing leaves the phone; no
+     * permission is needed for any of it.
+     */
+    private fun where(): Map<String, String?> {
+        val phone = getSystemService(TELEPHONY_SERVICE) as? TelephonyManager
+        fun country(read: () -> String?): String? =
+            try {
+                read()?.takeIf { it.isNotBlank() }?.uppercase()
+            } catch (_: Exception) {
+                null
+            }
+        return mapOf(
+            "sim" to country { phone?.simCountryIso },
+            "network" to country { phone?.networkCountryIso },
+            "zone" to TimeZone.getDefault().id,
+        )
     }
 
     /**
@@ -214,6 +244,7 @@ class MainActivity : FlutterFragmentActivity() {
         const val SECURITY_CHANNEL = "harvest/security"
         const val HEALTH_CHANNEL = "harvest/health"
         const val SHARE_CHANNEL = "harvest/share"
+        const val WHERE_CHANNEL = "harvest/where"
 
         /** Android 13 and below, then Android 14+. */
         val RATIONALE_ACTIONS = setOf(

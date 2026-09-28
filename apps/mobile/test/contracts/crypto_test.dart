@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/features/sync/domain/sync_cipher.dart';
 
@@ -186,5 +187,128 @@ void main() {
       instantMicros('2026-09-18T13:10:00.123456Z'),
     );
     expect(() => instantMicros('2026-09-18 13:10'), throwsFormatException);
+  });
+
+  group('Phase 7 (fixtures/crypto-v3.json)', () {
+    final v3 = jsonDecode(
+      File('${fixtures.path}/crypto-v3.json').readAsStringSync(),
+    ) as Map<String, Object?>;
+    final cipher = SyncCipher(keyBytes);
+    String hex(List<int> bytes) =>
+        bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+
+    test('uses the version 2 key', () {
+      expect(v3['keyHex'], keyHex);
+    });
+
+    test('derives the pinned name key, and names files as pinned', () async {
+      expect(hex(await cipher.nameKeyBytes()), v3['nameKeyHex']);
+      for (final item in v3['names']! as List<Object?>) {
+        final one = item! as Map<String, Object?>;
+        final name = await cipher.nameOf(one['sha256']! as String);
+        expect(name, one['name']);
+        expect(name, isNot(one['sha256']));
+      }
+      final other = SyncCipher(List<int>.filled(32, 7));
+      final first = (v3['names']! as List<Object?>).first! as Map;
+      expect(
+        await other.nameOf(first['sha256']! as String),
+        isNot(first['name']),
+      );
+    });
+
+    test('keys each day of the trail as pinned', () async {
+      for (final item in v3['trailKeys']! as List<Object?>) {
+        final one = item! as Map<String, Object?>;
+        expect(await cipher.trailKeyOf(one['day']! as String), one['key']);
+      }
+    });
+
+    test('pads lengths as pinned', () {
+      for (final item in v3['padding']! as List<Object?>) {
+        final one = item! as Map<String, Object?>;
+        expect(
+          paddedLength((one['n']! as num).toInt()),
+          (one['padded']! as num).toInt(),
+          reason: 'n = ${one['n']}',
+        );
+      }
+    });
+
+    test(
+      'seals the pinned row to the same bytes, padded, and opens it',
+      () async {
+        final row = v3['row']! as Map<String, Object?>;
+        final enc = row['enc']! as Map<String, Object?>;
+        final data =
+            jsonDecode(row['plaintext']! as String) as Map<String, Object?>;
+        final sealed = await cipher.seal(
+          row['table']! as String,
+          row['uuid']! as String,
+          clocksOf(row),
+          data,
+          iv: base64Decode(enc['iv']! as String),
+        );
+        expect(sealed, enc);
+        final opened = await cipher.open(
+          row['table']! as String,
+          row['uuid']! as String,
+          clocksOf(row),
+          enc,
+        );
+        expect(opened, data);
+      },
+    );
+
+    test('opens and seals the pinned file, padded, under its name', () async {
+      final file = v3['file']! as Map<String, Object?>;
+      final name = file['name']! as String;
+      final plain = base64Decode(file['plaintextBase64']! as String);
+      final sealedBytes = base64Decode(file['sealedBase64']! as String);
+      final iv = base64Decode(file['iv']! as String);
+      expect(await cipher.openFile(name, iv, sealedBytes), plain);
+      final sealed = await cipher.sealFile(name, plain, iv: iv);
+      expect(sealed.bytes, sealedBytes);
+      expect(sealed.bytes.length, paddedLength(plain.length + 1) + 16);
+      await expectLater(
+        cipher.openFile('0$name'.substring(0, 64), iv, sealedBytes),
+        throwsA(anything),
+      );
+    });
+
+    test('pads and unpads a file of any length, and refuses one never '
+        'padded', () {
+      for (final length in [0, 1, 255, 256, 1000, 70000]) {
+        final bytes = List<int>.generate(length, (i) => i * 31 % 256);
+        final padded = padFile(bytes);
+        expect(padded.length, paddedLength(length + 1));
+        expect(unpadFile(padded), bytes);
+      }
+      expect(
+        () => unpadFile(List<int>.filled(16, 0)),
+        throwsA(isA<UnreadableRow>()),
+      );
+      expect(() => unpadFile([1, 2, 3]), throwsA(isA<UnreadableRow>()));
+    });
+  });
+
+  test('a file sealed before Phase 7 still opens under its name', () async {
+    final cipher = SyncCipher(keyBytes);
+    final plain = utf8.encode('an old picture');
+    // As 3.1 sealed it: `file/<name>`, unpadded (crypto-v2.json).
+    final aes = AesGcm.with256bits();
+    final box = await aes.encrypt(
+      plain,
+      secretKey: SecretKey(keyBytes),
+      nonce: aes.newNonce(),
+      aad: utf8.encode('file/abc'),
+    );
+    expect(
+      await cipher.openFile('abc', box.nonce, [
+        ...box.cipherText,
+        ...box.mac.bytes,
+      ]),
+      plain,
+    );
   });
 }
