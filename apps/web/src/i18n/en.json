@@ -476,6 +476,7 @@
       "email": "That is not an email address",
       "invalid": "Check this field",
       "mismatch": "The two do not match",
+      "nameIsPassword": "That's your password. Use a name others may see, or leave it empty.",
       "passwordCommon": "Too common: pick something less guessable",
       "passwordShort": "At least 10 characters",
       "required": "This one is needed",

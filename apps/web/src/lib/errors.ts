@@ -11,6 +11,7 @@ const contractMessages: Record<string, string> = {
   'At least 10 characters': 'form.error.passwordShort',
   'At most 256 characters': 'form.error.tooLong',
   'Too common; pick something less guessable': 'form.error.passwordCommon',
+  not_the_password: 'form.error.nameIsPassword',
 };
 
 export function fieldMessage(t: TFunction, error: FieldError | undefined): string | undefined {

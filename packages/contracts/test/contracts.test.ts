@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  nameIsPassword,
   checkRecord,
   emailSchema,
   errorBodySchema,
@@ -259,5 +260,22 @@ describe('push and pull bodies', () => {
     expect(pullQuerySchema.safeParse({ limit: '0' }).success).toBe(false);
     expect(pullQuerySchema.safeParse({ limit: '1001' }).success).toBe(false);
     expect(pullQuerySchema.safeParse({ after: '-1' }).success).toBe(false);
+  });
+});
+
+describe('a display name that is the password', () => {
+  const body = { email: 'maya@example.com', password: 'Tamarind-orchard-7', client: 'mobile' as const };
+
+  it('is refused at sign-up, as a password manager filling it would', () => {
+    const parsed = registerBodySchema.safeParse({ ...body, displayName: ' Tamarind-orchard-7 ' });
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.path).toEqual(['displayName']);
+    expect(parsed.error?.issues[0]?.message).toBe('not_the_password');
+  });
+
+  it('lets any other name, or none, through', () => {
+    expect(registerBodySchema.safeParse({ ...body, displayName: 'Maya' }).success).toBe(true);
+    expect(registerBodySchema.safeParse(body).success).toBe(true);
+    expect(nameIsPassword(undefined, 'x')).toBe(false);
   });
 });

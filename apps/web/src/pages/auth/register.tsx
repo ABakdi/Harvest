@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerBodySchema } from '@harvest/contracts';
+import { nameIsPassword, registerFieldsSchema } from '@harvest/contracts';
 import { MailCheckIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,7 +13,12 @@ import { apiMessage, fieldMessage } from '@/lib/errors';
 import { AuthCard, FormError } from './auth-card';
 import { runAction } from '@/lib/actions';
 
-const schema = registerBodySchema.pick({ email: true, password: true, displayName: true });
+const schema = registerFieldsSchema
+  .pick({ email: true, password: true, displayName: true })
+  .refine((values) => !nameIsPassword(values.displayName, values.password), {
+    path: ['displayName'],
+    message: 'not_the_password',
+  });
 
 export function RegisterPage() {
   const { t } = useTranslation();
@@ -67,6 +72,14 @@ export function RegisterPage() {
         }}
         className="flex flex-col gap-4"
       >
+        {/* The name first: a field right after a new password is taken for
+            its confirmation by password managers, and filled with it. */}
+        <FormField
+          label={t('auth.displayName')}
+          autoComplete="nickname"
+          error={fieldMessage(t, errors.displayName)}
+          {...form.register('displayName', { setValueAs: (value: string) => (value.trim() === '' ? undefined : value) })}
+        />
         <FormField
           label={t('auth.email')}
           type="email"
@@ -82,12 +95,6 @@ export function RegisterPage() {
           hint={t('auth.passwordHint')}
           error={fieldMessage(t, errors.password)}
           {...form.register('password')}
-        />
-        <FormField
-          label={t('auth.displayName')}
-          autoComplete="nickname"
-          error={fieldMessage(t, errors.displayName)}
-          {...form.register('displayName', { setValueAs: (value: string) => (value.trim() === '' ? undefined : value) })}
         />
         <FormError message={failure} />
         {/* The address has an account: the ways into it, right here (W6-24). */}

@@ -107,6 +107,9 @@ class SyncController extends _$SyncController {
   Future<void>? _run;
   var _again = false;
 
+  /// Whether this run has read the account from the server yet.
+  var _meRead = false;
+
   /// Syncs now, if there is a verified account to sync with. Quietly
   /// does nothing otherwise: an account is optional ([[Accounts]] AC1).
   ///
@@ -131,8 +134,24 @@ class SyncController extends _$SyncController {
 
   Future<void> _once() async {
     final account = await ref.read(accountControllerProvider.future);
-    var me = account.me;
-    if (me == null) return;
+    final signedIn = account.me;
+    if (signedIn == null) return;
+    var me = signedIn;
+    if (!_meRead) {
+      // The account as the server has it, once a run: a name or a
+      // verification changed elsewhere would otherwise stay as it was at
+      // sign-in for good.
+      _meRead = true;
+      try {
+        await ref.read(accountControllerProvider.notifier).refreshMe();
+        final fresh = (await ref.read(accountControllerProvider.future)).me;
+        if (fresh == null) return;
+        me = fresh;
+      } on Object {
+        // Offline, refused, or the keystore not answering: the copy from
+        // sign-in does for now, and the run goes on to say what it can.
+      }
+    }
     if (!me.verified) {
       // The link was likely opened somewhere else since: ask again,
       // or this phone would wait for a restart that changes nothing.
@@ -141,8 +160,8 @@ class SyncController extends _$SyncController {
       } on ApiException {
         return;
       }
-      me = (await ref.read(accountControllerProvider.future)).me;
-      if (me == null || !me.verified) return;
+      final again = (await ref.read(accountControllerProvider.future)).me;
+      if (again == null || !again.verified) return;
     }
     final service = ref.read(syncServiceProvider);
     // Signed in on a phone with data of its own: nothing goes until I

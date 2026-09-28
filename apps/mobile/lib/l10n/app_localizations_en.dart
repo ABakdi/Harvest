@@ -4960,4 +4960,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get syncPinSignedOut =>
       'This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.';
+
+  @override
+  String get accountNameIsPassword =>
+      'That\'s your password. Use a name others may see, or leave it empty.';
 }

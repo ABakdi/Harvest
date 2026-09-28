@@ -58,6 +58,7 @@ String? signInProblem(
   required String email,
   required String password,
   required bool creating,
+  String name = '',
 }) {
   final url = Uri.tryParse(server.trim());
   if (url == null ||
@@ -75,6 +76,11 @@ String? signInProblem(
   if (password.isEmpty) return l10n.accountPasswordMissing;
   if (creating && password.length < 10) return l10n.accountPasswordShort;
   if (password.length > 256) return l10n.accountPasswordLong;
+  // A password manager fills the field after a new password as its
+  // confirmation; a name is shown on every screen ([[Accounts]]).
+  if (creating && name.trim().isNotEmpty && name.trim() == password.trim()) {
+    return l10n.accountNameIsPassword;
+  }
   return null;
 }
 
@@ -116,6 +122,7 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
       email: _email.text,
       password: _password.text,
       creating: _creating,
+      name: _name.text,
     );
     if (problem != null) {
       setState(() => _error = problem);
@@ -179,6 +186,20 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
                 ),
               ),
               const SizedBox(height: HarvestSpacing.sm),
+              // The name before the email and password: the field right
+              // after a new password is taken for its confirmation by
+              // password managers, and filled with it.
+              if (_creating) ...[
+                TextField(
+                  controller: _name,
+                  textCapitalization: TextCapitalization.words,
+                  autofillHints: const [AutofillHints.nickname],
+                  decoration: InputDecoration(
+                    labelText: l10n.accountDisplayName,
+                  ),
+                ),
+                const SizedBox(height: HarvestSpacing.sm),
+              ],
               TextField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
@@ -201,15 +222,6 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
                   helperText: _creating ? l10n.accountPasswordRule : null,
                 ),
               ),
-              if (_creating) ...[
-                const SizedBox(height: HarvestSpacing.sm),
-                TextField(
-                  controller: _name,
-                  decoration: InputDecoration(
-                    labelText: l10n.accountDisplayName,
-                  ),
-                ),
-              ],
               if (_error != null) ...[
                 const SizedBox(height: HarvestSpacing.sm),
                 Text(

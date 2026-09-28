@@ -5119,4 +5119,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get syncPinSignedOut =>
       'هذا الهاتف خارج الحساب. سجّل الدخول من جديد من دائرة الحساب، ثم أدخل الرمز.';
+
+  @override
+  String get accountNameIsPassword =>
+      'هذه كلمة مرورك. اكتب اسمًا يمكن للآخرين رؤيته، أو اتركه فارغًا.';
 }

@@ -1969,5 +1969,6 @@
   "@accountOthersEnded": { "placeholders": { "count": { "type": "int" } } },
   "syncPinTakesTime": "Making the key is slow on purpose: a few seconds, up to about 20 on an older phone.",
   "syncPinMenu": "Sync PIN options",
-  "syncPinSignedOut": "This phone is signed out of the account. Sign in again from the account circle, then enter the PIN."
+  "syncPinSignedOut": "This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.",
+  "accountNameIsPassword": "That's your password. Use a name others may see, or leave it empty."
 }

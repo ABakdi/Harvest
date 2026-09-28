@@ -8137,6 +8137,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.'**
   String get syncPinSignedOut;
+
+  /// No description provided for @accountNameIsPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s your password. Use a name others may see, or leave it empty.'**
+  String get accountNameIsPassword;
 }
 
 class _AppLocalizationsDelegate

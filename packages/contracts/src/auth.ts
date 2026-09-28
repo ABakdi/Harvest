@@ -105,13 +105,29 @@ const linkTokenSchema = z.string().min(20).max(200);
 // Strict: a key the contract does not name is refused, not carried along
 // (audit S5-07).
 
-export const registerBodySchema = z.strictObject({
+/** The sign-up fields, for a form that asks for some of them. */
+export const registerFieldsSchema = z.strictObject({
   email: emailSchema,
   password: passwordSchema,
   displayName: displayNameSchema.optional(),
   client: clientKindSchema.default('web'),
   deviceName: deviceNameSchema.optional(),
 });
+
+/**
+ * Whether a display name gives the password away. A name that is the
+ * password is a password manager filling the field after the password
+ * as its confirmation; shown on every screen, it would be read by anyone
+ * looking.
+ */
+export function nameIsPassword(displayName: string | undefined, password: string): boolean {
+  return displayName !== undefined && displayName.trim() !== '' && displayName.trim() === password.trim();
+}
+
+export const registerBodySchema = registerFieldsSchema.refine(
+  (body) => !nameIsPassword(body.displayName, body.password),
+  { path: ['displayName'], message: 'not_the_password' },
+);
 export type RegisterBody = z.input<typeof registerBodySchema>;
 
 export const loginBodySchema = z.strictObject({

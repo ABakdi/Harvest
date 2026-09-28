@@ -74,6 +74,34 @@ class _Account extends AccountController {
   );
 }
 
+/// Renamed on the server since this phone signed in: the phone learns
+/// it once a run, not only at the next sign-in.
+class _Renamed extends AccountController {
+  int asked = 0;
+  String? name = 'the old name';
+
+  AccountState get _state => AccountState(
+    serverUrl: 'https://harvest.example.com',
+    me: Me(
+      id: 'u1',
+      email: 'maya@example.com',
+      syncSalt: 'the-account-salt',
+      verifiedAt: DateTime.utc(2026, 9, 2),
+      displayName: name,
+    ),
+  );
+
+  @override
+  Future<AccountState> build() async => _state;
+
+  @override
+  Future<void> refreshMe() async {
+    asked++;
+    name = null;
+    state = AsyncData(_state);
+  }
+}
+
 /// Signed up here, verified from the email on another device since:
 /// the server knows, this phone does not until it asks.
 class _Unverified extends AccountController {
@@ -235,6 +263,18 @@ void main() {
     expect(stored['enc'], isA<Map<String, Object?>>());
     expect('${stored['enc']}', isNot(contains('bread')));
     expect(files.held, hasLength(1), reason: 'the picture went up');
+  });
+
+  test('a sync reads the account once a run, so a name changed on the '
+      'server reaches the phone', () async {
+    late _Renamed account;
+    final a = await phone(account: () => account = _Renamed());
+    final sync = a.container.read(syncControllerProvider.notifier);
+    await sync.syncNow();
+    await sync.syncNow();
+    expect(account.asked, 1);
+    final me = (await a.container.read(accountControllerProvider.future)).me;
+    expect(me!.displayName, isNull);
   });
 
   test('a sync asks whether the account was verified since', () async {

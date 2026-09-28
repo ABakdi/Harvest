@@ -37,16 +37,10 @@ export class SessionsRepository {
       .aggregate<{ user: { verifiedAt?: Date | null }[] }>([
         { $match: { _id: sessionId, userId, revokedAt: null, expiresAt: { $gt: now } } },
         { $limit: 1 },
-        {
-          $lookup: {
-            from: usersCollection,
-            localField: 'userId',
-            foreignField: '_id',
-            pipeline: [{ $project: { _id: 0, verifiedAt: 1 } }],
-            as: 'user',
-          },
-        },
-        { $project: { _id: 0, user: 1 } },
+        // The plain form of $lookup: a pipeline beside localField and
+        // foreignField needs MongoDB 5, and a server without AVX runs 4.4.
+        { $lookup: { from: usersCollection, localField: 'userId', foreignField: '_id', as: 'user' } },
+        { $project: { _id: 0, 'user.verifiedAt': 1 } },
       ])
       .toArray();
     const user = row?.user[0];
