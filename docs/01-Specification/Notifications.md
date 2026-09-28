@@ -15,7 +15,7 @@ What is built, and when it fires ([[Audit-v2]] D3-06):
 | Bedtime −30 min | 🌙 Wind-down | Only with a daily cycle set ([[Health]]) | Follows the cycle, per weekday |
 | 19:00 | A debt still owed, quoting what is left | Until it is paid off | Per debt |
 | A time I set | A seed, an album | Always | Per row |
-| Real-time | ⏳ Remaining minutes overlay on distracting apps | [[Phase-7-Screen-Time]] | — |
+| Real-time | ⏳ Remaining minutes overlay on distracting apps | [[Phase-8-Screen-Time]] | — |
 
 The three ritual times are settable; the late check is not, because
 its whole point is the hour when a day is nearly over.

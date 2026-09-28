@@ -11,8 +11,9 @@ flowchart LR
     P3 --> P4[Phase 4<br/>Gym & Health]
     P4 --> P5[Phase 5<br/>Goals, Places<br/>& Voice]
     P5 --> P6[Phase 6<br/>Sync, Accounts<br/>& the Web]
-    P6 --> P7[Phase 7<br/>Screen Time]
-    P7 --> P8[Phase 8<br/>Social & Reach]
+    P6 --> P7[Phase 7<br/>Privacy &<br/>Currencies]
+    P7 --> P8[Phase 8<br/>Screen Time]
+    P8 --> P9[Phase 9<br/>Social & Reach]
 ```
 
 | Phase | Delivers | Exit criterion |
@@ -26,8 +27,9 @@ flowchart LR
 | [[Phase-5-Goals-Places-and-Voice]] | A goals board on the field, a trail and a geotag on every action with a map to see them, voice notes, read aloud, and an assist in notes | **Shipped with v3.0.0** (2026-09-26): it never had a release of its own, because Phase 6 was already under way |
 | [[Phase-6-Sync-Accounts-and-Web]] | The monorepo's other two programs: an Express + MongoDB server with accounts and sync, and the whole app on the web (React, shadcn/ui, a PWA) with a home page and the APK download | **Shipped 2026-09-26 as v3.0.0**, after four betas, a fourth audit by hand ([[Audit-v3-Beta]]), Lists and goals with subtasks — and with it Phase 5's goals, places and voice |
 | **v3.1** | A sync PIN in place of the passphrase, with a key the database alone cannot open; the account circle; the web laid out like the phone on a phone; the phone's database encrypted; the fifth audit, every finding closed ([[Checkpoint-10]], [[Audit-v3]]) | **Beta 2026-09-27 as v3.1.0-beta.1**; the sixth audit, every finding closed, as **v3.1.0-beta.2** 2026-09-28 ([[Checkpoint-11]], [[Audit-v3.1]]) |
-| [[Phase-7-Screen-Time]] | Usage caps, weed-pull interventions (Android) | Caps enforce reliably through a full week; `v3.2.0` |
-| [[Phase-8-Social-and-Reach]] | Rankings, the share card, iOS polish | Leaderboard live |
+| [[Phase-7-Privacy-and-Currencies]] | Every synced row sealed on the device, files the server cannot recognise, no trail of where I am, encrypted at rest everywhere, a passphrase first, a password to export; every currency, the local one by default; the privacy statement rewritten | A dump of the server read as its operator shows no note, file, place, health figure, email or IP; `v3.2.0`, then production |
+| [[Phase-8-Screen-Time]] | Usage caps, weed-pull interventions (Android) | Caps enforce reliably through a full week; `v3.3.0` |
+| [[Phase-9-Social-and-Reach]] | Rankings, the share card, iOS polish | Leaderboard live |
 
 **Phase 4 makes it v2, not v1.2.** The number is a judgement about how
 much the app changed, not about how much code was written. Between
@@ -52,6 +54,14 @@ goals, places and voice on the phone ([[Phase-5-Goals-Places-and-Voice]]),
 then the server and the web ([[Phase-6-Sync-Accounts-and-Web]]), then
 screen time. The repository became a monorepo for it
 ([[ADR-009-Monorepo]]).
+
+**Privacy went ahead of screen time too** (2026-09-28). After the sixth
+audit I wrote down who can see what, and the answer was not good enough
+to run Harvest for anyone but me: the server could read my notes and my
+health, and from the sealed rows' metadata still follow my days. Before
+production, the server has to become a store it cannot read, so that is
+Phase 7 ([[Phase-7-Privacy-and-Currencies]]), with every currency beside
+it; screen time moved to Phase 8 and `v3.3.0`.
 
 ## Working rules
 

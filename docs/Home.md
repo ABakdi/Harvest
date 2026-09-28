@@ -53,8 +53,9 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-4-Health-and-Gym]]
 - [[Phase-5-Goals-Places-and-Voice]]
 - [[Phase-6-Sync-Accounts-and-Web]]
-- [[Phase-7-Screen-Time]] ← **next**
-- [[Phase-8-Social-and-Reach]]
+- [[Phase-7-Privacy-and-Currencies]] ← **next**
+- [[Phase-8-Screen-Time]]
+- [[Phase-9-Social-and-Reach]]
 
 ### 🏁 Checkpoints
 - [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list

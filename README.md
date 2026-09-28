@@ -36,8 +36,8 @@ the next days asked for; [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md)
 closes the day's steps on its own. The
 [third audit](docs/06-Audit/Audit-v2.md) read v2.0.0 after release.
 
-**Next:** [Phase 7](docs/03-Planning/Phase-7-Screen-Time.md), screen
-time. The
+**Next:** [Phase 7](docs/03-Planning/Phase-7-Privacy-and-Currencies.md),
+privacy and every currency, before production; then screen time. The
 repository is a monorepo: `apps/mobile` (Flutter), `apps/web`
 (React), `apps/server` (Express), the shared `packages/`, and
 `deploy/` to run it all.
@@ -201,8 +201,9 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Phase 4 — Health and Gym](docs/03-Planning/Phase-4-Health-and-Gym.md) | Steps, weight, the training log, sleep ✅ |
 | [Phase 5 — Goals, Places and Voice](docs/03-Planning/Phase-5-Goals-Places-and-Voice.md) | Goals board, trail and geotags on a map, voice notes, read aloud, assist ✅ |
 | [Phase 6 — Sync, Accounts and the Web](docs/03-Planning/Phase-6-Sync-Accounts-and-Web.md) | Express + MongoDB server, accounts, sync, the React web app and PWA ✅ |
-| [Phase 7 — Screen Time](docs/03-Planning/Phase-7-Screen-Time.md) | Usage caps, interventions |
-| [Phase 8 — Social and Reach](docs/03-Planning/Phase-8-Social-and-Reach.md) | Rankings, iOS |
+| [Phase 7 — Privacy and Currencies](docs/03-Planning/Phase-7-Privacy-and-Currencies.md) | Everything sealed before it syncs, no trail of where I am, a passphrase first, every currency |
+| [Phase 8 — Screen Time](docs/03-Planning/Phase-8-Screen-Time.md) | Usage caps, interventions |
+| [Phase 9 — Social and Reach](docs/03-Planning/Phase-9-Social-and-Reach.md) | Rankings, iOS |
 
 ### Checkpoints
 

@@ -75,7 +75,7 @@ lib/
 └── main.dart
 ```
 
-There is no `screentime/` yet: it is [[Phase-7-Screen-Time]]
+There is no `screentime/` yet: it is [[Phase-8-Screen-Time]]
 ([[Audit-v2]] D3-13).
 
 Every feature folder repeats the same `domain/ data/ presentation/` trio. Cross-feature communication goes through domain services (e.g., any check-in calls the gamification service), never by importing another feature's presentation layer.

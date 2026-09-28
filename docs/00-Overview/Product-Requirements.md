@@ -63,7 +63,7 @@ milestones in the [[Roadmap]] ([[Audit-v2]] D3-15).
 ## 7. Later (post-V1)
 
 - **Rankings and guilds** on top of the sync server —
-  [[Phase-8-Social-and-Reach]]
+  [[Phase-9-Social-and-Reach]]
 - **Social guilds:** 2–5 person accountability groups with anonymous streak visibility
 - **Soundscapes:** unlockable ambient nature audio for focus sessions
 - **Insights coach:** weekly personalized summaries correlating sleep, screen and spending data

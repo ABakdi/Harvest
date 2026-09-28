@@ -78,11 +78,11 @@ than only on Sundays:
 What the first version of this page promised and neither client
 builds: sharing the card, streak status and closest calls, average
 sleep against the target, and the most-used app category (which waits
-on [[Phase-7-Screen-Time]]).
+on [[Phase-8-Screen-Time]]).
 
 ## Home-screen widget ✅ ([[Checkpoint-3]])
 
-Shipped early, out of [[Phase-8-Social-and-Reach]]: nothing about a
+Shipped early, out of [[Phase-9-Social-and-Reach]]: nothing about a
 widget needs a sync server.
 
 A **bar, not a tile** — four cells wide, one header row, resizable both
@@ -131,6 +131,6 @@ painter with no assets, and it never causes the wait — the screen leaves
 when the tree has grown *and* startup has landed, and with reduce-motion
 on the tree is simply there.
 
-## Web dashboard (later, with [[Phase-8-Social-and-Reach]])
+## Web dashboard (later, with [[Phase-9-Social-and-Reach]])
 
 "The Field" as a bird's-eye grid, with keyboard-shortcut quick-log for desk time.
