@@ -218,6 +218,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Checkpoint 8](docs/05-Checkpoints/Checkpoint-8.md) | The day's steps written down at 3 AM, and an expense on the day it belongs to |
 | [Checkpoint 9](docs/05-Checkpoints/Checkpoint-9.md) | The Wishlist, the web writing everything the phone writes, and a deployment I can run |
 | [Checkpoint 10](docs/05-Checkpoints/Checkpoint-10.md) | The sync PIN, the phone layout on the web, and audit 5 |
+| [Checkpoint 11](docs/05-Checkpoints/Checkpoint-11.md) | A PIN the server checks, sync under a real account, and audit 6 |
 
 ### Audit
 
@@ -231,6 +232,7 @@ Start at the [vault home](docs/Home.md) or jump straight in below.
 | [Audit 3 — v2.0.0](docs/06-Audit/Audit-v2.md) | What changed since audit 2, the screens of the new half, the specs against the code, and the deferred list |
 | [Audit 4 — v3 beta, by hand](docs/06-Audit/Audit-v3-Beta.md) | The phone on the emulator and the web as deployed, used screen by screen |
 | [Audit 5 — v3.0.0](docs/06-Audit/Audit-v3.md) | The fifth: security, quality and gaps, all fixed |
+| [Audit 6 — v3.1](docs/06-Audit/Audit-v3.1.md) | The sixth: security, quality and performance on a seeded account, and the phone and the web by hand |
 
 ### Decisions
 

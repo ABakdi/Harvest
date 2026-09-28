@@ -36,6 +36,9 @@ sync, and render in well under a second on a phone.
   `start_url: /app`.
 - A **service worker** (Workbox, via `vite-plugin-pwa`):
   - the app shell is precached, so `/app` opens with no connection;
+    the two heavy parts few visits open, the map and the full exercise
+    catalogue, are not installed up front but kept the first time they
+    are fetched;
   - updates install in the background, and a small toast offers
     *Reload to update*;
   - it never caches API responses, because the data is in IndexedDB
@@ -50,12 +53,23 @@ sync, and render in well under a second on a phone.
 
 ## The app
 
-Everything under `/app` is the app, laid out like the phone but for a
-wide screen:
-- a rail on the left: Field, Body, Records, Granary, Farmer;
-- the screen in the middle;
-- on wide windows, a detail panel on the right. A seed, a note or an
-  expense opens beside the list rather than over it.
+Everything under `/app` is the app, and it needs an account: the
+browser keeps a copy of the field, but the local-first app is the
+phone's. The public pages and the sign-in page say so, and that the
+Android app works without one.
+
+On a wide window it is laid out like the phone but for a wide screen:
+- a rail on the left with the phone's tabs in the phone's order —
+  Field, Granary, Records, Body, Farmer — and Settings at its foot;
+- the screen in the middle. Notes open beside their list; a seed, a
+  goal or a program opens as its own page, and an expense in a dialog.
+
+Below 768 px it *is* the phone's layout: the bottom bar with the same
+tabs, the account circle and the tab's title in the app bar (a back
+arrow on a screen pushed over a tab), the tab row under it, the
+screen's main action floating above the bar, and forms as bottom
+sheets. The bar and the floating action step aside while the on-screen
+keyboard is up.
 
 **Keyboard first.**
 - `N` new seed, `E` expense, `/` search, `G` then `F`/`B`/`R`/`M`/`P`

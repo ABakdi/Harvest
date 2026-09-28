@@ -107,9 +107,10 @@ A synced row travels as a **record**:
   the assist's provider and base URL and the map's style URL among
   them. Nothing current sends those any more (a synced row must not
   decide where a device sends its key or asks for its map), but a
-  3.0.0 phone still does, so the server stores them rather than answer
-  `invalid` for ever (`legacySettingPrefixes`). Current clients never
-  push them and never apply them from a pull.
+  3.0.0 phone still does, so the server answers them `applied` rather
+  than `invalid` for ever (`legacySettingPrefixes`), and keeps none of
+  them: a hostile value never sits in the account. Current clients
+  never push them.
 - **Not synced**: the outbox itself, the bundled exercise catalogue
   ([[Business-Rules]] #14) — only my custom exercises travel, in `exercises` —
   and any setting outside the import allow-list. The allow-list is the
@@ -128,8 +129,24 @@ lands.
 `POST /v1/sync/push`
 
 ```json
-{ "deviceId": "…", "records": [ … up to 500 … ] }
+{ "deviceId": "…", "keyEpoch": 1, "records": [ … up to 500 … ] }
 ```
+
+A batch is at most 500 records and at most **4 MB** of JSON
+(`maxPushBytes`): a client fills a batch until the next record would
+take it past that. The server's own body limit is 5 MB (nginx's 6 MB);
+a body over it is refused whole with **413 `payload_too_large`**, and
+the client halves the batch. A single record too large for any push is
+refused on the device itself, flagged like a refused row with the issue
+`too_large`, so it never holds every later change behind it. `keyEpoch`
+is required whenever the batch has a sealed record (the sync key,
+below); a sealed record refused with `key_changed` stays queued on the
+device, which forgets its key, says the PIN was changed on another
+device, and sends it again under the new key once the PIN is entered.
+The web runs one sync at a time across all its tabs (a browser-wide
+lock), reads the outbox once per run, and applies a pull page in one
+transaction over only the tables it touches, reading the page's local
+rows and pending changes in bulk.
 
 For each record, keyed by `(user, table, uuid)`:
 - **No stored copy** → store it.
@@ -142,7 +159,13 @@ Every stored write takes the next value of the user's **sequence**, a
 per-user counter incremented atomically. Pushes for one account are
 applied one at a time, so a pull can never step over a sequence number
 still being written; the lock lives in the server process, which is
-right for one instance and must move into MongoDB before there are two. The answer:
+right for one instance and must move into MongoDB before there are two.
+The lock is taken once the body has arrived, and the account is checked
+again under it: a push that was still on its way when the account was
+deleted writes nothing (401). A batch is applied in one go — one read
+of the stored clocks, one sequence range in the batch's order, one
+ordered bulk write — and a row sent twice in one batch is judged
+against its own earlier copy, as one by one. The answer:
 
 ```json
 { "results": [ { "table": "…", "uuid": "…", "status": "applied" | "stale" | "invalid", "issues": [ … ] } ], "cursor": 1834 }
@@ -181,7 +204,7 @@ before it was kept has it filled in from its rows the first time.
 
 ## Pull
 
-`GET /v1/sync/pull?after=<seq>&limit=<1..1000>`
+`GET /v1/sync/pull?after=<seq>&limit=<1..1000>&deviceId=<id>`
 
 ```json
 { "records": [ { …record…, "seq": 1835 } ], "cursor": 1900, "more": false }
@@ -197,6 +220,17 @@ the page. The client merges each one by the same rule as the server:
 
 A purged record hard-deletes locally. The client then stores `cursor`
 and pulls again while `more` is true.
+
+**A device's own writes do not come back.** With `deviceId`, the pull
+leaves out what that device pushed itself and still moves `cursor` past
+it, so `cursor` can be past the last record (and a page can be empty
+with `more: true`). A device rebuilding its store from nothing (after
+`after=0` because its store was lost or wiped) leaves `deviceId` out and
+gets its own writes back.
+
+Every `/v1` answer carries `Cache-Control: no-store` (the release proxy
+alone may be cached), so nothing pulled is left in a browser's disk
+cache, and sign-out answers with `Clear-Site-Data: "cache"`.
 
 **Merging never writes to the local outbox.** A pulled row is not a
 new change, and echoing it back would loop.
@@ -245,7 +279,7 @@ is one file on the server and travels once:
 | Route | What it does |
 | :--- | :--- |
 | `POST /v1/files/missing` | Takes up to 500 hashes and answers with the ones the account does not have, plus what it is using and what it may use. Nothing is uploaded before this asks. |
-| `PUT /v1/files/<sha256>` | The bytes, sealed with the private tier's key, as `application/octet-stream`. The nonce travels in `x-harvest-iv` and the plaintext's length in `x-harvest-plain-bytes`. 201 when it was stored, 200 with `had: true` when the server already had it. |
+| `PUT /v1/files/<sha256>` | The bytes, sealed with the private tier's key, as `application/octet-stream`. The nonce travels in `x-harvest-iv`, the plaintext's length in `x-harvest-plain-bytes`, and the key epoch it was sealed under in `x-harvest-key-epoch` (409 `key_changed` when it is not the account's). 201 when it was stored, 200 with `had: true` when the server already had it. |
 | `GET /v1/files/<sha256>` | The bytes back, with the same two headers. |
 | `DELETE /v1/files/<sha256>` | Lets the file go and gives its room back, by the sweep's rule (below): **409** `conflict` while a row, live or in the trash, still names it, or within 30 days of its upload or of a `missing` answer that said the server has it — the sweep lets it go later. Otherwise 204, whether or not the account had it. |
 
@@ -253,6 +287,22 @@ is one file on the server and travels once:
   the answer is `quota_exceeded` (507). The room is charged on the
   account's counter before the bytes are stored, in one atomic step, so
   two uploads at once cannot both take the last of it.
+- **The bytes live in GridFS** (the `file_blobs` bucket), in chunks of
+  255 KB, beside a small document per file. A MongoDB document stops at
+  16 MB and a file may be 25, and a download goes out as a stream, a
+  chunk at a time, instead of whole in memory. A file stored before
+  that keeps its bytes in its document and is read from there.
+- An upload that was still arriving when its account was deleted
+  stores nothing (401).
+- **A file that keeps failing to go waits.** The browser tries it
+  again after a minute, then after twice as long each time, up to an
+  hour; after three failures the gallery says some pictures could not
+  be sent. A file that reaches the server is forgotten by that count.
+- **A file opened in the browser is only ever a picture, a clip or a
+  recording.** Its type comes from its first bytes (JPEG, PNG, WebP,
+  GIF, HEIC, MP4, QuickTime, WebM, Ogg, WAV, MP3, M4A); anything else
+  is kept untyped, so a file that holds a page or an SVG never runs as
+  the app.
 - **Files no row names are let go.** Once a day the server looks at
   each account's `memories` and `note_attachments` rows — the only rows
   that name a file, and plain tier, so their `fileHash` is readable —
@@ -286,43 +336,77 @@ The private tier's key is mixed from the PIN and a **key share** the
 server holds for each account ([[Accounts]]): 32 random bytes, made the
 first time they are asked for, and stored sealed (AES-256-GCM, the
 additional data `key-share/<user id>`) under `KEY_SHARE_KEY`, a key
-that lives in the server's environment and never in the database. A
-copy of the database alone therefore holds the salt and the ciphertexts
-but not the share, and cannot be used to try PINs. The schemas are in
-`packages/contracts` `sync-key.ts`.
+that lives in the server's environment and never in the database. The
+schemas are in `packages/contracts` `sync-key.ts`; the derivations in
+`crypto.ts`, pinned by `fixtures/crypto-v2.json`:
+
+    base  = PBKDF2-HMAC-SHA256(secret, syncSalt, 600,000, 32 bytes)
+    proof = HKDF-SHA256(base, salt = empty, info = "harvest/sync-pin-proof/v1", 32 bytes)
+    key   = HKDF-SHA256(base, salt = keyShare, info = "harvest/sync-key/v2", 32 bytes)
+
+**Once a PIN is set, the share leaves the server only for a device that
+proves the PIN, online.** The first device stores the *verifier*, the
+SHA-256 of its proof; the server seals it like the share (additional
+data `pin-verifier/<user id>`). A later device sends its proof, and the
+server hands out the share only when the proof's SHA-256 is the
+verifier. Wrong proofs are counted in the database per account: **5 in
+15 minutes and 20 in a day**; a right one starts the short count again.
+Nothing the server hands out before a right proof lets anyone try PINs
+offline, so a stolen session gets a handful of guesses, not a million.
 
 | Route | What it does |
 | :--- | :--- |
-| `GET /v1/me/sync-key` | `{ "salt": "…", "keyShare": "<base64, 32 bytes>", "check": <envelope> \| null }`. `check` is null until a device has chosen the PIN. |
+| `GET /v1/me/sync-key` | `{ "state": "none" \| "set", "salt": "…", "epoch": 1 }`. While `state` is `none` it also carries `"keyShare"` (base64, 32 bytes): nothing is protected yet, and the first device needs it to choose. It never carries the check or the verifier. |
+| `POST /v1/me/sync-key/unlock` | Body `{ "proof": "<base64, 32 bytes>" }`. **200** `{ "keyShare", "check", "epoch" }` for the right PIN; **403** `{ "error": { "code": "wrong_pin", … }, "triesLeft": 3 }` for a wrong one; **429** with `Retry-After` past the limit; **409** `conflict` while no PIN is set (choose instead). |
+| `PUT /v1/me/sync-key` | Body `{ "verifier": "<hex SHA-256 of the proof>", "check": <envelope> }`, only while no PIN is set. **201** `{ "epoch" }` (the same pair again, a retry, is 201 too); **409** `conflict` when another device chose first. |
 | `DELETE /v1/me/sync-key` | Body `{ "password": "…" }`. Starts the private tier over (below). **204**; **403** `forbidden` for a wrong password. |
-| `PUT /v1/me/sync-key/check` | Body `{ "check": <envelope> }`. **201** `{ "check" }` when the account had none (or had this very one: a retry); **409** `{ "error": { "code": "conflict", … }, "check": <the stored one> }` when another device chose first. |
 
 - The check is a version 2 envelope (`v: 2`, a 12-byte nonce, at most
   256 characters of `ct`) sealing the text `harvest-key-check` with the
-  additional data `key-check`. The server keeps it and cannot open it.
-- **The server decides whether a device chooses or enters.** With no
-  check stored, the device chooses (the PIN typed twice) and stores its
-  check before it seals anything; the first device wins, and a device
-  that loses the race verifies its PIN against the check it got back.
-  With a check stored, a PIN is accepted only if its key opens it.
+  additional data `key-check`. The server keeps it and cannot open it; a
+  device opens it after unlocking, to be sure of its key.
+- **Choosing.** `GET` says `none`: the device derives the key and the
+  proof from the PIN typed twice, seals the check, and `PUT`s the
+  verifier and the check before it seals anything. On a 409 another
+  device chose first, and it unlocks with the same PIN instead; if that
+  is refused, it says a PIN was chosen elsewhere.
+- **Entering.** `GET` says `set`: the device sends its proof to
+  `unlock`, and with the share it derives the key.
 - The routes need a verified account, and share a limit of 60 requests
-  per account per 15 minutes. The share and the check go with the
-  account.
+  per account per 15 minutes (the unlock count comes on top). All of it
+  goes with the account.
+
+**The key epoch** names the key the private tier is under: 1, and one
+more with every start over. Every sealed write says which one it was
+made under:
+
+- a push carries `keyEpoch` whenever it has an `enc` record; with any
+  other epoch (or none), every sealed record comes back `invalid` with
+  the issue code `key_changed`, and the plain ones still land;
+- a file upload carries the header `x-harvest-key-epoch`; with any
+  other (or none) the answer is **409 `key_changed`** and nothing is
+  stored, not even as "held".
+
+So nothing is ever stored under a key the account no longer has. A
+device that meets `key_changed` drops its key, says the PIN was changed
+on another device, and asks for it again. The epoch in `GET` is also the
+cheap way to notice before a sealed push.
+
 - **Starting over** (a forgotten PIN, or changing it) asks for the
   account's password, counted with the same 5 wrong ones per 15 minutes
   as deleting the account, and runs under the account's lock. It drops
-  the key check, the key share, every row of a private table and every
-  file, and leaves the plain tier alone. The share is made anew on the
-  next `GET`, so nothing sealed before can be opened again, even with
-  the old PIN. The private rows are deleted outright, with no
-  tombstone: a pull never hands them out again, whatever the cursor,
-  and there is nothing for a device to merge. The byte totals are
-  filled in again from what is left.
-- **How a device learns of it**: the check or the key share it knows is
-  not the one `GET /v1/me/sync-key` answers any more (null, or
-  another). Its key is then the old one: it drops it and asks for the
-  PIN as on a new device, and whatever private rows and files it still
-  holds it sends again under the new key.
+  the verifier, the check, the key share, the wrong-PIN count, every
+  row of a private table and every file, moves the epoch on, and leaves
+  the plain tier alone. The share is made anew on the next `GET`, so
+  nothing sealed before can be opened again, even with the old PIN. The
+  private rows are deleted outright, with no tombstone: a pull never
+  hands them out again, whatever the cursor. The byte totals are filled
+  in again from what is left.
+- **How a device learns of it**: the epoch `GET /v1/me/sync-key`
+  answers is not the one it holds its key under (or a sealed write comes
+  back `key_changed`). It drops the key and asks for the PIN as on a new
+  device, and whatever private rows and files it still holds it sends
+  again under the new key.
 
 ## What the server can see
 
@@ -345,7 +429,9 @@ Every limit answers `rate_limited` (429) with `Retry-After`.
 | What | Limit | Keyed by |
 | :--- | :--- | :--- |
 | Sign-in failures | 5 per 15 minutes | address |
-| Sign-in failures | 20 per hour, stored in MongoDB so a restart does not reset them | email (hashed; an address with no account counts the same) |
+| Sign-in failures | 20 per hour, stored in MongoDB so a restart does not reset them | email and network (/24 for IPv4, /48 for IPv6), hashed: one machine can only lock an email out for itself |
+| Sign-in failures | 200 per hour, the ceiling from everywhere together | email (hashed; an address with no account counts the same) |
+| Reset and verification mails | 3 per hour and 10 per day to one address; past it nothing is sent and the answer is still 202 | recipient (hashed) |
 | Sign-up | 5 per hour (a body that did not parse does not count) | address |
 | Other `/v1/auth` routes that hash or mail | 30 per 15 minutes | address |
 | Refresh | 120 per 15 minutes | address |
@@ -353,11 +439,30 @@ Every limit answers `rate_limited` (429) with `Retry-After`.
 | `/v1/sync` | 120 per minute | account |
 | `/v1/files` | 300 per minute | account |
 | `/v1/me/sync-key` | 60 per 15 minutes | account |
+| Wrong PINs on `POST /v1/me/sync-key/unlock` | 5 per 15 minutes and 20 per day, in MongoDB; a right one starts the 15 minutes again | account |
 | The server assist | 50 per account and 1,000 for the whole server per UTC day (`ASSIST_DAILY_LIMIT`, `ASSIST_GLOBAL_DAILY_LIMIT`) | account, server |
 
 Password hashing (argon2id, 19 MiB each) runs at most four at a time
 across sign-up, sign-in, reset and deleting the account, with at most
 64 waiting; past that the answer is 429 and `Retry-After: 5`.
+
+Nothing waits for ever. A push, an upload, a file delete or deleting
+the account waits at most 30 seconds for the one before it on the same
+account; past that the answer is 429 and `Retry-After: 5`, which the
+clients already wait out. One database operation may take 30 seconds
+(a download's reads, 30 seconds each batch of chunks). The server
+assist gives the model a minute for the whole answer, then ends the
+stream with `{"error":"unavailable"}`; it stops reading the model as
+soon as the caller goes away.
+
+A right password, and a password reset, clear every sign-in count of
+the email. "Forgot password" and "resend" answer 202 before they look
+anything up, and do the work after, so an address with an account is
+not slower to answer than one without.
+
+Signing out with a refresh token ends the session only when it is the
+current token, or one exchanged within the last 30 seconds: an old one
+from a log or a backup does nothing.
 
 Bodies are read only once the caller is known, and only as large as the
 route needs: 16 kB for `/v1/auth`, `/v1/me` and the sync key, 64 kB for

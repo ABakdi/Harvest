@@ -1,6 +1,15 @@
 # Duolingo — Style Reference
 > Green playground with thick marker outlines
 
+> [!note] How I use this page
+> This is a reference I borrow from, not Harvest's rulebook. Harvest keeps
+> its playful, rounded, green-first feel, but departs from two rules below
+> on purpose, on the phone and the web alike: the primary action (the
+> floating button, the streak card, the brand buttons) is a soft
+> gradient, and floating things — the action button, sheets, toasts —
+> carry a soft shadow so they read as lifted. Harvest's own tokens live in
+> `apps/mobile/lib/core/ui/tokens.dart` and `apps/web/src/index.css`.
+
 **Theme:** light
 
 Duolingo is a playful, gamified language-learning canvas: a white background dominated by a single saturated brand green that fills primary actions, with thick, colorful borders giving every interactive element a tactile, pressable quality. The interface pairs a friendly rounded sans-serif for body, nav, and links with a heavy display face for oversized feature headlines, creating a contrast between approachable daily-use type and confident, exclamation-point section headers. Color appears sparingly but decisively — green for primary actions and headings, blue for secondary highlights, and a lighter lime green used extensively as a link/button border for an outlined, glowing treatment. The visual mood is warm, educational, and game-like, with cartoon character illustrations that humanize every product surface.

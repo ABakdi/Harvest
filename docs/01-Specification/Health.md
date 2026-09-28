@@ -204,7 +204,7 @@ that is a different app and I am not writing it.
 | H1 | Health is off until switched on; permissions are asked at that moment, never at first launch. |
 | H2 | Steps come from the phone's own health store (Health Connect) where there is one, and from the step counter sensor where there is not. No account, no network, no third party ([[Checkpoint-6]]). |
 | H3 | Steps are passive: they never check a seed in and never break a streak. |
-| H4 | Weight is stored in grams, integer. Units are a display choice. |
+| H4 | Weight is stored in grams, integer. Units are a display choice. A weight outside 20–400 kg is a typo and is refused, the target included (`isPlausibleBodyWeight` in `packages/core`, W6-15). |
 | H5 | The weight chart shows the trend, not just the dots — and never judges the direction. |
 | H6 | Sleep is written by hand, both ends. Nothing here is measured by the phone, and the +15 XP is paid for writing the night down, not for sleeping well. On the web the two ends are typed as clock times and read with the phone's slider ranges: asleep from 8 PM the evening before to 11 AM, awake up to 3 PM. Correcting a night keeps the target it was first judged against (#3). |
 | H7 | Sleep is not a seed: it checks nothing in, breaks no streak, and never appears on the field. |

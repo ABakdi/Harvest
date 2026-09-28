@@ -11,9 +11,12 @@ flowchart LR
     E --> F[🌱 Field ready]
 ```
 
-Five pages, and I can leave at any of them ([[Audit-v2]] D3-07):
+Five pages, and I can leave at any of them ([[Audit-v2]] D3-07); Back
+steps to the page before, and only leaves from the first:
 
-1. **Welcome:** seeds, water, harvest ([[Glossary]]).
+1. **Welcome:** seeds, water, harvest ([[Glossary]]), and the language
+   — the phone's may not be mine, so I can pick English or Arabic here
+   before reading anything else.
 2. **Templates:** five quick-start seeds — *Read More* (a project),
    *Get Fit*, *Learn a Language*, *Meditate* (three times a week),
    *Journal*. Reading and fitness are ticked to begin with; anything

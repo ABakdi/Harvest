@@ -11,8 +11,10 @@ the range's own ledger).
 
 **Insights reads one span** ([[Checkpoint-4]]): this week, this month,
 or any two dates I pick. Whichever it is, the dates are spelled out
-under the segments, and the per-day average divides by the days that
-have actually elapsed rather than the days in the span.
+under the segments (once — not again over the chart), and the per-day
+average divides by the days that have actually elapsed rather than the
+days in the span. A dinar average is rounded to whole dinars, as every
+other dinar amount is written (`averagePerDay` in `packages/core`).
 
 Every number is on the page, not implied by it: each bar carries its
 amount (the peak only, on a range too long to label every bar — and any
@@ -83,7 +85,7 @@ the **custom categories** live together under Settings › Money.
 ## Quick-log
 
 The whole point is a **sub-5-second log**:
-- **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]]). The rule lives once, in `packages/core`, and a fixture both the phone and the web are tested against pins it
+- **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]]). The rule lives once, in `packages/core`, and a fixture both the phone and the web are tested against pins it. Every amount box on the phone — the expense, the wallet, savings, a debt and the budget — has the same keypad, `+` included, so a sum can be typed and not only pasted (U6-10). An amount above 1,000,000,000 in minor units of its currency (DA10,000,000, €10,000,000) is asked about before it is saved: likelier a slipped finger than a purchase, and it would swamp every total (`isPlausibleAmount`, W6-15)
 - **Logged on** — today unless I say otherwise; a chip takes any day a year either side, for the receipt found in a pocket or the bill I know is coming. The day's +10 follows the day the expense lands on ([[Checkpoint-8]]); a day still to come earns nothing yet, so a year of bills logged ahead cannot mint a year of XP today ([[Audit-v3]] Q5-67)
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note

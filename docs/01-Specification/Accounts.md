@@ -32,11 +32,14 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
   of addresses, sign-up allows five attempts an hour from one address,
   far fewer than anything else.
 - **Sign in**: email and password. Five failures from one address in
-  15 minutes rate-limit that address, and twenty failures for one email
-  in an hour, from anywhere, rate-limit that email for the rest of the
-  hour (counted in the database, so a restart does not reset them, and
-  counted the same for an address with no account). The answer never
-  says whether the email exists.
+  15 minutes rate-limit that address. Twenty failures for one email in
+  an hour from one network (the /24 or /48 around the address)
+  rate-limit that email *from that network* for the rest of the hour,
+  so whoever guesses at my address locks only themselves out; two
+  hundred from everywhere together rate-limit it everywhere. The counts
+  live in the database, so a restart does not reset them, count the
+  same for an address with no account, and go the moment I sign in or
+  reset the password. The answer never says whether the email exists.
 - **Stay signed in**: a short access token and a rotating refresh
   token. Using a refresh token twice (theft, or a bug) revokes the
   whole family, and every device of that family must sign in again —
@@ -46,10 +49,17 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
   thief. A refresh that fails for any reason but the session (the
   database away for a moment) leaves the web's cookie where it was.
 - **Forgot password**: an email with a one-hour, single-use link.
-  Resetting the password signs out every device.
+  Resetting the password signs out every device. "Forgot" and "resend
+  the link" answer at once, the same for every address, and do the work
+  after; one address gets at most three such emails an hour and ten a
+  day, whoever asks, and past that nothing is sent. Signing a device
+  out takes its current refresh token: an old one found in a log does
+  nothing.
 - **Devices**: a list of signed-in sessions (the device name the client
-  gave, first and last seen), each with *Sign out*. The current one is
-  marked.
+  gave, first and last seen), each with *Sign out*, asked first and
+  said once it is done. The current one is marked. With two or more
+  others, *Sign out all other devices* ends them together; a list that
+  could not be read offers *Try again*.
 - **Sync PIN**: set once, on the first device, to encrypt the private
   tier — money, places, and the pictures and recordings. A **PIN of 4
   to 6 digits** (the screen suggests 6), or, for whoever wants more, a
@@ -62,16 +72,19 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
   plainly, twice. It is changed only by starting over (below): the
   server keeps a file under its hash and cannot re-seal it in place, so
   a new PIN means the files, like the rows, are sent again.
-  - **Choose or enter: the server says which.** The account keeps a
-    *key check* on the server: a short text sealed with the key, which
-    the server stores and cannot open. While there is none, the device
-    *chooses* the PIN, typed twice, and stores its check before it seals
-    anything; the first device to do so wins, and one that chose at the
-    same moment is checked against the winner's. Once there is one,
-    every other device *enters* the PIN, once, and it is accepted only
-    if it opens the check. A wrong PIN is refused on the spot — *"That
-    isn't the PIN your other devices use"* — and nothing is kept or
-    sealed with it. What a device has or has not pulled yet plays no
+  - **Choose or enter: the server says which.** While no PIN is set,
+    the device *chooses* one, typed twice, and stores two things before
+    it seals anything: a *key check* (a short text sealed with the key,
+    which the server cannot open) and a *verifier* (a hash of a proof
+    drawn from the PIN, which is not the key). The first device to do so
+    wins; one that chose at the same moment enters its PIN instead. Once
+    a PIN is set, every other device *enters* it, once, and **the server
+    checks it**: the device sends its proof, and only a proof that
+    matches the verifier gets the key share back. A wrong PIN is refused
+    on the spot — *"That isn't the PIN your other devices use"* — and
+    nothing is kept or sealed with it. Five wrong PINs in a quarter of
+    an hour, or twenty in a day, and the account waits before it may
+    try again. What a device has or has not pulled yet plays no
     part, so a new phone or a fresh browser never offers to choose a
     second PIN.
   - **A row that won't open is locked, not fatal.** A key that passed
@@ -97,9 +110,12 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
     the PIN tile while I still have it; both say plainly what goes and
     ask for the password first, and then every private row and file
     on the phone goes up again under the new PIN.
-  - **Changed on another device.** A device whose key no longer opens
-    the account's check — held against it now and then, before
-    anything private is sent, and when rows stop opening — forgets the
+  - **Changed on another device.** Every start over moves the account's
+    *key epoch* on, and every sealed row and file a device sends says
+    which epoch its key belongs to; the server refuses one sealed under
+    an old key, so nothing is ever stored under a key the account no
+    longer has. A device that finds it is behind — on a refusal, or by
+    comparing the epoch before it sends anything private — forgets the
     key, says *"Your PIN was changed on another device"*, and asks for
     the new one; once it is entered, what that device holds goes up
     again under it.
@@ -109,13 +125,17 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
   - **What a PIN costs.** The key is PBKDF2-SHA256 over 600,000 rounds
     with the account's salt, then mixed (HKDF) with the account's *key
     share*: 32 random bytes the server keeps sealed under a key of its
-    own, outside the database, and hands only to a signed-in, verified
-    session ([[Sync-API]]). A copy of the database or a backup alone is
-    therefore not enough to try PINs; someone who has the server's
-    environment too still could, since a PIN has at most a million
-    values. It keeps the private tier unreadable to a leaked backup,
-    not to whoever holds the whole server; a passphrase holds against
-    that too. On a server I run myself, that is the trade I choose —
+    own, outside the database ([[Sync-API]]). Once a PIN is set, the
+    share leaves the server only for a device that proves the PIN, with
+    five tries a quarter of an hour and twenty a day. So **a stolen
+    session** — a phone's token, a browser someone else sat at — can
+    try a handful of PINs, not all million, and nothing the server hands
+    it before a right PIN lets anyone try more at leisure. **A copy of
+    the database or a backup** holds the share and the verifier only
+    sealed, under a key it does not hold, so it opens nothing either.
+    What remains is **whoever holds the whole server**, the database
+    and its environment together: they could try every PIN, since a PIN
+    has at most a million values. A passphrase holds against that too. On a server I run myself, that is the trade I choose —
     and the screen offers the passphrase to anyone who doesn't.
 - **Delete account**: requires the password. It deletes every record,
   every token and the user at once, and then signs out everywhere. The
@@ -129,14 +149,32 @@ It holds nothing else: no phone number, no birthday, no avatar upload.
 
 **The account circle**, top-left on every tab, is the account at a
 glance: my initial when signed in, a plain person when not, with a
-small mark for the sync state — green when everything has gone up,
-amber while something waits, grey offline, red on an error, and a dot
+small mark for the sync state — green with a tick when everything has
+gone up, amber with an arrow while something waits, grey with a slash
+offline, red with a "!" on an error (a shape each, never the colour
+alone), and a dot
 when the sync PIN is still to set. A tap opens a sheet with the
 account's email, *online* or *offline*, the last sync and what is
 still waiting, *Sync now*, the PIN (set it, change it, or forget it
 on this device), the signed-in
 devices, and *Sign out* — or, signed out, *Sign in* and *Create
 account*. The full account page stays in Settings.
+
+**Signing in on a phone that already has data.** Things made on the
+phone before signing in are not sent into the account on their own: the
+first question after signing in is whether to *bring this phone's data
+into the account*, or to *start from the account's data* — in which case
+the phone's data is first saved as an archive in Downloads and then
+replaced by the account's, so nothing is lost and nothing is doubled.
+Nothing syncs until one is chosen. Creating a new account asks nothing:
+it has no data of its own for the phone's to double. The first page of the onboarding
+offers *I already have an account*, which signs in before any template
+seed is planted. The account's server must be `https://`; plain
+`http://` is refused, except to the phone itself or the emulator's host
+(`localhost`, `127.0.0.1`, `10.0.2.2`), and the same holds for the
+assist's own address. The account password, when a prompt asks for it
+(deleting the account, starting the PIN over), is typed hidden, with no
+suggestions, correction or capital letters.
 
 Settings gains **Account** (before *My data*):
 - **Signed out:** *Sign in* and *Create account*, with one paragraph on
@@ -157,8 +195,13 @@ server's key check too: it chooses the PIN only while the account has
 none, refuses a wrong one on the spot, offers *Forgot the PIN? Start
 over* when entering, and notices a PIN changed on another device. A
 session the server says is gone (a refused refresh) takes this
-browser's copy of the account with it; a server that cannot be reached
-does not. The
+browser's copy of the account with it, drafts included; a server that
+cannot be reached does not. Signing out while offline is remembered:
+this browser never picks that session up again on its own, and tells
+the server as soon as it can, since only the server can end a session
+whose cookie a page cannot touch. Every tab of the browser shares the
+key: one that keeps or forgets it tells the others, and none ever wipes
+a newer key another tab kept. Only one tab syncs at a time. The
 browser does not stop me with a dialog after signing in: the circle's
 dot says the PIN is missing, and the Granary and the pictures ask for
 it where it is needed. The PIN is written with the digits 0–9 on

@@ -38,7 +38,7 @@ the first rank. That merge is what freed the slot the body needed
 
 ## The Field (home screen)
 
-The main screen is **today's field**: every commitment due today as a crop card, ordered by urgency, with the Global Streak flame and XP bar always visible up top.
+The main screen is **today's field**: every commitment due today as a crop card, ordered by urgency, with the Global Streak flame and XP bar always visible up top. Under the XP bar a line says how far today is toward the Daily Harvest Goal — *1 of 3 actions today*, then *the goal is met* — because it is the only thing that moves the streak, and a flame still at 0 after a check-in otherwise looks broken. The streak sheet says the same, with why the flame is where it is.
 
 - A card shows what the seed asks of me, its **note**, **today's note** if I wrote one, and a live countdown to its **reminder** and its **deadline** ([[Checkpoint-3]]).
 - Tap a card → check-in ([[Productivity-Engine]]).
@@ -113,9 +113,11 @@ scrolling collections ([[Checkpoint-3]]).
 The switches live in Settings → My data (a page of its own since [[Checkpoint-7]]). Everything is computed **from
 the database** with the same `isDueOn` rule the field uses, so it is
 right when no screen exists — refreshed at startup, after every
-check-in and seed edit, on resume, and by the 3 AM job. The service
-writes every number whatever the switches say; the widget decides what
-to show, so turning a section on is a redraw rather than a recompute.
+check-in and seed edit, on resume, and by the 3 AM job. What the
+widget shows is written to a file outside the encrypted database, so
+what it does not show is not written either: no money while the money
+section is off or the app lock is armed, and no task titles while the
+lock is armed.
 
 Still to come: the medium **"Vitality"** widget — four mini-gauges
 (tasks X/Y, sleep hrs, screen X/cap, spent X/limit) — once the pillars

@@ -63,11 +63,13 @@ on the server unreadable, for good** — expenses, debts and places
 stay on the devices, but no new device can open what the server holds.
 So:
 
-- back up `deploy/.env` **together with** the database volume, every
-  time: one without the other is not a backup;
-- encrypt both backups. A backup of the volume and `.env` together is
-  as good as the server, and a backup file is the likeliest thing to
-  leak;
+- back up `deploy/.env` every time the database volume is backed up:
+  one without the other cannot be restored;
+- but **keep them apart**: `.env` in another place, under another
+  encryption key, than the volume's backups. A backup of the volume and
+  `.env` side by side is as good as the server, and a backup file is
+  the likeliest thing to leak; kept apart, a leaked database backup
+  still holds no key share anyone can open;
 - never generate a new one for a server that already has accounts.
   The server refuses to hand out a share its key does not open rather
   than make a new one.
@@ -118,7 +120,7 @@ first, as `deploy.sh` does: start the old container as it was, run
 'harvest', pwd: …, roles: [{role: 'readWrite', db: 'harvest'}]})` in
 `mongosh` inside it, then `up -d` with the new file. The database lives
 in the `mongo-data` volume; that volume **and** `deploy/.env` are what
-get backed up, together and encrypted.
+get backed up, each encrypted, and kept apart (above).
 
 The rest of this note is the same thing taken apart, for a host that
 already has a database or a proxy of its own.
@@ -182,7 +184,10 @@ docker run -d --name harvest-mongo -v harvest-data:/data/db \
 # MONGO_URL=mongodb://harvest:…@harvest-mongo:27017/harvest?authSource=harvest
 ```
 
-**Back it up**, with `KEY_SHARE_KEY` beside it and both encrypted. The
+**Back it up**, encrypted, and `KEY_SHARE_KEY` too — in another place,
+under another key, never beside the database backup. File bytes live in
+the same database, in the GridFS bucket `file_blobs`, so one `mongodump`
+takes them along. The
 phone is the first copy and this is the second, but an account holding
 the only copy of a year of pictures is an account worth
 `mongodump`-ing on a schedule.

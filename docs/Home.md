@@ -67,6 +67,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-8]] — the day closes on its own
 - [[Checkpoint-9]] — the browser does what the phone does
 - [[Checkpoint-10]] — the sync PIN, the phone layout on the web, and audit 5
+- [[Checkpoint-11]] — a PIN the server checks, sync under a real account, and audit 6
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board
@@ -75,6 +76,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Audit-v2]] — the third audit, on v2.0.0: the new code, the screens, the specs against the code
 - [[Audit-v3-Beta]] — the fourth, by hand: the phone on the emulator and the web as deployed
 - [[Audit-v3]] — the fifth: security, quality and gaps, all fixed
+- [[Audit-v3.1]] — the sixth, on v3.1: security, quality and performance, and the phone and the web by hand
 
 ### ⚖️ Decisions (ADRs)
 - [[ADR-001-State-Management]] — Riverpod over Bloc

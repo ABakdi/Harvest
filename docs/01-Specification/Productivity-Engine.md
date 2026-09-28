@@ -68,6 +68,11 @@ what to pick up tomorrow.
   page 143*.
 - Today's note also appears on the seed's card, so the field itself can
   say where I left off.
+- Two devices that each write the day's note before they meet leave two
+  rows for one day. The newest write is the day's note (a tie goes to
+  the greater uuid, so every device picks the same), and the next save
+  folds the others into it. Both apps share the rule
+  (`packages/core/src/seed-notes.ts`).
 - The whole sequence is in the seed's history, and every note is in the
   spreadsheet export ([[Business-Rules]] #11).
 
