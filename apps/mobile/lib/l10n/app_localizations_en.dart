@@ -3402,7 +3402,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featurePlacesHint =>
-      'Where you went, and what you did there: a trail and a pin on every action. Nothing leaves the phone.';
+      'Where you went, and what you did there: a trail and a pin on every action. It syncs only encrypted, a day at a time, and the server never sees where.';
 
   @override
   String get placesDay => 'Day';
@@ -4798,7 +4798,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncPinForgetBody =>
-      'What is already here stays. Money, places and pictures from your other devices stay locked here, and new ones wait, until you enter the PIN again.';
+      'What is already here stays. What your other devices send stays locked here, and what you change here waits, until you enter the PIN again.';
 
   @override
   String get joinTitle => 'This phone already has data';

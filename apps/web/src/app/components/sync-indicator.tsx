@@ -3,6 +3,7 @@ import {
   CloudCheckIcon,
   CloudOffIcon,
   LoaderIcon,
+  KeyRoundIcon,
   LockIcon,
   MailWarningIcon,
   UserXIcon,
@@ -11,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useHarvest, useSyncStatus } from '../context';
+import { usePrivateKey } from '../hooks';
 import { useOnline } from './pin-state';
 import { useRelativeTime } from './relative-time';
 import { runAction } from '@/lib/actions';
@@ -22,10 +24,14 @@ export function SyncIndicator({ compact = false }: { compact?: boolean }) {
   const status = useSyncStatus();
   const ago = useRelativeTime(status.lastSyncedAt);
   // The browser's word that the network went counts at once (W6-02).
-  const phase = useOnline() ? status.phase : 'offline';
+  const online = useOnline();
+  const unlocked = usePrivateKey();
+  // Without the sync PIN nothing syncs since Phase 7: it never says "synced".
+  const phase = !online ? 'offline' : unlocked === false && status.phase === 'idle' ? 'waitingForPin' : status.phase;
 
   const view = {
     idle: { icon: CloudCheckIcon, label: status.lastSyncedAt ? t('sync.syncedAgo', { ago }) : t('sync.notYet') },
+    waitingForPin: { icon: KeyRoundIcon, label: t('sync.waitingForPin') },
     syncing: { icon: LoaderIcon, label: status.firstSync ? t('sync.firstSync') : t('sync.syncing') },
     offline: { icon: CloudOffIcon, label: t('sync.offline') },
     signedOut: { icon: UserXIcon, label: t('sync.signedOut') },

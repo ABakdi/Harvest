@@ -2238,7 +2238,8 @@
     "unreadable_two": "صفّان مشفّران تعذّر فتحهما",
     "unreadable_zero": "لا صفوف مشفّرة تعذّر فتحها",
     "unverified": "أكّد البريد للمزامنة",
-    "waiting": "تغييرات تنتظر: {{count}}."
+    "waiting": "تغييرات تنتظر: {{count}}.",
+    "waitingForPin": "بانتظار رمز المزامنة"
   },
   "syncPin": {
     "change": "تغيير الرمز",

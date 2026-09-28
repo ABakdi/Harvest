@@ -166,6 +166,14 @@ of a retired table. 409 `conflict` with no PIN set (nothing can have
 been sealed); 409 `key_changed` under an epoch that is not the
 account's. Asking again drops nothing more.
 
+Files sent before Phase 7 under their plain hash are not deleted by
+this call: no row names them once the rows are sealed with the new
+names, and the daily sweep lets them go 30 days after they were last
+sent or asked about — the grace every unnamed file gets, since a file
+uploaded a moment before its row cannot be told from one no row will
+ever name. For those 30 days the server still holds the old name of a
+picture it already had.
+
 ## Push
 
 `POST /v1/sync/push`

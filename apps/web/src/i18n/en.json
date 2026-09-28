@@ -1978,7 +1978,8 @@
     "unreadable_other": "{{count}} encrypted rows could not be opened",
     "unverified": "Verify email to sync",
     "waiting_one": "{{count}} change waiting.",
-    "waiting_other": "{{count}} changes waiting."
+    "waiting_other": "{{count}} changes waiting.",
+    "waitingForPin": "Waiting for your sync PIN"
   },
   "syncPin": {
     "change": "Change PIN",

@@ -3506,7 +3506,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get featurePlacesHint =>
-      'أين ذهبتَ وماذا فعلتَ هناك: مسار ودبوس على كل فعل. لا شيء يغادر الهاتف.';
+      'أين ذهبتَ وماذا فعلتَ هناك: مسار ودبوس على كل فعل. لا يُزامَن إلا مشفّرًا، يومًا يومًا، ولا يرى الخادم أين أبدًا.';
 
   @override
   String get placesDay => 'يوم';
@@ -4940,7 +4940,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncPinForgetBody =>
-      'ما هو هنا يبقى. المال والأماكن والصور القادمة من أجهزتك الأخرى تبقى مقفلة هنا، والجديد منها ينتظر، حتى تدخل الرمز مجددًا.';
+      'ما هو هنا يبقى. ما ترسله أجهزتك الأخرى يبقى مقفلًا هنا، وما تغيّره هنا ينتظر، حتى تدخل الرمز مجددًا.';
 
   @override
   String get joinTitle => 'على هذا الهاتف بيانات من قبل';
