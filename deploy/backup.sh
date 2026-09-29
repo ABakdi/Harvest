@@ -50,6 +50,8 @@ recipient="$(grep -E '^HARVEST_BACKUP_RECIPIENT=' "$ENV_FILE" | tail -n 1 | cut 
 
 umask 077
 mkdir -p "$DIR"
+# Only root lists it, whatever made it first.
+chmod 700 "$DIR"
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 out="$DIR/harvest-$stamp.archive.gz.age"
 partial="$out.partial"
