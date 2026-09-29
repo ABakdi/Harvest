@@ -508,6 +508,32 @@ site="$(render "$DEPLOY/nginx/harvest.https.conf")"
 site="${site//__WWW_REDIRECT__/$www_block}"
 write_site "$site"
 
+# ------------------------------------------------------------- backups
+
+# The nightly backup, installed with the site (Phase 7, M7.7): backup.sh
+# at 03:17 server time, encrypted to HARVEST_BACKUP_RECIPIENT before it
+# touches the disk, the newest 14 kept in /root/harvest-backups. Without
+# a recipient there is nothing it may write, so none is installed and
+# the run says so; an unencrypted backup is never the fallback.
+say "Nightly backups"
+BACKUP_CRON=/etc/cron.d/harvest-backup
+recipient="$(env_get HARVEST_BACKUP_RECIPIENT | tr -d '"'"'"' ')"
+if [[ "$recipient" == age1* ]]; then
+  command -v age >/dev/null || apt_install age
+  cat >"$BACKUP_CRON" <<CRON
+# Written by deploy/deploy.sh: Harvest's encrypted nightly backup.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+17 3 * * * root "$DEPLOY/backup.sh" --keep 14 >>/var/log/harvest-backup.log 2>&1
+CRON
+  chmod 644 "$BACKUP_CRON"
+  note "every night at 03:17, encrypted to ${recipient:0:12}…, into /root/harvest-backups (log: /var/log/harvest-backup.log)"
+else
+  rm -f "$BACKUP_CRON"
+  note "none: set HARVEST_BACKUP_RECIPIENT in deploy/.env to an age public key made on another machine"
+  note "      (age-keygen -o harvest.key, there), and run this again"
+fi
+
 # ------------------------------------------------------------- tidy up
 
 say "Keeping the last $KEEP_RELEASES builds"
@@ -533,5 +559,5 @@ fi
 say "Harvest $RELEASE is live at https://$DOMAIN"
 note "update: sudo deploy/deploy.sh          (it remembers the domain)"
 note "logs:   docker compose -f deploy/compose.server.yaml --env-file deploy/.env logs -f server"
-note "backup: the MongoDB volume harvest_mongo-data, and deploy/.env (its KEY_SHARE_KEY)"
-note "        kept apart from it, each encrypted — see docs/02-Architecture/Deployment.md"
+note "backup: nightly, encrypted (deploy/backup.sh); keep deploy/.env (its KEY_SHARE_KEY)"
+note "        apart from the backups, and the backup key off this server — see docs/02-Architecture/Deployment.md"

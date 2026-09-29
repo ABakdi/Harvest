@@ -58,7 +58,7 @@ Where I am today, for the record:
 
 ## M7.7 — The server's own data at rest
 
-- [ ] **Backups encrypted** (`age`, to a key that is not on the server) and kept off the server; `deploy.sh` makes them that way and the plain archives already in `/root/harvest-backups` are replaced.
+- [x] **Backups encrypted** (`age`, to a key that is not on the server) and kept off the server; `deploy.sh` makes them that way and the plain archives already in `/root/harvest-backups` are replaced.
 - [x] The database volume on an encrypted disk, or the host's encryption documented in [[Deployment]] as a requirement.
 - [x] **Email addresses**: looked up by a keyed hash, kept encrypted under a key from the server's environment for the mail that needs them; the display name sealed like a row. A copy of the database then holds no readable address.
 
@@ -81,10 +81,9 @@ Where I am today, for the record:
 `[x]` is built and tested; `[~]` was decided otherwise while building,
 for the reasons below. Still open:
 
-- **The backups on the server I run now**: `deploy/backup.sh` makes
-  encrypted ones, but the unencrypted dumps already in
-  `/root/harvest-backups` go only when it runs there with
-  `--purge-plain`, and it has not run on a real host yet.
+- ~~The backups on the server I run now~~ — done 2026-09-29: the old
+  unencrypted dumps and the copies of `.env` beside them are gone, and
+  `deploy.sh` installs the nightly encrypted backup.
 - **The audit by hand** (M7.9): the upgrade was run end to end — a 3.1
   browser and a 3.1 phone with notes, money, a weight and a picture,
   then the new server, the new web and the new app over them — and the

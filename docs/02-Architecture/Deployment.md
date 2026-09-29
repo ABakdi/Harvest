@@ -207,11 +207,13 @@ harvest.key`) and its private half never comes to the server, so a
 backup is of no use to whoever reads the server. It keeps the newest
 seven (`--keep`), names any unencrypted dump it finds in the backup
 directory, and deletes them with `--purge-plain`. Copy the `.age` files
-off the server; they are safe anywhere. A cron line for it:
+off the server; they are safe anywhere.
 
-```sh
-17 3 * * * root /opt/harvest/deploy/backup.sh >/var/log/harvest-backup.log 2>&1
-```
+**`deploy.sh` runs it every night.** With `HARVEST_BACKUP_RECIPIENT` set,
+every deploy writes `/etc/cron.d/harvest-backup`: `backup.sh --keep 14`
+at 03:17 server time, logging to `/var/log/harvest-backup.log`, and
+installs `age` if it is missing. Without a recipient it installs none
+and says so, rather than fall back to a backup anyone could read.
 
 **The disk is encrypted, or the host says so.** The rows and files are
 sealed by the devices and the addresses by the environment, but the
