@@ -48,6 +48,101 @@ final class ActiveCommitmentsProvider
 
 String _$activeCommitmentsHash() => r'ba05ad92a44219950e775584a51d11ee7039be0d';
 
+/// The live check-ins the calendar's grid shows ([span]): what it marks
+/// done, and how it counts a times-a-week habit's days (G5-12).
+
+@ProviderFor(liveCheckIns)
+final liveCheckInsProvider = LiveCheckInsFamily._();
+
+/// The live check-ins the calendar's grid shows ([span]): what it marks
+/// done, and how it counts a times-a-week habit's days (G5-12).
+
+final class LiveCheckInsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CalendarCheckIn>>,
+          List<CalendarCheckIn>,
+          Stream<List<CalendarCheckIn>>
+        >
+    with
+        $FutureModifier<List<CalendarCheckIn>>,
+        $StreamProvider<List<CalendarCheckIn>> {
+  /// The live check-ins the calendar's grid shows ([span]): what it marks
+  /// done, and how it counts a times-a-week habit's days (G5-12).
+  LiveCheckInsProvider._({
+    required LiveCheckInsFamily super.from,
+    required ({HarvestDay from, HarvestDay to}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'liveCheckInsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$liveCheckInsHash();
+
+  @override
+  String toString() {
+    return r'liveCheckInsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<CalendarCheckIn>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<CalendarCheckIn>> create(Ref ref) {
+    final argument = this.argument as ({HarvestDay from, HarvestDay to});
+    return liveCheckIns(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is LiveCheckInsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$liveCheckInsHash() => r'5e51b23662ebc969d5da9aaf11b44b3c531943dd';
+
+/// The live check-ins the calendar's grid shows ([span]): what it marks
+/// done, and how it counts a times-a-week habit's days (G5-12).
+
+final class LiveCheckInsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          Stream<List<CalendarCheckIn>>,
+          ({HarvestDay from, HarvestDay to})
+        > {
+  LiveCheckInsFamily._()
+    : super(
+        retry: null,
+        name: r'liveCheckInsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The live check-ins the calendar's grid shows ([span]): what it marks
+  /// done, and how it counts a times-a-week habit's days (G5-12).
+
+  LiveCheckInsProvider call(({HarvestDay from, HarvestDay to}) span) =>
+      LiveCheckInsProvider._(argument: span, from: this);
+
+  @override
+  String toString() => r'liveCheckInsProvider';
+}
+
 /// Units logged today per commitment — follows the live Harvest Day, so
 /// the field turns over at 3 AM without a restart.
 

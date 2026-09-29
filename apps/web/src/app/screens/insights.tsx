@@ -1,4 +1,4 @@
-import { HarvestDay } from '@harvest/core';
+import { HarvestDay, averagePerDay, currencyOf } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ChartColumnIcon } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -145,7 +145,16 @@ export function InsightsPanel() {
 
   const customFrom = HarvestDay.tryParse(custom.from);
   const customTo = HarvestDay.tryParse(custom.to);
-  const customValid = customFrom !== null && customTo !== null && customFrom.compareTo(customTo) <= 0;
+  // The phone's picker bounds: five years back to the end of next year.
+  // Unbounded, 1900 to today drew some 45,000 bars ([[Audit-v3]] Q5-50).
+  const earliest = HarvestDay.fromDate(today.year - 5, 1, 1);
+  const latest = HarvestDay.fromDate(today.year + 1, 12, 31);
+  const customValid =
+    customFrom !== null &&
+    customTo !== null &&
+    customFrom.compareTo(customTo) <= 0 &&
+    customFrom.compareTo(earliest) >= 0 &&
+    customTo.compareTo(latest) <= 0;
   const range: DayRange =
     kind === 'month'
       ? monthRange(today)
@@ -153,7 +162,7 @@ export function InsightsPanel() {
         ? { kind: 'custom', from: customFrom, to: customTo }
         : weekRange(today);
 
-  const view = useLiveQuery(() => readInsights(db, range), [db, range.from.key, range.to.key]);
+  const view = useLiveQuery(() => readInsights(db, range, today), [db, range.from.key, range.to.key, today.key]);
   const elapsed = elapsedDays(range, today);
 
   return (
@@ -170,15 +179,17 @@ export function InsightsPanel() {
           <div className="grid grid-cols-2 gap-3 sm:max-w-md">
             <div className="flex flex-col gap-1">
               <Label htmlFor={`${id}-from`}>{t('insights.from')}</Label>
-              <Input id={`${id}-from`} type="date" value={custom.from} onChange={(event) => setCustom({ ...custom, from: event.target.value })} />
+              <Input id={`${id}-from`} type="date" min={earliest.key} max={latest.key} value={custom.from} onChange={(event) => setCustom({ ...custom, from: event.target.value })} />
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor={`${id}-to`}>{t('insights.to')}</Label>
-              <Input id={`${id}-to`} type="date" value={custom.to} onChange={(event) => setCustom({ ...custom, to: event.target.value })} />
+              <Input id={`${id}-to`} type="date" min={earliest.key} max={latest.key} value={custom.to} onChange={(event) => setCustom({ ...custom, to: event.target.value })} />
             </div>
             {!customValid && (
               <p role="alert" className="col-span-2 text-sm font-semibold text-destructive">
-                {t('insights.badRange')}
+                {customFrom !== null && customTo !== null && customFrom.compareTo(customTo) <= 0
+                  ? t('insights.outOfRange', { from: formatDay(earliest.key), to: formatDay(latest.key) })
+                  : t('insights.badRange')}
               </p>
             )}
           </div>
@@ -201,7 +212,7 @@ export function InsightsPanel() {
             <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
               <span className="text-sm font-bold text-muted-foreground">{t('insights.perDay')}</span>
               <span className="text-xl font-extrabold tabular" dir="ltr">
-                {formatMoney(elapsed === 0 ? 0 : Math.trunc(view.total / elapsed), currency)}
+                {formatMoney(averagePerDay(view.total, elapsed, currencyOf(currency)), currency)}
               </span>
             </div>
           </div>

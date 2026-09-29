@@ -33,7 +33,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { formatDay } from '@/lib/format';
+import { formatDay, shortName } from '@/lib/format';
 import { ProgressRing, StreakChip } from '../components/bits';
 import { GoalEditor } from '../components/goal-editor';
 import { useHarvest } from '../context';
@@ -41,6 +41,8 @@ import { isItemDone, loadGoals, type GoalView } from '../data/goal-views';
 import type { GoalItemKind, GoalItemRow } from '../data/goals';
 import { useDialogs } from '../dialogs';
 import { useDaysLeft } from './goals-board';
+import { background, runAction } from '@/lib/actions';
+import { useDocumentTitle } from '@/lib/title';
 
 /** Moves one uuid of [order] from [from] to [to]. */
 function moved(order: string[], from: number, to: number): string[] {
@@ -99,11 +101,11 @@ function ItemRow({ item, index, count, view, onMove, tickRef, onAddSubtask, onMo
 
   const remove = () => {
     const taken = subtasks.length;
-    void goals.deleteItem(item.uuid).then(() =>
+    runAction(() => goals.deleteItem(item.uuid).then(() =>
       toast(taken > 0 ? t('goals.itemRemovedWithSubtasks', { count: taken }) : t('goals.itemRemoved'), {
-        action: { label: t('common.undo'), onClick: () => void goals.restoreItem(item.uuid) },
+        action: { label: t('common.undo'), onClick: () => runAction(() => goals.restoreItem(item.uuid)) },
       }),
-    );
+    ));
   };
 
   const line = editing ? (
@@ -113,7 +115,7 @@ function ItemRow({ item, index, count, view, onMove, tickRef, onAddSubtask, onMo
         onSubmit={(event) => {
           event.preventDefault();
           if (!body.trim()) return;
-          void goals.editItem(item.uuid, body, note).then(() => setEditing(false));
+          runAction(() => goals.editItem(item.uuid, body, note).then(() => setEditing(false)));
         }}
       >
         <Label htmlFor={`${checkboxId}-body`} className="sr-only">
@@ -140,13 +142,13 @@ function ItemRow({ item, index, count, view, onMove, tickRef, onAddSubtask, onMo
         ref={tickRef}
         id={checkboxId}
         checked={done}
-        onCheckedChange={(checked) => void goals.setDone(item.uuid, checked === true)}
+        onCheckedChange={(checked) => runAction(() => goals.setDone(item.uuid, checked === true))}
         onKeyDown={keys}
         aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
       />
       <label htmlFor={checkboxId} className="flex min-w-0 flex-1 cursor-pointer flex-col">
-        <span className={done ? 'text-muted-foreground line-through' : isSubtask ? 'font-medium' : 'font-semibold'}>{item.body}</span>
-        {item.note && <span className="text-xs text-muted-foreground">{item.note}</span>}
+        <span dir="auto" className={done ? 'text-muted-foreground line-through' : isSubtask ? 'font-medium' : 'font-semibold'}>{item.body}</span>
+        {item.note && <span dir="auto" className="text-xs text-muted-foreground">{item.note}</span>}
         {item.commitmentUuid && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <SproutIcon className="size-3" aria-hidden />
@@ -168,7 +170,13 @@ function ItemRow({ item, index, count, view, onMove, tickRef, onAddSubtask, onMo
           variant="outline"
           size="sm"
           onClick={() =>
-            dialogs.plantSeed({ title: item.body, type: 'todo', goalUuid: view.goal.uuid, linkItem: item.uuid })
+            dialogs.plantSeed({
+              title: item.body,
+              // A requirement is kept up, a task is done once: the phone's defaults (G5-14).
+              type: item.kind === 'need' ? 'habit' : 'todo',
+              goalUuid: view.goal.uuid,
+              linkItem: item.uuid,
+            })
           }
         >
           <SproutIcon />
@@ -225,7 +233,7 @@ function ItemRow({ item, index, count, view, onMove, tickRef, onAddSubtask, onMo
             </DropdownMenuItem>
           )}
           {isSubtask && (
-            <DropdownMenuItem onSelect={() => void goals.liftItem(item.uuid)}>
+            <DropdownMenuItem onSelect={() => runAction(() => goals.liftItem(item.uuid))}>
               <CornerUpLeftIcon className="rtl:-scale-x-100" />
               {item.kind === 'need' ? t('goals.liftNeed') : t('goals.liftTask')}
             </DropdownMenuItem>
@@ -299,10 +307,10 @@ function MoveUnderDialog({ item, view, onClose }: { item: GoalItemRow; view: Goa
   const { goals } = useHarvest();
   const targets = [...view.needs, ...view.steps].filter((other) => other.uuid !== item.uuid);
   const pick = (parent: GoalItemRow) =>
-    void goals.nestItem(item.uuid, parent.uuid).then((ok) => {
+    runAction(() => goals.nestItem(item.uuid, parent.uuid).then((ok) => {
       onClose();
       if (ok) toast(t('goals.movedUnder', { body: parent.body }));
-    });
+    }));
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md">
@@ -318,7 +326,7 @@ function MoveUnderDialog({ item, view, onClose }: { item: GoalItemRow; view: Goa
               <li key={target.uuid}>
                 <Button variant="ghost" className="h-auto w-full justify-start whitespace-normal text-start" onClick={() => pick(target)}>
                   <span className="flex flex-col">
-                    <span>{target.body}</span>
+                    <span dir="auto">{target.body}</span>
                     <span className="text-xs text-muted-foreground">{target.kind === 'need' ? t('goals.requirements') : t('goals.tasks')}</span>
                   </span>
                 </Button>
@@ -375,7 +383,7 @@ function Section({ view, kind, items }: { view: GoalView; kind: GoalItemKind; it
       to,
     );
     focus.current = list[from]!.uuid;
-    void goals.reorderItems(order);
+    runAction(() => goals.reorderItems(order));
   };
   const tickRef = (uuid: string) => (node: HTMLButtonElement | null) => {
     if (node) ticks.current.set(uuid, node);
@@ -468,7 +476,7 @@ function DropDialog({ uuid, onClose }: { uuid: string; onClose: () => void }) {
           <Button variant="outline" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={() => void goals.drop(uuid, note).then(onClose)}>{t('goals.drop')}</Button>
+          <Button onClick={() => runAction(() => goals.drop(uuid, note).then(onClose))}>{t('goals.drop')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -482,9 +490,16 @@ export function GoalScreen() {
   const { db, goals } = useHarvest();
   const navigate = useNavigate();
   const view = useLiveQuery(async () => (await loadGoals(db)).find((v) => v.goal.uuid === uuid) ?? null, [db, uuid]);
+  useDocumentTitle(view?.goal.title);
   const [editing, setEditing] = useState(false);
   const [dropping, setDropping] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
   const daysLeft = useDaysLeft(view?.goal.targetDay ?? null);
+  useEffect(() => {
+    if (!celebrating) return;
+    const timer = setTimeout(() => setCelebrating(false), 1200);
+    return () => clearTimeout(timer);
+  }, [celebrating]);
 
   if (view === undefined) return null;
   if (view === null) {
@@ -499,24 +514,35 @@ export function GoalScreen() {
   }
   const { goal, progress } = view;
 
+  /** The phone's moment: a burst, and the +50 said out loud (G5-14). */
+  const achieve = async () => {
+    try {
+      const paid = await goals.achieve(goal.uuid);
+      setCelebrating(true);
+      toast.success(paid > 0 ? t('goals.achievedToast', { xp: paid }) : t('goals.achievedAgain'));
+    } catch {
+      toast.error(t('common.saveFailed'));
+    }
+  };
+
   const remove = () => {
-    void goals.delete(goal.uuid).then(() => {
-      void navigate('/app/field/goals');
-      toast(t('goals.deleted', { title: goal.title }), {
-        action: { label: t('common.undo'), onClick: () => void goals.restore(goal.uuid) },
+    runAction(() => goals.delete(goal.uuid).then(() => {
+      background(navigate('/app/field/goals'));
+      toast(t('goals.deleted', { title: shortName(goal.title) }), {
+        action: { label: t('common.undo'), onClick: () => runAction(() => goals.restore(goal.uuid)) },
       });
-    });
+    }));
   };
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="icon" aria-label={t('goals.back')}>
+        <Button asChild variant="ghost" size="icon" className="max-md:hidden" aria-label={t('goals.back')}>
           <Link to="/app/field/goals">
             <ArrowLeftIcon className="rtl:rotate-180" />
           </Link>
         </Button>
-        <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold">{goal.title}</h1>
+        <h1 dir="auto" className="min-w-0 flex-1 line-clamp-3 [overflow-wrap:anywhere] text-2xl font-extrabold">{goal.title}</h1>
         {goal.status !== 'active' && <Badge variant="secondary">{t(`goals.status.${goal.status}`)}</Badge>}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -531,7 +557,7 @@ export function GoalScreen() {
             </DropdownMenuItem>
             {goal.status === 'active' ? (
               <>
-                <DropdownMenuItem onSelect={() => void goals.achieve(goal.uuid)}>
+                <DropdownMenuItem onSelect={() => runAction(() => achieve())}>
                   <TrophyIcon />
                   {t('goals.markAchieved')}
                 </DropdownMenuItem>
@@ -541,7 +567,7 @@ export function GoalScreen() {
                 </DropdownMenuItem>
               </>
             ) : (
-              <DropdownMenuItem onSelect={() => void goals.reopen(goal.uuid)}>
+              <DropdownMenuItem onSelect={() => runAction(() => goals.reopen(goal.uuid))}>
                 <RotateCcwIcon />
                 {goal.status === 'achieved' ? t('goals.reopen') : t('goals.pickUp')}
               </DropdownMenuItem>
@@ -566,13 +592,18 @@ export function GoalScreen() {
           {progress && <p className="text-sm font-bold">{t('goals.progress', { done: progress.done, total: progress.total })}</p>}
         </div>
         {goal.status === 'active' && progress?.complete && (
-          <Button variant="brand" onClick={() => void goals.achieve(goal.uuid)}>
+          <Button variant="brand" onClick={() => runAction(() => achieve())}>
             <TrophyIcon />
             {t('goals.markAchieved')}
           </Button>
         )}
       </section>
       {goal.status !== 'active' && goal.statusNote && <p className="rounded-lg bg-muted p-3 text-sm">{goal.statusNote}</p>}
+      {celebrating && (
+        <div className="pointer-events-none fixed inset-0 z-50 grid place-items-center" aria-hidden data-testid="goal-burst">
+          <TrophyIcon className="size-24 text-primary motion-safe:animate-ping" />
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Section view={view} kind="need" items={view.needs} />
@@ -588,7 +619,7 @@ export function GoalScreen() {
             {view.seeds.map((seed) => (
               <li key={seed.uuid} className="flex items-center gap-2 text-sm">
                 <SproutIcon className="size-4 text-success" aria-hidden />
-                <span className={seed.archivedAt ? 'text-muted-foreground line-through' : 'font-semibold'}>{seed.title}</span>
+                <span dir="auto" className={seed.archivedAt ? 'text-muted-foreground line-through' : 'font-semibold'}>{seed.title}</span>
                 <span className="text-xs text-muted-foreground">{t(`seed.type.${seed.type}`)}</span>
                 {seed.type === 'habit' && <StreakChip count={view.streaks.get(seed.uuid) ?? 0} />}
                 {seed.archivedAt && <Badge variant="muted">{t('goals.archivedSeed')}</Badge>}

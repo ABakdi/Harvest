@@ -30,12 +30,15 @@ class PlaceFormDialog extends StatefulWidget {
 }
 
 class _PlaceFormDialogState extends State<PlaceFormDialog> {
-  late final TextEditingController _name =
-      TextEditingController(text: widget.initialName);
-  late final TextEditingController _notes =
-      TextEditingController(text: widget.initialNotes);
-  late final TextEditingController _radius =
-      TextEditingController(text: '${widget.initialRadiusM.round()}');
+  late final TextEditingController _name = TextEditingController(
+    text: widget.initialName,
+  );
+  late final TextEditingController _notes = TextEditingController(
+    text: widget.initialNotes,
+  );
+  late final TextEditingController _radius = TextEditingController(
+    text: '${widget.initialRadiusM.round()}',
+  );
   var _nameError = false;
   var _radiusError = false;
 
@@ -83,6 +86,7 @@ class _PlaceFormDialogState extends State<PlaceFormDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
+            textCapitalization: TextCapitalization.sentences,
             controller: _name,
             autofocus: true,
             textInputAction: TextInputAction.next,
@@ -97,6 +101,7 @@ class _PlaceFormDialogState extends State<PlaceFormDialog> {
           ),
           const SizedBox(height: HarvestSpacing.md),
           TextField(
+            textCapitalization: TextCapitalization.sentences,
             controller: _notes,
             minLines: 2,
             maxLines: 4,

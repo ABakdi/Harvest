@@ -85,6 +85,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
       appBar: AppBar(
         title: _searching
             ? TextField(
+                textCapitalization: TextCapitalization.sentences,
                 controller: _search,
                 autofocus: true,
                 onChanged: (_) => setState(() {}),
@@ -106,6 +107,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             }),
           ),
           PopupMenuButton<String>(
+            // Read as "More", not the generic "Show menu" (U6-24).
+            tooltip: l10n.cropOptions,
             onSelected: (value) => switch (value) {
               'edit' => unawaited(showAlbumSheet(context, existing: album)),
               _ => unawaited(_deleteAlbum(album)),

@@ -88,6 +88,15 @@ class GoalsBoard extends ConsumerWidget {
           ),
           sliver: SliverList.list(
             children: [
+              // Only achieved or dropped goals: the board still says
+              // what it is for, above them (U6-14).
+              if (active.isEmpty)
+                EmptyState(
+                  icon: Icons.flag_outlined,
+                  title: l10n.goalsNoActiveTitle,
+                  body: l10n.goalsEmptyBody,
+                  compact: true,
+                ),
               if (achieved.isNotEmpty)
                 _Folded(title: l10n.goalAchievedSection, goals: achieved),
               if (dropped.isNotEmpty)
@@ -182,7 +191,7 @@ class GoalCard extends ConsumerWidget {
                             ? l10n.goalDaysLeft(left)
                             : l10n.goalDaysPast(-left),
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: left < 0 ? scheme.error : scheme.primary,
+                          color: left < 0 ? scheme.error : scheme.primaryText,
                         ),
                       ),
                     const SizedBox(height: HarvestSpacing.xs),
@@ -204,7 +213,7 @@ class GoalCard extends ConsumerWidget {
                       Text(
                         l10n.goalComplete,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.primary,
+                          color: scheme.primaryText,
                         ),
                       ),
                     if (seeds.isNotEmpty) ...[

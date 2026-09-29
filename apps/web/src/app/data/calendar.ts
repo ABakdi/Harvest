@@ -1,4 +1,4 @@
-import { type DueCommitment, HarvestDay, commitmentFromRow, isDueOn } from '@harvest/core';
+import { type DueCommitment, type HarvestDay, calendarEntries, commitmentFromRow } from '@harvest/core';
 import type { HarvestDB, Row } from './db';
 import type { SeedRow } from './seeds';
 
@@ -36,7 +36,6 @@ export async function readMonth(db: HarvestDB, anyDayInMonth: HarvestDay): Promi
   const first = anyDayInMonth.addDays(1 - anyDayInMonth.day);
   const length = new Date(Date.UTC(first.year, first.month, 0)).getUTCDate();
   const days = Array.from({ length }, (_, index) => first.addDays(index));
-  const keys = new Set(days.map((day) => day.key));
 
   const [rows, checkIns, memories, albums, expenses, sessions] = await Promise.all([
     db.rows('commitments').toArray(),
@@ -46,32 +45,6 @@ export async function readMonth(db: HarvestDB, anyDayInMonth: HarvestDay): Promi
     db.rows('expenses').toArray(),
     db.rows('workout_sessions').toArray(),
   ]);
-
-  const doneOn = new Map<string, Set<string>>();
-  for (const row of checkIns) {
-    if (row.deletedAt !== null || !keys.has(row.harvestDay)) continue;
-    const set = doneOn.get(row.harvestDay) ?? new Set<string>();
-    set.add(row.commitmentUuid);
-    doneOn.set(row.harvestDay, set);
-  }
-
-  const weekDone = new Map<string, Map<string, Set<string>>>();
-  for (const row of checkIns) {
-    if (row.deletedAt !== null) continue;
-    const day = HarvestDay.tryParse(row.harvestDay);
-    if (day === null) continue;
-    const week = weekDone.get(day.weekStart.key) ?? new Map<string, Set<string>>();
-    const seen = week.get(row.commitmentUuid) ?? new Set<string>();
-    seen.add(row.harvestDay);
-    week.set(row.commitmentUuid, seen);
-    weekDone.set(day.weekStart.key, week);
-  }
-
-  const totals = new Map<string, number>();
-  for (const row of checkIns) {
-    if (row.deletedAt !== null) continue;
-    totals.set(row.commitmentUuid, (totals.get(row.commitmentUuid) ?? 0) + row.quantity);
-  }
 
   const scheduled = new Set(albums.filter((album) => album.deletedAt === null && album.scheduleJson !== null).map((album) => album.uuid));
   const countOn = (list: { harvestDay: string; deletedAt: string | null }[], key: string) =>
@@ -89,25 +62,19 @@ export async function readMonth(db: HarvestDB, anyDayInMonth: HarvestDay): Promi
     .filter((seed): seed is { row: SeedRow; commitment: DueCommitment } => seed !== null);
 
   const month: CalendarMonth = new Map();
+  const bySeed = new Map(seeds.map((seed) => [seed.row.uuid, seed]));
   for (const day of days) {
-    const done = doneOn.get(day.key) ?? new Set<string>();
+    // One rule with the phone's calendar (G5-12): a times-a-week habit
+    // counts only the days before the cell, and a to-do done a day
+    // late is done.
     const entries: DayEntry[] = [];
-    for (const { row, commitment } of seeds) {
-      // A project is due every day by nature; showing it would fill
-      // the month with one seed.
-      if (row.type === 'todo') {
-        // A to-do sits on the day it was planned for, done or not, as on
-        // the phone; the field carries it forward, the calendar does not.
-        if (row.dueDay === day.key) entries.push({ row, commitment, deadline: false, done: done.has(row.uuid) });
-      } else if (row.type !== 'project') {
-        const doneDaysThisWeek = weekDone.get(day.weekStart.key)?.get(row.uuid)?.size ?? 0;
-        if (isDueOn(commitment, day, { doneDaysThisWeek, totalLogged: totals.get(row.uuid) ?? 0 })) {
-          entries.push({ row, commitment, deadline: false, done: done.has(row.uuid) });
-        }
-      }
-      if (row.deadline === day.key) {
-        entries.push({ row, commitment, deadline: true, done: done.has(row.uuid) });
-      }
+    for (const entry of calendarEntries(
+      seeds.map((seed) => seed.row),
+      checkIns,
+      day,
+    )) {
+      const seed = bySeed.get(entry.uuid);
+      if (seed) entries.push({ ...seed, deadline: entry.deadline, done: entry.done });
     }
     month.set(day.key, {
       day,

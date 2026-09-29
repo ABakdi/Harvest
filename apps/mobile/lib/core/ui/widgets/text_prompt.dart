@@ -15,6 +15,11 @@ Future<String?> promptForText(
   String? hint,
   String? prefix,
   String? confirmLabel,
+  bool password = false,
+
+  /// The confirm button waits for some text: a name that must not be
+  /// empty says so by staying disabled, instead of closing on nothing.
+  bool required = false,
 }) => showDialog<String>(
   context: context,
   builder: (context) => _TextPrompt(
@@ -23,7 +28,23 @@ Future<String?> promptForText(
     hint: hint,
     prefix: prefix,
     confirmLabel: confirmLabel,
+    password: password,
+    required: required,
   ),
+);
+
+/// Asks for the account's password (S6-06): obscured, never corrected,
+/// suggested, learned by the keyboard or capitalised — a capital first
+/// letter would turn a right password into a wrong try.
+Future<String?> promptForPassword(
+  BuildContext context, {
+  required String title,
+  String? confirmLabel,
+}) => promptForText(
+  context,
+  title: title,
+  confirmLabel: confirmLabel,
+  password: true,
 );
 
 class _TextPrompt extends StatefulWidget {
@@ -33,8 +54,12 @@ class _TextPrompt extends StatefulWidget {
     this.hint,
     this.prefix,
     this.confirmLabel,
+    this.password = false,
+    this.required = false,
   });
 
+  final bool password;
+  final bool required;
   final String title;
   final String initial;
   final String? hint;
@@ -58,7 +83,11 @@ class _TextPromptState extends State<_TextPrompt> {
     super.dispose();
   }
 
-  void _submit() => Navigator.of(context).pop(_controller.text);
+  bool get _ready => !widget.required || _controller.text.trim().isNotEmpty;
+
+  void _submit() {
+    if (_ready) Navigator.of(context).pop(_controller.text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +97,21 @@ class _TextPromptState extends State<_TextPrompt> {
       content: TextField(
         controller: _controller,
         autofocus: true,
-        textCapitalization: TextCapitalization.sentences,
+        obscureText: widget.password,
+        autocorrect: !widget.password,
+        enableSuggestions: !widget.password,
+        enableIMEPersonalizedLearning: !widget.password,
+        autofillHints: widget.password ? const [AutofillHints.password] : null,
+        keyboardType: widget.password ? TextInputType.visiblePassword : null,
+        textCapitalization: widget.password
+            ? TextCapitalization.none
+            : TextCapitalization.sentences,
         textInputAction: TextInputAction.done,
         decoration: InputDecoration(
           hintText: widget.hint,
           prefixText: widget.prefix,
         ),
+        onChanged: widget.required ? (_) => setState(() {}) : null,
         onSubmitted: (_) => _submit(),
       ),
       actions: [
@@ -82,7 +120,7 @@ class _TextPromptState extends State<_TextPrompt> {
           child: Text(l10n.cancel),
         ),
         FilledButton(
-          onPressed: _submit,
+          onPressed: _ready ? _submit : null,
           child: Text(widget.confirmLabel ?? l10n.save),
         ),
       ],

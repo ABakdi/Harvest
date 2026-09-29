@@ -5,6 +5,7 @@ import {
   deriveSyncKey,
   openRow,
   privateTables,
+  retiredTables,
   sealRow,
   type EncEnvelope,
   type SyncedTable,
@@ -12,6 +13,7 @@ import {
 import { beforeAll, describe, expect, it } from 'vitest';
 import { HarvestDB } from '@/app/data/db';
 import { Keyring } from '@/app/sync/keyring';
+import { FakeServer } from './fake-server';
 
 /**
  * The private tier, held to the contract's pinned scheme
@@ -60,8 +62,20 @@ describe('the pinned key', () => {
     expect(Buffer.from(raw).toString('hex')).toBe(pinned.keyHex);
   });
 
-  it('covers every private table', () => {
-    expect(pinned.cases.map((c) => c.table).sort()).toEqual([...privateTables].sort());
+  it('covers the eight tables 3.0.0 sealed, the ones version 1 ever wrote', () => {
+    expect(pinned.cases.map((c) => c.table).sort()).toEqual(
+      [
+        'debt_payments',
+        'debts',
+        'expense_categories',
+        'expenses',
+        'geotags',
+        'location_points',
+        'money_txns',
+        'saved_places',
+      ].sort(),
+    );
+    for (const table of pinned.cases.map((c) => c.table)) expect(privateTables).toContain(table);
   });
 });
 
@@ -79,7 +93,13 @@ describe.each(pinned.cases)('$table', ({ table, uuid, plaintext }) => {
   it('seals the row to the same bytes with the same nonce', async () => {
     const envelope = await sealRow(key, table, uuid, JSON.parse(plaintext) as Record<string, unknown>, fromBase64(record.enc.iv));
     expect(envelope).toEqual(record.enc);
-    expect(checkRecord({ ...record, enc: envelope }).ok).toBe(true);
+    const checked = checkRecord({ ...record, enc: envelope });
+    // A point is no row of its own any more (Phase 7, M7.3): only its tombstone is taken.
+    if ((retiredTables as readonly string[]).includes(table)) {
+      expect(checked.ok ? [] : checked.issues.map((issue) => issue.code)).toContain('retired_table');
+    } else {
+      expect(checked.ok).toBe(true);
+    }
   });
 
   it('refuses the envelope on another row or another table', async () => {
@@ -90,23 +110,31 @@ describe.each(pinned.cases)('$table', ({ table, uuid, plaintext }) => {
 });
 
 describe('the keyring', () => {
-  it('keeps a non-extractable key in IndexedDB that opens the fixtures', async () => {
+  it('keeps a non-extractable key with its epoch in IndexedDB', async () => {
     const db = new HarvestDB('keyring-test');
     await db.open();
-    const keyring = new Keyring(db);
-    await keyring.unlock(pinned.passphrase, pinned.syncSalt);
+    const server = new FakeServer();
+    await new Keyring(db, server).unlock('482917', undefined, 1);
 
     // A fresh keyring on the same store: the key survived, still sealed away.
-    const stored = await new Keyring(db).key(pinned.syncSalt);
+    const keyring = new Keyring(db, server);
+    const stored = await keyring.key(server.salt);
     expect(stored).not.toBeNull();
     expect(stored!.extractable).toBe(false);
     await expect(crypto.subtle.exportKey('raw', stored!)).rejects.toThrow();
-    const record = readFixture<FixtureRecord>('records/expenses.json');
-    expect(await openRow(stored!, 'expenses', record.uuid, record.enc)).toEqual(
-      readFixture('private-data/expenses.json'),
-    );
+    expect(await keyring.epoch()).toBe(1);
     // Another account's salt is another key: this one is not offered.
-    expect(await new Keyring(db).key('another-salt')).toBeNull();
+    expect(await new Keyring(db, server).key('another-salt')).toBeNull();
+    db.close();
+  });
+
+  it('never uses a key kept by an older version', async () => {
+    const db = new HarvestDB('keyring-legacy');
+    await db.open();
+    const old = await deriveSyncKey(pinned.passphrase, pinned.syncSalt);
+    await db.meta.put({ key: 'privateKey', value: { key: old, salt: pinned.syncSalt } });
+    await db.meta.put({ key: 'privateKeyV2', value: { key: old, salt: pinned.syncSalt, v: 2 } });
+    expect(await new Keyring(db, new FakeServer()).key(pinned.syncSalt)).toBeNull();
     db.close();
   });
 });

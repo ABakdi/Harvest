@@ -7,7 +7,7 @@ import { DailyCycleCard } from '@/app/components/settings-cycle';
 import { RatesCard } from '@/app/components/settings-rates';
 import { HarvestContext } from '@/app/context';
 import { healthKeys, sleepNightKey } from '@/app/data/health';
-import { cycleClashes, featureKeys, fetchEurUsd, pomodoroSettings, rateKeys, readSetting, settingKeys } from '@/app/data/settings';
+import { cycleClashes, featureKeys, fetchPerUsd, pomodoroSettings, rateKeys, readSetting, settingKeys } from '@/app/data/settings';
 import { RecordsTabs } from '@/app/screens/records';
 import { ExtrasSection, HarvestSection, MoneySection, PhoneOnlySection, PomodoroSection } from '@/app/screens/settings';
 import { FakeServer } from './fake-server';
@@ -147,6 +147,7 @@ describe('the daily cycle', () => {
 describe('exchange rates', () => {
   it('saves a typed rate, refuses nonsense, and forgets an emptied one', async () => {
     const h = await device(new FakeServer());
+    await h.settings.setDefaultCurrency('DZD');
     show(h, <RatesCard />);
 
     const usd = await screen.findByLabelText('DZD per 1 USD');
@@ -167,23 +168,35 @@ describe('exchange rates', () => {
     expect((await h.db.outbox.toArray()).some((entry) => entry.key === 'rate.dzdPerUsd' && entry.op === 'delete')).toBe(true);
   });
 
-  it('fetches EUR to USD only when asked, and only a believable number', async () => {
-    const answer = (body: unknown, status = 200) => vi.fn(() => Promise.resolve(new Response(JSON.stringify(body), { status })));
-    expect(await fetchEurUsd(answer({ rates: { USD: 1.0842 } }))).toBe(1.0842);
-    expect(await fetchEurUsd(answer({ rates: { USD: 7 } }))).toBeNull();
-    expect(await fetchEurUsd(answer({ rates: {} }))).toBeNull();
-    expect(await fetchEurUsd(answer({ rates: { USD: 1.1 } }, 500))).toBeNull();
-    expect(await fetchEurUsd(vi.fn(() => Promise.reject(new TypeError('offline'))))).toBeNull();
+  it('fetches every currency against the dollar only when asked, and only believable numbers (M7.8)', async () => {
+    const good = { result: 'success', base_code: 'USD', time_last_update_unix: 1758240001, rates: { USD: 1, EUR: 0.85, DZD: 131.2, JPY: 147.3 } };
+    const answer = (value: unknown, status = 200) => vi.fn(() => Promise.resolve(new Response(JSON.stringify(value), { status })));
+    expect(await fetchPerUsd(answer(good))).toEqual({
+      rates: { USD: 1, EUR: 0.85, DZD: 131.2, JPY: 147.3 },
+      at: '2025-09-19T00:00:01.000Z',
+    });
+    // A code Harvest does not know, and a rate that is no rate, are left out.
+    expect((await fetchPerUsd(answer({ ...good, rates: { ...good.rates, XYZ: 3, GBP: -1 } })))?.rates).toEqual(good.rates);
+    expect(await fetchPerUsd(answer({ ...good, rates: { USD: 1, EUR: 7 } }))).toBeNull();
+    expect(await fetchPerUsd(answer({ ...good, result: 'error' }))).toBeNull();
+    expect(await fetchPerUsd(answer({ ...good, base_code: 'EUR' }))).toBeNull();
+    expect(await fetchPerUsd(answer(good, 500))).toBeNull();
+    expect(await fetchPerUsd(vi.fn(() => Promise.reject(new TypeError('offline'))))).toBeNull();
 
     const h = await device(new FakeServer());
-    const get = answer({ rates: { USD: 1.1 } });
+    await h.settings.setDefaultCurrency('JPY');
+    const get = answer(good);
     vi.stubGlobal('fetch', get);
     show(h, <RatesCard />);
     expect(get).not.toHaveBeenCalled();
+    // The dinar's hand-typed legs are for the dinar alone.
+    expect(screen.queryByLabelText('DZD per 1 USD')).toBeNull();
     await userEvent.click(await screen.findByRole('button', { name: 'Fetch' }));
-    await waitFor(async () => expect(await valueOf(h, 'rate.usdPerEur')).toBe('1.1'));
-    expect(get).toHaveBeenCalledWith('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD', expect.anything());
-    expect(await valueOf(h, 'rate.usdPerEurAt')).not.toBeNull();
+    await waitFor(async () => expect(JSON.parse((await valueOf(h, rateKeys.perUsd)) ?? '{}')).toEqual(good.rates));
+    expect(get).toHaveBeenCalledWith('https://open.er-api.com/v6/latest/USD', expect.anything());
+    expect(await screen.findByText('1 USD = 147.3 JPY')).toBeInTheDocument();
+    expect(screen.getByText(/^Rates of /)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Rates by Exchange Rate API' })).toHaveAttribute('href', 'https://www.exchangerate-api.com');
   });
 });
 

@@ -74,9 +74,7 @@ class StepsHistory extends ConsumerWidget {
     final total = counted.fold<int>(0, (sum, day) => sum + day.steps);
     final best = counted.reduce((a, b) => a.steps >= b.steps ? a : b);
     final average = averageSteps(counted) ?? 0;
-    final bars = days.length > _barDays
-        ? days.sublist(days.length - _barDays)
-        : days;
+    final bars = lastDaysFilled(days, today, count: _barDays);
 
     return Card(
       child: Padding(

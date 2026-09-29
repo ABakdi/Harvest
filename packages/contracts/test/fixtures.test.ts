@@ -2,7 +2,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   checkRecord,
-  plainTables,
+  checkRow,
+  retiredTables,
   portableSettingPrefixes,
   privateTables,
   syncedTables,
@@ -25,23 +26,22 @@ describe('fixtures/records', () => {
     expect(files('records')).toEqual([...syncedTables].sort().map((table) => `${table}.json`));
   });
 
-  it.each(files('records'))('%s is a valid record of its table', (file) => {
+  it.each(files('records'))('%s is a valid record of its table, or one no device sends any more', (file) => {
     const raw = read('records', file) as { table: string };
     expect(raw.table).toBe(file.replace(/\.json$/, ''));
     const checked = checkRecord(raw);
-    expect(checked.ok ? [] : checked.issues).toEqual([]);
+    const issues = checked.ok ? [] : checked.issues.map((issue) => issue.code);
+    expect(issues).toEqual((retiredTables as readonly string[]).includes(raw.table) ? ['retired_table'] : []);
   });
 
-  it.each(plainTables)('%s carries data, in the clear', (table) => {
-    const raw = read('records', `${table}.json`) as Record<string, unknown>;
-    expect(raw.data).toBeTypeOf('object');
-    expect(raw.enc).toBeUndefined();
+  it('seals every table', () => {
+    expect([...privateTables].sort()).toEqual([...syncedTables].sort());
   });
 
   it.each(privateTables)('%s carries only an envelope', (table) => {
     const raw = read('records', `${table}.json`) as Record<string, unknown>;
     expect(raw.data).toBeUndefined();
-    expect(raw.enc).toMatchObject({ v: 1 });
+    expect(raw.enc).toHaveProperty('ct');
   });
 });
 
@@ -55,6 +55,12 @@ describe('fixtures/private-data', () => {
     const parsed = tables[table].data.safeParse(read('private-data', file));
     expect(parsed.success ? [] : parsed.error.issues).toEqual([]);
   });
+
+  it.each(files('private-data'))('%s passes every check a client runs after opening it', (file) => {
+    const record = read('records', file) as Parameters<typeof checkRow>[0];
+    const checked = checkRow(record, read('private-data', file));
+    expect(checked.ok ? [] : checked.issues).toEqual([]);
+  });
 });
 
 describe('fixtures/invalid', () => {
@@ -64,6 +70,21 @@ describe('fixtures/invalid', () => {
     const checked = checkRecord(record);
     expect(checked.ok).toBe(false);
     // Refused for the reason the fixture names, not for some other slip.
+    if (!checked.ok) expect(checked.issues.map((issue) => issue.path.join('.'))).toContain(path);
+  });
+});
+
+describe('fixtures/invalid-rows', () => {
+  it.each(files('invalid-rows'))('%s is refused once opened', (file) => {
+    const { why, path, record, data } = read('invalid-rows', file) as {
+      why: string;
+      path: string;
+      record: Parameters<typeof checkRow>[0];
+      data: unknown;
+    };
+    expect(why).toBeTruthy();
+    const checked = checkRow(record, data);
+    expect(checked.ok).toBe(false);
     if (!checked.ok) expect(checked.issues.map((issue) => issue.path.join('.'))).toContain(path);
   });
 });

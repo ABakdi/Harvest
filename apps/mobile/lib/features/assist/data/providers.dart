@@ -197,7 +197,10 @@ class HarvestServerProvider implements AssistProvider {
         'system': request.system,
         'messages': [
           for (final message in request.messages)
-            {'role': message.fromModel ? 'model' : 'user', 'text': message.text},
+            {
+              'role': message.fromModel ? 'model' : 'user',
+              'text': message.text,
+            },
         ],
         if (request.audio != null)
           'audio': {

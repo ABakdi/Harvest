@@ -64,6 +64,7 @@ class ProgramEditor extends ConsumerWidget {
                 unawaited(showTrainingMaxes(context, program: program)),
           ),
           PopupMenuButton<String>(
+            tooltip: l10n.gymProgramMenu,
             onSelected: (value) => switch (value) {
               'rename' => unawaited(_rename(context, ref, program)),
               _ => unawaited(_delete(context, ref, program)),
@@ -134,6 +135,7 @@ class ProgramEditor extends ConsumerWidget {
       initial: l10n.gymDayNumber(program.days.length + 1),
       hint: l10n.gymDayNameHint,
       confirmLabel: l10n.gymAddDay,
+      required: true,
     );
     if (name == null || name.trim().isEmpty) return;
     await ref.read(programsRepositoryProvider).addDay(program.uuid, name: name);
@@ -149,6 +151,7 @@ class ProgramEditor extends ConsumerWidget {
       context,
       title: l10n.gymRename,
       initial: program.name,
+      required: true,
     );
     if (name == null || name.trim().isEmpty) return;
     await ref
@@ -227,6 +230,7 @@ class _DayCard extends ConsumerWidget {
                   ),
                 ),
                 PopupMenuButton<String>(
+                  tooltip: l10n.gymDayMenu,
                   onSelected: (value) => switch (value) {
                     'duplicate' => unawaited(
                       ref.read(programsRepositoryProvider).duplicateDay(day),
@@ -338,6 +342,7 @@ class _DayCard extends ConsumerWidget {
       context,
       title: l10n.gymRename,
       initial: day.name,
+      required: true,
     );
     if (name == null || name.trim().isEmpty) return;
     await ref.read(programsRepositoryProvider).updateDay(day.uuid, name: name);

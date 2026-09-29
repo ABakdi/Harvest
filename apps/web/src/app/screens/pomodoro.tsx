@@ -4,6 +4,16 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { formatNumber } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -13,6 +23,7 @@ import { useHarvest, useHarvestDay } from '../context';
 import { isRunning, phaseMs, remainingMs } from '../data/pomodoro';
 import type { SeedRow } from '../data/seeds';
 import { useGymSeedChoice } from './gym/start';
+import { background, runAction } from '@/lib/actions';
 
 /** A thick ring for the clock, emptying as the phase runs out. */
 function ClockRing({ ratio, onBreak }: { ratio: number; onBreak: boolean }) {
@@ -70,7 +81,8 @@ export function PomodoroScreen() {
   const now = useNow(snapshot !== null && isRunning(snapshot));
   const [logging, setLogging] = useState<SeedRow | null>(null);
   const [busy, setBusy] = useState(false);
-  const gymChoice = useGymSeedChoice({ onBare: () => void navigate('/app/field') });
+  const [confirmAbandon, setConfirmAbandon] = useState(false);
+  const gymChoice = useGymSeedChoice({ onBare: () => background(navigate('/app/field')) });
 
   // The seed of the running session, or the one this screen opened for.
   const wanted = snapshot ? snapshot.commitmentUuid : params.get('seed');
@@ -120,12 +132,12 @@ export function PomodoroScreen() {
       const plan = await checkIns.checkIn(seed, day);
       if (plan.quantityLogged > 0) toast.success(t('field.xpEarned', { count: plan.xpEarned }));
     }
-    void navigate('/app/field');
+    background(navigate('/app/field'));
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
+      <Button asChild variant="ghost" size="sm" className="w-fit max-md:hidden">
         <Link to="/app/field">
           <ArrowLeftIcon className="rtl:rotate-180" />
           {t('field.today')}
@@ -133,12 +145,12 @@ export function PomodoroScreen() {
       </Button>
       <section aria-labelledby="focus-heading" className="mx-auto flex w-full max-w-md flex-col items-center gap-6 py-4 text-center">
         <div className="flex flex-col gap-1">
-          <h1 id="focus-heading" className="text-2xl font-extrabold">
+          <h1 id="focus-heading" className="text-2xl font-extrabold max-md:sr-only">
             {t('focus.title')}
           </h1>
-          <p className="font-bold text-muted-foreground">{attached?.title ?? t('focus.free')}</p>
+          <p dir="auto" className="font-bold text-muted-foreground">{attached?.title ?? t('focus.free')}</p>
         </div>
-        <div className="relative flex size-64 items-center justify-center sm:size-[260px]">
+        <div className="relative flex aspect-square w-64 max-w-full items-center justify-center sm:w-[260px]">
           <ClockRing ratio={total === 0 ? 0 : left / total} onBreak={onBreak} />
           <div className="flex flex-col items-center gap-1" role="timer" aria-live="off" aria-label={`${phaseLabel} · ${formatTimer(left)}`}>
             <span className="text-6xl font-extrabold tabular">{formatTimer(left)}</span>
@@ -149,30 +161,52 @@ export function PomodoroScreen() {
 
         <div className="flex flex-col items-center gap-2">
           {snapshot === null ? (
-            <Button size="lg" disabled={busy} onClick={() => void act(() => pomodoro.start(attached?.uuid ?? null))}>
+            <Button size="lg" disabled={busy} onClick={() => runAction(() => act(() => pomodoro.start(attached?.uuid ?? null)))}>
               <PlayIcon />
               {t('focus.start')}
             </Button>
           ) : isRunning(snapshot) ? (
-            <Button size="lg" variant="secondary" disabled={busy} onClick={() => void act(() => pomodoro.pause())}>
+            <Button size="lg" variant="secondary" disabled={busy} onClick={() => runAction(() => act(() => pomodoro.pause()))}>
               <PauseIcon />
               {t('focus.pause')}
             </Button>
           ) : (
-            <Button size="lg" disabled={busy} onClick={() => void act(() => pomodoro.resume())}>
+            <Button size="lg" disabled={busy} onClick={() => runAction(() => act(() => pomodoro.resume()))}>
               <PlayIcon />
               {waitingNextFocus ? t('focus.start') : t('focus.resume')}
             </Button>
           )}
           {snapshot !== null && (
             <>
-              <Button variant="ghost" disabled={busy} onClick={() => void act(snapshot.blocksDone > 0 ? finish : () => pomodoro.abandon())}>
+              <Button
+                variant="ghost"
+                disabled={busy}
+                onClick={() => {
+                  // A block more than a minute in is asked about first: one tap should not lose it (W6-20).
+                  if (snapshot.blocksDone === 0 && !onBreak && total - left > 60_000) setConfirmAbandon(true);
+                  else runAction(() => act(snapshot.blocksDone > 0 ? finish : () => pomodoro.abandon()));
+                }}
+              >
                 {snapshot.blocksDone > 0 ? t('focus.finish') : t('focus.abandon')}
               </Button>
               {snapshot.blocksDone === 0 && <p className="text-xs text-muted-foreground">{t('focus.abandonBody')}</p>}
             </>
           )}
         </div>
+        <AlertDialog open={confirmAbandon} onOpenChange={setConfirmAbandon}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('focus.abandonTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('focus.abandonBody')}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('focus.keepGoing')}</AlertDialogCancel>
+              <AlertDialogAction destructive onClick={() => runAction(() => act(() => pomodoro.abandon()))}>
+                {t('focus.abandon')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <p className="text-xs text-muted-foreground tabular">
           {t('focus.lengths', {
             focus: formatNumber(config.focusMinutes),
@@ -188,7 +222,7 @@ export function PomodoroScreen() {
           seed={logging}
           onClose={() => {
             setLogging(null);
-            void navigate('/app/field');
+            background(navigate('/app/field'));
           }}
         />
       )}

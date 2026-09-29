@@ -10,6 +10,7 @@ import { albumForPicture, nextDayOf, readPrograms, readRunning, readTrainingMaxe
 import type { PictureState } from './picture-offer';
 import { useUnit, useUnitKnown } from './shared';
 import type { SeedRow } from '../../data/seeds';
+import { background, runAction } from '@/lib/actions';
 
 /** `2 exercises · 9 sets`. */
 export function useDaySummary(): (day: DayTree) => string {
@@ -29,7 +30,7 @@ export function useStartSession(): (only?: ProgramTree) => Promise<'running' | '
   return async (only) => {
     const running = await readRunning(db);
     if (running) {
-      void navigate(`/app/body/gym/sessions/${running.session.uuid}`);
+      background(navigate(`/app/body/gym/sessions/${running.session.uuid}`));
       return 'running';
     }
     const programs = await readPrograms(db);
@@ -76,7 +77,7 @@ export function StartDialog({ only, onClose }: { only?: ProgramTree; onClose: ()
       // for a session begun just now, not one picked back up.
       const album = started && tree.program.photoPrompt === 'before' ? await albumForPicture(db, tree.program.albumUuid) : null;
       onClose();
-      void navigate(`/app/body/gym/sessions/${session.session.uuid}`, album ? { state: { gymPicture: album } satisfies PictureState } : undefined);
+      background(navigate(`/app/body/gym/sessions/${session.session.uuid}`, album ? { state: { gymPicture: album } satisfies PictureState } : undefined));
     } finally {
       setBusy(false);
     }
@@ -92,12 +93,12 @@ export function StartDialog({ only, onClose }: { only?: ProgramTree; onClose: ()
         {choices?.length === 0 && <p className="text-sm text-muted-foreground">{t('gym.noProgramToStartBody')}</p>}
         {choices?.map(({ tree, next }) => (
           <section key={tree.program.uuid} aria-label={tree.program.name} className="flex flex-col gap-1.5">
-            <h3 className="text-sm font-extrabold text-muted-foreground">{tree.program.name}</h3>
+            <h3 dir="auto" className="text-sm font-extrabold text-muted-foreground">{tree.program.name}</h3>
             {next && (
               <button
                 type="button"
                 disabled={busy || !known}
-                onClick={() => void start(tree, next)}
+                onClick={() => runAction(() => start(tree, next))}
                 className="flex items-center gap-3 rounded-xl bg-secondary p-3 text-start text-secondary-foreground outline-none hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
               >
                 <PlayIcon className="size-6 shrink-0" aria-hidden />
@@ -118,11 +119,11 @@ export function StartDialog({ only, onClose }: { only?: ProgramTree; onClose: ()
                     <button
                       type="button"
                       disabled={busy || !known}
-                      onClick={() => void start(tree, day)}
+                      onClick={() => runAction(() => start(tree, day))}
                       className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
                     >
                       <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate font-bold">{day.row.name}</span>
+                        <span dir="auto" className="truncate font-bold">{day.row.name}</span>
                         <span className="text-xs text-muted-foreground">{summary(day)}</span>
                       </span>
                       <PlayIcon className="size-4 text-muted-foreground" aria-hidden />
@@ -205,18 +206,18 @@ export function GymSeedDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>{seed.title}</DialogTitle>
+          <DialogTitle dir="auto">{seed.title}</DialogTitle>
           <DialogDescription>{t('gym.seedQuestion')}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2">
-          <button type="button" className={option} onClick={() => void start()}>
+          <button type="button" className={option} onClick={() => runAction(() => start())}>
             <PlayIcon className="size-5 shrink-0 text-primary" aria-hidden />
             <span className="flex flex-col">
               <span className="font-extrabold">{t('gym.seedStart')}</span>
               <span className="text-xs text-muted-foreground">{t('gym.seedStartHint')}</span>
             </span>
           </button>
-          <button type="button" className={option} disabled={busy} onClick={() => void bare()}>
+          <button type="button" className={option} disabled={busy} onClick={() => runAction(() => bare())}>
             <CheckIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
             <span className="flex flex-col">
               <span className="font-extrabold">{t('gym.seedBare')}</span>

@@ -74,32 +74,35 @@ void main() {
   PlacesFocus focusOn(HarvestDay day) =>
       PlacesFocus(day: day, table: 'expenses', uuid: 'e1');
 
-  testWidgets('a link that opened the map is claimed, without a build-time write', (
-    tester,
-  ) async {
-    await pumpScreen(tester);
-    // Set before the screen is built, as the chip does before pushing.
-    await tester.pumpWidget(const SizedBox());
-    container.read(placesFocusRequestProvider.notifier).focus = focusOn(
-      linked,
-    );
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: PlacesScreen(),
+  testWidgets(
+    'a link that opened the map is claimed, without a build-time write',
+    (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+      // Set before the screen is built, as the chip does before pushing.
+      await tester.pumpWidget(const SizedBox());
+      container.read(placesFocusRequestProvider.notifier).focus = focusOn(
+        linked,
+      );
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: PlacesScreen(),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(tester.takeException(), isNull);
-    expect(container.read(placesFocusRequestProvider), isNull);
-    expect(find.textContaining('Sep 12'), findsWidgets);
-    expect(find.textContaining('Sep 19'), findsNothing);
-  });
+      expect(tester.takeException(), isNull);
+      expect(container.read(placesFocusRequestProvider), isNull);
+      expect(find.textContaining('Sep 12'), findsWidgets);
+      expect(find.textContaining('Sep 19'), findsNothing);
+    },
+  );
 
   testWidgets('a link followed while the map is open is claimed too', (
     tester,

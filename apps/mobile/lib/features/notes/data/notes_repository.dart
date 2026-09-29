@@ -7,6 +7,9 @@ import 'package:uuid/uuid.dart';
 
 part 'notes_repository.g.dart';
 
+/// A live note's title, as link resolution reads it.
+typedef NoteTitle = ({String uuid, String title, DateTime createdAt});
+
 /// The notes vault (schema v10).
 ///
 /// The body is the source of truth: every write re-derives the link
@@ -40,13 +43,53 @@ class NotesRepository {
     );
   }
 
+  /// The live note a `[[link]]` to [title] leads to. Two notes can share
+  /// a title (made on two devices, renamed, imported), so this never
+  /// expects one row: the exact-case match wins, then any match that
+  /// differs only in case, as the editor and the web resolve links; the
+  /// oldest first among equals ([[Audit-v3]] Q5-04).
   Future<Note?> byTitle(String title) async {
-    final row =
-        await (_db.select(_db.notes)..where(
-              (n) => n.title.equals(title) & n.deletedAt.isNull(),
-            ))
-            .getSingleOrNull();
+    final picked = pickByTitle(await _titles(), title);
+    if (picked == null) return null;
+    final row = await (_db.select(
+      _db.notes,
+    )..where((n) => n.uuid.equals(picked.uuid))).getSingleOrNull();
     return row == null ? null : _toDomain(row);
+  }
+
+  /// Every live note's title, and nothing else: resolving a link never
+  /// reads a body ([[Audit-v3]] P6-04). SQLite's `lower` folds ASCII
+  /// only, so titles are compared in Dart.
+  Future<List<NoteTitle>> _titles() async {
+    final query = _db.selectOnly(_db.notes)
+      ..addColumns([_db.notes.uuid, _db.notes.title, _db.notes.createdAt])
+      ..where(_db.notes.deletedAt.isNull());
+    return [
+      for (final row in await query.get())
+        (
+          uuid: row.read(_db.notes.uuid)!,
+          title: row.read(_db.notes.title)!,
+          createdAt: row.read(_db.notes.createdAt)!,
+        ),
+    ];
+  }
+
+  /// Which of [notes] a link to [title] means: the exact-case title
+  /// first, then one that differs only in case; the oldest among equals.
+  static NoteTitle? pickByTitle(Iterable<NoteTitle> notes, String title) {
+    final wanted = title.toLowerCase();
+    NoteTitle? exact;
+    NoteTitle? folded;
+    bool older(NoteTitle note, NoteTitle? than) =>
+        than == null || note.createdAt.isBefore(than.createdAt);
+    for (final note in notes) {
+      if (note.title == title) {
+        if (older(note, exact)) exact = note;
+      } else if (note.title.toLowerCase() == wanted) {
+        if (older(note, folded)) folded = note;
+      }
+    }
+    return exact ?? folded;
   }
 
   /// Every folder that has a note in it, plus their parents, sorted.
@@ -195,6 +238,31 @@ class NotesRepository {
     await _appendOutbox(uuid, 'update');
   });
 
+  /// Removes [uuid] for good if nothing was ever written in it: a new
+  /// note opened and left untouched is not a note ([[Audit-v3]] U6-08).
+  /// Answers whether it went.
+  Future<bool> discardIfBlank(String uuid) => _db.transaction(() async {
+    final row = await (_db.select(
+      _db.notes,
+    )..where((n) => n.uuid.equals(uuid))).getSingleOrNull();
+    if (row == null ||
+        row.deletedAt != null ||
+        row.title.trim().isNotEmpty ||
+        row.body.trim().isNotEmpty) {
+      return false;
+    }
+    final attached = await (_db.select(
+      _db.noteAttachments,
+    )..where((a) => a.noteUuid.equals(uuid))).get();
+    if (attached.isNotEmpty) return false;
+    await (_db.delete(
+      _db.noteLinks,
+    )..where((l) => l.fromUuid.equals(uuid))).go();
+    await (_db.delete(_db.notes)..where((n) => n.uuid.equals(uuid))).go();
+    await _appendOutbox(uuid, 'delete');
+    return true;
+  });
+
   /// Empties the trash now, rather than waiting for the age-out.
   Future<void> emptyTrash() => purgeDeleted(olderThan: Duration.zero);
 
@@ -267,6 +335,12 @@ class NotesRepository {
         await (_db.delete(
           _db.noteLinks,
         )..where((l) => l.fromUuid.equals(row.uuid))).go();
+        await (_db.update(_db.noteLinks)
+              ..where((l) => l.toUuid.equals(row.uuid)))
+            .write(const NoteLinksCompanion(toUuid: Value(null)));
+        // Gone here is gone everywhere: the web and the server would
+        // otherwise keep it in their trash for good ([[Audit-v3]] Q5-22).
+        await _appendOutbox(row.uuid, 'delete');
       }
       await (_db.delete(
         _db.notes,
@@ -274,33 +348,63 @@ class NotesRepository {
     });
   }
 
-  /// Rebuilds the link index for one note from its body.
+  /// Rebuilds the link index for one note from its body. A save that
+  /// changed no link title (most keystrokes) leaves the index as it is;
+  /// otherwise every title is resolved from one read of the titles
+  /// ([[Audit-v3]] P6-04). Creating or renaming a note re-points links
+  /// on its own ([_resolveInbound]).
   Future<void> _reindex(String uuid, String body) async {
+    final titles = <String>[];
+    final seen = <String>{};
+    for (final link in linksIn(body)) {
+      if (seen.add(link.title.toLowerCase())) titles.add(link.title);
+    }
+    final existing = await (_db.select(
+      _db.noteLinks,
+    )..where((l) => l.fromUuid.equals(uuid))).get();
+    final before = {for (final link in existing) link.toTitle};
+    if (before.length == titles.length && before.containsAll(titles)) return;
+
     await (_db.delete(
       _db.noteLinks,
     )..where((l) => l.fromUuid.equals(uuid))).go();
-    final seen = <String>{};
-    for (final link in linksIn(body)) {
-      if (!seen.add(link.title.toLowerCase())) continue;
-      final target = await byTitle(link.title);
+    if (titles.isEmpty) return;
+    final notes = await _titles();
+    for (final title in titles) {
       await _db
           .into(_db.noteLinks)
           .insert(
             NoteLinksCompanion.insert(
               uuid: _uuid.v4(),
               fromUuid: uuid,
-              toTitle: link.title,
-              toUuid: Value(target?.uuid),
+              toTitle: title,
+              toUuid: Value(pickByTitle(notes, title)?.uuid),
             ),
           );
     }
   }
 
-  /// Points every unresolved link with this title at [uuid].
+  /// Points the links to this title at [uuid]: every unresolved one in
+  /// any case, and one resolved elsewhere only by its case when this
+  /// note's title is the exact one it wrote ([byTitle]'s rule).
   Future<void> _resolveInbound(String title, String uuid) async {
-    await (_db.update(_db.noteLinks)
-          ..where((l) => l.toTitle.equals(title) & l.toUuid.isNull()))
-        .write(NoteLinksCompanion(toUuid: Value(uuid)));
+    final wanted = title.toLowerCase();
+    final links = await _db.select(_db.noteLinks).get();
+    for (final link in links) {
+      if (link.toTitle.toLowerCase() != wanted || link.toUuid == uuid) {
+        continue;
+      }
+      var repoint = link.toUuid == null;
+      if (!repoint && link.toTitle == title) {
+        final target = await (_db.select(
+          _db.notes,
+        )..where((n) => n.uuid.equals(link.toUuid!))).getSingleOrNull();
+        repoint = target == null || target.title != link.toTitle;
+      }
+      if (!repoint) continue;
+      await (_db.update(_db.noteLinks)..where((l) => l.uuid.equals(link.uuid)))
+          .write(NoteLinksCompanion(toUuid: Value(uuid)));
+    }
   }
 
   /// Throws the whole index away and builds it again from the bodies.

@@ -29,9 +29,7 @@ Stream<List<SeedNote>> seedNotes(Ref ref, String uuid) =>
     ref.watch(seedNotesRepositoryProvider).watchFor(uuid);
 
 @riverpod
-Stream<
-    List<({HarvestDay day, int quantity, DateTime loggedAt, String? uuid})>
->
+Stream<List<({HarvestDay day, int quantity, DateTime loggedAt, String? uuid})>>
 seedHistory(
   Ref ref,
   String uuid,

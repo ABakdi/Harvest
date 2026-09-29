@@ -214,7 +214,13 @@ async function dayXpNet(tx: Tx, dayKey: string): Promise<number> {
   return rows.reduce((sum, row) => sum + row.delta, 0);
 }
 
+/**
+ * Pays a day's +10 once. A day still to come is not paid: the XP is for
+ * the books of a day that has come, and paying ahead would let a year
+ * of tiny future bills mint a year of XP today ([[Audit-v3]] Q5-67).
+ */
 async function payDayIfUnpaid(tx: Tx, dayKey: string): Promise<void> {
+  if (dayKey > HarvestDay.of(tx.clockNow()).key) return;
   if ((await dayXpNet(tx, dayKey)) !== 0) return;
   await tx.ledger({ kind: 'xp', delta: Xp.expenseLog, reason: `expenses:${dayKey}`, harvestDay: dayKey });
 }

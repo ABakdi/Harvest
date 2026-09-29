@@ -161,7 +161,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String undoCheckInBody(String title) {
-    return 'This removes what you logged for \"$title\" today.';
+    return 'This removes what you logged for “$title” today.';
   }
 
   @override
@@ -193,9 +193,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String projectSubtitle(int done, int total, int today, int daily) {
     return '$done of $total · today $today/$daily';
   }
-
-  @override
-  String get todoOverdue => 'Overdue';
 
   @override
   String get rankSprout => 'Sprout';
@@ -497,16 +494,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetTitle => 'Monthly budget';
 
   @override
-  String budgetSpentOf(String spent, String budget) {
-    return '$spent of $budget this month';
-  }
-
-  @override
-  String budgetFloating(String spent, String limit) {
-    return '$spent / $limit today';
-  }
-
-  @override
   String get budgetSet => 'Set a monthly budget';
 
   @override
@@ -556,19 +543,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get archiveAction => 'Archive';
 
   @override
-  String get archiveConfirmTitle => 'Archive this seed?';
-
-  @override
-  String archiveConfirmBody(String title) {
-    return '\"$title\" is archived. Its history stays.';
-  }
-
-  @override
   String get projectDoneTitle => 'Harvest complete! 🎉';
 
   @override
   String projectDoneBody(String title, int total) {
-    return '\"$title\" is fully grown — $total logged. It is archived with pride.';
+    return '“$title” is fully grown — $total logged. It is archived with pride.';
   }
 
   @override
@@ -685,9 +664,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightsTab => 'Insights';
 
   @override
-  String get wishlistTitle => 'Wishlist';
-
-  @override
   String get wishlistBuyList => 'To buy';
 
   @override
@@ -731,16 +707,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wishlistEditItem => 'Edit item';
 
   @override
-  String get wishlistMoveToBuy => 'To the buy list';
-
-  @override
-  String get wishlistMoveToWish => 'To the wishlist';
-
-  @override
   String get wishlistDelete => 'Delete';
-
-  @override
-  String get wishlistNew => 'Something I want';
 
   @override
   String get wishlistTitleHint => 'e.g. Winter coat, kettle, espresso machine';
@@ -796,11 +763,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalSpent => 'Total';
 
   @override
-  String avgPerDay(String amount) {
-    return '$amount / day';
-  }
-
-  @override
   String get noSpendingYet => 'No spending in this range yet.';
 
   @override
@@ -821,16 +783,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get defaultCurrencyLabel => 'Default currency';
 
   @override
-  String get exchangeRates => 'Exchange rates';
-
-  @override
   String get ratesDzdUsd => 'DZD per 1 USD';
 
   @override
   String get ratesDzdEur => 'DZD per 1 EUR';
-
-  @override
-  String get ratesEurUsd => 'EUR → USD (fetched)';
 
   @override
   String get fetchNow => 'Fetch';
@@ -863,9 +819,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savingsWithdraw => 'Withdraw';
-
-  @override
-  String get debtsTitle => 'Debts';
 
   @override
   String get addDebt => 'Log a debt';
@@ -982,13 +935,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debtSettledSection => 'Settled';
 
   @override
-  String get payFromWallet => 'Pay from the wallet?';
-
-  @override
   String get budgetSpentToday => 'Spent today';
-
-  @override
-  String get budgetDailyLimit => 'Daily limit';
 
   @override
   String budgetLeftToday(String amount) {
@@ -998,16 +945,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String budgetOverToday(String amount) {
     return '$amount over today';
-  }
-
-  @override
-  String budgetLeftMonth(String amount) {
-    return '$amount left this month';
-  }
-
-  @override
-  String budgetOverMonth(String amount) {
-    return '$amount over budget this month';
   }
 
   @override
@@ -1075,7 +1012,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ratesExplainer =>
-      'Used to show \$ and € amounts in your default currency.';
+      'Used to show amounts in other currencies in your default currency.';
 
   @override
   String get settingsMoney => 'Money';
@@ -1241,22 +1178,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editBudget => 'Edit budget';
 
   @override
-  String get perDay => 'Per day';
-
-  @override
   String get todayEmptyBody => 'Tap Log an expense to add the first one.';
-
-  @override
-  String get debtRemindDefault => 'Every day at 7:00 PM until it is paid';
 
   @override
   String get undoAction => 'Undo';
 
   @override
   String get saveFailed => 'That did not save. Try again.';
-
-  @override
-  String get categoryExists => 'A category with that name already exists';
 
   @override
   String get withdrawToWallet => 'To the wallet';
@@ -1408,9 +1336,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get seedNotesSubtitle => 'Where you left off today';
-
-  @override
-  String get seedNotesSheetSubtitle => 'Today\'s note, and the last one';
 
   @override
   String get seedNotesExplainer =>
@@ -1809,12 +1734,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesSearchHint => 'Search titles and text';
 
   @override
-  String get notesAllFolders => 'All';
-
-  @override
-  String get notesFolder => 'Folder';
-
-  @override
   String get notesFolderHint =>
       'A path, nothing more. Nested folders are made by naming one.';
 
@@ -1840,26 +1759,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesNoMatch => 'Nothing matches that';
 
   @override
-  String get notesNoMatchBody => 'Try another word, or a different folder.';
-
-  @override
-  String get notesGone => 'This note is gone';
-
-  @override
   String get notesGoneBody => 'It was deleted, or it never existed.';
-
-  @override
-  String get notesRead => 'Read';
-
-  @override
-  String get notesEdit => 'Edit';
 
   @override
   String get notesCreate => 'Create';
 
   @override
   String notesCreateLinkTitle(String title) {
-    return 'Write \"$title\"?';
+    return 'Write “$title”?';
   }
 
   @override
@@ -1871,7 +1778,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notesDeleteBody =>
-      'It leaves the vault. You can undo this straight away.';
+      'It goes to the trash with its recordings. You can undo this straight away.';
 
   @override
   String notesBacklinks(int count) {
@@ -2010,9 +1917,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryCompareRight => 'Right';
-
-  @override
-  String get galleryDeleteMemoryTitle => 'Delete this memory?';
 
   @override
   String get galleryDeleteMemoryBody =>
@@ -2400,9 +2304,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepsConnect => 'Connect';
 
   @override
-  String get stepsConnectTitle => 'Read steps from the phone';
-
-  @override
   String get stepsConnectBody =>
       'Harvest reads the daily total from the phone\'s own health store. Nothing is sent anywhere and no account is involved.';
 
@@ -2432,9 +2333,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get stepsGoalHint =>
       'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.';
-
-  @override
-  String get stepsGoalNone => 'No goal';
 
   @override
   String get stepsGoalMet => 'Goal met';
@@ -2475,11 +2373,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stepsBestDay => 'Best day';
-
-  @override
-  String stepsCount(String steps) {
-    return '$steps steps';
-  }
 
   @override
   String get weightTitle => 'Weight';
@@ -2561,16 +2454,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'It leaves the chart. You can undo this straight away.';
 
   @override
-  String get gymComingTitle => 'The gym is next';
-
-  @override
-  String get gymComingBody =>
-      'Programs, sessions and personal records are being built. Steps and weight work now.';
-
-  @override
-  String get gymBrowse => 'Browse exercises';
-
-  @override
   String get gymPickExercise => 'Choose an exercise';
 
   @override
@@ -2587,14 +2470,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gymCatalogueHint =>
-      'Search by name, muscle or equipment — the question mid-session is usually what else hits this.';
+      'Search by name, muscle or equipment — mid-session it is usually “what else works this?”';
 
   @override
-  String gymExerciseCount(int count) {
+  String gymExerciseCount(int count, String shown) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count exercises',
+      other: '$shown exercises',
       one: '1 exercise',
       zero: 'No exercises',
     );
@@ -2867,9 +2750,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gymPickDay => 'Which day?';
 
   @override
-  String get gymNoProgramToStart => 'No program to start';
-
-  @override
   String get gymNoProgramToStartBody =>
       'Write a program first — a session is a day of one, with the weights already filled in.';
 
@@ -2975,9 +2855,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gymRestCustomHint => 'seconds';
-
-  @override
-  String get gymRestNone => 'No timer';
 
   @override
   String get gymPause => 'Pause the clock';
@@ -3138,9 +3015,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sleepAlarmBody =>
       'Rings at the wake time your day is already built around.';
-
-  @override
-  String get sleepAlarmExact => 'Allow exact alarms';
 
   @override
   String get sleepAlarmExactBody =>
@@ -3329,12 +3203,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get gymVolume => 'Volume';
-
-  @override
-  String get gymBest => 'Best';
-
-  @override
   String get gymRecords => 'Personal records';
 
   @override
@@ -3451,10 +3319,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goalDropTitle => 'Drop this goal?';
 
   @override
-  String get goalDropBody =>
-      'Its seeds keep going. A line on why, if you like.';
-
-  @override
   String get goalDropNoteHint => 'Not now, because…';
 
   @override
@@ -3538,7 +3402,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featurePlacesHint =>
-      'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.';
+      'Where you went, and what you did there: a trail and a pin on every action. It syncs only encrypted, a day at a time, and the server never sees where.';
 
   @override
   String get placesDay => 'Day';
@@ -3556,14 +3420,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get placesNext => 'Next';
 
   @override
-  String get placesPickDay => 'Pick a day';
-
-  @override
   String get placesTrailOn => 'Record my trail';
-
-  @override
-  String get placesTrailHint =>
-      'Keeps a point every 50 m while you move, with a notification on screen the whole time.';
 
   @override
   String get placesTrailRefused =>
@@ -3593,9 +3450,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get placesHighAccuracy => 'High accuracy';
-
-  @override
-  String get placesHighAccuracyHint => 'Sharper trail, more battery.';
 
   @override
   String get placesDeleteDay => 'Delete this day\'s trail';
@@ -3789,9 +3643,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voicePause => 'Pause';
 
   @override
-  String get voiceRecordings => 'Recordings';
-
-  @override
   String get voiceMissing => 'The file is not on this phone.';
 
   @override
@@ -3799,9 +3650,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readAloud => 'Read aloud';
-
-  @override
-  String get readAloudStop => 'Stop';
 
   @override
   String get readAloudNext => 'Next paragraph';
@@ -3823,9 +3671,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get assistHint =>
       'Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.';
-
-  @override
-  String get assistProvider => 'Provider';
 
   @override
   String get assistGemini => 'Gemini';
@@ -4015,17 +3860,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountNeverSynced => 'Not synced yet';
 
   @override
-  String accountPending(int count) {
-    return '$count changes waiting';
-  }
-
-  @override
   String accountRefused(int count) {
     return '$count changes the server refused';
   }
 
   @override
-  String get accountHeldBack => 'Money and places wait for a sync passphrase.';
+  String get accountHeldBack => 'Nothing syncs until you set your sync PIN.';
 
   @override
   String get accountDevices => 'Devices';
@@ -4074,45 +3914,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String accountErrorOther(String code) {
     return 'Something went wrong ($code).';
   }
-
-  @override
-  String get passphraseTitle => 'Sync passphrase';
-
-  @override
-  String get passphraseUnset => 'Not set: money and places stay on this phone.';
-
-  @override
-  String get passphraseSet =>
-      'Set: money and places sync end-to-end encrypted.';
-
-  @override
-  String get passphraseSetAction => 'Set the passphrase';
-
-  @override
-  String get passphraseForget => 'Forget it on this device';
-
-  @override
-  String get passphraseBody =>
-      'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.';
-
-  @override
-  String get passphraseField => 'Passphrase';
-
-  @override
-  String get passphraseRepeat => 'The same, again';
-
-  @override
-  String get passphraseMismatch => 'The two do not match.';
-
-  @override
-  String get passphraseShort => 'At least 12 characters.';
-
-  @override
-  String get passphraseWorking => 'Making the key…';
-
-  @override
-  String get passphraseWrong =>
-      'This passphrase does not open what your other devices sent. Enter the one you used there.';
 
   @override
   String get exportIncludePlaces => 'Include my location history';
@@ -4256,11 +4057,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ratesDzdManual =>
-      'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.';
-
-  @override
-  String get ratesFetchedEurUsd =>
-      'EUR → USD updated. The dinar rates stay as you typed them.';
+      'The dinar\'s market rate is typed by hand: no free source has it. Fetch updates every other currency.';
 
   @override
   String get accountServerExample =>
@@ -4628,4 +4425,679 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mediaOther => 'Other';
+
+  @override
+  String get syncPinTitle => 'Sync PIN';
+
+  @override
+  String get syncPinChooseBody =>
+      'Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.';
+
+  @override
+  String get syncPinEnterBody =>
+      'Your other devices already use a sync PIN. Enter the same one here to bring your data over.';
+
+  @override
+  String get syncPinLoss =>
+      'If you lose it, what is encrypted cannot be read on a new device — only sent again from one that still has it. Nobody can reset it.';
+
+  @override
+  String get syncPinCost =>
+      'A PIN is quick to type, but it falls in minutes to someone holding the server\'s database and its keys. A passphrase holds.';
+
+  @override
+  String get syncPinField => 'PIN';
+
+  @override
+  String get syncPinRepeat => 'The same PIN, again';
+
+  @override
+  String get syncPinRule => '6 digits is best; 4 to 6';
+
+  @override
+  String get syncPassphraseField => 'Passphrase';
+
+  @override
+  String get syncPassphraseRepeat => 'The same passphrase, again';
+
+  @override
+  String get syncPassphraseRule => '8 characters or more';
+
+  @override
+  String get syncPinUsePassphrase => 'Use a passphrase instead';
+
+  @override
+  String get syncPinUsePin => 'Use a PIN instead';
+
+  @override
+  String get syncPinLength => 'A PIN is 4 to 6 digits.';
+
+  @override
+  String get syncPassphraseShort => 'At least 8 characters.';
+
+  @override
+  String get syncPinMismatch => 'The two do not match.';
+
+  @override
+  String get syncPinChoose => 'Set the PIN';
+
+  @override
+  String get syncPinEnter => 'Unlock';
+
+  @override
+  String get syncPinWorking => 'Making the key…';
+
+  @override
+  String get syncPinChecking => 'Checking it against your other devices…';
+
+  @override
+  String get syncPinWrong => 'That isn\'t the PIN your other devices use.';
+
+  @override
+  String get syncPinLater => 'Later';
+
+  @override
+  String get syncPinWaiting =>
+      'Nothing leaves this phone until you set your sync PIN.';
+
+  @override
+  String get syncPinIsSet => 'Set: everything syncs end-to-end encrypted.';
+
+  @override
+  String get syncPinSetAction => 'Set your sync PIN';
+
+  @override
+  String get syncPinForget => 'Forget it on this device';
+
+  @override
+  String get accountCircleLabel => 'Account and sync';
+
+  @override
+  String get accountOnline => 'Online';
+
+  @override
+  String get accountOffline => 'Offline';
+
+  @override
+  String get accountAllSent => 'Everything is sent';
+
+  @override
+  String get accountPage => 'Account settings';
+
+  @override
+  String get galleryFileNotSent => 'Not sent yet from the device that took it';
+
+  @override
+  String get galleryFileNeedsPin => 'Enter your sync PIN to see it';
+
+  @override
+  String get galleryFileFailed => 'Couldn\'t load';
+
+  @override
+  String get galleryFileRetry => 'Try again';
+
+  @override
+  String get budgetClear => 'Clear budget';
+
+  @override
+  String get budgetCleared => 'Budget cleared';
+
+  @override
+  String get debtEditTitle => 'Edit debt';
+
+  @override
+  String get debtDeleteTitle => 'Remove this debt?';
+
+  @override
+  String debtDeleteBody(String person) {
+    return '$person and the payments on it will be removed. What those payments took from the wallet stays spent. Undo is in the bar for a moment after.';
+  }
+
+  @override
+  String debtAmountBelowPaid(String amount) {
+    return 'Already paid $amount; the debt can\'t be less';
+  }
+
+  @override
+  String get undoRefused =>
+      'Couldn\'t undo: the debt or the wallet has changed since.';
+
+  @override
+  String get syncPinTooSimple =>
+      'Too easy to guess. Avoid one digit repeated, runs like 1234, and pairs like 1212.';
+
+  @override
+  String get syncPinChosenElsewhere =>
+      'Another device set the sync PIN a moment ago. Enter that one.';
+
+  @override
+  String get syncPinUnreachable =>
+      'The server could not be reached to check the PIN. Try again when you\'re online.';
+
+  @override
+  String accountLocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count encrypted rows could not be opened',
+      one: '1 encrypted row could not be opened',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get accountClientWeb => 'Web';
+
+  @override
+  String get accountClientPhone => 'Phone';
+
+  @override
+  String accountLastSeen(String time) {
+    return 'last seen $time';
+  }
+
+  @override
+  String get galleryFileDownloading => 'Downloading…';
+
+  @override
+  String importFilesTooLarge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files too large to bring in are left out',
+      one: '1 file too large to bring in is left out',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exportLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files too large for an archive were left out.',
+      one: '1 file too large for an archive was left out.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weightTargetSet => 'Set a target';
+
+  @override
+  String get weightTargetTitle => 'Target weight';
+
+  @override
+  String get weightTargetHint =>
+      'A line on the chart to aim at, and how far the latest reading is from it.';
+
+  @override
+  String get weightTargetClear => 'Clear target';
+
+  @override
+  String notesTooLong(String max) {
+    return 'This note is longer than $max characters. What is past that is not saved.';
+  }
+
+  @override
+  String get syncPinForgot => 'Forgot the PIN? Start over';
+
+  @override
+  String get syncPinChange => 'Change PIN';
+
+  @override
+  String get syncPinStartOver => 'Start the PIN over';
+
+  @override
+  String get syncPinStartOverBody =>
+      'This deletes everything kept on the server for this account, and the PIN with it. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.';
+
+  @override
+  String get syncPinStartOverConfirm => 'Start over';
+
+  @override
+  String get syncPinChangedElsewhere =>
+      'Your PIN was changed on another device. Enter the new one.';
+
+  @override
+  String get syncRefusedQuota =>
+      'The server has no room left for this account.';
+
+  @override
+  String get syncRefusedClock =>
+      'This phone\'s clock is ahead of the server\'s. Check its date and time.';
+
+  @override
+  String get syncPinWrongPassword => 'That isn\'t this account\'s password.';
+
+  @override
+  String exportNotHere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pictures not downloaded to this phone yet are not in it.',
+      one: '1 picture not downloaded to this phone yet is not in it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncPinTriesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tries left.',
+      one: '1 try left.',
+      zero: 'No tries left for now.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncPinTooMany(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Too many tries. Try again in $minutes minutes.',
+      one: 'Too many tries. Try again in 1 minute.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTooManySoon => 'Too many tries. Try again later.';
+
+  @override
+  String get syncPinStartedOver =>
+      'The PIN was just started over on another device. Choose a new one.';
+
+  @override
+  String get accountServerNotSecure =>
+      'Use https:// for the server. Plain http:// is only for this device or the emulator (localhost, 127.0.0.1, 10.0.2.2).';
+
+  @override
+  String get assistBaseUrlNotSecure =>
+      'Use https:// for the assist address. Plain http:// is only for this device or the emulator.';
+
+  @override
+  String get dataUnavailableTitle => 'Can\'t open your data right now';
+
+  @override
+  String get dataUnavailableBody =>
+      'The phone\'s secure storage did not answer. Nothing has been changed or deleted. Try again, or restart the phone if it keeps happening.';
+
+  @override
+  String amountLargeTitle(String amount) {
+    return '$amount?';
+  }
+
+  @override
+  String get amountLargeBody =>
+      'That is far more than anything usually logged at once. Is the amount right?';
+
+  @override
+  String get amountLargeConfirm => 'Yes, it\'s right';
+
+  @override
+  String get perDay => 'Per day';
+
+  @override
+  String categoryRemove(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String categoryRemoved(String name) {
+    return '$name removed';
+  }
+
+  @override
+  String get gymSessionMenu => 'More for this session';
+
+  @override
+  String get gymExerciseMenu => 'More for this exercise';
+
+  @override
+  String get gymProgramMenu => 'More for this program';
+
+  @override
+  String get gymDayMenu => 'More for this day';
+
+  @override
+  String weightImplausible(String range) {
+    return 'A weight between $range';
+  }
+
+  @override
+  String get accountDevicesRetry => 'Try again';
+
+  @override
+  String accountEndSessionTitle(String name) {
+    return 'Sign out $name?';
+  }
+
+  @override
+  String get accountEndSessionBody =>
+      'That device stops syncing until someone signs in on it again. Nothing on it is deleted.';
+
+  @override
+  String accountSessionEnded(String name) {
+    return 'Signed out $name';
+  }
+
+  @override
+  String accountSignedInOn(String day) {
+    return 'signed in $day';
+  }
+
+  @override
+  String get accountChangesWaiting => 'Changes waiting to sync';
+
+  @override
+  String get syncPinForgetTitle => 'Forget the sync PIN on this phone?';
+
+  @override
+  String get syncPinForgetBody =>
+      'What is already here stays. What your other devices send stays locked here, and what you change here waits, until you enter the PIN again.';
+
+  @override
+  String get joinTitle => 'This phone already has data';
+
+  @override
+  String get joinBody =>
+      'You made things on this phone before signing in. Bring them into your account, or start from what the account already has?';
+
+  @override
+  String get joinBring => 'Bring this phone\'s data into the account';
+
+  @override
+  String get joinStartFromAccount => 'Start from the account\'s data';
+
+  @override
+  String get joinStartFromAccountNote =>
+      'This phone\'s data is saved first, as an archive in Downloads, then replaced by the account\'s. Nothing is lost.';
+
+  @override
+  String get joinArchiveFailed =>
+      'The archive could not be saved, so nothing was replaced. Try again, or bring the data into the account.';
+
+  @override
+  String joinArchived(String path) {
+    return 'This phone\'s data was saved to $path';
+  }
+
+  @override
+  String get obHaveAccount => 'I already have an account';
+
+  @override
+  String get assistChecking => 'Looking for the assist…';
+
+  @override
+  String dailyGoalProgress(int actions, int goal) {
+    return '$actions of $goal actions today for the daily harvest';
+  }
+
+  @override
+  String dailyGoalMet(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count actions — the daily harvest goal is met',
+      one: '1 action — the daily harvest goal is met',
+      zero: 'No actions — the daily harvest goal is met',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakZeroWhy(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other:
+          'A day joins the streak once it has $goal actions. Meet them today to start one.',
+      one: 'A day joins the streak once it has 1 action. Meet it today to start one.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakHowItGrows(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other: 'Each day with $goal actions keeps it going.',
+      one: 'Each day with 1 action keeps it going.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notesPickTitle => 'Pick a note';
+
+  @override
+  String get notesPickBody => 'Your notes are in the list, with their folders.';
+
+  @override
+  String get notesShowList => 'Show notes';
+
+  @override
+  String get goalAchievedLabel => 'Achieved';
+
+  @override
+  String goalAchievedOn(String day) {
+    return 'Achieved on $day';
+  }
+
+  @override
+  String get goalDroppedLabel => 'Dropped';
+
+  @override
+  String get goalsNoActiveTitle => 'No goal in progress';
+
+  @override
+  String goalDeleteBody(String title) {
+    return '“$title” and its items go, with what achieving it paid. Undo brings them back.';
+  }
+
+  @override
+  String cropUndoCheckIn(String title) {
+    return 'Undo today\'s check-in for $title';
+  }
+
+  @override
+  String seedPausedSnack(String title) {
+    return '“$title” is resting';
+  }
+
+  @override
+  String seedResumedSnack(String title) {
+    return '“$title” is back on the field';
+  }
+
+  @override
+  String geoGone(String kind) {
+    return '$kind · no longer here';
+  }
+
+  @override
+  String get accountEndOthers => 'Sign out all other devices';
+
+  @override
+  String get accountEndOthersTitle => 'Sign out every other device?';
+
+  @override
+  String get accountEndOthersBody =>
+      'Only this phone stays signed in. The others stop syncing until someone signs in on them again. Nothing on them is deleted.';
+
+  @override
+  String accountOthersEnded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Signed out $count other devices',
+      one: 'Signed out 1 other device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTakesTime =>
+      'Making the key is slow on purpose: a few seconds, up to about 20 on an older phone.';
+
+  @override
+  String get syncPinMenu => 'Sync PIN options';
+
+  @override
+  String get syncPinSignedOut =>
+      'This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.';
+
+  @override
+  String get accountNameIsPassword =>
+      'That\'s your password. Use a name others may see, or leave it empty.';
+
+  @override
+  String get ratesFetched => 'Rates updated.';
+
+  @override
+  String get ratesSource => 'Rates by Exchange Rate API';
+
+  @override
+  String ratesOneUsd(String amount) {
+    return '1 USD = $amount';
+  }
+
+  @override
+  String ratesOn(String day) {
+    return 'Rates of $day';
+  }
+
+  @override
+  String get ratesNone => 'No rates fetched yet.';
+
+  @override
+  String get currencyPickerTitle => 'Choose a currency';
+
+  @override
+  String get currencySearchHint => 'Name, code or sign';
+
+  @override
+  String get currencyNoMatch => 'No currency matches.';
+
+  @override
+  String get currencyMore => 'Another currency';
+
+  @override
+  String get syncPassphraseTitle => 'Sync passphrase';
+
+  @override
+  String get syncPassphraseAdvice =>
+      'A few words only you would put together, like olive river lantern, hold for thousands of years against someone holding the server\'s data.';
+
+  @override
+  String get syncSecretField => 'Passphrase or PIN';
+
+  @override
+  String get syncSecretShow => 'Show';
+
+  @override
+  String get syncSecretHide => 'Hide';
+
+  @override
+  String get syncSecretWeak => 'Weak';
+
+  @override
+  String get syncSecretFair => 'Fair';
+
+  @override
+  String get syncSecretStrong => 'Strong';
+
+  @override
+  String syncSecretStands(String time) {
+    return 'Would hold $time against someone with the server\'s data.';
+  }
+
+  @override
+  String get syncSecretUnderSecond => 'under a second';
+
+  @override
+  String syncSecretSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years',
+      one: '1 year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncSecretThousands => 'thousands of years';
+
+  @override
+  String get syncSecretForever => 'for ever, near enough';
+
+  @override
+  String get exportConfirmPassword =>
+      'Your account password, to take your data out';
+
+  @override
+  String get exportConfirmReason => 'Unlock to take your data out of Harvest';
+
+  @override
+  String get exportConfirmRefused =>
+      'Not taken: the phone\'s lock was not opened.';
+
+  @override
+  String exportConfirmLimited(int minutes) {
+    return 'Too many wrong passwords. Try again in $minutes min.';
+  }
+
+  @override
+  String get exportConfirmOffline =>
+      'The server can\'t be reached to check the password. Try again when you\'re online.';
 }

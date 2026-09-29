@@ -33,6 +33,15 @@
     { "why": "two points in one number", "input": "1.2.3+1", "minor": null },
     { "why": "a trailing point is still a number", "input": "5.+1", "minor": 600 },
     { "why": "a leading point is still a number", "input": ".5+1", "minor": 150 },
-    { "why": "a sum past the largest amount", "input": "1000000000000*2", "minor": null }
+    { "why": "a sum past the largest amount", "input": "1000000000000*2", "minor": null },
+    { "why": "more than two cents digits inside a sum", "input": "12.345+0", "minor": null },
+    { "why": "two cents digits inside a sum are fine", "input": "12.34+0.01", "minor": 1235 }
+  ],
+  "plausible": [
+    { "why": "a coffee", "minor": 45000, "plausible": true },
+    { "why": "exactly the most", "minor": 1000000000, "plausible": true },
+    { "why": "one cent past it asks first", "minor": 1000000001, "plausible": false },
+    { "why": "the slipped finger", "minor": 9999999999900, "plausible": false },
+    { "why": "nothing is not an amount", "minor": 0, "plausible": false }
   ]
 }

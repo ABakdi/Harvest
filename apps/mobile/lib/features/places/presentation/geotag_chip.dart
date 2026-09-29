@@ -81,12 +81,11 @@ class GeotagChip extends ConsumerWidget {
     return InkWell(
       onTap: canOpen
           ? () {
-              ref.read(placesFocusRequestProvider.notifier).focus =
-                  PlacesFocus(
-                    day: geotag.day,
-                    table: targetTable,
-                    uuid: targetUuid,
-                  );
+              ref.read(placesFocusRequestProvider.notifier).focus = PlacesFocus(
+                day: geotag.day,
+                table: targetTable,
+                uuid: targetUuid,
+              );
               unawaited(context.push(AppRoutes.places));
             }
           : null,

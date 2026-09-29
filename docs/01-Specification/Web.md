@@ -36,22 +36,65 @@ sync, and render in well under a second on a phone.
   `start_url: /app`.
 - A **service worker** (Workbox, via `vite-plugin-pwa`):
   - the app shell is precached, so `/app` opens with no connection;
+    the two heavy parts few visits open, the map and the full exercise
+    catalogue, are not installed up front but kept the first time they
+    are fetched;
   - updates install in the background, and a small toast offers
     *Reload to update*;
   - it never caches API responses, because the data is in IndexedDB
     already.
 - **The install button** listens for `beforeinstallprompt`. On iOS
   Safari, which has no prompt, it shows the two steps (Share → Add to
-  Home Screen) instead.
+  Home Screen) instead. Once the install is accepted it says the app is
+  on its way: on Android, Chrome builds the app through Google's
+  servers, which fetch the manifest and icons from the site itself and
+  can take a minute — so the site must already answer on its domain
+  when it is installed. The manifest lists PNG icons only.
 
 ## The app
 
-Everything under `/app` is the app, laid out like the phone but for a
-wide screen:
-- a rail on the left: Field, Body, Records, Granary, Farmer;
-- the screen in the middle;
-- on wide windows, a detail panel on the right. A seed, a note or an
-  expense opens beside the list rather than over it.
+Everything under `/app` is the app, and it needs an account: the
+browser keeps a copy of the field, but the local-first app is the
+phone's. The public pages and the sign-in page say so, and that the
+Android app works without one.
+
+On a wide window it is laid out like the phone but for a wide screen:
+- a rail on the left with the phone's tabs in the phone's order —
+  Field, Granary, Records, Body, Farmer — and Settings at its foot;
+- the screen in the middle. Notes open beside their list; a seed, a
+  goal or a program opens as its own page, and an expense in a dialog.
+
+Notes on a wide window is laid out the way Obsidian's desktop app is:
+the vault as a tree of folders and notes down the side (folding
+chevrons, a small row of new note, new folder, new voice note, sort and
+fold-all, the open note marked, its edge dragged wider or narrower), and
+the note beside it in a readable column about 700 px wide, its title a
+large heading, under a thin bar with its path, the Read/Write switch and
+its actions. Switching Read and Write keeps my place. The page fills the
+window and never scrolls itself: the tree and the note each scroll on
+their own.
+
+Below 768 px Notes is the phone's Notes: one note in place, the vault in
+a drawer from the ☰ beside the account circle, the note's title (and its
+folder) in the app bar with the microphone, *+* and ⋮ (Assist, Record,
+Read aloud, Move to folder, Print, Delete — which asks first). It opens
+on the note I was last in; Back closes a note and shows the notes, and
+a note closed that way stays closed the next time. The note reads as
+rendered markdown and a tap writes where it lands, with the markdown
+toolbar on the keyboard while I write; links on the caret's line and
+the notes that link here are chips. A note made and left empty is
+dropped when I leave it.
+
+Scrollbars are thin, in the theme's colours, with no arrows, and show
+only while the pointer is over what scrolls; strips of tabs and chips
+that scroll by swipe show none.
+
+Below 768 px it *is* the phone's layout: the bottom bar with the same
+tabs, the account circle and the tab's title in the app bar (a back
+arrow on a screen pushed over a tab), the tab row under it, the
+screen's main action floating above the bar, and forms as bottom
+sheets. The bar and the floating action step aside while the on-screen
+keyboard is up.
 
 **Keyboard first.**
 - `N` new seed, `E` expense, `/` search, `G` then `F`/`B`/`R`/`M`/`P`
@@ -68,7 +111,7 @@ wide screen:
 | M6.5 | Public site, install, accounts, the app shell, settings, sync status |
 | M6.6 | Field (today, check-ins, undo), seeds (plant, edit, archive), Goals board, Notes (editor, folders, links, search), expenses (log, edit, the month) |
 | M6.7 | Vault, budgets, calendar, stats, farmer and streak details, Gallery, Body, Gym, Places (the map, day and range views) — first as views |
-| M6.8 | Pictures and recordings, fetched by the name of their own bytes and opened with the sync passphrase ([[Sync-API]], files) |
+| M6.8 | Pictures and recordings, fetched by the name of their own bytes and opened with the sync PIN ([[Sync-API]], files) |
 | M6.10 | The Wishlist, the Granary's fourth tab ([[Wishlist]]) |
 | M6.11 | Everything the phone writes, written here too: a seed's own page and its notes, the focus timer, tomorrow's plan, a freeze bought with coins, the weekly report; the vault's moves, debts, the budget, categories, sums in an amount and the Insights tab; nights and weights; the program editor and a whole session run in the browser; albums, pictures uploaded and the timelapse; folders, tables, recordings, read aloud and print in notes; week and month on the map, a stay named, location history deleted; every setting the phone syncs, the first run, and the archive, exported and imported |
 | M6.12 | Records → Lists: every list in one place, a pasted link filling itself in, and the Granary's Wishlist tab folded into it ([[Lists]]); items reorder with Alt+↑/↓ |
@@ -115,7 +158,7 @@ app lock. The web shows their data, and Settings lists them under
   both start offline can still end up with two; the gym then shows the
   newest. The exercise catalogue is bundled, as on the phone; its
   animations are not fetched.
-- **Money is written here too**, behind the same passphrase gate, and
+- **Money is written here too**, behind the same PIN gate, and
   the guards live in the repositories rather than the dialogs: a pot
   cannot be overdrawn, a debt cannot be overpaid, currencies never
   mix.

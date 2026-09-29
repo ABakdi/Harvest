@@ -87,7 +87,11 @@ class StatTile extends StatelessWidget {
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: icon == null
-                          ? accent
+                          ? readableOn(
+                              accent,
+                              theme.cardTheme.color ??
+                                  theme.colorScheme.surface,
+                            )
                           : theme.colorScheme.onSurface,
                     ),
                   ),

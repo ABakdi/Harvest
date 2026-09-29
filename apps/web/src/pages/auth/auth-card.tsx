@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import { HarvestMark } from '@/components/brand';
+import { useDocumentTitle } from '@/lib/title';
 
 export function AuthCard({ title, lead, children }: { title: string; lead?: string | undefined; children: ReactNode }) {
+  useDocumentTitle(title);
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-10">
       <div className="flex flex-col items-center gap-3 text-center">
@@ -9,7 +11,7 @@ export function AuthCard({ title, lead, children }: { title: string; lead?: stri
         <h1 className="text-2xl font-extrabold">{title}</h1>
         {lead && <p className="text-muted-foreground">{lead}</p>}
       </div>
-      <div className="rounded-2xl border bg-card p-6">{children}</div>
+      <div className="flex flex-col gap-5 rounded-2xl border bg-card p-6">{children}</div>
     </div>
   );
 }

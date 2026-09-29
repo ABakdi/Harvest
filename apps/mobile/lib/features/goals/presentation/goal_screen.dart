@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/app/current_day.dart';
+import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
@@ -93,6 +94,42 @@ class GoalScreen extends ConsumerWidget {
           HarvestSpacing.xl,
         ),
         children: [
+          // An achieved or dropped goal says so at the top, not only in
+          // a note I may not have written (U6-14).
+          if (!goal.isActive) ...[
+            Row(
+              children: [
+                Icon(
+                  goal.status == GoalStatus.achieved
+                      ? Icons.emoji_events_outlined
+                      : Icons.do_not_disturb_on_outlined,
+                  size: 18,
+                  color: goal.status == GoalStatus.achieved
+                      ? scheme.primaryText
+                      : scheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: HarvestSpacing.xs),
+                Expanded(
+                  child: Text(
+                    goal.status == GoalStatus.achieved
+                        ? goal.achievedAt == null
+                              ? l10n.goalAchievedLabel
+                              : l10n.goalAchievedOn(
+                                  formatDay(
+                                    context,
+                                    HarvestDay.of(goal.achievedAt!),
+                                  ),
+                                )
+                        : l10n.goalDroppedLabel,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: HarvestSpacing.sm),
+          ],
           if (goal.targetDay != null)
             Text(
               [
@@ -103,7 +140,7 @@ class GoalScreen extends ConsumerWidget {
                   l10n.goalDaysPast(-left),
               ].join(' · '),
               style: theme.textTheme.labelLarge?.copyWith(
-                color: scheme.primary,
+                color: scheme.primaryText,
               ),
             ),
           if (goal.why.isNotEmpty) ...[
@@ -201,7 +238,8 @@ class GoalScreen extends ConsumerWidget {
         final ok = await confirm(
           context,
           title: l10n.goalDelete,
-          body: view.goal.title,
+          // Says what goes with it, not just the name (U6-36).
+          body: l10n.goalDeleteBody(view.goal.title),
           confirmLabel: l10n.goalDelete,
         );
         if (!ok) return;
@@ -293,9 +331,9 @@ class _ItemListState extends ConsumerState<_ItemList> {
               ? CommitmentType.todo
               : CommitmentType.habit,
           goalUuid: _goal.uuid,
+          alongside: (seed) => repository.linkItem(item.uuid, seed.uuid),
         );
         if (seed == null) return;
-        await repository.linkItem(item.uuid, seed.uuid);
         messenger.showSnackBar(SnackBar(content: Text(l10n.goalPlanted)));
       case _ItemAction.addSubtask:
         setState(() => _adding = item.uuid);
@@ -504,7 +542,10 @@ class _ItemListState extends ConsumerState<_ItemList> {
             return Column(
               key: ValueKey(item.uuid),
               mainAxisSize: MainAxisSize.min,
-              children: [_tile(item, index: i), _subtasks(item)],
+              children: [
+                _tile(item, index: i),
+                _subtasks(item),
+              ],
             );
           },
         ),

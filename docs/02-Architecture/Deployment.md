@@ -20,21 +20,32 @@ sudo deploy/deploy.sh --domain harvest.example.org --email me@example.org
 
 The first run installs what is missing (Docker from Docker's own
 repository, nginx, certbot), writes `deploy/.env` with a fresh Ed25519
-pair, and stops to ask for the mail settings — nobody can verify an
-account without them. The second run:
+pair, two MongoDB passwords and a `KEY_SHARE_KEY` (below), and stops
+to ask for the mail settings — nobody can verify an account without
+them. It never replaces a key or a password already there. The second
+run:
 
 1. builds the server image and the web bundle, both inside Docker, so
    the server needs no Node of its own;
-2. starts MongoDB and the server (`deploy/compose.server.yaml`), the
-   server on the loopback only, and waits for `/v1/health`;
+2. starts MongoDB with access control, makes sure its two users match
+   `deploy/.env`, then starts the server (`deploy/compose.server.yaml`),
+   on the loopback only, and waits for `/v1/health`;
 3. puts the bundle in `/var/www/harvest/releases/<commit>` and moves
    the `current` link to it in one step, keeping the last three;
 4. serves a holding page on port 80 while Let's Encrypt checks the
    domain (`certbot --webroot`), then writes the https site from
    `deploy/nginx/harvest.https.conf`: http to https, `/v1` to the
-   server with room for 25 MB files and the assist's streamed answers,
-   long-cached assets, the shell always asked again, source maps kept
-   back, and the same Content-Security-Policy as the Caddy file;
+   server with 6 MB bodies, 32 MB only on `/v1/files/` (25 MB files) and
+   `/v1/assist` (recordings, and the streamed answers), long-cached
+   assets, the shell always asked again, source maps kept back, no
+   nginx version on any page, the emailed `/verify/…` and `/reset/…`
+   links kept out of the access log (their token is in the path), an
+   access log of its own (`/var/log/nginx/harvest.access.log`) that
+   keeps the time, the method, the path, the status, the size and how
+   long it took, and **no address, query or referrer**, an error log that
+   keeps only what is critical (nginx names the client in every error
+   line), and the same Content-Security-Policy as the Caddy file on the
+   site — the API's own headers come from the server;
 5. leaves renewals to certbot's own timer, with a hook that reloads
    nginx.
 
@@ -45,6 +56,51 @@ certificate for a server whose DNS is not pointed yet, and `--no-pull`
 builds what is checked out. If nginx refuses a new site, the previous
 one is put back.
 
+### The key-share key: back it up
+
+`KEY_SHARE_KEY` seals every account's key share, the half of the
+sync key the server keeps ([[Sync-API]], the sync key), and, since
+Phase 7, the keys every address and display name are sealed and looked
+up under (`people-keys.ts`). It is in `deploy/.env` and the server's
+environment, never in the database, which is the point: a copy of the
+database alone cannot be used to try anyone's PIN, or read anyone's
+address. It also means that **losing it makes the server's accounts
+unreadable, for good** — no one can sign in, and no new device can
+open what the server holds; the devices keep their own copies.
+So:
+
+- back up `deploy/.env` every time the database volume is backed up:
+  one without the other cannot be restored;
+- but **keep them apart**: `.env` in another place, under another
+  encryption key, than the volume's backups. A backup of the volume and
+  `.env` side by side is as good as the server, and a backup file is
+  the likeliest thing to leak; kept apart, a leaked database backup
+  still holds no key share anyone can open;
+- never generate a new one for a server that already has accounts.
+  The server refuses to hand out a share its key does not open rather
+  than make a new one.
+
+### An existing database gets access control
+
+Every deploy before this one ran MongoDB without access control (only
+the compose network could reach it, but anything on that network could
+read everything). Now MongoDB runs with it, and the server connects as
+`harvest`, a user that may read and write the `harvest` database and
+nothing else; `root` is for me and for `deploy.sh`. On a volume from
+before, `deploy.sh` makes both users on the database **as it runs now**,
+without access control (or on a temporary copy of the container, on no
+network, if it is stopped), and only then starts it again with access
+control. It writes `HARVEST_MONGO_AUTH=1` to `deploy/.env` once that is
+done, and every run after only checks the two passwords still match.
+MongoDB and the server share a network marked internal: MongoDB has no
+way out, and nothing but the server can reach it.
+
+**MongoDB 4.4 is a stopgap.** `deploy.sh` picks it on a CPU without
+AVX, because 5 and later do not run there, but 4.4 has had no security
+fixes since February 2024. Access control and the internal network
+limit what that costs; the fix is a host whose CPU has AVX (most do),
+then moving up a version at a time (4.4 → 5 → 6 → 7).
+
 ## All of it in Docker, with Caddy
 
 `deploy/` holds the whole of it as one Compose file: MongoDB, the
@@ -54,13 +110,23 @@ the same origin. Caddy fetches its own certificate for the name in
 
 ```sh
 cp deploy/.env.example deploy/.env      # the domain, the key pair, SMTP
+openssl rand -base64 32                 # → KEY_SHARE_KEY
+openssl rand -hex 24                    # → MONGO_ROOT_PASSWORD, and again → MONGO_APP_PASSWORD
 docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
 ```
 
-Compose refuses to start without the domain, the key pair and
-`SMTP_HOST`, for the same reasons the server does (below). The
-database lives in the `mongo-data` volume, and that volume is what
-gets backed up.
+Compose refuses to start without the domain, the key pair,
+`KEY_SHARE_KEY`, the two MongoDB passwords and `SMTP_HOST`, for the
+same reasons the server does (below). On a new volume the mongo image
+makes the root user and `deploy/mongo-init/harvest-user.sh` the
+server's. A volume from before access control needs the two users made
+first, as `deploy.sh` does: start the old container as it was, run
+`db.getSiblingDB('admin').createUser({user: 'root', pwd: …, roles:
+['root']})` and `db.getSiblingDB('harvest').createUser({user:
+'harvest', pwd: …, roles: [{role: 'readWrite', db: 'harvest'}]})` in
+`mongosh` inside it, then `up -d` with the new file. The database lives
+in the `mongo-data` volume; that volume **and** `deploy/.env` are what
+get backed up, each encrypted, and kept apart (above).
 
 The rest of this note is the same thing taken apart, for a host that
 already has a database or a proxy of its own.
@@ -92,7 +158,14 @@ rather than failing later on the first request that needs one:
 | :--- | :--- |
 | `MONGO_URL` | There is nowhere to put anything otherwise. |
 | `JWT_PRIVATE_KEY`, `JWT_PUBLIC_KEY` | Without them a pair is generated at every start, which signs everyone out on every restart. Ed25519, PEM: `openssl genpkey -algorithm ed25519 -out jwt.key` then `openssl pkey -in jwt.key -pubout -out jwt.pub`. |
+| `KEY_SHARE_KEY` | Seals the accounts' key shares (above). 32 bytes, base64: `openssl rand -base64 32`. Outside production a fixed key is used. |
 | `SMTP_HOST` | Verification and password-reset links go to the log otherwise, which means nobody can verify an account. |
+
+Mail goes over TLS or not at all: on port 587 the server insists on
+STARTTLS (TLS 1.2 or later) and refuses to send if the relay does not
+offer it, because a reset link read on the way is an account taken.
+Port 465 is TLS from the start (`SMTP_SECURE=true`). Only a relay on the
+same machine without TLS needs `SMTP_ALLOW_PLAINTEXT=true`.
 
 Behind a reverse proxy, set `TRUST_PROXY` to the number of hops so the
 rate limits see the client's real address, and leave `COOKIE_SECURE`
@@ -104,16 +177,49 @@ cookie is the session.
 
 ## The database
 
-Any MongoDB 7 or later. The indexes are created at boot, every time,
-because `createIndex` on an index that exists does nothing.
+Any MongoDB 7 or later, with access control on and a user for the
+server that may only read and write its own database. The indexes are
+created at boot, every time, because `createIndex` on an index that
+exists does nothing.
 
 ```sh
-docker run -d --name harvest-mongo -p 27017:27017 -v harvest-data:/data/db mongo:7
+docker run -d --name harvest-mongo -v harvest-data:/data/db \
+  -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=… mongo:7
+# then, as root: db.getSiblingDB('harvest').createUser({ user: 'harvest', pwd: …,
+#   roles: [{ role: 'readWrite', db: 'harvest' }] })
+# MONGO_URL=mongodb://harvest:…@harvest-mongo:27017/harvest?authSource=harvest
 ```
 
-**Back it up.** The phone is the first copy and this is the second,
-but an account holding the only copy of a year of pictures is an
-account worth `mongodump`-ing on a schedule.
+**Back it up**, encrypted, and `KEY_SHARE_KEY` too — in another place,
+under another key, never beside the database backup. File bytes live in
+the same database, in the GridFS bucket `file_blobs`, so one `mongodump`
+takes them along. The
+phone is the first copy and this is the second, but an account holding
+the only copy of a year of pictures is an account worth backing up on a
+schedule.
+
+`deploy/backup.sh` does it the one way I allow (Phase 7, M7.7): it runs
+`mongodump` inside the database's container and pipes it straight into
+[`age`](https://age-encryption.org), encrypted to the public key in
+`HARVEST_BACKUP_RECIPIENT`, so nothing unencrypted ever touches the
+disk. The key pair is made on another machine (`age-keygen -o
+harvest.key`) and its private half never comes to the server, so a
+backup is of no use to whoever reads the server. It keeps the newest
+seven (`--keep`), names any unencrypted dump it finds in the backup
+directory, and deletes them with `--purge-plain`. Copy the `.age` files
+off the server; they are safe anywhere.
+
+**`deploy.sh` runs it every night.** With `HARVEST_BACKUP_RECIPIENT` set,
+every deploy writes `/etc/cron.d/harvest-backup`: `backup.sh --keep 14`
+at 03:17 server time, logging to `/var/log/harvest-backup.log`, and
+installs `age` if it is missing. Without a recipient it installs none
+and says so, rather than fall back to a backup anyone could read.
+
+**The disk is encrypted, or the host says so.** The rows and files are
+sealed by the devices and the addresses by the environment, but the
+volume still holds session and sign-in bookkeeping. A production host
+runs the database volume on an encrypted disk (LUKS on a host I own, or
+a provider's encrypted volume) — a requirement, not a nicety.
 
 ## The web
 
@@ -130,7 +236,11 @@ Two things the host must do:
 2. **Send `/v1/*` to the server**, on the same origin. The refresh
    cookie is `SameSite=Strict` on `/v1/auth`, which is what makes a
    stolen token useless from another site — and what makes a separate
-   API domain more trouble than it is worth.
+   API domain more trouble than it is worth. Same origin is the setup I
+   run and test. `CORS_ORIGINS` does let another origin call the API,
+   uploads included (`PUT`, `x-harvest-iv`, `x-harvest-plain-bytes`),
+   but a browser on another *site* never sends the refresh cookie, so
+   its session ends with its first access token.
 
 `apps/web/Dockerfile` builds the bundle and serves it from Caddy with
 `deploy/Caddyfile`, which does both, and also:

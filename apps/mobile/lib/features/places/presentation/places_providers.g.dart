@@ -149,6 +149,85 @@ final class TrailFamily extends $Family
   String toString() => r'trailProvider';
 }
 
+/// The points just outside [span], for a stay across its edges.
+
+@ProviderFor(trailEdges)
+final trailEdgesProvider = TrailEdgesFamily._();
+
+/// The points just outside [span], for a stay across its edges.
+
+final class TrailEdgesProvider
+    extends
+        $FunctionalProvider<AsyncValue<List<Fix>>, List<Fix>, Stream<List<Fix>>>
+    with $FutureModifier<List<Fix>>, $StreamProvider<List<Fix>> {
+  /// The points just outside [span], for a stay across its edges.
+  TrailEdgesProvider._({
+    required TrailEdgesFamily super.from,
+    required PlacesSpan super.argument,
+  }) : super(
+         retry: null,
+         name: r'trailEdgesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$trailEdgesHash();
+
+  @override
+  String toString() {
+    return r'trailEdgesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Fix>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Fix>> create(Ref ref) {
+    final argument = this.argument as PlacesSpan;
+    return trailEdges(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TrailEdgesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$trailEdgesHash() => r'0f835ed70fd41e6933a1438325c0d91222f03eda';
+
+/// The points just outside [span], for a stay across its edges.
+
+final class TrailEdgesFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<Fix>>, PlacesSpan> {
+  TrailEdgesFamily._()
+    : super(
+        retry: null,
+        name: r'trailEdgesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The points just outside [span], for a stay across its edges.
+
+  TrailEdgesProvider call(PlacesSpan span) =>
+      TrailEdgesProvider._(argument: span, from: this);
+
+  @override
+  String toString() => r'trailEdgesProvider';
+}
+
 @ProviderFor(geotags)
 final geotagsProvider = GeotagsFamily._();
 

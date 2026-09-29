@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
+import 'package:harvest/features/gamification/presentation/daily_goal_line.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
+import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 Future<void> showStreakSheet(BuildContext context) =>
@@ -54,6 +56,7 @@ class _StreakSheetState extends ConsumerState<_StreakSheet> {
         ref.watch(globalStreakProvider).value ??
         (current: 0, best: 0, freezes: 0);
     final coins = ref.watch(coinTotalProvider).value ?? 0;
+    final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
     final firstMilestone = streakMilestoneCoins.keys.reduce(math.min);
     final canBuy =
         streak.freezes < maxFreezesStored && coins >= freezeCost && !_buying;
@@ -81,7 +84,7 @@ class _StreakSheetState extends ConsumerState<_StreakSheet> {
                     Text(
                       l10n.coinBalance(coins),
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.tertiary,
+                        color: theme.colorScheme.tertiaryText,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -119,6 +122,17 @@ class _StreakSheetState extends ConsumerState<_StreakSheet> {
                 ),
               ],
             ),
+            const SizedBox(height: HarvestSpacing.md),
+            // Why the flame is where it is: the day counts once the
+            // Daily Harvest Goal is met, and not before (U6-03).
+            Text(
+              streak.current == 0
+                  ? l10n.streakZeroWhy(goal)
+                  : l10n.streakHowItGrows(goal),
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: HarvestSpacing.xs),
+            const DailyGoalLine(),
             const SizedBox(height: HarvestSpacing.lg),
             Text(
               l10n.freezesStored(streak.freezes, maxFreezesStored),

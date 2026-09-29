@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/finances/data/rates_service.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -16,16 +18,17 @@ part 'rates_card.g.dart';
 Stream<Map<String, String>> rateSettings(Ref ref) =>
     ref.watch(settingsRepositoryProvider).watchAll(RateKeys.all);
 
-/// When the EUR→USD rate was fetched, on this phone's clock. The phone
-/// stores a local time with no offset and the web may store UTC with a
-/// `Z`; read either way, the moment is shown in local time.
+/// When the fetched rates were updated, on this phone's clock. An older
+/// phone stored a local time with no offset and the web may store UTC
+/// with a `Z`; read either way, the moment is shown in local time.
 @visibleForTesting
 DateTime? rateFetchedAt(String? raw) =>
     raw == null ? null : DateTime.tryParse(raw)?.toLocal();
 
-/// Exchange-rate settings (checkpoint P5): manual DZD legs, fetched
-/// EUR→USD from the ECB. Saves on submit or when a field loses focus
-/// with a changed value, and says so.
+/// Exchange-rate settings: every currency fetched against the dollar
+/// ([[Finances]], Phase 7 M7.8), and — only when my currency is the
+/// dinar — the dinar's market rate typed by hand. Saves on submit or when
+/// a field loses focus with a changed value, and says so.
 class RatesCard extends ConsumerStatefulWidget {
   const RatesCard({super.key});
 
@@ -107,13 +110,13 @@ class _RatesCardState extends ConsumerState<RatesCard> {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _fetching = true);
-    final rate = await ref.read(ratesServiceProvider).fetchEurUsd();
+    final rates = await ref.read(ratesServiceProvider).fetchRates();
     if (!mounted) return;
     setState(() => _fetching = false);
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          rate == null ? l10n.ratesFetchFailed : l10n.ratesFetchedEurUsd,
+          rates == null ? l10n.ratesFetchFailed : l10n.ratesFetched,
         ),
       ),
     );
@@ -125,13 +128,21 @@ class _RatesCardState extends ConsumerState<RatesCard> {
     final theme = Theme.of(context);
     final values = ref.watch(rateSettingsProvider).value ?? const {};
 
-    final fetched = values[RateKeys.usdPerEur];
-    final at = rateFetchedAt(values[RateKeys.usdPerEurAt]);
+    final currency = ref.watch(defaultCurrencyProvider);
+    // The dinar's market rate matters only to someone counting in dinars.
+    final dinar = currency == Currency.dzd;
+    final perUsd = perUsdOf(values[RateKeys.perUsd]);
+    // The rate that matters most: the dollar in my currency, or, for
+    // someone counting in dollars, the euro.
+    final shown = currency == Currency.usd ? Currency.eur : currency;
+    final rate = perUsd?[shown.code];
+    final at = rateFetchedAt(
+      values[RateKeys.perUsdAt] ?? values[RateKeys.usdPerEurAt],
+    );
     final fetchedAt = at == null
         ? null
-        : DateFormat.MMMd(
-            Localizations.localeOf(context).toString(),
-          ).add_Hm().format(at);
+        : DateFormat.yMMMd(Localizations.localeOf(context).toString())
+              .format(at);
 
     return Card(
       child: Padding(
@@ -145,52 +156,54 @@ class _RatesCardState extends ConsumerState<RatesCard> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: HarvestSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _usdController,
-                    focusNode: _usdFocus,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    onSubmitted: (raw) =>
-                        unawaited(_saveManual(RateKeys.dzdPerUsd, raw)),
-                    decoration: InputDecoration(
-                      labelText: l10n.ratesDzdUsd,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: HarvestSpacing.sm),
-                Expanded(
-                  child: TextField(
-                    controller: _eurController,
-                    focusNode: _eurFocus,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    onSubmitted: (raw) =>
-                        unawaited(_saveManual(RateKeys.dzdPerEur, raw)),
-                    decoration: InputDecoration(
-                      labelText: l10n.ratesDzdEur,
-                      isDense: true,
+            if (dinar) ...[
+              const SizedBox(height: HarvestSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _usdController,
+                      focusNode: _usdFocus,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onSubmitted: (raw) =>
+                          unawaited(_saveManual(RateKeys.dzdPerUsd, raw)),
+                      decoration: InputDecoration(
+                        labelText: l10n.ratesDzdUsd,
+                        isDense: true,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            // The dinar has no free rate to fetch ([[Finances]]): both
-            // DZD legs are mine to type, and Fetch never touches them.
-            // Said here, so empty fields after a fetch don't look broken.
-            const SizedBox(height: HarvestSpacing.xs),
-            Text(
-              l10n.ratesDzdManual,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                  const SizedBox(width: HarvestSpacing.sm),
+                  Expanded(
+                    child: TextField(
+                      controller: _eurController,
+                      focusNode: _eurFocus,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onSubmitted: (raw) =>
+                          unawaited(_saveManual(RateKeys.dzdPerEur, raw)),
+                      decoration: InputDecoration(
+                        labelText: l10n.ratesDzdEur,
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
+              // The dinar has no free rate to fetch ([[Finances]]): both
+              // DZD legs are mine to type, and Fetch never touches them.
+              // Said here, so empty fields after a fetch don't look broken.
+              const SizedBox(height: HarvestSpacing.xs),
+              Text(
+                l10n.ratesDzdManual,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: HarvestSpacing.sm),
             Row(
               children: [
@@ -199,16 +212,24 @@ class _RatesCardState extends ConsumerState<RatesCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        fetched == null
-                            ? l10n.ratesEurUsd
-                            : '${l10n.ratesEurUsd}: $fetched',
+                        rate == null
+                            ? l10n.ratesNone
+                            : l10n.ratesOneUsd(
+                                '${NumberFormat.decimalPatternDigits(locale: 'en', decimalDigits: rate < 10 ? 4 : 2).format(rate)} ${shown.code}',
+                              ),
                         style: theme.textTheme.bodyMedium,
                       ),
                       if (fetchedAt != null)
                         Text(
-                          l10n.ratesUpdated(fetchedAt),
+                          l10n.ratesOn(fetchedAt),
                           style: theme.textTheme.labelSmall,
                         ),
+                      Text(
+                        l10n.ratesSource,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),

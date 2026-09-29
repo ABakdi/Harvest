@@ -35,12 +35,28 @@ export function sleepNightKey(weekday: number): string {
   return `sleep.night.${weekday}`;
 }
 
-/** Live rows only, newest night first. */
+/** Newest morning first, and within a morning the night written last. */
+function newestFirst(a: SleepRow, b: SleepRow): number {
+  return b.harvestDay.localeCompare(a.harvestDay) || b.updatedAt.localeCompare(a.updatedAt) || b.uuid.localeCompare(a.uuid);
+}
+
+/**
+ * Live rows only, newest night first, one per morning. Two nights for
+ * one morning can still arrive by sync — the same morning logged
+ * offline on the phone and here — and the newer one is the one read, as
+ * the phone reads it ([[Audit-v3]] Q5-20).
+ */
 export async function readNights(db: HarvestDB): Promise<SleepRow[]> {
   const rows = await db.rows('sleep_sessions').toArray();
+  const seen = new Set<string>();
   return rows
     .filter((row) => row.deletedAt === null)
-    .sort((a, b) => b.harvestDay.localeCompare(a.harvestDay));
+    .sort(newestFirst)
+    .filter((row) => {
+      if (seen.has(row.harvestDay)) return false;
+      seen.add(row.harvestDay);
+      return true;
+    });
 }
 
 export async function readWeights(db: HarvestDB): Promise<WeightRow[]> {
@@ -101,11 +117,6 @@ export function defaultNight(targets: SleepTargets, day: HarvestDay): { asleep: 
 /** The moment [minutes] past the morning's local midnight, which may be negative. */
 export function atMinutes(day: HarvestDay, minutes: number): Date {
   return new Date(day.year, day.month - 1, day.day, 0, minutes);
-}
-
-/** How far past the morning's local midnight [moment] is. */
-export function minutesFrom(day: HarvestDay, moment: string): number {
-  return Math.round((Date.parse(moment) - atMinutes(day, 0).getTime()) / 60_000);
 }
 
 /**
@@ -207,11 +218,19 @@ export function stepsHistory(rows: readonly StepRow[], today: HarvestDay) {
   const counted = days.filter((row) => row.steps > 0 && row.harvestDay !== today.key);
   if (counted.length === 0) return null;
   const best = counted.reduce((a, b) => (a.steps >= b.steps ? a : b));
+  // The 14 days up to today, each one there even without a row: a day
+  // with no steps is a bar of nothing, not a day that never happened
+  // (`lastDaysFilled`, [[Audit-v3]] Q5-47).
+  const byDay = new Map(days.map((row) => [row.harvestDay, row.steps]));
+  const bars = Array.from({ length: 14 }, (_, index) => {
+    const harvestDay = today.addDays(index - 13).key;
+    return { harvestDay, steps: byDay.get(harvestDay) ?? 0 };
+  });
   return {
     total: counted.reduce((sum, row) => sum + row.steps, 0),
     average: averageSteps(counted) ?? 0,
     best,
-    bars: days.slice(-14),
+    bars,
   };
 }
 
@@ -260,10 +279,18 @@ export class HealthRepository {
    */
   logNight(input: NightInput): Promise<boolean> {
     return this.writer.run(async (tx) => {
-      const existing = (await tx.rows('sleep_sessions').where('harvestDay').equals(input.day.key).toArray()).find(
-        (row) => row.deletedAt === null,
-      );
+      const live = (await tx.rows('sleep_sessions').where('harvestDay').equals(input.day.key).toArray())
+        .filter((row) => row.deletedAt === null)
+        .sort(newestFirst);
+      const existing = live[0];
       const now = tx.now();
+      // Two that came in by sync are made one: the older goes, and takes
+      // back the XP it paid, so the morning is paid and counted once.
+      for (const extra of live.slice(1)) {
+        await tx.put('sleep_sessions', { ...extra, deletedAt: now, updatedAt: now });
+        const net = await sleepXpNet(tx, extra.uuid);
+        if (net > 0) await tx.ledger({ kind: 'xp', delta: -net, reason: `sleep-undo:${extra.uuid}`, harvestDay: extra.harvestDay });
+      }
       const uuid = existing?.uuid ?? crypto.randomUUID();
       await tx.put('sleep_sessions', {
         uuid,

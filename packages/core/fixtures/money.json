@@ -148,5 +148,29 @@
       "snapshot": null,
       "status": null
     }
+  ],
+  "budgetSwitches": [
+    { "why": "dinars into euros at the typed rate", "rates": { "defaultCurrency": "DZD", "dzdPerEur": 250 }, "budget": 5000000, "from": "DZD", "to": "EUR", "result": 20000 },
+    { "why": "and back", "rates": { "defaultCurrency": "EUR", "dzdPerEur": 250 }, "budget": 20000, "from": "EUR", "to": "DZD", "result": 5000000 },
+    { "why": "euros into dollars by the fetched cross rate", "rates": { "defaultCurrency": "EUR", "usdPerEur": 1.1 }, "budget": 100000, "from": "EUR", "to": "USD", "result": 110000 },
+    { "why": "without a rate the number stays", "rates": { "defaultCurrency": "DZD", "dzdPerEur": 250 }, "budget": 5000000, "from": "DZD", "to": "USD", "result": 5000000 },
+    { "why": "never below one minor unit", "rates": { "defaultCurrency": "DZD", "dzdPerUsd": 100000 }, "budget": 1, "from": "DZD", "to": "USD", "result": 1 },
+    { "why": "the same currency is the same budget", "rates": { "defaultCurrency": "DZD" }, "budget": 1234, "from": "DZD", "to": "DZD", "result": 1234 }
+  ],
+  "savingsHealth": [
+    { "why": "no savings says nothing", "rates": { "defaultCurrency": "DZD" }, "savings": [], "budget": 5000000, "health": "unknown" },
+    { "why": "no budget says nothing", "rates": { "defaultCurrency": "DZD" }, "savings": [["DZD", 100000]], "budget": null, "health": "unknown" },
+    { "why": "a zero balance is no savings", "rates": { "defaultCurrency": "DZD" }, "savings": [["DZD", 0]], "budget": 5000000, "health": "unknown" },
+    { "why": "below a tenth of the budget is low", "rates": { "defaultCurrency": "DZD" }, "savings": [["DZD", 499999]], "budget": 5000000, "health": "low" },
+    { "why": "exactly a tenth is healthy", "rates": { "defaultCurrency": "DZD" }, "savings": [["DZD", 500000]], "budget": 5000000, "health": "healthy" },
+    { "why": "euros count at the typed rate", "rates": { "defaultCurrency": "DZD", "dzdPerEur": 250 }, "savings": [["EUR", 2000]], "budget": 5000000, "health": "healthy" },
+    { "why": "a missing rate counts at face value", "rates": { "defaultCurrency": "DZD" }, "savings": [["USD", 2000]], "budget": 5000000, "health": "low" }
+  ],
+  "averagePerDay": [
+    { "why": "dinars average to whole dinars", "total": 50000, "days": 7, "currency": "DZD", "average": 7100 },
+    { "why": "half a dinar rounds up", "total": 15000, "days": 2, "currency": "DZD", "average": 7500 },
+    { "why": "DA70.49 rounds down", "total": 7049, "days": 1, "currency": "DZD", "average": 7000 },
+    { "why": "euros keep their cents, truncated", "total": 50000, "days": 7, "currency": "EUR", "average": 7142 },
+    { "why": "no day gone is nothing", "total": 50000, "days": 0, "currency": "DZD", "average": 0 }
   ]
 }

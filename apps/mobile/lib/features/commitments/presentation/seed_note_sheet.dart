@@ -34,6 +34,7 @@ class _SeedNoteSheet extends ConsumerStatefulWidget {
 class _SeedNoteSheetState extends ConsumerState<_SeedNoteSheet> {
   final _controller = TextEditingController();
   var _loaded = false;
+  var _saving = false;
 
   @override
   void initState() {
@@ -59,16 +60,28 @@ class _SeedNoteSheetState extends ConsumerState<_SeedNoteSheet> {
     super.dispose();
   }
 
+  /// One save at a time, and a failure said out loud: a second tap
+  /// while the first writes makes no second note ([[Audit-v3]] Q6-07).
   Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
     final navigator = Navigator.of(context);
-    await ref
-        .read(seedNotesRepositoryProvider)
-        .write(
-          commitmentUuid: widget.commitment.uuid,
-          day: ref.read(currentHarvestDayProvider),
-          body: _controller.text,
-        );
-    navigator.pop();
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).saveFailed;
+    try {
+      await ref
+          .read(seedNotesRepositoryProvider)
+          .write(
+            commitmentUuid: widget.commitment.uuid,
+            day: ref.read(currentHarvestDayProvider),
+            body: _controller.text,
+          );
+      navigator.pop();
+    } on Object {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   @override
@@ -84,7 +97,7 @@ class _SeedNoteSheetState extends ConsumerState<_SeedNoteSheet> {
       title: l10n.seedNotesTitle,
       subtitle: widget.commitment.title,
       actionLabel: l10n.save,
-      onAction: _loaded ? () => unawaited(_save()) : null,
+      onAction: _loaded && !_saving ? () => unawaited(_save()) : null,
       children: [
         if (previous != null) ...[
           _PreviousNote(
@@ -94,6 +107,7 @@ class _SeedNoteSheetState extends ConsumerState<_SeedNoteSheet> {
           const SizedBox(height: HarvestSpacing.md),
         ],
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _controller,
           autofocus: true,
           minLines: 3,
@@ -145,7 +159,7 @@ class _PreviousNote extends StatelessWidget {
               Text(
                 l10n.lastTimeOn(when),
                 style: theme.textTheme.labelMedium?.copyWith(
-                  color: scheme.tertiary,
+                  color: scheme.tertiaryText,
                   fontWeight: FontWeight.w800,
                 ),
               ),

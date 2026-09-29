@@ -96,6 +96,7 @@ class CommitmentEditor extends _$CommitmentEditor {
     String? note,
     String? remindAt,
     String? goalUuid,
+    Future<void> Function(Commitment seed)? alongside,
   }) async {
     Commitment? created;
     await _write(() async {
@@ -108,6 +109,7 @@ class CommitmentEditor extends _$CommitmentEditor {
             note: note,
             remindAt: remindAt,
             goalUuid: goalUuid,
+            alongside: alongside,
           );
       await _afterWrite(remindAt: remindAt);
     });
@@ -122,6 +124,7 @@ class CommitmentEditor extends _$CommitmentEditor {
     String? remindAt,
     String? goalUuid,
     HarvestDay? deadline,
+    Future<void> Function(Commitment seed)? alongside,
   }) async {
     Commitment? created;
     await _write(() async {
@@ -135,6 +138,7 @@ class CommitmentEditor extends _$CommitmentEditor {
             note: note,
             remindAt: remindAt,
             goalUuid: goalUuid,
+            alongside: alongside,
             deadline: deadline,
           );
       await _afterWrite(remindAt: remindAt);
@@ -148,6 +152,7 @@ class CommitmentEditor extends _$CommitmentEditor {
     String? note,
     String? remindAt,
     String? goalUuid,
+    Future<void> Function(Commitment seed)? alongside,
   }) async {
     Commitment? created;
     await _write(() async {
@@ -160,6 +165,7 @@ class CommitmentEditor extends _$CommitmentEditor {
             note: note,
             remindAt: remindAt,
             goalUuid: goalUuid,
+            alongside: alongside,
           );
       await _afterWrite(remindAt: remindAt);
     });

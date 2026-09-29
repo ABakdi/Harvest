@@ -1,4 +1,4 @@
-import { HarvestDay } from '@harvest/core';
+import { HarvestDay, oneNotePerDay, seedNoteOfDay } from '@harvest/core';
 import type { HarvestDB, Row } from './db';
 import type { SeedRow } from './seeds';
 import type { Writer } from './writer';
@@ -21,9 +21,15 @@ export class SeedNotesRepository {
   write(seedUuid: string, day: HarvestDay, body: string): Promise<void> {
     const capped = body.trim().slice(0, seedNoteMaxLength);
     return this.writer.run(async (tx) => {
-      const existing = (await tx.rows('seed_notes').where('commitmentUuid').equals(seedUuid).toArray()).find(
-        (row) => row.harvestDay === day.key && row.deletedAt === null,
+      // One note per seed-day: a day that has two (written on two
+      // devices before they met) keeps the newest, and the others go
+      // ([[Audit-v3]] Q6-07).
+      const { note: existing, extras } = seedNoteOfDay(
+        await tx.rows('seed_notes').where('commitmentUuid').equals(seedUuid).toArray(),
+        seedUuid,
+        day.key,
       );
+      for (const extra of extras) await tx.purge('seed_notes', extra.uuid);
       if (capped === '') {
         // The phone removes an emptied note outright; so does this.
         if (existing) await tx.purge('seed_notes', existing.uuid);
@@ -49,16 +55,16 @@ export class SeedNotesRepository {
 
 /** Every live note on a seed, newest day first. */
 export async function notesFor(db: HarvestDB, seedUuid: string): Promise<SeedNoteRow[]> {
-  const rows = await db.rows('seed_notes').where('commitmentUuid').equals(seedUuid).toArray();
+  const rows = oneNotePerDay(await db.rows('seed_notes').where('commitmentUuid').equals(seedUuid).toArray());
   return rows
-    .filter((row) => row.deletedAt === null && HarvestDay.tryParse(row.harvestDay) !== null)
+    .filter((row) => HarvestDay.tryParse(row.harvestDay) !== null)
     .sort((a, b) => b.harvestDay.localeCompare(a.harvestDay));
 }
 
 /** Every note written on [day], by seed — what the field's cards show. */
 export async function notesOn(db: HarvestDB, day: HarvestDay): Promise<Map<string, string>> {
-  const rows = await db.rows('seed_notes').where('harvestDay').equals(day.key).toArray();
-  return new Map(rows.filter((row) => row.deletedAt === null).map((row) => [row.commitmentUuid, row.body]));
+  const rows = oneNotePerDay(await db.rows('seed_notes').where('harvestDay').equals(day.key).toArray());
+  return new Map(rows.map((row) => [row.commitmentUuid, row.body]));
 }
 
 /** One day in a seed's life: what was logged, and what was written about it. */

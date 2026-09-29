@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/features/finances/data/rates_service.dart';
+import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -18,7 +20,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [rateSettingsProvider.overrideWith((ref) => stored.stream)],
+        overrides: [
+          rateSettingsProvider.overrideWith((ref) => stored.stream),
+          defaultCurrencyProvider.overrideWith((ref) => Currency.dzd),
+        ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -79,6 +84,7 @@ void main() {
           rateSettingsProvider.overrideWith(
             (ref) => Stream.value(const {RateKeys.usdPerEur: '1.08'}),
           ),
+          defaultCurrencyProvider.overrideWith((ref) => Currency.dzd),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -90,6 +96,37 @@ void main() {
     await tester.pump();
     // Fetched EUR→USD, empty DZD fields — and the reason on screen.
     expect(find.textContaining('typed by hand'), findsOneWidget);
-    expect(find.textContaining('Fetch only updates EUR → USD'), findsOneWidget);
+    expect(
+      find.textContaining('Fetch updates every other currency'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('shows no dinar fields to someone counting in euros, and the '
+      'fetched rate with its day and its source', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          rateSettingsProvider.overrideWith(
+            (ref) => Stream.value(const {
+              RateKeys.perUsd: '{"EUR": 0.9123, "DZD": 132.5, "JPY": 148.2}',
+              RateKeys.perUsdAt: '2026-09-27T12:00:00.000Z',
+            }),
+          ),
+          defaultCurrencyProvider.overrideWith((ref) => Currency.eur),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SingleChildScrollView(child: RatesCard())),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(TextField), findsNothing);
+    expect(find.textContaining('DZD'), findsNothing);
+    expect(find.text('1 USD = 0.9123 EUR'), findsOneWidget);
+    expect(find.textContaining('Rates of Sep 27, 2026'), findsOneWidget);
+    expect(find.text('Rates by Exchange Rate API'), findsOneWidget);
   });
 }

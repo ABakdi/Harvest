@@ -1,6 +1,6 @@
-import { goalProgress, nextGoalItem, type GoalProgress } from '@harvest/core';
+import { goalProgress, liveParentOf, nextGoalItem, type GoalProgress } from '@harvest/core';
 import type { HarvestDB } from './db';
-import { parentOf, type GoalItemRow, type GoalRow } from './goals';
+import type { GoalItemRow, GoalRow } from './goals';
 import type { SeedRow } from './seeds';
 
 export interface GoalView {
@@ -46,23 +46,20 @@ export async function loadGoals(db: HarvestDB): Promise<GoalView[]> {
     .sort((a, b) => a.position - b.position || a.createdAt.localeCompare(b.createdAt))
     .map((goal) => {
       const live = items.filter((item) => item.goalUuid === goal.uuid && item.deletedAt === null);
-      const liveIds = new Set(live.map((item) => item.uuid));
-      // A subtask whose parent is gone (two devices disagreeing) reads as
-      // top-level, as the shared rule does, so nothing drops from view.
-      const topLevel = live.filter((item) => {
-        const parent = parentOf(item);
-        return parent === null || !liveIds.has(parent);
-      });
+      // A subtask whose parent is gone, or is a subtask itself (two
+      // devices disagreeing), reads as top-level, as the shared rule
+      // does, so nothing drops from view (G5-08).
+      const topLevel = live.filter((item) => liveParentOf(item, live) === null);
       const subtasks = new Map<string, GoalItemRow[]>();
       for (const item of live) {
-        const parent = parentOf(item);
-        if (parent === null || !liveIds.has(parent)) continue;
+        const parent = liveParentOf(item, live);
+        if (parent === null) continue;
         subtasks.set(parent, [...(subtasks.get(parent) ?? []), item]);
       }
       for (const list of subtasks.values()) list.sort(byPosition);
       const planted = new Set(live.map((item) => item.commitmentUuid).filter((uuid) => uuid !== null));
       const next = nextGoalItem(live);
-      const nextParentId = next ? parentOf(next) : null;
+      const nextParentId = next ? liveParentOf(next, live) : null;
       return {
         goal,
         needs: topLevel.filter((item) => item.kind === 'need').sort(byPosition),

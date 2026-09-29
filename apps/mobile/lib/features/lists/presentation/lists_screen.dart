@@ -14,6 +14,7 @@ import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
@@ -24,6 +25,7 @@ import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/lists/data/lists_repository.dart';
 import 'package:harvest/features/lists/domain/lists.dart';
+import 'package:harvest/features/lists/domain/share_links.dart';
 import 'package:harvest/features/lists/presentation/list_item_sheet.dart';
 import 'package:harvest/features/lists/presentation/list_labels.dart';
 import 'package:harvest/features/notes/data/notes_repository.dart';
@@ -112,6 +114,7 @@ class _ListsScreenState extends ConsumerState<ListsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(widget.title ?? l10n.navLists),
         bottom: widget.tabs,
         actions: [
@@ -319,12 +322,15 @@ class _Chips extends StatelessWidget {
                 ),
                 selected: list.uuid == selected,
                 onSelected: (_) => onSelect(list),
+                // 48 dp to the finger, not 40 (U6-25).
+                materialTapTargetSize: MaterialTapTargetSize.padded,
               ),
             ),
           ActionChip(
             avatar: const Icon(Icons.add, size: 18),
             label: Text(l10n.listsNew),
             onPressed: onNew,
+            materialTapTargetSize: MaterialTapTargetSize.padded,
           ),
         ],
       ),
@@ -832,15 +838,16 @@ class ItemActions {
   }
 
   /// Opens the link in whatever handles it — on my tap, and only then
-  /// (L9, [[Business-Rules]] 13).
+  /// (L9, [[Business-Rules]] 13). Only a bare http(s) link opens, by the
+  /// rule the web applies (`linkOf`): a synced `tel:`, `market:` or app
+  /// link is text, not something one tap should launch.
   Future<void> openLink() async {
-    final link = item.link;
-    if (link == null) return;
+    final link = item.link == null ? null : linkOf(item.link!);
     final messenger = ScaffoldMessenger.of(context);
     final failed = AppLocalizations.of(context).listsLinkFailed;
-    final uri = Uri.tryParse(link);
+    final uri = link == null ? null : Uri.tryParse(link);
     var opened = false;
-    if (uri != null && uri.hasScheme) {
+    if (uri != null) {
       try {
         opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
       } on Object {
@@ -863,9 +870,9 @@ class ItemActions {
       initialType: book ? CommitmentType.project : CommitmentType.todo,
       initialTotal: book ? 300 : null,
       initialDaily: book ? 10 : null,
+      alongside: (seed) => _repository.linkSeed(item.uuid, seed.uuid),
     );
     if (seed == null) return;
-    await _repository.linkSeed(item.uuid, seed.uuid);
     messenger.showSnackBar(SnackBar(content: Text(l10n.goalPlanted)));
   }
 

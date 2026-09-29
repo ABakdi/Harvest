@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,8 +16,15 @@ part 'gallery_storage.g.dart';
 /// through a camera roll that other people scroll past. Rows store a
 /// path *relative* to this directory, so the app moving between
 /// installs does not orphan every memory.
+///
+/// Every picture and video is sealed on disk by [FileVault] (Phase 7,
+/// M7.4): written through [take] and [write], read through [read] and
+/// [openCopy]. Without a vault (a test with no Keystore) files are kept
+/// as they are.
 class GalleryStorage {
-  GalleryStorage();
+  GalleryStorage([this.vault]);
+
+  final FileVault? vault;
 
   Directory? _root;
 
@@ -62,11 +70,17 @@ class GalleryStorage {
     required String uuid,
   }) => p.join(albumUuid, '${day.key}-${uuid.substring(0, 8)}$extension');
 
-  /// Moves an imported or captured file in, creating the album folder.
+  /// Moves an imported or captured file in, sealed, creating the album
+  /// folder.
   Future<String> take(File source, String relative) async {
     final destination = await fileOf(relative);
     await destination.parent.create(recursive: true);
-    await source.copy(destination.path);
+    final vault = this.vault;
+    if (vault == null) {
+      await source.copy(destination.path);
+    } else {
+      await vault.sealFrom(source, destination);
+    }
     // The picker's temp copy is ours to clean up; failing to is not
     // worth losing the memory over.
     try {
@@ -77,12 +91,30 @@ class GalleryStorage {
     return relative;
   }
 
-  /// Writes bytes straight in — the importer's path.
+  /// Writes bytes straight in, sealed — the importer's path.
   Future<String> write(List<int> bytes, String relative) async {
     final destination = await fileOf(relative);
     await destination.parent.create(recursive: true);
-    await destination.writeAsBytes(bytes);
+    final vault = this.vault;
+    if (vault == null) {
+      await destination.writeAsBytes(bytes);
+    } else {
+      await vault.write(destination, bytes);
+    }
     return relative;
+  }
+
+  /// A video (or picture) opened into a temporary file, for what can only
+  /// play a path; the caller lets it go with [FileVault.release].
+  Future<File> openCopy(String relative) async {
+    final file = await fileOf(relative);
+    return vault?.openCopy(file) ?? file;
+  }
+
+  /// A picture's bytes, opened.
+  Future<Uint8List> read(String relative) async {
+    final file = await fileOf(relative);
+    return vault?.read(file) ?? file.readAsBytes();
   }
 
   Future<int> sizeOf(String relative) async {
@@ -91,7 +123,11 @@ class GalleryStorage {
     return file.length();
   }
 
+  /// Deletes a memory's file. A path from a row is still a path from
+  /// somewhere else (S6-08): one that could lead out of the gallery is
+  /// never deleted, as every other use of it is never read or written.
   Future<void> delete(String relative) async {
+    if (!isSafeRelative(relative)) return;
     final file = await fileOf(relative);
     if (file.existsSync()) await file.delete();
   }
@@ -108,4 +144,5 @@ class GalleryStorage {
 }
 
 @Riverpod(keepAlive: true)
-GalleryStorage galleryStorage(Ref ref) => GalleryStorage();
+GalleryStorage galleryStorage(Ref ref) =>
+    GalleryStorage(ref.watch(fileVaultProvider));

@@ -6,12 +6,16 @@ import {
   budgetSnapshotFor,
   budgetStatus,
   computeBudget,
+  convertBudget,
   cycleMinutes,
   decodeCycle,
   fallbackCycle,
   haversineMetres,
+  isPlausibleBodyWeight,
   sleepDebtMinutes,
   sleptMinutes,
+  savingsHealth,
+  averagePerDay,
   shortfallMinutes,
   stayRadiusM,
   staysIn,
@@ -21,6 +25,7 @@ import {
   weightSeries,
   weightTrend,
   type BudgetSnapshot,
+  type CurrencyCode,
   type Cycle,
   type Rates,
   type SleepNightLike,
@@ -112,6 +117,9 @@ describe('sleep', () => {
 describe('money', () => {
   const spec = fixture<{
     conversions: { why: string; rates: Rates; minor: number; from: string; result: number | null }[];
+    budgetSwitches: { why: string; rates: Rates; budget: number; from: CurrencyCode; to: CurrencyCode; result: number }[];
+    savingsHealth: { why: string; rates: Rates; savings: [CurrencyCode, number][]; budget: number | null; health: string }[];
+    averagePerDay: { why: string; total: number; days: number; currency: CurrencyCode; average: number }[];
     budgets: {
       why: string;
       monthlyBudget: number;
@@ -131,7 +139,19 @@ describe('money', () => {
   }>('money');
 
   it.each(spec.conversions)('converting: $why', ({ rates, minor, from, result }) => {
-    expect(toDefault(rates, minor, from as Rates['defaultCurrency'])).toBe(result);
+    expect(toDefault(rates, minor, from)).toBe(result);
+  });
+
+  it.each(spec.budgetSwitches)('switching the currency carries the budget: $why', ({ rates, budget, from, to, result }) => {
+    expect(convertBudget(budget, from, to, rates)).toBe(result);
+  });
+
+  it.each(spec.savingsHealth)('savings health: $why', ({ rates, savings, budget, health }) => {
+    expect(savingsHealth(savings, budget, rates)).toBe(health);
+  });
+
+  it.each(spec.averagePerDay)('the average a day: $why', ({ total, days, currency, average }) => {
+    expect(averagePerDay(total, days, currency)).toBe(average);
   });
 
   it.each(spec.budgets)('the budget: $why', (entry) => {
@@ -212,7 +232,12 @@ describe('the body', () => {
       entries: WeightLike[];
       trend: WeightTrend | null;
     }[];
+    plausibleWeights: { why: string; grams: number; plausible: boolean }[];
   }>('body');
+
+  it.each(spec.plausibleWeights)('a plausible weight: $why', ({ grams, plausible }) => {
+    expect(isPlausibleBodyWeight(grams)).toBe(plausible);
+  });
 
   it.each(spec.series)('the chart: $why', ({ entries, window, points }) => {
     expect(weightSeries(entries, window)).toEqual(points);

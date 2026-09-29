@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show compute;
 import 'package:harvest/features/import/data/archive_picker.dart';
 import 'package:harvest/features/import/domain/archive_reader.dart';
 import 'package:harvest/features/import/domain/import_service.dart';
@@ -71,7 +72,9 @@ class ImportController extends _$ImportController {
         state = const ImportIdle();
         return;
       }
-      final bundle = readArchive(picked.bytes);
+      // Unzipped off the UI isolate: a large archive never freezes the
+      // screen (P6-07).
+      final bundle = await compute(readArchiveAt, picked.path);
       final preview = await ref.read(importServiceProvider).preview(bundle);
       state = ImportReady(
         name: picked.name,

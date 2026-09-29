@@ -1,7 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import { useHarvest } from './context';
-import { readSetting, settingKeys } from './data/settings';
+import type { FileMiss } from './data/files';
+import { fallbackCurrency, readDefaultCurrency, readSetting } from './data/settings';
+import { background } from '@/lib/actions';
 
 /** Whether this browser holds the private tier's key; undefined while it looks. */
 export function usePrivateKey(): boolean | undefined {
@@ -10,9 +12,9 @@ export function usePrivateKey(): boolean | undefined {
   useEffect(() => {
     let live = true;
     const check = () =>
-      void keyring.key(user.syncSalt).then((key) => {
+      background(keyring.key(user.syncSalt).then((key) => {
         if (live) setUnlocked(key !== null);
-      });
+      }));
     check();
     const off = keyring.onUnlock(check);
     return () => {
@@ -29,13 +31,19 @@ export function useSetting(key: string): string | null | undefined {
   return useLiveQuery(() => readSetting(db, key), [db, key]);
 }
 
+/**
+ * The default currency: the one chosen, or, before any is, the dinar for
+ * an account with money logged and where this browser is for a new one
+ * ([[currencyWithNoneChosen]]).
+ */
 export function useDefaultCurrency(): string {
-  return useSetting(settingKeys.defaultCurrency) ?? 'DZD';
+  const { db } = useHarvest();
+  return useLiveQuery(() => readDefaultCurrency(db), [db]) ?? fallbackCurrency();
 }
 
 /**
  * A count that goes up each time a file that could not be had might now
- * be had: the passphrase was entered, or a sync finished. Listens only
+ * be had: the sync PIN was entered, or a sync finished. Listens only
  * while [waiting], so a file already shown is never fetched again.
  */
 export function useFileRetry(waiting: boolean): number {
@@ -60,36 +68,118 @@ export function useFileRetry(waiting: boolean): number {
 }
 
 /**
- * A picture or a recording as a URL, once this browser has it.
- *
- * Undefined while it is being fetched and null when it cannot be had —
- * no hash yet, no passphrase, or the file has not reached the server —
- * so a caller can say *on another device* rather than show a broken
- * frame ([[Gallery]]).
+ * A picture or a recording, as this browser can show it ([[Gallery]]
+ * G9): loading, ready with a URL, or missing and why — still on the
+ * phone, waiting for the sync PIN, or failed with *Try again*. A fetch
+ * is bounded, so loading always ends.
  */
-export function useFile(sha256: string | null): string | null | undefined {
+export type FileView =
+  | { state: 'loading' }
+  | { state: 'ready'; url: string }
+  | { state: FileMiss; retry: () => void };
+
+/**
+ * At most [size] of these at once; the rest wait their turn. A gallery
+ * of a thousand tiles asks for its files five at a time, not a thousand
+ * at once ([[Audit-v3]] Q5-32).
+ */
+export function fetchPool(size: number): <T>(work: () => Promise<T>) => Promise<T> {
+  let running = 0;
+  const waiting: (() => void)[] = [];
+  return async <T>(work: () => Promise<T>): Promise<T> => {
+    if (running >= size) await new Promise<void>((resolve) => waiting.push(resolve));
+    running++;
+    try {
+      return await work();
+    } finally {
+      running--;
+      waiting.shift()?.();
+    }
+  };
+}
+
+const filePool = fetchPool(5);
+
+/**
+ * A file by its hash, as a [FileView]; no hash is still on the phone.
+ * With [enabled] false (a tile not on screen yet) nothing is fetched and
+ * it reads as loading.
+ */
+export function useFileView(sha256: string | null, enabled = true): FileView {
   const { files } = useHarvest();
   // Keyed by the hash, so a tile scrolled into a new row starts again
   // rather than showing the last file it held.
-  const [found, setFound] = useState<{ hash: string; url: string | null }>();
+  const [found, setFound] = useState<{ hash: string; url: string } | { hash: string; miss: FileMiss }>();
+  const [asked, setAsked] = useState(0);
   // Locked or offline the first time: asked again when that may have changed.
-  const retry = useFileRetry(sha256 !== null && found?.hash === sha256 && found.url === null);
+  const missing = sha256 !== null && found?.hash === sha256 && 'miss' in found;
+  const retry = useFileRetry(missing);
 
   useEffect(() => {
-    if (sha256 === null) return;
+    if (sha256 === null || !enabled) return;
     let live = true;
     let made: string | null = null;
-    void files.get(sha256).then((blob) => {
+    // Not started at all if the tile is gone before its turn.
+    background(filePool(async () => (live ? files.find(sha256) : null)).then((got) => {
+      if (got === null) return;
       if (!live) return;
-      made = blob === null ? null : URL.createObjectURL(blob);
+      if (typeof got === 'string') {
+        setFound({ hash: sha256, miss: got });
+        return;
+      }
+      made = URL.createObjectURL(got);
       setFound({ hash: sha256, url: made });
-    });
+    }));
     return () => {
       live = false;
       if (made !== null) URL.revokeObjectURL(made);
     };
-  }, [files, sha256, retry]);
+  }, [files, sha256, retry, asked, enabled]);
 
-  if (sha256 === null) return null;
-  return found?.hash === sha256 ? found.url : undefined;
+  if (sha256 === null) return { state: 'onPhone', retry: () => setAsked((n) => n + 1) };
+  if (found?.hash !== sha256) return { state: 'loading' };
+  if ('url' in found) return { state: 'ready', url: found.url };
+  return {
+    state: found.miss,
+    retry: () => {
+      setFound(undefined);
+      setAsked((n) => n + 1);
+    },
+  };
+}
+
+/**
+ * Whether [ref]'s element has come near the screen; once it has, it
+ * stays true. Without IntersectionObserver it is simply true.
+ */
+export function useSeen(ref: RefObject<Element | null>, margin = '300px'): boolean {
+  const [seen, setSeen] = useState(() => typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    const element = ref.current;
+    if (seen || !element) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setSeen(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: margin },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref, seen, margin]);
+  return seen;
+}
+
+/**
+ * A picture or a recording as a URL, once this browser has it.
+ *
+ * Undefined while it is being fetched and null when it cannot be had,
+ * for callers that only need the URL; [useFileView] says why.
+ */
+export function useFile(sha256: string | null): string | null | undefined {
+  const view = useFileView(sha256);
+  if (view.state === 'loading') return undefined;
+  return view.state === 'ready' ? view.url : null;
 }

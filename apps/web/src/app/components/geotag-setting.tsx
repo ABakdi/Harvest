@@ -7,6 +7,7 @@ import { placesFeatureKey, webGeotaggingKey } from '../data/geotags';
 import { switchOn } from '../data/settings';
 import { useSetting } from '../hooks';
 import { SettingsRow, SettingsSection } from './settings-bits';
+import { runAction } from '@/lib/actions';
 
 /**
  * Asks the browser for its location once, so the permission prompt
@@ -66,7 +67,7 @@ export function GeotagSetting() {
           id={`${id}-switch`}
           checked={placesOn && switchOn(mine)}
           disabled={!placesOn || asking}
-          onCheckedChange={(on) => void change(on)}
+          onCheckedChange={(on) => runAction(() => change(on))}
         />
       </SettingsRow>
     </SettingsSection>

@@ -136,3 +136,29 @@ class ListItem {
   int? daysLeft(HarvestDay today) =>
       targetDay == null ? null : today.daysUntil(targetDay!);
 }
+
+/// The Granary's *Planned purchases* line ([[Lists]] L3): per currency,
+/// the open estimates of every live shopping list except the Wishlist,
+/// because someday is not a purchase that is planned. [lists] are the
+/// live lists; an item of a list not among them does not count. The
+/// same rule as `plannedPurchases` in `packages/core/src/lists.ts`,
+/// held to `fixtures/lists.json`.
+Map<Currency, int> plannedPurchaseTotals(
+  Iterable<ItemList> lists,
+  Iterable<ListItem> items,
+) {
+  final planned = {
+    for (final list in lists)
+      if (list.kind == ListKind.shopping && list.builtIn != BuiltInList.wish)
+        list.uuid,
+  };
+  final sums = <Currency, int>{};
+  for (final item in items) {
+    final minor = item.priceMinor;
+    if (item.isDone || minor == null || !planned.contains(item.listUuid)) {
+      continue;
+    }
+    sums.update(item.currency, (value) => value + minor, ifAbsent: () => minor);
+  }
+  return sums;
+}

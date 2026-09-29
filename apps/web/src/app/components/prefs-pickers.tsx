@@ -38,7 +38,7 @@ const presetSwatch: Record<ThemePreset, [string, string]> = {
   sunrise: ['#ff4f6d', '#ffc93c'],
   ocean: ['#0e9de9', '#10bfa5'],
   orchard: ['#1fb25a', '#f7c948'],
-  dusk: ['#8b5cf6', '#ec4899'],
+  dusk: ['#7c3aed', '#db2777'],
 };
 
 export function PresetPicker() {
@@ -57,7 +57,7 @@ export function PresetPicker() {
             aria-checked={selected}
             onClick={() => setPrefs({ themePreset: preset })}
             className={cn(
-              'flex items-center gap-2 rounded-lg bg-input px-3 py-2 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'flex items-center gap-2 rounded-lg bg-input px-3 py-2 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11',
               selected && 'ring-2 ring-primary',
             )}
           >

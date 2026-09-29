@@ -1,5 +1,5 @@
 {
-  "why": "a finance row must never travel as data",
+  "why": "no row travels as data, since Phase 7: every table is sealed",
   "path": "data",
   "record": {
     "table": "expenses",

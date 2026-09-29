@@ -44,52 +44,60 @@ class NoteTrashScreen extends ConsumerWidget {
               title: l10n.trashEmptyTitle,
               body: l10n.trashNotesEmptyBody,
             )
-          : ListView(
-              padding: const EdgeInsets.all(HarvestSpacing.md),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-                  child: Text(
-                    l10n.trashKeeps,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+          : Builder(
+              builder: (context) {
+                final rows = <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+                    child: Text(
+                      l10n.trashKeeps,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
-                ),
-                for (final note in notes)
-                  Card(
-                    margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
-                    child: ListTile(
-                      leading: const Icon(Icons.description_outlined),
-                      title: Text(
-                        note.title.isEmpty ? l10n.notesUntitled : note.title,
-                      ),
-                      subtitle: Text(
-                        formatDay(context, HarvestDay.of(note.updatedAt)),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            tooltip: l10n.trashRestore,
-                            icon: const Icon(Icons.restore_from_trash_outlined),
-                            onPressed: () => unawaited(
-                              ref
-                                  .read(notesRepositoryProvider)
-                                  .restore(note.uuid),
+                  for (final note in notes)
+                    Card(
+                      margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
+                      child: ListTile(
+                        leading: const Icon(Icons.description_outlined),
+                        title: Text(
+                          note.title.isEmpty ? l10n.notesUntitled : note.title,
+                        ),
+                        subtitle: Text(
+                          formatDay(context, HarvestDay.of(note.updatedAt)),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: l10n.trashRestore,
+                              icon: const Icon(
+                                Icons.restore_from_trash_outlined,
+                              ),
+                              onPressed: () => unawaited(
+                                ref
+                                    .read(notesRepositoryProvider)
+                                    .restore(note.uuid),
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            tooltip: l10n.trashDeleteForever,
-                            icon: const Icon(Icons.delete_forever_outlined),
-                            onPressed: () =>
-                                unawaited(_purge(context, ref, note)),
-                          ),
-                        ],
+                            IconButton(
+                              tooltip: l10n.trashDeleteForever,
+                              icon: const Icon(Icons.delete_forever_outlined),
+                              onPressed: () =>
+                                  unawaited(_purge(context, ref, note)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ];
+                return ListView.builder(
+                  padding: const EdgeInsets.all(HarvestSpacing.md),
+                  itemCount: rows.length,
+                  itemBuilder: (_, i) => rows[i],
+                );
+              },
             ),
     );
   }

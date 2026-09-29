@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// The five Harvest looks (checkpoint gap G7). Each carries a light and
@@ -78,7 +80,9 @@ const harvestPalettes = <ThemePreset, HarvestPalette>{
     onSurfaceLight: Color(0xFF2C2350),
     surfaceDark: Color(0xFF211A38),
     onSurfaceDark: Color(0xFFEDE7FD),
-    gradient: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+    // One shade deeper than primary and secondary, so a white label
+    // reads on both ends of a gradient button (U6-09).
+    gradient: [Color(0xFF7C3AED), Color(0xFFDB2777)],
   ),
 };
 
@@ -106,6 +110,57 @@ extension HarvestThemeX on ThemeData {
   LinearGradient get primaryGradient =>
       extension<HarvestGradients>()?.primary ??
       LinearGradient(colors: [colorScheme.primary, colorScheme.tertiary]);
+
+  /// The ink for text and icons on [primaryGradient]: white where white
+  /// reads on both ends, the palette's dark ink otherwise. White on the
+  /// Harvest amber end was 1.8:1 ([[Audit-v3]] U6-09).
+  Color get onPrimaryGradient => inkOn(primaryGradient.colors);
+}
+
+/// The WCAG contrast ratio of two colours, 1 to 21.
+double contrastRatio(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+}
+
+/// Dark ink for a light fill, the same for every preset.
+const harvestInk = Color(0xFF1B1B2F);
+
+/// White if it reads at [ratio] on every one of [fills], [harvestInk]
+/// otherwise.
+Color inkOn(List<Color> fills, {double ratio = 4.5}) =>
+    fills.every((fill) => contrastRatio(Colors.white, fill) >= ratio)
+    ? Colors.white
+    : harvestInk;
+
+/// [color], darkened on a light [background] or lightened on a dark
+/// one, just enough to read as text at [ratio] (WCAG AA is 4.5): the
+/// same hue, so the brand still shows, but never a label nobody can
+/// read ([[Audit-v3]] U6-09).
+Color readableOn(Color color, Color background, {double ratio = 4.5}) {
+  if (contrastRatio(color, background) >= ratio) return color;
+  final darken = background.computeLuminance() > 0.5;
+  final hsl = HSLColor.fromColor(color);
+  var lightness = hsl.lightness;
+  for (var i = 0; i < 100; i++) {
+    lightness = (lightness + (darken ? -0.01 : 0.01)).clamp(0.0, 1.0);
+    final candidate = hsl.withLightness(lightness).toColor();
+    if (contrastRatio(candidate, background) >= ratio) return candidate;
+  }
+  return darken ? Colors.black : Colors.white;
+}
+
+/// The brand colours as text: each one made readable on the page.
+extension HarvestReadableColors on ColorScheme {
+  /// [primary] as text on the page (links, tab labels, text buttons).
+  Color get primaryText => readableOn(primary, surface);
+
+  /// [secondary] as text on the page.
+  Color get secondaryText => readableOn(secondary, surface);
+
+  /// [tertiary] as text on the page: XP and coins.
+  Color get tertiaryText => readableOn(tertiary, surface);
 }
 
 /// The brand green, straight off the launcher icon.

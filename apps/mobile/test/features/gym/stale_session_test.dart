@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
@@ -81,15 +82,15 @@ void main() {
 
     test('reads hours, not 15977 minutes', () {
       expect(
-        formatSessionClock(const Duration(minutes: 4, seconds: 5)),
+        formatDuration(const Duration(minutes: 4, seconds: 5)),
         '4:05',
       );
       expect(
-        formatSessionClock(const Duration(hours: 1, minutes: 4, seconds: 5)),
+        formatDuration(const Duration(hours: 1, minutes: 4, seconds: 5)),
         '1:04:05',
       );
       expect(
-        formatSessionClock(const Duration(minutes: 15977, seconds: 10)),
+        formatDuration(const Duration(minutes: 15977, seconds: 10)),
         '266:17:10',
       );
     });

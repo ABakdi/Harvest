@@ -3,9 +3,9 @@
   "uuid": "themeMode",
   "updatedAt": "2026-09-14T21:00:00.000Z",
   "deletedAt": null,
-  "data": {
-    "key": "themeMode",
-    "valueJson": "\"dark\"",
-    "updatedAt": "2026-09-14T21:00:00.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "P8BfvmXZals82DeD",
+    "ct": "W3YCAZcd9zw1G9wfO4cohh22wovdGV5S0f3jHUQgTfPlvy/rVtf5uYs5l2BH1apsgGLO0J0Bv2Plhj4AqD+oOLSdRTBEFgVGcoIW/qsImzgrOCEdWytCREEYQgYVqMaE3vuORu4rLyo9OunIkPuReDFI7Fb2IYQXaGgUzojjVXKa8CoR00FiDWvaGQ76JxlseUXWqso8HBaL9vm0eIEOgGyLWFc6N2FFx3nRi10QJlB9AcMlZd73OlSHbk1/qcGtOzvBROWAvs9NhFkwVA4jMJdes/LZT6HmWijqV93MwUio16b39BaTttXarBNaZUjo2gc8zBfwe8A2SU9+s8pCqEFcxgtTYQvrBzOIYFN9Id4="
   }
 }

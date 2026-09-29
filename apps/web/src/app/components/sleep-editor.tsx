@@ -13,6 +13,7 @@ import { useHarvest } from '../context';
 import { type SleepRow, type SleepTargets, atMinutes, cycleForMorning, defaultNight, readSleepTargets } from '../data/health';
 import { clockOfMinutes } from '../data/settings';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
 
 /**
  * Where the two times sit around the morning's midnight, within the
@@ -103,7 +104,7 @@ function SleepForm({
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    void once(save);
+    runAction(() => once(save));
   }
 
   return (

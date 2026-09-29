@@ -264,6 +264,9 @@ export class ListsRepository {
       list: legacyListOf(toListUuid),
       listUuid: toListUuid,
       position: await nextPosition(tx, toListUuid),
+      // Nothing on the Wishlist is bought (L7): a bought item moved
+      // there is a wish again ([[Audit-v3]] Q5-45).
+      ...(toListUuid === wishListId ? { boughtAt: null } : {}),
       updatedAt: tx.now(),
     });
     return true;

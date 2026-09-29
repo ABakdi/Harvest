@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -6,8 +8,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'archive_picker.g.dart';
 
-/// A zip the user chose, with the name they will recognise it by.
-typedef PickedArchive = ({String name, Uint8List bytes});
+/// A zip the user chose, with the name they will recognise it by, and
+/// where it is on disk: it is read by the isolate that unzips it, never
+/// on the UI isolate (P6-07).
+typedef PickedArchive = ({String name, String path});
 
 /// Choosing a file, behind an interface like every other platform edge
 /// — so the merge can be tested without a file browser.
@@ -36,7 +40,14 @@ class FilePickerArchive implements ArchivePicker {
       if (length > ArchiveLimits.archiveBytes) {
         throw const ArchiveInvalid(ArchiveProblem.tooLarge);
       }
-      return (name: picked.name, bytes: await picked.readAsBytes());
+      final path = picked.xFile.path;
+      if (path.isNotEmpty && File(path).existsSync()) {
+        return (name: picked.name, path: path);
+      }
+      // A provider that gave no file: a copy in the cache stands in.
+      final copy = File('${Directory.systemTemp.path}/harvest-import.zip');
+      await copy.writeAsBytes(await picked.readAsBytes(), flush: true);
+      return (name: picked.name, path: copy.path);
     } on PlatformException catch (error) {
       debugPrint('[import] picker unavailable: ${error.code}');
       return null;

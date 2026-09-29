@@ -193,9 +193,42 @@ class GoalsRepository {
     GoalsCompanion(status: const Value('dropped'), statusNote: Value(note)),
   );
 
-  /// Soft delete, with its items (GL7). [restore] undoes it.
-  Future<void> delete(String uuid) => _setDeleted(uuid, DateTime.now());
-  Future<void> restore(String uuid) => _setDeleted(uuid, null);
+  /// Soft delete, with its items (GL7). [restore] undoes it. What
+  /// achieving paid goes with the goal, as it does on reopening, and
+  /// comes back with it: achieving and deleting over and over is not a
+  /// way to earn XP ([[Audit-v3]] U6-04).
+  Future<void> delete(String uuid) => _db.transaction(() async {
+    await _setDeleted(uuid, DateTime.now());
+    if (await _xpNet(uuid) > 0) {
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: -goalAchievedXp,
+          reason: 'goal-undo:$uuid',
+          harvestDay: HarvestDay.today().key,
+        ),
+      );
+    }
+  });
+
+  Future<void> restore(String uuid) => _db.transaction(() async {
+    await _setDeleted(uuid, null);
+    final goal = await (_db.select(
+      _db.goals,
+    )..where((g) => g.uuid.equals(uuid))).getSingleOrNull();
+    if (goal?.status == 'achieved' && await _xpNet(uuid) <= 0) {
+      await _db.insertLedger(
+        LedgerCompanion.insert(
+          uuid: _uuid.v4(),
+          kind: 'xp',
+          delta: goalAchievedXp,
+          reason: 'goal:$uuid',
+          harvestDay: HarvestDay.today().key,
+        ),
+      );
+    }
+  });
 
   /// Items go with the goal and come back with it — only the ones that
   /// went *with* it, which share its deletion stamp. An item deleted on
@@ -319,6 +352,36 @@ class GoalsRepository {
         if (item.parentUuid != null) {
           await _settleParent(item.parentUuid!);
         }
+      });
+
+  /// Un-ticks what an undone check-in ticked, and only that: the item,
+  /// or the subtasks of a parent, whose tick is the check-in's own
+  /// moment ([stamps], its `loggedAt`). A subtask I ticked by hand
+  /// before or after stays ticked ([[Goals]] GL3, [[Audit-v3]] Q5-43).
+  Future<void> untickFrom(String uuid, Iterable<DateTime> stamps) =>
+      _db.transaction(() async {
+        final item = await _item(uuid);
+        if (item == null) return;
+        bool ticked(DateTime? doneAt) =>
+            doneAt != null && stamps.any(doneAt.isAtSameMomentAs);
+        final subtasks = await _subtasks(uuid);
+        if (subtasks.isNotEmpty) {
+          for (final subtask in subtasks) {
+            if (!ticked(subtask.doneAt)) continue;
+            await _writeItem(
+              subtask.uuid,
+              const GoalItemsCompanion(doneAt: Value(null)),
+            );
+          }
+          await _settleParent(uuid);
+          return;
+        }
+        if (!ticked(item.doneAt)) return;
+        await _writeItem(
+          uuid,
+          const GoalItemsCompanion(doneAt: Value(null)),
+        );
+        if (item.parentUuid != null) await _settleParent(item.parentUuid!);
       });
 
   /// One section's order, or one parent's subtasks', as dragged.
@@ -448,6 +511,25 @@ class GoalsRepository {
     uuid,
     GoalItemsCompanion(commitmentUuid: Value(commitmentUuid)),
   );
+
+  /// Settles every live parent at once: after a sync merge or an
+  /// import, which write rows one by one and can leave a parent's stored
+  /// tick behind its subtasks' ([[Audit-v3]] Q5-44). A no-op for every
+  /// parent that is already right.
+  Future<void> settleAllParents() => _db.transaction(() async {
+    final parents =
+        await (_db.selectOnly(_db.goalItems, distinct: true)
+              ..addColumns([_db.goalItems.parentUuid])
+              ..where(
+                _db.goalItems.parentUuid.isNotNull() &
+                    _db.goalItems.deletedAt.isNull(),
+              ))
+            .map((row) => row.read(_db.goalItems.parentUuid)!)
+            .get();
+    for (final uuid in parents) {
+      await _settleParent(uuid);
+    }
+  });
 
   /// Writes a parent's tick as its live subtasks draw it
   /// ([parentDoneAt]): the latest of their ticks when every one is

@@ -38,12 +38,14 @@ void main() {
       String email = 'me@example.com',
       String password = 'correct horse',
       bool creating = false,
+      String name = '',
     }) => signInProblem(
       l10n,
       server: server,
       email: email,
       password: password,
       creating: creating,
+      name: name,
     );
 
     test('lets a complete form through', () {
@@ -57,6 +59,15 @@ void main() {
       expect(problem(email: ''), l10n.accountEmailMissing);
       expect(problem(email: 'me@'), l10n.accountEmailInvalid);
       expect(problem(password: ''), l10n.accountPasswordMissing);
+    });
+
+    test('refuses a name that is the password, as a password manager '
+        'fills it', () {
+      expect(
+        problem(creating: true, name: ' correct horse '),
+        l10n.accountNameIsPassword,
+      );
+      expect(problem(creating: true, name: 'Maya'), isNull);
     });
 
     test('holds a new password to the policy, but not a sign-in', () {
@@ -95,5 +106,15 @@ void main() {
     await tester.tap(find.text(l10n.accountNeedOne));
     await tester.pump();
     expect(find.text(l10n.accountEmailMissing), findsNothing);
+
+    // The name comes before the password, never right after it, where a
+    // password manager takes it for the confirmation.
+    final name = tester.getTopLeft(
+      find.widgetWithText(TextField, l10n.accountDisplayName),
+    );
+    final password = tester.getTopLeft(
+      find.widgetWithText(TextField, l10n.accountPassword),
+    );
+    expect(name.dy, lessThan(password.dy));
   });
 }

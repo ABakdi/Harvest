@@ -88,6 +88,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         padding: const EdgeInsets.all(HarvestSpacing.md),
         children: [
           TextField(
+            textCapitalization: TextCapitalization.sentences,
             controller: _controller,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => unawaited(_add()),
@@ -116,6 +117,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             const SizedBox(height: HarvestSpacing.sm),
             for (final todo in plan.todos)
               Card(
+                // The Field's gap between cards, not none (U6-22).
+                margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
                 child: ListTile(
                   leading: const Icon(Icons.check_circle_outline),
                   title: Text(todo.title),
@@ -142,6 +145,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             const SizedBox(height: HarvestSpacing.sm),
             for (final habit in plan.habits)
               Card(
+                margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
                 child: ListTile(
                   leading: const Icon(Icons.repeat),
                   title: Text(habit.title),

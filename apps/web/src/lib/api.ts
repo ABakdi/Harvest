@@ -8,18 +8,26 @@ import type {
   FileUploaded,
   ForgotPasswordBody,
   Issue,
+  KeyCheck,
+  SyncKeySet,
+  SyncKeyState,
+  UnlockResult,
   LoginBody,
   Me,
   PatchMeBody,
   PullResult,
   PushBody,
   PushResult,
+  ReauthBody,
   RegisterBody,
   Release,
   ResetPasswordBody,
+  SealedBody,
+  SealedResult,
   SessionsResult,
 } from '@harvest/contracts';
-import { fileIvHeader, filePlainBytesHeader } from '@harvest/contracts';
+// From the schema-free module: this file is on the public pages (Q5-30).
+import { fileIvHeader, fileKeyEpochHeader, filePlainBytesHeader } from '@harvest/contracts/headers';
 
 /**
  * The web's only door to the server. Everything else it knows, it knows
@@ -52,6 +60,8 @@ export class ApiError extends Error {
     message: string,
     readonly details: Issue[] = [],
     readonly retryAfter: number | null = null,
+    /** On a wrong PIN proof (`wrong_pin`), the tries left before the pause. */
+    readonly triesLeft: number | null = null,
   ) {
     super(message);
   }
@@ -105,10 +115,6 @@ function announce(user: Me | null): void {
   for (const listener of sessionListeners) listener(user);
 }
 
-export function sessionUser(): Me | null {
-  return currentUser;
-}
-
 // ----------------------------------------------------------- other tabs
 
 type AuthMessage =
@@ -129,6 +135,12 @@ channel?.addEventListener('message', (event: MessageEvent<AuthMessage>) => {
 
 
 function remember(result: AuthResult, broadcast = true): void {
+  // A new sign-in replaces a sign-out the server had not heard (S6-02).
+  try {
+    localStorage.removeItem('harvest.signOutPending');
+  } catch {
+    // No storage.
+  }
   const now = Date.now();
   access = { token: result.accessToken, expiresAt: now + result.expiresIn * 1000, receivedAt: now };
   refreshPause = null;
@@ -160,9 +172,16 @@ export function resumeSession(): AuthResult | null {
 async function toError(response: Response): Promise<ApiError> {
   const retryAfter = Number(response.headers.get('retry-after')) || null;
   try {
-    const body = (await response.json()) as Partial<ErrorBody>;
+    const body = (await response.json()) as Partial<ErrorBody> & { triesLeft?: number };
     if (body.error) {
-      return new ApiError(response.status, body.error.code, body.error.message, body.error.details ?? [], retryAfter);
+      return new ApiError(
+        response.status,
+        body.error.code,
+        body.error.message,
+        body.error.details ?? [],
+        retryAfter,
+        typeof body.triesLeft === 'number' ? body.triesLeft : null,
+      );
     }
   } catch {
     // Not the contract's shape: a proxy's error page, most likely.
@@ -170,11 +189,43 @@ async function toError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, 'internal', response.statusText || 'Request failed', [], retryAfter);
 }
 
-async function send(path: string, init: RequestInit): Promise<Response> {
+async function sendOnce(path: string, init: RequestInit): Promise<Response> {
   try {
     return await fetch(`${base}${path}`, { credentials: 'include', ...init });
   } catch (error) {
     throw new ApiError(0, 'network', error instanceof Error ? error.message : 'Network error');
+  }
+}
+
+/** How often a paced route is asked again after a `429`, and the longest wait. */
+export const paceAttempts = 3;
+export const longestPaceMs = 60_000;
+
+/** How a test waits out a `429` without waiting. */
+let pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+export function setPauseForTests(next: (ms: number) => Promise<void>): void {
+  pause = next;
+}
+
+/**
+ * The sync and file routes are paced per account ([[Sync-API]], limits):
+ * a `429` there is waited out as long as `Retry-After` says (a minute at
+ * most) and asked again, so a busy moment slows a sync down rather than
+ * failing it. Everything else answers at once.
+ */
+async function send(path: string, init: RequestInit): Promise<Response> {
+  const paced = path.startsWith('/v1/sync/') || path.startsWith('/v1/files');
+  for (let attempt = 1; ; attempt++) {
+    const response = await sendOnce(path, init);
+    if (!paced || response.status !== 429 || attempt >= paceAttempts) return response;
+    const seconds = Number(response.headers.get('retry-after'));
+    const wait = Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 5_000;
+    try {
+      await response.text();
+    } catch {
+      // Nothing to read.
+    }
+    await pause(Math.min(wait, longestPaceMs));
   }
 }
 
@@ -314,23 +365,72 @@ export function deviceName(): string {
   return system ? `${browser} on ${system}` : browser;
 }
 
+/**
+ * A sign-out the server has not heard yet (offline, S6-02): the refresh
+ * cookie is HttpOnly and only the server can end its session, so until
+ * it has, this browser never resumes that session on its own, and says
+ * the sign-out again at every start, whenever it is back online, and
+ * before a new sign-in (which would otherwise be the session it ends).
+ */
+export const signOutPendingKey = 'harvest.signOutPending';
+
+export function signOutPending(): boolean {
+  try {
+    return localStorage.getItem(signOutPendingKey) !== null;
+  } catch {
+    return false;
+  }
+}
+
+export function markSignOut(pending: boolean): void {
+  try {
+    if (pending) localStorage.setItem(signOutPendingKey, '1');
+    else localStorage.removeItem(signOutPendingKey);
+  } catch {
+    // No storage: the sign-out is only as good as the server's answer.
+  }
+}
+
+/** Tells the server about a sign-out it missed; true once it has heard. */
+export async function finishSignOut(): Promise<boolean> {
+  if (!signOutPending()) return true;
+  try {
+    await api.logout();
+    markSignOut(false);
+    return true;
+  } catch (error) {
+    // A 401 is a session already ended: done all the same.
+    if ((error as { status?: number }).status === 401) {
+      markSignOut(false);
+      return true;
+    }
+    if (typeof window !== 'undefined') window.addEventListener('online', () => void finishSignOut().catch(() => undefined), { once: true });
+    return false;
+  }
+}
+
 export const api = {
   async login(body: Omit<LoginBody, 'client' | 'deviceName'>): Promise<AuthResult> {
+    await finishSignOut();
     const result = await request<AuthResult>('/v1/auth/login', {
       method: 'POST',
       auth: false,
       body: { ...body, client: 'web', deviceName: deviceName() } satisfies LoginBody,
     });
+    // The new cookie replaced the one the owed sign-out was about.
+    markSignOut(false);
     remember(result);
     return result;
   },
 
   async register(body: Omit<RegisterBody, 'client' | 'deviceName'>): Promise<AuthResult> {
+    await finishSignOut();
     const result = await request<AuthResult>('/v1/auth/register', {
       method: 'POST',
       auth: false,
       body: { ...body, client: 'web', deviceName: deviceName() } satisfies RegisterBody,
     });
+    markSignOut(false);
     remember(result);
     return result;
   },
@@ -363,6 +463,12 @@ export const api = {
     forget();
   },
   sessions: () => request<SessionsResult>('/v1/me/sessions'),
+  /**
+   * The account's password again, before this browser writes out
+   * everything it holds (Phase 7, M7.6): 204 when it is right, 403
+   * `forbidden` when it is not, 429 with `Retry-After` past the limit.
+   */
+  reauth: (password: string) => request<void>('/v1/me/reauth', { method: 'POST', body: { password } satisfies ReauthBody }),
   revokeSession: (id: string) => request<void>(`/v1/me/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   latestRelease: (signal?: AbortSignal) =>
@@ -396,11 +502,18 @@ export const api = {
     request<FileQueryResult>('/v1/files/missing', { method: 'POST', body: { hashes } satisfies FileQuery }),
 
   /**
-   * One file's sealed bytes, under the name of its plaintext. The nonce
-   * and the plaintext's length ride in headers, as the phone sends them;
-   * a full account answers 507 `quota_exceeded`.
+   * One file's sealed bytes, under its name on the server (a keyed hash
+   * of its plaintext's, since Phase 7). The nonce and the sealed length
+   * ride in headers, as the phone sends them; a full account answers
+   * 507 `quota_exceeded`.
    */
-  async putFile(sha256: string, sealed: ArrayBuffer, iv: string, plainBytes: number): Promise<FileUploaded> {
+  async putFile(
+    sha256: string,
+    sealed: ArrayBuffer,
+    iv: string,
+    plainBytes: number,
+    keyEpoch: number,
+  ): Promise<FileUploaded> {
     const init = (token: string | null): RequestInit => ({
       method: 'PUT',
       headers: {
@@ -408,6 +521,9 @@ export const api = {
         'content-type': 'application/octet-stream',
         [fileIvHeader]: iv,
         [filePlainBytesHeader]: String(plainBytes),
+        // The key the bytes were sealed under; a stale one is refused
+        // with nothing stored (S6-07).
+        [fileKeyEpochHeader]: String(keyEpoch),
         ...(token ? { authorization: `Bearer ${token}` } : {}),
       },
       body: sealed,
@@ -449,8 +565,50 @@ export const api = {
     return response;
   },
 
+  /**
+   * The account's salt, its key epoch and whether a PIN is set; the key
+   * share only while none is ([[Sync-API]], sync key).
+   */
+  syncKey: () => request<SyncKeyState>('/v1/me/sync-key'),
+
+  /**
+   * Shows the PIN's proof; the key share, the key check and the epoch
+   * come back only for the right one. A wrong one is 403 `wrong_pin`
+   * with `triesLeft`; past the limit, 429 with `Retry-After`.
+   */
+  unlockSyncKey: (proof: string) =>
+    request<UnlockResult>('/v1/me/sync-key/unlock', { method: 'POST', body: { proof } }),
+
+  /** Sets the account's PIN: the epoch, or null when another device set one first (409). */
+  async setSyncKey(verifier: string, check: KeyCheck): Promise<SyncKeySet | null> {
+    try {
+      return await request<SyncKeySet>('/v1/me/sync-key', { method: 'PUT', body: { verifier, check } });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) return null;
+      throw error;
+    }
+  },
+
+  /** Starts the PIN over: the check, the share and everything private on the server go. */
+  startOverSyncKey: (password: string) => request<void>('/v1/me/sync-key', { method: 'DELETE', body: { password } }),
+
+  /** Lets go of a file no row names any more; a 409 (still named) leaves it. */
+  async forgetFile(sha256: string): Promise<void> {
+    try {
+      await request<void>(`/v1/files/${sha256}`, { method: 'DELETE' });
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 409) throw error;
+    }
+  },
+
   push: (body: PushBody) => request<PushResult>('/v1/sync/push', { method: 'POST', body }),
-  pull: (after: number, limit: number) => request<PullResult>(`/v1/sync/pull?after=${after}&limit=${limit}`),
+  /** Everything here has gone up sealed: the server lets go of what it kept in the clear. */
+  sealed: (body: SealedBody) => request<SealedResult>('/v1/sync/sealed', { method: 'POST', body }),
+  /** With [deviceId], the server leaves out what this device wrote itself. */
+  pull: (after: number, limit: number, deviceId?: string) =>
+    request<PullResult>(
+      `/v1/sync/pull?after=${after}&limit=${limit}${deviceId ? `&deviceId=${encodeURIComponent(deviceId)}` : ''}`,
+    ),
 };
 
 /** For tests: start from a clean, signed-out module, as a reload does. */

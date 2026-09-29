@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerBodySchema } from '@harvest/contracts';
+import { nameIsPassword, registerFieldsSchema } from '@harvest/contracts';
 import { MailCheckIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -11,8 +11,14 @@ import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { apiMessage, fieldMessage } from '@/lib/errors';
 import { AuthCard, FormError } from './auth-card';
+import { runAction } from '@/lib/actions';
 
-const schema = registerBodySchema.pick({ email: true, password: true, displayName: true });
+const schema = registerFieldsSchema
+  .pick({ email: true, password: true, displayName: true })
+  .refine((values) => !nameIsPassword(values.displayName, values.password), {
+    path: ['displayName'],
+    message: 'not_the_password',
+  });
 
 export function RegisterPage() {
   const { t } = useTranslation();
@@ -62,10 +68,18 @@ export function RegisterPage() {
         onChange={() => setFailure(null)}
         onSubmit={(event) => {
           setFailure(null);
-          void submit(event);
+          runAction(() => submit(event));
         }}
         className="flex flex-col gap-4"
       >
+        {/* The name first: a field right after a new password is taken for
+            its confirmation by password managers, and filled with it. */}
+        <FormField
+          label={t('auth.displayName')}
+          autoComplete="nickname"
+          error={fieldMessage(t, errors.displayName)}
+          {...form.register('displayName', { setValueAs: (value: string) => (value.trim() === '' ? undefined : value) })}
+        />
         <FormField
           label={t('auth.email')}
           type="email"
@@ -82,18 +96,23 @@ export function RegisterPage() {
           error={fieldMessage(t, errors.password)}
           {...form.register('password')}
         />
-        <FormField
-          label={t('auth.displayName')}
-          autoComplete="nickname"
-          error={fieldMessage(t, errors.displayName)}
-          {...form.register('displayName', { setValueAs: (value: string) => (value.trim() === '' ? undefined : value) })}
-        />
         <FormError message={failure} />
+        {/* The address has an account: the ways into it, right here (W6-24). */}
+        {failure === t('auth.error.emailTaken') && (
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/login">{t('auth.signIn')}</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/forgot">{t('auth.resetPassword')}</Link>
+            </Button>
+          </div>
+        )}
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? t('auth.creating') : t('auth.createAccount')}
         </Button>
         <p className="text-sm text-muted-foreground">{t('auth.accountOptional')}</p>
-        <Link to="/login" className="text-sm font-bold text-primary hover:underline">
+        <Link to="/login" className="text-sm font-bold text-primary hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center">
           {t('auth.haveAccount')}
         </Link>
       </form>

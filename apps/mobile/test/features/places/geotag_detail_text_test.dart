@@ -4,7 +4,7 @@ import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/vault.dart';
 import 'package:harvest/features/places/domain/place.dart';
-import 'package:harvest/features/places/presentation/places_screen.dart';
+import 'package:harvest/features/places/presentation/places_timeline.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// A pin's line on the Places sheet writes money as the Granary does:

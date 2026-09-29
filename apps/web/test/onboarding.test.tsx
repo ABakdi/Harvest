@@ -5,9 +5,10 @@ import { describe, expect, it } from 'vitest';
 import { HarvestContext } from '@/app/context';
 import { metaKeys, setMeta } from '@/app/data/db';
 import { readSetting } from '@/app/data/settings';
-import { OnboardingGate, OnboardingScreen, needsOnboarding } from '@/app/screens/onboarding';
+import { OnboardingScreen } from '@/app/screens/onboarding';
+import { OnboardingGate, needsOnboarding } from '@/app/screens/onboarding-gate';
 import { FakeServer } from './fake-server';
-import { device } from './helpers';
+import { device, writesSettled } from './helpers';
 
 /**
  * First run on the web: asked once, of an account with nothing in it,
@@ -88,7 +89,8 @@ describe('the welcome', () => {
     expect(await screen.findByText('The field', {}, { timeout: 5000 })).toBeInTheDocument();
     // And it stays: the gate must not send the field back to the welcome
     // while its own query catches up with the answer.
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await waitFor(async () => expect(await readSetting(h.db, 'onboarding.done')).toBe('true'));
+    await writesSettled(h);
     expect(screen.getByText('The field')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Start growing' })).not.toBeInTheDocument();
     const seeds = await h.db.rows('commitments').toArray();

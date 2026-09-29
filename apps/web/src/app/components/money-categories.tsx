@@ -10,6 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useHarvest } from '../context';
 import { categoryIconKeys, categoryNameProblem } from '../data/categories';
 import { IconGlyph, useCustomCategories } from './money-bits';
+import { runAction } from '@/lib/actions';
 
 /**
  * A new category: a name and an icon from the registry
@@ -53,7 +54,7 @@ export function CategoryCreator({ onClose, onCreated }: { onClose: () => void; o
           <DialogTitle>{t('money.newCategory')}</DialogTitle>
           <DialogDescription>{t('moneyWeb.categoryLead')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${id}-name`}>{t('money.categoryName')}</Label>
             <Input
@@ -117,7 +118,7 @@ export function CategoryManager() {
   async function remove(uuid: string) {
     await categories.remove(uuid);
     toast(t('money.categoryRemoved'), {
-      action: { label: t('common.undo'), onClick: () => void categories.restore(uuid) },
+      action: { label: t('common.undo'), onClick: () => runAction(() => categories.restore(uuid)) },
     });
   }
 
@@ -132,8 +133,8 @@ export function CategoryManager() {
         {(customs ?? []).map((row) => (
             <li key={row.uuid} className="flex items-center gap-1.5 rounded-full border bg-background py-1 ps-3 pe-1 text-sm font-bold">
               <IconGlyph icon={row.icon} className="size-4" />
-              {row.name}
-              <Button variant="ghost" size="icon-sm" className="size-7 rounded-full" aria-label={t('money.removeCategory', { name: row.name })} onClick={() => void remove(row.uuid)}>
+              <span dir="auto">{row.name}</span>
+              <Button variant="ghost" size="icon-sm" className="size-7 rounded-full" aria-label={t('money.removeCategory', { name: row.name })} onClick={() => runAction(() => remove(row.uuid))}>
                 <XIcon />
               </Button>
             </li>

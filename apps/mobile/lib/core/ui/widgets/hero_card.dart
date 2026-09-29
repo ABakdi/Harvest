@@ -30,7 +30,9 @@ class HeroCard extends StatelessWidget {
     final effectiveGradient = tinted
         ? null
         : (gradient ?? theme.primaryGradient);
-    final foreground = tinted ? theme.colorScheme.onSurface : Colors.white;
+    final foreground = tinted
+        ? theme.colorScheme.onSurface
+        : inkOn(effectiveGradient!.colors);
     final shadowColor = tinted ? tint! : effectiveGradient!.colors.first;
 
     return Container(

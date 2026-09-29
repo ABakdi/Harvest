@@ -42,6 +42,19 @@ export function weightToGrams(unit: 'kg' | 'lb', value: number): number {
   return Math.round(unit === 'kg' ? value * 1000 : value * gramsPerPound);
 }
 
+/** The lightest and heaviest a body weight can be (`minBodyWeightGrams`, `maxBodyWeightGrams`): 20 kg to 400 kg. */
+export const minBodyWeightGrams = 20_000;
+export const maxBodyWeightGrams = 400_000;
+
+/**
+ * Whether [grams] is a weight a person can have (`isPlausibleBodyWeight`).
+ * Outside 20–400 kg it is a typo — 900 kg, or 8.2 for 82 — and it is
+ * refused rather than drawn into the line ([[Health]] H4, W6-15).
+ */
+export function isPlausibleBodyWeight(grams: number): boolean {
+  return Number.isFinite(grams) && grams >= minBodyWeightGrams && grams <= maxBodyWeightGrams;
+}
+
 /**
  * One point per day between the first and last entry, so a gap in the
  * middle is drawn as a gap rather than closed silently. The average at

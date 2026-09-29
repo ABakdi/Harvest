@@ -25,7 +25,10 @@ void main() {
     schedule: const TimesPerWeekSchedule(times: 3),
   );
 
-  Future<List<String>> tomorrowHabits(HarvestDay today, int doneThisWeek) async {
+  Future<List<String>> tomorrowHabits(
+    HarvestDay today,
+    int doneThisWeek,
+  ) async {
     final container = ProviderContainer(
       overrides: [
         currentHarvestDayProvider.overrideWith(() => _FixedDay(today)),
@@ -56,10 +59,13 @@ void main() {
   final wednesday = HarvestDay.fromDate(DateTime(2026, 9, 23));
   final sunday = HarvestDay.fromDate(DateTime(2026, 9, 27));
 
-  test('a flexible habit with its week done is not planned for tomorrow', () async {
-    expect(await tomorrowHabits(wednesday, 3), isEmpty);
-    expect(await tomorrowHabits(wednesday, 1), ['gym']);
-  });
+  test(
+    'a flexible habit with its week done is not planned for tomorrow',
+    () async {
+      expect(await tomorrowHabits(wednesday, 3), isEmpty);
+      expect(await tomorrowHabits(wednesday, 1), ['gym']);
+    },
+  );
 
   test('a new week starts the count again', () async {
     expect(await tomorrowHabits(sunday, 3), ['gym']);

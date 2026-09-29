@@ -1,4 +1,10 @@
-import { deleteMeBodySchema, patchMeBodySchema, sessionParamsSchema, type SessionsResult } from '@harvest/contracts';
+import {
+  deleteMeBodySchema,
+  patchMeBodySchema,
+  reauthBodySchema,
+  sessionParamsSchema,
+  type SessionsResult,
+} from '@harvest/contracts';
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
 import { toMe, toSession, type AuthService } from '../auth/service.js';
@@ -6,10 +12,11 @@ import type { Repositories } from '../db/index.js';
 import { authOf } from '../http/authenticate.js';
 import { HttpError, unauthorized } from '../http/errors.js';
 import { validated } from '../http/validate.js';
-import { cookieOptions, refreshCookie, type CookiePolicy } from './auth.js';
+import type { Limiters } from '../http/rate-limits.js';
+import { clearRefreshCookies, type CookiePolicy } from './auth.js';
 
 /** The account and its devices. Mounted behind requireAuth. */
-export function meRoutes(auth: AuthService, repos: Repositories, policy: CookiePolicy): Router {
+export function meRoutes(auth: AuthService, repos: Repositories, policy: CookiePolicy, limits: Limiters): Router {
   const router = Router();
 
   router.get('/', async (_req, res) => {
@@ -29,11 +36,25 @@ export function meRoutes(auth: AuthService, repos: Repositories, policy: CookieP
     }),
   );
 
+  // A wrong password here is a guess like any other, and an argon2 run
+  // like any other: counted per account, successes let off (S5-03).
   router.delete(
     '/',
+    limits.deleteAccount,
     ...validated({ body: deleteMeBodySchema }, async ({ body }, _req, res) => {
       await auth.deleteAccount(authOf(res).userId, body.password);
-      res.clearCookie(refreshCookie, cookieOptions(policy));
+      clearRefreshCookies(res, policy);
+      res.status(204).end();
+    }),
+  );
+
+  // The password again before an export (Phase 7, M7.6): the same
+  // guesses, counted against the same limit as deleting the account.
+  router.post(
+    '/reauth',
+    limits.deleteAccount,
+    ...validated({ body: reauthBodySchema }, async ({ body }, _req, res) => {
+      await auth.reauth(authOf(res).userId, body.password);
       res.status(204).end();
     }),
   );

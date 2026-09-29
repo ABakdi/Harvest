@@ -116,6 +116,8 @@ describe('the lists view', () => {
 
   it('offers the Lists tab in Records and the switch in Extras', async () => {
     const h = await withLists();
+    // The row shows once two views are on, as on the phone.
+    await h.settings.setBool('features.notes', true);
     render(
       <HarvestContext.Provider value={h}>
         <MemoryRouter>
@@ -369,8 +371,9 @@ describe('tied into the rest of the app', () => {
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('textbox', { name: 'Title' })).toHaveValue('Dune');
     expect(within(dialog).getByRole('radio', { name: 'Project' })).toHaveAttribute('data-state', 'on');
-    await user.type(within(dialog).getByLabelText('Total target (pages, minutes…)'), '300');
-    await user.type(within(dialog).getByLabelText('Daily commitment'), '10');
+    // A book starts at 300 pages, 10 a day, as on the phone (G5-14).
+    expect(within(dialog).getByLabelText('Total target (pages, minutes…)')).toHaveValue(300);
+    expect(within(dialog).getByLabelText('Daily commitment')).toHaveValue(10);
     await user.click(within(dialog).getByRole('button', { name: 'Plant a seed' }));
 
     await waitFor(async () => expect((await h.db.rows('wishlist_items').get(dune.uuid))?.seedUuid).toBeTruthy());
@@ -432,7 +435,7 @@ describe('the Granary', () => {
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     await h.lists.addItem(buyListId, { title: 'Kettle', priceMinor: 85_000 });
     show(h, '/app/granary');
-    expect(await screen.findByRole('tab', { name: 'Expenses' })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: 'Today' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Planned purchases/ })).toBeNull();
   });
 });

@@ -77,6 +77,11 @@ sealed class GeotagDetail {
   const GeotagDetail();
 }
 
+/// The row it pointed at is gone, or its seed was deleted (U6-26).
+final class GeotagGone extends GeotagDetail {
+  const GeotagGone();
+}
+
 /// A note's title, a seed's name, an album's name.
 final class GeotagText extends GeotagDetail {
   const GeotagText(this.text);
@@ -212,6 +217,32 @@ List<Stay> staysIn(
   }
   return stays;
 }
+
+/// The stays of a span of days, from [start] to [end]: [trail] is the
+/// span's points plus the last point before it and the first after it,
+/// so a stay across the 3 AM line (home from 19:00 to 08:00, nothing in
+/// between) is found on both days, each keeping its own part of it
+/// ([[Audit-v3]] Q5-58). A stay is cut to the span, and a part shorter
+/// than [stayMinimum] is left out. `staysWithin` in `packages/core`.
+List<Stay> staysWithin(
+  List<Fix> trail, {
+  required DateTime start,
+  required DateTime end,
+  List<SavedPlace> places = const [],
+}) => [
+  for (final stay in staysIn(trail, places: places))
+    if ((stay.to.isBefore(end) ? stay.to : end).difference(
+          stay.from.isAfter(start) ? stay.from : start,
+        ) >=
+        stayMinimum)
+      Stay(
+        latitude: stay.latitude,
+        longitude: stay.longitude,
+        from: stay.from.isAfter(start) ? stay.from : start,
+        to: stay.to.isBefore(end) ? stay.to : end,
+        place: stay.place,
+      ),
+];
 
 double haversineMetres(double lat1, double lon1, double lat2, double lon2) {
   const earth = 6371000.0;

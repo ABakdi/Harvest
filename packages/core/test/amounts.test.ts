@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { evaluateAmountToMinor, isAmountExpression } from '../src/index.js';
+import { evaluateAmountToMinor, isAmountExpression, isPlausibleAmount } from '../src/index.js';
 
 /**
  * The amount box's arithmetic, held to the fixture the phone's
@@ -9,12 +9,19 @@ import { evaluateAmountToMinor, isAmountExpression } from '../src/index.js';
  */
 const spec = JSON.parse(readFileSync(new URL('../fixtures/amounts.json', import.meta.url), 'utf8')) as {
   cases: { why: string; input: string; minor: number | null }[];
+  plausible: { why: string; minor: number; plausible: boolean }[];
 };
 
 describe('amounts.json', () => {
   for (const entry of spec.cases) {
     it(entry.why, () => {
       expect(evaluateAmountToMinor(entry.input)).toBe(entry.minor);
+    });
+  }
+
+  for (const entry of spec.plausible) {
+    it(`plausible: ${entry.why}`, () => {
+      expect(isPlausibleAmount(entry.minor)).toBe(entry.plausible);
     });
   }
 

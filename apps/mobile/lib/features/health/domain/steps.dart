@@ -103,3 +103,20 @@ const defaultStrideCm = 75;
 /// setting, and the figure is labelled as what it is.
 double stepsToMetres(int steps, {int strideCm = defaultStrideCm}) =>
     steps * strideCm / 100;
+
+/// The [count] days up to [today], oldest first, each one there even
+/// without a row: a day with no steps is a bar of nothing, not a day
+/// that never happened. Leaving it out stretched "the last 14 days" over
+/// three weeks under the wrong weekday letters ([[Audit-v3]] Q5-47).
+List<StepDay> lastDaysFilled(
+  List<StepDay> days,
+  HarvestDay today, {
+  required int count,
+}) {
+  final byDay = {for (final day in days) day.day: day};
+  return [
+    for (var back = count - 1; back >= 0; back--)
+      byDay[today.addDays(-back)] ??
+          StepDay(day: today.addDays(-back), steps: 0),
+  ];
+}

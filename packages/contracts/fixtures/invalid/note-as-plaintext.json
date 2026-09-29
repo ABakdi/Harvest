@@ -1,0 +1,19 @@
+{
+  "why": "a note, like every other row, travels sealed",
+  "path": "data",
+  "record": {
+    "table": "notes",
+    "uuid": "n1",
+    "updatedAt": "2026-09-18T13:10:00.000Z",
+    "deletedAt": null,
+    "data": {
+      "uuid": "n1",
+      "title": "Plans",
+      "folder": "",
+      "body": "Secret plans",
+      "createdAt": "2026-09-18T13:10:00.000Z",
+      "updatedAt": "2026-09-18T13:10:00.000Z",
+      "deletedAt": null
+    }
+  }
+}

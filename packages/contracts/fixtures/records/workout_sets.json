@@ -3,15 +3,9 @@
   "uuid": "2a7f5c9e-8b3d-4a1f-9e6c-4d8b2f7a5c63",
   "updatedAt": "2026-09-17T17:31:12.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "2a7f5c9e-8b3d-4a1f-9e6c-4d8b2f7a5c63",
-    "sessionExerciseUuid": "9c3e7a1f-2d8b-4b6c-a4e9-1f7c5b3d9a24",
-    "position": 2,
-    "weightGrams": 87500,
-    "reps": 4,
-    "done": true,
-    "targetLabel": "1+ @ 95%",
-    "openEnded": true,
-    "loggedAt": "2026-09-17T17:31:12.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "fbO2mLoKnk98iJzA",
+    "ct": "3liDtXxL7aisQEBFngNjhhhkwbaOya707KgJ4djpTsenMYEXVJtrU3P9ns2DVJsit1BMdrEdeGg9Gdbwa4APNNbhwn14rcylvxTkFTSahnd1uuaDVRKO7dMVUDWVZQG+ZHVYRUaPtfhqLsfmXP4p/KUxR5AD8nutgOF0JFbCIqAUDMOY4HojcqlWeNtVzOBKcRU29fFyw/2BS/kA5DkMOK5oqOiykVtr1zfzwpLzT/TMIgYkFYP7hE4kzF/toHn8yfF6HCDWKuoLME1ERxs1yfZi47FAnTYqbKAxHHnptPIHE6P824sF755qtXwZUDgLBiJjOSabh1hkOuAUUow1iFkknm5h6xo5oBq5904S92s="
   }
 }

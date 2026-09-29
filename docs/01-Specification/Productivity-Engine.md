@@ -68,6 +68,11 @@ what to pick up tomorrow.
   page 143*.
 - Today's note also appears on the seed's card, so the field itself can
   say where I left off.
+- Two devices that each write the day's note before they meet leave two
+  rows for one day. The newest write is the day's note (a tie goes to
+  the greater uuid, so every device picks the same), and the next save
+  folds the others into it. Both apps share the rule
+  (`packages/core/src/seed-notes.ts`).
 - The whole sequence is in the seed's history, and every note is in the
   spreadsheet export ([[Business-Rules]] #11).
 
@@ -86,7 +91,7 @@ be a lie about a month of work.
 
 ## Calendar
 
-A month calendar (field app bar) populated from every schedule: habits due per their rules, to-dos on their planned days, and deadline flags (a project's deadline included). Projects themselves stay off the grid: a project is due every day until it is done, so its daily commitment would sit on every square and the month would stop telling me anything. Future days accept quick-planted to-dos.
+A month calendar (field app bar) populated from every schedule: habits due per their rules, to-dos on their planned days, and deadline flags (a project's deadline included). Projects themselves stay off the grid: a project is due every day until it is done, so its daily commitment would sit on every square and the month would stop telling me anything. Future days accept quick-planted to-dos. A times-a-week habit shows on a day while its week's quota, counted over the days *before* that one, is still open: meeting it on Wednesday takes it off Thursday to Sunday, never off the days that met it. A to-do counts as done once it was ever checked in, a day late included. One rule for both apps (`calendarEntries` in `packages/core`, pinned by `fixtures/calendar.json`).
 
 ## Editing & lifecycle
 

@@ -14,6 +14,8 @@ import i18n from '@/i18n';
 import { useHarvest, useHarvestDay } from '../context';
 import { plantSeed, type SeedInput, type SeedRow, type SeedType } from '../data/seeds';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
+import { shortName } from '@/lib/format';
 
 export interface SeedPrefill {
   title?: string;
@@ -24,6 +26,12 @@ export interface SeedPrefill {
   /** The list item this seed is planted from; linked in the same write ([[Lists]]: Plant as a seed). */
   linkListItem?: string;
   dueDay?: string | null;
+  /**
+   * A project's suggested size, typed over at will: a book planted
+   * from a list starts at "300 pages, 10 a day", as on the phone.
+   */
+  totalTarget?: number;
+  dailyCommitment?: number;
 }
 
 type ScheduleKind = Schedule['type'];
@@ -79,8 +87,12 @@ export function SeedEditor({
   const [everyDays, setEveryDays] = useState(existingSchedule?.type === 'interval' ? String(existingSchedule.everyDays) : '2');
   const [anchorDay] = useState(existingSchedule?.type === 'interval' ? existingSchedule.anchorDay.key : today.key);
   const [times, setTimes] = useState(existingSchedule?.type === 'timesPerWeek' ? String(existingSchedule.times) : '3');
-  const [totalTarget, setTotalTarget] = useState(editing?.totalTarget?.toString() ?? '');
-  const [dailyCommitment, setDailyCommitment] = useState(editing?.dailyCommitment?.toString() ?? '');
+  const [totalTarget, setTotalTarget] = useState(
+    editing?.totalTarget?.toString() ?? prefill.totalTarget?.toString() ?? '',
+  );
+  const [dailyCommitment, setDailyCommitment] = useState(
+    editing?.dailyCommitment?.toString() ?? prefill.dailyCommitment?.toString() ?? '',
+  );
   const [dueDay, setDueDay] = useState(editing ? (editing.dueDay ?? '') : (prefill.dueDay ?? today.key));
   const [note, setNote] = useState(editing?.note ?? '');
   const [remindAt, setRemindAt] = useState(editing?.remindAt ?? '');
@@ -154,7 +166,7 @@ export function SeedEditor({
         } else {
           await seeds.plant(input, prefill.linkItem);
         }
-        toast.success(t('seed.planted', { title: title.trim() }));
+        toast.success(t('seed.planted', { title: shortName(title) }));
       }
       onClose();
     } catch {
@@ -178,7 +190,7 @@ export function SeedEditor({
           <DialogTitle>{editing ? t('seed.editTitle') : t('seed.plant')}</DialogTitle>
           <DialogDescription>{t('seed.editorLead')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void once(() => submit(event))} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => once(() => submit(event)))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label id={field('type')}>{t('seed.typeLabel')}</Label>
             <ToggleGroup
@@ -295,7 +307,7 @@ export function SeedEditor({
                   <SelectContent>
                     <SelectItem value="none">{t('seed.servesNone')}</SelectItem>
                     {goals?.map((goal) => (
-                      <SelectItem key={goal.uuid} value={goal.uuid}>
+                      <SelectItem dir="auto" key={goal.uuid} value={goal.uuid}>
                         {goal.title}
                       </SelectItem>
                     ))}

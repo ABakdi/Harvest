@@ -65,6 +65,26 @@ int roundLoad(num grams, {WeightUnit unit = WeightUnit.kg}) =>
     ? gramsOfPounds((grams / WeightUnit.gramsPerPound * 4).round() / 4)
     : (grams / roundingGrams).round() * roundingGrams;
 
+/// What a resolved percentage steps by: a pair of the smallest plates,
+/// one each side, so 0.5 kg with 0.25 kg plates ([[Gym]] rule Y8).
+const int loadStepGrams = 2 * 250;
+
+/// The same in pounds: a pair of 2.5 lb plates.
+const double loadStepPounds = 2 * 2.5;
+
+/// Rounds a resolved percentage to a load the plate list can put on a
+/// bar: the nearest 0.5 kg, or the nearest 5 lb, kept as whole grams
+/// of those pounds. [roundLoad]'s quarter steps are for reading and
+/// typing a weight; a quarter kilo cannot be split over two sides of a
+/// bar, and a number nobody can load is a bug ([[Audit-v3]] G5-13).
+int roundToPlates(num grams, {WeightUnit unit = WeightUnit.kg}) =>
+    unit == WeightUnit.lb
+    ? gramsOfPounds(
+        (grams / WeightUnit.gramsPerPound / loadStepPounds).round() *
+            loadStepPounds,
+      )
+    : (grams / loadStepGrams).round() * loadStepGrams;
+
 /// One row of what I am *meant* to do.
 ///
 /// Exactly one of [weightGrams] and [percentTenths] carries the load: a
@@ -104,12 +124,15 @@ class TargetSet {
   ///
   /// Null when it is a percentage and no training max has been set —
   /// which is a question to ask, not a zero to load. A percentage is
-  /// rounded in the [unit] I lift in.
+  /// rounded in the [unit] I lift in, to what the plates can load.
   int? resolve({int? trainingMaxGrams, WeightUnit unit = WeightUnit.kg}) {
     if (weightGrams != null) return weightGrams;
     if (percentTenths == null) return null;
     if (trainingMaxGrams == null) return null;
-    return roundLoad(trainingMaxGrams * percentTenths! / 1000, unit: unit);
+    return roundToPlates(
+      trainingMaxGrams * percentTenths! / 1000,
+      unit: unit,
+    );
   }
 
   TargetSet copyWith({

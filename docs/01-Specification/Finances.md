@@ -11,8 +11,10 @@ the range's own ledger).
 
 **Insights reads one span** ([[Checkpoint-4]]): this week, this month,
 or any two dates I pick. Whichever it is, the dates are spelled out
-under the segments, and the per-day average divides by the days that
-have actually elapsed rather than the days in the span.
+under the segments (once — not again over the chart), and the per-day
+average divides by the days that have actually elapsed rather than the
+days in the span. A dinar average is rounded to whole dinars, as every
+other dinar amount is written (`averagePerDay` in `packages/core`).
 
 Every number is on the page, not implied by it: each bar carries its
 amount (the peak only, on a range too long to label every bar — and any
@@ -62,7 +64,12 @@ shows a hero card with its per-currency balances and its actions, then
   debt refuses further payments. A payment logged by mistake is
   **removed the way an expense is** — long-press it, confirm, undo from
   the snackbar — and removing it takes its wallet movement with it and
-  reopens a debt it had settled ([[Audit-v2-Beta]] N-01). Unsettled
+  reopens a debt it had settled ([[Audit-v2-Beta]] N-01). A debt itself
+  can be **corrected** — who, how much, the day, the reminder, the note —
+  but never to less than has been paid, and its currency stays put once
+  a payment was made in it. It can also be **removed**, with Undo: its
+  payments go with it, while what they took from the wallet stays spent,
+  because that money did leave ([[Audit-v3]] G5-02). Unsettled
   debts nag **daily** (19:00 default) until fully paid; partial
   payments accumulate and full payment settles with a small celebration.
   Settled debts fold into a quiet list underneath.
@@ -78,17 +85,39 @@ the **custom categories** live together under Settings › Money.
 ## Quick-log
 
 The whole point is a **sub-5-second log**:
-- **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]]). The rule lives once, in `packages/core`, and a fixture both the phone and the web are tested against pins it
-- **Logged on** — today unless I say otherwise; a chip takes any day a year either side, for the receipt found in a pocket or the bill I know is coming. The day's +10 follows the day the expense lands on ([[Checkpoint-8]])
+- **Amount** (numeric pad first) — a number, or a sum: `12+3.5*2` shows what it comes to as it is typed, and Log logs the result ([[Checkpoint-6]]). The rule lives once, in `packages/core`, and a fixture both the phone and the web are tested against pins it. Every amount box on the phone — the expense, the wallet, savings, a debt and the budget — has the same keypad, `+` included, so a sum can be typed and not only pasted (U6-10). An amount above 1,000,000,000 in minor units of its currency (DA10,000,000, €10,000,000) is asked about before it is saved: likelier a slipped finger than a purchase, and it would swamp every total (`isPlausibleAmount`, W6-15)
+- **Logged on** — today unless I say otherwise; a chip takes any day a year either side, for the receipt found in a pocket or the bill I know is coming. The day's +10 follows the day the expense lands on ([[Checkpoint-8]]); a day still to come earns nothing yet, so a year of bills logged ahead cannot mint a year of XP today ([[Audit-v3]] Q5-67)
 - **Category** — preset chips (Food, Transport, Bills, Shopping, Health, Entertainment, Other) plus **custom categories**: create one inline with a name and an icon from the registry; manage (delete) them in the budget sheet
 - Optional merchant/note
 
-Stored as integer minor units (cents) — never floats, and always in
-the currency the money was in. **Three currencies are supported** —
-one default chosen in settings, and any amount logged in another is
-converted for the totals at the rate I last fetched, never rewritten
-([[Audit-v2]] D3-08). An earlier line here called multi-currency out
-of scope; it was out of date the day the Vault shipped.
+Stored as integer hundredths of the currency — never floats, and always
+in the currency the money was in. **Every currency in circulation is
+supported** since Phase 7 (160 of them, ISO 4217, with their names in
+English and Arabic; [[Phase-7-Privacy-and-Currencies]] M7.8), where 3.1
+knew the dinar, the dollar and the euro. One is the default, chosen in
+settings, and any amount logged in another is converted for the totals
+at the rate I last fetched, never rewritten ([[Audit-v2]] D3-08).
+Hundredths for every currency, even the yen's and the Kuwaiti dinar's,
+so nothing stored had to change: a currency's own minor units only say
+how many decimals are shown — none for the yen, two at most for anyone.
+
+- **The default follows where I am.** A new install starts with the
+  currency of the first country the device can name: on the phone its
+  SIM's, then its network's; then the time zone's country; then each
+  language's region. With none, the dinar. The server is never asked:
+  an address-based guess would be one more thing it could learn about
+  me. Always changeable in Settings › Money, from a list I can search by
+  name, code or symbol (`defaultCurrencyFor`, pinned by
+  `fixtures/currency-defaults.json`).
+- **Rates for every currency** come from `open.er-api.com` (what one
+  dollar buys of each, updated daily; "Rates by Exchange Rate API"),
+  fetched by the device when I tap *Fetch*, kept with their date, and
+  shown with it. Any two currencies convert through the dollar.
+- **The dinar's parallel market** — DZD against the euro and the
+  dollar, typed by hand, because the official rate is not what a euro
+  buys in Algiers — shows only when my currency is the dinar, and when
+  set it wins over the fetched rate for any leg through the dinar.
+  Nobody else sees the dinar, the euro or the dollar singled out.
 
 ## Smart repeats
 
@@ -102,6 +131,11 @@ If the same amount+category (e.g., "Coffee — $5, Food") appears 3 days running
   already had, not a second one.
 - Removing a movement, or undoing that removal, never takes a pot below
   zero; it is refused with the same words as an overdraw.
+- The rules hold in the repository, not only in the sheets: a sheet
+  opened before a sync emptied the wallet cannot take it below zero, and
+  the Undo of a removed payment is refused, and says so, when the debt
+  has been paid again or the wallet spent in the meantime
+  ([[Audit-v3]] Q5-17, Q5-18).
 - The month's total counts the expenses up to today; one logged ahead
   waits for its day. It is listed under **Upcoming**, soonest first,
   where it can be edited or removed like any other. Its wallet movement
@@ -111,15 +145,15 @@ If the same amount+category (e.g., "Coffee — $5, Food") appears 3 days running
 - A settled debt keeps its payments: removing one — a last payment made
   by mistake — reopens the debt, with Undo. Settling says so, with a
   small celebration.
-- The dinar rates are typed by hand; *Fetch* brings only EUR → USD, and
-  the card says so beside the dinar fields.
+- The dinar's parallel rates are typed by hand; *Fetch* brings the
+  official ones for every currency, and the card says which wins.
 - In Arabic an amount is held left to right as one piece, so its sign
   sits before the number, and every number in the app — amounts, dates,
   times, counts — uses the same Western digits.
 
 ## Budget logic
 
-- I set a **Monthly Budget**, and can clear it: no budget is an empty value, which every device reads as none.
+- I set a **Monthly Budget**, and can clear it: no budget is an empty value, which every device reads as none. The budget is a sum in the default currency, so switching that currency converts it at the rate I last fetched (DA50,000 becomes its worth in euros, not €50,000); without a rate it keeps its number ([[Audit-v3]] G5-04).
 - **Floating Daily Limit** = remaining budget ÷ remaining days in the month — recomputed at each 3 AM reset ([[Business-Rules]]).
 - A real-time gauge: 🟢 under · 🟡 within 15% · 🔴 over.
 

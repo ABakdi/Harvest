@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  nameIsPassword,
   checkRecord,
+  retiredTables,
+  checkRow,
   emailSchema,
   errorBodySchema,
   errorStatus,
   instantMicros,
   isCommonPassword,
+  isLegacySetting,
   isPortableSetting,
   loginBodySchema,
   passwordSchema,
@@ -67,6 +71,17 @@ describe('password policy', () => {
     expect(isCommonPassword('harvest at three in the morning')).toBe(false);
   });
 
+  it('refuses a common one dressed up with digits, symbols or leetspeak (W6-40)', () => {
+    for (const weak of ['password12', 'Password123!', 'p@ssw0rd', 'P@ssw0rd2024', 'dragon1234', 'Qwerty123!!', 'l3tm31n99']) {
+      expect(isCommonPassword(weak), weak).toBe(true);
+      expect(passwordSchema.safeParse(weak.padEnd(10, '1')).success, weak).toBe(false);
+    }
+    for (const strong of ['correct horse battery', 'Tamarind-orchard-7', 'harvest at three in the morning', 'zq8#Lm2!pV']) {
+      expect(isCommonPassword(strong), strong).toBe(false);
+      expect(passwordSchema.safeParse(strong).success, strong).toBe(true);
+    }
+  });
+
   it('does not apply the policy to sign-in', () => {
     expect(loginBodySchema.safeParse({ email: 'me@example.com', password: 'old' }).success).toBe(true);
   });
@@ -87,6 +102,23 @@ describe('settings allow-list', () => {
     expect(isPortableSetting('pomodoro.active')).toBe(false);
     expect(isPortableSetting('security.lockEnabled')).toBe(false);
   });
+
+  it('still takes what a 3.0.0 phone pushes, without it being portable', () => {
+    for (const key of ['assist.provider', 'assist.baseUrl', 'assist.model', 'places.styleUrl']) {
+      expect(isPortableSetting(key)).toBe(false);
+      expect(isLegacySetting(key)).toBe(true);
+      const record = {
+        table: 'kv_settings',
+        uuid: key,
+        updatedAt: '2026-09-19T10:00:00Z',
+        deletedAt: null,
+        enc: { v: 2, iv: 'AAAAAAAAAAAAAAAA', ct: 'c2VhbGVk' },
+      };
+      expect(checkRecord(record).ok).toBe(true);
+    }
+    expect(isLegacySetting('places.mapBase')).toBe(false);
+    expect(isLegacySetting('security.lockEnabled')).toBe(false);
+  });
 });
 
 describe('instants', () => {
@@ -102,27 +134,17 @@ describe('instants', () => {
 });
 
 describe('the registry', () => {
-  it('knows 36 tables, and not the outbox or quests', () => {
-    expect(syncedTables).toHaveLength(36);
+  it('knows 37 tables, and not the outbox or quests', () => {
+    expect(syncedTables).toHaveLength(37);
+    expect(syncedTables).toContain('trail_days');
     expect(syncedTables).toContain('lists');
     expect(syncedTables).toContain('wishlist_items');
     expect(syncedTables).not.toContain('outbox');
     expect(syncedTables).not.toContain('quests');
   });
 
-  it('puts finance and location on the private tier, and nothing else', () => {
-    expect(syncedTables.filter((t) => tables[t].tier === 'private').sort()).toEqual(
-      [
-        'debt_payments',
-        'debts',
-        'expense_categories',
-        'expenses',
-        'geotags',
-        'location_points',
-        'money_txns',
-        'saved_places',
-      ].sort(),
-    );
+  it('puts every table on the private tier (Phase 7)', () => {
+    expect(syncedTables.filter((t) => tables[t].tier !== 'private')).toEqual([]);
   });
 });
 
@@ -201,19 +223,80 @@ describe('checkRecord', () => {
     expect(checkRecord({ ...base, uuid: 'lock.armed', purged: true }).ok).toBe(false);
   });
 
-  it('reports where a record went wrong', () => {
-    const checked = checkRecord({ ...base, data: { key: 'locale', valueJson: 'not json', updatedAt: base.updatedAt } });
+  const enc = { v: 2, iv: 'AAAAAAAAAAAAAAAA', ct: 'c2VhbGVk' };
+  const note = { ...base, table: 'notes', uuid: 'n1' };
+  const name = 'a'.repeat(64);
+
+  it('refuses a row in the clear as sealed_required, whatever its table', () => {
+    for (const table of ['notes', 'kv_settings', 'expenses', 'step_days']) {
+      const checked = checkRecord({ ...base, table, uuid: 'locale', data: { anything: true } });
+      expect(checked.ok).toBe(false);
+      if (!checked.ok) expect(checked.issues).toContainEqual(expect.objectContaining({ path: ['data'], code: 'sealed_required' }));
+    }
+  });
+
+  it('takes a sealed row, and the name of the file it names in the clear', () => {
+    expect(checkRecord({ ...note, enc }).ok).toBe(true);
+    expect(checkRecord({ ...note, table: 'memories', enc, file: name }).ok).toBe(true);
+    expect(checkRecord({ ...note, table: 'note_attachments', enc, file: name }).ok).toBe(true);
+  });
+
+  it('refuses a file name on a table that names none, or on a tombstone', () => {
+    expect(checkRecord({ ...note, enc, file: name }).ok).toBe(false);
+    expect(checkRecord({ ...note, table: 'memories', purged: true, file: name }).ok).toBe(false);
+  });
+});
+
+describe('retired tables (M7.3)', () => {
+  const enc = { v: 2, iv: 'AAAAAAAAAAAAAAAA', ct: 'c2VhbGVk' };
+  const point = { table: 'location_points', uuid: 'p1', updatedAt: '2026-09-19T10:00:00.000Z', deletedAt: null };
+
+  it('refuses a trail point, sealed or not, and still takes its tombstone', () => {
+    expect(retiredTables).toEqual(['location_points']);
+    const checked = checkRecord({ ...point, enc });
+    expect(checked.ok).toBe(false);
+    if (!checked.ok) expect(checked.issues[0]?.code).toBe('retired_table');
+    expect(checkRecord({ ...point, purged: true }).ok).toBe(true);
+  });
+
+  it('still opens one 3.1 sealed, so its points can move into their day', () => {
+    expect(tables.location_points.tier).toBe('private');
+  });
+});
+
+describe('checkRow', () => {
+  const record = { table: 'kv_settings' as const, uuid: 'locale', updatedAt: '2026-09-19T10:00:00.000Z', deletedAt: null };
+
+  it('reports where an opened row went wrong', () => {
+    const checked = checkRow(record, { key: 'locale', valueJson: 'not json', updatedAt: record.updatedAt });
     expect(checked.ok).toBe(false);
     if (!checked.ok) expect(checked.issues[0]?.path).toEqual(['data', 'valueJson']);
   });
 
   it('accepts the same instant spelled differently', () => {
-    const checked = checkRecord({
-      ...base,
-      updatedAt: '2026-09-19T10:00:00Z',
-      data: { key: 'locale', valueJson: '"ar"', updatedAt: '2026-09-19T10:00:00.000Z' },
-    });
+    const checked = checkRow(
+      { ...record, updatedAt: '2026-09-19T10:00:00Z' },
+      { key: 'locale', valueJson: '"ar"', updatedAt: '2026-09-19T10:00:00.000Z' },
+    );
     expect(checked.ok).toBe(true);
+  });
+
+  it('refuses a path out of the device’s storage', () => {
+    const memory = {
+      uuid: 'm1',
+      albumUuid: 'a1',
+      harvestDay: '2026-09-19',
+      path: '../../etc/passwd',
+      kind: 'photo',
+      note: null,
+      fileHash: null,
+      capturedAt: '2026-09-19T10:00:00.000Z',
+      updatedAt: '2026-09-19T10:00:00.000Z',
+      deletedAt: null,
+    };
+    const checked = checkRow({ ...record, table: 'memories', uuid: 'm1' }, memory);
+    expect(checked.ok).toBe(false);
+    if (!checked.ok) expect(checked.issues[0]?.path).toEqual(['data', 'path']);
   });
 });
 
@@ -230,5 +313,22 @@ describe('push and pull bodies', () => {
     expect(pullQuerySchema.safeParse({ limit: '0' }).success).toBe(false);
     expect(pullQuerySchema.safeParse({ limit: '1001' }).success).toBe(false);
     expect(pullQuerySchema.safeParse({ after: '-1' }).success).toBe(false);
+  });
+});
+
+describe('a display name that is the password', () => {
+  const body = { email: 'maya@example.com', password: 'Tamarind-orchard-7', client: 'mobile' as const };
+
+  it('is refused at sign-up, as a password manager filling it would', () => {
+    const parsed = registerBodySchema.safeParse({ ...body, displayName: ' Tamarind-orchard-7 ' });
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.path).toEqual(['displayName']);
+    expect(parsed.error?.issues[0]?.message).toBe('not_the_password');
+  });
+
+  it('lets any other name, or none, through', () => {
+    expect(registerBodySchema.safeParse({ ...body, displayName: 'Maya' }).success).toBe(true);
+    expect(registerBodySchema.safeParse(body).success).toBe(true);
+    expect(nameIsPassword(undefined, 'x')).toBe(false);
   });
 });

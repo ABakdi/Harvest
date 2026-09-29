@@ -11,6 +11,7 @@ import { useHarvest } from '../../context';
 import { useAllExercises, useCatalogue, type Exercise } from '../../data/exercises';
 import { useBusy } from '../../components/use-busy';
 import { ExerciseDetailDialog } from './exercise-detail';
+import { runAction } from '@/lib/actions';
 
 /** How many rows are drawn before the search has to narrow it. */
 const shownAtOnce = 150;
@@ -30,7 +31,7 @@ function ChipRow({
     // shrink-0: in a dialog capped at the screen's height a scrolling row
     // may otherwise be squeezed and cut its chips off at the bottom; the
     // padding keeps room for the focus ring.
-    <div role="group" aria-label={label} className="-mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 py-1">
+    <div role="group" aria-label={label} className="no-scrollbar -mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 py-1">
       {values.map((value) => (
         <Button
           key={value}
@@ -66,7 +67,7 @@ function MineForm({ initialName, onCreated, onCancel }: { initialName: string; o
         event.preventDefault();
         if (!name.trim()) return;
         // One exercise per press, however fast the second one comes.
-        void once(() => exercises.create({ name, bodyPart, equipment, target }).then(onCreated));
+        runAction(() => once(() => exercises.create({ name, bodyPart, equipment, target }).then(onCreated)));
       }}
     >
       <p className="text-sm text-muted-foreground">{t('gym.mineBody')}</p>

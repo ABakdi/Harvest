@@ -1,3 +1,4 @@
+import { buyListId } from '@harvest/contracts';
 import { gramsOfPounds } from '@harvest/core';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -80,6 +81,8 @@ describe('an expense logged ahead', () => {
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByLabelText('Logged on')).toHaveValue('2026-10-10');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
+    // Removing asks first, as the phone does (Q5-49).
+    await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Remove' }));
     await waitFor(() => expect(screen.queryByText('rent ahead')).not.toBeInTheDocument());
     const rows = await h.db.rows('expenses').toArray();
     expect(rows.find((row) => row.note === 'rent ahead')?.deletedAt).not.toBeNull();
@@ -185,7 +188,8 @@ describe('money inputs', () => {
 describe('a shopping list', () => {
   it('shows an estimate in plain ink, not the colour of money owed', async () => {
     const h = await device(new FakeServer());
-    await h.wishlist.add({ list: 'buy', title: 'Kettle', priceMinor: 30_00, currency: 'DZD' });
+    await h.lists.ensureBuiltIns();
+    await h.lists.addItem(buyListId, { title: 'Kettle', priceMinor: 30_00, currency: 'DZD' });
     show(
       h,
       <Routes>

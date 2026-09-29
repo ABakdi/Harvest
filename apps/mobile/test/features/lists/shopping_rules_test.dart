@@ -23,19 +23,22 @@ void main() {
   final buy = BuiltInList.buy.uuid;
   final wish = BuiltInList.wish.uuid;
 
-  test('an estimate is a plan: adding and buying write no money (L3, L4)', () async {
-    final coat = await repo.addItem(
-      buy,
-      title: 'Winter coat',
-      priceMinor: 1800000,
-    );
-    await repo.setDone(coat.uuid, done: true);
+  test(
+    'an estimate is a plan: adding and buying write no money (L3, L4)',
+    () async {
+      final coat = await repo.addItem(
+        buy,
+        title: 'Winter coat',
+        priceMinor: 1800000,
+      );
+      await repo.setDone(coat.uuid, done: true);
 
-    expect(await db.select(db.expenses).get(), isEmpty);
-    expect(await db.select(db.moneyTxns).get(), isEmpty);
-    expect(await db.select(db.ledger).get(), isEmpty);
-    expect(await db.select(db.debts).get(), isEmpty);
-  });
+      expect(await db.select(db.expenses).get(), isEmpty);
+      expect(await db.select(db.moneyTxns).get(), isEmpty);
+      expect(await db.select(db.ledger).get(), isEmpty);
+      expect(await db.select(db.debts).get(), isEmpty);
+    },
+  );
 
   test('bought is a stamp, and un-buying takes it back', () async {
     final coat = await repo.addItem(buy, title: 'Winter coat');

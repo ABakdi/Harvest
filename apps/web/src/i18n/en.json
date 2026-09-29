@@ -1,4 +1,23 @@
 {
+  "account": {
+    "allSent": "Everything is sent",
+    "allSettings": "All account settings",
+    "devicesOffline": "Your devices appear here when you're back online.",
+    "label": "Account and sync",
+    "mark": {
+      "error": "Sync problem",
+      "noPin": "No sync PIN in this browser",
+      "offline": "Offline",
+      "pending": "Changes waiting",
+      "synced": "Synced"
+    },
+    "offline": "Offline",
+    "online": "Online",
+    "syncWhenOnline": "Sync starts again as soon as you're back online."
+  },
+  "actions": {
+    "storageFull": "This browser has no room left for Harvest's data. Free some space and try again."
+  },
   "app": {
     "bootFailedBody": "The server answered with an error. Try again in a moment.",
     "bootFailedTitle": "Harvest could not start",
@@ -11,7 +30,20 @@
     "search": "Search",
     "verifyBanner": "Verify {{email}} to start syncing. Everything works here meanwhile.",
     "verifyResend": "Send the link again",
-    "verifySent": "Sent"
+    "verifySent": "Sent",
+    "pinBanner": "Nothing syncs until you enter your sync PIN: everything is encrypted in this browser before it leaves. Everything works here meanwhile."
+  },
+  "archive": {
+    "archivedOn": "Archived {{day}}",
+    "delete": "Delete",
+    "deleteBody": "{{title}}, every check-in it ever logged and every note on it will be gone for good. This cannot be undone — archive it instead if you want to keep the history.",
+    "deleteTitle": "Delete this seed?",
+    "deleted": "Removed",
+    "empty": "Nothing put away yet",
+    "emptyBody": "Archived seeds land here, with the note that says why.",
+    "open": "Open the archive",
+    "restore": "Restore",
+    "title": "Archive"
   },
   "assist": {
     "actions": {
@@ -49,12 +81,14 @@
     "transcribeUnknown": "This is not a kind of recording the server can transcribe."
   },
   "auth": {
-    "accountOptional": "Harvest works fully without an account, forever. This one only syncs.",
+    "accountOptional": "The Android app works fully without an account, forever. In the browser, the account is what keeps your field here and brings it to your phone.",
     "backToSignIn": "Back to sign in",
+    "browserNeedsAccount": "Harvest in the browser works with a free account. The Android app works without one.",
     "checkEmailBody": "A verification link is on its way to {{email}}.",
     "checkEmailTitle": "Check your email",
     "confirmPassword": "The same, again",
     "createAccount": "Create account",
+    "createFree": "Create a free account",
     "creating": "Creating…",
     "displayName": "Name (optional)",
     "email": "Email",
@@ -69,6 +103,7 @@
     "forgotLink": "Forgot the password?",
     "forgotSent": "If that address has an account, a reset link is on its way. It works for one hour.",
     "forgotTitle": "Reset the password",
+    "getAndroid": "Get the Android app",
     "haveAccount": "I have an account",
     "linkInvalid": "This link is invalid, used or expired.",
     "loginLead": "Your field, on this browser too.",
@@ -81,8 +116,10 @@
     "resetDoneBody": "Every device was signed out. Sign in with the new password.",
     "resetDoneTitle": "Password set",
     "resetLead": "Setting it signs out every device.",
+    "resetPassword": "Reset the password",
     "resetTitle": "Set a new password",
     "sendLink": "Send the link",
+    "sendNewLink": "Send a new link",
     "setPassword": "Set the password",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
@@ -201,10 +238,12 @@
       "preparing": "Reading everything…",
       "running": "Building the archive…",
       "saved": "Saved as {{name}}",
-      "sealed_one": "{{count}} private row is still sealed in this browser and cannot go in the archive. Enter the passphrase to include it.",
-      "sealed_other": "{{count}} private rows are still sealed in this browser and cannot go in the archive. Enter the passphrase to include them.",
+      "sealed_one": "{{count}} private row is still encrypted in this browser and cannot go in the archive. Enter your sync PIN to include it.",
+      "sealed_other": "{{count}} private rows are still encrypted in this browser and cannot go in the archive. Enter your sync PIN to include them.",
       "stopped": "Stopped. Nothing was saved.",
-      "title": "Take an archive"
+      "title": "Take an archive",
+      "tooLarge_one": "{{count}} file too large for an archive was left out.",
+      "tooLarge_other": "{{count}} files too large for an archive were left out."
     },
     "import": {
       "action": "Choose an archive",
@@ -228,6 +267,8 @@
       "summary": "{{added}} new, {{updated}} to update",
       "title": "Bring an archive back",
       "tooLarge": "That archive is too large to open here.",
+      "tooLarge_one": "{{count}} file too large to bring in is left out",
+      "tooLarge_other": "{{count}} files too large to bring in are left out",
       "unreadable": "That file could not be opened."
     },
     "progress": "{{done}} of {{total}}",
@@ -267,7 +308,18 @@
       "Weights": "Weights",
       "Wishlist": "Wishlist"
     },
-    "title": "My data"
+    "title": "My data",
+    "reauth": {
+      "title": "Your password, first",
+      "body": "Everything you keep leaves this browser in the clear in an archive, so it asks who is taking it. Nothing is written until the password is right.",
+      "password": "Account password",
+      "confirm": "Download",
+      "wrong": "That isn't this account's password.",
+      "tooMany_one": "Too many tries. Try again in {{count}} minute.",
+      "tooMany_other": "Too many tries. Try again in {{count}} minutes.",
+      "tooManySoon": "Too many tries. Try again in a little while.",
+      "offline": "The password is checked by the server, and it cannot be reached. Try again once you are online."
+    }
   },
   "download": {
     "apk": "Download {{name}}",
@@ -295,6 +347,14 @@
     "unavailableBody": "Try again in a moment, or find every release on GitHub.",
     "verifyHint": "To check the file, compare its SHA-256 with the one above (for example with sha256sum on a computer).",
     "version": "Version"
+  },
+  "errorScreen": {
+    "back": "Go back",
+    "body": "This screen could not be shown. What you saved is safe; reloading usually fixes it.",
+    "newVersionBody": "A newer version is waiting. Reloading picks it up.",
+    "newVersionTitle": "Harvest was updated",
+    "reload": "Reload",
+    "title": "Something went wrong"
   },
   "farmer": {
     "archive": "The archive",
@@ -330,7 +390,7 @@
     "archiveTitle": "Archive this seed?",
     "archived": "Archived",
     "budgetLeftToday": "{{amount}} left today",
-    "budgetLocked": "Today’s budget is locked — enter your passphrase in the Granary",
+    "budgetLocked": "Today’s budget is locked — enter your sync PIN in the Granary",
     "budgetOverToday": "{{amount}} over today",
     "capped": "Daily cap reached — the field rests too.",
     "checkInFailed": "That did not save. Try again.",
@@ -388,11 +448,20 @@
     "xpEarned_one": "+{{count}} XP",
     "xpEarned_other": "+{{count}} XP",
     "xpToday_one": "{{count}} XP today",
-    "xpToday_other": "{{count}} XP today"
+    "xpToday_other": "{{count}} XP today",
+    "xpTotal": "{{xp}} XP"
+  },
+  "fileState": {
+    "enterPin": "Enter sync PIN",
+    "failed": "Couldn't load",
+    "loading": "Loading the picture…",
+    "locked": "Enter your sync PIN to see it",
+    "onPhone": "Still on the phone — it arrives once your phone has your sync PIN"
   },
   "focus": {
     "abandon": "Abandon",
     "abandonBody": "The field will wait.",
+    "abandonTitle": "Abandon this block?",
     "blockDone_one": "Focus block done · +{{count}} XP. Take a break.",
     "blockDone_other": "Focus block done · +{{count}} XP. Take a break.",
     "blocksDone_one": "{{count}} block done",
@@ -401,6 +470,7 @@
     "chipLabel": "Focus timer, {{time}} left",
     "finish": "Finish session",
     "free": "Free focus",
+    "keepGoing": "Keep going",
     "lengths": "{{focus}} min focus · {{short}} min break · {{long}} min long break every {{every}} blocks",
     "pause": "Pause",
     "phase": {
@@ -418,6 +488,7 @@
       "email": "That is not an email address",
       "invalid": "Check this field",
       "mismatch": "The two do not match",
+      "nameIsPassword": "That's your password. Use a name others may see, or leave it empty.",
       "passwordCommon": "Too common: pick something less guessable",
       "passwordShort": "At least 10 characters",
       "required": "This one is needed",
@@ -470,7 +541,7 @@
     },
     "everyDays_one": "Every day",
     "everyDays_other": "Every {{count}} days",
-    "filesSynced": "Pictures travel sealed with the sync passphrase. Ones from the phone arrive once it has synced them; ones added here stay in this browser until they are sent.",
+    "filesSynced": "Pictures travel encrypted with your sync PIN. Ones from the phone arrive once it has synced them; ones added here stay in this browser until they are sent.",
     "fps_one": "{{count}}/s",
     "fps_other": "{{count}}/s",
     "frame": "Frame",
@@ -519,10 +590,13 @@
     "trash_one": "Trash ({{count}})",
     "trash_other": "Trash ({{count}})",
     "untitled": "No caption",
+    "uploadFailing": "Some pictures or recordings could not be sent. They stay in this browser and are tried again later.",
     "video": "Video",
     "wholeAlbum": "The whole album"
   },
   "goals": {
+    "achievedAgain": "Achieved.",
+    "achievedToast": "Achieved. +{{xp}} XP",
     "achieved_one": "Achieved ({{count}})",
     "achieved_other": "Achieved ({{count}})",
     "addNeed": "Add something it takes",
@@ -597,6 +671,7 @@
     "subtaskCountLabel": "Subtasks: {{done}} of {{total}} done",
     "subtasksOf": "Subtasks of “{{body}}”",
     "targetDay": "Target day",
+    "targetPast": "That day has already passed.",
     "tasks": "Tasks",
     "title": "What I’m working toward",
     "titleHint": "Run a half marathon",
@@ -848,7 +923,8 @@
     "unitHint": "The same setting as body weight. Loads are stored exactly; only how they read changes."
   },
   "home": {
-    "ctaBody": "Install the Android app, or open Harvest right here and add it to your home screen.",
+    "browserAccount": "Harvest in the browser works with a free account, which keeps it in step with your phone. The Android app needs no account.",
+    "ctaBody": "Install the Android app, or open Harvest right here with a free account and add it to your home screen.",
     "ctaTitle": "Start with one seed",
     "feature": {
       "field": {
@@ -859,10 +935,10 @@
         "title": "A field, not a to-do list"
       },
       "money": {
-        "body": "The granary logs what you spend, day by day. When it syncs, it is encrypted on your device with a passphrase the server never sees.",
+        "body": "The granary logs what you spend, day by day. When it syncs, it is encrypted on your device with a sync PIN the server never sees.",
         "p1": "Amounts in DZD, USD or EUR, with categories of your own",
         "p2": "End-to-end encrypted sync for money and places",
-        "p3": "An account is optional: Harvest works fully without one",
+        "p3": "On Android an account is optional: the app works fully without one",
         "title": "Money that stays yours"
       },
       "notes": {
@@ -875,7 +951,7 @@
     },
     "kicker": "Local-first · Android and the web",
     "lead": "Your goals are seeds. Your effort is water. Distractions are weeds. Show up a little every day, keep your streak alive, and harvest the life you are growing.",
-    "offline": "Works with no connection. Your data lives on your device.",
+    "offline": "The Android app works with no connection, and your data lives on your device.",
     "pillar": {
       "finances": "Finances",
       "financesBody": "Log what you spend in seconds, keep the month in view.",
@@ -913,6 +989,7 @@
     "movesCount_one": "{{count}} movement",
     "movesCount_other": "{{count}} movements",
     "noSpending": "No spending in this range yet.",
+    "outOfRange": "Pick days between {{from}} and {{to}}.",
     "perDay": "Per day",
     "range": "Range",
     "rangeOf": "{{from}} — {{to}}",
@@ -1048,6 +1125,9 @@
   "money": {
     "amount": "Amount",
     "amountHint": "A number or a sum, like 120+30",
+    "balancesTab": "Balances",
+    "bigAmount": "That's {{amount}}. Log it?",
+    "bigConfirm": "Yes, log it",
     "cat": {
       "bills": "Bills",
       "entertainment": "Fun",
@@ -1072,7 +1152,8 @@
     "emptyTitle": "Nothing logged this month",
     "error": {
       "amount": "Type an amount above zero, like 450 or 12.50.",
-      "day": "Pick a day."
+      "day": "Pick a day.",
+      "dayRange": "Pick a day within a year of today."
     },
     "expenses": "Expenses",
     "expensesCount_one": "{{count}} expense",
@@ -1110,8 +1191,10 @@
     "nothingMonth": "Nothing this month",
     "nothingToday": "Nothing logged",
     "previousMonth": "Previous month",
+    "removeBody": "{{amount}} will be removed from the day, and any wallet withdrawal it made will be refunded.",
     "removeCategory": "Remove {{name}}",
-    "removed": "Removed",
+    "removeTitle": "Delete this expense?",
+    "removed": "Expense removed",
     "repeatLogged": "Logged {{amount}} again",
     "repeatTitle": "Same as the last 3 days?",
     "saved": "Saved",
@@ -1128,12 +1211,20 @@
     "upcomingBody_other": "{{count}} expenses logged ahead. Each counts on its day, not before."
   },
   "nav": {
+    "back": "Back",
     "body": "Body",
+    "bodyTabs": "Body",
     "farmer": "Farmer",
+    "farmerTabs": "Farmer",
     "field": "Field",
     "granary": "Granary",
+    "gym": "Gym",
+    "harvest": "Harvest",
+    "health": "Health",
     "main": "Main",
+    "more": "More",
     "notes": "Notes",
+    "progress": "Progress",
     "records": "Records",
     "settings": "Settings"
   },
@@ -1141,23 +1232,38 @@
     "allNotes": "All notes",
     "atRoot": "At the top level",
     "backToList": "Back to the notes",
+    "backlinks_one": "1 note links here",
+    "backlinks_other": "{{count}} notes link here",
     "body": "Note",
     "bodyHint": "Write. Markdown works, and [[a title]] links to another note.",
+    "bodyHintLive": "Write. Markdown renders as you go and shows its syntax where you write. [[Link]] to another note.",
+    "clearSearch": "Clear",
+    "collapseAll": "Collapse all folders",
+    "createLinkBody": "That note does not exist yet. A link to a note you have not written is normal — this makes it.",
+    "createLinkTitle": "Write “{{title}}”?",
     "createLinked": "Write “{{title}}”",
+    "deleteBody": "It goes to the trash with its recordings. You can undo this straight away.",
     "deleteFolder": "Delete folder",
     "deleteFolderBody": "Every note in {{folder}} goes to the trash. You can put them back from there, or undo this.",
     "deleteFolderTitle": "Delete {{folder}}?",
     "deleteForever": "Delete “{{title}}” for good",
+    "deleteForeverBody": "There is nothing behind this one.",
+    "deleteForeverShort": "Delete for good",
+    "deleteForeverTitle": "Delete this for good?",
+    "deleteTitle": "Delete this note?",
     "edited": "Edited {{when}}",
     "empty": "Nothing written yet.",
     "emptyBody": "Keep what you thought about the day.",
+    "emptyBodyTap": "Tap + to keep what you thought about the day.",
     "emptyTitle": "No notes yet",
     "emptyTrash": "Empty the trash",
     "emptyTrashBody_one": "{{count}} note is deleted for good, on every device. This cannot be undone.",
     "emptyTrashBody_other": "{{count}} notes are deleted for good, on every device. This cannot be undone.",
     "emptyTrashTitle": "Empty the trash?",
+    "expandAll": "Expand all folders",
     "exportPdf": "Print or save as PDF",
     "folder": "Folder",
+    "folderHint": "A path, nothing more. Nested folders are made by naming one.",
     "folderName": "Folder name",
     "folderNameHint": "Health, Work, Reading",
     "folderOptions": "Folder options: {{folder}}",
@@ -1166,29 +1272,37 @@
     "folders": "Folders",
     "formatting": "Formatting",
     "gone": "This note is gone",
+    "goneBody": "It was deleted, or it never existed.",
     "insideFolder": "Inside {{folder}}",
     "linksHere": "What links here",
     "linksOut": "Links",
     "list": "Notes",
     "more": "More",
+    "moveToFolder": "Move to folder",
     "moveToTrash": "Move to the trash",
     "movedToTrash": "Moved to the trash",
     "new": "New note",
     "newFolder": "New folder",
+    "newHere": "New note",
     "newNoteHere": "New note here",
     "newSubfolder": "New folder inside",
     "noBacklinks": "No note links here yet.",
     "noLinks": "No [[links]] in this note.",
+    "noMatch": "Nothing matches that",
     "noneHere": "Nothing here.",
     "notWritten": "not written yet",
     "openRestored": "Open",
+    "pane": "The open note",
     "pick": "Pick a note",
+    "pickBody": "Your notes are in the list, with their folders.",
     "read": "Read",
     "renameFolder": "Rename folder",
+    "resizeSidebar": "Resize the notes list",
     "restore": "Restore",
     "restoredToast": "“{{title}}” is back in your notes",
     "rootFolder": "No folder",
     "search": "Search titles and text",
+    "showList": "Show notes",
     "sidebar": "Notes",
     "sort": {
       "created": "Created",
@@ -1197,6 +1311,7 @@
     },
     "sortBy": "Sort",
     "title": "Title",
+    "tooLong": "This note is longer than {{max}} characters. What is past that is not saved.",
     "tool": {
       "bold": "Bold",
       "code": "Code",
@@ -1213,6 +1328,9 @@
       "task": "Task"
     },
     "trashEmpty": "The trash is empty.",
+    "trashEmptyBody": "Deleted notes wait here.",
+    "trashEmptyTitle": "The trash is empty",
+    "trashKeeps": "Nothing leaves here on its own. Restore what you want back, or empty the lot.",
     "trashTitle": "Trash",
     "trash_one": "Trash ({{count}})",
     "trash_other": "Trash ({{count}})",
@@ -1244,10 +1362,10 @@
     "confirm": "The same, again",
     "firstTime": "Nothing sealed has arrived yet, so it cannot be checked: type it twice. Use the same one on every device.",
     "label": "Passphrase",
-    "lead": "Money is encrypted on your devices with a key made from this passphrase. It is not your password, and the server never sees it. Type it once in this browser.",
+    "lead": "It encrypts everything — notes, seeds, money, places, health, pictures and recordings — on your devices before it syncs. It is not your password, and it is never sent.",
     "mismatch": "The two do not match.",
     "opening": "Making the key…",
-    "title": "Sync passphrase",
+    "title": "Sync PIN",
     "tooShort": "At least 12 characters.",
     "unlock": "Open with this passphrase",
     "warning": "If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.",
@@ -1378,61 +1496,137 @@
     "themeNow": "Theme: {{mode}}. Switch to {{next}}"
   },
   "privacy": {
+    "title": "Privacy",
+    "lead": "Harvest keeps what you log on your device. When it syncs, it encrypts everything first, with a secret only you know, so the server stores what it cannot read. This page is the whole of it.",
+    "leavesTitle": "What leaves your device",
+    "nothingElse": "Anything else would be a bug, not a feature.",
+    "serverTitle": "What the server holds, and cannot read",
+    "serverLead": "Whoever runs a Harvest server — us, or you on your own — holds these, and none of them in a form they can read.",
+    "seesTitle": "What the server still sees",
+    "seesBody": "How your store is shaped, not what it says: that your account exists, which kinds of rows it has (notes, expenses…) and roughly how big each is, when your devices sync and when a row changes, and how many pictures you keep. Not what any of it says, not where you were, not what you weigh. The trail of where you were travels one day at a time, stamped by the hour, so the server cannot tell when you moved.",
+    "devicesTitle": "On your devices",
+    "secretTitle": "Your sync secret",
+    "secretBody": "Everything is encrypted with a key made from your sync secret, which never leaves your device. A passphrase of a few words is what we recommend: from the outside, an account with a PIN looks like any other, but someone who took the server's database and its keys together could try every PIN of every account in minutes. A passphrase of four random words would take them thousands of years. Forget it, and what the server holds cannot be read by anyone, you included; your devices keep their own copies.",
+    "keptTitle": "How long anything is kept",
+    "yoursTitle": "Taking it with you, and taking it away",
+    "yoursBody": "Download my data gives you everything, as an archive or a spreadsheet, unencrypted on purpose: it is yours to take elsewhere. It asks for your password first (or, signed out, your phone's own lock), so a session left open is not enough to take it. Deleting your account deletes everything the server holds, at once; what is on your devices stays yours.",
+    "signOutBody": "Signing out of the web app deletes everything it stored in this browser, after warning you about anything not synced yet.",
+    "webTitle": "On the web, too",
     "item": {
       "assist": {
-        "body": "It carries exactly what its sheet names, and nothing more.",
-        "title": "An assist action you tap"
+        "title": "An assist action you tap",
+        "body": "It carries exactly what its sheet names, and nothing more."
       },
       "exercise": {
-        "body": "A plain download of a static file, with no account, device id or history attached.",
-        "title": "An exercise animation you open"
+        "title": "An exercise animation you open",
+        "body": "A plain download of a static file, with no account, device id or history attached."
       },
       "fonts": {
-        "body": "Fonts and icons are served with the app. There are no analytics, no ads and no trackers.",
-        "title": "No third parties"
+        "title": "No third parties",
+        "body": "Fonts and icons are served with the app. There are no analytics, no ads and no trackers."
       },
       "rates": {
-        "body": "A request to api.frankfurter.dev for today’s EUR to USD rate. It carries nothing about you.",
-        "title": "Exchange rates, when you tap Fetch"
+        "title": "Exchange rates, when you tap Fetch",
+        "body": "A request to open.er-api.com for today's rates of every currency against the dollar. It carries nothing about you."
       },
       "site": {
-        "body": "Your browser downloads the app from this server. Once installed, it opens with no connection at all.",
-        "title": "Loading this site"
+        "title": "Loading this site",
+        "body": "Your browser downloads the app from this server. Once installed, it opens with no connection at all."
       },
       "sync": {
-        "body": "Your rows go to the Harvest server so your devices agree. Money and places are encrypted on your device first, with a passphrase the server never sees.",
-        "title": "Sync, once you have signed in"
+        "title": "Sync, once you have signed in and set your sync secret",
+        "body": "Every row and every file is encrypted on your device before it goes, with a key made from your sync secret, which the server never sees. Without the secret, nothing syncs."
       },
       "tiles": {
-        "body": "The tile server learns the area on screen, never your trail.",
-        "title": "Map tiles while you look at Places"
+        "title": "Map tiles while you look at Places",
+        "body": "The tile server learns the area on screen, never your trail."
+      },
+      "mail": {
+        "title": "Two emails, and only two",
+        "body": "To verify your address and to reset your password, the server hands your address and a link to its mail provider. Nothing else is ever emailed."
       }
     },
-    "lead": "Nothing leaves your device unless you ask. This is the complete list.",
-    "leavesTitle": "The only requests Harvest makes",
-    "nothingElse": "Anything else would be a bug, not a feature.",
-    "signOutBody": "Signing out of the web app deletes everything it stored in this browser, after warning you about anything not synced yet.",
-    "staysBody": "Everything else: your field, notes, goals and money live on your device. In a browser they live in its local storage, and the app works from there even offline.",
-    "staysTitle": "What stays",
-    "title": "What leaves your device",
-    "webTitle": "On the web, too"
+    "server": {
+      "rows": {
+        "title": "Your rows",
+        "body": "Every note, seed, check-in, expense, place, workout, weight and setting, encrypted on your device and padded so its length gives little away. The server keeps the ciphertext and the clocks that decide which edit wins."
+      },
+      "files": {
+        "title": "Your pictures and recordings",
+        "body": "Encrypted and padded the same way, under a name made from a key only your devices have, so a server holding a known picture cannot tell whether you have it."
+      },
+      "account": {
+        "title": "Your email and name",
+        "body": "Encrypted with a key kept outside the database, and found by a keyed hash, so a copy of the database holds no readable address. The server opens it only to send the two emails."
+      },
+      "password": {
+        "title": "Your password",
+        "body": "Never stored: only an argon2id hash of it."
+      },
+      "logs": {
+        "title": "Its logs",
+        "body": "The method, the path, the status and the time of each request. No IP address, no body, no query string."
+      },
+      "backups": {
+        "title": "Its backups",
+        "body": "Encrypted before they touch the disk, to a key that is not on the server."
+      }
+    },
+    "devices": {
+      "phone": {
+        "title": "On your phone",
+        "body": "The database is encrypted, and so is every picture, video and recording, with keys the phone's secure hardware keeps. A copy of the app's files taken off the phone shows nothing."
+      },
+      "browser": {
+        "title": "In your browser",
+        "body": "What the web app has opened lives in this browser's storage, protected by your computer's account and its disk encryption. A key a web page could keep would sit in the same place, so encrypting it again would protect nothing; on a shared computer, sign out, and it is all deleted."
+      },
+      "exports": {
+        "title": "What you download",
+        "body": "An archive or a spreadsheet is yours, and unencrypted on purpose, so keep it somewhere safe."
+      }
+    },
+    "kept": {
+      "rows": {
+        "title": "Your data",
+        "body": "Until you delete it, or your account. A row in the trash is kept until you empty the trash; a picture no row names is let go after 30 days."
+      },
+      "sessions": {
+        "title": "Your sign-ins",
+        "body": "Each device stays signed in for up to 30 days without being used; signing out ends it at once."
+      },
+      "counts": {
+        "title": "Counts that stop guessing",
+        "body": "Wrong passwords and PINs are counted against a keyed hash, never your address, and forgotten within the hour, or the day for PINs. Assist use is counted per day and forgotten after 60."
+      },
+      "account": {
+        "title": "Your account",
+        "body": "Deleting it deletes everything the server holds about it, immediately. Backups made before roll away within a week."
+      }
+    }
   },
   "pwa": {
     "reload": "Reload to update",
-    "updateReady": "A new version of Harvest is ready."
+    "reloadAnyway": "Reload anyway",
+    "saveFirst": "Something being typed did not save yet, so the page was not reloaded.",
+    "updateReady": "A new version of Harvest is ready.",
+    "updatedElsewhere": "Harvest was updated in another tab. Your edits here are saved."
   },
   "ratesWeb": {
     "cleared": "Rate cleared",
     "dzdEur": "DZD per 1 EUR",
     "dzdUsd": "DZD per 1 USD",
-    "eurUsd": "EUR → USD (fetched)",
-    "explainer": "Used to show $ and € amounts in your default currency.",
+    "explainer": "Used to show amounts in other currencies in {{currency}}, your default currency.",
     "fetch": "Fetch",
     "fetchFailed": "Couldn't fetch — check the connection.",
-    "fetchNote": "Fetching asks api.frankfurter.dev for today's rate, and sends nothing about you.",
+    "fetchNote": "Fetching asks open.er-api.com for today's rates of every currency against the dollar, and sends nothing about you.",
     "invalid": "That is not a usable rate",
     "saved": "Rate saved",
-    "updated": "Updated {{when}}"
+    "updated": "Rates of {{when}}",
+    "byHand": "The dinar's parallel market, typed by hand: it is used over the official rate wherever the dinar is on one side.",
+    "oneIs": "1 {{base}} = {{amount}} {{currency}}",
+    "none": "No rates fetched yet.",
+    "attribution": "Rates by Exchange Rate API"
   },
   "records": {
     "tabs": "Records"
@@ -1452,7 +1646,7 @@
     "goal": "Goal",
     "lead": "Type to search; arrows move, Enter opens.",
     "nothing": "Nothing matches that.",
-    "placeholder": "Search seeds, goals and notes"
+    "placeholder": "Search seeds, goals, notes and lists"
   },
   "seed": {
     "advanced": "Advanced",
@@ -1533,6 +1727,8 @@
     "account": "Account",
     "actionsADay_one": "{{count}} action a day",
     "actionsADay_other": "{{count}} actions a day",
+    "allDevices_one": "Show all {{count}}",
+    "allDevices_other": "Show all {{count}}",
     "appearance": "Appearance",
     "client": {
       "mobile": "A phone",
@@ -1546,7 +1742,8 @@
     "deleteConfirm": "Delete everything",
     "deleteTitle": "Delete your account?",
     "devices": "Devices",
-    "enterPassphrase": "Enter the passphrase",
+    "enterPassphrase": "Enter your sync PIN",
+    "fewerDevices": "Show fewer",
     "harvest": "Harvest",
     "invalid_one": "{{count}} change the server refused",
     "invalid_other": "{{count}} changes the server refused",
@@ -1563,23 +1760,28 @@
       "records": "Go to records",
       "search": "Search",
       "seed": "Plant a seed",
-      "settings": "Go to settings"
+      "settings": "Go to settings",
+      "space": "Space"
     },
+    "lastSeen": "last seen {{last}}",
     "lastSynced": "Last synced",
-    "locked_one": "{{count}} money change waiting for the passphrase",
-    "locked_other": "{{count}} money changes waiting for the passphrase",
-    "passphraseHint": "Money syncs end-to-end encrypted with it.",
+    "locked_one": "{{count}} private change waiting for the sync PIN",
+    "locked_other": "{{count}} private changes waiting for the sync PIN",
+    "passphraseHint": "Money, places, pictures and recordings sync end-to-end encrypted with it.",
     "passphraseSet": "Set in this browser",
     "pending_one": "{{count}} change waiting",
     "pending_other": "{{count}} changes waiting",
-    "sealed_one": "{{count}} sealed row waiting for the passphrase",
-    "sealed_other": "{{count}} sealed rows waiting for the passphrase",
+    "sealed_one": "{{count}} encrypted row waiting for the sync PIN",
+    "sealed_other": "{{count}} encrypted rows waiting for the sync PIN",
     "sessionSeen": "Since {{first}} · last seen {{last}}",
     "sessionsOffline": "The devices list needs a connection.",
     "signOut": "Sign out there",
     "signOutAnyway": "Sign out anyway",
     "signOutDevice": "Sign out {{name}}",
     "signOutHere": "Sign out of this browser",
+    "signOutOthers": "Sign out everywhere else",
+    "signedInAgo": "Signed in {{ago}}",
+    "signedOutOthers": "Signed out everywhere else",
     "sync": "Sync",
     "syncFirst": "Sync first",
     "thisDevice": "This device",
@@ -1662,6 +1864,7 @@
     "getAndroid": "Get the Android app",
     "homeLink": "Harvest home",
     "install": "Install Harvest",
+    "installing": "Installing — Harvest will appear on your home screen in a moment. It can take up to a minute.",
     "iosHow": "Add it to your home screen",
     "iosStep1": "Tap Share in Safari’s toolbar",
     "iosStep2": "Choose Add to Home Screen",
@@ -1765,13 +1968,103 @@
     "firstSync": "First sync…",
     "notYet": "Not synced yet",
     "offline": "Offline",
+    "refusedClock": "This computer's clock is ahead of the server's. Check its date and time.",
+    "refusedQuota": "The server has no room left for this account.",
     "signedOut": "Signed out",
     "syncNow": "Sync now",
     "syncedAgo": "Synced {{ago}}",
     "syncing": "Syncing…",
+    "unreadable_one": "{{count}} encrypted row could not be opened",
+    "unreadable_other": "{{count}} encrypted rows could not be opened",
     "unverified": "Verify email to sync",
     "waiting_one": "{{count}} change waiting.",
-    "waiting_other": "{{count}} changes waiting."
+    "waiting_other": "{{count}} changes waiting.",
+    "waitingForPin": "Waiting for your sync PIN"
+  },
+  "syncPin": {
+    "change": "Change PIN",
+    "changeConfirm": "Continue to a new PIN",
+    "changeNext": "Next you choose the new PIN.",
+    "changedElsewhere": "Your PIN was changed on another device. Enter the new one.",
+    "choose": "Use it",
+    "chooseTitle": "Choose a sync PIN",
+    "chooseWhy": "No sync PIN yet, so nothing syncs. Choose one to encrypt everything — notes, seeds, money, places, health and pictures — before it leaves this browser; use the same one on every device.",
+    "chosenElsewhere": "Another device set the sync PIN a moment ago. Enter that one.",
+    "confirmPassphrase": "The same passphrase again",
+    "confirmPin": "The same PIN again",
+    "enter": "Enter your sync PIN",
+    "enterTitle": "Enter your sync PIN",
+    "firstTime": "Nothing encrypted has arrived here yet, so it can't be checked: type it twice. Use the same one on every device.",
+    "forget": "Forget it on this browser",
+    "forgetBody": "What is already here stays in this browser, and nothing syncs until you enter the PIN again: what your other devices send stays locked, and what you write here waits.",
+    "forgetTitle": "Forget the sync PIN on this browser?",
+    "forgot": "Forgot the PIN? Start over",
+    "forgotten": "Forgotten on this browser",
+    "lead": "It encrypts everything — notes, seeds, money, places, health, pictures and recordings — on your devices before it syncs. It is not your password, and it is never sent. Enter it once in this browser.",
+    "mismatch": "The two do not match.",
+    "opening": "Making the key…",
+    "passphraseLabel": "Passphrase (a few words, 8 characters or more)",
+    "password": "Your account password",
+    "pinLabel": "Sync PIN (4 to 6 digits)",
+    "problem": {
+      "empty": "Type it first.",
+      "passphraseTooShort": "A passphrase is at least 8 characters.",
+      "pinTooLong": "A PIN is at most 6 digits. For something longer, use a passphrase.",
+      "pinTooShort": "A PIN is at least 4 digits.",
+      "pinTooSimple": "Too easy to guess. Avoid one digit repeated, runs like 1234, and pairs like 1212."
+    },
+    "setHere": "Set in this browser",
+    "setPassphraseInstead": "I set a passphrase instead",
+    "setPinInstead": "I set a PIN instead",
+    "sixDigits": "6 digits is best. Type it twice, and use the same one on every device.",
+    "startOver": "Start the PIN over",
+    "startOverBody": "This deletes everything kept on the server for this account, and the PIN with it. This browser then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
+    "startOverConfirm": "Start over",
+    "startedOver": "The PIN was just started over on another device. Choose a new one.",
+    "title": "Sync PIN",
+    "tooManySoon": "Too many tries. Try again later.",
+    "tooMany_one": "Too many tries. Try again in {{count}} minute.",
+    "tooMany_other": "Too many tries. Try again in {{count}} minutes.",
+    "tradeOff": "A PIN is quicker to type, but someone holding the server's database and its keys could try every PIN in minutes. A passphrase of a few words stands for thousands of years.",
+    "triesLeft_one": "{{count}} try left.",
+    "triesLeft_other": "{{count}} tries left.",
+    "triesLeft_zero": "No tries left for now.",
+    "unlock": "Unlock",
+    "unreachable": "The server could not be reached to check the PIN. Try again when you're online.",
+    "usePassphrase": "Use a passphrase instead",
+    "usePin": "Use a PIN instead",
+    "waiting": "Nothing syncs in this browser until you enter your sync PIN: what your other devices sent stays locked, and what you write here waits.",
+    "warning": "If you lose it, what is encrypted can't be read on a new device — only sent again from one that still has it.",
+    "wrong": "That isn't the PIN your other devices use.",
+    "wrongPassword": "That isn't this account's password.",
+    "secretLabel": "Sync passphrase or PIN",
+    "show": "Show",
+    "hide": "Hide",
+    "tradeOffPin": "A PIN falls in minutes to someone holding the server's database and its keys; a passphrase of a few words does not.",
+    "strength": {
+      "level": {
+        "pin": "A PIN:",
+        "weak": "Weak:",
+        "fair": "Fair:",
+        "strong": "Strong:"
+      },
+      "stands": "it would stand {{time}} against someone holding the server's database and its keys.",
+      "time": {
+        "instantly": "less than a second",
+        "seconds_one": "about {{count}} second",
+        "seconds_other": "about {{count}} seconds",
+        "minutes_one": "about {{count}} minute",
+        "minutes_other": "about {{count}} minutes",
+        "hours_one": "about {{count}} hour",
+        "hours_other": "about {{count}} hours",
+        "days_one": "about {{count}} day",
+        "days_other": "about {{count}} days",
+        "years_one": "about {{count}} year",
+        "years_other": "about {{count}} years",
+        "thousandsOfYears": "thousands of years",
+        "millionsOfYears": "millions of years"
+      }
+    }
   },
   "vault": {
     "addDebt": "Log a debt",
@@ -1820,6 +2113,8 @@
     "payments_other": "{{count}} payments",
     "refused": {
       "amount": "Type an amount above zero.",
+      "belowPaid": "That is less than has already been paid.",
+      "currency": "Payments were made in its currency; it stays that one.",
       "missing": "That debt is gone.",
       "overdraw": "The pot does not hold that much.",
       "overpay": "That is more than is still owed.",
@@ -1833,7 +2128,7 @@
     "savingsDeposit": "Save",
     "savingsLow": "Savings running low",
     "savingsWithdraw": "Withdraw",
-    "searchMoves": "Search notes",
+    "searchMoves": "Search moves",
     "settled": "Settled",
     "showPayments": "Payments · {{count}}",
     "showing": "Showing {{matches}} of {{total}}",
@@ -1860,10 +2155,17 @@
     "withdrawal": "Taken out"
   },
   "vaultWeb": {
+    "debtBelowPaid": "Already paid {{amount}}; the debt can't be less.",
     "debtLead": "Who I owe, how much, and when I mean to have it paid back.",
     "debtPaid": "Paid {{amount}} to {{person}}",
+    "debtRemoveBody": "{{person}} and the payments on it will be removed. What those payments took from the wallet stays spent.",
+    "debtRemoveTitle": "Remove this debt?",
+    "debtRemoved": "Debt to {{person}} removed",
+    "debtSaved": "Debt saved",
     "debtSettled": "Settled with {{person}}. Nothing left to pay!",
     "depositLead": "From the wallet when it can cover it, or new money.",
+    "editDebt": "Edit debt",
+    "editDebtOf": "Edit the debt to {{person}}",
     "payLead": "Still owed: {{amount}}. Paying all of it settles the debt.",
     "saved": "Saved {{amount}}",
     "walletAddLead": "Money coming in from outside: pay, a gift, cash found in a coat.",
@@ -1907,11 +2209,17 @@
     "editOf": "Edit {{weight}}",
     "empty": "No weights yet. Log one — the line has a shape from the third.",
     "history": "Every reading",
+    "implausible": "That is outside 20–400 kg, so it looks like a typo. Check the number.",
     "label": "Weight ({{unit}})",
     "lead": "Whenever you stand on the scale. More than once a day is fine — morning and evening are different facts.",
     "log": "Log a weight",
     "note": "Note",
     "noteHint": "After the flu, new scale…",
+    "target": "Target",
+    "targetClear": "Clear target",
+    "targetHint": "A line on the chart to aim at, and how far the latest reading is from it.",
+    "targetSet": "Set a target",
+    "targetTitle": "Target weight",
     "toTarget": "{{amount}} from your target of {{target}}",
     "unit": "Units"
   },
@@ -1951,5 +2259,10 @@
     "today": "Today",
     "inDays_one": "Tomorrow",
     "inDays_other": "In {{count}} days"
+  },
+  "currency": {
+    "pick": "Choose a currency",
+    "search": "Search by name, code or sign",
+    "none": "No currency by that name."
   }
 }

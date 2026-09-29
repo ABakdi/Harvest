@@ -11,6 +11,7 @@ import 'package:harvest/core/ui/widgets/harvest_fab.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/gym/presentation/weight_text.dart';
 import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/data/steps_source.dart';
@@ -66,6 +67,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(widget.title ?? l10n.navHealth),
         bottom: widget.tabs,
       ),
@@ -410,7 +412,6 @@ class _StepsSourceRow extends ConsumerWidget {
             IconButton(
               tooltip: l10n.stepsRefresh,
               icon: const Icon(Icons.refresh, size: 18),
-              visualDensity: VisualDensity.compact,
               onPressed: () => unawaited(notifier.refresh()),
             ),
           ],
@@ -633,6 +634,29 @@ class _WeightCard extends ConsumerWidget {
                 ),
               ],
             ),
+            // The line to aim at is mine to set, change or clear
+            // ([[Health]], [[Audit-v3]] G5-05).
+            Row(
+              children: [
+                Text(
+                  l10n.weightLegendTarget,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => showTargetWeightSheet(context).ignore(),
+                  icon: const Icon(Icons.flag_outlined, size: 18),
+                  label: Text(
+                    target == null
+                        ? l10n.weightTargetSet
+                        : '${formatNumber(context, unit.from(target))} '
+                              '${unitLabel(context, unit)}',
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -701,7 +725,12 @@ class _WeightRow extends ConsumerWidget {
         content: Text(l10n.deleted),
         action: SnackBarAction(
           label: l10n.undoAction,
-          onPressed: () => repository.restoreWeight(weight.uuid).ignore(),
+          // A failed Undo says so rather than vanishing (Q6-12).
+          onPressed: () => unawaited(
+            repository.restoreWeight(weight.uuid).catchError((Object _) {
+              messenger.showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
+            }),
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { FileTextIcon, SproutIcon, TargetIcon } from 'lucide-react';
+import { listUuidOfItem } from '@harvest/contracts';
+import { FileTextIcon, ListChecksIcon, SproutIcon, TargetIcon } from 'lucide-react';
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -7,16 +8,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { useHarvest } from '../context';
 import { notePreview } from '../data/notes';
+import { listName } from './list-bits';
+import { background } from '@/lib/actions';
 
 interface Hit {
-  kind: 'seed' | 'goal' | 'note';
+  kind: 'seed' | 'goal' | 'note' | 'item';
   id: string;
   title: string;
   detail: string;
   to: string;
 }
 
-const icons = { seed: SproutIcon, goal: TargetIcon, note: FileTextIcon } as const;
+const icons = { seed: SproutIcon, goal: TargetIcon, note: FileTextIcon, item: ListChecksIcon } as const;
 
 /**
  * `/` from anywhere: seeds, goals and notes by title, and notes by what
@@ -32,21 +35,25 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
 
   const everything = useLiveQuery(async () => {
     if (!open) return null;
-    const [seeds, goals, notes] = await Promise.all([
+    const [seeds, goals, notes, items, lists] = await Promise.all([
       db.rows('commitments').toArray(),
       db.rows('goals').toArray(),
       db.rows('notes').toArray(),
+      db.rows('wishlist_items').toArray(),
+      db.rows('lists').toArray(),
     ]);
-    return { seeds, goals, notes };
+    return { seeds, goals, notes, items, lists };
   }, [db, open]);
 
   const hits = useMemo<Hit[]>(() => {
     const needle = query.trim().toLowerCase();
     if (!needle || !everything) return [];
-    const found: Hit[] = [];
+    const seeds: Hit[] = [];
+    const goals: Hit[] = [];
+    const notes: Hit[] = [];
     for (const seed of everything.seeds) {
       if (seed.deletedAt !== null || !seed.title.toLowerCase().includes(needle)) continue;
-      found.push({
+      seeds.push({
         kind: 'seed',
         id: seed.uuid,
         title: seed.title,
@@ -57,13 +64,13 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
     }
     for (const goal of everything.goals) {
       if (goal.deletedAt !== null || !goal.title.toLowerCase().includes(needle)) continue;
-      found.push({ kind: 'goal', id: goal.uuid, title: goal.title, detail: t('search.goal'), to: `/app/field/goals/${goal.uuid}` });
+      goals.push({ kind: 'goal', id: goal.uuid, title: goal.title, detail: t('search.goal'), to: `/app/field/goals/${goal.uuid}` });
     }
     for (const note of everything.notes) {
       if (note.deletedAt !== null) continue;
       const inTitle = note.title.toLowerCase().includes(needle);
       if (!inTitle && !note.body.toLowerCase().includes(needle)) continue;
-      found.push({
+      notes.push({
         kind: 'note',
         id: note.uuid,
         title: note.title || t('notes.untitled'),
@@ -71,20 +78,37 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         to: `/app/records/${note.uuid}`,
       });
     }
-    return found.slice(0, 30);
+    // List items too, by title and note (W6-18): "olive oil" finds the list it is on.
+    const items: Hit[] = [];
+    const listNames = new Map(everything.lists.map((list) => [list.uuid, list]));
+    for (const item of everything.items) {
+      if (item.deletedAt !== null) continue;
+      if (!item.title.toLowerCase().includes(needle) && !(item.note ?? '').toLowerCase().includes(needle)) continue;
+      const listUuid = listUuidOfItem(item);
+      const list = listNames.get(listUuid);
+      items.push({
+        kind: 'item',
+        id: item.uuid,
+        title: item.title,
+        detail: list ? listName(list, t) : t('lists.title'),
+        to: `/app/records/lists/${listUuid}`,
+      });
+    }
+    return fairShare([seeds, goals, notes, items], 30);
   }, [everything, query, t]);
 
   function go(hit: Hit | undefined) {
     if (!hit) return;
     onOpenChange(false);
     setQuery('');
-    void navigate(hit.to);
+    background(navigate(hit.to));
   }
 
   function onKeyDown(event: KeyboardEvent) {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setActive((index) => Math.min(index + 1, hits.length - 1));
+      // Never below the first: with no results there is nothing to move to.
+      setActive((index) => Math.max(0, Math.min(index + 1, hits.length - 1)));
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       setActive((index) => Math.max(index - 1, 0));
@@ -102,7 +126,7 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         if (!next) setQuery('');
       }}
     >
-      <DialogContent className="top-[15%] translate-y-0 gap-3 p-4">
+      <DialogContent sheet={false} className="top-[15%] translate-y-0 gap-3 p-4 pe-14">
         <DialogHeader>
           <DialogTitle className="sr-only">{t('app.search')}</DialogTitle>
           <DialogDescription className="sr-only">{t('search.lead')}</DialogDescription>
@@ -110,6 +134,7 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         <Input
           autoFocus
           role="combobox"
+          aria-label={t('app.search')}
           aria-expanded={hits.length > 0}
           aria-controls="search-results"
           aria-activedescendant={hits[active] ? `hit-${hits[active].id}` : undefined}
@@ -136,7 +161,7 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
               >
                 <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate font-bold">{hit.title}</span>
+                  <span dir="auto" className="truncate font-bold">{hit.title}</span>
                   <span className="truncate text-xs text-muted-foreground">{hit.detail}</span>
                 </span>
               </li>
@@ -147,4 +172,24 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * At most [limit] hits, in their groups' order, with every group given
+ * its share before any takes more: many matching seeds must not push
+ * every note off the list ([[Audit-v3]] Q5-52).
+ */
+export function fairShare<T>(groups: readonly (readonly T[])[], limit: number): T[] {
+  const taken = groups.map(() => 0);
+  let left = limit;
+  // Round by round, one more from each group that still has some.
+  while (left > 0 && groups.some((group, i) => taken[i]! < group.length)) {
+    for (let i = 0; i < groups.length && left > 0; i++) {
+      if (taken[i]! < groups[i]!.length) {
+        taken[i]!++;
+        left--;
+      }
+    }
+  }
+  return groups.flatMap((group, i) => group.slice(0, taken[i]));
 }

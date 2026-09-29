@@ -63,9 +63,10 @@ void main() {
     });
 
     test('does the arithmetic 5/3/1 actually asks for', () {
-      // A 111 kg training max, the awkward one: 75% is 83.25.
-      expect(percent(750).resolve(trainingMaxGrams: 111000), 83250);
-      expect(percent(850).resolve(trainingMaxGrams: 111000), 94250);
+      // A 111 kg training max, the awkward one: 75% is 83.25, which
+      // two sides of a bar cannot hold, so 83.5 (G5-13).
+      expect(percent(750).resolve(trainingMaxGrams: 111000), 83500);
+      expect(percent(850).resolve(trainingMaxGrams: 111000), 94500);
       expect(percent(950).resolve(trainingMaxGrams: 111000), 105500);
       // And a half-percent, which programmes really do write.
       expect(percent(825).resolve(trainingMaxGrams: 111000), 91500);

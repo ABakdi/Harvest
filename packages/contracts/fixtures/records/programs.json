@@ -3,16 +3,9 @@
   "uuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
   "updatedAt": "2026-09-10T08:00:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "a5d9e3b7-1f6c-4a2e-8b4d-9c7f5a1e3d82",
-    "name": "nSuns 5/3/1",
-    "note": "4-day variant",
-    "weeks": null,
-    "commitmentUuid": "6f1c2a9e-4b7d-4e2a-9c1f-2d8b5e7a3c10",
-    "albumUuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
-    "photoPrompt": "after",
-    "createdAt": "2026-09-04T20:10:00.000Z",
-    "updatedAt": "2026-09-10T08:00:00.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "ns+BhVd4lh+P3bUt",
+    "ct": "rE/U3f1Q855SO9ZaPLWaM3XIwTUTnXTlJptMsm2JaB3Z+OPCz27R9IvWJWiVhh5z2n5DvhE2mt9RAphuzklivNKzgj13NsJT0TBD9DkZ7hg+RCJlHmM1454z09ENPbbgOiSrKaugGrOUQ7zv5oZSyubPghCk0BZEfbkCEjr15opHhc0mOKxEhAc5fy4tHjr4PxWt2aew45bgCVX+pMHndGhm1lZWe12TLNgqEd3oZVjpP9Mjkr47o2hMB9jDpCWLUyONyUJ7nOfl0B5aPLF9UL8aGiAG4L4lRjR+rQE7+73AHgYJIDfmyOYQBrTYA2glY1VKNRdtJxZz08ysKlmYAQmNT6K0DmGDfD4jWgGtla1KQo9nbIJjuh6HQchDkoj6Um/ZPWjETrOJcbUTOcFItRjYWRoovW6LZg8QDLDzZzdA4OqtRtdjKC0S1dgfNJ4scNlW447/6KxekKU59OI0xA=="
   }
 }

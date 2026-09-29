@@ -3,13 +3,9 @@
   "uuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
   "updatedAt": "2026-09-12T09:15:22.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
-    "title": "Half marathon plan",
-    "folder": "Running/2026",
-    "body": "# Half marathon plan\n\nLong run on Saturdays. See [[Shoes]].\n\n![[memo-2026-09-12.m4a]]\n",
-    "createdAt": "2026-09-02T18:20:00.000Z",
-    "updatedAt": "2026-09-12T09:15:22.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "Km7szM/H8DcUMgTe",
+    "ct": "P/kdxaSBM464Ew3XOOtdq0zfCaJoUWWnCg2lV8KWKjhKZYy/nP9b8z4P/kr4D/avkl5C7+yYXyP61vdjBp7BuNm40hsJskt/VvbifTHAazO1U/ZkvuCHoLfWUyADZTTKzLMtgx6UBwxDNW80ZAp/FtO/nuuyGL7pZGXTHwTaKUlLhagZFnC6bsxpCxB6d2AARN8v7j9rrZkYCdfGiY5eer3n671hD4pBXdsK6R/2tYSRf2NJwW62C1u/Kjpi85MtKkO+bM4MJ4bThTUl65FI5FRKIKfXzdtGCszsamumFN6q2rDomoqoh4fGHoKC3WEvTSyguW5s176dkUj/6JE/GNkbmEErrvBvEwQwHRpbYFCOIJoHrVgiY1s8Bk5zmamHqNOXa2G6hzPXCp4tukrLQca0IyycqZLxB8RM8i0PDgQ="
   }
 }

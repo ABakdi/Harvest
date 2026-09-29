@@ -1,0 +1,129 @@
+{
+  "about": "What a calendar day lists (calendarEntries): habits on the days they are due, a times-a-week habit counting only the days before the cell in its week; to-dos on their planned day, done once ever checked in; projects only by their deadline. Each case lists the entries of one day, in the seeds' order.",
+  "seeds": [
+    {
+      "uuid": "run",
+      "type": "habit",
+      "createdAt": "2026-09-01T08:00:00",
+      "scheduleJson": "{\"type\":\"timesPerWeek\",\"times\":2}",
+      "totalTarget": null,
+      "dailyCommitment": null,
+      "dueDay": null,
+      "pausedAt": null,
+      "deadline": null,
+      "archivedAt": null,
+      "deletedAt": null
+    },
+    {
+      "uuid": "read",
+      "type": "habit",
+      "createdAt": "2026-09-01T08:00:00",
+      "scheduleJson": "{\"type\":\"weekly\",\"weekdays\":[1,3,5]}",
+      "totalTarget": null,
+      "dailyCommitment": null,
+      "dueDay": null,
+      "pausedAt": null,
+      "deadline": null,
+      "archivedAt": null,
+      "deletedAt": null
+    },
+    {
+      "uuid": "tax",
+      "type": "todo",
+      "createdAt": "2026-09-01T08:00:00",
+      "scheduleJson": null,
+      "totalTarget": null,
+      "dailyCommitment": null,
+      "dueDay": "2026-09-21",
+      "pausedAt": null,
+      "deadline": null,
+      "archivedAt": null,
+      "deletedAt": null
+    },
+    {
+      "uuid": "book",
+      "type": "project",
+      "createdAt": "2026-09-01T08:00:00",
+      "scheduleJson": null,
+      "totalTarget": 20,
+      "dailyCommitment": 10,
+      "dueDay": null,
+      "pausedAt": null,
+      "deadline": "2026-09-24",
+      "archivedAt": null,
+      "deletedAt": null
+    },
+    {
+      "uuid": "old",
+      "type": "habit",
+      "createdAt": "2026-09-01T08:00:00",
+      "scheduleJson": null,
+      "totalTarget": null,
+      "dailyCommitment": null,
+      "dueDay": null,
+      "pausedAt": null,
+      "deadline": null,
+      "archivedAt": "2026-09-10T08:00:00",
+      "deletedAt": null
+    },
+    {
+      "uuid": "later",
+      "type": "habit",
+      "createdAt": "2026-09-23T08:00:00",
+      "scheduleJson": null,
+      "totalTarget": null,
+      "dailyCommitment": null,
+      "dueDay": null,
+      "pausedAt": null,
+      "deadline": null,
+      "archivedAt": null,
+      "deletedAt": null
+    }
+  ],
+  "checkIns": [
+    { "commitmentUuid": "run", "harvestDay": "2026-09-21", "quantity": 1, "deletedAt": null },
+    { "commitmentUuid": "run", "harvestDay": "2026-09-22", "quantity": 1, "deletedAt": null },
+    { "commitmentUuid": "run", "harvestDay": "2026-09-20", "quantity": 1, "deletedAt": null },
+    { "commitmentUuid": "read", "harvestDay": "2026-09-23", "quantity": 1, "deletedAt": "2026-09-23T20:00:00.000Z" },
+    { "commitmentUuid": "tax", "harvestDay": "2026-09-22", "quantity": 1, "deletedAt": null },
+    { "commitmentUuid": "book", "harvestDay": "2026-09-21", "quantity": 10, "deletedAt": null },
+    { "commitmentUuid": "book", "harvestDay": "2026-09-22", "quantity": 10, "deletedAt": null }
+  ],
+  "days": [
+    {
+      "why": "Monday: the first run of the week, the weekly read, and the tax to-do done a day late",
+      "day": "2026-09-21",
+      "entries": [
+        { "uuid": "run", "deadline": false, "done": true },
+        { "uuid": "read", "deadline": false, "done": false },
+        { "uuid": "tax", "deadline": false, "done": true }
+      ]
+    },
+    {
+      "why": "Tuesday: the second run meets the quota and still shows",
+      "day": "2026-09-22",
+      "entries": [{ "uuid": "run", "deadline": false, "done": true }]
+    },
+    {
+      "why": "Wednesday: the quota is met, so no run; an undone check-in is not done; a seed planted today is due",
+      "day": "2026-09-23",
+      "entries": [
+        { "uuid": "read", "deadline": false, "done": false },
+        { "uuid": "later", "deadline": false, "done": false }
+      ]
+    },
+    {
+      "why": "Thursday: the book's deadline, its 20 pages read",
+      "day": "2026-09-24",
+      "entries": [
+        { "uuid": "book", "deadline": true, "done": true },
+        { "uuid": "later", "deadline": false, "done": false }
+      ]
+    },
+    {
+      "why": "the Sunday before: last week's run counts for last week only",
+      "day": "2026-09-20",
+      "entries": [{ "uuid": "run", "deadline": false, "done": true }]
+    }
+  ]
+}

@@ -54,7 +54,7 @@ typedef ArchiveContents = ({
 
   /// One picture or clip, at the path its row names, read back out of
   /// the gallery directory by [storedPath].
-  List<({String path, String storedPath})> memories,
+  List<({String path, String storedPath, String? hash})> memories,
 
   /// One recording, beside its note's `.md`, read back out of the
   /// attachments directory by [storedPath] ([[Notes]] N7).
@@ -143,655 +143,48 @@ const _noteTitle =
 /// Lays out the whole workbook: one sheet per table, plus a Summary
 /// whose every number is a formula over the others.
 List<ExportSheet> harvestSheets(ExportData data) {
-  final seeds = ExportSheet(
-    name: SheetNames.seeds,
-    headers: const [
-      'Uuid',
-      'Type',
-      'Title',
-      'Schedule',
-      'TotalTarget',
-      'DailyCommitment',
-      'DueDay',
-      'Note',
-      'RemindAt',
-      'Deadline',
-      'GoalUuid',
-      'PausedAt',
-      'ArchivedAt',
-      'ArchiveNote',
-      'DeletedAt',
-      'CreatedAt',
-      'UpdatedAt',
-    ],
-    rows: data.seeds,
-  );
-
-  final checkIns = ExportSheet(
-    name: SheetNames.checkIns,
-    headers: const [
-      'Uuid',
-      'CommitmentUuid',
-      'HarvestDay',
-      'Quantity',
-      'LoggedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.checkIns,
-    derived: const [(header: 'Seed', template: _seedTitle)],
-  );
-
-  final seedNotes = ExportSheet(
-    name: SheetNames.seedNotes,
-    headers: const [
-      'Uuid',
-      'CommitmentUuid',
-      'HarvestDay',
-      'Body',
-      'LoggedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.seedNotes,
-    derived: const [(header: 'Seed', template: _seedTitle)],
-  );
-
-  final goals = ExportSheet(
-    name: SheetNames.goals,
-    headers: const [
-      'Uuid',
-      'Title',
-      'Why',
-      'TargetDay',
-      'Status',
-      'StatusNote',
-      'AchievedAt',
-      'Position',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.goals,
-  );
-
-  final goalItems = ExportSheet(
-    name: SheetNames.goalItems,
-    headers: const [
-      'Uuid',
-      'GoalUuid',
-      'Kind',
-      'Body',
-      'Note',
-      'DoneAt',
-      'Position',
-      'CommitmentUuid',
-      // From v24 ([[Goals]] GL6): the item a subtask belongs to. An
-      // older archive has no such column, and its items are top-level.
-      'ParentUuid',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.goalItems,
-    derived: const [(header: 'Goal', template: _goalTitle)],
-  );
-
-  final lists = ExportSheet(
-    name: SheetNames.lists,
-    headers: const [
-      'Uuid',
-      'Name',
-      'Kind',
-      'Icon',
-      'Position',
-      'BuiltIn',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.lists,
-  );
-
-  final wishlistItems = ExportSheet(
-    name: SheetNames.wishlist,
-    headers: const [
-      'Uuid',
-      'List',
-      'ListUuid',
-      'Title',
-      'PriceMinor',
-      'Currency',
-      'Note',
-      'TargetDay',
-      'MediaType',
-      'Link',
-      'Creator',
-      'StartedAt',
-      'Rating',
-      'SeedUuid',
-      'NoteUuid',
-      'BoughtAt',
-      'Position',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.wishlistItems,
-  );
-
-  final expenses = ExportSheet(
-    name: SheetNames.expenses,
-    headers: const [
-      'Uuid',
-      'HarvestDay',
-      'Category',
-      'Currency',
-      'AmountMinor',
-      'Note',
-      'LoggedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.expenses,
-    derived: [(header: 'Amount', template: _major('AmountMinor'))],
-  );
-
-  final categories = ExportSheet(
-    name: SheetNames.categories,
-    headers: const [
-      'Uuid',
-      'Name',
-      'Icon',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.categories,
-  );
-
-  final money = ExportSheet(
-    name: SheetNames.money,
-    headers: const [
-      'Uuid',
-      'HarvestDay',
-      'Account',
-      'Kind',
-      'Reference',
-      'Currency',
-      'DeltaMinor',
-      'Note',
-      'LinkUuid',
-      'LoggedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.money,
-    derived: [(header: 'Delta', template: _major('DeltaMinor'))],
-  );
-
-  final debtPayments = ExportSheet(
-    name: SheetNames.debtPayments,
-    headers: const [
-      'Uuid',
-      'DebtUuid',
-      'HarvestDay',
-      'AmountMinor',
-      'LoggedAt',
-      'DeletedAt',
-    ],
-    rows: data.debtPayments,
-    derived: [(header: 'Amount', template: _major('AmountMinor'))],
-  );
-
-  final debts = ExportSheet(
-    name: SheetNames.debts,
-    headers: const [
-      'Uuid',
-      'Person',
-      'Currency',
-      'AmountMinor',
-      'PayOffBy',
-      'RemindAt',
-      'Note',
-      'SettledAt',
-      'CreatedAt',
-      'DeletedAt',
-      'UpdatedAt',
-    ],
-    rows: data.debts,
-    derived: [
-      (header: 'Amount', template: _major('AmountMinor')),
-      (
-        header: 'Paid',
-        template:
-            '=SUMIFS(${SheetNames.debtPayments}!'
-            '${debtPayments.column('AmountMinor')}:'
-            '${debtPayments.column('AmountMinor')},'
-            '${SheetNames.debtPayments}!'
-            '${debtPayments.column('DebtUuid')}:'
-            '${debtPayments.column('DebtUuid')},{Uuid}{row},'
-            '${SheetNames.debtPayments}!'
-            '${debtPayments.column('DeletedAt')}:'
-            '${debtPayments.column('DeletedAt')},"")/100',
-      ),
-      (header: 'Remaining', template: '={Amount}{row}-{Paid}{row}'),
-    ],
-  );
-
-  final focus = ExportSheet(
-    name: SheetNames.focus,
-    headers: const [
-      'Uuid',
-      'CommitmentUuid',
-      'HarvestDay',
-      'FocusBlocks',
-      'StartedAt',
-      'EndedAt',
-    ],
-    rows: data.focus,
-    derived: const [(header: 'Seed', template: _seedTitle)],
-  );
-
-  final ledger = ExportSheet(
-    name: SheetNames.ledger,
-    headers: const [
-      'Uuid',
-      'Kind',
-      'Delta',
-      'Reason',
-      'HarvestDay',
-      'LoggedAt',
-    ],
-    rows: data.ledger,
-  );
-
-  final streaks = ExportSheet(
-    name: SheetNames.streaks,
-    headers: const [
-      'Scope',
-      'Current',
-      'Best',
-      'LastEarnedDay',
-      'FreezesStored',
-      'UpdatedAt',
-    ],
-    rows: data.streaks,
-  );
-
-  final settings = ExportSheet(
-    name: SheetNames.settings,
-    headers: const ['Key', 'Value', 'UpdatedAt'],
-    rows: data.settings,
-  );
-
-  // The three file-backed sheets (ADR-007). `File` holds the path
-  // inside the zip, so the tree is browsable and the sheet is its
-  // index: the real title lives here, the filename is a sanitised
-  // version of it.
-  final notes = ExportSheet(
-    name: SheetNames.notes,
-    headers: const [
-      'Uuid',
-      'Title',
-      'Folder',
-      'File',
-      'Body',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.notes,
-  );
-
-  // A recording is a file beside its note ([[Notes]] N7): `File` is
-  // where it sits in the zip, next to the `.md` that embeds it, and
-  // `FileName` is the name the body's `![[...]]` line uses.
-  final noteAttachments = ExportSheet(
-    name: SheetNames.noteAttachments,
-    headers: const [
-      'Uuid',
-      'NoteUuid',
-      'Kind',
-      'FileName',
-      'File',
-      'StoredPath',
-      'DurationMs',
-      'SizeBytes',
-      'FileHash',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.noteAttachments,
-    derived: const [(header: 'Note', template: _noteTitle)],
-  );
-
-  final albums = ExportSheet(
-    name: SheetNames.albums,
-    headers: const [
-      'Uuid',
-      'Name',
-      'Folder',
-      'ScheduleJson',
-      'RemindAt',
-      'Note',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.albums,
-  );
-
-  final memories = ExportSheet(
-    name: SheetNames.memories,
-    headers: const [
-      'Uuid',
-      'AlbumUuid',
-      'HarvestDay',
-      'File',
-      'StoredPath',
-      'Kind',
-      'Note',
-      'FileHash',
-      'CapturedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.memories,
-    derived: const [(header: 'Album', template: _albumName)],
-  );
-
-  // ------------------------------------------------------------ body
-  //
-  // Weights and barbell loads are grams and stay grams, for the same
-  // reason money stays minor units (rule X4): the integer is the truth
-  // and the kilogram is a formula away.
-
-  final steps = ExportSheet(
-    name: SheetNames.steps,
-    headers: const [
-      'HarvestDay',
-      'Steps',
-      'LastCounter',
-      'UpdatedAt',
-    ],
-    rows: data.steps,
-  );
-
-  final weights = ExportSheet(
-    name: SheetNames.weights,
-    headers: const [
-      'Uuid',
-      'HarvestDay',
-      'Grams',
-      'Note',
-      'MeasuredAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.weights,
-    derived: const [(header: 'Kg', template: '={Grams}{row}/1000')],
-  );
-
-  final sleep = ExportSheet(
-    name: SheetNames.sleep,
-    headers: const [
-      'Uuid',
-      'HarvestDay',
-      'FellAsleepAt',
-      'WokeAt',
-      'TargetMinutes',
-      'RestedStars',
-      'Note',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.sleep,
-  );
-
-  final exercises = ExportSheet(
-    name: SheetNames.exercises,
-    headers: const [
-      'Uuid',
-      'Name',
-      'BodyPart',
-      'Equipment',
-      'Target',
-      'Note',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.exercises,
-  );
-
-  final programs = ExportSheet(
-    name: SheetNames.programs,
-    headers: const [
-      'Uuid',
-      'Name',
-      'Note',
-      'Weeks',
-      'CommitmentUuid',
-      'AlbumUuid',
-      'PhotoPrompt',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.programs,
-    derived: const [(header: 'Seed', template: _seedTitle)],
-  );
-
-  final programDays = ExportSheet(
-    name: SheetNames.programDays,
-    headers: const [
-      'Uuid',
-      'ProgramUuid',
-      'Name',
-      'Position',
-      'Week',
-      'Accessories',
-    ],
-    rows: data.programDays,
-  );
-
-  final programSlots = ExportSheet(
-    name: SheetNames.programSlots,
-    headers: const [
-      'Uuid',
-      'DayUuid',
-      'ExerciseId',
-      'Position',
-      'RestSeconds',
-      'BarGrams',
-      'Note',
-    ],
-    rows: data.programSlots,
-  );
-
-  final targetSets = ExportSheet(
-    name: SheetNames.targetSets,
-    headers: const [
-      'Uuid',
-      'SlotUuid',
-      'Position',
-      'Reps',
-      'WeightGrams',
-      'PercentTenths',
-      'OpenEnded',
-    ],
-    rows: data.targetSets,
-  );
-
-  final trainingMaxes = ExportSheet(
-    name: SheetNames.trainingMaxes,
-    headers: const [
-      'ProgramUuid',
-      'ExerciseId',
-      'Grams',
-      'UpdatedAt',
-    ],
-    rows: data.trainingMaxes,
-    derived: const [(header: 'Kg', template: '={Grams}{row}/1000')],
-  );
-
-  final sessions = ExportSheet(
-    name: SheetNames.sessions,
-    headers: const [
-      'Uuid',
-      'ProgramUuid',
-      'DayUuid',
-      'Title',
-      'HarvestDay',
-      'Note',
-      'StartedAt',
-      'EndedAt',
-      'PausedAt',
-      'PausedSeconds',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.sessions,
-  );
-
-  final sessionExercises = ExportSheet(
-    name: SheetNames.sessionExercises,
-    headers: const [
-      'Uuid',
-      'SessionUuid',
-      'Position',
-      'ExerciseId',
-      'PlannedExerciseId',
-      'SlotUuid',
-      'Skipped',
-      'SkipReason',
-      'Note',
-      'RestSeconds',
-      'BarGrams',
-    ],
-    rows: data.sessionExercises,
-  );
-
-  final sets = ExportSheet(
-    name: SheetNames.sets,
-    headers: const [
-      'Uuid',
-      'SessionExerciseUuid',
-      'Position',
-      'WeightGrams',
-      'Reps',
-      'Done',
-      'TargetLabel',
-      'OpenEnded',
-      'LoggedAt',
-    ],
-    rows: data.sets,
-    derived: const [
-      (header: 'Kg', template: '={WeightGrams}{row}/1000'),
-      // Volume the way a lifter means it, live off the two columns
-      // beside it — edit a rep count and the number follows.
-      (
-        header: 'VolumeKg',
-        template: '={WeightGrams}{row}*{Reps}{row}/1000',
-      ),
-    ],
-  );
-
-  // ---------------------------------------------------------- places
-  //
-  // Coordinates are plain decimal degrees and metres, exactly as the
-  // database holds them.
-
-  final savedPlaces = ExportSheet(
-    name: SheetNames.savedPlaces,
-    headers: const [
-      'Uuid',
-      'Name',
-      'Latitude',
-      'Longitude',
-      'RadiusM',
-      'Notes',
-      'CreatedAt',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.savedPlaces,
-  );
-
-  final locationPoints = ExportSheet(
-    name: SheetNames.locationPoints,
-    headers: const [
-      'Uuid',
-      'HarvestDay',
-      'RecordedAt',
-      'Latitude',
-      'Longitude',
-      'AccuracyM',
-      'SpeedMps',
-      'AltitudeM',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.locationPoints,
-  );
-
-  final geotags = ExportSheet(
-    name: SheetNames.geotags,
-    headers: const [
-      'Uuid',
-      'TargetTable',
-      'TargetUuid',
-      'HarvestDay',
-      'At',
-      'Latitude',
-      'Longitude',
-      'AccuracyM',
-      'State',
-      'UpdatedAt',
-      'DeletedAt',
-    ],
-    rows: data.geotags,
-  );
+  final expenses = _expensesSheet(data);
+  final money = _moneySheet(data);
+  final debtPayments = _debtPaymentsSheet(data);
+  final debts = _debtsSheet(data, payments: debtPayments);
+  final ledger = _ledgerSheet(data);
 
   final sheets = [
-    seeds,
-    checkIns,
-    seedNotes,
-    goals,
-    goalItems,
-    lists,
-    wishlistItems,
+    _seedsSheet(data),
+    _checkInsSheet(data),
+    _seedNotesSheet(data),
+    _goalsSheet(data),
+    _goalItemsSheet(data),
+    _listsSheet(data),
+    _wishlistItemsSheet(data),
     expenses,
-    categories,
+    _categoriesSheet(data),
     money,
     debts,
     debtPayments,
-    focus,
+    _focusSheet(data),
     ledger,
-    streaks,
-    settings,
-    notes,
-    noteAttachments,
-    albums,
-    memories,
-    steps,
-    weights,
-    sleep,
-    exercises,
-    programs,
-    programDays,
-    programSlots,
-    targetSets,
-    trainingMaxes,
-    sessions,
-    sessionExercises,
-    sets,
-    savedPlaces,
-    locationPoints,
-    geotags,
+    _streaksSheet(data),
+    _settingsSheet(data),
+    _notesSheet(data),
+    _noteAttachmentsSheet(data),
+    _albumsSheet(data),
+    _memoriesSheet(data),
+    _stepsSheet(data),
+    _weightsSheet(data),
+    _sleepSheet(data),
+    _exercisesSheet(data),
+    _programsSheet(data),
+    _programDaysSheet(data),
+    _programSlotsSheet(data),
+    _targetSetsSheet(data),
+    _trainingMaxesSheet(data),
+    _sessionsSheet(data),
+    _sessionExercisesSheet(data),
+    _setsSheet(data),
+    _savedPlacesSheet(data),
+    _locationPointsSheet(data),
+    _geotagsSheet(data),
   ];
 
   return [
@@ -806,6 +199,620 @@ List<ExportSheet> harvestSheets(ExportData data) {
     ...sheets,
   ];
 }
+
+ExportSheet _seedsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.seeds,
+  headers: const [
+    'Uuid',
+    'Type',
+    'Title',
+    'Schedule',
+    'TotalTarget',
+    'DailyCommitment',
+    'DueDay',
+    'Note',
+    'RemindAt',
+    'Deadline',
+    'GoalUuid',
+    'PausedAt',
+    'ArchivedAt',
+    'ArchiveNote',
+    'DeletedAt',
+    'CreatedAt',
+    'UpdatedAt',
+  ],
+  rows: data.seeds,
+);
+
+ExportSheet _checkInsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.checkIns,
+  headers: const [
+    'Uuid',
+    'CommitmentUuid',
+    'HarvestDay',
+    'Quantity',
+    'LoggedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.checkIns,
+  derived: const [(header: 'Seed', template: _seedTitle)],
+);
+
+ExportSheet _seedNotesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.seedNotes,
+  headers: const [
+    'Uuid',
+    'CommitmentUuid',
+    'HarvestDay',
+    'Body',
+    'LoggedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.seedNotes,
+  derived: const [(header: 'Seed', template: _seedTitle)],
+);
+
+ExportSheet _goalsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.goals,
+  headers: const [
+    'Uuid',
+    'Title',
+    'Why',
+    'TargetDay',
+    'Status',
+    'StatusNote',
+    'AchievedAt',
+    'Position',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.goals,
+);
+
+ExportSheet _goalItemsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.goalItems,
+  headers: const [
+    'Uuid',
+    'GoalUuid',
+    'Kind',
+    'Body',
+    'Note',
+    'DoneAt',
+    'Position',
+    'CommitmentUuid',
+    // From v24 ([[Goals]] GL6): the item a subtask belongs to. An
+    // older archive has no such column, and its items are top-level.
+    'ParentUuid',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.goalItems,
+  derived: const [(header: 'Goal', template: _goalTitle)],
+);
+
+ExportSheet _listsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.lists,
+  headers: const [
+    'Uuid',
+    'Name',
+    'Kind',
+    'Icon',
+    'Position',
+    'BuiltIn',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.lists,
+);
+
+ExportSheet _wishlistItemsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.wishlist,
+  headers: const [
+    'Uuid',
+    'List',
+    'ListUuid',
+    'Title',
+    'PriceMinor',
+    'Currency',
+    'Note',
+    'TargetDay',
+    'MediaType',
+    'Link',
+    'Creator',
+    'StartedAt',
+    'Rating',
+    'SeedUuid',
+    'NoteUuid',
+    'BoughtAt',
+    'Position',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.wishlistItems,
+);
+
+ExportSheet _expensesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.expenses,
+  headers: const [
+    'Uuid',
+    'HarvestDay',
+    'Category',
+    'Currency',
+    'AmountMinor',
+    'Note',
+    'LoggedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.expenses,
+  derived: [(header: 'Amount', template: _major('AmountMinor'))],
+);
+
+ExportSheet _categoriesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.categories,
+  headers: const [
+    'Uuid',
+    'Name',
+    'Icon',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.categories,
+);
+
+ExportSheet _moneySheet(ExportData data) => ExportSheet(
+  name: SheetNames.money,
+  headers: const [
+    'Uuid',
+    'HarvestDay',
+    'Account',
+    'Kind',
+    'Reference',
+    'Currency',
+    'DeltaMinor',
+    'Note',
+    'LinkUuid',
+    'LoggedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.money,
+  derived: [(header: 'Delta', template: _major('DeltaMinor'))],
+);
+
+ExportSheet _debtPaymentsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.debtPayments,
+  headers: const [
+    'Uuid',
+    'DebtUuid',
+    'HarvestDay',
+    'AmountMinor',
+    'LoggedAt',
+    'DeletedAt',
+  ],
+  rows: data.debtPayments,
+  derived: [(header: 'Amount', template: _major('AmountMinor'))],
+);
+
+ExportSheet _debtsSheet(ExportData data, {required ExportSheet payments}) =>
+    ExportSheet(
+      name: SheetNames.debts,
+      headers: const [
+        'Uuid',
+        'Person',
+        'Currency',
+        'AmountMinor',
+        'PayOffBy',
+        'RemindAt',
+        'Note',
+        'SettledAt',
+        'CreatedAt',
+        'DeletedAt',
+        'UpdatedAt',
+      ],
+      rows: data.debts,
+      derived: [
+        (header: 'Amount', template: _major('AmountMinor')),
+        (
+          header: 'Paid',
+          template:
+              '=SUMIFS(${SheetNames.debtPayments}!'
+              '${payments.column('AmountMinor')}:'
+              '${payments.column('AmountMinor')},'
+              '${SheetNames.debtPayments}!'
+              '${payments.column('DebtUuid')}:'
+              '${payments.column('DebtUuid')},{Uuid}{row},'
+              '${SheetNames.debtPayments}!'
+              '${payments.column('DeletedAt')}:'
+              '${payments.column('DeletedAt')},"")/100',
+        ),
+        (header: 'Remaining', template: '={Amount}{row}-{Paid}{row}'),
+      ],
+    );
+
+ExportSheet _focusSheet(ExportData data) => ExportSheet(
+  name: SheetNames.focus,
+  headers: const [
+    'Uuid',
+    'CommitmentUuid',
+    'HarvestDay',
+    'FocusBlocks',
+    'StartedAt',
+    'EndedAt',
+  ],
+  rows: data.focus,
+  derived: const [(header: 'Seed', template: _seedTitle)],
+);
+
+ExportSheet _ledgerSheet(ExportData data) => ExportSheet(
+  name: SheetNames.ledger,
+  headers: const [
+    'Uuid',
+    'Kind',
+    'Delta',
+    'Reason',
+    'HarvestDay',
+    'LoggedAt',
+  ],
+  rows: data.ledger,
+);
+
+ExportSheet _streaksSheet(ExportData data) => ExportSheet(
+  name: SheetNames.streaks,
+  headers: const [
+    'Scope',
+    'Current',
+    'Best',
+    'LastEarnedDay',
+    'FreezesStored',
+    'UpdatedAt',
+  ],
+  rows: data.streaks,
+);
+
+ExportSheet _settingsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.settings,
+  headers: const ['Key', 'Value', 'UpdatedAt'],
+  rows: data.settings,
+);
+
+/// The three file-backed sheets (ADR-007). `File` holds the path
+/// inside the zip, so the tree is browsable and the sheet is its
+/// index: the real title lives here, the filename is a sanitised
+/// version of it.
+ExportSheet _notesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.notes,
+  headers: const [
+    'Uuid',
+    'Title',
+    'Folder',
+    'File',
+    'Body',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.notes,
+);
+
+/// A recording is a file beside its note ([[Notes]] N7): `File` is
+/// where it sits in the zip, next to the `.md` that embeds it, and
+/// `FileName` is the name the body's `![[...]]` line uses.
+ExportSheet _noteAttachmentsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.noteAttachments,
+  headers: const [
+    'Uuid',
+    'NoteUuid',
+    'Kind',
+    'FileName',
+    'File',
+    'StoredPath',
+    'DurationMs',
+    'SizeBytes',
+    'FileHash',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.noteAttachments,
+  derived: const [(header: 'Note', template: _noteTitle)],
+);
+
+ExportSheet _albumsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.albums,
+  headers: const [
+    'Uuid',
+    'Name',
+    'Folder',
+    'ScheduleJson',
+    'RemindAt',
+    'Note',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.albums,
+);
+
+ExportSheet _memoriesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.memories,
+  headers: const [
+    'Uuid',
+    'AlbumUuid',
+    'HarvestDay',
+    'File',
+    'StoredPath',
+    'Kind',
+    'Note',
+    'FileHash',
+    'CapturedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.memories,
+  derived: const [(header: 'Album', template: _albumName)],
+);
+
+// ------------------------------------------------------------ body
+//
+// Weights and barbell loads are grams and stay grams, for the same
+// reason money stays minor units (rule X4): the integer is the truth
+// and the kilogram is a formula away.
+
+ExportSheet _stepsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.steps,
+  headers: const [
+    'HarvestDay',
+    'Steps',
+    'LastCounter',
+    'UpdatedAt',
+  ],
+  rows: data.steps,
+);
+
+ExportSheet _weightsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.weights,
+  headers: const [
+    'Uuid',
+    'HarvestDay',
+    'Grams',
+    'Note',
+    'MeasuredAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.weights,
+  derived: const [(header: 'Kg', template: '={Grams}{row}/1000')],
+);
+
+ExportSheet _sleepSheet(ExportData data) => ExportSheet(
+  name: SheetNames.sleep,
+  headers: const [
+    'Uuid',
+    'HarvestDay',
+    'FellAsleepAt',
+    'WokeAt',
+    'TargetMinutes',
+    'RestedStars',
+    'Note',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.sleep,
+);
+
+ExportSheet _exercisesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.exercises,
+  headers: const [
+    'Uuid',
+    'Name',
+    'BodyPart',
+    'Equipment',
+    'Target',
+    'Note',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.exercises,
+);
+
+ExportSheet _programsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.programs,
+  headers: const [
+    'Uuid',
+    'Name',
+    'Note',
+    'Weeks',
+    'CommitmentUuid',
+    'AlbumUuid',
+    'PhotoPrompt',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.programs,
+  derived: const [(header: 'Seed', template: _seedTitle)],
+);
+
+ExportSheet _programDaysSheet(ExportData data) => ExportSheet(
+  name: SheetNames.programDays,
+  headers: const [
+    'Uuid',
+    'ProgramUuid',
+    'Name',
+    'Position',
+    'Week',
+    'Accessories',
+  ],
+  rows: data.programDays,
+);
+
+ExportSheet _programSlotsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.programSlots,
+  headers: const [
+    'Uuid',
+    'DayUuid',
+    'ExerciseId',
+    'Position',
+    'RestSeconds',
+    'BarGrams',
+    'Note',
+  ],
+  rows: data.programSlots,
+);
+
+ExportSheet _targetSetsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.targetSets,
+  headers: const [
+    'Uuid',
+    'SlotUuid',
+    'Position',
+    'Reps',
+    'WeightGrams',
+    'PercentTenths',
+    'OpenEnded',
+  ],
+  rows: data.targetSets,
+);
+
+ExportSheet _trainingMaxesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.trainingMaxes,
+  headers: const [
+    'ProgramUuid',
+    'ExerciseId',
+    'Grams',
+    'UpdatedAt',
+  ],
+  rows: data.trainingMaxes,
+  derived: const [(header: 'Kg', template: '={Grams}{row}/1000')],
+);
+
+ExportSheet _sessionsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.sessions,
+  headers: const [
+    'Uuid',
+    'ProgramUuid',
+    'DayUuid',
+    'Title',
+    'HarvestDay',
+    'Note',
+    'StartedAt',
+    'EndedAt',
+    'PausedAt',
+    'PausedSeconds',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.sessions,
+);
+
+ExportSheet _sessionExercisesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.sessionExercises,
+  headers: const [
+    'Uuid',
+    'SessionUuid',
+    'Position',
+    'ExerciseId',
+    'PlannedExerciseId',
+    'SlotUuid',
+    'Skipped',
+    'SkipReason',
+    'Note',
+    'RestSeconds',
+    'BarGrams',
+  ],
+  rows: data.sessionExercises,
+);
+
+ExportSheet _setsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.sets,
+  headers: const [
+    'Uuid',
+    'SessionExerciseUuid',
+    'Position',
+    'WeightGrams',
+    'Reps',
+    'Done',
+    'TargetLabel',
+    'OpenEnded',
+    'LoggedAt',
+  ],
+  rows: data.sets,
+  derived: const [
+    (header: 'Kg', template: '={WeightGrams}{row}/1000'),
+    // Volume the way a lifter means it, live off the two columns
+    // beside it — edit a rep count and the number follows.
+    (
+      header: 'VolumeKg',
+      template: '={WeightGrams}{row}*{Reps}{row}/1000',
+    ),
+  ],
+);
+
+// ---------------------------------------------------------- places
+//
+// Coordinates are plain decimal degrees and metres, exactly as the
+// database holds them.
+
+ExportSheet _savedPlacesSheet(ExportData data) => ExportSheet(
+  name: SheetNames.savedPlaces,
+  headers: const [
+    'Uuid',
+    'Name',
+    'Latitude',
+    'Longitude',
+    'RadiusM',
+    'Notes',
+    'CreatedAt',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.savedPlaces,
+);
+
+ExportSheet _locationPointsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.locationPoints,
+  headers: const [
+    'Uuid',
+    'HarvestDay',
+    'RecordedAt',
+    'Latitude',
+    'Longitude',
+    'AccuracyM',
+    'SpeedMps',
+    'AltitudeM',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.locationPoints,
+);
+
+ExportSheet _geotagsSheet(ExportData data) => ExportSheet(
+  name: SheetNames.geotags,
+  headers: const [
+    'Uuid',
+    'TargetTable',
+    'TargetUuid',
+    'HarvestDay',
+    'At',
+    'Latitude',
+    'Longitude',
+    'AccuracyM',
+    'State',
+    'UpdatedAt',
+    'DeletedAt',
+  ],
+  rows: data.geotags,
+);
 
 /// Counts the rows of [sheet] live, so a row deleted in the spreadsheet
 /// drops out of the count too.

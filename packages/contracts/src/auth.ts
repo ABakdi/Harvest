@@ -29,13 +29,39 @@ export const passwordMaxLength = 256;
 
 const commonPasswords: ReadonlySet<string> = new Set(commonPasswordList);
 
+/** The leetspeak a list-maker tries first, undone: `p@ssw0rd` is `password`. */
+const leet: Record<string, string> = { '0': 'o', '3': 'e', '4': 'a', '5': 's', '@': 'a', $: 's' };
+
+function unleet(value: string, one: 'i' | 'l'): string {
+  return value.replace(/[01345@$]/g, (c) => (c === '1' ? one : (leet[c] ?? c)));
+}
+
+/** Digits and the usual symbols tacked on the end: `password12`, `Password123!`. */
+const trailing = /[\d!@#$%^&*?.,;:_+=~-]+$/;
+
 /**
- * Whether [password] is one of the 10,000 most common passwords. The
- * list is lowercase, and so is the comparison: "Password12" is not a
- * better password than "password12".
+ * Whether [password] is one of the 10,000 most common passwords, or one
+ * of them dressed up (W6-40): the list is lowercase, and so is the
+ * comparison ("Password12" is no better than "password12"); digits and
+ * symbols added at the end are taken off when at least four characters
+ * are left ("password12", "Password123!"); and the common leetspeak is
+ * undone ("p@ssw0rd"). The clients' own check is this one, so what they
+ * say while I type is what the server decides.
  */
 export function isCommonPassword(password: string): boolean {
-  return commonPasswords.has(password.toLowerCase());
+  const lower = password.toLowerCase();
+  const candidates = new Set<string>([lower]);
+  const stripped = lower.replace(trailing, '');
+  if (stripped.length >= 4) candidates.add(stripped);
+  for (const base of [lower, stripped]) {
+    for (const one of ['i', 'l'] as const) {
+      const plain = unleet(base, one);
+      if (plain.length >= 4) candidates.add(plain);
+      const bare = plain.replace(trailing, '');
+      if (bare.length >= 4) candidates.add(bare);
+    }
+  }
+  return [...candidates].some((candidate) => commonPasswords.has(candidate));
 }
 
 /**
@@ -76,16 +102,35 @@ const linkTokenSchema = z.string().min(20).max(200);
 
 // ----------------------------------------------------------------- bodies
 
-export const registerBodySchema = z.object({
+// Strict: a key the contract does not name is refused, not carried along
+// (audit S5-07).
+
+/** The sign-up fields, for a form that asks for some of them. */
+export const registerFieldsSchema = z.strictObject({
   email: emailSchema,
   password: passwordSchema,
   displayName: displayNameSchema.optional(),
   client: clientKindSchema.default('web'),
   deviceName: deviceNameSchema.optional(),
 });
+
+/**
+ * Whether a display name gives the password away. A name that is the
+ * password is a password manager filling the field after the password
+ * as its confirmation; shown on every screen, it would be read by anyone
+ * looking.
+ */
+export function nameIsPassword(displayName: string | undefined, password: string): boolean {
+  return displayName !== undefined && displayName.trim() !== '' && displayName.trim() === password.trim();
+}
+
+export const registerBodySchema = registerFieldsSchema.refine(
+  (body) => !nameIsPassword(body.displayName, body.password),
+  { path: ['displayName'], message: 'not_the_password' },
+);
 export type RegisterBody = z.input<typeof registerBodySchema>;
 
-export const loginBodySchema = z.object({
+export const loginBodySchema = z.strictObject({
   email: emailSchema,
   password: loginPasswordSchema,
   client: clientKindSchema.default('web'),
@@ -94,7 +139,7 @@ export const loginBodySchema = z.object({
 export type LoginBody = z.input<typeof loginBodySchema>;
 
 /** The web sends nothing (the cookie carries the token); the phone sends it here. */
-export const refreshBodySchema = z.object({
+export const refreshBodySchema = z.strictObject({
   refreshToken: z.string().min(1).max(300).optional(),
 });
 export type RefreshBody = z.input<typeof refreshBodySchema>;
@@ -102,16 +147,16 @@ export type RefreshBody = z.input<typeof refreshBodySchema>;
 export const logoutBodySchema = refreshBodySchema;
 export type LogoutBody = RefreshBody;
 
-export const verifyEmailBodySchema = z.object({ token: linkTokenSchema });
+export const verifyEmailBodySchema = z.strictObject({ token: linkTokenSchema });
 export type VerifyEmailBody = z.input<typeof verifyEmailBodySchema>;
 
-export const resendVerificationBodySchema = z.object({ email: emailSchema });
+export const resendVerificationBodySchema = z.strictObject({ email: emailSchema });
 export type ResendVerificationBody = z.input<typeof resendVerificationBodySchema>;
 
-export const forgotPasswordBodySchema = z.object({ email: emailSchema });
+export const forgotPasswordBodySchema = z.strictObject({ email: emailSchema });
 export type ForgotPasswordBody = z.input<typeof forgotPasswordBodySchema>;
 
-export const resetPasswordBodySchema = z.object({
+export const resetPasswordBodySchema = z.strictObject({
   token: linkTokenSchema,
   password: passwordSchema,
 });
@@ -123,8 +168,17 @@ export const patchMeBodySchema = z.strictObject({
 export type PatchMeBody = z.input<typeof patchMeBodySchema>;
 
 /** Deleting everything asks for the password again, whatever the token says. */
-export const deleteMeBodySchema = z.object({ password: loginPasswordSchema });
+export const deleteMeBodySchema = z.strictObject({ password: loginPasswordSchema });
 export type DeleteMeBody = z.input<typeof deleteMeBodySchema>;
+
+/**
+ * `POST /v1/me/reauth`: the password again, before this device writes
+ * my data out (the archive, the spreadsheet; Phase 7, M7.6), so a
+ * session left open is not enough to take everything. 204 for the right
+ * one, 403 `forbidden` for a wrong one, counted with *Delete account*.
+ */
+export const reauthBodySchema = z.strictObject({ password: loginPasswordSchema });
+export type ReauthBody = z.input<typeof reauthBodySchema>;
 
 export const sessionParamsSchema = z.object({
   id: z.string().regex(/^[0-9a-f]{24}$/, { message: 'Not a session id' }),

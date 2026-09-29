@@ -10,11 +10,13 @@ import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/core/ui/widgets/stat_tile.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/features/commitments/presentation/seed_providers.dart';
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
+import 'package:harvest/features/gamification/domain/day_activity.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -36,6 +38,7 @@ class StatsScreen extends ConsumerWidget {
     final streakDays = ref.watch(streakDaysProvider);
     final checkIns = ref.watch(checkInCountProvider).value ?? 0;
     final activity = ref.watch(dailyActivityProvider).value ?? const {};
+    final heat = ref.watch(heatActivityProvider).value ?? const {};
     final goal = ref.watch(dailyGoalSettingProvider).value ?? 3;
     final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
     final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
@@ -44,7 +47,9 @@ class StatsScreen extends ConsumerWidget {
     final weekSpending = ref.watch(weekByCategoryProvider);
     final archived = ref.watch(archivedCommitmentsProvider).value ?? const [];
     final since = firstSeedDay(
-      [for (final seed in [...commitments, ...archived]) seed.startDay],
+      [
+        for (final seed in [...commitments, ...archived]) seed.startDay,
+      ],
       activity.keys,
     );
 
@@ -57,6 +62,7 @@ class StatsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(title ?? l10n.navStats),
         bottom: tabs,
       ),
@@ -99,7 +105,7 @@ class StatsScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _HeatMap(
-                          activity: activity,
+                          activity: heat,
                           goal: goal,
                           streakDays: streakDays,
                         ),
@@ -192,7 +198,9 @@ class StatsScreen extends ConsumerWidget {
   }
 }
 
-/// Six months of daily activity, garden style.
+/// Six months of daily activity, garden style: [activityWeeks] whole
+/// weeks, each day as high as its productive actions ([dayActivity]),
+/// the same map the web draws.
 ///
 /// Two things are being said at once, so they are said differently. A
 /// day that is **part of the current streak** is solid green — ten days
@@ -215,11 +223,12 @@ class _HeatMap extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final today = HarvestDay.today();
-    final start = today.addDays(-activityWindow.inDays).weekStart;
+    final window = activityWindow(today);
 
+    // The days after today in this week stay blank.
     final weeks = <List<HarvestDay?>>[];
-    var day = start;
-    while (day.compareTo(today) <= 0) {
+    var day = window.start;
+    while (day.compareTo(window.end) <= 0) {
       final week = <HarvestDay?>[];
       for (var i = 0; i < 7; i++) {
         week.add(day.compareTo(today) <= 0 ? day : null);
@@ -246,9 +255,25 @@ class _HeatMap extends StatelessWidget {
           final fit = constraints.maxWidth.isFinite
               ? (constraints.maxWidth / _columnWidth).floor() * _columnWidth
               : null;
-          return Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: SizedBox(width: fit, child: _weeks(weeks, locale, theme, scheme)),
+          // Room for the weekday names at the start, then as many whole
+          // week columns as fit.
+          final room = fit == null ? null : fit - _columnWidth * 2;
+          final shown = room == null
+              ? weeks.length
+              : (room / _columnWidth).floor().clamp(1, weeks.length);
+          return Row(
+            children: [
+              _weekdays(locale, theme),
+              Expanded(
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: SizedBox(
+                    width: room == null ? null : shown * _columnWidth,
+                    child: _weeks(weeks, locale, theme, scheme, shown),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -258,49 +283,84 @@ class _HeatMap extends StatelessWidget {
   /// One week's column: a 14-point square with 1.5 either side.
   static const double _columnWidth = 17;
 
+  /// Mon, Wed and Fri beside their rows, so a square says its day
+  /// (U6-21).
+  Widget _weekdays(String locale, ThemeData theme) {
+    // 2024-01-01 was a Monday.
+    String name(int offset) =>
+        DateFormat.E(locale).format(DateTime(2024, 1, 1 + offset));
+    return SizedBox(
+      width: _columnWidth * 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          for (var day = 0; day < 7; day++)
+            SizedBox(
+              height: 17,
+              child: day.isEven && day < 6
+                  ? Text(
+                      name(day),
+                      style: theme.textTheme.labelSmall,
+                      softWrap: false,
+                      overflow: TextOverflow.clip,
+                    )
+                  : null,
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _weeks(
     List<List<HarvestDay?>> weeks,
     String locale,
     ThemeData theme,
     ColorScheme scheme,
+    int shown,
   ) => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        reverse: true,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            for (var w = 0; w < weeks.length; w++)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 16,
-                    width: _columnWidth,
-                    child: _monthLabel(weeks, w, locale, theme),
-                  ),
-                  for (final cell in weeks[w])
-                    Padding(
-                      padding: const EdgeInsets.all(1.5),
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: cell == null
-                              ? Colors.transparent
-                              : _color(
-                                  scheme,
-                                  activity[cell.key] ?? 0,
-                                  inStreak: streakDays.contains(cell),
-                                ),
-                        ),
-                      ),
-                    ),
-                ],
+    scrollDirection: Axis.horizontal,
+    reverse: true,
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        for (var w = 0; w < weeks.length; w++)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 16,
+                width: _columnWidth,
+                // A month whose column is just off the start would
+                // bleed its last letters in ("y" for May): it waits
+                // until its column is in view (U6-21).
+                child: w < weeks.length - shown
+                    ? null
+                    : _monthLabel(weeks, w, locale, theme),
               ),
-          ],
-        ),
-      );
+              for (final cell in weeks[w])
+                Padding(
+                  padding: const EdgeInsets.all(1.5),
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: cell == null
+                          ? Colors.transparent
+                          : _color(
+                              scheme,
+                              activity[cell.key] ?? 0,
+                              inStreak: streakDays.contains(cell),
+                            ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+      ],
+    ),
+  );
 
   /// The month's short name over the first week that starts in it.
   Widget? _monthLabel(
@@ -333,12 +393,12 @@ class _HeatMap extends StatelessWidget {
   Color _color(ColorScheme scheme, int count, {required bool inStreak}) {
     // The streak is the headline number, so its days are not shaded by
     // how much was done on them: they are simply on.
-    if (inStreak) return scheme.secondary;
-    if (count == 0) return scheme.onSurface.withValues(alpha: 0.06);
     // Kept well short of solid, so a busy day off the streak never
-    // passes for a streak square beside a "No streak running" line.
-    final intensity = (count / goal).clamp(0.2, 0.4);
-    return scheme.secondary.withValues(alpha: intensity);
+    // passes for a streak square beside a "No streak running" line
+    // ([activityShade], the web's shading too).
+    final shade = activityShade(count, goal, inStreak: inStreak);
+    if (shade == 0) return scheme.onSurface.withValues(alpha: 0.06);
+    return scheme.secondary.withValues(alpha: shade);
   }
 }
 
@@ -478,8 +538,7 @@ class _WeeklyReportCard extends StatelessWidget {
             ),
             const SizedBox(height: HarvestSpacing.sm),
             Text(l10n.weeklyBestDay(weekdayName(best))),
-            if (worst != null)
-              Text(l10n.weeklyWorstDay(weekdayName(worst))),
+            if (worst != null) Text(l10n.weeklyWorstDay(weekdayName(worst))),
             if (topCategory != null)
               Text(
                 l10n.weeklyTopSpending(

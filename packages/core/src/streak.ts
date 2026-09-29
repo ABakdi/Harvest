@@ -1,3 +1,5 @@
+import { HarvestDay } from './harvest-day.js';
+import { scheduleIsDueOn, type Schedule } from './schedule.js';
 import { defaultDailyHarvestGoal, streakMilestoneCoins } from './xp.js';
 
 /**
@@ -96,10 +98,54 @@ function earnedBefore(previousDayKey: string, remaining: number): string | null 
   return remaining > 0 ? previousDayKey : null;
 }
 
-/** A habit checked in on [dayKey]: its own streak counts the day, once. */
-export function earnHabitDay(streak: StreakState, dayKey: string): StreakState | null {
+/**
+ * Closed days between the last earned day and [dayKey] that nothing
+ * counted: 0 when [dayKey] follows it, or when there is no run to judge.
+ * A check-in made on another device before this one judged those days
+ * must not hide them ([[Audit-v3]] Q5-02).
+ */
+export function daysMissedBefore(streak: StreakState, dayKey: string): number {
+  if (streak.current <= 0 || streak.lastEarnedDay === null) return 0;
+  const last = HarvestDay.tryParse(streak.lastEarnedDay);
+  if (last === null) return 0;
+  return Math.max(0, last.daysUntil(HarvestDay.parse(dayKey)) - 1);
+}
+
+/** What the phone's judging needs to know about a habit's missed days. */
+export interface HabitCalendar {
+  /** Its schedule; null reads as daily, as the phone does. */
+  readonly schedule: Schedule | null;
+  /** The Harvest Day it was paused on, if it is paused: days from then on are excused. */
+  readonly pausedDay?: string | null;
+}
+
+/**
+ * Whether a fixed-schedule habit was due on a day between its last
+ * earned day and [dayKey], which breaks it the way the 3 AM judging
+ * would. A times-a-week habit is judged when its week closes, never here.
+ */
+function habitMissedBefore(streak: StreakState, dayKey: string, habit: HabitCalendar): boolean {
+  const gap = daysMissedBefore(streak, dayKey);
+  if (gap === 0) return false;
+  const schedule = habit.schedule ?? { type: 'daily' };
+  if (schedule.type === 'timesPerWeek') return false;
+  const paused = HarvestDay.tryParse(habit.pausedDay ?? null);
+  let day = HarvestDay.parse(dayKey).addDays(-gap);
+  for (let i = 0; i < gap; i++, day = day.next) {
+    if (paused !== null && paused.compareTo(day) <= 0) return false;
+    if (scheduleIsDueOn(schedule, day)) return true;
+  }
+  return false;
+}
+
+/**
+ * A habit checked in on [dayKey]: its own streak counts the day, once.
+ * With [habit], a due day missed since the last earned one starts the
+ * run again at 1 instead of extending it.
+ */
+export function earnHabitDay(streak: StreakState, dayKey: string, habit?: HabitCalendar): StreakState | null {
   if (streak.lastEarnedDay === dayKey) return null;
-  const current = streak.current + 1;
+  const current = habit !== undefined && habitMissedBefore(streak, dayKey, habit) ? 1 : streak.current + 1;
   return {
     current,
     best: Math.max(streak.best, current),
@@ -130,11 +176,39 @@ export interface GlobalRefresh {
   readonly milestone: { readonly coins: number; readonly reason: string } | null;
 }
 
+/** A milestone already paid: a `streak:N` ledger row and its day. */
+export interface MilestonePaid {
+  readonly reason: string;
+  readonly harvestDay: string;
+}
+
+/**
+ * Whether `streak:[length]` was already paid in this run. A run that
+ * broke needs more than [length] days to reach the same length again,
+ * so a payment that recent can only be this run's, taken back by an
+ * undo and earned again ([[Audit-v3]] Q5-29).
+ */
+function paidThisRun(paid: readonly MilestonePaid[], length: number, dayKey: string): boolean {
+  const day = HarvestDay.parse(dayKey);
+  const reason = `streak:${length}`;
+  return paid.some((entry) => {
+    if (entry.reason !== reason) return false;
+    const on = HarvestDay.tryParse(entry.harvestDay);
+    return on !== null && on.daysUntil(day) <= length;
+  });
+}
+
 /**
  * Extends or retracts the global streak on [dayKey] from its actions
  * (`_refreshGlobal`). Reaching the goal counts the day once and may pay
  * a milestone; a same-day undo that drops below it takes the day back.
- * The milestone is never taken back, exactly as on the phone.
+ * The milestone is never taken back, and never paid twice in one run:
+ * [paid] holds the `streak:` rows of the coin ledger.
+ *
+ * Days missed since the last earned one (closed days no device has
+ * judged yet) are judged here as the 3 AM reset would: stored freezes
+ * cover them one each, and if there are too few the run starts again
+ * at 1 with the freezes spent.
  */
 export function refreshGlobalStreak(
   streak: StreakState,
@@ -142,18 +216,22 @@ export function refreshGlobalStreak(
   goal: number,
   dayKey: string,
   previousDayKey: string,
+  paid: readonly MilestonePaid[] = [],
 ): GlobalRefresh {
   if (actions >= goal && streak.lastEarnedDay !== dayKey) {
-    const current = streak.current + 1;
+    const missed = daysMissedBefore(streak, dayKey);
+    const covered = missed <= streak.freezesStored;
+    const current = covered ? streak.current + 1 : 1;
     const coins = streakMilestoneCoins[current];
     return {
       next: {
         current,
         best: Math.max(streak.best, current),
         lastEarnedDay: dayKey,
-        freezesStored: streak.freezesStored,
+        freezesStored: Math.max(0, streak.freezesStored - missed),
       },
-      milestone: coins === undefined ? null : { coins, reason: `streak:${current}` },
+      milestone:
+        coins === undefined || paidThisRun(paid, current, dayKey) ? null : { coins, reason: `streak:${current}` },
     };
   }
   if (actions < goal && streak.lastEarnedDay === dayKey) {

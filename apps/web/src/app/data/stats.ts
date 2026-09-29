@@ -1,11 +1,26 @@
-import { HarvestDay, currencyOf, globalStreakScope, productiveActions, sumInDefault, type Rates } from '@harvest/core';
+import {
+  HarvestDay,
+  activityShade,
+  activityWindow,
+  currencyOf,
+  dailyGoalFromJson,
+  dayActivity,
+  globalStreakScope,
+  sumInDefault,
+  type Rates,
+} from '@harvest/core';
 import type { HarvestDB } from './db';
+import { settingKeys } from './settings';
 import { readRates } from './vault';
 
 export interface HeatDay {
   key: string;
   day: HarvestDay;
   actions: number;
+  /** How strongly the square is filled, 0 to 1 (`activityShade`). */
+  shade: number;
+  /** After today: drawn blank, as on the phone. */
+  future: boolean;
 }
 
 export interface SeedStreak {
@@ -65,8 +80,8 @@ function streakDaysOf(row: { current: number; lastEarnedDay: string | null } | u
  * what the streak means, rather than counting rows nobody promised
  * anything about.
  */
-export async function readStats(db: HarvestDB, today: HarvestDay, weeks = 17): Promise<StatsView> {
-  const [rows, checkIns, streaks, albums, memories, ledger, expenses, rates] = await Promise.all([
+export async function readStats(db: HarvestDB, today: HarvestDay, weeks?: number): Promise<StatsView> {
+  const [rows, checkIns, streaks, albums, memories, ledger, expenses, rates, goalRow] = await Promise.all([
     db.rows('commitments').toArray(),
     db.rows('check_ins').toArray(),
     db.rows('streaks').toArray(),
@@ -75,49 +90,59 @@ export async function readStats(db: HarvestDB, today: HarvestDay, weeks = 17): P
     db.rows('ledger').toArray(),
     db.rows('expenses').toArray(),
     readRates(db),
+    db.rows('kv_settings').get(settingKeys.dailyHarvestGoal),
   ]);
 
-  // Whole weeks, so the grid's columns are weeks and its rows weekdays.
-  const end = today.weekStart.addDays(6);
-  const start = end.addDays(-(weeks * 7 - 1));
+  // One rule and one window with the phone's heat-map (G5-11): whole
+  // weeks, each day as high as its productive actions.
+  const { start, end } = activityWindow(today, weeks);
+  const heights = dayActivity(
+    {
+      checkIns,
+      seeds: rows,
+      albums: albums.map((album) => ({
+        uuid: album.uuid,
+        scheduled: album.scheduleJson !== null,
+        deletedAt: album.deletedAt,
+      })),
+      memories,
+    },
+    start,
+    end,
+  );
+  const goal = dailyGoalFromJson(goalRow?.valueJson);
+  const global = streakBy(streaks).get(globalStreakScope);
+  const streakDays = streakDaysOf(global);
   const days: HeatDay[] = [];
-  const byDay = new Map<string, Map<string, number>>();
   let liveCheckIns = 0;
+  const activeDays = new Set<string>();
   for (const row of checkIns) {
     if (row.deletedAt !== null) continue;
     liveCheckIns += 1;
-    const day = byDay.get(row.harvestDay) ?? new Map<string, number>();
-    day.set(row.commitmentUuid, (day.get(row.commitmentUuid) ?? 0) + row.quantity);
-    byDay.set(row.harvestDay, day);
+    activeDays.add(row.harvestDay);
+  }
+  for (let day = start; day.compareTo(end) <= 0; day = day.next) {
+    const actions = heights[day.key] ?? 0;
+    days.push({
+      key: day.key,
+      day,
+      actions,
+      shade: activityShade(actions, goal, streakDays.has(day.key)),
+      future: day.compareTo(today) > 0,
+    });
   }
 
-  const scheduled = new Set(albums.filter((album) => album.deletedAt === null && album.scheduleJson !== null).map((album) => album.uuid));
-  const albumDays = new Map<string, Set<string>>();
-  for (const memory of memories) {
-    if (memory.deletedAt !== null || !scheduled.has(memory.albumUuid)) continue;
-    const seen = albumDays.get(memory.harvestDay) ?? new Set<string>();
-    seen.add(memory.albumUuid);
-    albumDays.set(memory.harvestDay, seen);
-  }
-
-  for (let index = 0; index < weeks * 7; index += 1) {
-    const day = start.addDays(index);
-    const actions = productiveActions(byDay.get(day.key) ?? new Map(), rows, albumDays.get(day.key)?.size ?? 0);
-    days.push({ key: day.key, day, actions });
-  }
-
-  const streakBy = new Map(streaks.map((row) => [row.scope, row]));
+  const byScope = streakBy(streaks);
   const seeds = rows
     .filter((row) => row.deletedAt === null && row.archivedAt === null && row.type === 'habit')
     .map((row) => ({
       uuid: row.uuid,
       title: row.title,
-      current: streakBy.get(row.uuid)?.current ?? 0,
-      best: streakBy.get(row.uuid)?.best ?? 0,
+      current: byScope.get(row.uuid)?.current ?? 0,
+      best: byScope.get(row.uuid)?.best ?? 0,
     }))
     .sort((a, b) => b.current - a.current || b.best - a.best || a.title.localeCompare(b.title));
 
-  const global = streakBy.get(globalStreakScope);
   const totals = new Map<string, number>();
   for (const row of checkIns) {
     if (row.deletedAt === null) totals.set(row.commitmentUuid, (totals.get(row.commitmentUuid) ?? 0) + row.quantity);
@@ -132,13 +157,17 @@ export async function readStats(db: HarvestDB, today: HarvestDay, weeks = 17): P
     busiest: days.reduce((most, day) => Math.max(most, day.actions), 0),
     seeds,
     checkIns: liveCheckIns,
-    activeDays: [...byDay.keys()].length,
-    streakDays: streakDaysOf(global),
+    activeDays: activeDays.size,
+    streakDays,
     currentStreak: global?.current ?? 0,
     bestStreak: global?.best ?? 0,
     week: weekReport(today, checkIns, ledger, expenses, rates, firstSeedDay(rows, checkIns)),
     projects,
   };
+}
+
+function streakBy<T extends { scope: string }>(rows: readonly T[]): Map<string, T> {
+  return new Map(rows.map((row) => [row.scope, row]));
 }
 
 /**

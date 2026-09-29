@@ -6,10 +6,10 @@
     "uuid": "streak.lastReconciledDay",
     "updatedAt": "2026-09-19T03:00:00.000Z",
     "deletedAt": null,
-    "data": {
-      "key": "streak.lastReconciledDay",
-      "valueJson": "\"2026-09-18\"",
-      "updatedAt": "2026-09-19T03:00:00.000Z"
+    "enc": {
+      "v": 2,
+      "iv": "AAAAAAAAAAAAAAAA",
+      "ct": "c2VhbGVkIGJ5dGVzLCBub3QgYSByZWFsIHJvdw=="
     }
   }
 }

@@ -1,4 +1,4 @@
-import { wishListId } from '@harvest/contracts';
+import { plannedPurchases } from '@harvest/core';
 import type { HarvestDB } from './db';
 import { liveLists, listOfItem, type ListItemRow, type ListRow } from './lists';
 import type { SeedRow } from './seeds';
@@ -52,7 +52,11 @@ export async function loadListsView(db: HarvestDB): Promise<ListsView> {
     if (!linked.has(seed.uuid) || seed.deletedAt !== null) continue;
     const done = logged.get(seed.uuid) ?? 0;
     const total = seed.type === 'project' ? seed.totalTarget : null;
-    const complete = seed.type === 'project' ? total !== null && done >= total : seed.type === 'todo' && done > 0;
+    // An archived seed is done with, as the phone's `seedIsDone` says
+    // ([[Audit-v3]] G5-07).
+    const complete =
+      seed.archivedAt !== null ||
+      (seed.type === 'project' ? total !== null && done >= total : seed.type === 'todo' && done > 0);
     progress.set(seed.uuid, { seed, done, total, complete });
   }
   return { lists, counts, items, seeds: progress };
@@ -61,14 +65,23 @@ export async function loadListsView(db: HarvestDB): Promise<ListsView> {
 /**
  * What the open shopping items are expected to cost, per currency and
  * never added across ([[Lists]] L3): a plan, not a ledger line. The
- * Wishlist is someday, not planned, so its items are left out.
+ * Wishlist is someday, not planned, so its items are left out. The
+ * rule is core's `plannedPurchases`, the phone's too ([[Audit-v3]] G5-01).
  */
 export async function readPlannedPurchases(db: HarvestDB): Promise<[string, number][]> {
-  const shopping = new Set((await liveLists(db)).filter((list) => list.kind === 'shopping' && list.uuid !== wishListId).map((list) => list.uuid));
-  const sums = new Map<string, number>();
-  for (const row of await db.rows('wishlist_items').toArray()) {
-    if (row.deletedAt !== null || row.boughtAt !== null || row.priceMinor === null || !shopping.has(listOfItem(row))) continue;
-    sums.set(row.currency, (sums.get(row.currency) ?? 0) + row.priceMinor);
-  }
-  return [...sums.entries()];
+  const lists = await liveLists(db);
+  const items = (await db.rows('wishlist_items').toArray())
+    .filter((row) => row.deletedAt === null)
+    .map((row) => ({
+      listUuid: listOfItem(row),
+      priceMinor: row.priceMinor,
+      currency: row.currency,
+      done: row.boughtAt !== null,
+    }));
+  return Object.entries(
+    plannedPurchases(
+      lists.map((list) => ({ uuid: list.uuid, kind: list.kind, builtIn: list.builtIn ?? null })),
+      items,
+    ),
+  );
 }

@@ -45,5 +45,13 @@
       "entries": [{ "harvestDay": "2026-09-01", "grams": 80000 }],
       "trend": null
     }
+  ],
+  "plausibleWeights": [
+    { "why": "a person", "grams": 82460, "plausible": true },
+    { "why": "the lightest allowed", "grams": 20000, "plausible": true },
+    { "why": "the heaviest allowed", "grams": 400000, "plausible": true },
+    { "why": "8.2 typed for 82", "grams": 8200, "plausible": false },
+    { "why": "900 kg", "grams": 900000, "plausible": false },
+    { "why": "one gram past the top", "grams": 400001, "plausible": false }
   ]
 }

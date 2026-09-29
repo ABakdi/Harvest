@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
@@ -70,11 +72,61 @@ class SessionsRepository {
     return row == null ? null : _hydrate(row);
   }
 
-  Stream<List<WorkoutSession>> watchFinished({int limit = 50}) async* {
-    yield await finishedOnce(limit: limit);
-    await for (final _ in _db.tableUpdates(_sessionTables)) {
-      yield await finishedOnce(limit: limit);
+  /// The newest [limit] finished sessions, re-read as the tables change.
+  ///
+  /// Refreshes coalesce: ticks in one burst are one read, and a set
+  /// ticked while a read is under way asks for one more read, not one
+  /// per tick queued behind it (Q6-13).
+  Stream<List<WorkoutSession>> watchFinished({int limit = 50}) {
+    StreamSubscription<Set<TableUpdate>>? updates;
+    late final StreamController<List<WorkoutSession>> controller;
+    var reading = false;
+    var again = false;
+    var scheduled = false;
+
+    Future<void> refresh() async {
+      if (reading) {
+        again = true;
+        return;
+      }
+      reading = true;
+      try {
+        do {
+          again = false;
+          final sessions = await finishedOnce(limit: limit);
+          if (controller.isClosed) return;
+          controller.add(sessions);
+        } while (again);
+      } on Object catch (error, stack) {
+        if (!controller.isClosed) controller.addError(error, stack);
+      } finally {
+        reading = false;
+      }
     }
+
+    controller = StreamController<List<WorkoutSession>>(
+      onListen: () {
+        unawaited(refresh());
+        updates = _db.tableUpdates(_sessionTables).listen((_) {
+          if (reading) {
+            again = true;
+          } else if (!scheduled) {
+            // Ticks that land in one turn of the event loop are one
+            // read, taken once they have all landed.
+            scheduled = true;
+            Timer.run(() {
+              scheduled = false;
+              unawaited(refresh());
+            });
+          }
+        });
+      },
+      onCancel: () async {
+        await updates?.cancel();
+        await controller.close();
+      },
+    );
+    return controller.stream;
   }
 
   Future<List<WorkoutSession>> finishedOnce({int limit = 50}) async {
@@ -357,15 +409,17 @@ class SessionsRepository {
     WeightUnit unit = WeightUnit.kg,
     HarvestDay? on,
   }) async {
-    // One session at a time (Y3): a second Start — a double tap, a
-    // retry — resumes the one already running rather than beginning
-    // another beside it ([[Audit-v2]] U3-15).
-    final running = await runningOnce();
-    if (running != null) return running;
     final uuid = _uuid.v4();
     final harvestDay = on ?? HarvestDay.today();
 
-    await _db.transaction(() async {
+    final running = await _db.transaction(() async {
+      // One session at a time (Y3): a second Start — a double tap, a
+      // retry — resumes the one already running rather than beginning
+      // another beside it ([[Audit-v2]] U3-15). The look happens inside
+      // the write, so two taps cannot both find nothing running
+      // ([[Audit-v3]] Q5-39).
+      final running = await runningOnce();
+      if (running != null) return running;
       await _db
           .into(_db.workoutSessions)
           .insert(
@@ -422,9 +476,10 @@ class SessionsRepository {
         }
       }
       await _outbox(uuid, 'insert');
+      return null;
     });
 
-    return (await once(uuid))!;
+    return running ?? (await once(uuid))!;
   }
 
   /// An empty session, for a day I am making up as I go — or, with a
@@ -659,11 +714,15 @@ class SessionsRepository {
 
   /// Ends the session. [at] ends it at a moment of my choosing: a session left running
   /// for days ends at its last set, not at the tap that closed it.
-  Future<void> finish(String uuid, {DateTime? at}) => _db.transaction(() async {
+  ///
+  /// False when it had already ended: a second Finish (a double tap)
+  /// changes nothing and pays nothing ([[Audit-v3]] Q5-39).
+  Future<bool> finish(String uuid, {DateTime? at}) => _db.transaction(() async {
     // A session finished while paused ends at the pause: the minutes
     // between were not training.
     final row = await _row(uuid);
-    final pausedAt = row?.pausedAt;
+    if (row == null || row.endedAt != null) return false;
+    final pausedAt = row.pausedAt;
     await (_db.update(
       _db.workoutSessions,
     )..where((s) => s.uuid.equals(uuid))).write(
@@ -674,6 +733,7 @@ class SessionsRepository {
       ),
     );
     await _outbox(uuid, 'update');
+    return true;
   });
 
   Future<WorkoutSessionRow?> _row(String uuid) => (_db.select(
@@ -768,9 +828,11 @@ Stream<WorkoutSession?> runningSession(Ref ref) =>
 Stream<WorkoutSession?> session(Ref ref, String uuid) =>
     ref.watch(sessionsRepositoryProvider).watchOne(uuid);
 
+/// The newest [limit] finished sessions: three on the gym screen, and a
+/// page that grows as the history is scrolled (Q6-13).
 @riverpod
-Stream<List<WorkoutSession>> finishedSessions(Ref ref) =>
-    ref.watch(sessionsRepositoryProvider).watchFinished();
+Stream<List<WorkoutSession>> finishedSessions(Ref ref, {int limit = 50}) =>
+    ref.watch(sessionsRepositoryProvider).watchFinished(limit: limit);
 
 @riverpod
 Future<ExerciseRecords> exerciseRecords(Ref ref, String exerciseId) =>

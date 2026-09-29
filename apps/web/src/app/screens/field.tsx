@@ -2,31 +2,36 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import {
   ArchiveIcon,
   BedIcon,
+  CalendarDaysIcon,
   CameraIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   CoinsIcon,
   EllipsisVerticalIcon,
+  FlagIcon,
   FlameIcon,
   HistoryIcon,
   LockIcon,
   MoonIcon,
   NotebookPenIcon,
+  NotebookTextIcon,
   PauseIcon,
   PencilIcon,
   PlayIcon,
   PlusIcon,
+  RepeatIcon,
   SproutIcon,
   TimerIcon,
   Undo2Icon,
   WalletIcon,
   XIcon,
+  type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -50,14 +55,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { farmerRankForXp, type Schedule } from '@harvest/core';
-import { formatDay, formatMoney, formatNumber } from '@/lib/format';
+import { farmerRankForXp, farmerRanks, xpPerRank, type Schedule } from '@harvest/core';
+import { formatDay, formatMoney, formatNumber, shortName } from '@/lib/format';
 import { renderInline } from '@/lib/markdown';
 import { cn } from '@/lib/utils';
 import { EmptyState, ProgressRing, StreakChip } from '../components/bits';
+import { Fab, usePhoneWidth } from '../components/fab';
+import { NavTabs } from '../components/screen-tabs';
 import { SeedLogDialog } from '../components/seed-log-dialog';
 import { SeedNoteDialog } from '../components/seed-note-dialog';
-import { StreakDialog } from './farmer';
+import { StreakDialog } from '../components/streak-dialog';
 import { useHarvest, useHarvestDay } from '../context';
 import { loadField, readFieldGauges, readMoneySealed, readTomorrow, type FieldSeed } from '../data/field';
 import { notePreview } from '../data/notes';
@@ -71,26 +78,21 @@ import { useGymSeedChoice, useGymSeeds } from './gym/start';
 import { CaptureDialog } from '../components/gallery/capture-dialog';
 import { useFeaturesOrOff } from '../components/settings-bits';
 import { readAlbumsDue, type AlbumDue } from '../data/gallery';
+import { background, runAction } from '@/lib/actions';
 
+/** Today and Goals, as on the phone; a wide window keeps the calendar as a third tab. */
 export function FieldTabs() {
   const { t } = useTranslation();
-  const tab = ({ isActive }: { isActive: boolean }) =>
-    cn(
-      'rounded-md px-3 py-1.5 text-sm font-extrabold outline-none focus-visible:ring-2 focus-visible:ring-ring',
-      isActive ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-    );
   return (
-    <nav aria-label={t('field.tabs')} className="flex w-fit gap-1 rounded-lg bg-muted p-1">
-      <NavLink to="/app/field" end className={tab}>
-        {t('field.today')}
-      </NavLink>
-      <NavLink to="/app/field/goals" className={tab}>
-        {t('field.goals')}
-      </NavLink>
-      <NavLink to="/app/field/calendar" className={tab}>
-        {t('calendar.title')}
-      </NavLink>
-    </nav>
+    <NavTabs
+      label={t('field.tabs')}
+      tabs={[
+        { to: '/app/field', label: t('field.today'), icon: SproutIcon, end: true },
+        { to: '/app/field/goals', label: t('field.goals'), icon: FlagIcon },
+        // On a phone-width window the calendar is an action in the app bar, as on the phone.
+        { to: '/app/field/calendar', label: t('calendar.title'), icon: CalendarDaysIcon, className: 'max-md:hidden' },
+      ]}
+    />
   );
 }
 
@@ -169,10 +171,12 @@ function SeedCard({
   return (
     <li
       className={cn(
-        'flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors',
+        'relative flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors',
         seed.overdue && !seed.done && 'border-destructive/60',
       )}
     >
+      {/* The phone's row: what kind of seed at the start, the check at the end (W6-10). */}
+      <KindBadge icon={kindIcon[row.type]} />
       <button
         type="button"
         data-field-check
@@ -181,7 +185,7 @@ function SeedCard({
         disabled={paused}
         onClick={() => (seed.done && row.type !== 'project' ? onUndo(seed) : row.type === 'project' ? onLog(seed) : onCheck(seed))}
         className={cn(
-          'flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:opacity-40',
+          'relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:opacity-40 max-md:order-2',
           seed.done ? 'border-success bg-success text-white' : 'border-muted-foreground/40 hover:border-success',
         )}
       >
@@ -192,10 +196,11 @@ function SeedCard({
         ) : null}
       </button>
       <div className="flex min-w-0 flex-1 flex-col">
-        <Link
+        <Link dir="auto"
           to={`/app/field/seed/${row.uuid}`}
           className={cn(
-            'truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring',
+            // On a phone the whole card opens the seed, as it does there.
+            "truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring max-md:after:absolute max-md:after:inset-0 max-md:after:content-['']",
             seed.done && row.type !== 'project' && 'text-muted-foreground line-through',
           )}
         >
@@ -204,23 +209,24 @@ function SeedCard({
         <span className={cn('truncate text-xs text-muted-foreground', seed.overdue && !seed.done && 'font-bold text-destructive')}>
           {subtitle}
         </span>
-        {row.note && <span className="truncate text-xs text-muted-foreground">{renderInline(notePreview(row.note))}</span>}
+        {row.note && <span dir="auto" className="truncate text-xs text-muted-foreground">{renderInline(notePreview(row.note))}</span>}
         {dayNote && (
           <span className="flex items-center gap-1 truncate text-xs text-foreground/80">
             <NotebookPenIcon className="size-3 shrink-0" aria-label={t('seedDetail.todaysNote')} />
-            <span className="truncate">{renderInline(notePreview(dayNote))}</span>
+            <span dir="auto" className="truncate">{renderInline(notePreview(dayNote))}</span>
           </span>
         )}
       </div>
-      {seed.streak !== null && <StreakChip count={seed.streak} />}
+      {/* A streak shows while it runs; a row of zeros says nothing (W6-10). */}
+      {seed.streak !== null && seed.streak > 0 && <StreakChip count={seed.streak} className="max-md:order-1" />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label={t('field.options', { title: row.title })}>
+          <Button variant="ghost" size="icon-sm" className="relative z-10 max-md:order-3" aria-label={t('field.options', { title: row.title })}>
             <EllipsisVerticalIcon />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => void navigate(`/app/field/focus?seed=${row.uuid}`)}>
+          <DropdownMenuItem onSelect={() => background(navigate(`/app/field/focus?seed=${row.uuid}`))}>
             <TimerIcon />
             {t('focus.timer')}
           </DropdownMenuItem>
@@ -228,7 +234,7 @@ function SeedCard({
             <NotebookPenIcon />
             {t('seedDetail.notesTitle')}
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => void navigate(`/app/field/seed/${row.uuid}`)}>
+          <DropdownMenuItem onSelect={() => background(navigate(`/app/field/seed/${row.uuid}`))}>
             <HistoryIcon />
             {t('seedDetail.history')}
           </DropdownMenuItem>
@@ -251,11 +257,11 @@ function SeedCard({
           {row.type === 'habit' && (
             <DropdownMenuItem
               onSelect={() =>
-                void seeds.setPaused(row.uuid, !paused).then(() =>
-                  toast(paused ? t('field.resumedToast', { title: row.title }) : t('field.pausedToast', { title: row.title }), {
-                    action: { label: t('common.undo'), onClick: () => void seeds.setPaused(row.uuid, paused) },
+                runAction(() => seeds.setPaused(row.uuid, !paused).then(() =>
+                  toast(paused ? t('field.resumedToast', { title: shortName(row.title) }) : t('field.pausedToast', { title: shortName(row.title) }), {
+                    action: { label: t('common.undo'), onClick: () => runAction(() => seeds.setPaused(row.uuid, paused)) },
                   }),
-                )
+                ))
               }
             >
               {paused ? <PlayIcon /> : <PauseIcon />}
@@ -285,24 +291,25 @@ function AlbumCard({ entry, onCapture }: { entry: AlbumDue; onCapture: (entry: A
   const { album, done } = entry;
   const to = `/app/records/gallery?album=${album.uuid}`;
   return (
-    <li className="flex items-center gap-3 rounded-xl border bg-card p-3">
+    <li className="relative flex items-center gap-3 rounded-xl border bg-card p-3">
+      <KindBadge icon={CameraIcon} />
       <button
         type="button"
         data-field-check
         aria-label={done ? t('field.albumOpen', { name: album.name }) : t('field.albumAdd', { name: album.name })}
         onClick={() => (done ? void navigate(to) : onCapture(entry))}
         className={cn(
-          'flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95',
+          'relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full border-2 outline-none transition-[transform,background-color] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 max-md:order-2',
           done ? 'border-success bg-success text-white' : 'border-muted-foreground/40 text-muted-foreground hover:border-success',
         )}
       >
-        {done ? <CheckIcon className="size-5" strokeWidth={3} /> : <CameraIcon className="size-5" />}
+        {done ? <CheckIcon className="size-5" strokeWidth={3} /> : <CameraIcon className="size-5 max-md:hidden" />}
       </button>
       <div className="flex min-w-0 flex-1 flex-col">
-        <Link
+        <Link dir="auto"
           to={to}
           className={cn(
-            'truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring',
+            "truncate rounded-sm font-bold outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring max-md:after:absolute max-md:after:inset-0 max-md:after:content-['']",
             done && 'text-muted-foreground line-through',
           )}
         >
@@ -311,10 +318,21 @@ function AlbumCard({ entry, onCapture }: { entry: AlbumDue; onCapture: (entry: A
         <span className="truncate text-xs text-muted-foreground">
           {t('field.albumKind')} · {scheduleLine(t, entry.schedule, entry.doneDaysThisWeek)}
         </span>
-        {album.note && <span className="truncate text-xs text-muted-foreground">{album.note}</span>}
+        {album.note && <span dir="auto" className="truncate text-xs text-muted-foreground">{album.note}</span>}
       </div>
-      {entry.streak > 0 && <StreakChip count={entry.streak} />}
+      {entry.streak > 0 && <StreakChip count={entry.streak} className="max-md:order-1" />}
     </li>
+  );
+}
+
+const kindIcon = { habit: RepeatIcon, project: FlagIcon, todo: NotebookTextIcon } as const;
+
+/** The round badge at a row's start on a phone, naming the kind of seed, as the phone's card does. */
+function KindBadge({ icon: Icon }: { icon: LucideIcon }) {
+  return (
+    <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-success md:hidden">
+      <Icon className="size-5" />
+    </span>
   );
 }
 
@@ -339,12 +357,12 @@ function ArchiveDialog({ seed, onClose }: { seed: FieldSeed; onClose: () => void
           </Button>
           <Button
             onClick={() => {
-              void seeds.archive(seed.row.uuid, note).then(() => {
+              runAction(() => seeds.archive(seed.row.uuid, note).then(() => {
                 onClose();
                 toast(t('field.archived'), {
-                  action: { label: t('common.undo'), onClick: () => void seeds.restore(seed.row.uuid) },
+                  action: { label: t('common.undo'), onClick: () => runAction(() => seeds.restore(seed.row.uuid)) },
                 });
-              });
+              }));
             }}
           >
             <ArchiveIcon />
@@ -363,6 +381,7 @@ function TodayView() {
   const day = useHarvestDay();
   const view = useLiveQuery(() => loadField(db, day), [db, day.key]);
   const dayNotes = useLiveQuery(() => notesOn(db, day), [db, day.key]);
+  const phone = usePhoneWidth();
   const [undoing, setUndoing] = useState<FieldSeed | null>(null);
   const [logging, setLogging] = useState<FieldSeed | null>(null);
   const [archiving, setArchiving] = useState<FieldSeed | null>(null);
@@ -400,6 +419,8 @@ function TodayView() {
 
   if (!view) return null;
   const rank = farmerRankForXp(view.totalXp);
+  // The phone's header on a phone-width window, the web's summary on a wide one.
+  const intoRank = rank === farmerRanks[farmerRanks.length - 1] ? xpPerRank : view.totalXp % xpPerRank;
   // Past the goal it is met, not "4 of 3": the count stays, the fraction goes.
   const goalLine =
     view.goal > 0 && view.actions >= view.goal
@@ -408,48 +429,71 @@ function TodayView() {
 
   return (
     <div className="flex flex-col gap-4">
-      <section aria-label={t('field.summary')} className="flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4">
-        <ProgressRing
-          ratio={view.goal > 0 ? view.actions / view.goal : 0}
-          size={56}
-          label={goalLine}
-        />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <h1 className="text-xl font-extrabold">{formatDay(day.key, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
-          <p className="text-sm text-muted-foreground">{goalLine}</p>
-        </div>
-        <dl className="flex flex-wrap gap-2 text-sm">
-          <div className="flex items-center rounded-full bg-muted font-extrabold">
-            <dt className="sr-only">{t('streak.global')}</dt>
-            <dd>
-              <button
-                type="button"
-                onClick={() => setStreakOpen(true)}
-                title={t('streak.sheetTitle')}
-                aria-label={`${t('streak.sheetTitle')}: ${t('streak.days', { count: view.streak.current })}`}
-                className="flex items-center gap-1 rounded-full px-3 py-1 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <FlameIcon className="size-4 text-primary" aria-hidden />
-                <span className="tabular">{t('streak.days', { count: view.streak.current })}</span>
-              </button>
-            </dd>
+      <Fab label={t('seed.plant')} wide={false} onClick={() => dialogs.plantSeed()} />
+      {/* The phone's header on a phone: the rank and its bar, then the budget and sleep lines (W6-10). */}
+      {phone ? (
+        <section aria-label={t('field.summary')} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
+          <h1 className="sr-only">{formatDay(day.key, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-lg font-extrabold">{t(`farmer.ranks.${rank}`)}</span>
+            <span className="font-extrabold text-primary tabular">{t('field.xpTotal', { xp: formatNumber(view.totalXp) })}</span>
           </div>
-          <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-extrabold">
-            <dt className="sr-only">{t('field.dayXp')}</dt>
-            <dd className="tabular">{t('field.xpToday', { count: view.dayXp })}</dd>
+          <div
+            className="h-2 overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-label={t('farmer.rank')}
+            aria-valuemin={0}
+            aria-valuemax={xpPerRank}
+            aria-valuenow={intoRank}
+          >
+            <div className="bg-harvest-gradient h-full rounded-full" style={{ width: `${(intoRank / xpPerRank) * 100}%` }} />
           </div>
-          <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-extrabold">
-            <dt className="sr-only">{t('farmer.coins')}</dt>
-            <CoinsIcon className="size-4 text-sun" aria-hidden />
-            <dd className="tabular">{formatNumber(view.coins)}</dd>
+          <Gauges />
+        </section>
+      ) : (
+        <section aria-label={t('field.summary')} className="flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4">
+          <ProgressRing
+            ratio={view.goal > 0 ? view.actions / view.goal : 0}
+            size={56}
+            label={goalLine}
+          />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h1 className="text-xl font-extrabold">{formatDay(day.key, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
+            <p className="text-sm text-muted-foreground">{goalLine}</p>
           </div>
-          <div className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1 font-extrabold">
-            <dt className="sr-only">{t('farmer.rank')}</dt>
-            <dd>{t(`farmer.ranks.${rank}`)}</dd>
-          </div>
-        </dl>
-        <Gauges />
-      </section>
+          <dl className="flex flex-wrap gap-2 text-sm">
+            <div className="flex items-center rounded-full bg-muted font-extrabold">
+              <dt className="sr-only">{t('streak.global')}</dt>
+              <dd>
+                <button
+                  type="button"
+                  onClick={() => setStreakOpen(true)}
+                  title={t('streak.sheetTitle')}
+                  aria-label={`${t('streak.sheetTitle')}: ${t('streak.days', { count: view.streak.current })}`}
+                  className="flex items-center gap-1 rounded-full px-3 py-1 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring max-md:touch-target"
+                >
+                  <FlameIcon className="size-4 text-primary" aria-hidden />
+                  <span className="tabular">{t('streak.days', { count: view.streak.current })}</span>
+                </button>
+              </dd>
+            </div>
+            <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-extrabold">
+              <dt className="sr-only">{t('field.dayXp')}</dt>
+              <dd className="tabular">{t('field.xpToday', { count: view.dayXp })}</dd>
+            </div>
+            <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-extrabold">
+              <dt className="sr-only">{t('farmer.coins')}</dt>
+              <CoinsIcon className="size-4 text-sun" aria-hidden />
+              <dd className="tabular">{formatNumber(view.coins)}</dd>
+            </div>
+            <div className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1 font-extrabold">
+              <dt className="sr-only">{t('farmer.rank')}</dt>
+              <dd>{t(`farmer.ranks.${rank}`)}</dd>
+            </div>
+          </dl>
+          <Gauges />
+        </section>
+      )}
 
       {view.today.length === 0 && view.resting.length === 0 && albums.length === 0 ? (
         <EmptyState
@@ -477,7 +521,7 @@ function TodayView() {
                 <SeedCard
                   key={seed.row.uuid}
                   seed={seed}
-                  onCheck={(s) => void check(s)}
+                  onCheck={(s) => runAction(() => check(s))}
                   onUndo={setUndoing}
                   onLog={setLogging}
                   onArchive={setArchiving}
@@ -505,7 +549,7 @@ function TodayView() {
               <SeedCard
                 key={seed.row.uuid}
                 seed={seed}
-                onCheck={(s) => void check(s)}
+                onCheck={(s) => runAction(() => check(s))}
                 onUndo={setUndoing}
                 onLog={setLogging}
                 onArchive={setArchiving}
@@ -532,7 +576,7 @@ function TodayView() {
                 if (!undoing) return;
                 // A hand tick of a gym seed wrote an empty session; it goes with the tick.
                 const program = gymSeeds?.get(undoing.row.uuid);
-                void checkIns.undo(undoing.row, day).then(() => program && sessions.discardBareOn(program.program.uuid, day.key));
+                runAction(() => checkIns.undo(undoing.row, day).then(() => program && sessions.discardBareOn(program.program.uuid, day.key)));
               }}
             >
               {t('common.undo')}
@@ -673,7 +717,7 @@ function PlannerDialog({ onClose }: { onClose: () => void }) {
           className="flex gap-2"
           onSubmit={(event) => {
             event.preventDefault();
-            void add();
+            runAction(() => add());
           }}
         >
           <Label htmlFor="planner-add" className="sr-only">
@@ -707,7 +751,7 @@ function PlannerDialog({ onClose }: { onClose: () => void }) {
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t('planner.remove', { title: todo.title })}
-                    onClick={() => void seeds.archive(todo.uuid, null)}
+                    onClick={() => runAction(() => seeds.archive(todo.uuid, null))}
                   >
                     <XIcon />
                   </Button>

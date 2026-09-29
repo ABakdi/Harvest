@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/notes/domain/markdown.dart';
 import 'package:harvest/features/notes/domain/voice.dart';
 
@@ -356,7 +357,7 @@ class LiveMarkdownController extends TextEditingController {
             ..add(TextSpan(text: part.close, style: fold(style)));
         case InlineKind.link:
           final style = base.copyWith(
-            color: scheme.primary,
+            color: scheme.primaryText,
             decoration: TextDecoration.underline,
             decorationColor: scheme.primary,
           );

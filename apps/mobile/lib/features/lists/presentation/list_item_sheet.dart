@@ -7,6 +7,7 @@ import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
+import 'package:harvest/features/finances/presentation/currency_picker.dart';
 import 'package:harvest/features/finances/presentation/money.dart';
 import 'package:harvest/features/lists/data/lists_repository.dart';
 import 'package:harvest/features/lists/domain/lists.dart';
@@ -71,9 +72,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
   late final _title = TextEditingController(
     text:
         _existing?.title ??
-        (_shared == null || _shared.title == _shared.link
-            ? ''
-            : _shared.title),
+        (_shared == null || _shared.title == _shared.link ? '' : _shared.title),
   );
   late final _note = TextEditingController(text: _existing?.note);
   late final _link = TextEditingController(
@@ -122,8 +121,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
     return _shared?.link ?? '';
   }
 
-  String? _blankToNull(String text) =>
-      text.trim().isEmpty ? null : text.trim();
+  String? _blankToNull(String text) => text.trim().isEmpty ? null : text.trim();
 
   Future<void> _pickDay() async {
     final today = HarvestDay.today();
@@ -148,6 +146,20 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
     if (list == null) return;
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).saveFailed;
+    try {
+      navigator.pop(await _persist(list));
+    } on Object {
+      // A failed write says so and leaves the sheet ready to try again,
+      // not stuck on a disabled Save ([[Audit-v3]] Q5-41).
+      if (!mounted) return;
+      setState(() => _saving = false);
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
+  }
+
+  Future<ListItem?> _persist(ItemList list) async {
     final repository = ref.read(listsRepositoryProvider);
     var note = _blankToNull(_note.text);
     final link = _blankToNull(_link.text);
@@ -158,7 +170,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
     }
     final existing = _existing;
     if (existing == null) {
-      final item = await repository.addItem(
+      return repository.addItem(
         list.uuid,
         title: _titleText,
         note: note,
@@ -169,8 +181,6 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
         link: link,
         creator: _blankToNull(_creator.text),
       );
-      navigator.pop(item);
-      return;
     }
     await repository.editItem(
       existing.uuid,
@@ -183,7 +193,7 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
       link: link,
       creator: _blankToNull(_creator.text),
     );
-    navigator.pop(await repository.item(existing.uuid));
+    return repository.item(existing.uuid);
   }
 
   @override
@@ -314,15 +324,10 @@ class _ItemSheetState extends ConsumerState<_ItemSheet> {
         ),
       ),
       const SizedBox(height: HarvestSpacing.sm),
-      SegmentedButton<Currency>(
-        segments: [
-          for (final currency in Currency.values)
-            // The same pills as the expense sheet: DA, $, €.
-            ButtonSegment(value: currency, label: Text(currency.symbol)),
-        ],
-        selected: {_currency},
-        onSelectionChanged: (selection) =>
-            setState(() => _currency = selection.first),
+      // The same pills as the expense sheet, and every other currency.
+      CurrencyChoice(
+        selected: _currency,
+        onChanged: (currency) => setState(() => _currency = currency),
       ),
       const SizedBox(height: HarvestSpacing.sm),
       ListTile(

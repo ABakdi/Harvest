@@ -154,11 +154,16 @@ class PomodoroService {
       );
 
   /// Starts a session: creates the history row and returns the snapshot.
+  /// One timer at a time: with one already running (a double tap, a
+  /// second screen), that one comes back instead of a second beside it,
+  /// as the web does ([[Audit-v3]] Q5-40).
   Future<PomodoroSnapshot> startSession({
     required PomodoroConfig config,
     String? commitmentUuid,
     DateTime? now,
-  }) async {
+  }) => _db.transaction(() async {
+    final running = await loadActive();
+    if (running != null) return running;
     final at = now ?? DateTime.now();
     final snapshot = PomodoroSnapshot(
       sessionUuid: _uuid.v4(),
@@ -180,12 +185,27 @@ class PomodoroService {
     await _db.logChange('pomodoro_sessions', snapshot.sessionUuid, 'insert');
     await saveActive(snapshot);
     return snapshot;
-  }
+  });
 
-  /// Records one completed focus block: +XP, session row update.
-  Future<void> completeBlock(PomodoroSnapshot snapshot, {DateTime? now}) async {
+  /// Records one completed focus block: +XP, session row update, and
+  /// [then], the timer as it stands after the block, all in one write.
+  /// Paid and saved apart, a process death in between paid the block a
+  /// second time on the next launch; and a block the row already
+  /// counts is not paid again ([[Audit-v3]] Q5-40).
+  Future<void> completeBlock(
+    PomodoroSnapshot snapshot, {
+    DateTime? now,
+    PomodoroSnapshot? then,
+  }) async {
     final at = now ?? DateTime.now();
     await _db.transaction(() async {
+      final row = await (_db.select(
+        _db.pomodoroSessions,
+      )..where((p) => p.uuid.equals(snapshot.sessionUuid))).getSingleOrNull();
+      if (row != null && row.focusBlocks > snapshot.blocksDone) {
+        if (then != null) await saveActive(then);
+        return;
+      }
       await (_db.update(
         _db.pomodoroSessions,
       )..where((p) => p.uuid.equals(snapshot.sessionUuid))).write(
@@ -203,6 +223,7 @@ class PomodoroService {
           harvestDay: HarvestDay.of(at).key,
         ),
       );
+      if (then != null) await saveActive(then);
     });
   }
 

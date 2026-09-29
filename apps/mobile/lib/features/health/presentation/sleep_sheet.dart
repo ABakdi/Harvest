@@ -63,23 +63,28 @@ class _SleepSheetState extends ConsumerState<_SleepSheet> {
     final cycle = targets?.forMorning(widget.day);
     final defaultAsleep = cycle == null
         ? -60
-        : bedtimeFor(widget.day, targets!).difference(_midnight).inMinutes;
+        : wallMinutesOn(widget.day, bedtimeFor(widget.day, targets!));
     final defaultWoke = cycle == null
         ? 7 * 60
-        : alarmFor(widget.day, targets!).difference(_midnight).inMinutes;
+        : wallMinutesOn(widget.day, alarmFor(widget.day, targets!));
 
     final asleep =
         _asleep ??
         (already == null
             ? defaultAsleep
-            : already.fellAsleepAt.difference(_midnight).inMinutes);
+            : wallMinutesOn(widget.day, already.fellAsleepAt));
     final woke =
         _woke ??
         (already == null
             ? defaultWoke
-            : already.wokeAt.difference(_midnight).inMinutes);
+            : wallMinutesOn(widget.day, already.wokeAt));
     final stars = _stars ?? already?.restedStars;
-    final slept = Duration(minutes: woke - asleep);
+    // The hours actually slept, which on the night the clocks change
+    // are not the difference between the two clock readings.
+    final slept = wallMomentOn(
+      widget.day,
+      woke,
+    ).difference(wallMomentOn(widget.day, asleep));
 
     return HarvestSheet(
       title: l10n.sleepTitle,
@@ -151,9 +156,6 @@ class _SleepSheetState extends ConsumerState<_SleepSheet> {
     );
   }
 
-  DateTime get _midnight =>
-      DateTime(widget.day.year, widget.day.month, widget.day.day);
-
   static String _lengthLabel(BuildContext context, Duration slept) {
     final l10n = AppLocalizations.of(context);
     return l10n.sleepLength(slept.inHours, slept.inMinutes % 60);
@@ -166,17 +168,28 @@ class _SleepSheetState extends ConsumerState<_SleepSheet> {
   }) async {
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
     final targets = ref.read(sleepTargetsProvider).value;
 
-    final first = await ref
-        .read(sleepRepositoryProvider)
-        .log(
-          day: widget.day,
-          fellAsleepAt: _midnight.add(Duration(minutes: asleep)),
-          wokeAt: _midnight.add(Duration(minutes: woke)),
-          targetMinutes: targets?.targetMinutesFor(widget.day) ?? 8 * 60,
-          restedStars: stars,
-        );
+    final bool first;
+    try {
+      first = await ref
+          .read(sleepRepositoryProvider)
+          .log(
+            day: widget.day,
+            fellAsleepAt: wallMomentOn(widget.day, asleep),
+            wokeAt: wallMomentOn(widget.day, woke),
+            targetMinutes: targets?.targetMinutesFor(widget.day) ?? 8 * 60,
+            restedStars: stars,
+          );
+    } on Object catch (_) {
+      // A failed save says so and leaves the sheet usable, rather than
+      // stuck on a button that never comes back ([[Audit-v3]] Q5-20).
+      if (mounted) setState(() => _saving = false);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
+      return;
+    }
 
     // The XP is paid by the write itself, in the same transaction as
     // the night — this only has to say so.

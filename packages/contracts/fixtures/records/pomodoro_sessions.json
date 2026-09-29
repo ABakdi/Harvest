@@ -3,12 +3,9 @@
   "uuid": "7b4e1a9d-3c6f-4f8b-a2d5-8e3c7b1f4a97",
   "updatedAt": "2026-09-16T09:00:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "7b4e1a9d-3c6f-4f8b-a2d5-8e3c7b1f4a97",
-    "commitmentUuid": null,
-    "focusBlocks": 4,
-    "harvestDay": "2026-09-16",
-    "startedAt": "2026-09-16T09:00:00.000Z",
-    "endedAt": "2026-09-16T10:55:00.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "GxgcuU+ycfaqxsHQ",
+    "ct": "ON/NGs57xdn3S0f+D2EjCwg6Eng3rA0hb9I2Yu8TQ3yp/2fgXRunCo4ZwxiEsodqYtNVPvhTH/rS0afhH0SjX0aDhv2EaPKjjP68UHsnzUY6V7sPzctRL2uFPEJyB/LxeOhKJXOuEsHACmAm5S9nThr3aHSh9UpVwQErMZXSPFNw/cf7x6gHYQnM2Ym/xh+N3oobNiUB6RumcQopcibMraYA2zP/QKCh1w9s5RYGwohO5NgbRSpNXRus03j2261VRZWvNqyzGTGUQO/hry6xcawHNTsCBT/8kIZp3RG87WdjgP7s5R4WJoMT59SJfdUmr6kzW85Z+lDZnHP29Ij1Rb5lgLaNuP0CA/Bk4rDpFdk="
   }
 }

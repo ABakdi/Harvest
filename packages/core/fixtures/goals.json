@@ -184,6 +184,15 @@
         "ratio": 1,
         "complete": true
       }
+    },
+    {
+      "why": "an item two levels down reads as top-level and counts on its own; its parent then counts as a subtask",
+      "items": [
+        { "uuid": "t1", "kind": "step", "doneAt": null },
+        { "uuid": "s1", "parentUuid": "t1", "kind": "step", "doneAt": "2026-09-02T10:00:00Z" },
+        { "uuid": "g1", "parentUuid": "s1", "kind": "step", "doneAt": null }
+      ],
+      "progress": { "done": 1, "total": 2, "ratio": 0.5, "complete": false }
     }
   ],
   "parentDone": [
@@ -422,6 +431,15 @@
         }
       ],
       "next": null
+    },
+    {
+      "why": "an item two levels down is its own top-level item",
+      "items": [
+        { "uuid": "t1", "kind": "step", "position": 0, "doneAt": null },
+        { "uuid": "s1", "parentUuid": "t1", "kind": "step", "position": 0, "doneAt": "2026-09-02T10:00:00Z" },
+        { "uuid": "g1", "parentUuid": "s1", "kind": "step", "position": 1, "doneAt": null }
+      ],
+      "next": "g1"
     }
   ]
 }

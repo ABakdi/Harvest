@@ -62,7 +62,7 @@
   "save": "Save",
   "cancel": "Cancel",
   "undoCheckInTitle": "Undo today's check-in?",
-  "undoCheckInBody": "This removes what you logged for \"{title}\" today.",
+  "undoCheckInBody": "This removes what you logged for “{title}” today.",
   "@undoCheckInBody": {
     "placeholders": {
       "title": {
@@ -108,7 +108,6 @@
       }
     }
   },
-  "todoOverdue": "Overdue",
   "rankSprout": "Sprout",
   "rankSeedling": "Seedling",
   "rankGardener": "Gardener",
@@ -259,28 +258,6 @@
   "catOther": "Other",
   "todaySpending": "Today",
   "budgetTitle": "Monthly budget",
-  "budgetSpentOf": "{spent} of {budget} this month",
-  "@budgetSpentOf": {
-    "placeholders": {
-      "spent": {
-        "type": "String"
-      },
-      "budget": {
-        "type": "String"
-      }
-    }
-  },
-  "budgetFloating": "{spent} / {limit} today",
-  "@budgetFloating": {
-    "placeholders": {
-      "spent": {
-        "type": "String"
-      },
-      "limit": {
-        "type": "String"
-      }
-    }
-  },
   "budgetSet": "Set a monthly budget",
   "budgetAmountLabel": "Budget for the month",
   "granaryEmpty": "Nothing logged today. What did you spend?",
@@ -297,17 +274,8 @@
   "resumeHabit": "Resume",
   "pausedLabel": "Paused — resting",
   "archiveAction": "Archive",
-  "archiveConfirmTitle": "Archive this seed?",
-  "archiveConfirmBody": "\"{title}\" is archived. Its history stays.",
-  "@archiveConfirmBody": {
-    "placeholders": {
-      "title": {
-        "type": "String"
-      }
-    }
-  },
   "projectDoneTitle": "Harvest complete! 🎉",
-  "projectDoneBody": "\"{title}\" is fully grown — {total} logged. It is archived with pride.",
+  "projectDoneBody": "“{title}” is fully grown — {total} logged. It is archived with pride.",
   "@projectDoneBody": {
     "placeholders": {
       "title": {
@@ -400,7 +368,6 @@
   "manageCategories": "Custom categories",
   "todayTab": "Today",
   "insightsTab": "Insights",
-  "wishlistTitle": "Wishlist",
   "wishlistBuyList": "To buy",
   "wishlistWishlist": "Wishlist",
   "wishlistBuyEmptyTitle": "Nothing to buy",
@@ -421,10 +388,7 @@
   "wishlistOptions": "Options",
   "wishlistEdit": "Edit",
   "wishlistEditItem": "Edit item",
-  "wishlistMoveToBuy": "To the buy list",
-  "wishlistMoveToWish": "To the wishlist",
   "wishlistDelete": "Delete",
-  "wishlistNew": "Something I want",
   "wishlistTitleHint": "e.g. Winter coat, kettle, espresso machine",
   "wishlistEstimateLabel": "Estimated price",
   "wishlistEstimateHint": "What I think it costs",
@@ -455,14 +419,6 @@
   "rangeWeek": "Week",
   "rangeMonth": "Month",
   "totalSpent": "Total",
-  "avgPerDay": "{amount} / day",
-  "@avgPerDay": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
   "noSpendingYet": "No spending in this range yet.",
   "calendarTitle": "Calendar",
   "calNothingDue": "Nothing planted for this day.",
@@ -476,10 +432,8 @@
   },
   "calAddForDay": "Plant a to-do for this day…",
   "defaultCurrencyLabel": "Default currency",
-  "exchangeRates": "Exchange rates",
   "ratesDzdUsd": "DZD per 1 USD",
   "ratesDzdEur": "DZD per 1 EUR",
-  "ratesEurUsd": "EUR → USD (fetched)",
   "fetchNow": "Fetch",
   "ratesUpdated": "Updated {when}",
   "@ratesUpdated": {
@@ -497,7 +451,6 @@
   "savingsSectionTitle": "Savings",
   "savingsDeposit": "Save",
   "savingsWithdraw": "Withdraw",
-  "debtsTitle": "Debts",
   "addDebt": "Log a debt",
   "debtPerson": "Owed to",
   "debtPayOffBy": "Pay off by",
@@ -568,9 +521,7 @@
   "debtPayments": "Payments",
   "debtOpen": "Open",
   "debtSettledSection": "Settled",
-  "payFromWallet": "Pay from the wallet?",
   "budgetSpentToday": "Spent today",
-  "budgetDailyLimit": "Daily limit",
   "budgetLeftToday": "{amount} left today",
   "@budgetLeftToday": {
     "placeholders": {
@@ -581,22 +532,6 @@
   },
   "budgetOverToday": "{amount} over today",
   "@budgetOverToday": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "budgetLeftMonth": "{amount} left this month",
-  "@budgetLeftMonth": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "budgetOverMonth": "{amount} over budget this month",
-  "@budgetOverMonth": {
     "placeholders": {
       "amount": {
         "type": "String"
@@ -636,7 +571,7 @@
   "rateSaved": "Rate saved",
   "rateCleared": "Rate cleared",
   "rateInvalid": "That is not a usable rate",
-  "ratesExplainer": "Used to show $ and € amounts in your default currency.",
+  "ratesExplainer": "Used to show amounts in other currencies in your default currency.",
   "settingsMoney": "Money",
   "startupProblem": "A startup step failed: {error}. Restart the app; if it keeps happening, back up and reinstall.",
   "@startupProblem": {
@@ -793,12 +728,9 @@
     }
   },
   "editBudget": "Edit budget",
-  "perDay": "Per day",
   "todayEmptyBody": "Tap Log an expense to add the first one.",
-  "debtRemindDefault": "Every day at 7:00 PM until it is paid",
   "undoAction": "Undo",
   "saveFailed": "That did not save. Try again.",
-  "categoryExists": "A category with that name already exists",
   "withdrawToWallet": "To the wallet",
   "budgetExplainer": "Your daily limit is what's left of the month divided by the days left in it.",
   "settingsPrivacy": "Privacy",
@@ -867,7 +799,6 @@
   "deleteSeedSubtitle": "Gone for good, history and all",
   "seedNotesTitle": "Notes",
   "seedNotesSubtitle": "Where you left off today",
-  "seedNotesSheetSubtitle": "Today's note, and the last one",
   "seedNotesExplainer": "A fresh note every day. Yesterday's stays in the history.",
   "seedNoteHint": "Stopped on page 143",
   "noteForDay": "Note for {day}",
@@ -1017,8 +948,6 @@
   "notesTitleHint": "Title",
   "notesBodyHint": "Write. Markdown renders as you go and shows its syntax on the line you are on. [[Link]] to another note.",
   "notesSearchHint": "Search titles and text",
-  "notesAllFolders": "All",
-  "notesFolder": "Folder",
   "notesFolderHint": "A path, nothing more. Nested folders are made by naming one.",
   "notesSort": "Sort",
   "notesSortEdited": "Last edited",
@@ -1027,17 +956,13 @@
   "notesEmpty": "No notes yet",
   "notesEmptyBody": "Tap + to keep what you thought about the day.",
   "notesNoMatch": "Nothing matches that",
-  "notesNoMatchBody": "Try another word, or a different folder.",
-  "notesGone": "This note is gone",
   "notesGoneBody": "It was deleted, or it never existed.",
-  "notesRead": "Read",
-  "notesEdit": "Edit",
   "notesCreate": "Create",
-  "notesCreateLinkTitle": "Write \"{title}\"?",
+  "notesCreateLinkTitle": "Write “{title}”?",
   "@notesCreateLinkTitle": { "placeholders": { "title": { "type": "String" } } },
   "notesCreateLinkBody": "That note does not exist yet. A link to a note you have not written is normal — this makes it.",
   "notesDeleteTitle": "Delete this note?",
-  "notesDeleteBody": "It leaves the vault. You can undo this straight away.",
+  "notesDeleteBody": "It goes to the trash with its recordings. You can undo this straight away.",
   "notesBacklinks": "{count, plural, =1{1 note links here} other{{count} notes link here}}",
   "@notesBacklinks": { "placeholders": { "count": { "type": "int" } } },
 
@@ -1080,7 +1005,6 @@
   "galleryCompare": "Compare",
   "galleryCompareLeft": "Left",
   "galleryCompareRight": "Right",
-  "galleryDeleteMemoryTitle": "Delete this memory?",
   "galleryDeleteMemoryBody": "The file goes with it, for good. There is no undo behind this one.",
   "galleryDeleteAlbumTitle": "Delete {album}?",
   "@galleryDeleteAlbumTitle": { "placeholders": { "album": { "type": "String" } } },
@@ -1208,7 +1132,6 @@
   "stepsFromHealthConnect": "From Health Connect — the phone's own step store, so this matches your health app.",
   "stepsFromSensor": "From the phone's step counter, read when the app is open.",
   "stepsConnect": "Connect",
-  "stepsConnectTitle": "Read steps from the phone",
   "stepsConnectBody": "Harvest reads the daily total from the phone's own health store. Nothing is sent anywhere and no account is involved.",
   "stepsConnectSensorBody": "Harvest reads the phone's step counter while the app is open. Nothing is sent anywhere.",
   "stepsDenied": "Not allowed yet. Tap Connect to ask again, or allow it from Health Connect's settings.",
@@ -1218,7 +1141,6 @@
   "stepsRefresh": "Refresh",
   "stepsGoal": "Daily step goal",
   "stepsGoalHint": "Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.",
-  "stepsGoalNone": "No goal",
   "stepsGoalMet": "Goal met",
   "stepsSettings": "Steps",
   "stepsStride": "Stride length",
@@ -1232,8 +1154,6 @@
   "stepsLastDays": "Last {days} days",
   "@stepsLastDays": { "placeholders": { "days": { "type": "int" } } },
   "stepsBestDay": "Best day",
-  "stepsCount": "{steps} steps",
-  "@stepsCount": { "placeholders": { "steps": { "type": "String" } } },
   "@stepsDistanceMi": { "placeholders": { "value": { "type": "String" } } },
 
   "weightTitle": "Weight",
@@ -1263,18 +1183,14 @@
   "weightLegendTarget": "Target",
   "weightDeleteTitle": "Delete this reading?",
   "weightDeleteBody": "It leaves the chart. You can undo this straight away.",
-
-  "gymComingTitle": "The gym is next",
-  "gymComingBody": "Programs, sessions and personal records are being built. Steps and weight work now.",
-  "gymBrowse": "Browse exercises",
   "gymPickExercise": "Choose an exercise",
   "gymSearchExercises": "Search by name, muscle or kit",
   "gymExercisesTitle": "Exercises",
   "gymProgramsTitle": "Programs",
   "gymCatalogueLoading": "Loading the catalogue…",
-  "gymCatalogueHint": "Search by name, muscle or equipment — the question mid-session is usually what else hits this.",
-  "gymExerciseCount": "{count, plural, =0{No exercises} =1{1 exercise} other{{count} exercises}}",
-  "@gymExerciseCount": { "placeholders": { "count": { "type": "int" } } },
+  "gymCatalogueHint": "Search by name, muscle or equipment — mid-session it is usually “what else works this?”",
+  "gymExerciseCount": "{count, plural, =0{No exercises} =1{1 exercise} other{{shown} exercises}}",
+  "@gymExerciseCount": { "placeholders": { "count": { "type": "int" }, "shown": { "type": "String" } } },
   "gymNoExercise": "Nothing matches that",
   "gymNoExerciseBody": "Try a muscle or a piece of equipment instead of a name.",
   "gymMine": "Mine",
@@ -1358,7 +1274,6 @@
   "gymRunningSessionBody": "{done} of {total} sets done. Finish or drop it before starting another.",
   "@gymRunningSessionBody": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
   "gymPickDay": "Which day?",
-  "gymNoProgramToStart": "No program to start",
   "gymNoProgramToStartBody": "Write a program first — a session is a day of one, with the weights already filled in.",
   "gymSession": "Session",
   "gymSessionGone": "This session is gone",
@@ -1394,7 +1309,6 @@
   "gymRestSkip": "Done resting",
   "gymRestCustom": "Or type it",
   "gymRestCustomHint": "seconds",
-  "gymRestNone": "No timer",
   "gymPause": "Pause the clock",
   "gymResumeClock": "Start the clock",
   "gymPaused": "Paused",
@@ -1452,7 +1366,6 @@
   "sleepSection": "Sleep",
   "sleepAlarm": "Wake me",
   "sleepAlarmBody": "Rings at the wake time your day is already built around.",
-  "sleepAlarmExact": "Allow exact alarms",
   "sleepAlarmExactBody": "Android hands this one out in its own settings screen. Without it the alarm still rings, just not necessarily on the minute.",
   "sleepWindDown": "Say something before bed",
   "sleepWindDownBody": "Half an hour before the bedtime your day is built around.",
@@ -1504,8 +1417,6 @@
   "gymNoHistoryBody": "Tap Start. The records are made of what you log here.",
   "gymSessionSummary": "{sets, plural, =1{1 set} other{{sets} sets}} · {volume}",
   "@gymSessionSummary": { "placeholders": { "sets": { "type": "int" }, "volume": { "type": "String" } } },
-  "gymVolume": "Volume",
-  "gymBest": "Best",
   "gymRecords": "Personal records",
   "gymNoRecords": "Nothing logged for this one yet",
   "gymHeaviestLabel": "Heaviest set",
@@ -1541,7 +1452,6 @@
   "goalReopen": "Reopen",
   "goalDrop": "Drop",
   "goalDropTitle": "Drop this goal?",
-  "goalDropBody": "Its seeds keep going. A line on why, if you like.",
   "goalDropNoteHint": "Not now, because…",
   "goalDelete": "Delete goal",
   "goalDeleted": "Goal deleted",
@@ -1568,15 +1478,13 @@
   "@goalItemRemovedWithSubtasks": { "placeholders": { "count": { "type": "int" } } },
   "navPlaces": "Places",
   "featurePlaces": "Places",
-  "featurePlacesHint": "Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.",
+  "featurePlacesHint": "Where you went, and what you did there: a trail and a pin on every action. It syncs only encrypted, a day at a time, and the server never sees where.",
   "placesDay": "Day",
   "placesWeek": "Week",
   "placesMonth": "Month",
   "placesPrevious": "Previous",
   "placesNext": "Next",
-  "placesPickDay": "Pick a day",
   "placesTrailOn": "Record my trail",
-  "placesTrailHint": "Keeps a point every 50 m while you move, with a notification on screen the whole time.",
   "placesTrailRefused": "The trail needs location “all the time”. Geotags still work without it.",
   "placesOpenSettings": "Open settings",
   "placesPause1h": "Pause for an hour",
@@ -1587,7 +1495,6 @@
   "placesRecording": "Recording · {count} points today",
   "@placesRecording": { "placeholders": { "count": { "type": "int" } } },
   "placesHighAccuracy": "High accuracy",
-  "placesHighAccuracyHint": "Sharper trail, more battery.",
   "placesDeleteDay": "Delete this day's trail",
   "placesDayDeleted": "Trail deleted",
   "placesDeleteAll": "Delete all location history",
@@ -1652,11 +1559,9 @@
   "voiceNoDictation": "Speech recognition is not available on this phone.",
   "voicePlay": "Play",
   "voicePause": "Pause",
-  "voiceRecordings": "Recordings",
   "voiceMissing": "The file is not on this phone.",
   "voiceTranscribe": "Transcribe",
   "readAloud": "Read aloud",
-  "readAloudStop": "Stop",
   "readAloudNext": "Next paragraph",
   "readAloudSpeed": "Speed",
   "readAloudEmpty": "Nothing to read yet.",
@@ -1664,7 +1569,6 @@
   "@readAloudParagraph": { "placeholders": { "index": { "type": "int" }, "count": { "type": "int" } } },
   "assistTitle": "Assist",
   "assistHint": "Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.",
-  "assistProvider": "Provider",
   "assistGemini": "Gemini",
   "assistOpenAi": "OpenAI-compatible",
   "assistModel": "Model",
@@ -1730,11 +1634,9 @@
   "accountLastSynced": "Last synced {time}",
   "@accountLastSynced": { "placeholders": { "time": { "type": "String" } } },
   "accountNeverSynced": "Not synced yet",
-  "accountPending": "{count} changes waiting",
-  "@accountPending": { "placeholders": { "count": { "type": "int" } } },
   "accountRefused": "{count} changes the server refused",
   "@accountRefused": { "placeholders": { "count": { "type": "int" } } },
-  "accountHeldBack": "Money and places wait for a sync passphrase.",
+  "accountHeldBack": "Nothing syncs until you set your sync PIN.",
   "accountDevices": "Devices",
   "accountThisDevice": "This device",
   "accountEndSession": "Sign out there",
@@ -1751,18 +1653,6 @@
   "accountErrorRateLimited": "Too many tries. Wait a few minutes.",
   "accountErrorOther": "Something went wrong ({code}).",
   "@accountErrorOther": { "placeholders": { "code": { "type": "String" } } },
-  "passphraseTitle": "Sync passphrase",
-  "passphraseUnset": "Not set: money and places stay on this phone.",
-  "passphraseSet": "Set: money and places sync end-to-end encrypted.",
-  "passphraseSetAction": "Set the passphrase",
-  "passphraseForget": "Forget it on this device",
-  "passphraseBody": "Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.",
-  "passphraseField": "Passphrase",
-  "passphraseRepeat": "The same, again",
-  "passphraseMismatch": "The two do not match.",
-  "passphraseShort": "At least 12 characters.",
-  "passphraseWorking": "Making the key…",
-  "passphraseWrong": "This passphrase does not open what your other devices sent. Enter the one you used there.",
   "exportIncludePlaces": "Include my location history",
   "exportIncludePlacesHint": "The trail, the geotags and the named places. Off leaves them out of this export.",
   "sheetGoals": "Goals",
@@ -1806,8 +1696,7 @@
   "gymRestOverTitle": "Rest is up",
   "gymRestOverBody": "Next set.",
   "stepsDeniedHealthConnect": "Not allowed yet. Health Connect's settings can always allow it: open them, allow Steps for Harvest, and come back.",
-  "ratesDzdManual": "The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.",
-  "ratesFetchedEurUsd": "EUR → USD updated. The dinar rates stay as you typed them.",
+  "ratesDzdManual": "The dinar's market rate is typed by hand: no free source has it. Fetch updates every other currency.",
   "accountServerExample": "Your Harvest server's address, like https://harvest.example.com",
   "accountServerInvalid": "Enter the server's address, starting with https://",
   "accountEmailMissing": "Enter your email.",
@@ -1923,5 +1812,255 @@
   "mediaFilm": "Film",
   "mediaVideo": "Video",
   "mediaPodcast": "Podcast",
-  "mediaOther": "Other"
+  "mediaOther": "Other",
+  "syncPinTitle": "Sync PIN",
+  "syncPinChooseBody": "Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.",
+  "syncPinEnterBody": "Your other devices already use a sync PIN. Enter the same one here to bring your data over.",
+  "syncPinLoss": "If you lose it, what is encrypted cannot be read on a new device — only sent again from one that still has it. Nobody can reset it.",
+  "syncPinCost": "A PIN is quick to type, but it falls in minutes to someone holding the server's database and its keys. A passphrase holds.",
+  "syncPinField": "PIN",
+  "syncPinRepeat": "The same PIN, again",
+  "syncPinRule": "6 digits is best; 4 to 6",
+  "syncPassphraseField": "Passphrase",
+  "syncPassphraseRepeat": "The same passphrase, again",
+  "syncPassphraseRule": "8 characters or more",
+  "syncPinUsePassphrase": "Use a passphrase instead",
+  "syncPinUsePin": "Use a PIN instead",
+  "syncPinLength": "A PIN is 4 to 6 digits.",
+  "syncPassphraseShort": "At least 8 characters.",
+  "syncPinMismatch": "The two do not match.",
+  "syncPinChoose": "Set the PIN",
+  "syncPinEnter": "Unlock",
+  "syncPinWorking": "Making the key…",
+  "syncPinChecking": "Checking it against your other devices…",
+  "syncPinWrong": "That isn't the PIN your other devices use.",
+  "syncPinLater": "Later",
+  "syncPinWaiting": "Nothing leaves this phone until you set your sync PIN.",
+  "syncPinIsSet": "Set: everything syncs end-to-end encrypted.",
+  "syncPinSetAction": "Set your sync PIN",
+  "syncPinForget": "Forget it on this device",
+  "accountCircleLabel": "Account and sync",
+  "accountOnline": "Online",
+  "accountOffline": "Offline",
+  "accountAllSent": "Everything is sent",
+  "accountPage": "Account settings",
+  "galleryFileNotSent": "Not sent yet from the device that took it",
+  "galleryFileNeedsPin": "Enter your sync PIN to see it",
+  "galleryFileFailed": "Couldn't load",
+  "galleryFileRetry": "Try again",
+  "budgetClear": "Clear budget",
+  "budgetCleared": "Budget cleared",
+  "debtEditTitle": "Edit debt",
+  "debtDeleteTitle": "Remove this debt?",
+  "debtDeleteBody": "{person} and the payments on it will be removed. What those payments took from the wallet stays spent. Undo is in the bar for a moment after.",
+  "@debtDeleteBody": { "placeholders": { "person": { "type": "String" } } },
+  "debtAmountBelowPaid": "Already paid {amount}; the debt can't be less",
+  "@debtAmountBelowPaid": { "placeholders": { "amount": { "type": "String" } } },
+  "undoRefused": "Couldn't undo: the debt or the wallet has changed since.",
+  "syncPinTooSimple": "Too easy to guess. Avoid one digit repeated, runs like 1234, and pairs like 1212.",
+  "syncPinChosenElsewhere": "Another device set the sync PIN a moment ago. Enter that one.",
+  "syncPinUnreachable": "The server could not be reached to check the PIN. Try again when you're online.",
+  "accountLocked": "{count, plural, =1{1 encrypted row could not be opened} other{{count} encrypted rows could not be opened}}",
+  "@accountLocked": { "placeholders": { "count": { "type": "int" } } },
+  "accountClientWeb": "Web",
+  "accountClientPhone": "Phone",
+  "accountLastSeen": "last seen {time}",
+  "@accountLastSeen": { "placeholders": { "time": { "type": "String" } } },
+  "galleryFileDownloading": "Downloading…",
+  "importFilesTooLarge": "{count, plural, =1{1 file too large to bring in is left out} other{{count} files too large to bring in are left out}}",
+  "@importFilesTooLarge": { "placeholders": { "count": { "type": "int" } } },
+  "exportLeftOut": "{count, plural, =1{1 file too large for an archive was left out.} other{{count} files too large for an archive were left out.}}",
+  "@exportLeftOut": { "placeholders": { "count": { "type": "int" } } },
+  "weightTargetSet": "Set a target",
+  "weightTargetTitle": "Target weight",
+  "weightTargetHint": "A line on the chart to aim at, and how far the latest reading is from it.",
+  "weightTargetClear": "Clear target",
+  "notesTooLong": "This note is longer than {max} characters. What is past that is not saved.",
+  "@notesTooLong": { "placeholders": { "max": { "type": "String" } } },
+  "syncPinForgot": "Forgot the PIN? Start over",
+  "syncPinChange": "Change PIN",
+  "syncPinStartOver": "Start the PIN over",
+  "syncPinStartOverBody": "This deletes everything kept on the server for this account, and the PIN with it. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.",
+  "syncPinStartOverConfirm": "Start over",
+  "syncPinChangedElsewhere": "Your PIN was changed on another device. Enter the new one.",
+  "syncRefusedQuota": "The server has no room left for this account.",
+  "syncRefusedClock": "This phone's clock is ahead of the server's. Check its date and time.",
+  "syncPinWrongPassword": "That isn't this account's password.",
+  "exportNotHere": "{count, plural, =1{1 picture not downloaded to this phone yet is not in it.} other{{count} pictures not downloaded to this phone yet are not in it.}}",
+  "@exportNotHere": { "placeholders": { "count": { "type": "int" } } },
+  "syncPinTriesLeft": "{count, plural, =0{No tries left for now.} =1{1 try left.} other{{count} tries left.}}",
+  "@syncPinTriesLeft": { "placeholders": { "count": { "type": "int" } } },
+  "syncPinTooMany": "{minutes, plural, =1{Too many tries. Try again in 1 minute.} other{Too many tries. Try again in {minutes} minutes.}}",
+  "@syncPinTooMany": { "placeholders": { "minutes": { "type": "int" } } },
+  "syncPinTooManySoon": "Too many tries. Try again later.",
+  "syncPinStartedOver": "The PIN was just started over on another device. Choose a new one.",
+  "accountServerNotSecure": "Use https:// for the server. Plain http:// is only for this device or the emulator (localhost, 127.0.0.1, 10.0.2.2).",
+  "assistBaseUrlNotSecure": "Use https:// for the assist address. Plain http:// is only for this device or the emulator.",
+  "dataUnavailableTitle": "Can't open your data right now",
+  "dataUnavailableBody": "The phone's secure storage did not answer. Nothing has been changed or deleted. Try again, or restart the phone if it keeps happening.",
+  "amountLargeTitle": "{amount}?",
+  "@amountLargeTitle": { "placeholders": { "amount": { "type": "String" } } },
+  "amountLargeBody": "That is far more than anything usually logged at once. Is the amount right?",
+  "amountLargeConfirm": "Yes, it's right",
+  "perDay": "Per day",
+  "categoryRemove": "Remove {name}",
+  "@categoryRemove": { "placeholders": { "name": { "type": "String" } } },
+  "categoryRemoved": "{name} removed",
+  "@categoryRemoved": { "placeholders": { "name": { "type": "String" } } },
+  "gymSessionMenu": "More for this session",
+  "gymExerciseMenu": "More for this exercise",
+  "gymProgramMenu": "More for this program",
+  "gymDayMenu": "More for this day",
+  "weightImplausible": "A weight between {range}",
+  "@weightImplausible": { "placeholders": { "range": { "type": "String" } } },
+  "accountDevicesRetry": "Try again",
+  "accountEndSessionTitle": "Sign out {name}?",
+  "@accountEndSessionTitle": { "placeholders": { "name": { "type": "String" } } },
+  "accountEndSessionBody": "That device stops syncing until someone signs in on it again. Nothing on it is deleted.",
+  "accountSessionEnded": "Signed out {name}",
+  "@accountSessionEnded": { "placeholders": { "name": { "type": "String" } } },
+  "accountSignedInOn": "signed in {day}",
+  "@accountSignedInOn": { "placeholders": { "day": { "type": "String" } } },
+  "accountChangesWaiting": "Changes waiting to sync",
+  "syncPinForgetTitle": "Forget the sync PIN on this phone?",
+  "syncPinForgetBody": "What is already here stays. What your other devices send stays locked here, and what you change here waits, until you enter the PIN again.",
+  "joinTitle": "This phone already has data",
+  "joinBody": "You made things on this phone before signing in. Bring them into your account, or start from what the account already has?",
+  "joinBring": "Bring this phone's data into the account",
+  "joinStartFromAccount": "Start from the account's data",
+  "joinStartFromAccountNote": "This phone's data is saved first, as an archive in Downloads, then replaced by the account's. Nothing is lost.",
+  "joinArchiveFailed": "The archive could not be saved, so nothing was replaced. Try again, or bring the data into the account.",
+  "joinArchived": "This phone's data was saved to {path}",
+  "@joinArchived": { "placeholders": { "path": { "type": "String" } } },
+  "obHaveAccount": "I already have an account",
+  "assistChecking": "Looking for the assist…",
+  "dailyGoalProgress": "{actions} of {goal} actions today for the daily harvest",
+  "@dailyGoalProgress": { "placeholders": { "actions": { "type": "int" }, "goal": { "type": "int" } } },
+  "dailyGoalMet": "{count, plural, =0{No actions — the daily harvest goal is met} =1{1 action — the daily harvest goal is met} other{{count} actions — the daily harvest goal is met}}",
+  "@dailyGoalMet": { "placeholders": { "count": { "type": "int" } } },
+  "streakZeroWhy": "{goal, plural, =1{A day joins the streak once it has 1 action. Meet it today to start one.} other{A day joins the streak once it has {goal} actions. Meet them today to start one.}}",
+  "@streakZeroWhy": { "placeholders": { "goal": { "type": "int" } } },
+  "streakHowItGrows": "{goal, plural, =1{Each day with 1 action keeps it going.} other{Each day with {goal} actions keeps it going.}}",
+  "@streakHowItGrows": { "placeholders": { "goal": { "type": "int" } } },
+  "notesPickTitle": "Pick a note",
+  "notesPickBody": "Your notes are in the list, with their folders.",
+  "notesShowList": "Show notes",
+  "goalAchievedLabel": "Achieved",
+  "goalAchievedOn": "Achieved on {day}",
+  "@goalAchievedOn": { "placeholders": { "day": { "type": "String" } } },
+  "goalDroppedLabel": "Dropped",
+  "goalsNoActiveTitle": "No goal in progress",
+  "goalDeleteBody": "“{title}” and its items go, with what achieving it paid. Undo brings them back.",
+  "@goalDeleteBody": { "placeholders": { "title": { "type": "String" } } },
+  "cropUndoCheckIn": "Undo today's check-in for {title}",
+  "@cropUndoCheckIn": { "placeholders": { "title": { "type": "String" } } },
+  "seedPausedSnack": "“{title}” is resting",
+  "@seedPausedSnack": { "placeholders": { "title": { "type": "String" } } },
+  "seedResumedSnack": "“{title}” is back on the field",
+  "@seedResumedSnack": { "placeholders": { "title": { "type": "String" } } },
+  "geoGone": "{kind} · no longer here",
+  "@geoGone": { "placeholders": { "kind": { "type": "String" } } },
+  "accountEndOthers": "Sign out all other devices",
+  "accountEndOthersTitle": "Sign out every other device?",
+  "accountEndOthersBody": "Only this phone stays signed in. The others stop syncing until someone signs in on them again. Nothing on them is deleted.",
+  "accountOthersEnded": "{count, plural, =1{Signed out 1 other device} other{Signed out {count} other devices}}",
+  "@accountOthersEnded": { "placeholders": { "count": { "type": "int" } } },
+  "syncPinTakesTime": "Making the key is slow on purpose: a few seconds, up to about 20 on an older phone.",
+  "syncPinMenu": "Sync PIN options",
+  "syncPinSignedOut": "This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.",
+  "accountNameIsPassword": "That's your password. Use a name others may see, or leave it empty.",
+  "ratesFetched": "Rates updated.",
+  "ratesSource": "Rates by Exchange Rate API",
+  "ratesOneUsd": "1 USD = {amount}",
+  "@ratesOneUsd": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "ratesOn": "Rates of {day}",
+  "@ratesOn": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "ratesNone": "No rates fetched yet.",
+  "currencyPickerTitle": "Choose a currency",
+  "currencySearchHint": "Name, code or sign",
+  "currencyNoMatch": "No currency matches.",
+  "currencyMore": "Another currency",
+  "syncPassphraseTitle": "Sync passphrase",
+  "syncPassphraseAdvice": "A few words only you would put together, like olive river lantern, hold for thousands of years against someone holding the server's data.",
+  "syncSecretField": "Passphrase or PIN",
+  "syncSecretShow": "Show",
+  "syncSecretHide": "Hide",
+  "syncSecretWeak": "Weak",
+  "syncSecretFair": "Fair",
+  "syncSecretStrong": "Strong",
+  "syncSecretStands": "Would hold {time} against someone with the server's data.",
+  "@syncSecretStands": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncSecretUnderSecond": "under a second",
+  "syncSecretSeconds": "{count, plural, =1{1 second} other{{count} seconds}}",
+  "@syncSecretSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@syncSecretMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretHours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@syncSecretHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@syncSecretDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretYears": "{count, plural, =1{1 year} other{{count} years}}",
+  "@syncSecretYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncSecretThousands": "thousands of years",
+  "syncSecretForever": "for ever, near enough",
+  "exportConfirmPassword": "Your account password, to take your data out",
+  "exportConfirmReason": "Unlock to take your data out of Harvest",
+  "exportConfirmRefused": "Not taken: the phone's lock was not opened.",
+  "exportConfirmLimited": "Too many wrong passwords. Try again in {minutes} min.",
+  "@exportConfirmLimited": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "exportConfirmOffline": "The server can't be reached to check the password. Try again when you're online."
 }

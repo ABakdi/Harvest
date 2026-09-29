@@ -10,7 +10,14 @@ import 'package:meta/meta.dart';
 /// A failure from the Harvest server, in its own shape
 /// (`{ error: { code, message, details } }`, [[Sync-API]]).
 class ApiException implements Exception {
-  const ApiException(this.code, this.status, [this.message, this.details]);
+  const ApiException(
+    this.code,
+    this.status, [
+    this.message,
+    this.details,
+    this.body,
+    this.retryAfter,
+  ]);
 
   /// `validation_failed`, `unauthorized`, `forbidden`, `conflict`,
   /// `rate_limited`, `unavailable`, `internal` — or `offline` when the
@@ -19,6 +26,13 @@ class ApiException implements Exception {
   final int status;
   final String? message;
   final Object? details;
+
+  /// The whole answer, for the few that carry more than the error: a
+  /// 409 on the key check comes back with the check already stored.
+  final Map<String, Object?>? body;
+
+  /// How long the server asked to wait (`Retry-After`), on a 429.
+  final Duration? retryAfter;
 
   bool get offline => code == 'offline';
 
@@ -58,15 +72,30 @@ class ApiClient {
     required this.tokens,
     http.Client? client,
     this.onSignedOut,
-  }) : _client = client ?? http.Client();
+    this.ready,
+    Future<void> Function(Duration)? pause,
+  }) : _client = client ?? http.Client(),
+       _pause = pause ?? Future<void>.delayed;
 
   /// Up to the host, e.g. `https://harvest.example.org`.
   final Uri Function() baseUrl;
+
+  /// Done once [baseUrl] holds the saved address; every request waits
+  /// for it, so the first one after a start never goes to the default.
+  final Future<void> Function()? ready;
   final TokenStore tokens;
   final http.Client _client;
 
   /// Called when the session is gone for good (refresh refused).
   final void Function()? onSignedOut;
+
+  /// Waits out a `429` before asking again.
+  final Future<void> Function(Duration) _pause;
+
+  /// How often a call slowed down by `429` is asked again, and the
+  /// longest wait taken: past that, the answer is the failure.
+  static const paceAttempts = 3;
+  static const longestWait = Duration(seconds: 60);
 
   Future<void>? _refreshing;
 
@@ -78,6 +107,9 @@ class ApiClient {
 
   Future<Map<String, Object?>> patch(String path, Object? body) =>
       _send('PATCH', path, body: body);
+
+  Future<Map<String, Object?>> put(String path, Object? body) =>
+      _send('PUT', path, body: body);
 
   Future<Map<String, Object?>> delete(String path, [Object? body]) =>
       _send('DELETE', path, body: body);
@@ -99,7 +131,11 @@ class ApiClient {
   Future<({Uint8List bytes, Map<String, String> headers})> getBytes(
     String path,
   ) async {
-    final response = await _rawRetried('GET', path, accept: 'application/octet-stream');
+    final response = await _rawRetried(
+      'GET',
+      path,
+      accept: 'application/octet-stream',
+    );
     if (response.statusCode >= 400) {
       // An error answer is JSON even on these routes.
       _decode(response);
@@ -113,10 +149,20 @@ class ApiClient {
     String accept = 'application/json',
   }) async {
     if (tokens.access == null) await _refreshOnce();
-    var response = await _raw(method, path, bearer: tokens.access, accept: accept);
+    var response = await _paced(
+      method,
+      path,
+      bearer: tokens.access,
+      accept: accept,
+    );
     if (response.statusCode == 401) {
       await _refreshOnce();
-      response = await _raw(method, path, bearer: tokens.access, accept: accept);
+      response = await _paced(
+        method,
+        path,
+        bearer: tokens.access,
+        accept: accept,
+      );
     }
     return response;
   }
@@ -134,7 +180,7 @@ class ApiClient {
     if (authenticated && tokens.access == null && !retried) {
       await _refreshOnce();
     }
-    final response = await _raw(
+    final response = await _paced(
       method,
       path,
       body: body,
@@ -156,6 +202,44 @@ class ApiClient {
       );
     }
     return _decode(response);
+  }
+
+  /// [_raw], asked again after the wait a `429` names in `Retry-After`
+  /// on the sync and file routes, which are paced per account: a busy
+  /// moment slows a sync down rather than failing it. Any other `429` —
+  /// the PIN's limit on tries — is answered at once.
+  Future<http.Response> _paced(
+    String method,
+    String path, {
+    Object? body,
+    List<int>? bytes,
+    Map<String, String> extraHeaders = const {},
+    Map<String, String>? query,
+    String? bearer,
+    String accept = 'application/json',
+  }) async {
+    for (var attempt = 1; ; attempt++) {
+      final response = await _raw(
+        method,
+        path,
+        body: body,
+        bytes: bytes,
+        extraHeaders: extraHeaders,
+        query: query,
+        bearer: bearer,
+        accept: accept,
+      );
+      final paced =
+          path.startsWith('/v1/sync/') || path.startsWith('/v1/files');
+      if (!paced || response.statusCode != 429 || attempt >= paceAttempts) {
+        return response;
+      }
+      final seconds = int.tryParse(
+        response.headers['retry-after']?.trim() ?? '',
+      );
+      final wait = Duration(seconds: seconds ?? 5);
+      await _pause(wait > longestWait ? longestWait : wait);
+    }
   }
 
   Future<void> _refreshOnce() => _refreshing ??= _refresh().whenComplete(
@@ -198,6 +282,7 @@ class ApiClient {
     String? bearer,
     String accept = 'application/json',
   }) async {
+    await ready?.call();
     final base = baseUrl();
     final url = base.replace(
       path: '${base.path.replaceAll(RegExp(r'/$'), '')}$path',
@@ -236,16 +321,31 @@ class ApiClient {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return json is Map<String, Object?> ? json : const {};
     }
-    final error = json is Map<String, Object?> ? json['error'] : null;
+    final body = json is Map<String, Object?> ? json : null;
+    final error = body?['error'];
     if (error is Map<String, Object?>) {
       throw ApiException(
         error['code'] as String? ?? 'internal',
         response.statusCode,
         error['message'] as String?,
         error['details'],
+        body,
+        _retryAfter(response),
       );
     }
-    throw ApiException('internal', response.statusCode);
+    throw ApiException(
+      'internal',
+      response.statusCode,
+      null,
+      null,
+      null,
+      _retryAfter(response),
+    );
+  }
+
+  static Duration? _retryAfter(http.Response response) {
+    final seconds = int.tryParse(response.headers['retry-after']?.trim() ?? '');
+    return seconds == null ? null : Duration(seconds: seconds);
   }
 }
 

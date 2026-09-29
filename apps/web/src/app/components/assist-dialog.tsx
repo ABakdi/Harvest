@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { AssistError, assistStream } from '../data/assist';
 import { tooLongToTranscribe, transcribeAudio, transcribeLimitMb, transcribeMimeType } from '../data/transcribe';
+import { background, runAction } from '@/lib/actions';
 
 export interface AssistTarget {
   action: AssistAction;
@@ -128,7 +129,7 @@ function Asking({
     } finally {
       setRunning(false);
       // Each ask is counted, so what is left today is asked again.
-      void queries.invalidateQueries({ queryKey: ['assist-status'] });
+      background(queries.invalidateQueries({ queryKey: ['assist-status'] }));
     }
   };
 
@@ -204,7 +205,7 @@ function Asking({
           {!answer && (
             <Button
               disabled={running || spent || refusal !== null || (asking && question.trim().length === 0)}
-              onClick={() => void run()}
+              onClick={() => runAction(() => run())}
             >
               {running ? t('assist.thinking') : t('assist.send')}
             </Button>

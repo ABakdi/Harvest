@@ -87,7 +87,10 @@ void main() {
 
   testWidgets('the built-ins show as chips in my language, with open '
       'counts', (tester) async {
-    await write(tester, () => repo.addItem(BuiltInList.read.uuid, title: 'Dune'));
+    await write(
+      tester,
+      () => repo.addItem(BuiltInList.read.uuid, title: 'Dune'),
+    );
     await pumpLists(tester);
 
     expect(find.text('To buy'), findsOneWidget);
@@ -156,7 +159,10 @@ void main() {
   });
 
   testWidgets('moving offers only lists of the same kind (L2)', (tester) async {
-    await write(tester, () => repo.addItem(BuiltInList.read.uuid, title: 'Dune'));
+    await write(
+      tester,
+      () => repo.addItem(BuiltInList.read.uuid, title: 'Dune'),
+    );
     await write(
       tester,
       () => repo.createList(name: 'Groceries', kind: ListKind.shopping),
@@ -182,7 +188,9 @@ void main() {
       findsNothing,
     );
 
-    await tester.tap(find.descendant(of: sheet, matching: find.text('To watch')));
+    await tester.tap(
+      find.descendant(of: sheet, matching: find.text('To watch')),
+    );
     await settle(tester);
     expect(find.text('To watch · 1'), findsOneWidget);
     await leave(tester);

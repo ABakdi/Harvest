@@ -97,6 +97,35 @@ Audit 2's fixes all still hold. One of them, the archive size limits
 
 **Status:** open. The remediation order is at the foot of the report.
 
+## Audit 6 — v3.1 (2026-09-27)
+
+After v3.1.0-beta.1, before publishing it, I read the tree four ways at
+once: security, with the new key share, start over and the encrypted
+database first; quality and performance, measured on a seeded account
+of 31,438 rows; the phone by hand on the emulator; and the web by hand
+in a browser. The report is [[Audit-v3.1]].
+
+| Section | High | Medium | Low | Polish |
+| :--- | :---: | :---: | :---: | :---: |
+| Security (S6-01 … S6-19) | – | 8 | 6 | 5 |
+| Bugs and quality (Q6-01 … Q6-27) | 5 | 5 | 12 | 5 |
+| Performance (P6-01 … P6-15) | – | 7 | 5 | 3 |
+| Phone by hand (U6-01 … U6-39) | 2 | 11 | 15 | 11 |
+| Web by hand (W6-01 … W6-40) | – | 10 | 17 | 13 |
+
+The three that mattered most:
+- Any signed-in session could read what it takes to find a short PIN
+  offline (S6-04). The key share now leaves the server only after an
+  online proof of the PIN, with a limit on tries.
+- A file between 16 and 25 MB never synced, and one oversized batch
+  stopped sync for good (Q6-01, Q6-03).
+- A first sync of a large account took 95 s on the web and lagged
+  throughout (P6-01). It now takes 13.8 s.
+
+**Status:** 139 of 140 fixed, S6-19 documented, and three more found
+by hand before the beta (H6-01 to H6-03) fixed. Everything went into
+v3.1.0-beta.2 ([[Checkpoint-11]]).
+
 ## Leak check on the public repo (2026-09-04)
 
 The repo is public, and v0.9.5 added both a signing key and a feature

@@ -349,5 +349,82 @@ void main() {
       expect(coins.single.delta, streakMilestoneCoins[7]);
       expect(coins.single.reason, 'streak:7');
     });
+
+    test('an undo and a new check-in do not pay the same milestone again '
+        '(Q5-29)', () async {
+      await seedGlobal(current: 6, lastEarnedDay: '2026-09-01');
+      final a = await habit('a');
+      await checkIns.checkIn(a, day: day);
+      await checkIns.checkIn(await habit('b'), day: day);
+      await checkIns.undoToday(a, day: day);
+      expect((await row('global'))!.current, 6);
+      await checkIns.checkIn(a, day: day);
+      expect((await row('global'))!.current, 7);
+
+      final coins = await (db.select(
+        db.ledger,
+      )..where((l) => l.kind.equals('coin'))).get();
+      expect(coins, hasLength(1));
+    });
+
+    test('two check-ins at once pay the milestone once', () async {
+      await seedGlobal(current: 6, lastEarnedDay: '2026-09-01');
+      final first = await habit('a');
+      await checkIns.checkIn(first, day: day);
+      await Future.wait([
+        checkIns.checkIn(await habit('b'), day: day),
+        checkIns.checkIn(await habit('c'), day: day),
+      ]);
+      final coins = await (db.select(
+        db.ledger,
+      )..where((l) => l.kind.equals('coin'))).get();
+      expect(coins, hasLength(1));
+    });
+  });
+
+  group('days missed before a check-in made elsewhere (Q5-02)', () {
+    test('a check-in after missed days starts the run again', () async {
+      // Last earned on the 29th; the 30th and the 31st were missed and
+      // no device judged them before this check-in.
+      await seedGlobal(current: 5, lastEarnedDay: '2026-08-29');
+      await setLastJudged('2026-08-29');
+      await checkIns.checkIn(await habit('a'), day: day.previous);
+      await checkIns.checkIn(await habit('b'), day: day.previous);
+      expect((await row('global'))!.current, 1);
+
+      // The judging that follows does not undo or repeat the verdict.
+      await streaks.reconcile(now: DateTime(2026, 9, 2, 12));
+      expect((await row('global'))!.current, 1);
+    });
+
+    test('stored freezes cover the missed days', () async {
+      await seedGlobal(current: 5, lastEarnedDay: '2026-08-30', freezes: 2);
+      await setLastJudged('2026-08-30');
+      await checkIns.checkIn(await habit('a'), day: day.previous);
+      await checkIns.checkIn(await habit('b'), day: day.previous);
+      final global = (await row('global'))!;
+      expect(global.current, 6);
+      expect(global.freezesStored, 1);
+      await streaks.reconcile(now: DateTime(2026, 9, 2, 12));
+      expect((await row('global'))!.freezesStored, 1);
+    });
+
+    test("a habit's own streak starts again after a missed due day", () async {
+      final a = await habit('a');
+      await db
+          .into(db.streaks)
+          .insertOnConflictUpdate(
+            StreaksCompanion.insert(
+              scope: 'a',
+              current: const Value(4),
+              best: const Value(4),
+              lastEarnedDay: const Value('2026-08-30'),
+            ),
+          );
+      await checkIns.checkIn(a, day: day);
+      final streak = (await row('a'))!;
+      expect(streak.current, 1);
+      expect(streak.best, 4);
+    });
   });
 }

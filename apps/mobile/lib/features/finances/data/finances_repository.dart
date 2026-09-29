@@ -116,6 +116,19 @@ class FinancesRepository {
     await _db.logChange('expense_categories', uuid, 'delete');
   });
 
+  /// Puts back a category removed by mistake (the snackbar's Undo).
+  Future<void> restoreCategory(String uuid) => _db.transaction(() async {
+    await (_db.update(
+      _db.expenseCategories,
+    )..where((c) => c.uuid.equals(uuid))).write(
+      ExpenseCategoriesCompanion(
+        deletedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _db.logChange('expense_categories', uuid, 'update');
+  });
+
   /// Smart repeats: an (amount, category) pair logged on each of the
   /// three days before [day] — and not yet today — becomes a suggestion.
   Future<RepeatSuggestion?> repeatSuggestion(HarvestDay day) async {
@@ -294,7 +307,12 @@ class FinancesRepository {
     return (await query.getSingle()).read(sum) ?? 0;
   }
 
+  /// Pays a day's +10 once. A day still to come is not paid: the XP is
+  /// for the books of a day that has come, and paying ahead would let a
+  /// year of tiny future bills mint a year of XP today ([[Audit-v3]]
+  /// Q5-67).
   Future<void> _payDayIfUnpaid(HarvestDay day) async {
+    if (day.compareTo(HarvestDay.today()) > 0) return;
     if (await _dayXpNet(day) != 0) return;
     await _db.insertLedger(
       LedgerCompanion.insert(

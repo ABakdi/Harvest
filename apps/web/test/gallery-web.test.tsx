@@ -1,5 +1,5 @@
 import { Blob as NodeBlob } from 'node:buffer';
-import { deriveSyncKey, maxFileBytes, openFile } from '@harvest/contracts';
+import { maxFileBytes, openFileAny, paddedLength } from '@harvest/contracts';
 import { HarvestDay } from '@harvest/core';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -11,7 +11,7 @@ import { memoryPath } from '@/app/data/gallery';
 import { GalleryScreen } from '@/app/screens/gallery';
 import { ApiError, api } from '@/lib/api';
 import { FakeServer } from './fake-server';
-import { device, testUser } from './helpers';
+import { device, testFileName, testUser, testKey } from './helpers';
 
 beforeAll(() => {
   // jsdom's Blob does not survive IndexedDB's structured clone; Node's
@@ -115,10 +115,13 @@ describe('file upload ([[Sync-API]], files)', () => {
 
   it('asks what is missing, sends it sealed under its name, and stamps the row', async () => {
     const h = await device(new FakeServer());
-    const key = await deriveSyncKey('a long passphrase', testUser.syncSalt, { iterations: 1 });
+    const key = await testKey('a long passphrase');
     const blob = picture();
     const sha256 = await sha256Of(await blob.arrayBuffer());
-    const missing = vi.spyOn(api, 'filesMissing').mockResolvedValue({ missing: [sha256], usedBytes: 0, quotaBytes: 1 });
+    const name = await testFileName(sha256, 'a long passphrase');
+    const missing = vi
+      .spyOn(api, 'filesMissing')
+      .mockImplementation((names) => Promise.resolve({ missing: names, usedBytes: 0, quotaBytes: 1 }));
     const sent: { sha: string; sealed: ArrayBuffer; iv: string; plain: number }[] = [];
     vi.spyOn(api, 'putFile').mockImplementation((sha, sealed, iv, plain) => {
       sent.push({ sha, sealed, iv, plain });
@@ -133,13 +136,16 @@ describe('file upload ([[Sync-API]], files)', () => {
     await h.keyring.unlock('a long passphrase', testUser.syncSalt, 1);
     const report = await h.files.upload();
 
-    expect(missing).toHaveBeenCalledWith([sha256]);
+    // Asked about and sent under its keyed name: the server never hears the hash.
+    expect(missing).toHaveBeenCalledWith([name]);
     expect(report).toMatchObject({ uploaded: 1, stamped: 1, waiting: 0, quotaExceeded: false });
     expect(sent).toHaveLength(1);
-    expect(sent[0]!.sha).toBe(sha256);
-    expect(sent[0]!.plain).toBe(256);
-    // Sealed with the private tier's key, the file's name as its additional data.
-    const opened = await openFile(key, sha256, { iv: sent[0]!.iv, ct: sent[0]!.sealed });
+    expect(sent[0]!.sha).toBe(name);
+    // The padded length, which the ciphertext says anyway, never the file's.
+    expect(sent[0]!.plain).toBe(sent[0]!.sealed.byteLength - 16);
+    expect(sent[0]!.plain).toBe(paddedLength(256 + 1));
+    // Sealed with the private tier's key, padded, the file's name as its additional data.
+    const opened = await openFileAny(key, name, { iv: sent[0]!.iv, ct: sent[0]!.sealed });
     expect(new Uint8Array(opened)).toEqual(new Uint8Array(await blob.arrayBuffer()));
 
     const row = await h.db.rows('memories').get(memory.uuid);

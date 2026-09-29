@@ -5,6 +5,7 @@ import {
   filterExercises,
   finishQuestion,
   formatPercentTenths,
+  gramsOfPounds,
   loadFieldValue,
   nextPosition,
   nextProgramDay,
@@ -89,6 +90,14 @@ interface Spec {
   }[];
   reorders: { uuids: string[]; from: number; to: number; result: string[] }[];
   nextPositions: { positions: number[]; next: number; why: string }[];
+  finishes: {
+    why: string;
+    exercises: { skipped: boolean; sets: boolean[] }[];
+    kind: 'empty' | 'incomplete' | 'none';
+    done: number;
+    left: number;
+    planned: number;
+  }[];
 }
 
 const spec = fixture<Spec>('gym');
@@ -119,6 +128,21 @@ describe('loads', () => {
   it('write percentages and field values as the phone does', () => {
     for (const entry of spec.percents) expect(formatPercentTenths(entry.tenths)).toBe(entry.text);
     for (const entry of spec.fieldValues) expect(loadFieldValue(entry.grams, entry.unit)).toBe(entry.text);
+  });
+});
+
+describe('a resolved percentage can be loaded (G5-13)', () => {
+  it('leaves no plate shortfall, in kilos or in pounds', () => {
+    for (const unit of ['kg', 'lb'] as const) {
+      for (let max = unit === 'kg' ? 40_000 : gramsOfPounds(95); max <= 250_000; max += 1_111) {
+        for (let tenths = 400; tenths <= 1000; tenths += 25) {
+          const grams = resolveTarget({ reps: 5, weightGrams: null, percentTenths: tenths, openEnded: false }, max, unit)!;
+          const bar = barIn(20_000, unit);
+          if (grams <= bar) continue;
+          expect(platesFor(grams, bar, unit).shortfallGrams, `${tenths / 10}% of ${max} g in ${unit}`).toBe(0);
+        }
+      }
+    }
   });
 });
 
@@ -212,5 +236,12 @@ describe('sessions', () => {
     expect(finishQuestion([{ skipped: false, sets: [set(true), set(false)] }])).toEqual({ kind: 'incomplete', done: 1, left: 1, planned: 2 });
     // A skipped exercise's sets were never going to happen.
     expect(finishQuestion([{ skipped: false, sets: [set(true)] }, { skipped: true, sets: [set(false), set(false)] }]).kind).toBe('none');
+  });
+
+  it('count what is left on the exercises still in the plan (Q5-19)', () => {
+    for (const entry of spec.finishes) {
+      const exercises = entry.exercises.map((exercise) => ({ skipped: exercise.skipped, sets: exercise.sets.map((done) => ({ done })) }));
+      expect(finishQuestion(exercises), entry.why).toEqual({ kind: entry.kind, done: entry.done, left: entry.left, planned: entry.planned });
+    }
   });
 });

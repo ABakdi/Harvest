@@ -4,6 +4,7 @@ import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/lists/domain/lists.dart';
+import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -35,6 +36,7 @@ class ListsRepository {
       _changes().asyncMap((_) => _liveLists());
 
   /// One list's live items, open and done, in my order.
+  @visibleForTesting
   Stream<List<ListItem>> watchItems(String listUuid) =>
       _changes().asyncMap((_) async {
         final items = await _liveItems();
@@ -123,6 +125,7 @@ class ListsRepository {
   Future<void> renameList(String uuid, String name) =>
       _writeList(uuid, ListsCompanion(name: Value(name.trim())));
 
+  @visibleForTesting
   Future<void> setListIcon(String uuid, String? icon) =>
       _writeList(uuid, ListsCompanion(icon: Value(icon)));
 
@@ -271,6 +274,11 @@ class ListsRepository {
             list: Value(legacyListOf(toListUuid)),
             listUuid: Value(toListUuid),
             position: Value(await _nextPosition(toListUuid)),
+            // Nothing on the Wishlist is bought (L7): a bought item
+            // moved there is a wish again ([[Audit-v3]] Q5-45).
+            boughtAt: toListUuid == BuiltInList.wish.uuid
+                ? const Value(null)
+                : const Value.absent(),
           ),
         );
         return true;
@@ -330,14 +338,17 @@ class ListsRepository {
   }
 
   /// A media item's link. Saved as typed; nothing is fetched (L9).
+  @visibleForTesting
   Future<bool> setLink(String uuid, String? link) =>
       _media(uuid, WishlistItemsCompanion(link: Value(_blankToNull(link))));
 
+  @visibleForTesting
   Future<bool> setCreator(String uuid, String? creator) => _media(
     uuid,
     WishlistItemsCompanion(creator: Value(_blankToNull(creator))),
   );
 
+  @visibleForTesting
   Future<bool> setMediaType(String uuid, MediaType? type) =>
       _media(uuid, WishlistItemsCompanion(mediaType: Value(type?.name)));
 

@@ -20,6 +20,13 @@ abstract final class HarvestTheme {
 
   static ThemeData dark(ThemePreset preset) {
     final palette = harvestPalettes[preset]!;
+    // The containers step up from the page's own colour, lighter tints
+    // of it, rather than from the seed: brown cards on a navy page
+    // fought each other (U6-29).
+    Color step(double lift) => Color.alphaBlend(
+      palette.onSurfaceDark.withValues(alpha: lift),
+      palette.surfaceDark,
+    );
     return _base(
       palette,
       ColorScheme.fromSeed(
@@ -30,6 +37,11 @@ abstract final class HarvestTheme {
         tertiary: palette.tertiary,
         surface: palette.surfaceDark,
         onSurface: palette.onSurfaceDark,
+        surfaceContainerLowest: step(0.02),
+        surfaceContainerLow: step(0.04),
+        surfaceContainer: step(0.06),
+        surfaceContainerHigh: step(0.09),
+        surfaceContainerHighest: step(0.13),
       ),
     );
   }
@@ -116,7 +128,7 @@ abstract final class HarvestTheme {
           color: scheme.onSurface.withValues(alpha: 0.6),
         ),
         floatingLabelStyle: textTheme.labelMedium?.copyWith(
-          color: scheme.primary,
+          color: scheme.primaryText,
           fontWeight: FontWeight.w800,
         ),
       ),
@@ -150,11 +162,18 @@ abstract final class HarvestTheme {
                 ? scheme.secondary.withValues(alpha: 0.28)
                 : fill,
           ),
-          foregroundColor: const WidgetStatePropertyAll(null),
+          // One selected look with the chips: the page's own ink on the
+          // green tint, never orange on green (2.6:1) (U6-09, U6-30).
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? scheme.onSurface.withValues(alpha: 0.38)
+                : scheme.onSurface,
+          ),
           textStyle: WidgetStatePropertyAll(
             textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
-          iconColor: WidgetStatePropertyAll(scheme.secondary),
+          iconColor: WidgetStatePropertyAll(scheme.onSurface),
+          alignment: Alignment.center,
         ),
       ),
       // One look for every row of tabs — the Granary's three and the
@@ -168,8 +187,8 @@ abstract final class HarvestTheme {
           borderSide: BorderSide(width: 4, color: scheme.primary),
           insets: const EdgeInsets.symmetric(horizontal: HarvestSpacing.xs),
         ),
-        labelColor: scheme.primary,
-        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.55),
+        labelColor: scheme.primaryText,
+        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.7),
         labelStyle: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
         unselectedLabelStyle: textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w700,
@@ -233,6 +252,7 @@ abstract final class HarvestTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
+          foregroundColor: scheme.primaryText,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(HarvestRadii.chip),
           ),

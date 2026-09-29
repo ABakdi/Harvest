@@ -1,6 +1,9 @@
+import { request as httpRequest } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { assistDoneMarker } from '@harvest/contracts';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GeminiUpstream } from '../src/assist/gemini.js';
 import { bearer, expectError, harness, password, signUp, type Harness } from './harness.js';
 
 /** The model, as the server sees it: server-sent events of candidates. */
@@ -55,6 +58,20 @@ describe('the server assist', () => {
     // One account's spending is not another's.
     const other = await signUp(h);
     await request(h.app).post('/v1/assist').set(bearer(other)).send(ask).expect(200);
+  });
+
+  it('stops the whole server at its daily ceiling, however many accounts ask (S5-19)', async () => {
+    await h.close();
+    h = await harness({
+      env: { ASSIST_API_KEY: 'a-server-key', ASSIST_DAILY_LIMIT: '2', ASSIST_GLOBAL_DAILY_LIMIT: '3' },
+      assistFetch: model,
+    });
+    for (let i = 0; i < 3; i += 1) {
+      const account = await signUp(h);
+      await request(h.app).post('/v1/assist').set(bearer(account)).send(ask).expect(200);
+    }
+    const late = await signUp(h);
+    expectError(await request(h.app).post('/v1/assist').set(bearer(late)).send(ask), 429, 'rate_limited');
   });
 
   it('keeps the question out of anything it stores', async () => {
@@ -125,5 +142,72 @@ describe('when the model itself fails', () => {
     const account = await signUp(h);
     const answer = await request(h.app).post('/v1/assist').set(bearer(account)).send(ask).expect(200);
     expect(answer.text).toBe('data: {"error":"rate_limited"}\n\n');
+  });
+});
+
+describe('a model that stops answering (Q6-17)', () => {
+  /** A model that sends one line and then nothing, until it is told to stop. */
+  const signals: AbortSignal[] = [];
+  const stalling: typeof fetch = (_url, init) => {
+    const signal = init!.signal!;
+    signals.push(signal);
+    const line = `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text: 'Hel' }] } }] })}\n\n`;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(line));
+        signal.addEventListener('abort', () => controller.error(signal.reason));
+      },
+    });
+    return Promise.resolve(new Response(body, { status: 200 }));
+  };
+
+  beforeEach(async () => {
+    signals.length = 0;
+    h = await harness({ env: { ASSIST_API_KEY: 'a-server-key' }, assistFetch: stalling });
+  });
+
+  it('gives up on the model after its time', async () => {
+    const upstream = new GeminiUpstream({ apiKey: 'k', model: 'm', fetch: stalling, timeoutMs: 50 });
+    const words: string[] = [];
+    await expect(
+      (async () => {
+        for await (const text of upstream.stream(ask)) words.push(text);
+      })(),
+    ).rejects.toMatchObject({ code: 'unavailable' });
+    expect(words).toEqual(['Hel']);
+  });
+
+  it('stops reading the model when the caller goes away', async () => {
+    const account = await signUp(h);
+    const server = h.app.listen(0);
+    try {
+      const { port } = server.address() as AddressInfo;
+      await new Promise<void>((resolve, reject) => {
+        const req = httpRequest(
+          {
+            port,
+            method: 'POST',
+            path: '/v1/assist',
+            headers: { 'content-type': 'application/json', authorization: `Bearer ${account.accessToken}` },
+          },
+          (res) => {
+            // The first words arrive; then the phone is put away.
+            res.once('data', () => {
+              req.destroy();
+              resolve();
+            });
+          },
+        );
+        req.on('error', () => undefined);
+        req.once('response', (res) => res.once('error', () => undefined));
+        req.end(JSON.stringify(ask));
+        setTimeout(() => reject(new Error('no answer')), 5000).unref();
+      });
+      const signal = signals[0]!;
+      if (!signal.aborted) await new Promise((resolve) => signal.addEventListener('abort', resolve));
+      expect(signal.aborted).toBe(true);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
   });
 });

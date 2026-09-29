@@ -9,10 +9,11 @@ import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/section_header.dart';
 import 'package:harvest/features/account/presentation/account_card.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/assist/presentation/assist_settings_card.dart';
 import 'package:harvest/features/export/presentation/export_card.dart';
-import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/presentation/category_settings.dart';
+import 'package:harvest/features/finances/presentation/currency_picker.dart';
 import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/gym/presentation/media_card.dart';
 import 'package:harvest/features/health/presentation/sleep_settings_card.dart';
@@ -105,6 +106,7 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(title ?? l10n.navSettings),
         bottom: tabs,
       ),
@@ -480,7 +482,9 @@ class _RemindersCard extends ConsumerWidget {
           SwitchListTile(
             title: Text(l10n.remindersStreak),
             subtitle: Text(l10n.remindersStreakHint(streakAt)),
-            value: reminders.streakNudge,
+            // Off while reminders are off: a disabled switch that is on
+            // drew a tinted thumb, half on to the eye (U6-38).
+            value: reminders.enabled && reminders.streakNudge,
             onChanged: reminders.enabled
                 ? (value) => unawaited(
                     ref
@@ -510,23 +514,29 @@ class _DefaultCurrencyCard extends ConsumerWidget {
           children: [
             Text(l10n.defaultCurrencyLabel),
             const SizedBox(height: HarvestSpacing.sm),
-            SegmentedButton<Currency>(
-              segments: [
-                for (final currency in Currency.values)
-                  ButtonSegment(
-                    value: currency,
-                    label: Text(currency.symbol),
-                    tooltip: currency.code,
-                  ),
-              ],
-              selected: {current},
-              onSelectionChanged: (selection) {
+            ListTile(
+              key: const ValueKey('default-currency'),
+              contentPadding: EdgeInsets.zero,
+              leading: SizedBox(
+                width: 48,
+                child: Text(
+                  current.symbol,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              title: Text(
+                current.nameIn(Localizations.localeOf(context).languageCode),
+              ),
+              subtitle: Text(current.code),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final chosen = await pickCurrency(context, selected: current);
+                if (chosen == null || chosen == current) return;
                 unawaited(HarvestHaptics.tick());
-                unawaited(
-                  ref
-                      .read(financeSettingsProvider.notifier)
-                      .setDefaultCurrency(selection.first),
-                );
+                await ref
+                    .read(financeSettingsProvider.notifier)
+                    .setDefaultCurrency(chosen);
               },
             ),
           ],

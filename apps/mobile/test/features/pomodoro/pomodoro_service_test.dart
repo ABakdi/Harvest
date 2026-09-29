@@ -81,4 +81,38 @@ void main() {
     final session = (await db.select(db.pomodoroSessions).get()).single;
     expect(session.endedAt, DateTime(2026, 9, 2, 11));
   });
+
+  group('Q5-40', () {
+    Future<int> xp() async =>
+        (await db
+                .select(
+                  db.ledger,
+                )
+                .get())
+            .fold<int>(0, (sum, row) => sum + row.delta);
+
+    test('a second start gives back the running timer', () async {
+      final first = await service.startSession(config: config);
+      final second = await service.startSession(config: config);
+      expect(second.sessionUuid, first.sessionUuid);
+      expect(await db.select(db.pomodoroSessions).get(), hasLength(1));
+    });
+
+    test('a block is paid with the timer saved beside it, and once', () async {
+      final snapshot = await service.startSession(config: config);
+      final next = snapshot.copyWith(
+        phase: PomodoroPhase.shortBreak,
+        blocksDone: 1,
+      );
+      await service.completeBlock(snapshot, then: next);
+      expect((await service.loadActive())!.blocksDone, 1);
+      expect(await xp(), pomodoroBlockXp);
+      // The same block again, as a relaunch from a stale snapshot
+      // would: nothing more is paid.
+      await service.completeBlock(snapshot, then: next);
+      expect(await xp(), pomodoroBlockXp);
+      final row = (await db.select(db.pomodoroSessions).get()).single;
+      expect(row.focusBlocks, 1);
+    });
+  });
 }

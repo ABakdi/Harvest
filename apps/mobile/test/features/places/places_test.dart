@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,6 +49,22 @@ void main() {
   ).fillAll(await places.pendingOnce());
 
   group('the filler (PL2, PL3)', () {
+    test('a tag written while a pass runs is filled too (Q5-58)', () async {
+      db.geotagging = true;
+      final gate = Completer<void>();
+      final slow = _GatedGateway(gate)..fix = at(36.7, 3.1, now);
+      final filler = GeotagFiller(places, slow, clock: () => now);
+      await db.logChange('expenses', 'e1', 'insert');
+      final first = filler.fillAll(await places.pendingOnce());
+      await db.logChange('expenses', 'e2', 'insert');
+      await filler.fillAll(await places.pendingOnce());
+      gate.complete();
+      await first;
+
+      expect((await tagOf('expenses', 'e1')).state, 'fixed');
+      expect((await tagOf('expenses', 'e2')).state, 'fixed');
+    });
+
     test('uses a fresh, sharp trail point without asking the phone', () async {
       db.geotagging = true;
       await places.addPoint(
@@ -118,8 +136,9 @@ void main() {
     test(
       "an old pending tag, as sync brings one, never gets this phone's place",
       () async {
-        Future<void> pendingAt(String uuid, DateTime when) =>
-            db.into(db.geotags).insert(
+        Future<void> pendingAt(String uuid, DateTime when) => db
+            .into(db.geotags)
+            .insert(
               GeotagsCompanion.insert(
                 uuid: uuid,
                 targetTable: 'notes',
@@ -147,16 +166,20 @@ void main() {
     test('an old pending tag takes the trail from its own time', () async {
       final then = now.subtract(const Duration(hours: 2));
       await places.addPoint(at(36.8, 3, then.add(const Duration(seconds: 40))));
-      await places.addPoint(at(36.9, 3.2, now.subtract(const Duration(seconds: 20))));
-      await db.into(db.geotags).insert(
-        GeotagsCompanion.insert(
-          uuid: 'waited',
-          targetTable: 'notes',
-          targetUuid: 'n-waited',
-          harvestDay: harvestDayKeyOf(then),
-          at: then,
-        ),
+      await places.addPoint(
+        at(36.9, 3.2, now.subtract(const Duration(seconds: 20))),
       );
+      await db
+          .into(db.geotags)
+          .insert(
+            GeotagsCompanion.insert(
+              uuid: 'waited',
+              targetTable: 'notes',
+              targetUuid: 'n-waited',
+              harvestDay: harvestDayKeyOf(then),
+              at: then,
+            ),
+          );
       await fill();
 
       final tag = await tagOf('notes', 'n-waited');
@@ -270,4 +293,36 @@ void main() {
       expect(trail.running, isTrue);
     });
   });
+  test('a check-in on a deleted seed says it is gone (U6-26)', () async {
+    await db
+        .into(db.commitments)
+        .insert(
+          CommitmentsCompanion.insert(
+            uuid: 's1',
+            type: 'habit',
+            title: 'Read',
+          ),
+        );
+    expect(await places.detailFor('commitments', 's1'), isA<GeotagText>());
+    await (db.update(db.commitments)..where((c) => c.uuid.equals('s1'))).write(
+      CommitmentsCompanion(deletedAt: Value(now)),
+    );
+    expect(await places.detailFor('commitments', 's1'), isA<GeotagGone>());
+    expect(await places.detailFor('check_ins', 'nope'), isA<GeotagGone>());
+  });
+}
+
+/// A phone whose fix waits until the test lets it through.
+class _GatedGateway extends FakeLocationGateway {
+  _GatedGateway(this._gate);
+
+  final Completer<void> _gate;
+
+  @override
+  Future<Fix?> currentFix({
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    await _gate.future;
+    return super.currentFix(timeout: timeout);
+  }
 }

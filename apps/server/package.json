@@ -15,7 +15,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "e2e": "tsx scripts/e2e-server.ts"
+    "e2e": "tsx scripts/e2e-server.ts",
+    "operator-view": "tsx scripts/operator-view.ts"
   },
   "dependencies": {
     "@harvest/contracts": "workspace:*",
@@ -27,7 +28,7 @@
     "helmet": "^8.1.0",
     "jose": "^6.1.0",
     "mongodb": "^7.0.0",
-    "nodemailer": "^8.0.0",
+    "nodemailer": "^10.0.10",
     "pino": "^10.0.0",
     "pino-http": "^11.0.0",
     "zod": "^4.1.0"
@@ -37,7 +38,6 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^22.18.0",
-    "@types/nodemailer": "^8.0.0",
     "@types/supertest": "^6.0.3",
     "mongodb-memory-server": "^11.0.0",
     "supertest": "^7.1.4",

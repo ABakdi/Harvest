@@ -87,14 +87,16 @@ export function renderInline(text: string, options: MarkdownOptions = {}, keyPre
   return nodes;
 }
 
-type Block =
+/** A block, with the line of the source it starts on. */
+type Block = { line: number } & (
   | { kind: 'heading'; level: number; text: string }
   | { kind: 'code'; text: string }
   | { kind: 'quote'; lines: string[] }
   | { kind: 'list'; ordered: boolean; items: { text: string; task: boolean | null }[] }
   | { kind: 'rule' }
   | { kind: 'table'; head: string[]; rows: string[][] }
-  | { kind: 'paragraph'; lines: string[] };
+  | { kind: 'paragraph'; lines: string[] }
+);
 
 /**
  * Line bodies are `[^\n]*` and never `.*`: `.` stops at U+2028/U+2029, so
@@ -125,29 +127,30 @@ export function parseBlocks(source: string): Block[] {
       i++;
       continue;
     }
+    const start = i;
     if (/^\s{0,3}```/.test(line)) {
       const body: string[] = [];
       i++;
       while (i < lines.length && !/^\s{0,3}```/.test(lines[i]!)) body.push(lines[i++]!);
       i++;
-      blocks.push({ kind: 'code', text: body.join('\n') });
+      blocks.push({ line: start, kind: 'code', text: body.join('\n') });
       continue;
     }
     const heading = /^\s{0,3}(#{1,6})\s+([^\n]*)$/.exec(line);
     if (heading) {
-      blocks.push({ kind: 'heading', level: heading[1]!.length, text: heading[2]!.replace(/\s+#+\s*$/, '') });
+      blocks.push({ line: start, kind: 'heading', level: heading[1]!.length, text: heading[2]!.replace(/\s+#+\s*$/, '') });
       i++;
       continue;
     }
     if (/^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(line)) {
-      blocks.push({ kind: 'rule' });
+      blocks.push({ line: start, kind: 'rule' });
       i++;
       continue;
     }
     if (/^\s{0,3}>/.test(line)) {
       const quote: string[] = [];
       while (i < lines.length && /^\s{0,3}>/.test(lines[i]!)) quote.push(lines[i++]!.replace(/^\s{0,3}>\s?/, ''));
-      blocks.push({ kind: 'quote', lines: quote });
+      blocks.push({ line: start, kind: 'quote', lines: quote });
       continue;
     }
     if (tableAt(lines, i)) {
@@ -155,7 +158,7 @@ export function parseBlocks(source: string): Block[] {
       const rows: string[][] = [];
       i += 2;
       while (i < lines.length && /^\s*\|/.test(lines[i]!)) rows.push(cellsOf(lines[i++]!));
-      blocks.push({ kind: 'table', head, rows });
+      blocks.push({ line: start, kind: 'table', head, rows });
       continue;
     }
     const first = listItem.exec(line);
@@ -169,7 +172,7 @@ export function parseBlocks(source: string): Block[] {
         items.push(task ? { text: task[2]!, task: task[1] !== ' ' } : { text: item[2]!, task: null });
         i++;
       }
-      blocks.push({ kind: 'list', ordered, items });
+      blocks.push({ line: start, kind: 'list', ordered, items });
       continue;
     }
     const paragraph: string[] = [];
@@ -186,7 +189,7 @@ export function parseBlocks(source: string): Block[] {
     // them all and be refused here too, it is kept as text and passed, so
     // no input can stall the loop.
     if (paragraph.length === 0) paragraph.push(lines[i++]!);
-    blocks.push({ kind: 'paragraph', lines: paragraph });
+    blocks.push({ line: start, kind: 'paragraph', lines: paragraph });
   }
   return blocks;
 }
@@ -200,44 +203,47 @@ const headingClass: Record<number, string> = {
   6: 'text-sm font-bold text-muted-foreground',
 };
 
+/** Markdown as blocks, each with a direction of its own: an English paragraph under an Arabic heading stays left to right (W6-05). */
 export function Markdown({ source, options = {}, className }: { source: string; options?: MarkdownOptions; className?: string }) {
   const blocks = parseBlocks(source);
   return (
-    <div className={className ?? 'flex flex-col gap-3 leading-relaxed'}>
+    <div className={className ?? 'flex min-w-0 flex-col gap-3 leading-relaxed [overflow-wrap:anywhere]'}>
       {blocks.map((block, index) => {
         const key = `b${index}`;
         switch (block.kind) {
           case 'heading': {
             const Tag = `h${Math.min(block.level + 1, 6)}` as 'h2';
             return (
-              <Tag key={key} className={headingClass[block.level]}>
+              <Tag key={key} data-line={block.line} dir="auto" className={headingClass[block.level]}>
                 {renderInline(block.text, options, key)}
               </Tag>
             );
           }
           case 'code':
             return (
-              <pre key={key} className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-sm">
+              <pre key={key} data-line={block.line} dir="auto" className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-sm">
                 <code>{block.text}</code>
               </pre>
             );
           case 'quote':
             return (
-              <blockquote key={key} className="border-s-4 border-success/60 ps-3 text-muted-foreground">
+              <blockquote key={key} data-line={block.line} dir="auto" className="border-s-4 border-success/60 ps-3 text-muted-foreground">
                 {block.lines.map((line, n) => (
-                  <p key={n}>{renderInline(line, options, `${key}-${n}`)}</p>
+                  <p key={n} dir="auto">
+                    {renderInline(line, options, `${key}-${n}`)}
+                  </p>
                 ))}
               </blockquote>
             );
           case 'list': {
             const Tag = block.ordered ? 'ol' : 'ul';
             return (
-              <Tag key={key} className={block.ordered ? 'list-decimal ps-6' : 'list-disc ps-6'}>
+              <Tag key={key} data-line={block.line} dir="auto" className={block.ordered ? 'list-decimal ps-6' : 'list-disc ps-6'}>
                 {block.items.map((item, n) =>
                   item.task === null ? (
-                    <li key={n}>{renderInline(item.text, options, `${key}-${n}`)}</li>
+                    <li key={n} dir="auto">{renderInline(item.text, options, `${key}-${n}`)}</li>
                   ) : (
-                    <li key={n} className="list-none -ms-5 flex items-start gap-2">
+                    <li key={n} dir="auto" className="list-none -ms-5 flex items-start gap-2">
                       <input type="checkbox" checked={item.task} readOnly disabled className="mt-1.5" aria-hidden />
                       <span className={item.task ? 'text-muted-foreground line-through' : undefined}>
                         {renderInline(item.text, options, `${key}-${n}`)}
@@ -249,15 +255,15 @@ export function Markdown({ source, options = {}, className }: { source: string; 
             );
           }
           case 'rule':
-            return <hr key={key} className="border-border" />;
+            return <hr key={key} data-line={block.line} className="border-border" />;
           case 'table':
             return (
-              <div key={key} className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
+              <div key={key} data-line={block.line} className="overflow-x-auto">
+                <table dir="auto" className="w-full border-collapse text-sm">
                   <thead>
                     <tr>
                       {block.head.map((cell, n) => (
-                        <th key={n} className="border px-2 py-1 text-start font-bold">
+                        <th key={n} dir="auto" className="border px-2 py-1 text-start font-bold">
                           {renderInline(cell, options, `${key}-h${n}`)}
                         </th>
                       ))}
@@ -267,7 +273,7 @@ export function Markdown({ source, options = {}, className }: { source: string; 
                     {block.rows.map((row, r) => (
                       <tr key={r}>
                         {block.head.map((_, n) => (
-                          <td key={n} className="border px-2 py-1 align-top">
+                          <td key={n} dir="auto" className="border px-2 py-1 align-top">
                             {renderInline(row[n] ?? '', options, `${key}-${r}-${n}`)}
                           </td>
                         ))}
@@ -279,7 +285,7 @@ export function Markdown({ source, options = {}, className }: { source: string; 
             );
           case 'paragraph':
             return (
-              <p key={key} className="whitespace-pre-wrap">
+              <p key={key} data-line={block.line} dir="auto" className="whitespace-pre-wrap">
                 {renderInline(block.lines.join('\n'), options, key)}
               </p>
             );

@@ -3,15 +3,9 @@
   "uuid": "f09ec3ec-5479-525d-9c50-5dd509700907",
   "updatedAt": "2026-09-26T09:00:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "f09ec3ec-5479-525d-9c50-5dd509700907",
-    "name": "Reading pile",
-    "kind": "media",
-    "icon": null,
-    "position": 2,
-    "builtIn": "read",
-    "createdAt": "2020-01-01T00:00:00.000Z",
-    "updatedAt": "2026-09-26T09:00:00.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "RlB3JQxcHjnh4c7x",
+    "ct": "ED7+wmlWlG0xXsocVhAjB6obnt+OgBeA3QD0cWP+0LFnLuXqkrVg8Odc9EJaQXcemFFhK4iCLHJhokCb1tlI1MS78gHMg6XVyFePhzqz73E4ELBrnYX/8jFV38TeEX08VYZyd8WsldP0v7RqKKUU6+KkEc2bjhsGW90YwzhU7+H57HPpyrcnC+WV9BC01+wYDrd/JFqIEcRWgJnXSTjwUmSYFiki5qsFgUhrltnWMnKGy0S3a3OvUegdPvxb09tNmMHl+VoAc49lcrPFA8oq57pDukK7KInRkoO3j3ufwZ55nCmlT5YO1QXZ3fqEcY8LIY17Vq04+xz/d9kiwX/DeNB0DgdQ2McVSp/d0QtBBlw="
   }
 }

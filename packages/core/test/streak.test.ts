@@ -4,10 +4,12 @@ import {
   HarvestDay,
   dailyGoalFromJson,
   earnHabitDay,
+  parseSchedule,
   productiveActions,
   refreshGlobalStreak,
   retractHabitDay,
   type ActionCommitment,
+  type MilestonePaid,
   type StreakState,
 } from '../src/index.js';
 
@@ -19,13 +21,19 @@ interface Fixture {
     actions: number;
   }[];
   dailyGoal: { valueJson: string | null; goal: number }[];
-  earnHabitDay: { streak: StreakState; day: string; next: StreakState | null }[];
+  earnHabitDay: {
+    streak: StreakState;
+    day: string;
+    habit?: { schedule: unknown; pausedDay?: string | null };
+    next: StreakState | null;
+  }[];
   retractHabitDay: { streak: StreakState; day: string; next: StreakState | null }[];
   refreshGlobal: {
     streak: StreakState;
     actions: number;
     goal: number;
     day: string;
+    paid?: MilestonePaid[];
     next: StreakState | null;
     milestone: { coins: number; reason: string } | null;
   }[];
@@ -46,15 +54,19 @@ describe('streaks.json', () => {
     expect(dailyGoalFromJson(valueJson)).toBe(goal);
   });
 
-  it.each(data.earnHabitDay)('earnHabitDay on $day', ({ streak, day, next }) => {
-    expect(earnHabitDay(streak, day)).toEqual(next);
+  it.each(data.earnHabitDay)('earnHabitDay on $day', ({ streak, day, habit, next }) => {
+    const calendar =
+      habit === undefined
+        ? undefined
+        : { schedule: habit.schedule === null ? null : parseSchedule(habit.schedule), pausedDay: habit.pausedDay ?? null };
+    expect(earnHabitDay(streak, day, calendar)).toEqual(next);
   });
 
   it.each(data.retractHabitDay)('retractHabitDay on $day', ({ streak, day, next }) => {
     expect(retractHabitDay(streak, day, previous(day))).toEqual(next);
   });
 
-  it.each(data.refreshGlobal)('refreshGlobal with $actions of $goal', ({ streak, actions, goal, day, next, milestone }) => {
-    expect(refreshGlobalStreak(streak, actions, goal, day, previous(day))).toEqual({ next, milestone });
+  it.each(data.refreshGlobal)('refreshGlobal with $actions of $goal', ({ streak, actions, goal, day, paid, next, milestone }) => {
+    expect(refreshGlobalStreak(streak, actions, goal, day, previous(day), paid)).toEqual({ next, milestone });
   });
 });

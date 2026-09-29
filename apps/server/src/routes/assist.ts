@@ -10,6 +10,8 @@ export interface AssistDeps {
   upstream: GeminiUpstream | null;
   usage: AssistUsageRepository;
   dailyLimit: number;
+  /** The whole server's requests per UTC day (audit S5-19). */
+  globalDailyLimit: number;
   now?: () => Date;
 }
 
@@ -24,7 +26,7 @@ export interface AssistDeps {
  *
  * Mounted behind requireAuth and requireVerified, like sync.
  */
-export function assistRoutes({ upstream, usage, dailyLimit, now = () => new Date() }: AssistDeps): Router {
+export function assistRoutes({ upstream, usage, dailyLimit, globalDailyLimit, now = () => new Date() }: AssistDeps): Router {
   const router = Router();
 
   router.get('/status', async (_req, res) => {
@@ -52,6 +54,11 @@ export function assistRoutes({ upstream, usage, dailyLimit, now = () => new Date
       if (spent > dailyLimit) {
         throw new HttpError('rate_limited', 'That is all the assist this account has today');
       }
+      // And the server's own ceiling: a hundred fresh accounts are not a
+      // hundred times the key's allowance.
+      if ((await usage.spendGlobal(day, at)) > globalDailyLimit) {
+        throw new HttpError('rate_limited', 'That is all the assist this server has today');
+      }
 
       // Server-sent events: the first words go out while the rest are
       // still being written.
@@ -62,13 +69,21 @@ export function assistRoutes({ upstream, usage, dailyLimit, now = () => new Date
       });
       res.flushHeaders();
 
+      // The caller gone, the model's answer is not read to its end for
+      // nobody (Q6-17).
+      const gone = new AbortController();
+      res.on('close', () => {
+        if (!res.writableEnded) gone.abort();
+      });
+
       try {
-        for await (const text of upstream.stream(body)) {
-          if (res.writableEnded) return;
+        for await (const text of upstream.stream(body, gone.signal)) {
+          if (res.destroyed || res.writableEnded) return;
           res.write(`data: ${JSON.stringify({ text })}\n\n`);
         }
         res.write(`data: ${assistDoneMarker}\n\n`);
       } catch (error) {
+        if (res.destroyed) return;
         // The status is long gone, so the failure travels as a line.
         const code = error instanceof HttpError ? error.code : 'internal';
         res.write(`data: ${JSON.stringify({ error: code })}\n\n`);

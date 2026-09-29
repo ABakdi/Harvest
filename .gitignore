@@ -78,3 +78,20 @@ dist/
 coverage/
 .env.*
 !.env.example
+
+# More signing and server secrets: the JWT pair the docs make with
+# openssl, other key files, and anything the release build leaves.
+*.pem
+*.key
+*.p12
+jwt.*
+*.apk
+*.aab
+
+# Database dumps and backups
+*.archive
+*.archive.gz
+dump/
+
+# Local editor and tool state
+.claude/

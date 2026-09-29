@@ -1,0 +1,16 @@
+{
+  "why": "only a row that names a file may say which file, in the clear",
+  "path": "file",
+  "record": {
+    "table": "notes",
+    "uuid": "n1",
+    "updatedAt": "2026-09-18T13:10:00.000Z",
+    "deletedAt": null,
+    "enc": {
+      "v": 2,
+      "iv": "AAAAAAAAAAAAAAAA",
+      "ct": "c2VhbGVkIGJ5dGVzLCBub3QgYSByZWFsIHJvdw=="
+    },
+    "file": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}

@@ -3,16 +3,9 @@
   "uuid": "1b6f9c3e-7a2d-4e8b-b5c1-4d7a9f3e6b28",
   "updatedAt": "2026-09-13T18:32:10.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "1b6f9c3e-7a2d-4e8b-b5c1-4d7a9f3e6b28",
-    "albumUuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
-    "harvestDay": "2026-09-13",
-    "path": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67/2026-09-13-1.jpg",
-    "kind": "photo",
-    "note": null,
-    "fileHash": null,
-    "capturedAt": "2026-09-13T18:32:10.000Z",
-    "updatedAt": "2026-09-13T18:32:10.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "Ug4/rJFusvYA8m3f",
+    "ct": "8Z910OWDh1oDAOfWq0ZB2Qb68rNNk+8RjT9IeDRnj6/KLVvGWZi+R8eX1yXMIUDygpZafAVpinxyTebuTeEKK9uPGfVe7cT580IX5HdvnmchXDd/OpbiYpVi91r+stY64YbIQdUKJWQudvM2hDIyixST87KAeD9YM8312ReLMYygtxY9NFVp8j+ejEU34aMG58GR9ly4xKL01vRqau5D70IVGnJAnwCPk38Z+L6akxQrNDgjFkhdxPfKlUk5FAfJrR4hvotKTDY/oOouKZt+87YU7/IIlYTrjF69YHUSLDZVnjXV+yw+xBdvziuZhjtbwA0Dg2nyP12YvjlqViWiy6L310JGsJuGLjLfFPcvWEJ/tJYfX5wjax4KsXcxjSjj8zwOsPlc6ZnKWJ3sxcJ/lWnWz91UeGe2EHQEp919p1UnL4uqUVEm9oWMFHiTthD8r89ml5QIpf6gP+A+pxAKAQ=="
   }
 }

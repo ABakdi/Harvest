@@ -1,7 +1,7 @@
 import type { CurrencyCode, Rates } from '@harvest/core';
 import { HarvestDay, budgetSnapshotFor, currencyOf, sumInDefault } from '@harvest/core';
 import type { HarvestDB, Row } from './db';
-import { readSetting, settingKeys } from './settings';
+import { currencyWithNoneChosen, perUsdOf, rateKeys, readSetting, settingKeys } from './settings';
 import type { Tx, Writer } from './writer';
 
 export type TxnRow = Row<'money_txns'>;
@@ -14,18 +14,20 @@ export type Account = (typeof accounts)[number];
 
 /** What the exchange card last knew, as the rules want it. */
 export async function readRates(db: HarvestDB): Promise<Rates> {
-  const [currency, usd, eur, usdPerEur] = await Promise.all([
+  const [currency, usd, eur, usdPerEur, perUsd] = await Promise.all([
     readSetting(db, settingKeys.defaultCurrency),
     readSetting(db, 'rate.dzdPerUsd'),
     readSetting(db, 'rate.dzdPerEur'),
     readSetting(db, 'rate.usdPerEur'),
+    readSetting(db, rateKeys.perUsd),
   ]);
   const number = (raw: string | null) => {
     const value = Number(raw);
     return raw !== null && Number.isFinite(value) && value > 0 ? value : null;
   };
   return {
-    defaultCurrency: currencyOf(currency),
+    defaultCurrency: currencyOf(currency, await currencyWithNoneChosen(db)),
+    perUsd: perUsdOf(perUsd),
     dzdPerUsd: number(usd),
     dzdPerEur: number(eur),
     usdPerEur: number(usdPerEur),
@@ -168,7 +170,7 @@ export type TxnKind = (typeof txnKinds)[number];
 
 /** A refused money write: an overdraw, an over-payment, a settled debt. */
 export class MoneyRuleError extends Error {
-  constructor(readonly rule: 'amount' | 'overdraw' | 'overpay' | 'settled' | 'missing') {
+  constructor(readonly rule: 'amount' | 'overdraw' | 'overpay' | 'settled' | 'missing' | 'belowPaid' | 'currency') {
     super(`Money rule: ${rule}`);
     this.name = 'MoneyRuleError';
   }
@@ -389,22 +391,102 @@ export class VaultRepository {
     return this.writer.run(async (tx) => {
       const payment = await tx.get('debt_payments', uuid);
       if (!payment || payment.deletedAt !== null) return;
-      await tx.put('debt_payments', { ...payment, deletedAt: tx.now() });
+      // One stamp for both, so the Undo knows which movement went with it.
+      const now = tx.now();
+      await tx.put('debt_payments', { ...payment, deletedAt: now });
       const linked = await linkedMove(tx, uuid, false);
-      if (linked) await tx.put('money_txns', { ...linked, deletedAt: tx.now(), updatedAt: tx.now() });
+      if (linked) await tx.put('money_txns', { ...linked, deletedAt: now, updatedAt: now });
       await settleIfPaid(tx, payment.debtUuid);
     });
   }
 
-  /** The Undo for [removePayment]: wallet movement and settlement too. */
+  /**
+   * The Undo for [removePayment]: wallet movement and settlement too.
+   * The world may have moved while Undo was showing — the debt paid
+   * again, the wallet spent, the debt removed — so the payment comes
+   * back under the same rules as a new one, or not at all
+   * (`restorePayment`, [[Audit-v3]] Q5-17).
+   */
   restorePayment(uuid: string): Promise<void> {
     return this.writer.run(async (tx) => {
       const payment = await tx.get('debt_payments', uuid);
-      if (!payment) return;
+      if (!payment || payment.deletedAt === null) return;
+      const debt = await tx.get('debts', payment.debtUuid);
+      if (!debt || debt.deletedAt !== null) throw new MoneyRuleError('missing');
+      if ((await paidOn(tx, debt.uuid)) + payment.amountMinor > debt.amountMinor) throw new MoneyRuleError('overpay');
+      // Only the movement that went with it: [removePayment] stamps both alike.
+      const linked = (await tx.rows('money_txns').where('linkUuid').equals(uuid).toArray()).find(
+        (row) => row.deletedAt !== null && row.deletedAt === payment.deletedAt,
+      );
+      if (linked && !isUpcoming(linked, HarvestDay.of(tx.clockNow()))) {
+        await refuseBelowZero(tx, linked.account as Account, linked.currency, linked.deltaMinor);
+      }
       await tx.put('debt_payments', { ...payment, deletedAt: null });
-      const linked = await linkedMove(tx, uuid, true);
       if (linked) await tx.put('money_txns', { ...linked, deletedAt: null, updatedAt: tx.now() });
       await settleIfPaid(tx, payment.debtUuid);
+    });
+  }
+
+  /**
+   * Corrects a debt (`updateDebt`): who, how much, when, the reminder and
+   * the note. The amount never drops below what has been paid, and the
+   * currency cannot change under payments made in the old one; a new
+   * amount settles or reopens the debt to match ([[Audit-v3]] G5-02).
+   */
+  async updateDebt(uuid: string, input: DebtInput): Promise<void> {
+    positive(input.amountMinor);
+    const person = input.person.trim();
+    if (!person) throw new MoneyRuleError('missing');
+    return this.writer.run(async (tx) => {
+      const debt = await tx.get('debts', uuid);
+      if (!debt || debt.deletedAt !== null) throw new MoneyRuleError('missing');
+      const paid = await paidOn(tx, uuid);
+      if (input.amountMinor < paid) throw new MoneyRuleError('belowPaid');
+      if (paid > 0 && input.currency !== debt.currency) throw new MoneyRuleError('currency');
+      await tx.put('debts', {
+        ...debt,
+        person,
+        amountMinor: input.amountMinor,
+        currency: input.currency,
+        payOffBy: input.payOffBy,
+        remindAt: input.remindAt,
+        note: input.note?.trim() || null,
+        updatedAt: tx.now(),
+      });
+      await settleIfPaid(tx, uuid);
+    });
+  }
+
+  /**
+   * Removes a debt logged by mistake (`deleteDebt`), its payments with
+   * it under one stamp so [restoreDebt] brings back exactly those. The
+   * wallet movements the payments made stay: that money did leave.
+   */
+  deleteDebt(uuid: string): Promise<void> {
+    return this.writer.run(async (tx) => {
+      const debt = await tx.get('debts', uuid);
+      if (!debt || debt.deletedAt !== null) return;
+      const now = tx.now();
+      await tx.put('debts', { ...debt, deletedAt: now, updatedAt: now });
+      const payments = await tx.rows('debt_payments').where('debtUuid').equals(uuid).toArray();
+      for (const payment of payments) {
+        if (payment.deletedAt === null) await tx.put('debt_payments', { ...payment, deletedAt: now });
+      }
+    });
+  }
+
+  /** The Undo for [deleteDebt]: the debt and the payments that went with it. */
+  restoreDebt(uuid: string): Promise<void> {
+    return this.writer.run(async (tx) => {
+      const debt = await tx.get('debts', uuid);
+      if (!debt || debt.deletedAt === null) return;
+      const stamp = debt.deletedAt;
+      await tx.put('debts', { ...debt, deletedAt: null, updatedAt: tx.now() });
+      const payments = await tx.rows('debt_payments').where('debtUuid').equals(uuid).toArray();
+      for (const payment of payments) {
+        if (payment.deletedAt === stamp) await tx.put('debt_payments', { ...payment, deletedAt: null });
+      }
+      await settleIfPaid(tx, uuid);
     });
   }
 }
@@ -505,8 +587,11 @@ export interface InsightsView {
 /**
  * The Insights page's one read: the span's expenses, converted (face
  * value where a rate is missing, as `totalsByDay` does), and its moves.
+ * The expenses count up to [today]: one logged ahead is not spent yet,
+ * so no total, bar or average reads it (`upToToday`, [[Audit-v3]] G5-03).
  */
-export async function readInsights(db: HarvestDB, range: DayRange): Promise<InsightsView> {
+export async function readInsights(db: HarvestDB, range: DayRange, today: HarvestDay = HarvestDay.today()): Promise<InsightsView> {
+  const upTo = range.to.compareTo(today) < 0 ? range.to.key : today.key;
   const [expenses, txns, rates] = await Promise.all([
     db.rows('expenses').where('harvestDay').between(range.from.key, range.to.key, true, true).toArray(),
     db.rows('money_txns').toArray(),
@@ -516,7 +601,7 @@ export async function readInsights(db: HarvestDB, range: DayRange): Promise<Insi
   const byCategory = new Map<string, number>();
   let total = 0;
   for (const row of expenses) {
-    if (row.deletedAt !== null) continue;
+    if (row.deletedAt !== null || row.harvestDay > upTo) continue;
     const minor = sumInDefault(rates, [[currencyOf(row.currency), row.amountMinor]]);
     dayTotals.set(row.harvestDay, (dayTotals.get(row.harvestDay) ?? 0) + minor);
     byCategory.set(row.category, (byCategory.get(row.category) ?? 0) + minor);

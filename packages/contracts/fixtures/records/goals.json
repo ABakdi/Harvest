@@ -3,17 +3,9 @@
   "uuid": "4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38",
   "updatedAt": "2026-09-15T19:20:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "4e9b2d7f-1a5c-4d3e-8b6a-2f9d5e1c7b38",
-    "title": "Half marathon",
-    "why": "Because I said I would, in 2024.",
-    "targetDay": "2026-10-25",
-    "status": "active",
-    "statusNote": null,
-    "achievedAt": null,
-    "position": 0,
-    "createdAt": "2026-09-01T07:00:00.000Z",
-    "updatedAt": "2026-09-15T19:20:00.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "NAlMkrz2Nuq0nSSX",
+    "ct": "MOGVASiMsFla8FYDd88B4OX9hQ9dm172qykAfui93oT5byuVXwYEf3pX4yhd4fbSEhoZXmBphNPNR/p/yNPHF7LmXG0BTfDHRv5Bs1SGvhUeIeAoSFHrE1iGyUCDBAc/pvyOMoPoC+ZvNWj2E6CZj0sjcFyTX+X5OKfSyZoEywNZinkwT5W6Fg0nY/N9IlLxXLT21b+YxB8UB2BOK0wXXULggR+nQ1OtCFgrN9OLzLryiTNOzmC3uIEZ3zuTOH2zftlmbVa1L15Ybb6W77ryr1+nUptZUIGDNIt9JiyzKJu3VRKDQJlUZhRpnglKWH713OI5y74fJRac8trp9qSeaiCJIne7Rc9oAmuTKK0SsaijoI8saLLka5NyYQN2RpjvjAnPNEEZ40lBym4BfprWiWapKRnjt/q6NDXIb1sWZ0A="
   }
 }

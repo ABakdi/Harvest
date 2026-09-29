@@ -111,7 +111,7 @@ describe('writing a program', () => {
 });
 
 describe('running a session', () => {
-  it('copies the day in, prefilled, with percentages resolved to a quarter kilo', async () => {
+  it('copies the day in, prefilled, with percentages resolved to what the plates can load', async () => {
     const h = await device(new FakeServer());
     const tree = await aProgram(h);
     await h.programs.setTrainingMax(tree.program.uuid, '0025', 111_000);
@@ -126,7 +126,7 @@ describe('running a session', () => {
     expect(exercise!.row).toMatchObject({ exerciseId: '0025', plannedExerciseId: '0025', restSeconds: 180 });
     expect(exercise!.sets.map((set) => [set.weightGrams, set.reps, set.targetLabel, set.openEnded])).toEqual([
       [100_000, 5, '100.00×5', false],
-      [83_250, 3, '83.25×3', false],
+      [83_500, 3, '83.50×3', false],
       [105_500, 1, '105.50×1+', true],
     ]);
   });

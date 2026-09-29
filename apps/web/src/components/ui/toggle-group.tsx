@@ -17,7 +17,7 @@ function ToggleGroupItem({ className, ...props }: React.ComponentProps<typeof To
     <ToggleGroupPrimitive.Item
       data-slot="toggle-group-item"
       className={cn(
-        'inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-md bg-input px-3 text-sm font-bold outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground data-[state=on]:ring-2 data-[state=on]:ring-success/60',
+        'inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-md bg-input max-md:h-11 max-md:min-w-11 px-3 text-sm font-bold outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground data-[state=on]:ring-2 data-[state=on]:ring-success/60',
         className,
       )}
       {...props}

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/core/db/database.dart';
@@ -94,8 +96,51 @@ void main() {
         note: 'bread',
         day: HarvestDay.today(),
       );
-      final key = List<int>.generate(32, (i) => i * 7 % 256);
-      Future<SyncCipher?> cipher() async => SyncCipher(key);
+      // The key as a phone makes it: the first phone chooses the PIN and
+      // sets its verifier and key check; the second shows the PIN's proof
+      // and is handed the key share only for the right one (S6-04).
+      final shareA = await ApiSyncKeys(apiA).fetch();
+      expect(shareA.choosing, isTrue);
+      final base = await SyncCipher.deriveBase(
+        '482913',
+        shareA.salt,
+        iterations: 1000,
+      );
+      final key = await SyncCipher.keyOf(base, shareA.keyShare!);
+      final proof = await SyncCipher.proofOf(base);
+      final epoch = await ApiSyncKeys(apiA).setPin(
+        await SyncCipher.verifierOf(proof),
+        await SyncCipher(key).sealCheck(),
+      );
+      expect(epoch, isNotNull);
+      final stateB = await ApiSyncKeys(apiB).fetch();
+      expect(stateB.choosing, isFalse);
+      expect(stateB.keyShare, isNull, reason: 'no share before a proof');
+      final wrong = await SyncCipher.deriveBase(
+        '482914',
+        stateB.salt,
+        iterations: 1000,
+      );
+      await expectLater(
+        ApiSyncKeys(apiB).unlock(base64Encode(await SyncCipher.proofOf(wrong))),
+        throwsA(
+          isA<SyncPinRefused>().having((r) => r.triesLeft, 'tries left', 4),
+        ),
+      );
+      final opened = await ApiSyncKeys(apiB).unlock(base64Encode(proof));
+      expect(opened.epoch, epoch);
+      final keyB = await SyncCipher.keyOf(base, opened.keyShare);
+      expect(keyB, key);
+      expect(await SyncCipher(keyB).opensCheck(opened.check), isTrue);
+      // A second device choosing now is told a PIN is set.
+      expect(
+        await ApiSyncKeys(apiB).setPin(
+          await SyncCipher.verifierOf(await SyncCipher.proofOf(wrong)),
+          await SyncCipher(keyB).sealCheck(),
+        ),
+        isNull,
+      );
+      Future<SyncCipher?> cipher() async => SyncCipher(key, epoch: epoch!);
 
       final reportA = await SyncService(
         a,
@@ -155,11 +200,14 @@ void main() {
           );
       await File('${roomA.path}/e2e.jpg').writeAsBytes(bytes);
 
-      Future<FileReport> files(HarvestDatabase db, ApiClient api, Directory room) =>
-          FileSync(db, ApiFiles(api), SyncCipher(key)).run(
-            gallery: (relative) async => File('${room.path}/$relative'),
-            attachments: (relative) async => File('${room.path}/$relative'),
-          );
+      Future<FileReport> files(
+        HarvestDatabase db,
+        ApiClient api,
+        Directory room,
+      ) => FileSync(db, ApiFiles(api), SyncCipher(key, epoch: epoch!)).run(
+        gallery: (relative) async => File('${room.path}/$relative'),
+        attachments: (relative) async => File('${room.path}/$relative'),
+      );
 
       expect((await files(a, apiA, roomA)).uploaded, 1);
       // The row now carries the hash; sync it, then fetch the file.
@@ -167,6 +215,57 @@ void main() {
       await SyncService(b, ApiRemote(apiB), cipher: cipher).run();
       expect((await files(b, apiB, roomB)).downloaded, 1);
       expect(await File('${roomB.path}/e2e.jpg').readAsBytes(), bytes);
+
+      // A file a row on the server still names is not let go of.
+      final hash = (await b.select(b.memories).getSingle()).fileHash!;
+      await ApiFiles(apiB).forget(hash);
+      expect(await ApiFiles(apiB).missing([hash]), isEmpty);
+
+      // Starting the PIN over: a wrong password changes nothing; the
+      // right one drops the check and the share, and the old key opens
+      // nothing any more.
+      await expectLater(
+        ApiSyncKeys(apiA).startOver('not the password'),
+        throwsA(isA<ApiException>()),
+      );
+      expect((await ApiSyncKeys(apiA).fetch()).choosing, isFalse);
+      await ApiSyncKeys(apiA).startOver(password);
+      final fresh = await ApiSyncKeys(apiB).fetch();
+      expect(fresh.choosing, isTrue);
+      expect(fresh.epoch, epoch! + 1);
+      expect(fresh.keyShare, isNot(shareA.keyShare));
+      final pulled = await ApiRemote(apiB).pull(0, 1000);
+      expect(
+        pulled.records.where(
+          (r) => r['table'] == 'expenses' && r['enc'] != null,
+        ),
+        isEmpty,
+      );
+
+      // A device still on the old key stores nothing under it: its
+      // sealed push and its file are refused as `key_changed` (S6-07).
+      await FinancesRepository(b).log(
+        amountMinor: 300,
+        category: 'tea',
+        note: 'late',
+        day: HarvestDay.today(),
+      );
+      await expectLater(
+        SyncService(b, ApiRemote(apiB), cipher: cipher).run(),
+        throwsA(isA<SyncKeyChanged>()),
+      );
+      final stale = await SyncCipher(key).sealFile('ab' * 32, [1, 2, 3]);
+      await expectLater(
+        ApiFiles(apiB).upload(
+          'ab' * 32,
+          stale.bytes,
+          base64Encode(stale.iv),
+          keyEpoch: epoch,
+        ),
+        throwsA(
+          isA<ApiException>().having((e) => e.code, 'code', 'key_changed'),
+        ),
+      );
     },
     skip: url == null ? 'set HARVEST_E2E_URL to run against a server' : false,
   );

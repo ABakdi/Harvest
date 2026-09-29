@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/finances/presentation/guarded.dart';
 import 'package:harvest/features/gym/data/exercises_repository.dart';
 import 'package:harvest/features/gym/data/programs_repository.dart';
 import 'package:harvest/features/gym/domain/program.dart';
@@ -59,9 +60,10 @@ class _TargetSetSheet extends ConsumerWidget {
       title: exercise?.displayName ?? l10n.gymUnknownExercise,
       subtitle: l10n.gymSetsSubtitle,
       children: [
-        for (final set in slot.sets)
+        for (final (index, set) in slot.sets.indexed)
           _SetRow(
             set: set,
+            number: index + 1,
             unit: unit,
             onEdit: () => unawaited(_edit(context, ref, set)),
             onRemove: () => unawaited(repository.removeTargetSet(set.uuid)),
@@ -163,8 +165,14 @@ class _TargetSetSheet extends ConsumerWidget {
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
             onPressed: () {
+              // Said when it fails, instead of dropped (Q6-12).
+              final removal = runGuarded(
+                context,
+                repository.removeSlot(slot.uuid),
+                haptic: false,
+              );
               Navigator.of(context).pop();
-              repository.removeSlot(slot.uuid).ignore();
+              unawaited(removal);
             },
             icon: Icon(Icons.delete_outline, color: scheme.error),
             label: Text(
@@ -238,6 +246,7 @@ class _ChipField extends StatelessWidget {
 class _SetRow extends StatelessWidget {
   const _SetRow({
     required this.set,
+    required this.number,
     required this.unit,
     required this.onEdit,
     required this.onRemove,
@@ -245,6 +254,9 @@ class _SetRow extends StatelessWidget {
   });
 
   final TargetSet set;
+
+  /// 1 up, by place in the list, not by position (Q5-46).
+  final int number;
   final WeightUnit unit;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
@@ -275,7 +287,7 @@ class _SetRow extends StatelessWidget {
           // goes up, so it is marked rather than numbered — with the
           // same mark the session uses, because the program and the
           // workout should call it one thing ([[Audit-v2]] U3-18).
-          set.openEnded ? '1+' : '${set.position + 1}',
+          set.openEnded ? '1+' : '$number',
           style: theme.textTheme.labelSmall?.copyWith(
             fontSize: set.openEnded ? 10 : null,
             fontWeight: FontWeight.w800,
@@ -344,22 +356,28 @@ class _EditSetState extends ConsumerState<_EditSet> {
   Future<void> _save() async {
     final unit = ref.read(weightUnitSettingProvider).value ?? WeightUnit.kg;
     final value = double.tryParse(_load.text.trim().replaceAll(',', '.'));
-    await ref
-        .read(programsRepositoryProvider)
-        .updateTargetSet(
-          widget.set.uuid,
-          reps: int.tryParse(_reps.text.trim()),
-          openEnded: _open,
-          percentTenths: _percentage && value != null
-              ? (value * 10).round()
-              : null,
-          weightGrams: !_percentage && value != null
-              ? roundLoad(unit.toGrams(value), unit: unit)
-              : null,
-          clearWeight: _percentage,
-          clearPercent: !_percentage,
-        );
-    if (mounted) Navigator.of(context).pop();
+    // A failed write says so and leaves the sheet open, instead of an
+    // uncaught error (Q6-12).
+    final saved = await runGuarded(
+      context,
+      ref
+          .read(programsRepositoryProvider)
+          .updateTargetSet(
+            widget.set.uuid,
+            reps: int.tryParse(_reps.text.trim()),
+            openEnded: _open,
+            percentTenths: _percentage && value != null
+                ? (value * 10).round()
+                : null,
+            weightGrams: !_percentage && value != null
+                ? roundLoad(unit.toGrams(value), unit: unit)
+                : null,
+            clearWeight: _percentage,
+            clearPercent: !_percentage,
+          ),
+      haptic: false,
+    );
+    if (saved && mounted) Navigator.of(context).pop();
   }
 
   @override

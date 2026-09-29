@@ -79,6 +79,7 @@ class _CaptureSheetState extends ConsumerState<_CaptureSheet> {
       subtitle: widget.album.isScheduled ? l10n.galleryCheckInHint : null,
       children: [
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _note,
           maxLines: 2,
           minLines: 1,
@@ -159,7 +160,8 @@ class _CaptureButton extends StatelessWidget {
       children: [Icon(icon, size: 20), const SizedBox(width: 6), Text(label)],
     );
     return SizedBox(
-      width: (MediaQuery.sizeOf(context).width - HarvestSpacing.lg * 2 - 12) / 2,
+      width:
+          (MediaQuery.sizeOf(context).width - HarvestSpacing.lg * 2 - 12) / 2,
       child: primary
           ? FilledButton(onPressed: onPressed, child: child)
           : OutlinedButton(onPressed: onPressed, child: child),

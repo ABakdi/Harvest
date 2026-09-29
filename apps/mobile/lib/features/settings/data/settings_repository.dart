@@ -62,9 +62,6 @@ class SettingsRepository {
     _ => null,
   };
 
-  Future<int?> getInt(String key) async =>
-      int.tryParse(await getString(key) ?? '');
-
   /// A stored "HH:mm" as (hour, minute); null when unset or malformed.
   Future<(int, int)?> getTime(String key) async =>
       parseTime(await getString(key));

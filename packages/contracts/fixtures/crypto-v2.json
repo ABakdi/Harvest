@@ -1,0 +1,135 @@
+{
+  "about": "The private tier, version 2 (Sync-API). base = PBKDF2-HMAC-SHA256(utf8(secret), salt = utf8(syncSalt), iterations, 32 bytes), as in version 1. key = HKDF-SHA256(ikm = base, salt = keyShare bytes (base64 here, as the server hands it out), info = utf8(\"harvest/sync-key/v2\"), 32 bytes). Envelope {v: 2, iv, ct}: AES-256-GCM, 12-byte IV, 128-bit tag appended to ct, standard base64. A row's additional data is utf8(\"row/<table>/<uuid>/<updatedAt micros>/<deletedAt micros or empty>\"), the micros being instantMicros of the record's clocks, so any spelling of the same instant gives the same aad. After opening, the row's own updatedAt/deletedAt, where its table has those columns, must be the same instants as the record's. Files: aad utf8(\"file/<sha256>\") with this key. keyCheck seals utf8(\"harvest-key-check\") with aad utf8(\"key-check\"). Every case in refused must fail to open. PIN proof (for POST /v1/me/sync-key/unlock): proof = HKDF-SHA256(ikm = base, salt = empty, info = utf8(\"harvest/sync-pin-proof/v1\"), 32 bytes), sent base64; the server keeps verifier = hex(SHA-256(proof)), never the proof. The proofs cases pin it for other secrets and iteration counts.",
+  "secret": "482913",
+  "syncSalt": "k3Qv9xY2mN8pR4tW6zB1cD5fH7jL0sA",
+  "keyShare": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYY=",
+  "iterations": 600000,
+  "baseKeyHex": "37eba267736da9feb014547400b79cd99f8ad172331a0642999b0ad8326fefe9",
+  "keyHex": "7fb57309c5d32921a194493201e6b999e8efcd3c9ded59f2a03c0a8ac5631d2e",
+  "rows": [
+    {
+      "table": "expenses",
+      "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+      "updatedAt": "2026-09-18T13:10:00.123456Z",
+      "deletedAt": null,
+      "aad": "row/expenses/e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26/1789737000123456/",
+      "plaintext": "{\"uuid\":\"e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26\",\"amountMinor\":45000,\"currency\":\"DZD\",\"category\":\"Food\",\"note\":\"Couscous, Friday\",\"harvestDay\":\"2026-09-18\",\"loggedAt\":\"2026-09-18T13:10:00.000Z\",\"deletedAt\":null,\"updatedAt\":\"2026-09-18T13:10:00.123456Z\"}",
+      "enc": {
+        "v": 2,
+        "iv": "AQ4bKDVCT1xpdoOQ",
+        "ct": "CyraZTujJWItuxfgBPOJq93oIOMmyMMF7GLXrayOrnxiSG0z2YJQFbVnMRr9eKkn2bnG2pQ0xvMj7lFQg7mYzEfTKtS2gsPuIOT2PrcsDMTDYtAFllNwbG+W30uk+5TRZasxQvVb8+xAE87hpkDyjdDHgxITSoTPWVzH5BdWyunPU6t1NoYDrXarsR19jyOpN2K3DOSOuEBsvz4f3kBadvRkS3c26+ltX35XYMoEd32iv/jV4E0N1SzITs6dSDaD/mlDSrwPwbjypzR9Q84GEUbaErBDZJEf5uweeUZNuxNUjzgcw8UVphv7BUgzi1nciTdgbXi6Qv5CM019TDxC+WJ2YClQIc7QQxXg"
+      }
+    },
+    {
+      "table": "debts",
+      "uuid": "5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89",
+      "updatedAt": "2026-09-20T09:00:00.500000Z",
+      "deletedAt": "2026-09-20T09:00:00.500Z",
+      "aad": "row/debts/5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89/1789894800500000/1789894800500000",
+      "plaintext": "{\"uuid\":\"5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89\",\"person\":\"Karim\",\"amountMinor\":1000000,\"currency\":\"DZD\",\"payOffBy\":\"2026-12-31\",\"remindAt\":\"20:00\",\"note\":\"For the laptop\",\"settledAt\":null,\"createdAt\":\"2026-09-05T16:00:00.000Z\",\"deletedAt\":\"2026-09-20T09:00:00.5Z\",\"updatedAt\":\"2026-09-20T09:00:00.5Z\"}",
+      "enc": {
+        "v": 2,
+        "iv": "Ag8cKTZDUF1qd4SR",
+        "ct": "rwDVwEf0P5yHDH98qr834b/RtVexizsCI+xGUvOfj2/IV8xUMmJlX7jbPUTr7aBfhUtvqlKmkJd57Smj1LQCc2PDm7p6eGb9fjoqNlZUGDSYy3GprgezaM2p5Fp07wFJj/iCkMrqPyZrvV4TigunIBIgilVzVDvfccINgI/y7pJAVhRiXEvxIJKzHcGNXUc+Yw174pnZN7W6P2vu/+46jVa6jqzin558tNjqzZJ+JNVp4D8pi7Z2PX2C7zFlCh743tmTZQcFPZCgpI1XW7vuNbnTtY6HNmnhkZcEAGTg/bQOCl3UWCTJr8k6/hSRF/2Oqd9K9GDKyKq2RWW8cjX98/J7MIVHPg/3s4QBPhJ442byYDEea4IIDY8D4LVF+H95VTSL9jG0GZinsLCoCKfEYIDd2yxnTysVq+Peeg=="
+      }
+    },
+    {
+      "table": "debt_payments",
+      "uuid": "b4f7a1e8-6c3d-4e9b-a5f2-8c1d4b7e3f16",
+      "updatedAt": "2026-09-12T16:00:05.000001Z",
+      "deletedAt": null,
+      "aad": "row/debt_payments/b4f7a1e8-6c3d-4e9b-a5f2-8c1d4b7e3f16/1789228805000001/",
+      "plaintext": "{\"uuid\":\"b4f7a1e8-6c3d-4e9b-a5f2-8c1d4b7e3f16\",\"debtUuid\":\"5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89\",\"amountMinor\":250000,\"harvestDay\":\"2026-09-12\",\"loggedAt\":\"2026-09-12T16:00:00.000Z\",\"deletedAt\":null}",
+      "enc": {
+        "v": 2,
+        "iv": "AxAdKjdEUV5reIWS",
+        "ct": "gqZeaBPWan/U1tiSvAMSin2NToq949yI4wv3Tr/KvacSoft1987dhRs7fMInTP/harcW0c+nkV6Yp0pqQndao8uP76bZ7+ossFtve3AocNQ01szetEafgemo6uXC2KnKr6/ooF4h8CM5IklvHxM/ZuF2kOlA6mAQRmRQqfPi3hZXxyIrGwKiKMyCWHAE6Y+Q0aoQnQ8qY1BAOJyhbK3ubeGWF7NoPwoMFrnn8wog0Ejh9lJx5WXMGIWKxKE2uWArVQVJnUlMDptXbOTbEJS/ye0oNzLSPUM="
+      }
+    }
+  ],
+  "keyCheck": {
+    "v": 2,
+    "iv": "BRIfLDlGU2BteoeU",
+    "ct": "nJ5PJJb3rn30L7EkZi3iwAkx2rbGp36yuHORPiaIwVFN"
+  },
+  "refused": [
+    {
+      "why": "an older version offered under a newer updatedAt",
+      "table": "expenses",
+      "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+      "updatedAt": "2026-09-19T08:00:00.000Z",
+      "deletedAt": null,
+      "enc": {
+        "v": 2,
+        "iv": "AQ4bKDVCT1xpdoOQ",
+        "ct": "CyraZTujJWItuxfgBPOJq93oIOMmyMMF7GLXrayOrnxiSG0z2YJQFbVnMRr9eKkn2bnG2pQ0xvMj7lFQg7mYzEfTKtS2gsPuIOT2PrcsDMTDYtAFllNwbG+W30uk+5TRZasxQvVb8+xAE87hpkDyjdDHgxITSoTPWVzH5BdWyunPU6t1NoYDrXarsR19jyOpN2K3DOSOuEBsvz4f3kBadvRkS3c26+ltX35XYMoEd32iv/jV4E0N1SzITs6dSDaD/mlDSrwPwbjypzR9Q84GEUbaErBDZJEf5uweeUZNuxNUjzgcw8UVphv7BUgzi1nciTdgbXi6Qv5CM019TDxC+WJ2YClQIc7QQxXg"
+      }
+    },
+    {
+      "why": "a deleted version offered as live",
+      "table": "debts",
+      "uuid": "5d1c8f4a-2b7e-4c6d-8a9f-4e2b7d5c1a89",
+      "updatedAt": "2026-09-20T09:00:00.500000Z",
+      "deletedAt": null,
+      "enc": {
+        "v": 2,
+        "iv": "Ag8cKTZDUF1qd4SR",
+        "ct": "rwDVwEf0P5yHDH98qr834b/RtVexizsCI+xGUvOfj2/IV8xUMmJlX7jbPUTr7aBfhUtvqlKmkJd57Smj1LQCc2PDm7p6eGb9fjoqNlZUGDSYy3GprgezaM2p5Fp07wFJj/iCkMrqPyZrvV4TigunIBIgilVzVDvfccINgI/y7pJAVhRiXEvxIJKzHcGNXUc+Yw174pnZN7W6P2vu/+46jVa6jqzin558tNjqzZJ+JNVp4D8pi7Z2PX2C7zFlCh743tmTZQcFPZCgpI1XW7vuNbnTtY6HNmnhkZcEAGTg/bQOCl3UWCTJr8k6/hSRF/2Oqd9K9GDKyKq2RWW8cjX98/J7MIVHPg/3s4QBPhJ442byYDEea4IIDY8D4LVF+H95VTSL9jG0GZinsLCoCKfEYIDd2yxnTysVq+Peeg=="
+      }
+    },
+    {
+      "why": "the row's own updatedAt is not the record's",
+      "table": "expenses",
+      "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+      "updatedAt": "2026-09-18T13:10:00.123456Z",
+      "deletedAt": null,
+      "enc": {
+        "v": 2,
+        "iv": "BBEeKzhFUl9seYaT",
+        "ct": "BVGItlAuYvGc8Eg9vFEMwSl9hRzAZJEhM4/LRy/0gn2oiItyjsiI4JXDdg3EgKucI6Zj8y4DqYA7CXWJRNzA7uLNafTHFAXd1SHxZEjIU8BSrj91g9ZsclGnB4Zb02r/uXEhKlecXM+CHnWmNklOPPuNuWQk8qDt47u/qHFxFpQfJmx5Nm1QSTAn1oM8kFTc8WYQZs3BK4F5Cj9dpPy74QyLOu9sywZwwysqJThD4lhMG1ZUps1t+WOVc6KhAwgxwnTEf2QBWtT0MM9+eRyZBuvkZp2dn8thauHpY3xNPHc1mULVwxoK5Ay/MlpKWjG717LcDS1GKkY3QAG5VcTtVFLSZ29WS0iY"
+      }
+    },
+    {
+      "why": "moved to another uuid",
+      "table": "expenses",
+      "uuid": "another-uuid",
+      "updatedAt": "2026-09-18T13:10:00.123456Z",
+      "deletedAt": null,
+      "enc": {
+        "v": 2,
+        "iv": "AQ4bKDVCT1xpdoOQ",
+        "ct": "CyraZTujJWItuxfgBPOJq93oIOMmyMMF7GLXrayOrnxiSG0z2YJQFbVnMRr9eKkn2bnG2pQ0xvMj7lFQg7mYzEfTKtS2gsPuIOT2PrcsDMTDYtAFllNwbG+W30uk+5TRZasxQvVb8+xAE87hpkDyjdDHgxITSoTPWVzH5BdWyunPU6t1NoYDrXarsR19jyOpN2K3DOSOuEBsvz4f3kBadvRkS3c26+ltX35XYMoEd32iv/jV4E0N1SzITs6dSDaD/mlDSrwPwbjypzR9Q84GEUbaErBDZJEf5uweeUZNuxNUjzgcw8UVphv7BUgzi1nciTdgbXi6Qv5CM019TDxC+WJ2YClQIc7QQxXg"
+      }
+    },
+    {
+      "why": "a version 1 envelope",
+      "table": "expenses",
+      "uuid": "e6d1a4c9-5f8b-4e2d-9a3c-7b5f1e8d4a26",
+      "updatedAt": "2026-09-18T13:10:00.123456Z",
+      "deletedAt": null,
+      "enc": {
+        "v": 1,
+        "iv": "AQ4bKDVCT1xpdoOQ",
+        "ct": "CyraZTujJWItuxfgBPOJq93oIOMmyMMF7GLXrayOrnxiSG0z2YJQFbVnMRr9eKkn2bnG2pQ0xvMj7lFQg7mYzEfTKtS2gsPuIOT2PrcsDMTDYtAFllNwbG+W30uk+5TRZasxQvVb8+xAE87hpkDyjdDHgxITSoTPWVzH5BdWyunPU6t1NoYDrXarsR19jyOpN2K3DOSOuEBsvz4f3kBadvRkS3c26+ltX35XYMoEd32iv/jV4E0N1SzITs6dSDaD/mlDSrwPwbjypzR9Q84GEUbaErBDZJEf5uweeUZNuxNUjzgcw8UVphv7BUgzi1nciTdgbXi6Qv5CM019TDxC+WJ2YClQIc7QQxXg"
+      }
+    }
+  ],
+  "proof": "VUZYUh8oqhvQaagtzQmulomGTJVv6vcEiNy34Xhs380=",
+  "verifierHex": "8a520d18dbd2feab50747fb37f259edf10356997629752156c5f2f640771c01d",
+  "proofs": [
+    {
+      "secret": "482913",
+      "iterations": 600000,
+      "baseKeyHex": "37eba267736da9feb014547400b79cd99f8ad172331a0642999b0ad8326fefe9",
+      "proof": "VUZYUh8oqhvQaagtzQmulomGTJVv6vcEiNy34Xhs380=",
+      "verifierHex": "8a520d18dbd2feab50747fb37f259edf10356997629752156c5f2f640771c01d"
+    },
+    {
+      "secret": "0417",
+      "iterations": 1000,
+      "baseKeyHex": "291ee500496cf70efd6444244e3dc3f228f6305099650713b4c3404b75c5c337",
+      "proof": "3FgRL3XZBN/sNto246RhaQZHu0EZXI4Dbfbabjnxans=",
+      "verifierHex": "8a7b64dfebf3f962161957ae603e9a1bdf317b2e9302111ce1b5f9deed741333"
+    }
+  ]
+}

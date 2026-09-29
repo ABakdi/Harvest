@@ -3,10 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/account/domain/account.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/data/memory_files.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/domain/gallery_service.dart';
 import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
@@ -27,6 +30,7 @@ class MemoryViewer extends ConsumerStatefulWidget {
   });
 
   final Album album;
+
   /// The album's memories as the caller had them. They are only the
   /// opening order and the first frame: the viewer watches the album
   /// itself, so a note saved here shows at once rather than the copy
@@ -81,12 +85,33 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
     final memory = _current;
     final file = await ref.read(galleryRepositoryProvider).fileOf(memory);
     if (!file.existsSync()) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.galleryFileGone)));
-      return;
+      // Not here yet says why, as the frame does ([[Gallery]] G9); one
+      // the server has comes down first.
+      final pinSet = ref.read(syncPassphraseProvider).value ?? false;
+      final why = memoryAbsentWords(l10n, memory, pinSet: pinSet);
+      if (why != null) {
+        messenger.showSnackBar(SnackBar(content: Text(why)));
+        return;
+      }
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.galleryFileDownloading)),
+      );
+      final landed = await ref.read(memoryFilesProvider).fetch(memory);
+      messenger.hideCurrentSnackBar();
+      if (!landed || !file.existsSync()) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.galleryFileFailed)),
+        );
+        return;
+      }
     }
+    // Sealed on disk: what is shared is a plain copy in the app's cache,
+    // which the other app may still be reading after the sheet closes;
+    // it goes at the next start (`FileVault.clearCopies`).
+    final copy = await ref.read(fileVaultProvider).openCopy(file);
     await SharePlus.instance.share(
       ShareParams(
-        files: [XFile(file.path)],
+        files: [XFile(copy.path)],
         text: memory.note,
       ),
     );
@@ -109,8 +134,17 @@ class _MemoryViewerState extends ConsumerState<MemoryViewer> {
         content: Text(l10n.galleryMovedToTrash),
         action: SnackBarAction(
           label: l10n.undoAction,
-          onPressed: () =>
-              service.restore(memory, album: widget.album).ignore(),
+          // A refused undo says so rather than leaving the picture
+          // gone with no word ([[Audit-v3]] Q6-12).
+          onPressed: () => unawaited(
+            service.restore(memory, album: widget.album).catchError((
+              Object _,
+            ) {
+              messenger.showSnackBar(
+                SnackBar(content: Text(l10n.saveFailed)),
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -240,6 +274,10 @@ class _VideoMemory extends ConsumerStatefulWidget {
 class _VideoMemoryState extends ConsumerState<_VideoMemory> {
   VideoPlayerController? _controller;
 
+  /// The video opened into a temporary file to play: sealed on disk, it
+  /// is let go with the player.
+  File? _opened;
+
   @override
   void initState() {
     super.initState();
@@ -251,7 +289,13 @@ class _VideoMemoryState extends ConsumerState<_VideoMemory> {
         .read(galleryRepositoryProvider)
         .fileOf(widget.memory);
     if (!mounted || !file.existsSync()) return;
-    final controller = VideoPlayerController.file(File(file.path));
+    final opened = await ref.read(fileVaultProvider).openCopy(file);
+    if (!mounted) {
+      await FileVault.release(opened);
+      return;
+    }
+    _opened = opened;
+    final controller = VideoPlayerController.file(opened);
     try {
       await controller.initialize();
     } on Object {
@@ -269,7 +313,12 @@ class _VideoMemoryState extends ConsumerState<_VideoMemory> {
 
   @override
   void dispose() {
-    unawaited(_controller?.dispose());
+    final opened = _opened;
+    unawaited(
+      (_controller?.dispose() ?? Future<void>.value()).whenComplete(
+        () => FileVault.release(opened),
+      ),
+    );
     super.dispose();
   }
 

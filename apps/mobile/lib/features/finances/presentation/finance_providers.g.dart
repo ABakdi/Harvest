@@ -46,7 +46,7 @@ final class TodayExpensesProvider
   }
 }
 
-String _$todayExpensesHash() => r'455f6eabf908a6915d3aad99ecd0c60538611e52';
+String _$todayExpensesHash() => r'fd450a2fda2215def0d8ce6a7dafa353de9ffdfd';
 
 @ProviderFor(monthExpenses)
 final monthExpensesProvider = MonthExpensesProvider._();
@@ -85,7 +85,7 @@ final class MonthExpensesProvider
   }
 }
 
-String _$monthExpensesHash() => r'00191f58489e17b2a1b384a66f1cc253622d0e70';
+String _$monthExpensesHash() => r'9ce93043bf867e796617ee6b17a137223b23f16c';
 
 @ProviderFor(weekExpenses)
 final weekExpensesProvider = WeekExpensesProvider._();
@@ -124,7 +124,7 @@ final class WeekExpensesProvider
   }
 }
 
-String _$weekExpensesHash() => r'dade004e79efd03b2bb2d5151089285fb13772cd';
+String _$weekExpensesHash() => r'2b64bc4314a4f53352c31c57b726135b535fe77a';
 
 @ProviderFor(customCategories)
 final customCategoriesProvider = CustomCategoriesProvider._();
@@ -202,7 +202,7 @@ final class FinanceSettingsProvider
   FinanceSettings create() => FinanceSettings();
 }
 
-String _$financeSettingsHash() => r'd7664180955b6499387a9aeb705e9a35d77908cc';
+String _$financeSettingsHash() => r'1beb80a87779551529bda48a2a1c64e1a931e7c8';
 
 /// Budget, currency, and expectation settings. Savings moved to the
 /// vault's transaction ledger (checkpoint round 3).
@@ -764,7 +764,7 @@ final class RatesProvider
   }
 }
 
-String _$ratesHash() => r'5fe8a66e65e3acd2694c10b2b11d1ada7acb380c';
+String _$ratesHash() => r'24ca9ff275e01f1ea73ae3e8ee62be10eec24cdf';
 
 /// Every expense in a span — the one source the Insights page reads,
 /// whichever of the three ranges is chosen.
@@ -917,7 +917,7 @@ final class RangeTotalsProvider
   }
 }
 
-String _$rangeTotalsHash() => r'4c5170a554a91e71c9f803a7ee91cd4a0a25daed';
+String _$rangeTotalsHash() => r'3d47201418991ca23b287ee1422f8336270cf8f2';
 
 final class RangeTotalsFamily extends $Family
     with $FunctionalFamilyOverride<Map<String, int>, DayRange> {
@@ -999,7 +999,7 @@ final class RangeByCategoryProvider
   }
 }
 
-String _$rangeByCategoryHash() => r'e23f20709399db25adada3b27696abe5ef329c33';
+String _$rangeByCategoryHash() => r'4b22725d8cf0b84a1e0fa4853de61cf6ae09b17f';
 
 final class RangeByCategoryFamily extends $Family
     with $FunctionalFamilyOverride<Map<String, int>, DayRange> {
@@ -1147,7 +1147,7 @@ final class MonthTotalsProvider
   }
 }
 
-String _$monthTotalsHash() => r'e8b6197452cd841f999221bd2dd2a920bc1366dd';
+String _$monthTotalsHash() => r'a676a16c7553d9a6512f3e1425ae48fa0bb4984d';
 
 @ProviderFor(weekTotals)
 final weekTotalsProvider = WeekTotalsProvider._();
@@ -1193,7 +1193,7 @@ final class WeekTotalsProvider
   }
 }
 
-String _$weekTotalsHash() => r'014d445b55a44a68fe7b4ea7f035b966acd89177';
+String _$weekTotalsHash() => r'a250318f11895a0e7354bc6f9eebacba06d35e79';
 
 @ProviderFor(monthByCategory)
 final monthByCategoryProvider = MonthByCategoryProvider._();
@@ -1239,7 +1239,7 @@ final class MonthByCategoryProvider
   }
 }
 
-String _$monthByCategoryHash() => r'4951fa534b880c63d7321d61608782af79d5f5eb';
+String _$monthByCategoryHash() => r'0b187f34a1a2903a46c3cfd5b81f840877c48cbf';
 
 @ProviderFor(weekByCategory)
 final weekByCategoryProvider = WeekByCategoryProvider._();
@@ -1285,7 +1285,7 @@ final class WeekByCategoryProvider
   }
 }
 
-String _$weekByCategoryHash() => r'49be071c41422c3675c61c894633726d2eb3332e';
+String _$weekByCategoryHash() => r'bbd300ad960cf5bddc24a7e24eaa69ccc2faee08';
 
 /// Today's budget picture in the default currency; null without a budget.
 
@@ -1332,7 +1332,7 @@ final class BudgetSnapshotProvider
   }
 }
 
-String _$budgetSnapshotHash() => r'a76b30770626360d632d5a09044992e0c8c47371';
+String _$budgetSnapshotHash() => r'80583cfa07626ed691ed33af572d0a6206806d50';
 
 @ProviderFor(savingsHealth)
 final savingsHealthProvider = SavingsHealthProvider._();
@@ -1373,7 +1373,7 @@ final class SavingsHealthProvider
   }
 }
 
-String _$savingsHealthHash() => r'd3572e0849a0e993559b8be3e740959f1510d234';
+String _$savingsHealthHash() => r'8a6bc6964e21eca538d1d174597057f2d1eae8f4';
 
 /// The smart-repeat suggestion, refreshed as today's log changes.
 
@@ -1419,4 +1419,4 @@ final class RepeatSuggestionProvider
   }
 }
 
-String _$repeatSuggestionHash() => r'2bf6ba5b7fb957ee21aa8b1d1bfaf42ad076dffd';
+String _$repeatSuggestionHash() => r'40903926b941e4f9bfb49fc784161fb7307469c9';

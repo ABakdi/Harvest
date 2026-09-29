@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { formatBytes } from '@/lib/format';
+import { formatBytes, shortName } from '@/lib/format';
 import { useHarvest } from '../../context';
 import { FileTooLargeError } from '../../data/files';
 import { downscaleImage, extensionOf, type AlbumRow } from '../../data/gallery';
+import { runAction } from '@/lib/actions';
 
 /** Whether this is a touch device, where `capture` opens the camera itself. */
 function hasCamera(): boolean {
@@ -73,7 +74,7 @@ export function CaptureDialog({ album, onClose }: { album: AlbumRow; onClose: ()
         extension,
         note: note.trim() || null,
       });
-      toast.success(t('gallery.added', { name: album.name }));
+      toast.success(t('gallery.added', { name: shortName(album.name) }));
       onClose();
     } catch (error) {
       toast.error(
@@ -127,7 +128,7 @@ export function CaptureDialog({ album, onClose }: { album: AlbumRow; onClose: ()
                   tabIndex={-1}
                   aria-hidden
                   data-testid={`capture-${source.key}`}
-                  onChange={(event) => void take(event)}
+                  onChange={(event) => runAction(() => take(event))}
                 />
                 <Button
                   type="button"

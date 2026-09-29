@@ -3,13 +3,9 @@
   "uuid": "6b9d3f1a-8e5c-4f2b-9d7a-3a6c8e4b1f59",
   "updatedAt": "2026-09-04T20:13:02.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "6b9d3f1a-8e5c-4f2b-9d7a-3a6c8e4b1f59",
-    "dayUuid": "f2c6a8d4-5e1b-4c9f-b3a7-1d5e9c2f6b34",
-    "exerciseId": "0025",
-    "position": 0,
-    "restSeconds": 180,
-    "barGrams": 20000,
-    "note": null
+  "enc": {
+    "v": 2,
+    "iv": "CKhBxk+d25d6daz+",
+    "ct": "1nZIQhFjQ/cjdms0llikCWzbEytohZ+0KO/nJKof25fNVqFunbsPwiLbGaLm73mMt4Q2SKRfulYh6lBTC0KVvUGSdf7D19BD2pZZ/dApKrNqs95TjnBW5OOkMAJSfsojTayyskQaqboARSatxtZ61XZw8Y1Ec0kr+QMRoUIh7eTVMRXBhmMEegVXAi9I3/7lxIOuioM092DXNg80b+MPCqyF5H748o8edcrLyDHiuNooJT7+mppJyXPexGeyX70+oWpXZb0T/OlMm2BzKKq71WAEm/myhkIrkRuUARobXWJiKU+D6sXFPyoTTYhHpcKI9TDIV1Coah5Eb/Oer916my0rb2EctfOJXH+BzjyxmxE="
   }
 }

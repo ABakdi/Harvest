@@ -1,3 +1,4 @@
+import 'package:harvest/core/domain/western_digits.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:intl/intl.dart';
 
@@ -8,6 +9,15 @@ const noteMaxLength = 200;
 /// The largest amount the app will accept, in major units. Beyond this
 /// an entry is a typo, and past 2^63/100 it would silently wrap.
 const maxMajorUnits = 1000000000000;
+
+/// The most an amount can plausibly be, in minor units of its own
+/// currency (`plausibleMaxMinor` in `packages/core`): DA10,000,000 or
+/// €10,000,000. Above it an entry is still allowed, but only after I
+/// say yes to it (W6-15).
+const plausibleMaxMinor = 1000000000;
+
+/// Whether [minor] can be logged without asking first.
+bool isPlausibleAmount(int minor) => minor > 0 && minor <= plausibleMaxMinor;
 
 /// Formats minor units for display: 1250 → "12.50", 500 → "5",
 /// -50 → "-0.50".
@@ -30,9 +40,12 @@ String formatGrouped(int minor) {
   return text.endsWith('.00') ? text.substring(0, text.length - 3) : text;
 }
 
-/// Symbol + grouped amount: "DA66,667.76".
+final _groupedWhole = NumberFormat('#,##0', 'en');
+
+/// Symbol + grouped amount: "DA66,667.76", or "¥1,235" for a currency
+/// shown without decimals (the amount is still kept in hundredths).
 String formatAmount(int minor, Currency currency) =>
-    '${currency.symbol}${formatGrouped(minor)}';
+    '${currency.symbol}${currency.displayDecimals == 0 ? _groupedWhole.format((minor / 100).round()) : formatGrouped(minor)}';
 
 /// Signed display: "+DA500" / "−DA500".
 String formatSigned(int minor, Currency currency) =>
@@ -55,28 +68,12 @@ String formatMoney(int minor, Currency currency) =>
 String formatMoneySigned(int minor, Currency currency) =>
     ltrIsolate(formatSigned(minor, currency));
 
-/// Arabic-Indic and extended Arabic-Indic digits → ASCII, so a number
-/// typed on an Arabic keyboard parses like any other.
-String _latinDigits(String input) {
-  final buffer = StringBuffer();
-  for (final rune in input.runes) {
-    if (rune >= 0x0660 && rune <= 0x0669) {
-      buffer.writeCharCode(rune - 0x0660 + 0x30);
-    } else if (rune >= 0x06F0 && rune <= 0x06F9) {
-      buffer.writeCharCode(rune - 0x06F0 + 0x30);
-    } else {
-      buffer.writeCharCode(rune);
-    }
-  }
-  return buffer.toString();
-}
-
 /// Parses user input ("12", "12.5", "12,50", "1,234") into minor units.
 /// Returns null for anything that isn't a positive amount within
 /// [maxMajorUnits]. A comma is a thousands separator when it is
 /// followed by exactly three digits, and a decimal point otherwise.
 int? parseToMinor(String input) {
-  var text = _latinDigits(input).trim();
+  var text = westernDigits(input).trim();
   if (text.isEmpty || text.startsWith('+') || text.startsWith('-')) return null;
 
   // "1,234" / "1,234,567" are grouped; "1,5" is a decimal comma.

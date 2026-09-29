@@ -193,16 +193,41 @@ void main() {
   });
 
   group('how much an archive may weigh (S2-02)', () {
-    test('a zip whose directory promises too much is refused unread', () {
-      // A header claiming a 100 MB entry with three bytes behind it: the
-      // reader must refuse on the label without inflating anything.
+    test('an entry whose directory promises too much is left out unread, '
+        'and the rest still comes in (Q5-06)', () async {
+      // A header claiming a 64 MB+ entry with three bytes behind it: the
+      // reader must leave it out on the label, without inflating it, and
+      // one long video must not cost the whole archive.
+      final crafted = ZipDecoder().decodeBytes(
+        craftedZip(
+          sheets: {
+            SheetNames.albums: [
+              ['Uuid', 'Name', 'Folder', 'CreatedAt', 'UpdatedAt'],
+              ['a1', 'Gym', 'gallery/Gym', '2026-09-01', '2026-09-01'],
+            ],
+          },
+        ),
+      );
+      final zip = Archive();
+      for (final file in crafted.files) {
+        zip.addFile(ArchiveFile(file.name, file.size, file.content));
+      }
+      zip.addFile(
+        ArchiveFile('gallery/big.jpg', ArchiveLimits.entryBytes + 1, [1, 2, 3]),
+      );
+      final bundle = readArchive(Uint8List.fromList(ZipEncoder().encode(zip)!));
+      expect(bundle.skipped, 1);
+      expect(bundle.files.containsKey('gallery/big.jpg'), isFalse);
+      final preview = await importer.preview(bundle);
+      expect(preview.skippedFiles, 1);
+      expect(preview.tables[SheetNames.albums]!.added, 1);
+    });
+
+    test('a workbook whose directory promises too much is refused unread', () {
       final zip = Archive()
-        ..addFile(ArchiveFile(ArchivePaths.workbook, 1, [0]))
         ..addFile(
-          ArchiveFile('gallery/big.jpg', ArchiveLimits.entryBytes + 1, [
-            1,
-            2,
-            3,
+          ArchiveFile(ArchivePaths.workbook, ArchiveLimits.workbookBytes + 1, [
+            0,
           ]),
         );
       final bytes = Uint8List.fromList(ZipEncoder().encode(zip)!);

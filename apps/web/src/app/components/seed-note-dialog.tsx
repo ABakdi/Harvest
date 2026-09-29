@@ -11,6 +11,7 @@ import { useHarvest, useHarvestDay } from '../context';
 import { notesFor, seedNoteMaxLength } from '../data/seed-notes';
 import type { SeedRow } from '../data/seeds';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
 
 /**
  * Today's note on a seed, with the last one I wrote quoted above it.
@@ -42,13 +43,13 @@ export function SeedNoteDialog({ seed, onClose }: { seed: SeedRow; onClose: () =
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t('seedDetail.notesTitle')}</DialogTitle>
-          <DialogDescription>{seed.title}</DialogDescription>
+          <DialogDescription dir="auto">{seed.title}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-3"
           onSubmit={(event) => {
             event.preventDefault();
-            void once(save);
+            runAction(() => once(save));
           }}
         >
           {previous && (

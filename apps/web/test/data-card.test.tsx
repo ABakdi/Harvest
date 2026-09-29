@@ -1,10 +1,11 @@
 import { Blob as NodeBlob } from 'node:buffer';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DataCard } from '@/app/components/data-card';
 import { HarvestContext } from '@/app/context';
 import { buildArchive } from '@/app/data/export';
+import { ApiError, api } from '@/lib/api';
 import { FakeServer } from './fake-server';
 import { device } from './helpers';
 
@@ -68,11 +69,38 @@ describe('My data on the web', () => {
     const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     renderCard(h);
 
+    const reauth = vi.spyOn(api, 'reauth').mockResolvedValue();
     await userEvent.click(screen.getByRole('button', { name: 'Download the archive' }));
+    // The password first, checked by the server; nothing is written before.
+    const dialog = await screen.findByRole('dialog', { name: 'Your password, first' });
+    expect(clicked).not.toHaveBeenCalled();
+    await userEvent.type(within(dialog).getByLabelText('Account password'), 'the password');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Download' }));
+    expect(reauth).toHaveBeenCalledWith('the password');
     expect(await screen.findByText(/^Saved as harvest-2026-09-19-\d{4}\.zip$/)).toBeInTheDocument();
     expect(clicked).toHaveBeenCalledTimes(1);
     const blob = made.mock.calls[0]![0];
     expect(blob.size).toBeGreaterThan(1000);
+  });
+
+  it('writes nothing on a wrong password, and says how long to wait past the limit (M7.6)', async () => {
+    const h = await withSeed();
+    const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    vi.spyOn(api, 'reauth')
+      .mockRejectedValueOnce(new ApiError(403, 'forbidden', 'Wrong password'))
+      .mockRejectedValueOnce(new ApiError(429, 'rate_limited', 'Too many', [], 600));
+    renderCard(h);
+    await userEvent.click(screen.getByRole('button', { name: 'Download the archive' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Your password, first' });
+    const field = within(dialog).getByLabelText('Account password');
+    await userEvent.type(field, 'not it');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Download' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent("That isn't this account's password.");
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Download' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Too many tries. Try again in 10 minutes.');
+    expect(clicked).not.toHaveBeenCalled();
+    expect(screen.queryByText(/^Saved as/)).toBeNull();
+    expect(screen.queryByText('Reading everything…')).toBeNull();
   });
 
   it('offers the location switch only when places are on, and remembers it here', async () => {
@@ -113,5 +141,23 @@ describe('My data on the web', () => {
     renderCard(h);
     await userEvent.upload(screen.getByLabelText('Bring an archive back'), new File(['hello'], 'notes.zip', { type: 'application/zip' }));
     expect(await screen.findByText('That file could not be opened.')).toBeInTheDocument();
+  });
+});
+
+describe('the password check (M7.6)', () => {
+  it('is POST /v1/me/reauth with the password, and nothing else', async () => {
+    const sent = vi.fn((url: string, _init?: RequestInit) =>
+      Promise.resolve(
+        url.endsWith('/v1/auth/refresh')
+          ? Response.json({ accessToken: 'token', accessExpiresIn: 900, user: {} })
+          : new Response(null, { status: 204 }),
+      ),
+    );
+    vi.stubGlobal('fetch', sent);
+    await api.reauth('the password');
+    const [, init] = sent.mock.calls.find(([url]) => url.endsWith('/v1/me/reauth'))!;
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(init?.body as string)).toEqual({ password: 'the password' });
+    vi.unstubAllGlobals();
   });
 });

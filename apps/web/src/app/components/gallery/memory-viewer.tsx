@@ -11,6 +11,7 @@ import { LocationNote } from '../location-note';
 import { useHarvest } from '../../context';
 import type { MemoryRow } from '../../data/gallery';
 import { MemoryMedia, useRowFile } from './memory-media';
+import { runAction } from '@/lib/actions';
 
 /** The file name a picture leaves as: the phone's own, from its path. */
 function downloadName(memory: MemoryRow): string {
@@ -80,7 +81,7 @@ export function MemoryViewer({
     await gallery.removeMemory(uuid);
     onClose();
     toast(t('gallery.movedToTrash'), {
-      action: { label: t('common.undo'), onClick: () => void gallery.restoreMemory(uuid) },
+      action: { label: t('common.undo'), onClick: () => runAction(() => gallery.restoreMemory(uuid)) },
     });
   };
 
@@ -88,7 +89,8 @@ export function MemoryViewer({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 text-white sm:max-w-none"
+        sheet={false}
+        className="flex h-[100dvh] max-h-none w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white sm:max-w-none"
       >
         <div className="flex items-center gap-1 p-2">
           <DialogTitle className="flex-1 truncate px-2 text-lg text-white">
@@ -122,7 +124,7 @@ export function MemoryViewer({
             size="icon"
             className="text-white hover:bg-white/10 hover:text-white"
             aria-label={t('common.delete')}
-            onClick={() => void remove()}
+            onClick={() => runAction(() => remove())}
           >
             <Trash2Icon />
           </Button>
@@ -134,7 +136,7 @@ export function MemoryViewer({
         </div>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
-          <MemoryMedia key={memory.uuid} memory={memory} fit="contain" controls className="size-full" />
+          <MemoryMedia key={memory.uuid} memory={memory} fit="contain" controls explain className="size-full" />
           {at > 0 && (
             <Button
               variant="ghost"
@@ -165,7 +167,7 @@ export function MemoryViewer({
               className="flex flex-col gap-2"
               onSubmit={(event) => {
                 event.preventDefault();
-                void saveNote();
+                runAction(() => saveNote());
               }}
             >
               <Label htmlFor={`${id}-note`} className="text-white">

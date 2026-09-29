@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/domain/secure_address.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/assist/data/assist_settings.dart';
 import 'package:harvest/features/assist/data/providers.dart';
@@ -150,9 +151,17 @@ class _AssistSettingsCardState extends ConsumerState<AssistSettingsCard> {
               TextField(
                 controller: _baseUrl,
                 keyboardType: TextInputType.url,
+                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: l10n.assistBaseUrl,
                   hintText: 'https://api.openai.com/v1',
+                  // Plain http is only for this device (S6-12).
+                  errorText:
+                      _baseUrl.text.trim().isEmpty ||
+                          isSecureAddress(_baseUrl.text)
+                      ? null
+                      : l10n.assistBaseUrlNotSecure,
+                  errorMaxLines: 3,
                 ),
               ),
             ],

@@ -8,8 +8,8 @@
 #   sudo deploy/deploy.sh --domain harvest.example.org --email me@example.org
 #
 # The first run installs what is missing (Docker, nginx, certbot),
-# writes deploy/.env with a fresh key pair, and stops to let me fill in
-# the mail settings. Every later run is an update: pull, build, restart
+# writes deploy/.env with a fresh key pair, the database's passwords and
+# the key-share key, and stops to let me fill in the mail settings. Every later run is an update: pull, build, restart
 # the server, switch the site to the new build, reload nginx. Running it
 # again with nothing new is harmless.
 #
@@ -185,6 +185,30 @@ if [[ -z "$(env_get JWT_PRIVATE_KEY)" || -z "$(env_get JWT_PUBLIC_KEY)" ]]; then
   note "made a new Ed25519 signing pair"
 fi
 
+# The key every account's key share is sealed with. Made once and never
+# replaced: without it, every private tier on this server is unreadable.
+if [[ -z "$(env_get KEY_SHARE_KEY)" ]]; then
+  env_set KEY_SHARE_KEY "$(openssl rand -base64 32)"
+  printf '\n\033[1;33m!!\033[0m %s\n' \
+    "made KEY_SHARE_KEY in $ENV_FILE. It seals every account's key share:" \
+    "   lose it and every private tier on this server is unreadable, for good." \
+    "   Back it up, but not beside the database backups: keep deploy/.env in another" \
+    "   place, under another key, so a leaked database backup never comes with it."
+fi
+
+# The database's two users: root for me and for this script, and the
+# one the server connects as, which may only read and write its own
+# database.
+[[ -n "$(env_get MONGO_ROOT_USERNAME)" ]] || env_set MONGO_ROOT_USERNAME root
+if [[ -z "$(env_get MONGO_ROOT_PASSWORD)" ]]; then
+  env_set MONGO_ROOT_PASSWORD "$(openssl rand -hex 24)"
+  note "made a password for MongoDB's root user"
+fi
+if [[ -z "$(env_get MONGO_APP_PASSWORD)" ]]; then
+  env_set MONGO_APP_PASSWORD "$(openssl rand -hex 24)"
+  note "made a password for the server's MongoDB user"
+fi
+
 # MongoDB 5 and later stop with an illegal instruction on a CPU without
 # AVX, which some virtual servers expose. 4.4 is the last that runs
 # there; Harvest works on it. Chosen once: a database made by one version
@@ -194,7 +218,8 @@ if [[ -z "$(env_get HARVEST_MONGO_VERSION)" ]]; then
     env_set HARVEST_MONGO_VERSION 7
   else
     env_set HARVEST_MONGO_VERSION 4.4
-    note "this CPU has no AVX: MongoDB 4.4 (7 needs AVX)"
+    note "this CPU has no AVX: MongoDB 4.4 (7 needs AVX)."
+    note "4.4 gets no security fixes any more: a stopgap until a host with AVX."
   fi
 fi
 
@@ -255,8 +280,103 @@ chmod -R a+rX "$WEB_BASE"
 
 # ----------------------------------------------------------- the server
 
+# A script for the mongo shell inside the database's container, from
+# stdin; mongosh on 5 and later, the older mongo shell on 4.4. It goes
+# through a file inside the container so no password is on a command
+# line.
+# shellcheck disable=SC2016 # expanded by the container's sh, not here
+MONGO_SHELL='d="$(mktemp -d)"; cat >"$d/script.js"; if command -v mongosh >/dev/null 2>&1; then s=mongosh; else s=mongo; fi; "$s" --quiet "$d/script.js"; rc=$?; rm -rf "$d"; exit $rc'
+
+# Makes (or brings up to date) both users. Idempotent. [auth] is empty
+# on a database without access control yet, and the root login after.
+# A value as a single-quoted JavaScript string: backslashes and quotes
+# escaped, so a password set by hand cannot end the string early (S6-18).
+js_quote() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\'/\\\'}"
+  printf "'%s'" "$value"
+}
+
+mongo_users_js() {
+  local auth="$1" root_user root_pass app_pass
+  root_user="$(env_get MONGO_ROOT_USERNAME)"
+  [[ "$root_user" =~ ^[A-Za-z0-9_]+$ ]] || die "MONGO_ROOT_USERNAME may hold letters, digits and _ only"
+  root_pass="$(env_get MONGO_ROOT_PASSWORD)"
+  app_pass="$(env_get MONGO_APP_PASSWORD)"
+  [[ "$root_pass$app_pass" != *[[:cntrl:]]* ]] || die "the MongoDB passwords in deploy/.env may not hold control characters"
+  root_pass="$(js_quote "$root_pass")"
+  app_pass="$(js_quote "$app_pass")"
+  # shellcheck disable=SC2016 # the quotes are JavaScript's; the heredoc expands
+  cat <<JS
+const admin = db.getSiblingDB('admin');
+${auth:+admin.auth('$root_user', $root_pass);}
+if (admin.getUser('$root_user')) admin.updateUser('$root_user', { pwd: $root_pass, roles: [{ role: 'root', db: 'admin' }] });
+else admin.createUser({ user: '$root_user', pwd: $root_pass, roles: [{ role: 'root', db: 'admin' }] });
+const harvest = db.getSiblingDB('harvest');
+if (harvest.getUser('harvest')) harvest.updateUser('harvest', { pwd: $app_pass, roles: [{ role: 'readWrite', db: 'harvest' }] });
+else harvest.createUser({ user: 'harvest', pwd: $app_pass, roles: [{ role: 'readWrite', db: 'harvest' }] });
+JS
+}
+
+mongo_ready() { # container
+  for _ in $(seq 1 60); do
+    if docker exec "$1" sh -c 'mongosh --quiet --eval "db.adminCommand(\"ping\").ok" 2>/dev/null || mongo --quiet --eval "db.adminCommand(\"ping\").ok"' >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+# A database from before access control (every deploy before this one
+# made it without): its users are made on the instance as it runs now,
+# with no access control, and only then is it started again with it. A
+# volume made from here on gets them from the image instead.
+if [[ "$(env_get HARVEST_MONGO_AUTH)" != 1 ]]; then
+  volume=harvest_mongo-data # the compose project is "harvest"
+  if docker volume inspect "$volume" >/dev/null 2>&1; then
+    say "Adding users to the existing database"
+    running="$("${COMPOSE[@]}" ps -q mongo 2>/dev/null || true)"
+    if [[ -n "$running" ]] && [[ "$(docker inspect -f '{{.State.Running}}' "$running" 2>/dev/null)" == true ]]; then
+      mongo_ctr="$running"
+      temporary=0
+    else
+      # Not running: the same volume, the same version, no access
+      # control, on no network, for as long as this takes.
+      mongo_ctr="harvest-mongo-migrate"
+      docker rm -f "$mongo_ctr" >/dev/null 2>&1 || true
+      docker run -d --name "$mongo_ctr" --network none -v "$volume:/data/db" \
+        "mongo:$(env_get HARVEST_MONGO_VERSION)" >/dev/null
+      temporary=1
+    fi
+    # The temporary one is stopped cleanly whatever happens, or it would
+    # hold the volume against the real one.
+    let_go() { [[ $temporary -eq 0 ]] || { docker stop -t 60 "$mongo_ctr" >/dev/null && docker rm "$mongo_ctr" >/dev/null; }; }
+    if ! mongo_ready "$mongo_ctr"; then
+      let_go || true
+      die "the database did not answer; nothing was changed"
+    fi
+    if ! mongo_users_js '' | docker exec -i "$mongo_ctr" sh -c "$MONGO_SHELL" >/dev/null; then
+      # Already has access control (a run stopped half-way): as root, then.
+      if ! mongo_users_js auth | docker exec -i "$mongo_ctr" sh -c "$MONGO_SHELL" >/dev/null; then
+        let_go || true
+        die "could not add the database users; the database is as it was"
+      fi
+    fi
+    let_go
+    note "made the users root and harvest; the database restarts with access control"
+  fi
+fi
+
 say "Starting the database and the server"
 export HARVEST_RELEASE="$RELEASE"
+"${COMPOSE[@]}" up -d --wait mongo
+# Every run: the users as deploy/.env says, so a password changed there
+# reaches the database.
+mongo_users_js auth | "${COMPOSE[@]}" exec -T mongo sh -c "$MONGO_SHELL" >/dev/null ||
+  die "could not sign in to the database as root with the password in deploy/.env"
+env_set HARVEST_MONGO_AUTH 1
 "${COMPOSE[@]}" up -d --remove-orphans
 note "waiting for http://127.0.0.1:$API_PORT/v1/health"
 for _ in $(seq 1 60); do
@@ -309,12 +429,14 @@ write_site() {
   [[ -f "$SITE" ]] && backup="$(mktemp)" && cp "$SITE" "$backup"
   printf '%s\n' "$rendered" >"$SITE"
   ln -sfn "$SITE" /etc/nginx/sites-enabled/harvest
-  if ! nginx -t 2>/tmp/harvest-nginx-test; then
-    cat /tmp/harvest-nginx-test >&2
+  test_log="$(mktemp)"
+  if ! nginx -t 2>"$test_log"; then
+    cat "$test_log" >&2
+    rm -f "$test_log"
     if [[ -n "$backup" ]]; then cp "$backup" "$SITE"; else rm -f "$SITE" /etc/nginx/sites-enabled/harvest; fi
     die "nginx refused the new site; the previous one is back in place"
   fi
-  rm -f "$backup" /tmp/harvest-nginx-test
+  rm -f "$backup" "$test_log"
   systemctl reload nginx
 }
 
@@ -326,6 +448,8 @@ if [[ -n "$WITH_WWW" ]]; then
     listen [::]:443 ssl$h2_listen;
     $h2_directive
     server_name www.$DOMAIN;
+    access_log /var/log/nginx/harvest.access.log harvest_noip;
+    error_log /var/log/nginx/harvest.error.log crit;
     ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
     return 301 https://$DOMAIN\$request_uri;
@@ -384,6 +508,32 @@ site="$(render "$DEPLOY/nginx/harvest.https.conf")"
 site="${site//__WWW_REDIRECT__/$www_block}"
 write_site "$site"
 
+# ------------------------------------------------------------- backups
+
+# The nightly backup, installed with the site (Phase 7, M7.7): backup.sh
+# at 03:17 server time, encrypted to HARVEST_BACKUP_RECIPIENT before it
+# touches the disk, the newest 14 kept in /root/harvest-backups. Without
+# a recipient there is nothing it may write, so none is installed and
+# the run says so; an unencrypted backup is never the fallback.
+say "Nightly backups"
+BACKUP_CRON=/etc/cron.d/harvest-backup
+recipient="$(env_get HARVEST_BACKUP_RECIPIENT | tr -d '"'"'"' ')"
+if [[ "$recipient" == age1* ]]; then
+  command -v age >/dev/null || apt_install age
+  cat >"$BACKUP_CRON" <<CRON
+# Written by deploy/deploy.sh: Harvest's encrypted nightly backup.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+17 3 * * * root "$DEPLOY/backup.sh" --keep 14 >>/var/log/harvest-backup.log 2>&1
+CRON
+  chmod 644 "$BACKUP_CRON"
+  note "every night at 03:17, encrypted to ${recipient:0:12}…, into /root/harvest-backups (log: /var/log/harvest-backup.log)"
+else
+  rm -f "$BACKUP_CRON"
+  note "none: set HARVEST_BACKUP_RECIPIENT in deploy/.env to an age public key made on another machine"
+  note "      (age-keygen -o harvest.key, there), and run this again"
+fi
+
 # ------------------------------------------------------------- tidy up
 
 say "Keeping the last $KEEP_RELEASES builds"
@@ -409,4 +559,5 @@ fi
 say "Harvest $RELEASE is live at https://$DOMAIN"
 note "update: sudo deploy/deploy.sh          (it remembers the domain)"
 note "logs:   docker compose -f deploy/compose.server.yaml --env-file deploy/.env logs -f server"
-note "backup: the MongoDB volume harvest_mongo-data — see docs/02-Architecture/Deployment.md"
+note "backup: nightly, encrypted (deploy/backup.sh); keep deploy/.env (its KEY_SHARE_KEY)"
+note "        apart from the backups, and the backup key off this server — see docs/02-Architecture/Deployment.md"

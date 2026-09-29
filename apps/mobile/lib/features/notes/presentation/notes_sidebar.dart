@@ -191,6 +191,7 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
                 horizontal: HarvestSpacing.md,
               ),
               child: TextField(
+                textCapitalization: TextCapitalization.sentences,
                 controller: _search,
                 textInputAction: TextInputAction.search,
                 onChanged: (_) => setState(() {}),
@@ -254,9 +255,13 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
         ),
       );
     }
-    return ListView(
+    final rows = <Widget>[
+      for (final note in matches) _noteTile(note, depth: 0),
+    ];
+    return ListView.builder(
       padding: const EdgeInsets.only(bottom: HarvestSpacing.md),
-      children: [for (final note in matches) _noteTile(note, depth: 0)],
+      itemCount: rows.length,
+      itemBuilder: (_, i) => rows[i],
     );
   }
 
@@ -265,17 +270,19 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
     final roots = folders.where((f) => !f.contains('/')).toList();
     final loose = _sorted(all.where((n) => n.folder.isEmpty).toList());
 
-    return ListView(
+    final rows = <Widget>[
+      for (final folder in roots) ..._folder(folder, all, folders, 0),
+      for (final note in loose) _noteTile(note, depth: 0),
+      _NewHere(
+        label: AppLocalizations.of(context).notesNewHere,
+        depth: 0,
+        onTap: () => widget.onNewNote(''),
+      ),
+    ];
+    return ListView.builder(
       padding: const EdgeInsets.only(bottom: HarvestSpacing.md),
-      children: [
-        for (final folder in roots) ..._folder(folder, all, folders, 0),
-        for (final note in loose) _noteTile(note, depth: 0),
-        _NewHere(
-          label: AppLocalizations.of(context).notesNewHere,
-          depth: 0,
-          onTap: () => widget.onNewNote(''),
-        ),
-      ],
+      itemCount: rows.length,
+      itemBuilder: (_, i) => rows[i],
     );
   }
 
@@ -307,53 +314,55 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
           if (!_open.add(folder)) _open.remove(folder);
         }),
         onLongPress: () => unawaited(_folderMenu(folder)),
-        child: Padding(
-          // The indent is the leading edge: in Arabic the tree nests
-          // from the right, and fromLTRB would read it backwards
-          // ([[Audit-v2]] U3-10).
-          padding: EdgeInsetsDirectional.fromSTEB(
-            HarvestSpacing.md + depth * 14,
-            8,
-            HarvestSpacing.sm,
-            8,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                expanded ? Icons.expand_more : Icons.chevron_right,
-                size: 18,
-                color: scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 2),
-              Icon(
-                expanded ? Icons.folder_open : Icons.folder,
-                size: 18,
-                color: scheme.tertiary,
-              ),
-              const SizedBox(width: HarvestSpacing.xs),
-              Expanded(
-                child: Text(
-                  folder.split('/').last,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+        child: _TapRow(
+          child: Padding(
+            // The indent is the leading edge: in Arabic the tree nests
+            // from the right, and fromLTRB would read it backwards
+            // ([[Audit-v2]] U3-10).
+            padding: EdgeInsetsDirectional.fromSTEB(
+              HarvestSpacing.md + depth * 14,
+              8,
+              HarvestSpacing.sm,
+              8,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  expanded ? Icons.expand_more : Icons.chevron_right,
+                  size: 18,
+                  color: scheme.onSurfaceVariant,
                 ),
-              ),
-              if (count > 0)
-                Text(
-                  '$count',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
+                const SizedBox(width: 2),
+                Icon(
+                  expanded ? Icons.folder_open : Icons.folder,
+                  size: 18,
+                  color: scheme.tertiary,
+                ),
+                const SizedBox(width: HarvestSpacing.xs),
+                Expanded(
+                  child: Text(
+                    folder.split('/').last,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              IconButton(
-                tooltip: l10n.notesFolderOptions,
-                icon: const Icon(Icons.more_horiz, size: 18),
-                onPressed: () => unawaited(_folderMenu(folder)),
-              ),
-            ],
+                if (count > 0)
+                  Text(
+                    '$count',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                IconButton(
+                  tooltip: l10n.notesFolderOptions,
+                  icon: const Icon(Icons.more_horiz, size: 18),
+                  onPressed: () => unawaited(_folderMenu(folder)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -433,6 +442,9 @@ class _NotesSidebarState extends ConsumerState<NotesSidebar> {
         color: selected
             ? scheme.secondaryContainer.withValues(alpha: 0.6)
             : null,
+        // A row a finger can hit: 48 dp, not 36 (U6-25).
+        constraints: const BoxConstraints(minHeight: HarvestSpacing.tap),
+        alignment: AlignmentDirectional.centerStart,
         padding: EdgeInsetsDirectional.fromSTEB(
           HarvestSpacing.md + depth * 14,
           8,
@@ -481,27 +493,42 @@ class _NewHere extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          HarvestSpacing.md + depth * 14,
-          8,
-          HarvestSpacing.md,
-          8,
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.add, size: 17, color: scheme.primary),
-            const SizedBox(width: HarvestSpacing.xs),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w700,
+      child: _TapRow(
+        child: Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(
+            HarvestSpacing.md + depth * 14,
+            8,
+            HarvestSpacing.md,
+            8,
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.add, size: 17, color: scheme.primary),
+              const SizedBox(width: HarvestSpacing.xs),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.primaryText,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// A row of the tree at least 48 dp tall, whatever its text (U6-25).
+class _TapRow extends StatelessWidget {
+  const _TapRow({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: HarvestSpacing.tap),
+    child: Align(alignment: AlignmentDirectional.centerStart, child: child),
+  );
 }

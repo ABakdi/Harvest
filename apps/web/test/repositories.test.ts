@@ -1,3 +1,4 @@
+import { buyListId, wishListId } from '@harvest/contracts';
 import { HarvestDay } from '@harvest/core';
 import { describe, expect, it } from 'vitest';
 import { FakeServer } from './fake-server';
@@ -166,9 +167,10 @@ describe('the outbox', () => {
 describe('the wishlist', () => {
   it('keeps two lists of the same rows, in my order (W1)', async () => {
     const h = await device(new FakeServer());
-    const coat = await h.wishlist.add({ list: 'buy', title: 'Winter coat', priceMinor: 1_800_000, targetDay: '2026-10-15' });
-    await h.wishlist.add({ list: 'buy', title: 'Kettle' });
-    await h.wishlist.add({ list: 'wish', title: 'Espresso machine', note: 'one day' });
+    await h.lists.ensureBuiltIns();
+    const coat = await h.lists.addItem(buyListId, { title: 'Winter coat', priceMinor: 1_800_000, targetDay: '2026-10-15' });
+    await h.lists.addItem(buyListId, { title: 'Kettle' });
+    await h.lists.addItem(wishListId, { title: 'Espresso machine', note: 'one day' });
 
     const rows = await h.db.rows('wishlist_items').toArray();
     const buy = rows.filter((row) => row.list === 'buy').sort((a, b) => a.position - b.position);
@@ -183,8 +185,9 @@ describe('the wishlist', () => {
 
   it('an estimate is a plan: no wallet, ledger, expense or debt row is written (W2)', async () => {
     const h = await device(new FakeServer());
-    const coat = await h.wishlist.add({ list: 'buy', title: 'Winter coat', priceMinor: 1_800_000 });
-    await h.wishlist.setBought(coat.uuid, true);
+    await h.lists.ensureBuiltIns();
+    const coat = await h.lists.addItem(buyListId, { title: 'Winter coat', priceMinor: 1_800_000 });
+    await h.lists.setDone(coat.uuid, true);
 
     for (const table of ['expenses', 'money_txns', 'ledger', 'debts'] as const) {
       expect(await h.db.rows(table).toArray(), table).toEqual([]);
@@ -193,26 +196,26 @@ describe('the wishlist', () => {
 
   it('buying stamps the row, and un-buying brings it back (W3)', async () => {
     const h = await device(new FakeServer());
-    const coat = await h.wishlist.add({ list: 'buy', title: 'Winter coat' });
+    await h.lists.ensureBuiltIns();
+    const coat = await h.lists.addItem(buyListId, { title: 'Winter coat' });
 
-    await h.wishlist.setBought(coat.uuid, true);
+    await h.lists.setDone(coat.uuid, true);
     expect((await h.db.rows('wishlist_items').get(coat.uuid))?.boughtAt).not.toBeNull();
-    await h.wishlist.setBought(coat.uuid, false);
+    await h.lists.setDone(coat.uuid, false);
     expect((await h.db.rows('wishlist_items').get(coat.uuid))?.boughtAt).toBeNull();
   });
 
   it('moving is a mood, not a copy (W4)', async () => {
     const h = await device(new FakeServer());
-    const coat = await h.wishlist.add({
-      list: 'wish',
-      title: 'Winter coat',
+    await h.lists.ensureBuiltIns();
+    const coat = await h.lists.addItem(wishListId, { title: 'Winter coat',
       priceMinor: 1_800_000,
       currency: 'EUR',
       note: 'Wool',
       targetDay: '2026-10-15',
     });
 
-    await h.wishlist.move(coat.uuid, 'buy');
+    await h.lists.moveItem(coat.uuid, buyListId);
     expect(await h.db.rows('wishlist_items').get(coat.uuid)).toMatchObject({
       list: 'buy',
       priceMinor: 1_800_000,
@@ -224,25 +227,26 @@ describe('the wishlist', () => {
 
   it('reorders within one list, deletes softly, and purges eventually (W6)', async () => {
     const h = await device(new FakeServer());
-    const a = await h.wishlist.add({ list: 'buy', title: 'A' });
-    const b = await h.wishlist.add({ list: 'buy', title: 'B' });
-    const c = await h.wishlist.add({ list: 'buy', title: 'C' });
+    await h.lists.ensureBuiltIns();
+    const a = await h.lists.addItem(buyListId, { title: 'A' });
+    const b = await h.lists.addItem(buyListId, { title: 'B' });
+    const c = await h.lists.addItem(buyListId, { title: 'C' });
 
-    await h.wishlist.reorder('buy', [c.uuid, a.uuid, b.uuid]);
+    await h.lists.reorderItems(buyListId, [c.uuid, a.uuid, b.uuid]);
     const order = (await h.db.rows('wishlist_items').toArray())
       .filter((row) => row.list === 'buy')
       .sort((x, y) => x.position - y.position)
       .map((row) => row.title);
     expect(order).toEqual(['C', 'A', 'B']);
 
-    await h.wishlist.delete(c.uuid);
+    await h.lists.deleteItem(c.uuid);
     expect((await h.db.rows('wishlist_items').get(c.uuid))?.deletedAt).not.toBeNull();
-    await h.wishlist.restore(c.uuid);
+    await h.lists.restoreItem(c.uuid);
     expect((await h.db.rows('wishlist_items').get(c.uuid))?.deletedAt).toBeNull();
 
-    await h.wishlist.delete(a.uuid);
+    await h.lists.deleteItem(a.uuid);
     h.clock.set('2027-01-01T00:00:00.000Z');
-    await h.wishlist.purgeDeleted(30 * 24 * 60 * 60 * 1000);
+    await h.lists.purgeDeleted(30 * 24 * 60 * 60 * 1000);
     expect(await h.db.rows('wishlist_items').get(a.uuid)).toBeUndefined();
     expect(await h.db.rows('wishlist_items').get(b.uuid)).toBeDefined();
     // A purge travels as a hard-deleted record, not as a row.

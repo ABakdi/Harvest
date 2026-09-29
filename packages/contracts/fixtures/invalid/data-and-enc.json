@@ -1,6 +1,6 @@
 {
-  "why": "a plain row travels as data, never enc as well",
-  "path": "enc",
+  "why": "a row travels as enc, never with data beside it",
+  "path": "data",
   "record": {
     "table": "check_ins",
     "uuid": "b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",

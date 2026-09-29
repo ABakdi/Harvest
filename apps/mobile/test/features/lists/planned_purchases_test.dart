@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,8 +19,50 @@ import 'package:harvest/l10n/app_localizations.dart';
 
 /// The Granary keeps one line of the shopping lists on Today: the open
 /// estimates per currency, a plan summed into nothing else ([[Lists]]
-/// L3), opening the lists on *To buy*. The Wishlist tab is gone.
+/// L3), opening the lists on *To buy*. The Wishlist tab is gone, and
+/// the Wishlist is not a plan (`packages/core/fixtures/lists.json`).
 void main() {
+  group('core/lists.json', () {
+    final data = jsonDecode(
+      File('../../packages/core/fixtures/lists.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final lists = [
+      for (final l in (data['lists'] as List).cast<Map<String, dynamic>>())
+        ItemList(
+          uuid: l['uuid'] as String,
+          name: l['uuid'] as String,
+          kind: ListKind.parse(l['kind'] as String),
+          builtIn: BuiltInList.ofKey(l['builtIn'] as String?),
+          createdAt: DateTime(2026),
+        ),
+    ];
+    for (final c
+        in (data['plannedPurchases'] as List).cast<Map<String, dynamic>>()) {
+      test(c['why'] as String, () {
+        final items = [
+          for (final (i, it)
+              in (c['items'] as List).cast<Map<String, dynamic>>().indexed)
+            ListItem(
+              uuid: 'i$i',
+              listUuid: it['listUuid'] as String,
+              title: 'i$i',
+              priceMinor: it['priceMinor'] as int?,
+              currency: Currency.fromCode(it['currency'] as String),
+              doneAt: it['done'] as bool ? DateTime(2026) : null,
+              createdAt: DateTime(2026),
+            ),
+        ];
+        expect(
+          {
+            for (final e in plannedPurchaseTotals(lists, items).entries)
+              e.key.code: e.value,
+          },
+          c['sums'],
+        );
+      });
+    }
+  });
+
   late HarvestDatabase db;
   late ListsRepository repo;
 
@@ -41,8 +86,9 @@ void main() {
     final router = GoRouter(
       routes: [
         GoRoute(path: '/', builder: (_, _) => const GranaryScreen()),
+        // Under the Granary, so Back comes home to it (U6-06).
         GoRoute(
-          path: AppRoutes.lists,
+          path: AppRoutes.granaryLists,
           builder: (_, state) =>
               Text('lists:${state.uri.queryParameters['list']}'),
         ),
@@ -73,7 +119,11 @@ void main() {
   }
 
   Future<void> seed(WidgetTester tester) => tester.runAsync(() async {
-    await repo.addItem(BuiltInList.buy.uuid, title: 'Kettle', priceMinor: 85000);
+    await repo.addItem(
+      BuiltInList.buy.uuid,
+      title: 'Kettle',
+      priceMinor: 85000,
+    );
     await repo.addItem(
       BuiltInList.wish.uuid,
       title: 'Espresso machine',
@@ -103,8 +153,10 @@ void main() {
     final line = find.textContaining('Planned purchases · ');
     expect(line, findsOneWidget);
     final text = tester.widget<Text>(line).data!;
-    // DA850 + DA18,000 open; the bought coat is not planned any more.
-    expect(text, contains('18,850'));
+    // DA850 open; the wished-for espresso machine is not a plan, and
+    // the bought coat is not planned any more.
+    expect(text, contains('850'));
+    expect(text, isNot(contains('18,')));
     expect(text, contains('65'));
     expect(text, isNot(contains('9,999')));
 

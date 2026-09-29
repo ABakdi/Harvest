@@ -3,17 +3,9 @@
   "uuid": "5c8e2b7a-1d4f-4e9c-a6b3-8f2d5c1e7a93",
   "updatedAt": "2026-09-12T09:14:02.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "5c8e2b7a-1d4f-4e9c-a6b3-8f2d5c1e7a93",
-    "noteUuid": "2d9e6b1f-8a4c-4c7e-a3f5-6b1d9e2c8a71",
-    "kind": "audio",
-    "fileName": "memo-2026-09-12.m4a",
-    "storedPath": "attachments/memo-2026-09-12.m4a",
-    "durationMs": 48230,
-    "sizeBytes": 389120,
-    "fileHash": null,
-    "createdAt": "2026-09-12T09:14:02.000Z",
-    "updatedAt": "2026-09-12T09:14:02.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "HvdEnrf9oLqfqUKI",
+    "ct": "7HfJk1JOWao2rqDeuzqKFnwZf4dlABHb74uSgP6AD1Riyc//uKNUE7Lv4n3Ph1WtWwfALaq9KSwfCWjhtglagPtournMNhKpuUyiGQrfNg3+a+dJY7JbPfu8zvSTStCClepDZ1KoFWMXiLEV8XM/tR5b80q0tw8TarGuC9XAsV2rfjVaKwTSeQfj+5Y52uYvJAMYy3E45GbSQBIAgQBe5cmWPES29JYE5JDcbdn7mHXh9ZcL50cC0IggRQQ9XBJr/yHGB5Biwnar1WKz26wipCalt+g41FgmyT520fWMeAddPiPftcMkX4WDNmJS6vIk22GOu76OTt0WjsZVE06UDxRgiVzWcdBYfsefjXwJdFXUS6kj4a+izK96xN9n3qn/uzaCym4IGC+kPBGfFlUKLL9T7ulxZ9ZfmKI3uuU+G7AnyiPy2rP7MrDCpGroeMQHrAZn7XFFBQ+GbOutaif6O8zE2GdtqUvi6CAl4ERXu1I="
   }
 }

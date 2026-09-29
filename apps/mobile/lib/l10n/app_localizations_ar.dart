@@ -194,9 +194,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get todoOverdue => 'متأخرة';
-
-  @override
   String get rankSprout => 'برعم';
 
   @override
@@ -234,7 +231,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count أيام',
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
       two: 'يومان',
       one: 'يوم واحد',
       zero: 'لا أيام',
@@ -272,7 +271,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count عملات',
+      other: '$count عملة',
+      many: '$count عملةً',
+      few: '$count عملات',
       two: 'عملتان',
       one: 'عملة واحدة',
       zero: 'لا عملات',
@@ -423,7 +424,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statsBestStreak => 'أفضل سلسلة';
 
   @override
-  String get statsCheckIns => 'الإنجازات';
+  String get statsCheckIns => 'التسجيلات';
 
   @override
   String get statsActivity => 'النشاط';
@@ -499,16 +500,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get budgetTitle => 'الميزانية الشهرية';
 
   @override
-  String budgetSpentOf(String spent, String budget) {
-    return '$spent من $budget هذا الشهر';
-  }
-
-  @override
-  String budgetFloating(String spent, String limit) {
-    return '$spent / $limit اليوم';
-  }
-
-  @override
   String get budgetSet => 'حدد ميزانية شهرية';
 
   @override
@@ -557,19 +548,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get archiveAction => 'أرشفة';
 
   @override
-  String get archiveConfirmTitle => 'أرشفة هذه البذرة؟';
-
-  @override
-  String archiveConfirmBody(String title) {
-    return 'ستُؤرشف \"$title\". يبقى سجلها محفوظًا.';
-  }
-
-  @override
   String get projectDoneTitle => 'اكتمل الحصاد! 🎉';
 
   @override
   String projectDoneBody(String title, int total) {
-    return '\"$title\" اكتمل — سُجّل $total. يُؤرشف بفخر.';
+    return '«$title» اكتمل — سُجّل $total. يُؤرشف بفخر.';
   }
 
   @override
@@ -686,9 +669,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insightsTab => 'تحليلات';
 
   @override
-  String get wishlistTitle => 'قائمة الأمنيات';
-
-  @override
   String get wishlistBuyList => 'لأشتريه';
 
   @override
@@ -732,16 +712,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wishlistEditItem => 'تعديل العنصر';
 
   @override
-  String get wishlistMoveToBuy => 'إلى قائمة الشراء';
-
-  @override
-  String get wishlistMoveToWish => 'إلى الأمنيات';
-
-  @override
   String get wishlistDelete => 'حذف';
-
-  @override
-  String get wishlistNew => 'شيء أريده';
 
   @override
   String get wishlistTitleHint => 'مثال: معطف شتوي، غلاية، آلة إسبريسو';
@@ -797,11 +768,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get totalSpent => 'الإجمالي';
 
   @override
-  String avgPerDay(String amount) {
-    return '$amount / يوم';
-  }
-
-  @override
   String get noSpendingYet => 'لا إنفاق في هذه الفترة بعد.';
 
   @override
@@ -822,16 +788,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get defaultCurrencyLabel => 'العملة الافتراضية';
 
   @override
-  String get exchangeRates => 'أسعار الصرف';
-
-  @override
   String get ratesDzdUsd => 'دينار لكل 1 دولار';
 
   @override
   String get ratesDzdEur => 'دينار لكل 1 يورو';
-
-  @override
-  String get ratesEurUsd => 'يورو ← دولار (يُجلب)';
 
   @override
   String get fetchNow => 'جلب';
@@ -864,9 +824,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get savingsWithdraw => 'اسحب';
-
-  @override
-  String get debtsTitle => 'الديون';
 
   @override
   String get addDebt => 'سجّل دينًا';
@@ -917,7 +874,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ديون مفتوحة',
+      other: '$count دين مفتوح',
+      many: '$count دينًا مفتوحًا',
+      few: '$count ديون مفتوحة',
       two: 'دينان مفتوحان',
       one: 'دين واحد مفتوح',
       zero: 'لا ديون مفتوحة',
@@ -984,13 +943,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get debtSettledSection => 'مسددة';
 
   @override
-  String get payFromWallet => 'الدفع من المحفظة؟';
-
-  @override
   String get budgetSpentToday => 'أُنفق اليوم';
-
-  @override
-  String get budgetDailyLimit => 'الحد اليومي';
 
   @override
   String budgetLeftToday(String amount) {
@@ -1003,21 +956,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String budgetLeftMonth(String amount) {
-    return 'بقي $amount هذا الشهر';
-  }
-
-  @override
-  String budgetOverMonth(String amount) {
-    return 'تجاوز الميزانية بـ $amount هذا الشهر';
-  }
-
-  @override
   String expensesToday(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مصاريف',
+      other: '$count مصروف',
+      many: '$count مصروفًا',
+      few: '$count مصاريف',
       two: 'مصروفان',
       one: 'مصروف واحد',
       zero: 'لا شيء مسجّل',
@@ -1045,7 +990,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count عادات مستحقة',
+      other: '$count عادة مستحقة',
+      many: '$count عادةً مستحقة',
+      few: '$count عادات مستحقة',
       two: 'عادتان مستحقتان',
       one: 'عادة واحدة مستحقة',
       zero: 'لا عادات مستحقة',
@@ -1058,7 +1005,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مهام مخططة',
+      other: '$count مهمة مخططة',
+      many: '$count مهمةً مخططة',
+      few: '$count مهام مخططة',
       two: 'مهمتان مخططتان',
       one: 'مهمة واحدة مخططة',
       zero: 'لا مهام',
@@ -1080,7 +1029,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ratesExplainer =>
-      'تُستخدم لعرض مبالغ الدولار واليورو بعملتك الافتراضية.';
+      'تُستخدم لعرض المبالغ بالعملات الأخرى بعملتك الافتراضية.';
 
   @override
   String get settingsMoney => 'المال';
@@ -1124,8 +1073,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'السلسلة: $count أيام',
+      other: 'السلسلة: $count يوم',
+      many: 'السلسلة: $count يومًا',
+      few: 'السلسلة: $count أيام',
+      two: 'السلسلة: يومان',
       one: 'السلسلة: يوم واحد',
+      zero: 'السلسلة: لا أيام',
     );
     return '$_temp0';
   }
@@ -1163,9 +1116,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'كل $count أيام',
+      other: 'كل $count يوم',
+      many: 'كل $count يومًا',
+      few: 'كل $count أيام',
       two: 'كل يومين',
       one: 'كل يوم',
+      zero: 'كل يوم',
     );
     return '$_temp0';
   }
@@ -1175,9 +1131,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مرات في الأسبوع',
+      other: '$count مرة في الأسبوع',
+      many: '$count مرةً في الأسبوع',
+      few: '$count مرات في الأسبوع',
       two: 'مرتان في الأسبوع',
       one: 'مرة في الأسبوع',
+      zero: 'لا مرات في الأسبوع',
     );
     return '$_temp0 · أُنجز $done';
   }
@@ -1254,22 +1213,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get editBudget => 'تعديل الميزانية';
 
   @override
-  String get perDay => 'لكل يوم';
-
-  @override
   String get todayEmptyBody => 'اضغط \"سجّل مصروفًا\" لإضافة أول واحد.';
-
-  @override
-  String get debtRemindDefault => 'كل يوم عند 7:00 مساءً حتى السداد';
 
   @override
   String get undoAction => 'تراجع';
 
   @override
   String get saveFailed => 'لم يُحفظ ذلك. حاول مجددًا.';
-
-  @override
-  String get categoryExists => 'توجد فئة بهذا الاسم';
 
   @override
   String get withdrawToWallet => 'إلى المحفظة';
@@ -1421,9 +1371,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get seedNotesSubtitle => 'أين توقّفت اليوم';
 
   @override
-  String get seedNotesSheetSubtitle => 'ملاحظة اليوم، وآخر ملاحظة';
-
-  @override
   String get seedNotesExplainer =>
       'ملاحظة جديدة كل يوم. ملاحظة الأمس تبقى في السجلّ.';
 
@@ -1451,7 +1398,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count أيام في السجلّ',
+      other: '$count يوم في السجلّ',
+      many: '$count يومًا في السجلّ',
+      few: '$count أيام في السجلّ',
       two: 'يومان في السجلّ',
       one: 'يوم واحد في السجلّ',
       zero: 'لا أيام بعد',
@@ -1491,7 +1440,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count أيام',
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
       two: 'يومان',
       one: 'يوم واحد',
       zero: 'لا أيام',
@@ -1504,9 +1455,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count وحدات',
+      other: '$count وحدة',
+      many: '$count وحدةً',
+      few: '$count وحدات',
       two: 'وحدتان',
       one: 'وحدة واحدة',
+      zero: 'لا وحدات',
     );
     return '$_temp0';
   }
@@ -1522,7 +1476,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count أيام نشطة في الأسابيع الثمانية الأخيرة',
+      other: '$count يوم نشط في الأسابيع الثمانية الأخيرة',
+      many: '$count يومًا نشطًا في الأسابيع الثمانية الأخيرة',
+      few: '$count أيام نشطة في الأسابيع الثمانية الأخيرة',
       two: 'يومان نشطان في الأسابيع الثمانية الأخيرة',
       one: 'يوم نشط واحد في الأسابيع الثمانية الأخيرة',
       zero: 'لا أيام نشطة في الأسابيع الثمانية الأخيرة',
@@ -1649,7 +1605,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مربّعات خضراء هي سلسلتك',
+      other: '$count مربّع أخضر هي سلسلتك',
+      many: '$count مربّعًا أخضر هي سلسلتك',
+      few: '$count مربّعات خضراء هي سلسلتك',
       two: 'مربّعان أخضران هما سلسلتك',
       one: 'مربّع أخضر واحد هو سلسلتك',
       zero: 'لا سلسلة جارية',
@@ -1698,9 +1656,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count تذكيرات صارت داخل نومك',
+      other: '$count تذكير صارت داخل نومك',
+      many: '$count تذكيرًا صارت داخل نومك',
+      few: '$count تذكيرات صارت داخل نومك',
       two: 'تذكيران صارا داخل نومك',
       one: 'تذكير واحد صار داخل نومك',
+      zero: 'لا تذكير داخل نومك',
     );
     return '$_temp0';
   }
@@ -1782,7 +1743,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count حركات',
+      other: '$count حركة',
+      many: '$count حركةً',
+      few: '$count حركات',
       two: 'حركتان',
       one: 'حركة واحدة',
       zero: 'لا حركات',
@@ -1824,12 +1787,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesSearchHint => 'ابحث في العناوين والنصوص';
 
   @override
-  String get notesAllFolders => 'الكل';
-
-  @override
-  String get notesFolder => 'المجلد';
-
-  @override
   String get notesFolderHint =>
       'مسار، لا أكثر. المجلدات المتداخلة تُنشأ بتسميتها.';
 
@@ -1855,19 +1812,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesNoMatch => 'لا شيء يطابق ذلك';
 
   @override
-  String get notesNoMatchBody => 'جرّب كلمة أخرى أو مجلدًا آخر.';
-
-  @override
-  String get notesGone => 'هذه الملاحظة اختفت';
-
-  @override
   String get notesGoneBody => 'حُذفت، أو لم توجد أصلًا.';
-
-  @override
-  String get notesRead => 'قراءة';
-
-  @override
-  String get notesEdit => 'تحرير';
 
   @override
   String get notesCreate => 'إنشاء';
@@ -1885,16 +1830,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesDeleteTitle => 'أتحذف هذه الملاحظة؟';
 
   @override
-  String get notesDeleteBody => 'ستغادر الخزانة. يمكنك التراجع فورًا.';
+  String get notesDeleteBody =>
+      'تذهب إلى المهملات مع تسجيلاتها. يمكنك التراجع عن هذا فورًا.';
 
   @override
   String notesBacklinks(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ملاحظات تشير إلى هنا',
+      other: '$count ملاحظة تشير إلى هنا',
+      many: '$count ملاحظةً تشير إلى هنا',
+      few: '$count ملاحظات تشير إلى هنا',
       two: 'ملاحظتان تشيران إلى هنا',
       one: 'ملاحظة واحدة تشير إلى هنا',
+      zero: 'لا ملاحظات تشير إلى هنا',
     );
     return '$_temp0';
   }
@@ -1954,7 +1903,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ذكريات',
+      other: '$count ذكرى',
+      many: '$count ذكرى',
+      few: '$count ذكريات',
       two: 'ذكريان',
       one: 'ذكرى واحدة',
       zero: 'فارغ',
@@ -2023,9 +1974,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get galleryCompareRight => 'يسار';
-
-  @override
-  String get galleryDeleteMemoryTitle => 'أتحذف هذه الذكرى؟';
 
   @override
   String get galleryDeleteMemoryBody =>
@@ -2120,7 +2068,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       newFiles,
       locale: localeName,
-      other: '$newFiles ملفات جديدة من $files في الأرشيف',
+      other: '$newFiles ملف جديد من $files في الأرشيف',
+      many: '$newFiles ملفًا جديدًا من $files في الأرشيف',
+      few: '$newFiles ملفات جديدة من $files في الأرشيف',
       two: 'ملفان جديدان من $files في الأرشيف',
       one: 'ملف جديد واحد من $files في الأرشيف',
       zero: 'لا ملفات جديدة من $files في الأرشيف',
@@ -2237,9 +2187,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'أتفرغ المهملات — $count عناصر؟',
+      other: 'أتفرغ المهملات — $count عنصر؟',
+      many: 'أتفرغ المهملات — $count عنصرًا؟',
+      few: 'أتفرغ المهملات — $count عناصر؟',
       two: 'أتفرغ المهملات — عنصران؟',
       one: 'أتفرغ المهملات — عنصر واحد؟',
+      zero: 'المهملات فارغة',
     );
     return '$_temp0';
   }
@@ -2295,7 +2248,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$folder و$count ملاحظات إلى المهملات',
+      other: '$folder و$count ملاحظة إلى المهملات',
+      many: '$folder و$count ملاحظةً إلى المهملات',
+      few: '$folder و$count ملاحظات إلى المهملات',
       two: '$folder وملاحظتان إلى المهملات',
       one: '$folder وملاحظة واحدة إلى المهملات',
       zero: 'اختفى $folder',
@@ -2412,9 +2367,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stepsConnect => 'اربط';
 
   @override
-  String get stepsConnectTitle => 'اقرأ الخطوات من الهاتف';
-
-  @override
   String get stepsConnectBody =>
       'يقرأ Harvest المجموع اليومي من مخزن الصحة الخاص بالهاتف. لا يُرسل شيء إلى أي مكان ولا حساب في الأمر.';
 
@@ -2444,9 +2396,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get stepsGoalHint =>
       'اختياري. بلوغه يساوي +5 نقطة خبرة — إيماءة لا عادة. اتركه فارغًا بلا هدف.';
-
-  @override
-  String get stepsGoalNone => 'بلا هدف';
 
   @override
   String get stepsGoalMet => 'بلغت الهدف';
@@ -2487,11 +2436,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stepsBestDay => 'أفضل يوم';
-
-  @override
-  String stepsCount(String steps) {
-    return '$steps خطوة';
-  }
 
   @override
   String get weightTitle => 'الوزن';
@@ -2571,16 +2515,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weightDeleteBody => 'ستغادر الرسم. يمكنك التراجع فورًا.';
 
   @override
-  String get gymComingTitle => 'النادي قادم';
-
-  @override
-  String get gymComingBody =>
-      'البرامج والجلسات والأرقام القياسية قيد البناء. الخطوات والوزن تعمل الآن.';
-
-  @override
-  String get gymBrowse => 'تصفّح التمارين';
-
-  @override
   String get gymPickExercise => 'اختر تمرينًا';
 
   @override
@@ -2597,14 +2531,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gymCatalogueHint =>
-      'ابحث بالاسم أو العضلة أو الأداة — فالسؤال أثناء الجلسة عادةً: ماذا أيضًا يشتغل على هذه.';
+      'ابحث بالاسم أو العضلة أو الأداة — أثناء الجلسة يكون السؤال عادةً: «ما الذي يشغّل هذه العضلة أيضًا؟»';
 
   @override
-  String gymExerciseCount(int count) {
+  String gymExerciseCount(int count, String shown) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count تمرينًا',
+      other: '$shown تمرين',
+      many: '$shown تمرينًا',
+      few: '$shown تمارين',
       two: 'تمرينان',
       one: 'تمرين واحد',
       zero: 'لا تمارين',
@@ -2682,7 +2618,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days أيام',
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
       two: 'يومان',
       one: 'يوم واحد',
       zero: 'لا أيام بعد',
@@ -2690,7 +2628,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       sets,
       locale: localeName,
-      other: '$sets مجموعات',
+      other: '$sets مجموعة',
+      many: '$sets مجموعةً',
+      few: '$sets مجموعات',
       two: 'مجموعتان',
       one: 'مجموعة واحدة',
       zero: 'لا مجموعات',
@@ -2735,7 +2675,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       exercises,
       locale: localeName,
-      other: '$exercises تمارين',
+      other: '$exercises تمرين',
+      many: '$exercises تمرينًا',
+      few: '$exercises تمارين',
       two: 'تمرينان',
       one: 'تمرين واحد',
       zero: 'لا تمارين',
@@ -2743,9 +2685,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       sets,
       locale: localeName,
-      other: '$sets مجموعات',
+      other: '$sets مجموعة',
+      many: '$sets مجموعةً',
+      few: '$sets مجموعات',
       two: 'مجموعتان',
       one: 'مجموعة واحدة',
+      zero: 'لا مجموعات',
     );
     return '$_temp0 · $_temp1';
   }
@@ -2853,9 +2798,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count تمارين تحتاج حدًّا تدريبيًا',
+      other: '$count تمرين يحتاج حدًّا تدريبيًا',
+      many: '$count تمرينًا يحتاج حدًّا تدريبيًا',
+      few: '$count تمارين تحتاج حدًّا تدريبيًا',
       two: 'تمرينان يحتاجان حدًّا تدريبيًا',
       one: 'تمرين واحد يحتاج حدًّا تدريبيًا',
+      zero: 'لا تمارين تحتاج حدًّا تدريبيًا',
     );
     return '$_temp0';
   }
@@ -2880,9 +2828,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gymPickDay => 'أي يوم؟';
-
-  @override
-  String get gymNoProgramToStart => 'لا برنامج لتبدأ به';
 
   @override
   String get gymNoProgramToStartBody =>
@@ -2914,6 +2859,8 @@ class AppLocalizationsAr extends AppLocalizations {
       done,
       locale: localeName,
       other: 'المجموعات الـ$done التي سجّلتها تذهب معها.',
+      many: 'المجموعات الـ$done التي سجّلتها تذهب معها.',
+      few: 'المجموعات الـ$done التي سجّلتها تذهب معها.',
       two: 'المجموعتان اللتان سجّلتهما تذهبان معها.',
       one: 'المجموعة التي سجّلتها تذهب معها.',
       zero: 'لم تسجّل شيئًا بعد، فلا شيء يضيع.',
@@ -2991,9 +2938,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gymRestCustomHint => 'ثوانٍ';
-
-  @override
-  String get gymRestNone => 'بلا مؤقّت';
 
   @override
   String get gymPause => 'أوقف الساعة';
@@ -3156,9 +3100,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'يرنّ في وقت الاستيقاظ الذي بُني عليه يومك أصلًا.';
 
   @override
-  String get sleepAlarmExact => 'اسمح بالمنبّهات الدقيقة';
-
-  @override
   String get sleepAlarmExactBody =>
       'أندرويد يمنح هذا في شاشة إعداداته. بدونه يرنّ المنبّه، لكن ليس بالضرورة في دقيقته.';
 
@@ -3198,9 +3139,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count أيام لها وقتها',
+      other: '$count يوم له وقته',
+      many: '$count يومًا له وقته',
+      few: '$count أيام لها وقتها',
       two: 'يومان لهما وقتهما',
       one: 'يوم له وقته',
+      zero: 'لا أيام لها وقتها',
     );
     return '$_temp0';
   }
@@ -3229,7 +3173,9 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       stars,
       locale: localeName,
-      other: '$stars نجوم',
+      other: '$stars نجمة',
+      many: '$stars نجمةً',
+      few: '$stars نجوم',
       two: 'نجمتان',
       one: 'نجمة',
       zero: '',
@@ -3256,9 +3202,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       times,
       locale: localeName,
-      other: '$times مرات في الأسبوع',
+      other: '$times مرة في الأسبوع',
+      many: '$times مرةً في الأسبوع',
+      few: '$times مرات في الأسبوع',
       two: 'مرتان في الأسبوع',
       one: 'مرة في الأسبوع',
+      zero: 'لا مرات في الأسبوع',
     );
     return '$_temp0';
   }
@@ -3337,18 +3286,15 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       sets,
       locale: localeName,
-      other: '$sets مجموعات',
+      other: '$sets مجموعة',
+      many: '$sets مجموعةً',
+      few: '$sets مجموعات',
       two: 'مجموعتان',
       one: 'مجموعة واحدة',
+      zero: 'لا مجموعات',
     );
     return '$_temp0 · $volume';
   }
-
-  @override
-  String get gymVolume => 'الحجم';
-
-  @override
-  String get gymBest => 'الأفضل';
 
   @override
   String get gymRecords => 'الأرقام القياسية';
@@ -3407,7 +3353,8 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'بقي $count يومًا',
+      other: 'بقي $count يوم',
+      many: 'بقي $count يومًا',
       few: 'بقيت $count أيام',
       two: 'بقي يومان',
       one: 'بقي يوم واحد',
@@ -3421,10 +3368,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'مضى $count يومًا',
+      other: 'مضى $count يوم',
+      many: 'مضى $count يومًا',
       few: 'مضت $count أيام',
       two: 'مضى يومان',
       one: 'مضى يوم واحد',
+      zero: 'مضى اليوم',
     );
     return '$_temp0';
   }
@@ -3468,9 +3417,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get goalDropTitle => 'التخلي عن هذا الهدف؟';
-
-  @override
-  String get goalDropBody => 'بذوره تستمر. سطر عن السبب، إن شئت.';
 
   @override
   String get goalDropNoteHint => 'ليس الآن، لأن…';
@@ -3560,7 +3506,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get featurePlacesHint =>
-      'أين ذهبتُ وماذا فعلت هناك: مسار ودبوس على كل فعل. لا شيء يغادر الهاتف.';
+      'أين ذهبتَ وماذا فعلتَ هناك: مسار ودبوس على كل فعل. لا يُزامَن إلا مشفّرًا، يومًا يومًا، ولا يرى الخادم أين أبدًا.';
 
   @override
   String get placesDay => 'يوم';
@@ -3578,14 +3524,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get placesNext => 'التالي';
 
   @override
-  String get placesPickDay => 'اختر يومًا';
-
-  @override
   String get placesTrailOn => 'سجّل مساري';
-
-  @override
-  String get placesTrailHint =>
-      'نقطة كل 50 م أثناء الحركة، مع إشعار ظاهر طوال الوقت.';
 
   @override
   String get placesTrailRefused =>
@@ -3615,9 +3554,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get placesHighAccuracy => 'دقة عالية';
-
-  @override
-  String get placesHighAccuracyHint => 'مسار أدق، وبطارية أكثر.';
 
   @override
   String get placesDeleteDay => 'احذف مسار هذا اليوم';
@@ -3810,9 +3746,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voicePause => 'إيقاف مؤقت';
 
   @override
-  String get voiceRecordings => 'التسجيلات';
-
-  @override
   String get voiceMissing => 'الملف غير موجود على هذا الهاتف.';
 
   @override
@@ -3820,9 +3753,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get readAloud => 'اقرأ بصوت عالٍ';
-
-  @override
-  String get readAloudStop => 'إيقاف';
 
   @override
   String get readAloudNext => 'الفقرة التالية';
@@ -3844,9 +3774,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get assistHint =>
       'تلخيص ملاحظة أو إعادة صياغتها أو ترجمتها أو تفريغها، فقط حين تطلب. بمفتاحك الخاص.';
-
-  @override
-  String get assistProvider => 'المزوّد';
 
   @override
   String get assistGemini => 'Gemini';
@@ -4034,17 +3961,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountNeverSynced => 'لم تتم المزامنة بعد';
 
   @override
-  String accountPending(int count) {
-    return '$count تغييرات تنتظر';
-  }
-
-  @override
   String accountRefused(int count) {
     return '$count تغييرات رفضها الخادم';
   }
 
   @override
-  String get accountHeldBack => 'المال والأماكن تنتظر عبارة مرور المزامنة.';
+  String get accountHeldBack => 'لا شيء يُزامَن حتى تضبط رمز المزامنة.';
 
   @override
   String get accountDevices => 'الأجهزة';
@@ -4093,46 +4015,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String accountErrorOther(String code) {
     return 'حدث خطأ ($code).';
   }
-
-  @override
-  String get passphraseTitle => 'عبارة مرور المزامنة';
-
-  @override
-  String get passphraseUnset =>
-      'غير مضبوطة: المال والأماكن تبقى على هذا الهاتف.';
-
-  @override
-  String get passphraseSet =>
-      'مضبوطة: المال والأماكن تُزامَن مشفّرة من طرف إلى طرف.';
-
-  @override
-  String get passphraseSetAction => 'اضبط العبارة';
-
-  @override
-  String get passphraseForget => 'انسها على هذا الجهاز';
-
-  @override
-  String get passphraseBody =>
-      'يُشفَّر المال والأماكن على هذا الهاتف بمفتاح مصنوع من هذه العبارة. لا يراها الخادم أبدًا. استخدم العبارة نفسها على كل جهاز. إن فقدتها فلا يمكن قراءة الصفوف المشفّرة على جهاز جديد — بل إرسالها مجددًا من جهاز لا يزال يحملها.';
-
-  @override
-  String get passphraseField => 'العبارة';
-
-  @override
-  String get passphraseRepeat => 'العبارة نفسها مرة أخرى';
-
-  @override
-  String get passphraseMismatch => 'العبارتان غير متطابقتين.';
-
-  @override
-  String get passphraseShort => 'اثنا عشر حرفًا على الأقل.';
-
-  @override
-  String get passphraseWorking => 'يصنع المفتاح…';
-
-  @override
-  String get passphraseWrong =>
-      'هذه العبارة لا تفتح ما أرسلته أجهزتك الأخرى. أدخل العبارة التي استخدمتها هناك.';
 
   @override
   String get exportIncludePlaces => 'أدرج سجل مواقعي';
@@ -4238,7 +4120,11 @@ class AppLocalizationsAr extends AppLocalizations {
       done,
       locale: localeName,
       other: 'المجموعات الـ$done كلها تذهب نهائيًا، والجلسة معها.',
+      many: 'المجموعات الـ$done كلها تذهب نهائيًا، والجلسة معها.',
+      few: 'المجموعات الـ$done كلها تذهب نهائيًا، والجلسة معها.',
+      two: 'المجموعتان اللتان سجّلتهما تذهبان نهائيًا، والجلسة معهما.',
       one: 'المجموعة التي سجّلتها تذهب نهائيًا، والجلسة معها.',
+      zero: 'لم تُسجَّل أي مجموعة، والجلسة تذهب نهائيًا.',
     );
     return '$_temp0';
   }
@@ -4275,11 +4161,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ratesDzdManual =>
-      'أسعار الدينار تُكتب يدوياً: لا يوجد مصدر مجاني لسعر الدينار في السوق. الجلب يحدّث اليورو ← الدولار فقط.';
-
-  @override
-  String get ratesFetchedEurUsd =>
-      'حُدّث سعر اليورو ← الدولار. تبقى أسعار الدينار كما كتبتها.';
+      'سعر الدينار في السوق يُكتب يدويًا: لا يوجد مصدر مجاني له. الجلب يحدّث كل العملات الأخرى.';
 
   @override
   String get accountServerExample =>
@@ -4664,4 +4546,735 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mediaOther => 'آخر';
+
+  @override
+  String get syncPinTitle => 'رمز المزامنة';
+
+  @override
+  String get syncPinChooseBody =>
+      'يُشفَّر كل شيء على هذا الهاتف بمفتاح مصنوع من هذا الرمز قبل أن يُزامَن: الملاحظات والمال والصحة والأماكن والصور. لا يراه الخادم أبدًا. استخدم الرمز نفسه على كل جهاز.';
+
+  @override
+  String get syncPinEnterBody =>
+      'أجهزتك الأخرى تستخدم رمز مزامنة بالفعل. أدخل الرمز نفسه هنا لتصلك بياناتك.';
+
+  @override
+  String get syncPinLoss =>
+      'إن فقدته فلا يمكن قراءة ما شُفِّر على جهاز جديد — بل إرساله مجددًا من جهاز لا يزال يحمله. لا أحد يستطيع إعادة ضبطه.';
+
+  @override
+  String get syncPinCost =>
+      'الرمز سريع الكتابة، لكنه يسقط في دقائق أمام من يملك قاعدة بيانات الخادم ومفاتيحه. عبارة المرور تصمد.';
+
+  @override
+  String get syncPinField => 'الرمز';
+
+  @override
+  String get syncPinRepeat => 'الرمز نفسه مرة أخرى';
+
+  @override
+  String get syncPinRule => 'الأفضل 6 أرقام؛ من 4 إلى 6';
+
+  @override
+  String get syncPassphraseField => 'عبارة المرور';
+
+  @override
+  String get syncPassphraseRepeat => 'العبارة نفسها مرة أخرى';
+
+  @override
+  String get syncPassphraseRule => '8 أحرف أو أكثر';
+
+  @override
+  String get syncPinUsePassphrase => 'استخدم عبارة مرور بدلًا منه';
+
+  @override
+  String get syncPinUsePin => 'استخدم رمزًا بدلًا منها';
+
+  @override
+  String get syncPinLength => 'الرمز من 4 إلى 6 أرقام.';
+
+  @override
+  String get syncPassphraseShort => '8 أحرف على الأقل.';
+
+  @override
+  String get syncPinMismatch => 'الإدخالان غير متطابقين.';
+
+  @override
+  String get syncPinChoose => 'اضبط الرمز';
+
+  @override
+  String get syncPinEnter => 'افتح';
+
+  @override
+  String get syncPinWorking => 'يصنع المفتاح…';
+
+  @override
+  String get syncPinChecking => 'يتحقق منه مع أجهزتك الأخرى…';
+
+  @override
+  String get syncPinWrong => 'هذا ليس الرمز الذي تستخدمه أجهزتك الأخرى.';
+
+  @override
+  String get syncPinLater => 'لاحقًا';
+
+  @override
+  String get syncPinWaiting => 'لا شيء يغادر هذا الهاتف حتى تضبط رمز المزامنة.';
+
+  @override
+  String get syncPinIsSet => 'مضبوط: كل شيء يُزامَن مشفّرًا من طرف إلى طرف.';
+
+  @override
+  String get syncPinSetAction => 'اضبط رمز المزامنة';
+
+  @override
+  String get syncPinForget => 'انسه على هذا الجهاز';
+
+  @override
+  String get accountCircleLabel => 'الحساب والمزامنة';
+
+  @override
+  String get accountOnline => 'متصل';
+
+  @override
+  String get accountOffline => 'غير متصل';
+
+  @override
+  String get accountAllSent => 'أُرسل كل شيء';
+
+  @override
+  String get accountPage => 'إعدادات الحساب';
+
+  @override
+  String get galleryFileNotSent => 'لم يُرسَل بعد من الجهاز الذي التقطه';
+
+  @override
+  String get galleryFileNeedsPin => 'أدخل رمز المزامنة لتراه';
+
+  @override
+  String get galleryFileFailed => 'تعذّر التحميل';
+
+  @override
+  String get galleryFileRetry => 'حاول مجددًا';
+
+  @override
+  String get budgetClear => 'امسح الميزانية';
+
+  @override
+  String get budgetCleared => 'مُسحت الميزانية';
+
+  @override
+  String get debtEditTitle => 'تعديل الدين';
+
+  @override
+  String get debtDeleteTitle => 'حذف هذا الدين؟';
+
+  @override
+  String debtDeleteBody(String person) {
+    return 'سيُحذف دين $person ودفعاته. ما أخذته تلك الدفعات من المحفظة يبقى مصروفًا. التراجع في الشريط للحظة بعدها.';
+  }
+
+  @override
+  String debtAmountBelowPaid(String amount) {
+    return 'دُفع $amount بالفعل؛ لا يمكن أن يكون الدين أقل من ذلك';
+  }
+
+  @override
+  String get undoRefused =>
+      'تعذّر التراجع: تغيّر الدين أو المحفظة منذ ذلك الحين.';
+
+  @override
+  String get syncPinTooSimple =>
+      'سهل التخمين. تجنّب تكرار رقم واحد، والتسلسل مثل 1234، والأزواج مثل 1212.';
+
+  @override
+  String get syncPinChosenElsewhere =>
+      'عيّن جهاز آخر رمز المزامنة للتو. أدخل ذلك الرمز.';
+
+  @override
+  String get syncPinUnreachable =>
+      'تعذّر الوصول إلى الخادم للتحقق من الرمز. حاول مجددًا حين تتصل بالإنترنت.';
+
+  @override
+  String accountLocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف مشفّر تعذّر فتحه',
+      many: '$count صفًّا مشفّرًا تعذّر فتحه',
+      few: '$count صفوف مشفّرة تعذّر فتحها',
+      two: 'صفّان مشفّران تعذّر فتحهما',
+      one: 'صف مشفّر واحد تعذّر فتحه',
+      zero: 'لا صفوف مشفّرة تعذّر فتحها',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get accountClientWeb => 'الويب';
+
+  @override
+  String get accountClientPhone => 'الهاتف';
+
+  @override
+  String accountLastSeen(String time) {
+    return 'آخر ظهور $time';
+  }
+
+  @override
+  String get galleryFileDownloading => 'يجري التنزيل…';
+
+  @override
+  String importFilesTooLarge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف أكبر من أن يُستورد، تُرك جانبًا',
+      many: '$count ملفًا أكبر من أن يُستورد، تُرك جانبًا',
+      few: '$count ملفات أكبر من أن تُستورد، تُركت جانبًا',
+      two: 'ملفان أكبر من أن يُستوردا، تُركا جانبًا',
+      one: 'ملف واحد أكبر من أن يُستورد، تُرك جانبًا',
+      zero: 'لا ملفات أكبر من أن تُستورد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exportLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تُرك $count ملف أكبر من أن يدخل الأرشيف.',
+      many: 'تُرك $count ملفًا أكبر من أن يدخل الأرشيف.',
+      few: 'تُركت $count ملفات أكبر من أن تدخل الأرشيف.',
+      two: 'تُرك ملفان أكبر من أن يدخلا الأرشيف.',
+      one: 'تُرك ملف واحد أكبر من أن يدخل الأرشيف.',
+      zero: 'لم يُترك أي ملف.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weightTargetSet => 'حدّد هدفًا';
+
+  @override
+  String get weightTargetTitle => 'الوزن المستهدف';
+
+  @override
+  String get weightTargetHint =>
+      'خطّ على المخطط تسعى إليه، والمسافة بينه وبين آخر قراءة.';
+
+  @override
+  String get weightTargetClear => 'امسح الهدف';
+
+  @override
+  String notesTooLong(String max) {
+    return 'هذه الملاحظة أطول من $max حرف. ما يتجاوز ذلك لا يُحفظ.';
+  }
+
+  @override
+  String get syncPinForgot => 'نسيت الرمز؟ ابدأ من جديد';
+
+  @override
+  String get syncPinChange => 'تغيير الرمز';
+
+  @override
+  String get syncPinStartOver => 'البدء برمز جديد';
+
+  @override
+  String get syncPinStartOverBody =>
+      'يحذف هذا كل ما هو محفوظ على الخادم لهذا الحساب، ومعه الرمز. ثم يرسل هذا الهاتف ما لديه من جديد تحت الرمز الجديد. وما كان على جهاز آخر وحده يضيع، إلا إذا بقي على ذلك الجهاز فأرسله من جديد.';
+
+  @override
+  String get syncPinStartOverConfirm => 'ابدأ من جديد';
+
+  @override
+  String get syncPinChangedElsewhere =>
+      'تغيّر رمزك على جهاز آخر. أدخل الرمز الجديد.';
+
+  @override
+  String get syncRefusedQuota => 'لم يعد على الخادم مكان لهذا الحساب.';
+
+  @override
+  String get syncRefusedClock =>
+      'ساعة هذا الهاتف متقدّمة على ساعة الخادم. تحقّق من التاريخ والوقت.';
+
+  @override
+  String get syncPinWrongPassword => 'هذه ليست كلمة مرور هذا الحساب.';
+
+  @override
+  String exportNotHere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة لم تُنزَّل إلى هذا الهاتف بعد ليست فيه.',
+      many: '$count صورة لم تُنزَّل إلى هذا الهاتف بعد ليست فيه.',
+      few: '$count صور لم تُنزَّل إلى هذا الهاتف بعد ليست فيه.',
+      two: 'صورتان لم تُنزَّلا إلى هذا الهاتف بعد ليستا فيه.',
+      one: 'صورة واحدة لم تُنزَّل إلى هذا الهاتف بعد ليست فيه.',
+      zero: 'لا صور ناقصة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncPinTriesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بقيت $count محاولة.',
+      many: 'بقيت $count محاولة.',
+      few: 'بقيت $count محاولات.',
+      two: 'بقيت محاولتان.',
+      one: 'بقيت محاولة واحدة.',
+      zero: 'لم تبقَ محاولات الآن.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncPinTooMany(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'محاولات كثيرة. حاول بعد $minutes دقيقة.',
+      many: 'محاولات كثيرة. حاول بعد $minutes دقيقة.',
+      few: 'محاولات كثيرة. حاول بعد $minutes دقائق.',
+      two: 'محاولات كثيرة. حاول بعد دقيقتين.',
+      one: 'محاولات كثيرة. حاول بعد دقيقة.',
+      zero: 'محاولات كثيرة. حاول بعد قليل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTooManySoon => 'محاولات كثيرة. حاول لاحقًا.';
+
+  @override
+  String get syncPinStartedOver =>
+      'بدأ رمز المزامنة من جديد على جهاز آخر للتو. اختر رمزًا جديدًا.';
+
+  @override
+  String get accountServerNotSecure =>
+      'استخدم https:// للخادم. عنوان http:// العادي لهذا الجهاز أو المحاكي فقط (localhost و127.0.0.1 و10.0.2.2).';
+
+  @override
+  String get assistBaseUrlNotSecure =>
+      'استخدم https:// لعنوان المساعد. عنوان http:// العادي لهذا الجهاز أو المحاكي فقط.';
+
+  @override
+  String get dataUnavailableTitle => 'تعذّر فتح بياناتك الآن';
+
+  @override
+  String get dataUnavailableBody =>
+      'لم يستجب التخزين الآمن للهاتف. لم يتغيّر شيء ولم يُحذف شيء. حاول مجددًا، أو أعد تشغيل الهاتف إن تكرر ذلك.';
+
+  @override
+  String amountLargeTitle(String amount) {
+    return '$amount؟';
+  }
+
+  @override
+  String get amountLargeBody =>
+      'هذا أكثر بكثير مما يُسجَّل عادةً دفعة واحدة. هل المبلغ صحيح؟';
+
+  @override
+  String get amountLargeConfirm => 'نعم، صحيح';
+
+  @override
+  String get perDay => 'في اليوم';
+
+  @override
+  String categoryRemove(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
+  String categoryRemoved(String name) {
+    return 'أُزيلت $name';
+  }
+
+  @override
+  String get gymSessionMenu => 'المزيد لهذه الجلسة';
+
+  @override
+  String get gymExerciseMenu => 'المزيد لهذا التمرين';
+
+  @override
+  String get gymProgramMenu => 'المزيد لهذا البرنامج';
+
+  @override
+  String get gymDayMenu => 'المزيد لهذا اليوم';
+
+  @override
+  String weightImplausible(String range) {
+    return 'وزن بين $range';
+  }
+
+  @override
+  String get accountDevicesRetry => 'حاول مجددًا';
+
+  @override
+  String accountEndSessionTitle(String name) {
+    return 'تسجيل خروج $name؟';
+  }
+
+  @override
+  String get accountEndSessionBody =>
+      'يتوقف ذلك الجهاز عن المزامنة حتى يسجّل أحد الدخول عليه مجددًا. لا يُحذف شيء منه.';
+
+  @override
+  String accountSessionEnded(String name) {
+    return 'سُجّل خروج $name';
+  }
+
+  @override
+  String accountSignedInOn(String day) {
+    return 'سجّل الدخول $day';
+  }
+
+  @override
+  String get accountChangesWaiting => 'تغييرات تنتظر المزامنة';
+
+  @override
+  String get syncPinForgetTitle => 'أتنسى رمز المزامنة على هذا الهاتف؟';
+
+  @override
+  String get syncPinForgetBody =>
+      'ما هو هنا يبقى. ما ترسله أجهزتك الأخرى يبقى مقفلًا هنا، وما تغيّره هنا ينتظر، حتى تدخل الرمز مجددًا.';
+
+  @override
+  String get joinTitle => 'على هذا الهاتف بيانات من قبل';
+
+  @override
+  String get joinBody =>
+      'أنشأت أشياء على هذا الهاتف قبل تسجيل الدخول. أتضيفها إلى حسابك، أم تبدأ مما في الحساب؟';
+
+  @override
+  String get joinBring => 'أضف بيانات هذا الهاتف إلى الحساب';
+
+  @override
+  String get joinStartFromAccount => 'ابدأ من بيانات الحساب';
+
+  @override
+  String get joinStartFromAccountNote =>
+      'تُحفظ بيانات هذا الهاتف أولًا في أرشيف في التنزيلات، ثم تحلّ محلها بيانات الحساب. لا يضيع شيء.';
+
+  @override
+  String get joinArchiveFailed =>
+      'تعذّر حفظ الأرشيف، فلم يُستبدل شيء. حاول مجددًا، أو أضف البيانات إلى الحساب.';
+
+  @override
+  String joinArchived(String path) {
+    return 'حُفظت بيانات هذا الهاتف في $path';
+  }
+
+  @override
+  String get obHaveAccount => 'لديّ حساب من قبل';
+
+  @override
+  String get assistChecking => 'جارٍ البحث عن المساعد…';
+
+  @override
+  String dailyGoalProgress(int actions, int goal) {
+    return '$actions من $goal إنجازات اليوم لحصاد اليوم';
+  }
+
+  @override
+  String dailyGoalMet(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إنجاز — بلغت هدف حصاد اليوم',
+      many: '$count إنجازًا — بلغت هدف حصاد اليوم',
+      few: '$count إنجازات — بلغت هدف حصاد اليوم',
+      two: 'إنجازان — بلغت هدف حصاد اليوم',
+      one: 'إنجاز واحد — بلغت هدف حصاد اليوم',
+      zero: 'لا إنجازات — بلغت هدف حصاد اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakZeroWhy(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other:
+          'يدخل اليوم السلسلة حين يبلغ $goal إنجاز. ابلغها اليوم لتبدأ واحدة.',
+      many:
+          'يدخل اليوم السلسلة حين يبلغ $goal إنجازًا. ابلغها اليوم لتبدأ واحدة.',
+      few:
+          'يدخل اليوم السلسلة حين يبلغ $goal إنجازات. ابلغها اليوم لتبدأ واحدة.',
+      two: 'يدخل اليوم السلسلة حين يبلغ إنجازين. ابلغهما اليوم لتبدأ واحدة.',
+      one: 'يدخل اليوم السلسلة حين يبلغ إنجازًا واحدًا. ابلغه اليوم لتبدأ واحدة.',
+      zero: 'يدخل اليوم السلسلة حين يبلغ هدفه. ابلغه اليوم لتبدأ واحدة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakHowItGrows(int goal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      goal,
+      locale: localeName,
+      other: 'كل يوم فيه $goal إنجاز يُبقيها.',
+      many: 'كل يوم فيه $goal إنجازًا يُبقيها.',
+      few: 'كل يوم فيه $goal إنجازات يُبقيها.',
+      two: 'كل يوم فيه إنجازان يُبقيها.',
+      one: 'كل يوم فيه إنجاز واحد يُبقيها.',
+      zero: 'كل يوم يبلغ هدفه يُبقيها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notesPickTitle => 'اختر ملاحظة';
+
+  @override
+  String get notesPickBody => 'ملاحظاتك في القائمة، مع مجلداتها.';
+
+  @override
+  String get notesShowList => 'اعرض الملاحظات';
+
+  @override
+  String get goalAchievedLabel => 'تحقّق';
+
+  @override
+  String goalAchievedOn(String day) {
+    return 'تحقّق في $day';
+  }
+
+  @override
+  String get goalDroppedLabel => 'متروك';
+
+  @override
+  String get goalsNoActiveTitle => 'لا هدف قيد العمل';
+
+  @override
+  String goalDeleteBody(String title) {
+    return 'يُحذف «$title» وعناصره، ومعه ما دفعه تحقيقه. التراجع يعيدها.';
+  }
+
+  @override
+  String cropUndoCheckIn(String title) {
+    return 'تراجع عن تسجيل اليوم لـ$title';
+  }
+
+  @override
+  String seedPausedSnack(String title) {
+    return '«$title» في استراحة';
+  }
+
+  @override
+  String seedResumedSnack(String title) {
+    return '«$title» عاد إلى الحقل';
+  }
+
+  @override
+  String geoGone(String kind) {
+    return '$kind · لم يعد موجودًا';
+  }
+
+  @override
+  String get accountEndOthers => 'تسجيل خروج كل الأجهزة الأخرى';
+
+  @override
+  String get accountEndOthersTitle => 'تسجيل خروج كل جهاز آخر؟';
+
+  @override
+  String get accountEndOthersBody =>
+      'يبقى هذا الهاتف وحده مسجّل الدخول. تتوقف الأجهزة الأخرى عن المزامنة حتى يسجّل أحد الدخول عليها مجددًا. لا يُحذف شيء منها.';
+
+  @override
+  String accountOthersEnded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سُجّل خروج $count جهاز آخر',
+      many: 'سُجّل خروج $count جهازًا آخر',
+      few: 'سُجّل خروج $count أجهزة أخرى',
+      two: 'سُجّل خروج جهازين آخرين',
+      one: 'سُجّل خروج جهاز آخر واحد',
+      zero: 'لم يُسجَّل خروج أي جهاز آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncPinTakesTime =>
+      'صنع المفتاح بطيء عمدًا: بضع ثوانٍ، وقد يصل إلى نحو 20 ثانية على هاتف قديم.';
+
+  @override
+  String get syncPinMenu => 'خيارات رمز المزامنة';
+
+  @override
+  String get syncPinSignedOut =>
+      'هذا الهاتف خارج الحساب. سجّل الدخول من جديد من دائرة الحساب، ثم أدخل الرمز.';
+
+  @override
+  String get accountNameIsPassword =>
+      'هذه كلمة مرورك. اكتب اسمًا يمكن للآخرين رؤيته، أو اتركه فارغًا.';
+
+  @override
+  String get ratesFetched => 'حُدّثت الأسعار.';
+
+  @override
+  String get ratesSource => 'الأسعار من Exchange Rate API';
+
+  @override
+  String ratesOneUsd(String amount) {
+    return '1 دولار = $amount';
+  }
+
+  @override
+  String ratesOn(String day) {
+    return 'أسعار $day';
+  }
+
+  @override
+  String get ratesNone => 'لم تُجلب أسعار بعد.';
+
+  @override
+  String get currencyPickerTitle => 'اختر عملة';
+
+  @override
+  String get currencySearchHint => 'الاسم أو الرمز أو العلامة';
+
+  @override
+  String get currencyNoMatch => 'لا عملة تطابق.';
+
+  @override
+  String get currencyMore => 'عملة أخرى';
+
+  @override
+  String get syncPassphraseTitle => 'عبارة المزامنة';
+
+  @override
+  String get syncPassphraseAdvice =>
+      'بضع كلمات لا يجمعها غيرك، مثل «زيتون نهر فانوس»، تصمد آلاف السنين أمام من يملك بيانات الخادم.';
+
+  @override
+  String get syncSecretField => 'عبارة المرور أو الرمز';
+
+  @override
+  String get syncSecretShow => 'إظهار';
+
+  @override
+  String get syncSecretHide => 'إخفاء';
+
+  @override
+  String get syncSecretWeak => 'ضعيفة';
+
+  @override
+  String get syncSecretFair => 'مقبولة';
+
+  @override
+  String get syncSecretStrong => 'قوية';
+
+  @override
+  String syncSecretStands(String time) {
+    return 'تصمد $time أمام من يملك بيانات الخادم.';
+  }
+
+  @override
+  String get syncSecretUnderSecond => 'أقل من ثانية';
+
+  @override
+  String syncSecretSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ثانية',
+      many: '$count ثانية',
+      few: '$count ثوانٍ',
+      two: 'ثانيتين',
+      one: 'ثانية واحدة',
+      zero: 'أقل من ثانية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتين',
+      one: 'دقيقة واحدة',
+      zero: 'أقل من دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساعة',
+      many: '$count ساعة',
+      few: '$count ساعات',
+      two: 'ساعتين',
+      one: 'ساعة واحدة',
+      zero: 'أقل من ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يومًا واحدًا',
+      zero: 'أقل من يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncSecretYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سنة',
+      many: '$count سنة',
+      few: '$count سنوات',
+      two: 'سنتين',
+      one: 'سنة واحدة',
+      zero: 'أقل من سنة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncSecretThousands => 'آلاف السنين';
+
+  @override
+  String get syncSecretForever => 'إلى الأبد تقريبًا';
+
+  @override
+  String get exportConfirmPassword => 'كلمة مرور حسابك، لإخراج بياناتك';
+
+  @override
+  String get exportConfirmReason => 'افتح القفل لإخراج بياناتك من Harvest';
+
+  @override
+  String get exportConfirmRefused => 'لم تُؤخذ: لم يُفتح قفل الهاتف.';
+
+  @override
+  String exportConfirmLimited(int minutes) {
+    return 'كلمات مرور خاطئة كثيرة. حاول مجددًا بعد $minutes د.';
+  }
+
+  @override
+  String get exportConfirmOffline =>
+      'تعذّر الوصول إلى الخادم للتحقق من كلمة المرور. حاول مجددًا حين تتصل بالإنترنت.';
 }

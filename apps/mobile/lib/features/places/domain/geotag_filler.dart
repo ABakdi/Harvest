@@ -46,6 +46,9 @@ class GeotagFiller {
   StreamSubscription<List<Geotag>>? _subscription;
   var _running = false;
 
+  /// A call came while a pass was running: run once more after it.
+  var _again = false;
+
   /// Resolves what is pending now, and again whenever more arrives.
   void start() {
     _subscription ??= _places.watchPending().listen((pending) {
@@ -58,10 +61,15 @@ class GeotagFiller {
     _subscription = null;
   }
 
-  /// One pass over [pending]. A pass already running swallows the call:
-  /// its own writes re-trigger the stream, which picks up the rest.
+  /// One pass over [pending]. A call while a pass is running is not
+  /// lost: the pass runs once more over what is still pending when it
+  /// ends, since a tag written mid-pass may raise no event after it
+  /// ([[Audit-v3]] Q5-58).
   Future<void> fillAll(List<Geotag> pending) async {
-    if (_running) return;
+    if (_running) {
+      _again = true;
+      return;
+    }
     _running = true;
     try {
       // One fix serves every tag that arrived together — five rows of a
@@ -88,6 +96,11 @@ class GeotagFiller {
       debugPrint('[places] geotags not filled: ${error.runtimeType}');
     } finally {
       _running = false;
+    }
+    if (_again) {
+      _again = false;
+      final rest = await _places.pendingOnce();
+      if (rest.isNotEmpty) await fillAll(rest);
     }
   }
 

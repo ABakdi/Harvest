@@ -5,7 +5,7 @@ import { strToU8, unzipSync, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import { ArchiveInvalid, ArchiveLimits, instantOf, isSafeRelative } from '@/app/data/archive';
 import { buildWorkbook, ExportSheet, parseWorkbook, type CellValue } from '@/app/data/archive-xlsx';
-import { primaryKeyOf, recordKeyOf } from '@/app/data/db';
+import { isStoredTable, primaryKeyOf, recordKeyOf } from '@/app/data/db';
 import { buildArchive } from '@/app/data/export';
 import { harvestSheets, SheetNames, sheetHeaders, sheetOrder, type ExportData } from '@/app/data/export-sheets';
 import { sha256Of } from '@/app/data/files';
@@ -447,6 +447,8 @@ async function seed(h: Device): Promise<void> {
 async function snapshot(h: Device, skip: (table: SyncedTable, key: string) => boolean = () => false) {
   const out: Record<string, Record<string, unknown>> = {};
   for (const table of syncedTables) {
+    // A day of the trail has no store here: its points are location_points.
+    if (!isStoredTable(table)) continue;
     for (const row of (await h.db.rows(table).toArray()) as Record<string, unknown>[]) {
       const key = recordKeyOf(table, row);
       if (!skip(table, key)) out[`${table}/${key}`] = row;
@@ -507,6 +509,19 @@ describe('the archive the web writes', () => {
     expect(expenses).toContain('<f>E2/100</f>');
     expect(expenses).toContain('<v>125050</v>');
     expect(decode('xl/workbook.xml')).toContain('fullCalcOnLoad="1"');
+  });
+
+  it('leaves out a file too large for an archive, counts it, and keeps its row (Q5-06)', async () => {
+    const h = await device(new FakeServer());
+    await seed(h);
+    // Every file this seed names reads as one past the entry limit.
+    const huge = { size: ArchiveLimits.entryBytes + 1, arrayBuffer: () => Promise.reject(new Error('never read')) } as Blob;
+    const built = await buildArchive(h.db, () => Promise.resolve(huge), { now: new Date('2026-09-19T12:00:00.000Z') });
+    expect(built.tooLarge).toBeGreaterThan(0);
+    expect(built.missingFiles).toBe(0);
+    const bundle = openArchive(built.bytes);
+    expect(bundle.files.get('notes/Health/2026-09-18 0712.m4a')).toBeUndefined();
+    expect(bundle.sheets.get('NoteAttachments')?.length ?? bundle.sheets.get('Attachments')?.length).toBeGreaterThan(0);
   });
 
   it('carries the trash, the vault and the files', async () => {
@@ -694,17 +709,47 @@ describe('what an archive is trusted with', () => {
     expect(problemOf(() => openArchive(zipSync({ 'harvest.xlsx': strToU8('nope') })))).toBe('badWorkbook');
   });
 
-  it('refuses a zip whose directory promises too much, unread', () => {
-    const zip = zipSync({ 'harvest.xlsx': new Uint8Array([0]), 'gallery/big.jpg': new Uint8Array([1, 2, 3]) }, { level: 0 });
-    // Rewrite the central directory's uncompressed size for the picture.
+  /** A zip whose directory says [name] is [size] bytes, whatever it holds. */
+  function promising(zip: Uint8Array, name: string, size: number): Uint8Array {
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
     for (let i = 0; i < zip.length - 46; i++) {
       if (view.getUint32(i, true) !== 0x02014b50) continue;
       const nameLength = view.getUint16(i + 28, true);
-      const name = new TextDecoder().decode(zip.subarray(i + 46, i + 46 + nameLength));
-      if (name === 'gallery/big.jpg') view.setUint32(i + 24, ArchiveLimits.entryBytes + 1, true);
+      if (new TextDecoder().decode(zip.subarray(i + 46, i + 46 + nameLength)) === name) view.setUint32(i + 24, size, true);
     }
-    expect(problemOf(() => openArchive(zip))).toBe('tooLarge');
+    return zip;
+  }
+
+  it('leaves out, unread, an entry whose directory promises too much, and takes the rest (Q5-06)', () => {
+    const zip = crafted({ Seeds: [['Uuid', 'Title']] }, { 'gallery/big.jpg': new Uint8Array([1, 2, 3]), 'gallery/a.jpg': new Uint8Array([4]) });
+    const bundle = openArchive(promising(zip, 'gallery/big.jpg', ArchiveLimits.entryBytes + 1));
+    expect(bundle.skipped).toBe(1);
+    expect([...bundle.files.keys()]).toEqual(['gallery/a.jpg']);
+  });
+
+  it('refuses a workbook whose own parts inflate past their limit (S6-09)', () => {
+    // A part of zeros deflates to almost nothing and inflates to 65 MB.
+    const bomb = zipSync(
+      {
+        'xl/workbook.xml': strToU8('<workbook/>'),
+        'xl/sharedStrings.xml': new Uint8Array(65 * 1024 * 1024),
+      },
+      { level: 9 },
+    );
+    expect(bomb.length).toBeLessThan(1024 * 1024);
+    expect(problemOf(() => openArchive(zipSync({ 'harvest.xlsx': bomb }, { level: 0 })))).toBe('tooLarge');
+  });
+
+  it('refuses an entry whose directory lies about its size, as it inflates (S6-09)', () => {
+    const zip = zipSync({ 'harvest.xlsx': new Uint8Array([0]), 'gallery/big.jpg': new Uint8Array(ArchiveLimits.entryBytes + 1) }, { level: 9 });
+    // Say it is one byte: the reading still stops at the limit.
+    const lying = promising(zip, 'gallery/big.jpg', 1);
+    expect(problemOf(() => openArchive(lying))).toBe('tooLarge');
+  });
+
+  it('refuses a workbook whose directory promises too much, unread', () => {
+    const zip = zipSync({ 'harvest.xlsx': new Uint8Array([0]) }, { level: 0 });
+    expect(problemOf(() => openArchive(promising(zip, 'harvest.xlsx', ArchiveLimits.workbookBytes + 1)))).toBe('tooLarge');
   });
 
   it('refuses a file bigger than the cap before decoding it', () => {
@@ -771,7 +816,7 @@ describe('one format on two clients', () => {
     expect(totalOf(result).skipped).toBe(0);
     // A row in every sheet on the phone is a row in every table here.
     for (const table of syncedTables) {
-      if (table === 'note_links') continue;
+      if (table === 'note_links' || !isStoredTable(table)) continue;
       expect(await h.db.rows(table).count(), table).toBeGreaterThan(0);
     }
     const seedRow = (await h.db.rows('commitments').get('p-seed-1'))!;

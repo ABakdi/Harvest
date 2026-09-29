@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/empty_state.dart';
 import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
@@ -19,13 +20,20 @@ import 'package:harvest/l10n/app_localizations.dart';
 /// body part and equipment rather than anything cleverer: standing in
 /// front of a cable machine, "what can I do here instead" is a question
 /// about equipment.
-Future<Exercise?> pickExercise(BuildContext context) =>
-    Navigator.of(context).push<Exercise>(
-      MaterialPageRoute(builder: (_) => const ExercisePicker()),
-    );
+///
+/// [browsing] is the catalogue opened to read, not to pick: its title
+/// says "Exercises", not "Choose an exercise" (U6-36).
+Future<Exercise?> pickExercise(
+  BuildContext context, {
+  bool browsing = false,
+}) => Navigator.of(context).push<Exercise>(
+  MaterialPageRoute(builder: (_) => ExercisePicker(browsing: browsing)),
+);
 
 class ExercisePicker extends ConsumerStatefulWidget {
-  const ExercisePicker({super.key});
+  const ExercisePicker({this.browsing = false, super.key});
+
+  final bool browsing;
 
   @override
   ConsumerState<ExercisePicker> createState() => _ExercisePickerState();
@@ -60,9 +68,11 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.gymPickExercise),
+        title: Text(
+          widget.browsing ? l10n.gymExercisesTitle : l10n.gymPickExercise,
+        ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(112),
+          preferredSize: const Size.fromHeight(120),
           child: Column(
             children: [
               Padding(
@@ -94,7 +104,7 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                 ),
               ),
               SizedBox(
-                height: 44,
+                height: 52,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(
@@ -107,7 +117,10 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                           end: HarvestSpacing.xs,
                         ),
                         child: FilterChip(
-                          label: Text(part),
+                          // A 48 dp target, and the dataset's lowercase
+                          // words written as labels (U6-25, U6-37).
+                          materialTapTargetSize: MaterialTapTargetSize.padded,
+                          label: Text(sentenceCase(part)),
                           selected: _bodyPart == part,
                           onSelected: (on) =>
                               setState(() => _bodyPart = on ? part : null),
@@ -125,7 +138,7 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
           : Column(
               children: [
                 SizedBox(
-                  height: 44,
+                  height: 56,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(
@@ -140,7 +153,8 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                             end: HarvestSpacing.xs,
                           ),
                           child: FilterChip(
-                            label: Text(kit),
+                            materialTapTargetSize: MaterialTapTargetSize.padded,
+                            label: Text(sentenceCase(kit)),
                             selected: _equipment == kit,
                             onSelected: (on) =>
                                 setState(() => _equipment = on ? kit : null),
@@ -157,7 +171,10 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                     children: [
                       Expanded(
                         child: Text(
-                          l10n.gymExerciseCount(matches.length),
+                          l10n.gymExerciseCount(
+                            matches.length,
+                            formatNumber(context, matches.length, decimals: 0),
+                          ),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
@@ -275,11 +292,13 @@ class _MineSheetState extends ConsumerState<_MineSheet> {
         ),
         const SizedBox(height: HarvestSpacing.sm),
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _bodyPart,
           decoration: InputDecoration(labelText: l10n.gymMineBodyPart),
         ),
         const SizedBox(height: HarvestSpacing.sm),
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _equipment,
           decoration: InputDecoration(
             labelText: l10n.gymMineEquipment,
@@ -288,6 +307,7 @@ class _MineSheetState extends ConsumerState<_MineSheet> {
         ),
         const SizedBox(height: HarvestSpacing.sm),
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _target,
           textInputAction: TextInputAction.done,
           decoration: InputDecoration(labelText: l10n.gymMineMuscle),
@@ -366,3 +386,8 @@ class _ExerciseTile extends StatelessWidget {
     );
   }
 }
+
+/// "lower arms" as "Lower arms": the catalogue's words are lowercase
+/// data, and a chip is a label.
+String sentenceCase(String text) =>
+    text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);

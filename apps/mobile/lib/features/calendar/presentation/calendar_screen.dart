@@ -5,22 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/app/current_day.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/features/commitments/domain/calendar_entries.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
-import 'package:harvest/features/commitments/domain/due.dart';
 import 'package:harvest/features/commitments/presentation/check_in_controller.dart';
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:table_calendar/table_calendar.dart';
-
-/// One thing happening on a calendar day.
-class _CalendarEntry {
-  const _CalendarEntry(this.commitment, {this.isDeadline = false});
-
-  final Commitment commitment;
-  final bool isDeadline;
-}
 
 /// The month of habits due, to-dos planned and deadlines set. Projects
 /// are implicitly daily and stay off the grid so the badge keeps
@@ -50,43 +42,35 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     super.dispose();
   }
 
-  static List<_CalendarEntry> _entriesFor(
-    List<Commitment> commitments,
-    HarvestDay day,
-  ) {
-    final entries = <_CalendarEntry>[];
-    for (final commitment in commitments) {
-      switch (commitment.type) {
-        case CommitmentType.habit:
-          if (isDueOn(commitment, day)) entries.add(_CalendarEntry(commitment));
-        case CommitmentType.todo:
-          if (commitment.dueDay == day) entries.add(_CalendarEntry(commitment));
-        case CommitmentType.project:
-          break;
-      }
-      if (commitment.deadline == day) {
-        entries.add(_CalendarEntry(commitment, isDeadline: true));
-      }
-    }
-    return entries;
-  }
-
   /// Entry counts for every day the grid can show around [focused],
   /// computed once per build instead of once per cell per frame.
   static Map<HarvestDay, int> _countsAround(
     List<Commitment> commitments,
+    List<CalendarCheckIn> checkIns,
+    Map<String, int> totals,
     DateTime focused,
   ) {
-    final first = HarvestDay.fromDate(DateTime(focused.year, focused.month))
-        .addDays(-7);
+    final first = _gridStart(focused);
     final counts = <HarvestDay, int>{};
     for (var i = 0; i < 7 * 8; i++) {
       final day = first.addDays(i);
-      final n = _entriesFor(commitments, day).length;
+      final n = calendarEntries(
+        commitments,
+        checkIns,
+        day,
+        totals: totals,
+      ).length;
       if (n > 0) counts[day] = n;
     }
     return counts;
   }
+
+  /// The first day the grid around [focused] can show: a week before
+  /// the month, on its Monday.
+  static HarvestDay _gridStart(DateTime focused) =>
+      HarvestDay.fromDate(DateTime(focused.year, focused.month))
+          .addDays(-7)
+          .weekStart;
 
   Future<void> _addTodo(HarvestDay day) async {
     final title = _quickAdd.text.trim();
@@ -105,8 +89,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final commitments = ref.watch(activeCommitmentsProvider).value ?? const [];
     final today = ref.watch(currentHarvestDayProvider);
     final selectedDay = HarvestDay.fromDate(_selected);
-    final entries = _entriesFor(commitments, selectedDay);
-    final counts = _countsAround(commitments, _focused);
+    // The weeks on screen, and the selected day's week, not every
+    // check-in ever (P6-03).
+    final start = _gridStart(_focused);
+    final from = selectedDay.weekStart.compareTo(start) < 0
+        ? selectedDay.weekStart
+        : start;
+    final end = start.addDays(7 * 9);
+    final to = selectedDay.compareTo(end) > 0 ? selectedDay : end;
+    final checkIns =
+        ref.watch(liveCheckInsProvider((from: from, to: to))).value ?? const [];
+    final totals = ref.watch(lifetimeTotalsProvider).value ?? const {};
+    // One rule with the web's calendar (G5-12).
+    final entries = calendarEntries(
+      commitments,
+      checkIns,
+      selectedDay,
+      totals: totals,
+    );
+    final counts = _countsAround(commitments, checkIns, totals, _focused);
     final isFuture = selectedDay.compareTo(today) >= 0;
 
     return Scaffold(
@@ -162,7 +163,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         child: Text(
                           '${events.length}',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onPrimary,
+                            color: inkOn([theme.colorScheme.primary]),
                             fontWeight: FontWeight.w800,
                             fontSize: 10,
                           ),
@@ -198,6 +199,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     gradient: theme.primaryGradient,
                     shape: BoxShape.circle,
                   ),
+                  // The gradient's own ink: white on its amber end did
+                  // not read (U6-09).
+                  selectedTextStyle: theme.textTheme.bodyMedium!.copyWith(
+                    color: theme.onPrimaryGradient,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -213,6 +220,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: HarvestSpacing.sm),
                     child: TextField(
+                      textCapitalization: TextCapitalization.sentences,
                       controller: _quickAdd,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => unawaited(_addTodo(selectedDay)),
@@ -235,12 +243,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   for (final entry in entries)
                     Card(
                       key: ValueKey(
-                        '${entry.commitment.uuid}-${entry.isDeadline}',
+                        '${entry.commitment.uuid}-${entry.deadline}',
                       ),
                       margin: const EdgeInsets.only(bottom: HarvestSpacing.sm),
                       child: ListTile(
                         leading: Icon(
-                          entry.isDeadline
+                          entry.done
+                              ? Icons.check_circle
+                              : entry.deadline
                               ? Icons.flag
                               : switch (entry.commitment.type) {
                                   CommitmentType.habit => Icons.repeat,
@@ -248,12 +258,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   CommitmentType.todo =>
                                     Icons.event_note_outlined,
                                 },
-                          color: entry.isDeadline
+                          color: entry.deadline && !entry.done
                               ? theme.colorScheme.error
                               : theme.colorScheme.secondary,
                         ),
                         title: Text(
-                          entry.isDeadline
+                          entry.deadline
                               ? l10n.calDeadline(entry.commitment.title)
                               : entry.commitment.title,
                         ),

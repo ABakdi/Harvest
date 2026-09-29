@@ -16,6 +16,7 @@ class CropCard extends StatelessWidget {
     required this.icon,
     required this.done,
     required this.onTap,
+    this.paused = false,
     this.onOpen,
     this.onOptions,
     this.progress,
@@ -62,6 +63,10 @@ class CropCard extends StatelessWidget {
   /// A write is in flight: taps are ignored until it lands.
   final bool busy;
 
+  /// Resting (vacation mode): the card is dimmed and offers no
+  /// check-in, so it reads as paused at a glance (U6-15).
+  final bool paused;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -72,105 +77,118 @@ class CropCard extends StatelessWidget {
     final open = onOpen;
     final trailing = _Trailing(done: done, progress: progress);
 
-    return Semantics(
-      button: true,
-      enabled: open != null || !busy,
-      label: '$title, ${done ? l10n.cropDone : l10n.cropPending}',
-      hint: [subtitle, note, dayNote].nonNulls.join('. '),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: HarvestSpacing.sm + 4),
-        child: InkWell(
-          onTap: open ?? (busy ? null : onTap),
-          onLongPress: onOptions,
-          borderRadius: BorderRadius.circular(HarvestRadii.card),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(
-              HarvestSpacing.md,
-              HarvestSpacing.md,
-              HarvestSpacing.xs,
-              HarvestSpacing.md,
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: scheme.secondary.withValues(alpha: 0.18),
-                  child: Icon(icon, color: scheme.secondary),
-                ),
-                const SizedBox(width: HarvestSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          decoration: done ? TextDecoration.lineThrough : null,
-                          color: done ? muted : scheme.onSurface,
-                        ),
-                      ),
-                      if (subtitle.isNotEmpty) ...[
-                        const SizedBox(height: 2),
+    return Opacity(
+      opacity: paused ? 0.6 : 1,
+      child: Semantics(
+        button: true,
+        enabled: open != null || !busy,
+        label: '$title, ${done ? l10n.cropDone : l10n.cropPending}',
+        hint: [subtitle, note, dayNote].nonNulls.join('. '),
+        child: Card(
+          margin: const EdgeInsets.only(bottom: HarvestSpacing.sm + 4),
+          child: InkWell(
+            onTap: open ?? (busy ? null : onTap),
+            onLongPress: onOptions,
+            borderRadius: BorderRadius.circular(HarvestRadii.card),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                HarvestSpacing.md,
+                HarvestSpacing.md,
+                HarvestSpacing.xs,
+                HarvestSpacing.md,
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: scheme.secondary.withValues(alpha: 0.18),
+                    child: Icon(icon, color: scheme.secondary),
+                  ),
+                  const SizedBox(width: HarvestSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          subtitle,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: urgent ? scheme.error : muted,
-                            fontWeight: urgent ? FontWeight.w800 : null,
+                          title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            decoration: done
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: done ? muted : scheme.onSurface,
                           ),
                         ),
+                        if (subtitle.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: urgent ? scheme.error : muted,
+                              fontWeight: urgent ? FontWeight.w800 : null,
+                            ),
+                          ),
+                        ],
+                        if (note != null && note!.isNotEmpty)
+                          _NoteLine(
+                            icon: Icons.sticky_note_2_outlined,
+                            text: note!,
+                            color: muted,
+                          ),
+                        if (dayNote != null && dayNote!.isNotEmpty)
+                          _NoteLine(
+                            icon: Icons.bookmark_outline,
+                            text: dayNote!,
+                            color: scheme.tertiary,
+                            emphasis: true,
+                          ),
+                        if (extra != null || reminder != null) ...[
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: HarvestSpacing.sm,
+                            runSpacing: 2,
+                            children: [?reminder, ?extra],
+                          ),
+                        ],
                       ],
-                      if (note != null && note!.isNotEmpty)
-                        _NoteLine(
-                          icon: Icons.sticky_note_2_outlined,
-                          text: note!,
-                          color: muted,
-                        ),
-                      if (dayNote != null && dayNote!.isNotEmpty)
-                        _NoteLine(
-                          icon: Icons.bookmark_outline,
-                          text: dayNote!,
-                          color: scheme.tertiary,
-                          emphasis: true,
-                        ),
-                      if (extra != null || reminder != null) ...[
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: HarvestSpacing.sm,
-                          runSpacing: 2,
-                          children: [?reminder, ?extra],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(width: HarvestSpacing.sm),
-                if (open == null)
-                  trailing
-                else
-                  // Its own target, a full 48 across, so a check-in is
-                  // never a near miss on the card around it.
-                  Semantics(
-                    button: true,
-                    enabled: !busy,
-                    label: l10n.cropCheckIn(title),
-                    child: InkResponse(
-                      onTap: busy ? null : onTap,
-                      radius: HarvestSpacing.tap / 2,
-                      child: SizedBox.square(
-                        dimension: HarvestSpacing.tap,
-                        child: Center(child: trailing),
-                      ),
                     ),
                   ),
-                if (onOptions != null)
-                  IconButton(
-                    tooltip: l10n.cropOptions,
-                    visualDensity: VisualDensity.compact,
-                    icon: Icon(Icons.more_vert, color: muted),
-                    onPressed: onOptions,
-                  ),
-              ],
+                  const SizedBox(width: HarvestSpacing.sm),
+                  if (paused)
+                    SizedBox.square(
+                      dimension: HarvestSpacing.tap,
+                      child: Icon(Icons.pause_circle_outline, color: muted),
+                    )
+                  else if (open == null)
+                    trailing
+                  else
+                    // Its own target, a full 48 across, so a check-in is
+                    // never a near miss on the card around it.
+                    Semantics(
+                      button: true,
+                      enabled: !busy,
+                      // Done, the circle undoes: it says so (U6-24).
+                      label: done
+                          ? l10n.cropUndoCheckIn(title)
+                          : l10n.cropCheckIn(title),
+                      child: InkResponse(
+                        onTap: busy ? null : onTap,
+                        radius: HarvestSpacing.tap / 2,
+                        child: SizedBox.square(
+                          dimension: HarvestSpacing.tap,
+                          child: Center(child: trailing),
+                        ),
+                      ),
+                    ),
+                  if (onOptions != null)
+                    // The full 48 dp, like the check-in beside it (Q5-62).
+                    IconButton(
+                      tooltip: l10n.cropOptions,
+                      icon: Icon(Icons.more_vert, color: muted),
+                      onPressed: onOptions,
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -273,7 +291,11 @@ class _NoteLine extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: color,
+                // Readable on the card, whatever the accent (U6-09).
+                color: readableOn(
+                  color,
+                  theme.cardTheme.color ?? theme.cardColor,
+                ),
                 fontWeight: emphasis ? FontWeight.w700 : null,
                 height: 1.25,
               ),

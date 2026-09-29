@@ -1,0 +1,29 @@
+{
+  "key": "a6967485f995be1f5798deafc3fbc388",
+  "harvestDay": "2026-09-17",
+  "points": [
+    {
+      "uuid": "7c1e4b9a-2d6f-4a3e-8b5c-1f9d7e3a6c42",
+      "recordedAt": "2026-09-17T08:12:30.000Z",
+      "latitude": 36.7538,
+      "longitude": 3.0588,
+      "accuracyM": 8.5,
+      "speedMps": null,
+      "altitudeM": 12,
+      "updatedAt": "2026-09-17T08:12:30.000Z",
+      "deletedAt": null
+    },
+    {
+      "uuid": "3a8f2d6c-9b1e-4c7a-a5d3-6e2b8f4c1a97",
+      "recordedAt": "2026-09-17T08:27:05.000Z",
+      "latitude": 36.7612,
+      "longitude": 3.0476,
+      "accuracyM": 8.5,
+      "speedMps": null,
+      "altitudeM": 12,
+      "updatedAt": "2026-09-17T17:40:00.000Z",
+      "deletedAt": "2026-09-17T17:40:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-09-17T18:00:00.000Z"
+}

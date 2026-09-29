@@ -10,13 +10,11 @@ import 'package:harvest/features/lists/domain/share_links.dart';
 /// field, so a link pasted on the web and shared on the phone go to the
 /// same list with the same type.
 void main() {
-  final data =
-      jsonDecode(
-            File(
-              '../../packages/core/fixtures/share-links.json',
-            ).readAsStringSync(),
-          )
-          as Map<String, dynamic>;
+  final data = jsonDecode(
+    File(
+      '../../packages/core/fixtures/share-links.json',
+    ).readAsStringSync(),
+  ) as Map<String, dynamic>;
 
   List<Map<String, dynamic>> cases(String key) =>
       (data[key] as List<dynamic>).cast<Map<String, dynamic>>();

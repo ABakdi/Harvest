@@ -39,6 +39,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Local-Database]] — Drift schema and repositories
 - [[Sync-Strategy]] — local-first, with an optional account behind it
 - [[Sync-API]] — the wire contract: records, push, pull, files, errors
+- [[Data-Map]] — where every piece of what I keep lives, and who can read it
 - [[Deployment]] — the server's image, the database, the static site
 - [[Theming-and-Design-System]] — colors, type, motion, dark/light
 - [[Localization]] — English + Arabic, RTL
@@ -53,8 +54,9 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Phase-4-Health-and-Gym]]
 - [[Phase-5-Goals-Places-and-Voice]]
 - [[Phase-6-Sync-Accounts-and-Web]]
-- [[Phase-7-Screen-Time]] ← **next**
-- [[Phase-8-Social-and-Reach]]
+- [[Phase-7-Privacy-and-Currencies]] ← **next**
+- [[Phase-8-Screen-Time]]
+- [[Phase-9-Social-and-Reach]]
 
 ### 🏁 Checkpoints
 - [[Checkpoint-1]] — road to v1: progress review, bugs, and the final gap list
@@ -66,6 +68,8 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-7]] — Finish where the thumb is, and settings as a place
 - [[Checkpoint-8]] — the day closes on its own
 - [[Checkpoint-9]] — the browser does what the phone does
+- [[Checkpoint-10]] — the sync PIN, the phone layout on the web, and audit 5
+- [[Checkpoint-11]] — a PIN the server checks, sync under a real account, and audit 6
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board
@@ -73,6 +77,8 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Audit-v2-Beta]] — the second audit: business logic, what the spec never said, code quality and security on the v2 beta
 - [[Audit-v2]] — the third audit, on v2.0.0: the new code, the screens, the specs against the code
 - [[Audit-v3-Beta]] — the fourth, by hand: the phone on the emulator and the web as deployed
+- [[Audit-v3]] — the fifth: security, quality and gaps, all fixed
+- [[Audit-v3.1]] — the sixth, on v3.1: security, quality and performance, and the phone and the web by hand
 
 ### ⚖️ Decisions (ADRs)
 - [[ADR-001-State-Management]] — Riverpod over Bloc

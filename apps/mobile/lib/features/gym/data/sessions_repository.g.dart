@@ -179,8 +179,14 @@ final class SessionFamily extends $Family
   String toString() => r'sessionProvider';
 }
 
+/// The newest [limit] finished sessions: three on the gym screen, and a
+/// page that grows as the history is scrolled (Q6-13).
+
 @ProviderFor(finishedSessions)
-final finishedSessionsProvider = FinishedSessionsProvider._();
+final finishedSessionsProvider = FinishedSessionsFamily._();
+
+/// The newest [limit] finished sessions: three on the gym screen, and a
+/// page that grows as the history is scrolled (Q6-13).
 
 final class FinishedSessionsProvider
     extends
@@ -192,19 +198,28 @@ final class FinishedSessionsProvider
     with
         $FutureModifier<List<WorkoutSession>>,
         $StreamProvider<List<WorkoutSession>> {
-  FinishedSessionsProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'finishedSessionsProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  /// The newest [limit] finished sessions: three on the gym screen, and a
+  /// page that grows as the history is scrolled (Q6-13).
+  FinishedSessionsProvider._({
+    required FinishedSessionsFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'finishedSessionsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$finishedSessionsHash();
+
+  @override
+  String toString() {
+    return r'finishedSessionsProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -214,11 +229,46 @@ final class FinishedSessionsProvider
 
   @override
   Stream<List<WorkoutSession>> create(Ref ref) {
-    return finishedSessions(ref);
+    final argument = this.argument as int;
+    return finishedSessions(ref, limit: argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is FinishedSessionsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
   }
 }
 
-String _$finishedSessionsHash() => r'702972bdc2e5d2589f60f0c55b647d3b94ff7b75';
+String _$finishedSessionsHash() => r'25faaa778ae072a1f3bfbe1500949c370af90d10';
+
+/// The newest [limit] finished sessions: three on the gym screen, and a
+/// page that grows as the history is scrolled (Q6-13).
+
+final class FinishedSessionsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<WorkoutSession>>, int> {
+  FinishedSessionsFamily._()
+    : super(
+        retry: null,
+        name: r'finishedSessionsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The newest [limit] finished sessions: three on the gym screen, and a
+  /// page that grows as the history is scrolled (Q6-13).
+
+  FinishedSessionsProvider call({int limit = 50}) =>
+      FinishedSessionsProvider._(argument: limit, from: this);
+
+  @override
+  String toString() => r'finishedSessionsProvider';
+}
 
 @ProviderFor(exerciseRecords)
 final exerciseRecordsProvider = ExerciseRecordsFamily._();

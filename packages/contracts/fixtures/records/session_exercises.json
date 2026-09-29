@@ -3,17 +3,9 @@
   "uuid": "9c3e7a1f-2d8b-4b6c-a4e9-1f7c5b3d9a24",
   "updatedAt": "2026-09-17T17:02:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "9c3e7a1f-2d8b-4b6c-a4e9-1f7c5b3d9a24",
-    "sessionUuid": "0e5a9c3d-6b2f-4d8a-8c1e-5b9f3d7a2c86",
-    "position": 0,
-    "exerciseId": "3f8b2d6a-9c4e-4b7f-a1d5-5e9c3b8f2a16",
-    "plannedExerciseId": "0025",
-    "slotUuid": "6b9d3f1a-8e5c-4f2b-9d7a-3a6c8e4b1f59",
-    "skipped": false,
-    "skipReason": null,
-    "note": "Shoulder felt off, swapped",
-    "restSeconds": 150,
-    "barGrams": 20000
+  "enc": {
+    "v": 2,
+    "iv": "a9E7iSwNWVmgOp04",
+    "ct": "/8UNK42bun5NkScYeEfK6sYTPzuSNrPR1473lqjv0oSzXi5tW+w3BNaQlqx9W9CBjaY4Qq1rBvB3AzDPqReMKnbnkIDFTvR3HItBx94ufeG7YTdVjh2YiYf1n4dFPF1UmWUhQlmN0fV4beZamQqkxVM+UeinDCJ0upf/68jPQmsmE/mc5e4DSHvHvYuAxWUTraw6q5zsC1Dp2dENRbUjM2P6M5BvAGONjnCqrABx5H7qoCxuRK7jPHdiNXTKLBz4B/eZpBvDpYpJaGBULq7ZzYWwH9vpBmfj5cidgsUCHaDu5Qi72xfluApVVrgUr8Gq5wrgeD3cjnI9bHSHOwv8p7slUWH/2TraX1ZBhNrzXuJDpUkBh4lNczRy2Eq5hwJ82UMJUemaPc6VCRp51JCTDjJi0LgSYjnS3IH256kKjO+aIISywt2FCn1uO7CSqqNjUXE5F3JUBEpSls+HOZgiL3PkP9fmXT55NSmyEusI3pM="
   }
 }

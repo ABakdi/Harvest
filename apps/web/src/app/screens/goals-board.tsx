@@ -1,15 +1,19 @@
 import { HarvestDay } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, PlusIcon, TargetIcon, TrophyIcon } from 'lucide-react';
+import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, TargetIcon, TrophyIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { formatDay } from '@/lib/format';
+import { Fab } from '../components/fab';
+import { useBusy } from '../components/use-busy';
 import { EmptyState, ProgressRing, StreakChip } from '../components/bits';
 import { GoalEditor } from '../components/goal-editor';
 import { useHarvest, useHarvestDay } from '../context';
 import { loadGoals, type GoalView } from '../data/goal-views';
+import { background, runAction } from '@/lib/actions';
 
 export function useDaysLeft(targetDay: string | null): string | null {
   const { t } = useTranslation();
@@ -26,8 +30,9 @@ function GoalCard({ view, index, count, onMove }: { view: GoalView; index: numbe
   const { goals } = useHarvest();
   const daysLeft = useDaysLeft(view.goal.targetDay);
   const { goal, progress } = view;
+  const [achieving, once] = useBusy();
   return (
-    <li className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+    <li className="relative flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4">
       <div className="flex items-start gap-3">
         {progress ? (
           <ProgressRing ratio={progress.ratio} label={t('goals.progress', { done: progress.done, total: progress.total })} />
@@ -37,7 +42,11 @@ function GoalCard({ view, index, count, onMove }: { view: GoalView; index: numbe
           </span>
         )}
         <div className="flex min-w-0 flex-1 flex-col">
-          <Link to={`/app/field/goals/${goal.uuid}`} className="truncate text-lg font-extrabold hover:underline">
+          {/* On a phone the whole card opens the goal. */}
+          <Link dir="auto"
+            to={`/app/field/goals/${goal.uuid}`}
+            className="truncate text-lg font-extrabold hover:underline max-md:after:absolute max-md:after:inset-0 max-md:after:content-['']"
+          >
             {goal.title}
           </Link>
           <span className="text-xs text-muted-foreground">
@@ -46,7 +55,7 @@ function GoalCard({ view, index, count, onMove }: { view: GoalView; index: numbe
           </span>
         </div>
         {goal.status === 'active' && (
-          <div className="flex flex-col">
+          <div className="relative z-10 flex flex-col">
             <Button variant="ghost" size="icon-sm" aria-label={t('goals.moveUp', { title: goal.title })} disabled={index === 0} onClick={() => onMove(index, index - 1)}>
               <ArrowUpIcon />
             </Button>
@@ -67,14 +76,20 @@ function GoalCard({ view, index, count, onMove }: { view: GoalView; index: numbe
         <ul className="flex flex-wrap gap-1.5" aria-label={t('goals.seeds')}>
           {view.seeds.map((seed) => (
             <li key={seed.uuid} className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-bold">
-              <span className={seed.archivedAt ? 'text-muted-foreground line-through' : undefined}>{seed.title}</span>
+              <span dir="auto" className={seed.archivedAt ? 'text-muted-foreground line-through' : undefined}>{seed.title}</span>
               {seed.type === 'habit' && <StreakChip count={view.streaks.get(seed.uuid) ?? 0} className="bg-transparent px-0" />}
             </li>
           ))}
         </ul>
       )}
       {goal.status === 'active' && progress?.complete && (
-        <Button variant="brand" className="w-fit" onClick={() => void goals.achieve(goal.uuid)}>
+        <Button variant="brand" className="relative z-10 w-fit" disabled={achieving} onClick={() =>
+            // The +50 said out loud, as on the goal's own page (G5-14).
+            runAction(() => once(() => goals
+              .achieve(goal.uuid)
+              .then((paid) => toast.success(paid > 0 ? t('goals.achievedToast', { xp: paid }) : t('goals.achievedAgain')))))
+          }
+        >
           <TrophyIcon />
           {t('goals.markAchieved')}
         </Button>
@@ -101,7 +116,7 @@ export function GoalsBoard() {
     const order = active.map((view) => view.goal.uuid);
     const [moved] = order.splice(from, 1);
     order.splice(to, 0, moved!);
-    void goals.reorder(order);
+    runAction(() => goals.reorder(order));
   };
 
   const folded = (label: string, list: GoalView[]) =>
@@ -121,12 +136,10 @@ export function GoalsBoard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-extrabold">{t('goals.board')}</h1>
-        <Button onClick={() => setCreating(true)}>
-          <PlusIcon />
-          {t('goals.new')}
-        </Button>
+      <div className="flex items-center justify-between gap-2 max-md:contents">
+        {/* On a phone the tab row names the board, and the action floats. */}
+        <h1 className="text-xl font-extrabold max-md:sr-only">{t('goals.board')}</h1>
+        <Fab label={t('goals.new')} onClick={() => setCreating(true)} />
       </div>
       {active.length === 0 ? (
         <EmptyState icon={<TargetIcon />} title={t('goals.emptyTitle')} body={t('goals.emptyBody')} />
@@ -140,7 +153,7 @@ export function GoalsBoard() {
       {folded(t('goals.achieved', { count: achieved.length }), achieved)}
       {folded(t('goals.dropped', { count: dropped.length }), dropped)}
       {creating && (
-        <GoalEditor goal={null} onClose={() => setCreating(false)} onCreated={(uuid) => void navigate(`/app/field/goals/${uuid}`)} />
+        <GoalEditor goal={null} onClose={() => setCreating(false)} onCreated={(uuid) => background(navigate(`/app/field/goals/${uuid}`))} />
       )}
     </div>
   );

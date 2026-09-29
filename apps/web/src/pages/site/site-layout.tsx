@@ -18,9 +18,13 @@ export function SiteLayout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-card focus:p-2">
         {t('common.skipToContent')}
       </a>
-      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 max-sm:px-3">
-          <Link to="/" className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={t('site.homeLink')}>
+          <Link
+            to="/"
+            className="flex rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11 max-md:items-center"
+            aria-label={t('site.homeLink')}
+          >
             <Wordmark />
           </Link>
           <nav aria-label={t('site.nav')} className="ms-4 hidden items-center gap-2 sm:flex">
@@ -44,9 +48,9 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-sm text-muted-foreground sm:flex-row sm:items-center">
           <span>{t('site.footerLine')}</span>
-          <nav aria-label={t('site.footerNav')} className="flex gap-4 sm:ms-auto">
+          <nav aria-label={t('site.footerNav')} className="flex flex-wrap gap-x-4 sm:ms-auto [&>a]:max-md:inline-flex [&>a]:max-md:min-h-11 [&>a]:max-md:min-w-11 [&>a]:max-md:items-center [&>a]:max-md:justify-center">
             <Link to="/download" className="hover:text-foreground">
               {t('site.download')}
             </Link>

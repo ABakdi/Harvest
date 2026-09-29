@@ -3,10 +3,9 @@
   "uuid": "2026-09-18",
   "updatedAt": "2026-09-18T21:58:00.000Z",
   "deletedAt": null,
-  "data": {
-    "harvestDay": "2026-09-18",
-    "steps": 11482,
-    "lastCounter": 58213,
-    "updatedAt": "2026-09-18T21:58:00.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "SXkvrljXEUggmvIM",
+    "ct": "I8SS9e9gM8yTnB62v5cQwIKtzW0qAslZQPYGKIoGETd9hQhmeyMoYtR4Ni0sIb/EBiCBX7Z+lG7Axd3wzImoOzDngIYtL3vj+uTqlzvAZjhv3Ia/7cWEvL8D1v/7M17YHjTvon5t7fQekWFOjWcGFoTcmqzdhYm5AdqFu9UNIWUihX9jM/v2XpvkFPGdFenUNFW1WkoGlUtPRfDTv/ECwUMe+A9MZbXqvrl5OKwHYOI6vwstQ0DgoYupUbtbp9viL6WjtvUxdiMscOFqZSX9wtvOh4PHJc/l2Zx4KWB7cwM9jH50e+YSyoFzIKjJQGykI+f4NhZWMqxZma/hdYRBGTBneLQXbQEgQ5+N64+jBEQ="
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart' show StreamProvider;
 import 'package:harvest/core/app/current_day.dart';
+import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/finances/data/finances_repository.dart';
+import 'package:harvest/features/finances/data/rates_service.dart';
 import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
 import 'package:harvest/features/finances/domain/day_range.dart';
@@ -20,40 +22,45 @@ abstract final class FinanceKeys {
       'finance.savings.${currency.code}';
 }
 
+// Everything keyed on today watches the live Harvest Day, so a Granary
+// left open across 3 AM moves on by itself ([[Audit-v3]] Q5-03).
 @riverpod
-Stream<List<Expense>> todayExpenses(Ref ref) =>
-    ref.watch(financesRepositoryProvider).watchDay(HarvestDay.today());
+Stream<List<Expense>> todayExpenses(Ref ref) => ref
+    .watch(financesRepositoryProvider)
+    .watchDay(ref.watch(currentHarvestDayProvider));
 
 /// Expenses logged on a day still to come — the bill I know is coming
 /// ([[Finances]] Quick-log), soonest first. They count on their own day
 /// and not before, so no total reads them; this list is how they stay
 /// reachable to open, change or remove.
-final StreamProvider<List<Expense>> upcomingExpensesProvider = StreamProvider.autoDispose<List<Expense>>((
-  ref,
-) {
-  final today = HarvestDay.today();
-  return ref
-      .watch(financesRepositoryProvider)
-      .watchRange(today.next, today.addDays(366))
-      .map(soonestFirst);
-});
+final StreamProvider<List<Expense>> upcomingExpensesProvider =
+    StreamProvider.autoDispose<List<Expense>>((
+      ref,
+    ) {
+      final today = ref.watch(currentHarvestDayProvider);
+      return ref
+          .watch(financesRepositoryProvider)
+          .watchRange(today.next, today.addDays(366))
+          .map(soonestFirst);
+    });
 
 /// [expenses] by day, soonest first, and within a day in the order
 /// they were logged.
-List<Expense> soonestFirst(List<Expense> expenses) => [...expenses]
-  ..sort((a, b) {
-    final byDay = a.day.compareTo(b.day);
-    return byDay != 0 ? byDay : a.loggedAt.compareTo(b.loggedAt);
-  });
+List<Expense> soonestFirst(List<Expense> expenses) =>
+    [...expenses]..sort((a, b) {
+      final byDay = a.day.compareTo(b.day);
+      return byDay != 0 ? byDay : a.loggedAt.compareTo(b.loggedAt);
+    });
 
 @riverpod
-Stream<List<Expense>> monthExpenses(Ref ref) =>
-    ref.watch(financesRepositoryProvider).watchMonth(HarvestDay.today());
+Stream<List<Expense>> monthExpenses(Ref ref) => ref
+    .watch(financesRepositoryProvider)
+    .watchMonth(ref.watch(currentHarvestDayProvider));
 
 @riverpod
 Stream<List<Expense>> weekExpenses(Ref ref) => ref
     .watch(financesRepositoryProvider)
-    .watchWeek(HarvestDay.today().weekStart);
+    .watchWeek(ref.watch(currentHarvestDayProvider).weekStart);
 
 @riverpod
 Stream<List<CustomCategory>> customCategories(Ref ref) =>
@@ -85,13 +92,54 @@ class FinanceSettings extends _$FinanceSettings {
         ),
       );
 
-  Future<void> setBudget(int minor) => ref
+  /// Sets the month's budget, or clears it with null: an empty value,
+  /// which both devices read as no budget at all.
+  Future<void> setBudget(int? minor) => ref
       .read(settingsRepositoryProvider)
-      .setString(FinanceKeys.monthlyBudget, '$minor');
+      .setString(FinanceKeys.monthlyBudget, minor == null ? '' : '$minor');
 
-  Future<void> setDefaultCurrency(Currency currency) => ref
-      .read(settingsRepositoryProvider)
-      .setString(FinanceKeys.defaultCurrency, currency.code);
+  /// Switches the default currency and carries the budget across: the
+  /// budget is a sum in the default currency, so DA50,000 has to become
+  /// its worth in euros, not €50,000 ([[Audit-v3]] G5-04). Without a
+  /// rate it keeps its number, the way every sum falls back to face
+  /// value.
+  Future<void> setDefaultCurrency(Currency currency) async {
+    final settings = ref.read(settingsRepositoryProvider);
+    await ref.read(databaseProvider).transaction(() async {
+      final from = Currency.fromCode(
+        await settings.getString(FinanceKeys.defaultCurrency),
+      );
+      if (from == currency) return;
+      final budget = int.tryParse(
+        await settings.getString(FinanceKeys.monthlyBudget) ?? '',
+      );
+      await settings.setString(FinanceKeys.defaultCurrency, currency.code);
+      if (budget == null || budget <= 0) return;
+      final converted = convertBudget(
+        budget,
+        from: from,
+        to: currency,
+        rates: ratesFrom({
+          for (final key in RateKeys.all) key: await settings.getString(key),
+        }, currency),
+      );
+      if (converted != budget) await setBudget(converted);
+    });
+  }
+}
+
+/// [budget] in [from] as a budget in [to]: converted when [rates] know
+/// the way, its face value otherwise, and never below one minor unit.
+int convertBudget(
+  int budget, {
+  required Currency from,
+  required Currency to,
+  required Rates rates,
+}) {
+  if (from == to) return budget;
+  final converted = rates.withDefault(to).toDefault(budget, from);
+  if (converted == null) return budget;
+  return converted < 1 ? 1 : converted;
 }
 
 /// The default currency, DZD until the setting says otherwise.
@@ -179,19 +227,8 @@ Stream<Rates> rates(Ref ref) {
       ref.watch(financeSettingsProvider).value?.defaultCurrency ?? Currency.dzd;
   return ref
       .watch(settingsRepositoryProvider)
-      .watchAll(const [
-        'rate.dzdPerUsd',
-        'rate.dzdPerEur',
-        'rate.usdPerEur',
-      ])
-      .map(
-        (values) => Rates(
-          defaultCurrency: defaultCurrency,
-          dzdPerUsd: double.tryParse(values['rate.dzdPerUsd'] ?? ''),
-          dzdPerEur: double.tryParse(values['rate.dzdPerEur'] ?? ''),
-          usdPerEur: double.tryParse(values['rate.usdPerEur'] ?? ''),
-        ),
-      );
+      .watchAll(RateKeys.all)
+      .map((values) => ratesFrom(values, defaultCurrency));
 }
 
 // ------------------------------------------------------------ aggregation
@@ -229,15 +266,29 @@ Stream<List<Expense>> rangeExpenses(Ref ref, DayRange range) =>
 
 @riverpod
 Map<String, int> rangeTotals(Ref ref, DayRange range) => totalsByDay(
-  ref.watch(rangeExpensesProvider(range)).value ?? const [],
+  upToToday(
+    ref.watch(rangeExpensesProvider(range)).value ?? const [],
+    ref.watch(currentHarvestDayProvider),
+  ),
   ref.watch(ratesOrDefaultProvider),
 );
 
 @riverpod
 Map<String, int> rangeByCategory(Ref ref, DayRange range) => totalsByCategory(
-  ref.watch(rangeExpensesProvider(range)).value ?? const [],
+  upToToday(
+    ref.watch(rangeExpensesProvider(range)).value ?? const [],
+    ref.watch(currentHarvestDayProvider),
+  ),
   ref.watch(ratesOrDefaultProvider),
 );
+
+/// [expenses] without the ones logged ahead: the month counts up to
+/// today ([[Finances]] Quick-log), so next week's rent is not spent yet
+/// and no total, chart or average may read it ([[Audit-v3]] G5-03).
+List<Expense> upToToday(List<Expense> expenses, HarvestDay today) => [
+  for (final expense in expenses)
+    if (expense.day.compareTo(today) <= 0) expense,
+];
 
 /// Every movement in a span, for the Insights page's own ledger.
 @riverpod
@@ -246,25 +297,37 @@ Stream<List<MoneyTxn>> rangeTxns(Ref ref, DayRange range) =>
 
 @riverpod
 Map<String, int> monthTotals(Ref ref) => totalsByDay(
-  ref.watch(monthExpensesProvider).value ?? const [],
+  upToToday(
+    ref.watch(monthExpensesProvider).value ?? const [],
+    ref.watch(currentHarvestDayProvider),
+  ),
   ref.watch(ratesProvider).value ?? const Rates(defaultCurrency: Currency.dzd),
 );
 
 @riverpod
 Map<String, int> weekTotals(Ref ref) => totalsByDay(
-  ref.watch(weekExpensesProvider).value ?? const [],
+  upToToday(
+    ref.watch(weekExpensesProvider).value ?? const [],
+    ref.watch(currentHarvestDayProvider),
+  ),
   ref.watch(ratesProvider).value ?? const Rates(defaultCurrency: Currency.dzd),
 );
 
 @riverpod
 Map<String, int> monthByCategory(Ref ref) => totalsByCategory(
-  ref.watch(monthExpensesProvider).value ?? const [],
+  upToToday(
+    ref.watch(monthExpensesProvider).value ?? const [],
+    ref.watch(currentHarvestDayProvider),
+  ),
   ref.watch(ratesProvider).value ?? const Rates(defaultCurrency: Currency.dzd),
 );
 
 @riverpod
 Map<String, int> weekByCategory(Ref ref) => totalsByCategory(
-  ref.watch(weekExpensesProvider).value ?? const [],
+  upToToday(
+    ref.watch(weekExpensesProvider).value ?? const [],
+    ref.watch(currentHarvestDayProvider),
+  ),
   ref.watch(ratesProvider).value ?? const Rates(defaultCurrency: Currency.dzd),
 );
 
@@ -276,7 +339,7 @@ BudgetSnapshot? budgetSnapshot(Ref ref) {
   if (budget == null || budget <= 0) return null;
 
   final totals = ref.watch(monthTotalsProvider);
-  final today = HarvestDay.today();
+  final today = ref.watch(currentHarvestDayProvider);
   var spentBefore = 0;
   var spentToday = 0;
   totals.forEach((day, amount) {
@@ -297,27 +360,33 @@ BudgetSnapshot? budgetSnapshot(Ref ref) {
 /// Savings health: total savings (converted) below 10% of the budget.
 enum SavingsHealth { unknown, healthy, low }
 
-@riverpod
-SavingsHealth savingsHealth(Ref ref) {
-  final budget = ref.watch(financeSettingsProvider).value?.budgetMinor;
-  final balances = ref.watch(vaultBalancesProvider).value ?? const {};
-  final savings = <Currency, int>{
-    for (final entry in balances.entries)
-      if (entry.key.$1 == MoneyAccount.savings && entry.value != 0)
-        entry.key.$2: entry.value,
+/// The rule itself (`savingsHealth` in `packages/core`, held to its
+/// fixture): savings below a tenth of the monthly budget, converted at
+/// the rates known (face value where one is missing), are low. With no
+/// savings or no budget there is nothing to say (Q6-20).
+SavingsHealth savingsHealthOf(
+  Map<Currency, int> savings,
+  int? monthlyBudget,
+  Rates rates,
+) {
+  final held = {
+    for (final entry in savings.entries)
+      if (entry.value != 0) entry.key: entry.value,
   };
-  if (savings.isEmpty || budget == null || budget <= 0) {
+  if (held.isEmpty || monthlyBudget == null || monthlyBudget <= 0) {
     return SavingsHealth.unknown;
   }
-  final ratesValue =
-      ref.watch(ratesProvider).value ??
-      const Rates(defaultCurrency: Currency.dzd);
-  var total = 0;
-  savings.forEach((currency, minor) {
-    total += ratesValue.toDefault(minor, currency) ?? minor;
-  });
-  return total < budget ~/ 10 ? SavingsHealth.low : SavingsHealth.healthy;
+  return rates.sumInDefault(held) < monthlyBudget ~/ 10
+      ? SavingsHealth.low
+      : SavingsHealth.healthy;
 }
+
+@riverpod
+SavingsHealth savingsHealth(Ref ref) => savingsHealthOf(
+  ref.watch(accountBalancesProvider(MoneyAccount.savings)),
+  ref.watch(financeSettingsProvider).value?.budgetMinor,
+  ref.watch(ratesProvider).value ?? const Rates(defaultCurrency: Currency.dzd),
+);
 
 /// The smart-repeat suggestion, refreshed as today's log changes.
 @riverpod
@@ -325,5 +394,5 @@ Future<RepeatSuggestion?> repeatSuggestion(Ref ref) {
   ref.watch(todayExpensesProvider);
   return ref
       .watch(financesRepositoryProvider)
-      .repeatSuggestion(HarvestDay.today());
+      .repeatSuggestion(ref.watch(currentHarvestDayProvider));
 }

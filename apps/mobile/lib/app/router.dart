@@ -12,6 +12,7 @@ import 'package:harvest/features/finances/presentation/granary_screen.dart';
 import 'package:harvest/features/gallery/presentation/album_screen.dart';
 import 'package:harvest/features/goals/presentation/goal_screen.dart';
 import 'package:harvest/features/health/presentation/health_rationale_screen.dart';
+import 'package:harvest/features/lists/presentation/lists_screen.dart';
 import 'package:harvest/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:harvest/features/planner/presentation/planner_screen.dart';
 import 'package:harvest/features/pomodoro/presentation/pomodoro_screen.dart';
@@ -34,6 +35,10 @@ abstract final class AppRoutes {
   /// A goal's own screen ([[Goals]]); append the goal's uuid.
   static const goal = '/field/goal';
   static const finances = '/finances';
+
+  /// The lists, opened from the Granary's planned purchases and kept
+  /// in its branch; `?list=<uuid>` opens one list.
+  static const granaryLists = '/finances/lists';
 
   /// The farmer's own tab: progress and settings, two halves of one
   /// idea — me, rather than any of the things I track.
@@ -167,6 +172,16 @@ GoRouter router(Ref ref) {
               GoRoute(
                 path: AppRoutes.finances,
                 builder: (context, state) => const GranaryScreen(),
+                routes: [
+                  // Planned purchases open the lists on top of the
+                  // Granary, so Back returns to it (U6-06).
+                  GoRoute(
+                    path: 'lists',
+                    builder: (context, state) => ListsScreen(
+                      initialList: state.uri.queryParameters['list'],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

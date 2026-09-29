@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { HarvestDB, listsFeatureKey, tableSchemas } from '@/app/data/db';
 import { hasDefaultName, itemsOfList, liveLists, openCounts } from '@/app/data/lists';
 import { FakeServer } from './fake-server';
-import { device } from './helpers';
+import { device, openStored, syncing } from './helpers';
 
 /** Phase 6, M6.12: the data under Lists ([[Lists]] L1–L10), as the phone keeps it. */
 
@@ -77,7 +77,8 @@ describe("a list's kind decides its items' fields (L2)", () => {
 
   it('reads an item from before lists by its old column', async () => {
     const h = await device(new FakeServer());
-    await h.wishlist.add({ list: 'wish', title: 'Lamp' });
+    await h.lists.ensureBuiltIns();
+    await h.lists.addItem(wishListId, { title: 'Lamp' });
     await h.db.table('wishlist_items').put({
       uuid: 'old',
       list: 'buy',
@@ -101,9 +102,10 @@ describe("a list's kind decides its items' fields (L2)", () => {
 describe('done, started, rated (L4, L7, L8)', () => {
   it('a wish is not bought where it is; To buy is where things get bought', async () => {
     const h = await device(new FakeServer());
-    const machine = await h.wishlist.add({ list: 'wish', title: 'Espresso machine', priceMinor: 540_000 });
+    await h.lists.ensureBuiltIns();
+    const machine = await h.lists.addItem(wishListId, { title: 'Espresso machine', priceMinor: 540_000 });
     expect(await h.lists.setDone(machine.uuid, true)).toBe(false);
-    await h.wishlist.move(machine.uuid, 'buy');
+    await h.lists.moveItem(machine.uuid, buyListId);
     expect(await h.lists.setDone(machine.uuid, true)).toBe(true);
     // A stamp, not a transaction: nothing in the ledger or the wallet.
     expect(await h.db.rows('ledger').count()).toBe(0);
@@ -178,19 +180,19 @@ describe('deletion (L6, L10)', () => {
 describe('sync', () => {
   it('two devices share the built-ins, and a rename wins over a late seed', async () => {
     const server = new FakeServer();
-    const a = await device(server);
+    const a = await syncing(server);
     await a.lists.renameList(readListId, 'Reading pile');
     const dune = await a.lists.addItem(readListId, { title: 'Dune', mediaType: 'book' });
     await a.engine.sync();
 
-    const b = await device(server);
+    const b = await syncing(server);
     await b.engine.sync();
     expect(await b.db.rows('lists').count()).toBe(4);
     expect((await b.db.rows('lists').get(readListId))!.name).toBe('Reading pile');
     expect((await itemsOfList(b.db, readListId)).map((row) => row.uuid)).toEqual([dune.uuid]);
     // Every row the server holds is one the contract takes.
     for (const record of server.stored.values()) {
-      if (record.table === 'lists') expect(tables.lists.data.safeParse(record.data).success).toBe(true);
+      if (record.table === 'lists') expect(tables.lists.data.safeParse(await openStored(record)).success).toBe(true);
     }
   });
 });
@@ -225,7 +227,7 @@ describe('the browser store', () => {
 
     const db = new HarvestDB(name);
     await db.open();
-    expect(db.verno).toBe(4);
+    expect(db.verno).toBe(6);
     expect(await db.rows('lists').count()).toBe(4);
     const coat = (await db.rows('wishlist_items').get('coat'))!;
     expect(coat).toMatchObject({ listUuid: buyListId, mediaType: null, rating: null });

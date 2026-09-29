@@ -94,6 +94,11 @@ class _Parser {
       _at++;
     }
     if (start == _at) return null;
-    return double.tryParse(_text.substring(start, _at));
+    final raw = _text.substring(start, _at);
+    // Cents go two digits deep, inside a sum as in a plain number:
+    // `12.345+0` is the same typo as `12.345` ([[Audit-v3]] Q5-66).
+    final point = raw.indexOf('.');
+    if (point >= 0 && raw.length - point - 1 > 2) return null;
+    return double.tryParse(raw);
   }
 }

@@ -7,9 +7,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { currencies, currencySymbol, formatAmountInput, formatMoney } from '@/lib/format';
+import { formatAmountInput, formatMoney } from '@/lib/format';
 import { AmountField, SwitchRow, moneyError } from './money-bits';
+import { runAction } from '@/lib/actions';
+import { CurrencyPicker } from './currency-picker';
 
 /** What a money dialog hands back (`MoneyEntry`). */
 export interface MoneyEntry {
@@ -91,7 +92,7 @@ export function MoneyDialog({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <AmountField
             id={`${id}-amount`}
             label={t('money.amount')}
@@ -113,13 +114,7 @@ export function MoneyDialog({
           {!lockCurrency && (
             <div className="flex flex-col gap-2">
               <Label id={`${id}-currency`}>{t('money.currency')}</Label>
-              <ToggleGroup type="single" value={currency} onValueChange={(value) => value && setCurrency(value)} aria-labelledby={`${id}-currency`}>
-                {currencies.map((code) => (
-                  <ToggleGroupItem key={code} value={code} aria-label={code}>
-                    {currencySymbol(code)}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+              <CurrencyPicker id={`${id}-currency-pick`} labelledBy={`${id}-currency`} value={currency} onChange={setCurrency} className="self-start" />
             </div>
           )}
           {walletBalances !== undefined && (

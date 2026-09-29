@@ -1,0 +1,41 @@
+{
+  "about": "Planned purchases (Lists L3): per currency, the open estimates of every live shopping list except the Wishlist. A bought item, an item with no estimate, and an item of a plain, media or missing list do not count; currencies are never added across.",
+  "lists": [
+    { "uuid": "buy", "kind": "shopping", "builtIn": "buy" },
+    { "uuid": "wish", "kind": "shopping", "builtIn": "wish" },
+    { "uuid": "hardware", "kind": "shopping", "builtIn": null },
+    { "uuid": "read", "kind": "media", "builtIn": "read" },
+    { "uuid": "ideas", "kind": "plain", "builtIn": null }
+  ],
+  "plannedPurchases": [
+    { "why": "nothing planned", "items": [], "sums": {} },
+    {
+      "why": "the spec's example: a kettle to buy, an espresso machine wished for, headphones in dollars, a coat bought",
+      "items": [
+        { "listUuid": "buy", "priceMinor": 85000, "currency": "DZD", "done": false },
+        { "listUuid": "wish", "priceMinor": 1800000, "currency": "DZD", "done": false },
+        { "listUuid": "buy", "priceMinor": 6500, "currency": "USD", "done": false },
+        { "listUuid": "buy", "priceMinor": 999900, "currency": "DZD", "done": true }
+      ],
+      "sums": { "DZD": 85000, "USD": 6500 }
+    },
+    {
+      "why": "a shopping list I made counts; one with no estimate adds nothing",
+      "items": [
+        { "listUuid": "hardware", "priceMinor": 120000, "currency": "DZD", "done": false },
+        { "listUuid": "hardware", "priceMinor": null, "currency": "DZD", "done": false },
+        { "listUuid": "buy", "priceMinor": 30000, "currency": "DZD", "done": false }
+      ],
+      "sums": { "DZD": 150000 }
+    },
+    {
+      "why": "other kinds of list, and a list that is gone, never count",
+      "items": [
+        { "listUuid": "read", "priceMinor": 2000, "currency": "EUR", "done": false },
+        { "listUuid": "ideas", "priceMinor": 2000, "currency": "EUR", "done": false },
+        { "listUuid": "deleted", "priceMinor": 2000, "currency": "EUR", "done": false }
+      ],
+      "sums": {}
+    }
+  ]
+}

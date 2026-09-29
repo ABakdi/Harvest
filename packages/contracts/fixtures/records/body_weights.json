@@ -3,13 +3,9 @@
   "uuid": "8d2a5f7c-3e9b-4a1d-8f6e-7c3b1a9d5e42",
   "updatedAt": "2026-09-19T07:05:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "8d2a5f7c-3e9b-4a1d-8f6e-7c3b1a9d5e42",
-    "grams": 78350,
-    "harvestDay": "2026-09-19",
-    "note": "After a run",
-    "measuredAt": "2026-09-19T07:05:00.000Z",
-    "updatedAt": "2026-09-19T07:05:00.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "9llzVnKgqPn8jlcg",
+    "ct": "mlXbPONN5mwigzTcPFBKRrIfdJFxJczOH7odlxATsRb60KyyOQmR6JMwxePfbTwRM9ZCjzheN0aLnvBWyucghob3TKFZ8bnDNquMXRJyN0MzAkvVwTSH60fb0nL3KMqVClcu0kmExk3vbJ+wwMEn03Jae9NRz76tPHL3vaEbbyL/cpakz2Q/T+YYPyFDPcLApU3xBT2s+99OSqiXvPrrGfpaWH8KwGJvueLKtt2tVFiPipjy/jnwPJd41F+BmcuBDlghKnFVhsxZacn3TVn0P0+/sGX9Tho+yQXuq176+SlEN+CfTJWlg/ht76n28r+jaRhpoCel7uWQ7/cSsg0QqOxWXr3aOb+IBsdGsT5Ek/o="
   }
 }

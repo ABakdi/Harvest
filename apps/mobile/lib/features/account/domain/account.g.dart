@@ -50,6 +50,47 @@ final class TokenStoreProvider
 
 String _$tokenStoreHash() => r'14e198bdbd97ac84b018a8e32a5e894f2564e61a';
 
+@ProviderFor(serverAddress)
+final serverAddressProvider = ServerAddressProvider._();
+
+final class ServerAddressProvider
+    extends $FunctionalProvider<ServerAddress, ServerAddress, ServerAddress>
+    with $Provider<ServerAddress> {
+  ServerAddressProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'serverAddressProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$serverAddressHash();
+
+  @$internal
+  @override
+  $ProviderElement<ServerAddress> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ServerAddress create(Ref ref) {
+    return serverAddress(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ServerAddress value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ServerAddress>(value),
+    );
+  }
+}
+
+String _$serverAddressHash() => r'49f520cfd8fcda8d44d26caea458d1f618951dfa';
+
 @ProviderFor(apiClient)
 final apiClientProvider = ApiClientProvider._();
 
@@ -89,16 +130,107 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'a1365ec6af98a1fec326ea395cc0fdfe2e4b4de8';
+String _$apiClientHash() => r'e3021e6c48785be6ccfd16fcb415fcadec1d6af6';
 
-/// Files sync only once a passphrase is set: a picture is as personal
-/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+@ProviderFor(syncKeyRemote)
+final syncKeyRemoteProvider = SyncKeyRemoteProvider._();
+
+final class SyncKeyRemoteProvider
+    extends $FunctionalProvider<SyncKeyRemote, SyncKeyRemote, SyncKeyRemote>
+    with $Provider<SyncKeyRemote> {
+  SyncKeyRemoteProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncKeyRemoteProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncKeyRemoteHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncKeyRemote> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SyncKeyRemote create(Ref ref) {
+    return syncKeyRemote(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncKeyRemote value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncKeyRemote>(value),
+    );
+  }
+}
+
+String _$syncKeyRemoteHash() => r'5084e1f1ce5c40e5ab3f735827e3de3039e9f17b';
+
+/// What the server says about the account's key right now: whether a
+/// PIN is to be chosen or entered is its answer, never a guess from what
+/// this phone happens to have pulled ([[Accounts]]).
+
+@ProviderFor(syncKeyState)
+final syncKeyStateProvider = SyncKeyStateProvider._();
+
+/// What the server says about the account's key right now: whether a
+/// PIN is to be chosen or entered is its answer, never a guess from what
+/// this phone happens to have pulled ([[Accounts]]).
+
+final class SyncKeyStateProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SyncKeyState>,
+          SyncKeyState,
+          FutureOr<SyncKeyState>
+        >
+    with $FutureModifier<SyncKeyState>, $FutureProvider<SyncKeyState> {
+  /// What the server says about the account's key right now: whether a
+  /// PIN is to be chosen or entered is its answer, never a guess from what
+  /// this phone happens to have pulled ([[Accounts]]).
+  SyncKeyStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncKeyStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncKeyStateHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SyncKeyState> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SyncKeyState> create(Ref ref) {
+    return syncKeyState(ref);
+  }
+}
+
+String _$syncKeyStateHash() => r'e35bdec689a00ce9b94a8c3e3a7ebf5bee144d6d';
+
+/// Files sync only once a sync PIN is set: like every row, a picture
+/// goes up sealed or not at all ([[Sync-API]]).
 
 @ProviderFor(fileSync)
 final fileSyncProvider = FileSyncProvider._();
 
-/// Files sync only once a passphrase is set: a picture is as personal
-/// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+/// Files sync only once a sync PIN is set: like every row, a picture
+/// goes up sealed or not at all ([[Sync-API]]).
 
 final class FileSyncProvider
     extends
@@ -108,8 +240,8 @@ final class FileSyncProvider
           FutureOr<FileSync?>
         >
     with $FutureModifier<FileSync?>, $FutureProvider<FileSync?> {
-  /// Files sync only once a passphrase is set: a picture is as personal
-  /// as an expense, and goes up sealed or not at all ([[Sync-API]]).
+  /// Files sync only once a sync PIN is set: like every row, a picture
+  /// goes up sealed or not at all ([[Sync-API]]).
   FileSyncProvider._()
     : super(
         from: null,
@@ -135,7 +267,7 @@ final class FileSyncProvider
   }
 }
 
-String _$fileSyncHash() => r'ab269243c6e3c1e829ccd837df197dba12cca8f3';
+String _$fileSyncHash() => r'6b8e569faaa809679272d86fbb07cbf2a59c40bf';
 
 @ProviderFor(syncService)
 final syncServiceProvider = SyncServiceProvider._();
@@ -176,23 +308,64 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'2833ec746be5951149015c8bd6a862d7fbcfadd7';
+String _$syncServiceHash() => r'098c974ea3a6b866f69a0470474290b7eb392107';
 
-/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
-/// derived from it is kept, in the keystore; the passphrase itself is
-/// gone the moment the key exists.
+@ProviderFor(syncKeyMaker)
+final syncKeyMakerProvider = SyncKeyMakerProvider._();
+
+final class SyncKeyMakerProvider
+    extends $FunctionalProvider<SyncKeyMaker, SyncKeyMaker, SyncKeyMaker>
+    with $Provider<SyncKeyMaker> {
+  SyncKeyMakerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncKeyMakerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncKeyMakerHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncKeyMaker> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SyncKeyMaker create(Ref ref) {
+    return syncKeyMaker(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncKeyMaker value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncKeyMaker>(value),
+    );
+  }
+}
+
+String _$syncKeyMakerHash() => r'a28d3377fabac6a67a94579ff1def4dfc998ef87';
+
+/// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
+/// Only the key derived from it is kept, in the keystore, with its epoch;
+/// the secret itself is gone the moment the key exists.
 
 @ProviderFor(SyncPassphrase)
 final syncPassphraseProvider = SyncPassphraseProvider._();
 
-/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
-/// derived from it is kept, in the keystore; the passphrase itself is
-/// gone the moment the key exists.
+/// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
+/// Only the key derived from it is kept, in the keystore, with its epoch;
+/// the secret itself is gone the moment the key exists.
 final class SyncPassphraseProvider
     extends $AsyncNotifierProvider<SyncPassphrase, bool> {
-  /// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
-  /// derived from it is kept, in the keystore; the passphrase itself is
-  /// gone the moment the key exists.
+  /// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
+  /// Only the key derived from it is kept, in the keystore, with its epoch;
+  /// the secret itself is gone the moment the key exists.
   SyncPassphraseProvider._()
     : super(
         from: null,
@@ -212,11 +385,11 @@ final class SyncPassphraseProvider
   SyncPassphrase create() => SyncPassphrase();
 }
 
-String _$syncPassphraseHash() => r'd75b779c72b95f0fe897bf2f1e89cfcbb4528303';
+String _$syncPassphraseHash() => r'377de52eb087d55a2e3e006ad08dd38b7d25054d';
 
-/// The sync passphrase ([[Accounts]]): set once, never sent. Only the key
-/// derived from it is kept, in the keystore; the passphrase itself is
-/// gone the moment the key exists.
+/// The sync PIN, or passphrase ([[Accounts]] AC7): set once, never sent.
+/// Only the key derived from it is kept, in the keystore, with its epoch;
+/// the secret itself is gone the moment the key exists.
 
 abstract class _$SyncPassphrase extends $AsyncNotifier<bool> {
   FutureOr<bool> build();
@@ -267,7 +440,7 @@ final class AccountControllerProvider
   AccountController create() => AccountController();
 }
 
-String _$accountControllerHash() => r'ce5bebf53f1abc7a1c65bc4274a1d862b34bee4a';
+String _$accountControllerHash() => r'0eb2958e1554069702e8b4c49d49f1a174cc9681';
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.

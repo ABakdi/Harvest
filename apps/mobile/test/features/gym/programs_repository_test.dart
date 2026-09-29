@@ -174,7 +174,9 @@ void main() {
 
       await repository.removeDay(days[1].uuid);
       await repository.removeSlot(slots[1].uuid);
-      await repository.removeTargetSet(read.days.first.slots.first.sets[1].uuid);
+      await repository.removeTargetSet(
+        read.days.first.slots.first.sets[1].uuid,
+      );
       await repository.addDay(program.uuid, name: 'd');
       await repository.addSlot(days.first.uuid, exerciseId: '0004');
       await repository.addTargetSet(slots.first.uuid, reps: 8);

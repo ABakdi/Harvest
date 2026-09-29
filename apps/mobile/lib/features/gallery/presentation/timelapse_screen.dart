@@ -3,10 +3,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/security/file_vault.dart';
+import 'package:harvest/core/security/vault_image.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/features/gallery/data/gallery_repository.dart';
+import 'package:harvest/features/gallery/data/memory_files.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
+import 'package:harvest/features/gallery/presentation/memory_view.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
 /// The album, played: one frame per memory, oldest first.
@@ -57,9 +61,14 @@ class _TimelapseScreenState extends ConsumerState<TimelapseScreen> {
   void initState() {
     super.initState();
     unawaited(_resolve());
+    // A frame that comes down while the album plays is in the next loop.
+    ref.listenManual(
+      fileArrivalsProvider,
+      (_, _) => unawaited(_resolve(restart: false)),
+    );
   }
 
-  Future<void> _resolve() async {
+  Future<void> _resolve({bool restart = true}) async {
     final repository = ref.read(galleryRepositoryProvider);
     final files = <File?>[];
     for (final memory in widget.memories) {
@@ -72,7 +81,7 @@ class _TimelapseScreenState extends ConsumerState<TimelapseScreen> {
     }
     if (!mounted) return;
     setState(() => _files = files);
-    _start();
+    if (restart) _start();
   }
 
   /// Decodes the frames just ahead, so the timer never waits on a disk.
@@ -81,7 +90,14 @@ class _TimelapseScreenState extends ConsumerState<TimelapseScreen> {
     if (files == null || files.isEmpty) return;
     for (var i = 1; i <= _lookahead; i++) {
       final file = files[(_index + i) % files.length];
-      if (file != null) unawaited(precacheImage(FileImage(file), context));
+      if (file != null) {
+        unawaited(
+          precacheImage(
+            VaultFileImage(file, ref.read(fileVaultProvider)),
+            context,
+          ),
+        );
+      }
     }
   }
 
@@ -241,17 +257,25 @@ class _TimelapseScreenState extends ConsumerState<TimelapseScreen> {
 
 /// One frame of the run.
 ///
-/// A video has no still to show, and a file that has gone missing has
-/// none either; both fall back to the same mark rather than an empty
-/// black screen that looks like the end of the album.
-class _Frame extends StatelessWidget {
+/// A video has no still to show, and falls back to a mark rather than
+/// an empty black screen that looks like the end of the album. A
+/// picture that is not here says why, as it does in the grid
+/// ([[Gallery]] G9), and comes down while the album plays.
+class _Frame extends ConsumerWidget {
   const _Frame({required this.file, required this.memory});
 
   final File? file;
   final Memory memory;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (file == null && memory.kind != MemoryKind.video) {
+      return MemoryAbsent(
+        key: ValueKey(memory.uuid),
+        memory: memory,
+        failed: false,
+      );
+    }
     if (file == null) {
       return Center(
         child: Icon(
@@ -263,8 +287,8 @@ class _Frame extends StatelessWidget {
         ),
       );
     }
-    return Image.file(
-      file!,
+    return Image(
+      image: VaultFileImage(file!, ref.watch(fileVaultProvider)),
       fit: BoxFit.contain,
       gaplessPlayback: true,
       errorBuilder: (context, error, stack) => const Center(

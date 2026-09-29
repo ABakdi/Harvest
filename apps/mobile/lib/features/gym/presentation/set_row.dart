@@ -25,6 +25,7 @@ import 'package:harvest/l10n/app_localizations.dart';
 class SetRow extends ConsumerStatefulWidget {
   const SetRow({
     required this.set,
+    required this.number,
     required this.exercise,
     required this.unit,
     required this.onTicked,
@@ -33,6 +34,11 @@ class SetRow extends ConsumerStatefulWidget {
   });
 
   final WorkoutSet set;
+
+  /// The set's number on screen, 1 up, by its place in the list: a
+  /// dropped set leaves a gap in the positions (Y13), not in the count
+  /// ([[Audit-v3]] Q5-46).
+  final int number;
   final SessionExercise exercise;
   final WeightUnit unit;
 
@@ -230,7 +236,7 @@ class _SetRowState extends ConsumerState<SetRow> {
                   // The open set is the one that decides whether the
                   // weight goes up, so it gets a badge, not a number —
                   // and the badge says what the set asks ([[Checkpoint-7]]).
-                  set.openEnded ? '1+' : '${set.position + 1}',
+                  set.openEnded ? '1+' : '${widget.number}',
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontSize: set.openEnded ? 10 : null,
                     fontWeight: FontWeight.w800,
@@ -268,7 +274,6 @@ class _SetRowState extends ConsumerState<SetRow> {
                   if (plates != null)
                     IconButton(
                       tooltip: l10n.gymPlates,
-                      visualDensity: VisualDensity.compact,
                       iconSize: 18,
                       color: scheme.secondary,
                       icon: const Icon(Icons.calculate_outlined),

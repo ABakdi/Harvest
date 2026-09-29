@@ -64,6 +64,8 @@ import type { PhotoPrompt } from '../../data/programs';
 import { ExercisePicker } from './exercise-picker';
 import { useBusy } from '../../components/use-busy';
 import { RestField, SetText, loadField, useAsker, useLoad, useSeededField, useTargetText, useUnit, useUnitKnown, type Asker } from './shared';
+import { background, runAction } from '@/lib/actions';
+import { useDocumentTitle } from '@/lib/title';
 
 // ---------------------------------------------------------------- the seed
 
@@ -126,10 +128,10 @@ function PlantDialog({ tree, onClose }: { tree: ProgramTree; onClose: () => void
             disabled={times === null}
             onClick={() => {
               if (times === null) return;
-              void programs.plant(tree.program.uuid, { title: tree.program.name, timesPerWeek: times, album }).then(() => {
+              runAction(() => programs.plant(tree.program.uuid, { title: tree.program.name, timesPerWeek: times, album }).then(() => {
                 onClose();
                 toast.success(t('gym.planted'));
-              });
+              }));
             }}
           >
             <LeafIcon />
@@ -184,7 +186,7 @@ function SeedCard({ tree, asker }: { tree: ProgramTree; asker: Asker }) {
           <h2 className="truncate font-extrabold">{seed?.title ?? program.name}</h2>
           <p className="text-sm text-muted-foreground">{scheduleText(seed?.scheduleJson ?? null)}</p>
         </div>
-        <Button variant="ghost" size="icon" aria-label={t('gym.unplant')} title={t('gym.unplant')} onClick={() => void unplant()}>
+        <Button variant="ghost" size="icon" aria-label={t('gym.unplant')} title={t('gym.unplant')} onClick={() => runAction(() => unplant())}>
           <UnlinkIcon />
         </Button>
       </div>
@@ -192,7 +194,7 @@ function SeedCard({ tree, asker }: { tree: ProgramTree; asker: Asker }) {
         <div className="flex flex-wrap items-center gap-3 border-t pt-3">
           <CameraIcon className="size-5 text-muted-foreground" aria-hidden />
           <div className="flex min-w-0 flex-1 flex-col">
-            <span className="font-bold">{album.name}</span>
+            <span dir="auto" className="font-bold">{album.name}</span>
             <span className="text-xs text-muted-foreground">{t('gym.photoPromptBody')}</span>
           </div>
           <div role="radiogroup" aria-label={t('gym.photoPrompt')} className="flex flex-wrap gap-1.5">
@@ -203,7 +205,7 @@ function SeedCard({ tree, asker }: { tree: ProgramTree; asker: Asker }) {
                 role="radio"
                 aria-checked={program.photoPrompt === prompt}
                 variant={program.photoPrompt === prompt ? 'default' : 'outline'}
-                onClick={() => void programs.updateProgram(program.uuid, { photoPrompt: prompt })}
+                onClick={() => runAction(() => programs.updateProgram(program.uuid, { photoPrompt: prompt }))}
               >
                 {t(`gym.prompt.${prompt}`)}
               </Button>
@@ -266,14 +268,14 @@ function EditSetForm({ set, onClose }: { set: TargetSetRow; onClose: () => void 
             // A load left as it was shown is the load it was: 60 kg read as
             // 132.25 lb and saved untouched stays 60 kg, not 59.99.
             const untouched = !percentage && set.percentTenths === null && set.weightGrams !== null && value === loadField(set.weightGrams, unit);
-            void once(() =>
+            runAction(() => once(() =>
               programs.updateTargetSet(set.uuid, {
                 reps: repsNumber,
                 openEnded: open,
                 percentTenths: percentage ? Math.round(number * 10) : null,
                 weightGrams: percentage ? null : untouched ? set.weightGrams : roundLoad(weightToGrams(unit, number), unit),
               }),
-            ).then(onClose);
+            ).then(onClose));
           }}
         >
           <div role="radiogroup" aria-label={t('gym.loadKind')} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
@@ -344,7 +346,8 @@ function EditSetForm({ set, onClose }: { set: TargetSetRow; onClose: () => void 
 }
 
 /** The mark for a set: its number, or `1+` on the open one — the program and the session call it one thing. */
-export function SetBadge({ position, openEnded }: { position: number; openEnded: boolean }) {
+/** A set's badge: its number, 1 up by place in the list — never its position, which a dropped set leaves gaps in (Q5-46). */
+export function SetBadge({ number, openEnded }: { number: number; openEnded: boolean }) {
   return (
     <span
       className={cn(
@@ -352,7 +355,7 @@ export function SetBadge({ position, openEnded }: { position: number; openEnded:
         openEnded ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
       )}
     >
-      {openEnded ? '1+' : position + 1}
+      {openEnded ? '1+' : number}
     </span>
   );
 }
@@ -376,10 +379,10 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
   const add = (input: { reps: number; percentTenths: number | null; openEnded: boolean }) => {
     if (!slot) return;
     const last = [...slot.sets].reverse().find((set) => !set.openEnded && !input.openEnded);
-    void programs.addTargetSet(
+    runAction(() => programs.addTargetSet(
       slot.row.uuid,
       last ? { weightGrams: last.weightGrams, reps: last.reps, percentTenths: last.percentTenths, openEnded: false } : { weightGrams: null, ...input },
-    );
+    ));
   };
 
   return (
@@ -392,9 +395,9 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
         {slot && (
           <>
             <ul className="flex flex-col gap-1">
-              {slot.sets.map((set) => (
+              {slot.sets.map((set, index) => (
                 <li key={set.uuid} className="flex items-center gap-2">
-                  <SetBadge position={set.position} openEnded={set.openEnded} />
+                  <SetBadge number={index + 1} openEnded={set.openEnded} />
                   <button
                     type="button"
                     className="min-w-0 flex-1 rounded-md px-2 py-1.5 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
@@ -403,7 +406,7 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
                   >
                     <SetText>{targetText(set, set.weightGrams)}</SetText>
                   </button>
-                  <Button variant="ghost" size="icon-sm" aria-label={t('gym.removeSetNamed', { set: targetText(set, set.weightGrams) })} onClick={() => void programs.removeTargetSet(set.uuid)}>
+                  <Button variant="ghost" size="icon-sm" aria-label={t('gym.removeSetNamed', { set: targetText(set, set.weightGrams) })} onClick={() => runAction(() => programs.removeTargetSet(set.uuid))}>
                     <XIcon />
                   </Button>
                 </li>
@@ -439,7 +442,7 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
                       role="radio"
                       aria-checked={barIn(slot.row.barGrams, unit) === grams}
                       variant={barIn(slot.row.barGrams, unit) === grams ? 'default' : 'outline'}
-                      onClick={() => void programs.updateSlot(slot.row.uuid, { barGrams: grams })}
+                      onClick={() => runAction(() => programs.updateSlot(slot.row.uuid, { barGrams: grams }))}
                     >
                       {load(grams)}
                     </Button>
@@ -454,14 +457,14 @@ function SlotDialog({ slotUuid, programUuid, onClose }: { slotUuid: string; prog
                   {slot.row.restSeconds === null ? t('gym.notSet') : t('gym.restSeconds', { count: slot.row.restSeconds })}
                 </span>
               </div>
-              <RestField seconds={slot.row.restSeconds} onChange={(seconds) => void programs.updateSlot(slot.row.uuid, { restSeconds: seconds })} />
+              <RestField seconds={slot.row.restSeconds} onChange={(seconds) => runAction(() => programs.updateSlot(slot.row.uuid, { restSeconds: seconds }))} />
             </div>
             <Button
               variant="ghost"
               className="self-start text-destructive"
               onClick={() => {
                 onClose();
-                void programs.removeSlot(slot.row.uuid);
+                runAction(() => programs.removeSlot(slot.row.uuid));
               }}
             >
               <Trash2Icon />
@@ -549,7 +552,7 @@ function SlotRow({
         }}
         aria-label={t('gym.reorderHandle', { name })}
         title={t('gym.reorderHint')}
-        className="cursor-grab rounded-md p-2 text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+        className="cursor-grab rounded-md p-2 text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing max-md:p-3.5"
       >
         <GripVerticalIcon className="size-4" aria-hidden />
       </button>
@@ -580,7 +583,7 @@ function DayCard({
 
   const moveSlot = (from: number, to: number) => {
     const next = reorderedUuids(slotUuids, from, to);
-    if (next.join() !== slotUuids.join()) void programs.reorderSlots(next);
+    if (next.join() !== slotUuids.join()) runAction(() => programs.reorderSlots(next));
   };
 
   async function rename() {
@@ -617,7 +620,7 @@ function DayCard({
     <li className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
       <div className="flex items-start gap-2">
         <div className="flex min-w-0 flex-1 flex-col">
-          <h3 className="truncate text-lg font-extrabold">{day.row.name}</h3>
+          <h3 dir="auto" className="truncate text-lg font-extrabold">{day.row.name}</h3>
           <p className="text-xs text-muted-foreground">
             {t('gym.daySummary', { exercises: t('gym.exerciseCount', { count: day.slots.length }), sets: t('gym.setCount', { count: day.totalSets }) })}
           </p>
@@ -629,22 +632,22 @@ function DayCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => void duplicate()}>{t('gym.duplicateDay')}</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => void accessories()}>{t('gym.accessories')}</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => void rename()}>{t('gym.rename')}</DropdownMenuItem>
-            <DropdownMenuItem disabled={index === 0} onSelect={() => void programs.reorderDays(reorderedUuids(dayUuids, index, index - 1))}>
+            <DropdownMenuItem onSelect={() => runAction(() => duplicate())}>{t('gym.duplicateDay')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => runAction(() => accessories())}>{t('gym.accessories')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => runAction(() => rename())}>{t('gym.rename')}</DropdownMenuItem>
+            <DropdownMenuItem disabled={index === 0} onSelect={() => runAction(() => programs.reorderDays(reorderedUuids(dayUuids, index, index - 1)))}>
               <ArrowUpIcon />
               {t('gym.moveUp')}
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={index === tree.days.length - 1}
-              onSelect={() => void programs.reorderDays(reorderedUuids(dayUuids, index, index + 1))}
+              onSelect={() => runAction(() => programs.reorderDays(reorderedUuids(dayUuids, index, index + 1)))}
             >
               <ArrowDownIcon />
               {t('gym.moveDown')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => void remove()} className="text-destructive">
+            <DropdownMenuItem onSelect={() => runAction(() => remove())} className="text-destructive">
               {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -678,7 +681,7 @@ function DayCard({
           onClose={() => setAdding(false)}
           onPick={(exercise) => {
             setAdding(false);
-            void programs.addSlot(day.row.uuid, exercise.id);
+            runAction(() => programs.addSlot(day.row.uuid, exercise.id));
           }}
         />
       )}
@@ -712,7 +715,7 @@ function MaxRow({ programUuid, exerciseId, grams }: { programUuid: string; exerc
     // The field shows what was kept, not what was typed — and, no longer
     // typing, it follows the unit again.
     setText(loadFieldValue(rounded, unit), false);
-    if (rounded !== grams) void programs.setTrainingMax(programUuid, exerciseId, rounded);
+    if (rounded !== grams) runAction(() => programs.setTrainingMax(programUuid, exerciseId, rounded));
   };
   return (
     <li className="flex flex-wrap items-center gap-3">
@@ -801,13 +804,16 @@ export function ProgramEditorScreen() {
   const navigate = useNavigate();
   const { db, programs } = useHarvest();
   const tree = useLiveQuery(async () => (await readProgram(db, uuid)) ?? null, [db, uuid]);
+  useDocumentTitle(tree?.program.name);
   const maxes = useLiveQuery(() => readTrainingMaxes(db, uuid), [db, uuid]) ?? new Map<string, number>();
+  // One day per click, however fast the clicks (Q6-21).
+  const [addingDay, onceDay] = useBusy();
   const [asker, asking] = useAsker();
   const [showMaxes, setShowMaxes] = useState(false);
 
   if (tree === undefined) return null;
   const back = (
-    <Button asChild variant="ghost" size="sm" className="self-start">
+    <Button asChild variant="ghost" size="sm" className="self-start max-md:hidden">
       <Link to="/app/body/gym">
         <ArrowLeftIcon className="rtl:rotate-180" />
         {t('gym.backToGym')}
@@ -839,7 +845,7 @@ export function ProgramEditorScreen() {
     });
     if (!ok) return;
     await programs.deleteProgram(uuid);
-    void navigate('/app/body/gym');
+    background(navigate('/app/body/gym'));
   }
 
   async function addDay() {
@@ -857,7 +863,7 @@ export function ProgramEditorScreen() {
     <div className="flex flex-col gap-4">
       {back}
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold">{tree.program.name}</h1>
+        <h1 dir="auto" className="min-w-0 flex-1 line-clamp-3 [overflow-wrap:anywhere] text-2xl font-extrabold">{tree.program.name}</h1>
         <Button variant="outline" onClick={() => setShowMaxes(true)}>
           <GaugeIcon />
           {t('gym.trainingMaxes')}
@@ -869,9 +875,9 @@ export function ProgramEditorScreen() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => void rename()}>{t('gym.rename')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => runAction(() => rename())}>{t('gym.rename')}</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => void remove()} className="text-destructive">
+            <DropdownMenuItem onSelect={() => runAction(() => remove())} className="text-destructive">
               {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -901,7 +907,7 @@ export function ProgramEditorScreen() {
           ))}
         </ul>
       )}
-      <Button className="self-start" onClick={() => void addDay()}>
+      <Button className="self-start" disabled={addingDay} onClick={() => runAction(() => onceDay(addDay))}>
         <PlusIcon />
         {t('gym.addDay')}
       </Button>

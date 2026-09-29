@@ -26,6 +26,7 @@ import { type MoveFilter, type TxnRow, activeFilters, emptyFilter, isUpcoming, t
 import { categoryLabel } from './category';
 import { ExpenseEditor } from './expense-editor';
 import { CategoryIcon, conversionCaption, moneyError, useCustomCategories } from './money-bits';
+import { runAction } from '@/lib/actions';
 
 /**
  * The one way to narrow a ledger (`MoveFilterBar`): the search is
@@ -193,7 +194,7 @@ export function MovesLedger({ rows, total, rates, empty }: { rows: TxnRow[]; tot
       return;
     }
     const undo = () => vault.restoreMove(row.uuid).catch((failure: unknown) => void toast.error(moneyError(t, failure)));
-    toast(t('vault.moveRemoved'), { action: { label: t('common.undo'), onClick: () => void undo() } });
+    toast(t('vault.moveRemoved'), { action: { label: t('common.undo'), onClick: () => runAction(() => undo()) } });
   }
 
   async function openExpense(row: TxnRow) {
@@ -221,7 +222,7 @@ export function MovesLedger({ rows, total, rates, empty }: { rows: TxnRow[]; tot
                     <MoveIcon row={row} customs={customs} />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate font-bold">{moveTitle(t, row)}</span>
-                      {row.note && <span className="truncate text-xs text-muted-foreground">{row.note}</span>}
+                      {row.note && <span dir="auto" className="truncate text-xs text-muted-foreground">{row.note}</span>}
                     </span>
                     <span className="flex flex-col items-end" dir="ltr">
                       <span className={cn('font-extrabold tabular', row.deltaMinor >= 0 && 'text-success')}>
@@ -237,7 +238,7 @@ export function MovesLedger({ rows, total, rates, empty }: { rows: TxnRow[]; tot
                     {row.kind === 'expense' && row.linkUuid ? (
                       <button
                         type="button"
-                        onClick={() => void openExpense(row)}
+                        onClick={() => runAction(() => openExpense(row))}
                         className="flex min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {body}
@@ -246,7 +247,7 @@ export function MovesLedger({ rows, total, rates, empty }: { rows: TxnRow[]; tot
                       <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-2.5">{body}</div>
                     )}
                     {row.kind === 'manual' && (
-                      <Button variant="ghost" size="icon-sm" className="me-2" aria-label={t('vault.removeMove')} title={t('vault.removeMove')} onClick={() => void remove(row)}>
+                      <Button variant="ghost" size="icon-sm" className="me-2" aria-label={t('vault.removeMove')} title={t('vault.removeMove')} onClick={() => runAction(() => remove(row))}>
                         <Trash2Icon />
                       </Button>
                     )}

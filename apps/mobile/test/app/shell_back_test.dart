@@ -34,6 +34,10 @@ void main() {
 
     Widget page(String name) => Scaffold(
       appBar: AppBar(title: Text(name)),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: Text('fab on $name'),
+      ),
       drawer: const Drawer(child: Text('the drawer')),
       body: Builder(
         builder: (context) => Column(
@@ -135,6 +139,31 @@ void main() {
     await tester.tap(find.byType(NavigationDestination).first);
     await tester.pumpAndSettle();
     expect(find.text('said on ${AppRoutes.records}'), findsNothing);
+  });
+
+  testWidgets("a snack bar lifts the tab's floating button (U6-16)", (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    final fab = find.text('fab on ${AppRoutes.records}');
+    final before = tester.getRect(fab);
+    await tester.tap(find.text('say on ${AppRoutes.records}'));
+    await tester.pumpAndSettle();
+    final snack = tester.getRect(find.byType(SnackBar));
+    expect(tester.getRect(fab).bottom, lessThan(before.bottom));
+    expect(tester.getRect(fab).bottom, lessThanOrEqualTo(snack.top));
+  });
+
+  testWidgets('a narrow phone keeps the icons and drops the words (U6-12)', (
+    tester,
+  ) async {
+    // Four tabs in 240 dp: 60 each, too few for a word.
+    tester.view.physicalSize = const Size(240 * 3, 700 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await pumpShell(tester);
+    final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(bar.labelBehavior, NavigationDestinationLabelBehavior.alwaysHide);
   });
 
   testWidgets('an undo goes away on its own', (tester) async {

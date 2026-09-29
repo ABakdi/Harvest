@@ -7,9 +7,13 @@ import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { formatDate, formatDay, formatMoney } from '@/lib/format';
 import { EmptyState } from '../components/bits';
+import { Fab } from '../components/fab';
+import { screenTabsList, screenTabsTrigger } from '../components/screen-tabs';
 import { categoryLabel } from '../components/category';
+import { CategoryIcon, useCustomCategories } from '../components/money-bits';
 import { LocationNote } from '../components/location-note';
 import { useFeaturesOrOff } from '../components/settings-bits';
 import { PassphrasePrompt } from '../components/passphrase-prompt';
@@ -21,6 +25,7 @@ import { usePrivateKey } from '../hooks';
 import { BudgetPanel } from './budget';
 import { InsightsPanel } from './insights';
 import { VaultPanel } from './vault';
+import { runAction } from '@/lib/actions';
 
 /** Sums per currency: amounts in different currencies are never added together. */
 function totals(rows: ExpenseRow[]): [string, number][] {
@@ -93,7 +98,7 @@ function RepeatCard() {
         </span>
         <span className="text-xs text-muted-foreground">{t('money.repeatTitle')}</span>
       </div>
-      <Button disabled={logging} onClick={() => void log()}>
+      <Button disabled={logging} onClick={() => runAction(() => log())}>
         {t('money.logIt')}
       </Button>
     </section>
@@ -109,6 +114,7 @@ function DayGroups({ rows, label, idPrefix, nested = false }: { rows: ExpenseRow
   const Heading = nested ? 'h3' : 'h2';
   const dialogs = useDialogs();
   const { t } = useTranslation();
+  const customs = useCustomCategories();
   const days = [...new Set(rows.map((row) => row.harvestDay))];
   return (
     <div className="flex flex-col gap-4">
@@ -132,9 +138,19 @@ function DayGroups({ rows, label, idPrefix, nested = false }: { rows: ExpenseRow
                     onClick={() => dialogs.editExpense(row)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-start outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                   >
+                    {/* The phone's row: the category's icon, and the time unless a note says more (W6-32). */}
+                    <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-success">
+                      <CategoryIcon category={row.category} customs={customs} className="size-5" />
+                    </span>
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="font-bold">{categoryLabel(t, row.category)}</span>
-                      {row.note && <span className="truncate text-xs text-muted-foreground">{row.note}</span>}
+                      {row.note ? (
+                        <span dir="auto" className="truncate text-xs text-muted-foreground">
+                          {row.note}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground tabular">{formatDate(row.loggedAt, { timeStyle: 'short' })}</span>
+                      )}
                     </span>
                     <span className="font-extrabold tabular" dir="ltr">
                       {formatMoney(row.amountMinor, row.currency)}
@@ -184,7 +200,12 @@ function PlannedPurchases() {
   );
 }
 
-function ExpensesPanel() {
+/**
+ * The phone's Today: the month's budget first, then a repeat worth one
+ * tap, what the shopping lists plan, and the spending, today's and the
+ * month's, with what is logged ahead ([[Finances]]).
+ */
+function TodayPanel() {
   const { t } = useTranslation();
   const { db } = useHarvest();
   const today = useHarvestDay();
@@ -212,40 +233,44 @@ function ExpensesPanel() {
 
   return (
     <div className="flex flex-col gap-4">
+      <BudgetPanel breakdown={false} />
       <RepeatCard />
       <PlannedPurchases />
-      <section className="grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
-          <span className="text-sm font-bold text-muted-foreground">{t('money.today')}</span>
-          <span className="text-2xl font-extrabold">
-            <Totals rows={todays} empty={t('money.nothingToday')} />
-          </span>
-          <span className="text-xs text-muted-foreground">{t('money.expensesCount', { count: todays.length })}</span>
-        </div>
-        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon-sm" aria-label={t('money.previousMonth')} onClick={() => setMonth(shiftMonth(month, -1))}>
-              <ChevronLeftIcon className="rtl:rotate-180" />
-            </Button>
-            <span className="flex-1 text-center text-sm font-bold text-muted-foreground" aria-live="polite">
-              {formatDate(new Date(year, monthNumber - 1, 1), { month: 'long', year: 'numeric' })}
+      {/* Nothing logged this month: the budget and one empty state say it, not three cards (W6-28). */}
+      {!(month === current && monthRows.length === 0 && upcoming.length === 0) && (
+        <section className="grid gap-3 sm:grid-cols-2">
+          <div className="flex min-w-0 flex-col gap-1 rounded-xl border bg-card p-4">
+            <span className="text-sm font-bold text-muted-foreground">{t('money.today')}</span>
+            <span className="text-2xl font-extrabold">
+              <Totals rows={todays} empty={t('money.nothingToday')} />
             </span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t('money.nextMonth')}
-              disabled={month >= current}
-              onClick={() => setMonth(shiftMonth(month, 1))}
-            >
-              <ChevronRightIcon className="rtl:rotate-180" />
-            </Button>
+            <span className="text-xs text-muted-foreground">{t('money.expensesCount', { count: todays.length })}</span>
           </div>
-          <span className="text-2xl font-extrabold">
-            <Totals rows={monthRows} empty={t('money.nothingMonth')} />
-          </span>
-          <span className="text-xs text-muted-foreground">{t('money.expensesCount', { count: monthRows.length })}</span>
-        </div>
-      </section>
+          <div className="flex min-w-0 flex-col gap-1 rounded-xl border bg-card p-4">
+            <div className="flex flex-wrap items-center gap-1">
+              <Button variant="ghost" size="icon-sm" aria-label={t('money.previousMonth')} onClick={() => setMonth(shiftMonth(month, -1))}>
+                <ChevronLeftIcon className="rtl:rotate-180" />
+              </Button>
+              <span className="min-w-0 flex-1 text-center text-sm font-bold text-muted-foreground" aria-live="polite">
+                {formatDate(new Date(year, monthNumber - 1, 1), { month: 'long', year: 'numeric' })}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t('money.nextMonth')}
+                disabled={month >= current}
+                onClick={() => setMonth(shiftMonth(month, 1))}
+              >
+                <ChevronRightIcon className="rtl:rotate-180" />
+              </Button>
+            </div>
+            <span className="text-2xl font-extrabold">
+              <Totals rows={monthRows} empty={t('money.nothingMonth')} />
+            </span>
+            <span className="text-xs text-muted-foreground">{t('money.expensesCount', { count: monthRows.length })}</span>
+          </div>
+        </section>
+      )}
 
       {upcoming.length > 0 && (
         <section aria-labelledby="expenses-upcoming" className="flex flex-col gap-2">
@@ -270,10 +295,10 @@ function ExpensesPanel() {
 }
 
 /**
- * The Granary, in four views of the same home: what I spent, what I
- * have, what the month allows, and where it went ([[Finances]]). What I
- * plan to buy lives in Records → Lists now; the Expenses tab keeps one
- * line of it ([[Lists]]).
+ * The Granary, in the phone's three views of the same home: Today (the
+ * budget and what I spent), Balances (what I have and what is owed)
+ * and Insights (where it went) ([[Finances]]). What I plan to buy lives
+ * in Records → Lists now; Today keeps one line of it ([[Lists]]).
  *
  * The private tier is asked for once, here, because the money tabs read
  * rows that are sealed on the wire ([[Sync-Strategy]]).
@@ -282,13 +307,13 @@ export function GranaryScreen() {
   const { t } = useTranslation();
   const dialogs = useDialogs();
   const unlocked = usePrivateKey();
-  const [tab, setTab] = useState('expenses');
+  const [tab, setTab] = useState('today');
 
   if (unlocked === undefined) return null;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 max-md:hidden">
         <h1 className="text-2xl font-extrabold">{t('money.granary')}</h1>
         {unlocked && (
           <Button onClick={dialogs.logExpense} title={`${t('money.log')} (e)`}>
@@ -297,32 +322,44 @@ export function GranaryScreen() {
           </Button>
         )}
       </div>
+      {/* On a phone the app bar names it, and the expense floats on the first tab only, as there. */}
+      <h1 className="sr-only md:hidden">{t('money.granary')}</h1>
+      {unlocked && tab === 'today' && <Fab wide={false} label={t('money.log')} onClick={dialogs.logExpense} />}
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="max-w-full justify-start overflow-x-auto">
-          <TabsTrigger value="expenses">{t('money.expenses')}</TabsTrigger>
-          <TabsTrigger value="vault">{t('vault.title')}</TabsTrigger>
-          <TabsTrigger value="insights">{t('insights.title')}</TabsTrigger>
-          <TabsTrigger value="budget">{t('budget.title')}</TabsTrigger>
+        <TabsList className={cn('max-w-full justify-start overflow-x-auto', screenTabsList)}>
+          <TabsTrigger value="today" className={screenTabsTrigger}>
+            {t('money.today')}
+          </TabsTrigger>
+          <TabsTrigger value="balances" className={screenTabsTrigger}>
+            {t('money.balancesTab')}
+          </TabsTrigger>
+          <TabsTrigger value="insights" className={screenTabsTrigger}>
+            {t('insights.title')}
+          </TabsTrigger>
         </TabsList>
         {unlocked ? (
           <>
-            <TabsContent value="expenses">
-              <ExpensesPanel />
+            <TabsContent value="today">
+              <TodayPanel />
             </TabsContent>
-            <TabsContent value="vault">
+            <TabsContent value="balances">
               <VaultPanel />
             </TabsContent>
             <TabsContent value="insights">
               <InsightsPanel />
             </TabsContent>
-            <TabsContent value="budget">
-              <BudgetPanel />
-            </TabsContent>
           </>
         ) : (
-          <div className="rounded-2xl border bg-card p-5">
-            <PassphrasePrompt />
-          </div>
+          // Locked, the PIN sits in whichever tab is open, so each tab still names a panel (W6-16).
+          (['today', 'balances', 'insights'] as const).map((value) => (
+            <TabsContent key={value} value={value}>
+              {tab === value && (
+                <div className="max-w-md rounded-2xl border bg-card p-5">
+                  <PassphrasePrompt />
+                </div>
+              )}
+            </TabsContent>
+          ))
         )}
       </Tabs>
     </div>

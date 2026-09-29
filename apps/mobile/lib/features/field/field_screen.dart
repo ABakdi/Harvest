@@ -18,6 +18,7 @@ import 'package:harvest/core/ui/widgets/icon_badge.dart';
 import 'package:harvest/core/ui/widgets/reminder_countdown.dart';
 import 'package:harvest/core/ui/widgets/streak_flame.dart';
 import 'package:harvest/core/ui/widgets/xp_bar.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart';
 import 'package:harvest/features/commitments/domain/check_in_service.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/due.dart';
@@ -25,6 +26,7 @@ import 'package:harvest/features/commitments/presentation/check_in_controller.da
 import 'package:harvest/features/commitments/presentation/commitment_editor_sheet.dart';
 import 'package:harvest/features/commitments/presentation/crop_options_sheet.dart';
 import 'package:harvest/features/commitments/presentation/field_providers.dart';
+import 'package:harvest/features/commitments/presentation/project_done.dart';
 import 'package:harvest/features/commitments/presentation/quantity_sheet.dart';
 import 'package:harvest/features/commitments/presentation/schedule_label.dart';
 import 'package:harvest/features/finances/domain/currency.dart';
@@ -36,6 +38,7 @@ import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gallery/presentation/album_crop_tile.dart';
 import 'package:harvest/features/gallery/presentation/gallery_providers.dart';
 import 'package:harvest/features/gamification/data/gamification_repository.dart';
+import 'package:harvest/features/gamification/presentation/daily_goal_line.dart';
 import 'package:harvest/features/gamification/presentation/gamification_providers.dart';
 import 'package:harvest/features/gamification/presentation/streak_sheet.dart';
 import 'package:harvest/features/goals/presentation/goal_editor_sheet.dart';
@@ -93,6 +96,7 @@ class _FieldScreenState extends ConsumerState<FieldScreen>
 
     return Scaffold(
       appBar: AppBar(
+        leading: accountLeading(context),
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
@@ -266,6 +270,8 @@ class _FieldHeader extends ConsumerWidget {
               xpPerRank: FarmerRank.xpPerRank,
               rankLabel: rankLabel,
             ),
+            const SizedBox(height: HarvestSpacing.sm),
+            const DailyGoalLine(),
             if (snap != null) ...[
               const Divider(height: HarvestSpacing.lg),
               InkWell(
@@ -386,6 +392,7 @@ class _CropTile extends ConsumerWidget {
       },
       done: item.isDone,
       busy: busy,
+      paused: commitment.isPaused,
       progress: commitment.type == CommitmentType.project
           ? item.projectProgress
           : null,
@@ -580,24 +587,15 @@ class _CropTile extends ConsumerWidget {
 
     final result = await showQuantitySheet(context, ref, item: item);
     if (result == null) return;
-    final logged = switch (result) {
-      CheckInSuccess(:final quantityLogged) => quantityLogged,
-      CheckInCapped(:final quantityLogged) => quantityLogged,
-    };
-    final completed =
-        logged > 0 &&
-        item.totalLogged + logged >= (commitment.totalTarget ?? 0);
-    if (completed) {
+    final (:logged, :dropped) = projectLogOf(result);
+    if (projectReached(commitment, item.totalLogged, logged)) {
       // The dialog takes the snackbar's place, so it says what the cut
-      // left out too.
-      final dropped = switch (result) {
-        CheckInCapped(:final dropped) => dropped,
-        CheckInSuccess() => 0,
-      };
-      await _celebrateCompletion(
+      // left out too. One 100% moment for the field and the focus timer.
+      await celebrateProjectDone(
         ref,
         navigator,
-        item.totalLogged + logged,
+        project: commitment,
+        total: item.totalLogged + logged,
         logged: logged,
         dropped: dropped,
       );
@@ -616,60 +614,6 @@ class _CropTile extends ConsumerWidget {
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
-
-  /// The 100% moment: a celebration dialog, then the crop is archived
-  /// with its history intact.
-  Future<void> _celebrateCompletion(
-    WidgetRef ref,
-    NavigatorState navigator,
-    int total, {
-    int logged = 0,
-    int dropped = 0,
-  }) async {
-    // Taken before the dialog: the tile may be gone by the time it
-    // closes, and its `ref` with it.
-    final editor = ref.read(commitmentEditorProvider.notifier);
-    final context = navigator.context;
-    if (!context.mounted) return;
-    final l10n = AppLocalizations.of(context);
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.projectDoneTitle),
-        content: Text(
-          projectDoneMessage(
-            l10n,
-            title: item.commitment.title,
-            total: total,
-            logged: logged,
-            dropped: dropped,
-          ),
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.toTheBarn),
-          ),
-        ],
-      ),
-    );
-    await editor.archive(item.commitment.uuid);
-  }
-}
-
-/// What the completion dialog says: the project grown, and — when the
-/// last log went past the target — how much of it was left out.
-@visibleForTesting
-String projectDoneMessage(
-  AppLocalizations l10n, {
-  required String title,
-  required int total,
-  required int logged,
-  required int dropped,
-}) {
-  final body = l10n.projectDoneBody(title, total);
-  if (dropped <= 0) return body;
-  return '$body\n\n${l10n.projectDoneCut(logged, dropped)}';
 }
 
 /// Tomorrow at a glance, and the way into the evening plan — a card at
@@ -703,11 +647,20 @@ class _TomorrowCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // The day on a line of its own: "Sep 28" no longer
+                    // breaks in two on a narrow phone (U6-12).
                     Text(
-                      '${l10n.tomorrowTitle} · '
-                      '${formatDay(context, tomorrow, weekday: true)}',
+                      l10n.tomorrowTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      formatDay(context, tomorrow, weekday: true),
+                      softWrap: false,
+                      overflow: TextOverflow.fade,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -724,11 +677,11 @@ class _TomorrowCard extends ConsumerWidget {
               Text(
                 l10n.planTomorrow,
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.primary,
+                  color: scheme.primaryText,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              Icon(Icons.chevron_right, color: scheme.primary),
+              Icon(Icons.chevron_right, color: scheme.primaryText),
             ],
           ),
         ),

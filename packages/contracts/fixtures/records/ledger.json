@@ -3,12 +3,9 @@
   "uuid": "c1f8e4a7-9d2b-4c5f-b8a3-6e1d4c9f7b52",
   "updatedAt": "2026-09-18T22:41:05.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "c1f8e4a7-9d2b-4c5f-b8a3-6e1d4c9f7b52",
-    "kind": "xp",
-    "delta": 10,
-    "reason": "checkin:b3e8d4a1-7c2f-4f6e-8a9d-1e5c3b7f2a64",
-    "harvestDay": "2026-09-18",
-    "loggedAt": "2026-09-18T22:41:05.000Z"
+  "enc": {
+    "v": 2,
+    "iv": "zkl7YUR4OhXX/hPA",
+    "ct": "3fc/OawMYFJv0Et955NwBomkNblYURqMv3ahqgnFEMCwGbQNxR5ryBf42MFdxZP7Il75knUh0zVYQ564cHnmjck233E0pcVEoEDKy0VtFry1d4qFb4A2yxzpjWQm9bzmbbYrvStwR5A9DwZTgr4/O85ziZ747XZ6HO4f95roigXza5wkx6EytMv9NEoKdrPezQjVqJ51uEW/15JXGpvLpAhbdVHYn/W9ATaqLMycZgDw8PBKfcmHPu9zg+g20lafDODdg/XMY/aQrBI0q/JfGqbgBx1kEzUNwHnbMdVWSRe3aYdqNO2+a8P/s731VIhcWYGfcDvhJeK02P4Zqu0eM0XKCzEL49drWfJTT9ehOu8="
   }
 }

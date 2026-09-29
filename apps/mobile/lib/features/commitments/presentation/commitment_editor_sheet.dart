@@ -18,7 +18,8 @@ import 'package:intl/intl.dart';
 ///
 /// A goal plants through here too ([[Goals]]): [initialTitle] and
 /// [initialType] prefill the sheet from the item, and [goalUuid] sets
-/// what the seed serves.
+/// what the seed serves. [alongside] writes whatever links the new seed
+/// to what planted it, in the seed's own transaction.
 Future<Commitment?> showCommitmentEditor(
   BuildContext context, {
   Commitment? existing,
@@ -27,6 +28,7 @@ Future<Commitment?> showCommitmentEditor(
   String? goalUuid,
   int? initialTotal,
   int? initialDaily,
+  Future<void> Function(Commitment seed)? alongside,
 }) => showHarvestSheet<Commitment>(
   context,
   builder: (_) => _EditorSheet(
@@ -36,6 +38,7 @@ Future<Commitment?> showCommitmentEditor(
     goalUuid: goalUuid,
     initialTotal: initialTotal,
     initialDaily: initialDaily,
+    alongside: alongside,
   ),
 );
 
@@ -52,6 +55,7 @@ class _EditorSheet extends ConsumerStatefulWidget {
     this.goalUuid,
     this.initialTotal,
     this.initialDaily,
+    this.alongside,
   });
 
   /// Non-null puts the sheet in edit mode: type is fixed, fields are
@@ -66,6 +70,7 @@ class _EditorSheet extends ConsumerStatefulWidget {
   /// from a list starts at "300 pages, 10 a day" ([[Lists]]).
   final int? initialTotal;
   final int? initialDaily;
+  final Future<void> Function(Commitment seed)? alongside;
 
   @override
   ConsumerState<_EditorSheet> createState() => _EditorSheetState();
@@ -236,6 +241,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           note: _noteOrNull,
           remindAt: _remindAtString,
           goalUuid: _goalUuid,
+          alongside: widget.alongside,
         );
       case CommitmentType.project:
         return editor.createProject(
@@ -246,6 +252,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           remindAt: _remindAtString,
           deadline: _deadline,
           goalUuid: _goalUuid,
+          alongside: widget.alongside,
         );
       case CommitmentType.todo:
         return editor.createTodo(
@@ -254,6 +261,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           note: _noteOrNull,
           remindAt: _remindAtString,
           goalUuid: _goalUuid,
+          alongside: widget.alongside,
         );
     }
   }
@@ -328,6 +336,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
           const SizedBox(height: HarvestSpacing.md),
         ],
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _titleController,
           autofocus: true,
           textInputAction: TextInputAction.done,
@@ -493,6 +502,7 @@ class _EditorSheetState extends ConsumerState<_EditorSheet> {
       ),
       children: [
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _noteController,
           maxLines: 2,
           minLines: 1,

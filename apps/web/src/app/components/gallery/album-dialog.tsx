@@ -14,6 +14,8 @@ import i18n from '@/i18n';
 import { useHarvest, useHarvestDay } from '../../context';
 import { albumIsGymBound, albumSchedule, type AlbumRow } from '../../data/gallery';
 import { useBusy } from '../use-busy';
+import { runAction } from '@/lib/actions';
+import { shortName } from '@/lib/format';
 
 type Kind = 'none' | Schedule['type'];
 
@@ -147,7 +149,7 @@ export function AlbumDialog({ album, onClose }: { album: AlbumRow | null; onClos
         onClose();
       } else {
         const created = await gallery.createAlbum(input);
-        toast.success(t('gallery.albumCreated', { name: created.name }));
+        toast.success(t('gallery.albumCreated', { name: shortName(created.name) }));
         onClose(created);
       }
     } catch {
@@ -165,7 +167,7 @@ export function AlbumDialog({ album, onClose }: { album: AlbumRow | null; onClos
           <DialogTitle>{album ? t('gallery.editAlbum') : t('gallery.newAlbum')}</DialogTitle>
           <DialogDescription>{t('gallery.albumHint')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void once(() => submit(event))} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => once(() => submit(event)))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={field('name')}>{t('gallery.albumName')}</Label>
             <Input

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
+import 'package:harvest/core/security/file_vault.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/notes/domain/voice.dart';
 import 'package:path/path.dart' as p;
@@ -41,12 +42,15 @@ class NoteAttachment {
 }
 
 /// Where recordings live: the app's own documents, one folder per note,
-/// never the shared music folder — a voice note is a note.
+/// never the shared music folder — a voice note is a note. Each one is
+/// sealed on disk by [FileVault] (Phase 7, M7.4); without a vault (a test
+/// with no Keystore) files are kept as they are.
 class AttachmentStorage {
-  AttachmentStorage({Future<Directory> Function()? documents})
+  AttachmentStorage({Future<Directory> Function()? documents, this.vault})
     : _documents = documents ?? getApplicationDocumentsDirectory;
 
   final Future<Directory> Function() _documents;
+  final FileVault? vault;
   Directory? _root;
 
   static const folder = 'note_attachments';
@@ -62,7 +66,7 @@ class AttachmentStorage {
       File(p.join((await root()).path, relative));
 
   /// A new recording's path, before anything is written to it: the
-  /// recorder writes straight here.
+  /// recorder writes to a staging file, and [keep] seals it in here.
   Future<({String relative, File file})> reserve(
     String noteUuid,
     String fileName,
@@ -71,6 +75,49 @@ class AttachmentStorage {
     final file = await fileOf(relative);
     await file.parent.create(recursive: true);
     return (relative: relative, file: file);
+  }
+
+  /// Seals a finished recording, [staging], into [relative]'s place, and
+  /// lets the staging file go.
+  Future<void> keep(File staging, String relative) async {
+    final destination = await fileOf(relative);
+    await destination.parent.create(recursive: true);
+    final vault = this.vault;
+    if (vault == null) {
+      await staging.copy(destination.path);
+    } else {
+      await vault.sealFrom(staging, destination);
+    }
+    try {
+      await staging.delete();
+    } on FileSystemException catch (error) {
+      debugPrint('[notes] staging left behind: ${error.osError?.message}');
+    }
+  }
+
+  /// Writes a recording's bytes straight in, sealed — the importer's path.
+  Future<void> write(String relative, List<int> bytes) async {
+    final destination = await fileOf(relative);
+    await destination.parent.create(recursive: true);
+    final vault = this.vault;
+    if (vault == null) {
+      await destination.writeAsBytes(bytes);
+    } else {
+      await vault.write(destination, bytes);
+    }
+  }
+
+  /// A recording's bytes, opened.
+  Future<Uint8List> read(String relative) async {
+    final file = await fileOf(relative);
+    return vault?.read(file) ?? file.readAsBytes();
+  }
+
+  /// A recording opened into a temporary file, to play; the caller lets
+  /// it go with [FileVault.release].
+  Future<File> openCopy(String relative) async {
+    final file = await fileOf(relative);
+    return vault?.openCopy(file) ?? file;
   }
 
   Future<void> delete(String relative) async {
@@ -199,7 +246,8 @@ class NoteAttachmentsRepository {
 }
 
 @Riverpod(keepAlive: true)
-AttachmentStorage attachmentStorage(Ref ref) => AttachmentStorage();
+AttachmentStorage attachmentStorage(Ref ref) =>
+    AttachmentStorage(vault: ref.watch(fileVaultProvider));
 
 @Riverpod(keepAlive: true)
 NoteAttachmentsRepository noteAttachmentsRepository(Ref ref) =>

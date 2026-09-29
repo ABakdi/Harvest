@@ -256,7 +256,8 @@ export class SessionsRepository {
   async finish(uuid: string, endedAt: string | null = null): Promise<FinishOutcome> {
     const session = await this.writer.run(async (tx) => {
       const row = await tx.get('workout_sessions', uuid);
-      if (!row) return null;
+      // Already finished (a double click): nothing more to end or pay (Q5-39).
+      if (!row || row.endedAt !== null) return null;
       const now = tx.now();
       // Finished while paused, it ends at the pause: the minutes since were not training.
       // [endedAt] ends a session left running past its day at its last set, not now (Y3).

@@ -9,11 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { currencies, formatAmountInput } from '@/lib/format';
+import { formatAmountInput } from '@/lib/format';
 import { useHarvest, useHarvestDay } from '../context';
 import { listOfItem, liveLists, type ListItemInput, type ListItemRow } from '../data/lists';
 import { useDefaultCurrency } from '../hooks';
 import { listName } from './list-bits';
+import { runAction } from '@/lib/actions';
+import { CurrencyPicker } from './currency-picker';
 
 /** What the add field already knew when it opened the editor: the title typed, the link pasted. */
 export interface ListItemPrefill {
@@ -125,7 +127,7 @@ export function ListItemEditor({
           <DialogTitle>{item ? t('lists.editItem') : t('lists.newItem')}</DialogTitle>
           <DialogDescription>{kind ? t(`lists.editorLead.${kind}`) : ''}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={(event) => runAction(() => submit(event))} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-2">
             <Label htmlFor={field('title')}>{t('lists.titleLabel')}</Label>
             <Input
@@ -174,18 +176,7 @@ export function ListItemEditor({
                 </div>
                 <div className="flex w-28 flex-col gap-2">
                   <Label htmlFor={field('currency')}>{t('money.currency')}</Label>
-                  <Select value={currency} onValueChange={setCurrency}>
-                    <SelectTrigger id={field('currency')}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currencies.map((code) => (
-                        <SelectItem key={code} value={code}>
-                          {code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CurrencyPicker id={field('currency')} value={currency} onChange={setCurrency} className="w-full" />
                 </div>
               </div>
               <div className="flex flex-col gap-2">

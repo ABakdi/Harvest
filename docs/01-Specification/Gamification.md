@@ -7,6 +7,7 @@ The Duolingo core — one engine fed by every pillar.
 - **Global Streak:** consecutive Harvest Days on which I met my **Daily Harvest Goal** (minimum productive actions, set in [[Onboarding]]).
 - **Individual streaks:** each Habit and Project tracks its own — and, from Phase 3, each scheduled photo album ([[Gallery]]).
 - **Streak Freeze:** spend Harvest Coins to shield the Global Streak for one missed day. Max 2 stored at a time. Applied automatically at the 3 AM reset if the day was missed.
+- **Days missed before a check-in elsewhere.** When the goal is met on a day that follows days nobody judged yet (the phone was not opened, the check-in came from the web), that check-in judges them as the 3 AM reset would: one stored freeze each, and if there are too few the run starts again at 1. A habit whose due day was missed in between starts again too. One rule in `packages/core` (`refreshGlobalStreak`, `earnHabitDay`), pinned by `fixtures/streaks.json`.
 
 ```mermaid
 stateDiagram-v2
@@ -25,7 +26,9 @@ current run** are solid green — ten days of streak, ten green squares —
 while days that had activity outside the run keep a fainter shade, and
 quiet days stay grey. The run comes from the streak row's own
 `lastEarnedDay` and `current`, so **days a freeze covered are in it**,
-which deriving it from activity would have dropped.
+which deriving it from activity would have dropped. Each square is as high as the day's productive actions, the count
+the goal is judged by, over 26 whole weeks; the same rule draws the
+map on the phone and on the web (`dayActivity` in `packages/core`).
 
 ## XP & Farmer Ranks
 
@@ -40,7 +43,7 @@ which deriving it from activity would have dropped.
 | Step goal met, when a goal is set | +5 |
 | Screen time kept under cap | +20 |
 | Daily expenses logged | +10 |
-| Pomodoro session completed | +5 |
+| Pomodoro focus block completed (per block) | +5 |
 | Goal achieved ([[Goals]] GL4) | +50 |
 
 A gym session earns what a habit earns — **+10, once** — however heavy
@@ -93,7 +96,10 @@ purpose.
 | One streak freeze | −100 |
 
 Two freezes at most are stored, and a freeze is spent automatically at
-the 3 AM reset before the streak breaks ([[Business-Rules]] #4). The
+the 3 AM reset before the streak breaks ([[Business-Rules]] #4). A
+milestone is paid once per run: undoing the seventh day and earning it
+again pays nothing more, while a new run that reaches seven is paid
+again. The
 numbers lived only in `streak_service.dart` until now
 ([[Audit-v2]] D3-16). Coins for every check-in, coins for a
 rank-up, premium themes and scarecrow skins were in the first draft of

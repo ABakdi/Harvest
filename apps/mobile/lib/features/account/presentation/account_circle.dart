@@ -1,0 +1,565 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
+import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
+import 'package:harvest/features/account/data/api_client.dart';
+import 'package:harvest/features/account/domain/account.dart';
+import 'package:harvest/features/account/presentation/account_card.dart';
+import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
+import 'package:harvest/features/export/domain/export_service.dart';
+import 'package:harvest/features/sync/presentation/sync_controller.dart';
+import 'package:harvest/l10n/app_localizations.dart';
+
+/// The small mark on the account circle: how sync stands ([[Accounts]]).
+enum SyncMark {
+  /// Signed out: no mark at all.
+  none,
+
+  /// Everything has gone up.
+  sent,
+
+  /// Something waits — changes, a first sync, a verification.
+  pending,
+
+  /// The server was not reached.
+  offline,
+
+  /// The last sync failed.
+  error,
+}
+
+/// Which mark the circle wears.
+SyncMark syncMarkOf({required Me? me, required SyncStatus sync}) {
+  if (me == null) return SyncMark.none;
+  if (sync.offline) return SyncMark.offline;
+  if (sync.error != null) return SyncMark.error;
+  if (!me.verified || sync.running || sync.pending > 0 || sync.last == null) {
+    return SyncMark.pending;
+  }
+  return SyncMark.sent;
+}
+
+/// The account at a glance, top-left on every tab ([[Accounts]]): my
+/// initial when signed in, a plain person when not, a mark for how sync
+/// stands and a dot while the sync PIN is still to set. A tap opens
+/// [AccountSheet].
+class AccountCircle extends ConsumerWidget {
+  const AccountCircle({super.key});
+
+  static Color markColor(SyncMark mark, ColorScheme scheme) => switch (mark) {
+    SyncMark.none => Colors.transparent,
+    SyncMark.sent => HarvestBrand.mid,
+    SyncMark.pending => Colors.amber.shade700,
+    SyncMark.offline => Colors.grey,
+    SyncMark.error => scheme.error,
+  };
+
+  /// A shape per state, so the mark never says it by colour alone
+  /// (U6-39): a tick, an arrow going up, a slash, a "!".
+  static IconData? markGlyph(SyncMark mark) => switch (mark) {
+    SyncMark.none => null,
+    SyncMark.sent => Icons.check_rounded,
+    SyncMark.pending => Icons.arrow_upward_rounded,
+    SyncMark.offline => Icons.block_rounded,
+    SyncMark.error => Icons.priority_high_rounded,
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final me = ref.watch(accountControllerProvider).value?.me;
+    final sync = ref.watch(syncControllerProvider);
+    // Unknown counts as set: a dot that flickers on at every start is
+    // worse than one that arrives a moment late.
+    final pinMissing =
+        me != null && !(ref.watch(syncPassphraseProvider).value ?? true);
+    final mark = syncMarkOf(me: me, sync: sync);
+
+    final words = [
+      switch (mark) {
+        SyncMark.none => null,
+        SyncMark.sent => l10n.accountAllSent,
+        SyncMark.pending =>
+          sync.pending > 0 ? l10n.accountChangesWaiting : null,
+        SyncMark.offline => l10n.accountOffline,
+        SyncMark.error => accountError(l10n, ApiException(sync.error!, 0)),
+      },
+      if (pinMissing) l10n.syncPinWaiting,
+    ].nonNulls.join(' · ');
+
+    final initial = me == null
+        ? null
+        : String.fromCharCodes(
+            (me.displayName ?? me.email).trim().runes.take(1),
+          ).toUpperCase();
+
+    return Semantics(
+      value: words,
+      child: IconButton(
+        key: const ValueKey('account-circle'),
+        tooltip: l10n.accountCircleLabel,
+        constraints: const BoxConstraints(
+          minWidth: HarvestSpacing.tap,
+          minHeight: HarvestSpacing.tap,
+        ),
+        onPressed: () => unawaited(showAccountSheet(context)),
+        icon: SizedBox(
+          width: 32,
+          height: 32,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: me == null
+                    ? scheme.surfaceContainerHighest
+                    : scheme.primaryContainer,
+                foregroundColor: me == null
+                    ? scheme.onSurfaceVariant
+                    : scheme.onPrimaryContainer,
+                child: initial == null || initial.isEmpty
+                    ? const Icon(Icons.person_outline, size: 20)
+                    : Text(
+                        initial,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+              ),
+              if (mark != SyncMark.none)
+                PositionedDirectional(
+                  end: -1,
+                  bottom: -1,
+                  child: _Dot(
+                    key: ValueKey('account-mark-${mark.name}'),
+                    size: 14,
+                    color: markColor(mark, scheme),
+                    ring: scheme.surface,
+                    glyph: markGlyph(mark),
+                  ),
+                ),
+              if (pinMissing)
+                PositionedDirectional(
+                  end: -1,
+                  top: -1,
+                  child: _Dot(
+                    key: const ValueKey('account-pin-dot'),
+                    size: 9,
+                    color: scheme.tertiary,
+                    ring: scheme.surface,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  const _Dot({
+    required this.size,
+    required this.color,
+    required this.ring,
+    this.glyph,
+    super.key,
+  });
+
+  final double size;
+  final Color color;
+  final Color ring;
+  final IconData? glyph;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+      border: Border.all(color: ring, width: 1.5),
+    ),
+    alignment: Alignment.center,
+    child: glyph == null
+        ? null
+        : Icon(
+            glyph,
+            size: size - 5,
+            // Dark on the light marks (amber, grey), white on the rest.
+            color: color.computeLuminance() > 0.3
+                ? Colors.black87
+                : Colors.white,
+          ),
+  );
+}
+
+/// The circle as an app bar's leading, on a tab's own screen. A screen
+/// pushed on top keeps its back arrow instead; one with a drawer keeps
+/// its menu button beside the circle.
+Widget? accountLeading(BuildContext context, {bool drawer = false}) {
+  if (ModalRoute.of(context)?.impliesAppBarDismissal ?? false) return null;
+  if (!drawer) return const AccountCircle();
+  return const Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [AccountCircle(), DrawerButton()],
+  );
+}
+
+/// The width [accountLeading] needs, or null for the app bar's own.
+double? accountLeadingWidth(BuildContext context, {bool drawer = false}) {
+  if (!drawer) return null;
+  if (ModalRoute.of(context)?.impliesAppBarDismissal ?? false) return null;
+  return HarvestSpacing.tap * 2 + HarvestSpacing.sm;
+}
+
+Future<void> showAccountSheet(BuildContext context) => showHarvestSheet<void>(
+  context,
+  builder: (_) => const AccountSheet(),
+);
+
+/// What the circle opens: the account, how sync stands, and the few
+/// things worth doing from anywhere. The full page stays in Settings.
+class AccountSheet extends ConsumerWidget {
+  const AccountSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final account = ref.watch(accountControllerProvider).value;
+    final me = account?.me;
+    return HarvestSheet(
+      title: l10n.accountCircleLabel,
+      children: me == null
+          ? _signedOut(context, l10n)
+          : _signedIn(context, ref, l10n, me),
+    );
+  }
+
+  static void _openPage(BuildContext context, {bool creating = false}) {
+    Navigator.of(context)
+      ..pop()
+      ..push(
+        MaterialPageRoute<void>(
+          builder: (_) => AccountPage(creating: creating),
+        ),
+      );
+  }
+
+  List<Widget> _signedOut(BuildContext context, AppLocalizations l10n) => [
+    Text(l10n.accountWhy),
+    const SizedBox(height: HarvestSpacing.md),
+    FilledButton(
+      onPressed: () => _openPage(context),
+      child: Text(l10n.accountSignIn),
+    ),
+    const SizedBox(height: HarvestSpacing.sm),
+    OutlinedButton(
+      onPressed: () => _openPage(context, creating: true),
+      child: Text(l10n.accountCreate),
+    ),
+  ];
+
+  List<Widget> _signedIn(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    Me me,
+  ) {
+    final sync = ref.watch(syncControllerProvider);
+    return [
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.account_circle_outlined),
+        title: Text(me.email),
+        subtitle: Text(
+          me.verified ? l10n.accountVerified : l10n.accountUnverified,
+        ),
+      ),
+      ...syncStatusLines(context, l10n, sync),
+      const SizedBox(height: HarvestSpacing.sm),
+      FilledButton.tonalIcon(
+        // Unverified too: the sync asks the server again first.
+        onPressed: sync.running
+            ? null
+            : () => unawaited(
+                ref.read(syncControllerProvider.notifier).syncNow(),
+              ),
+        icon: const Icon(Icons.sync),
+        label: Text(sync.running ? l10n.accountSyncing : l10n.accountSyncNow),
+      ),
+      const Divider(height: HarvestSpacing.lg),
+      const SyncPinTile(),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.devices_outlined),
+        title: Text(l10n.accountDevices),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => unawaited(
+          showHarvestSheet<void>(
+            context,
+            builder: (_) => const AccountDevices(),
+          ),
+        ),
+      ),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.manage_accounts_outlined),
+        title: Text(l10n.accountPage),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => _openPage(context),
+      ),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.logout),
+        title: Text(l10n.accountSignOut),
+        onTap: () async {
+          final controller = ref.read(accountControllerProvider.notifier);
+          final ok = await confirm(
+            context,
+            title: l10n.accountSignOut,
+            body: l10n.accountSignOutBody,
+            confirmLabel: l10n.accountSignOut,
+          );
+          if (ok) await controller.logout();
+        },
+      ),
+    ];
+  }
+}
+
+/// Settings → Account, reached from the circle: the full page.
+class AccountPage extends StatelessWidget {
+  const AccountPage({this.creating = false, super.key});
+
+  final bool creating;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      // Named as the account sheet's row that opens it (U6-20).
+      appBar: AppBar(title: Text(l10n.accountPage)),
+      body: ListView(
+        padding: const EdgeInsets.all(HarvestSpacing.md),
+        children: [AccountCard(creating: creating)],
+      ),
+    );
+  }
+}
+
+/// Keeps "asked this start" for the sync PIN prompt: once per start,
+/// and again after each sign-in ([[Accounts]]: asked for, not hidden).
+class SyncPinAsked extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  bool get asked => state;
+  set asked(bool value) => state = value;
+}
+
+final syncPinAskedProvider = NotifierProvider<SyncPinAsked, bool>(
+  SyncPinAsked.new,
+);
+
+/// Asks for the sync PIN when a signed-in device has none: straight
+/// after signing in, and at a start while signed in. *Later* puts it off
+/// until the next start; the circle keeps its dot meanwhile.
+class SyncPinPrompt extends ConsumerStatefulWidget {
+  const SyncPinPrompt({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  ConsumerState<SyncPinPrompt> createState() => _SyncPinPromptState();
+}
+
+class _SyncPinPromptState extends ConsumerState<SyncPinPrompt> {
+  var _showing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ref
+      ..listenManual(accountControllerProvider, (previous, next) {
+        final before = previous?.value?.me;
+        final now = next.value?.me;
+        // Signed out, or into another account: the next sign-in asks.
+        _consider(
+          forgetAsked: now == null || (before != null && before.id != now.id),
+        );
+      }, fireImmediately: true)
+      ..listenManual(
+        syncPassphraseProvider,
+        (_, _) => _consider(),
+        fireImmediately: true,
+      )
+      // The PIN was started over on another device: asked again now,
+      // whatever was asked this start, and said why.
+      ..listenManual(syncControllerProvider, (previous, next) {
+        if (next.error == SyncController.pinChanged &&
+            previous?.error != SyncController.pinChanged) {
+          _consider(forgetAsked: true, changedElsewhere: true);
+        }
+      });
+  }
+
+  /// After the frame: the listeners fire while the tree is building,
+  /// and nothing may change then.
+  void _consider({bool forgetAsked = false, bool changedElsewhere = false}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final asked = ref.read(syncPinAskedProvider.notifier);
+      if (forgetAsked) asked.asked = false;
+      if (_showing) return;
+      final me = ref.read(accountControllerProvider).value?.me;
+      // First, what becomes of this phone's own data (U6-05).
+      if (me != null && await _joinPending()) {
+        if (!mounted || _showing) return;
+        _showing = true;
+        await showJoinSheet(context);
+        _showing = false;
+        if (!mounted) return;
+      }
+      final set = ref.read(syncPassphraseProvider);
+      if (me == null || !set.hasValue || set.value!) return;
+      if (asked.asked) return;
+      asked.asked = true;
+      _showing = true;
+      if (!mounted) return;
+      unawaited(
+        showSyncPinSheet(
+          context,
+          asking: true,
+          changedElsewhere:
+              changedElsewhere ||
+              ref.read(syncControllerProvider).error ==
+                  SyncController.pinChanged,
+        ).whenComplete(() => _showing = false),
+      );
+    });
+  }
+
+  Future<bool> _joinPending() async {
+    try {
+      return await ref.read(syncJoinPendingProvider.future);
+    } on Object {
+      return false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Whether sync waits for me to say what becomes of this phone's own
+/// data (U6-05).
+final FutureProvider<bool> syncJoinPendingProvider =
+    FutureProvider.autoDispose<bool>(
+      (ref) => ref.read(syncServiceProvider).joinPending(),
+    );
+
+/// Asks, on signing in on a phone that already holds data of its own,
+/// what becomes of it (U6-05): brought into the account, or kept aside in
+/// an archive while the account's data comes down in its place. Nothing
+/// syncs until one is chosen.
+Future<void> showJoinSheet(BuildContext context) =>
+    showHarvestSheet<void>(context, builder: (_) => const JoinSheet());
+
+class JoinSheet extends ConsumerStatefulWidget {
+  const JoinSheet({super.key});
+
+  @override
+  ConsumerState<JoinSheet> createState() => _JoinSheetState();
+}
+
+class _JoinSheetState extends ConsumerState<JoinSheet> {
+  var _busy = false;
+  String? _error;
+
+  Future<void> _bring() async {
+    final navigator = Navigator.of(context);
+    final service = ref.read(syncServiceProvider);
+    final sync = ref.read(syncControllerProvider.notifier);
+    setState(() => _busy = true);
+    await service.holdForJoin(hold: false);
+    if (mounted) navigator.pop();
+    unawaited(sync.syncNow());
+  }
+
+  Future<void> _startFromAccount() async {
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(syncServiceProvider);
+    final sync = ref.read(syncControllerProvider.notifier);
+    final export = ref.read(exportServiceProvider);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final String path;
+    try {
+      // Kept first, in an archive of its own: nothing here is lost.
+      path = await export.exportArchive();
+    } on Object {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = l10n.joinArchiveFailed;
+        });
+      }
+      return;
+    }
+    await service.forgetLocalData();
+    await service.holdForJoin(hold: false);
+    if (mounted) navigator.pop();
+    messenger.showSnackBar(SnackBar(content: Text(l10n.joinArchived(path))));
+    unawaited(sync.syncNow());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return PopScope(
+      canPop: !_busy,
+      child: HarvestSheet(
+        title: l10n.joinTitle,
+        children: [
+          Text(l10n.joinBody),
+          const SizedBox(height: HarvestSpacing.md),
+          FilledButton(
+            onPressed: _busy ? null : () => unawaited(_bring()),
+            child: Text(l10n.joinBring),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          OutlinedButton(
+            onPressed: _busy ? null : () => unawaited(_startFromAccount()),
+            child: Text(l10n.joinStartFromAccount),
+          ),
+          const SizedBox(height: HarvestSpacing.sm),
+          Text(
+            l10n.joinStartFromAccountNote,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: HarvestSpacing.sm),
+            Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+          ],
+          if (_busy) ...[
+            const SizedBox(height: HarvestSpacing.md),
+            const LinearProgressIndicator(),
+          ],
+        ],
+      ),
+    );
+  }
+}

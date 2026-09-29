@@ -1,4 +1,6 @@
-import { strFromU8, strToU8, unzipSync, zipSync, type Zippable } from 'fflate';
+import { cellText as cellFits } from '@harvest/core';
+import { strFromU8, strToU8, zipSync, type Zippable } from 'fflate';
+import { boundedUnzip } from './bounded-zip';
 
 /**
  * The workbook inside an archive, written and read as plain
@@ -137,7 +139,9 @@ class SharedStrings {
   }
 
   xml(): string {
-    const items = this.list.map((text) => `<si><t xml:space="preserve">${xmlText(text)}</t></si>`).join('');
+    // Cut to what a cell holds (32,767), never inside a pair: the full
+    // note is in its `.md` (Q5-59).
+    const items = this.list.map((text) => `<si><t xml:space="preserve">${xmlText(cellFits(text))}</t></si>`).join('');
     return `${xmlHeader}<sst xmlns="${mainNs}" count="${this.count}" uniqueCount="${this.list.length}">${items}</sst>`;
   }
 }
@@ -320,6 +324,13 @@ function serialToText(serial: number): string {
   return new Date(millis).toISOString().slice(0, 23);
 }
 
+/** What a workbook's own parts may weigh, inflated: the phone's `WorkbookLimits`. */
+export const workbookLimits = {
+  partBytes: 64 * 1024 * 1024,
+  totalBytes: 256 * 1024 * 1024,
+  parts: 2000,
+} as const;
+
 /** One sheet as read: its header row, and the rows under it. */
 export interface ReadSheet {
   headers: string[];
@@ -336,7 +347,14 @@ export function readWorkbook(bytes: Uint8Array): Map<string, SheetRows> {
 
 /** [readWorkbook], with each sheet's header row kept in its order. */
 export function parseWorkbook(bytes: Uint8Array): Map<string, ReadSheet> {
-  const parts = unzipSync(bytes, { filter: (file) => file.name.startsWith('xl/') || file.name === '[Content_Types].xml' });
+  // The workbook is a zip too: its parts are weighed as they inflate,
+  // by count, each and all together (S6-09).
+  const parts = boundedUnzip(bytes, {
+    limitOf: () => workbookLimits.partBytes,
+    total: workbookLimits.totalBytes,
+    maxEntries: workbookLimits.parts,
+    keep: (name) => name.startsWith('xl/') || name === '[Content_Types].xml',
+  });
   const text = (name: string): string | null => {
     const part = parts[name];
     return part ? strFromU8(part) : null;

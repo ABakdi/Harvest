@@ -147,6 +147,7 @@ class _AlbumSheetState extends ConsumerState<_AlbumSheet> {
       onAction: _valid && !_saving ? _save : null,
       children: [
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _name,
           autofocus: !_editing,
           textInputAction: TextInputAction.done,
@@ -240,6 +241,7 @@ class _AlbumSheetState extends ConsumerState<_AlbumSheet> {
             ),
         ],
         TextField(
+          textCapitalization: TextCapitalization.sentences,
           controller: _note,
           maxLines: 2,
           minLines: 1,

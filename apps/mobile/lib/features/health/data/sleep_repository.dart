@@ -3,6 +3,7 @@ import 'package:harvest/core/db/database.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
 import 'package:harvest/features/health/domain/sleep.dart';
+import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,34 +20,77 @@ class SleepRepository {
   final HarvestDatabase _db;
   static const _uuid = Uuid();
 
+  /// The latest nights, one per morning. Two nights for one morning
+  /// can still arrive by sync — the same morning logged offline on the
+  /// phone and on the web — so the newer one is shown, and the older is
+  /// put away as it is seen ([[Audit-v3]] Q5-20).
   Stream<List<SleepNight>> watchRecent({int nights = 30}) {
     final query = _db.select(_db.sleepSessions)
       ..where((s) => s.deletedAt.isNull())
-      ..orderBy([(s) => OrderingTerm.desc(s.harvestDay)])
+      ..orderBy(_newestFirst)
       ..limit(nights);
-    return query.watch().map(
-      (rows) => [for (final row in rows) _toNight(row)],
-    );
+    return query.watch().asyncMap((rows) async {
+      final kept = _onePerMorning(rows);
+      if (kept.length != rows.length) await collapseDuplicates();
+      return [for (final row in kept) _toNight(row)];
+    });
   }
 
+  @visibleForTesting
   Future<List<SleepNight>> recentOnce({int nights = 30}) async {
     final rows =
         await (_db.select(_db.sleepSessions)
               ..where((s) => s.deletedAt.isNull())
-              ..orderBy([(s) => OrderingTerm.desc(s.harvestDay)])
+              ..orderBy(_newestFirst)
               ..limit(nights))
             .get();
-    return [for (final row in rows) _toNight(row)];
+    return [for (final row in _onePerMorning(rows)) _toNight(row)];
   }
 
+  /// The morning's night — the newest, should a sync have left two.
   Future<SleepNight?> on(HarvestDay day) async {
     final row =
-        await (_db.select(_db.sleepSessions)..where(
-              (s) => s.harvestDay.equals(day.key) & s.deletedAt.isNull(),
-            ))
+        await (_db.select(_db.sleepSessions)
+              ..where(
+                (s) => s.harvestDay.equals(day.key) & s.deletedAt.isNull(),
+              )
+              ..orderBy(_newestFirst)
+              ..limit(1))
             .getSingleOrNull();
     return row == null ? null : _toNight(row);
   }
+
+  static final List<OrderClauseGenerator<$SleepSessionsTable>> _newestFirst = [
+    (s) => OrderingTerm.desc(s.harvestDay),
+    (s) => OrderingTerm.desc(s.updatedAt),
+    (s) => OrderingTerm.desc(s.uuid),
+  ];
+
+  /// [rows], newest first per morning, with the later nights of a
+  /// morning dropped.
+  static List<SleepSessionRow> _onePerMorning(List<SleepSessionRow> rows) {
+    final seen = <String>{};
+    return [
+      for (final row in rows)
+        if (seen.add(row.harvestDay)) row,
+    ];
+  }
+
+  /// One live night per morning: of two or more, the newest stays and
+  /// the rest are removed, each taking back the XP it paid, so the
+  /// morning is paid once and counted once in the debt.
+  Future<void> collapseDuplicates() => _db.transaction(() async {
+    final rows =
+        await (_db.select(_db.sleepSessions)
+              ..where((s) => s.deletedAt.isNull())
+              ..orderBy(_newestFirst))
+            .get();
+    final seen = <String>{};
+    for (final row in rows) {
+      if (seen.add(row.harvestDay)) continue;
+      await remove(row.uuid);
+    }
+  });
 
   /// Whether the morning is already accounted for — what decides
   /// between showing the retrospective and leaving me alone.
@@ -70,6 +114,8 @@ class SleepRepository {
     // Read inside the transaction: two saves for the same morning that
     // overlap must see each other, or the morning ends up with two
     // nights and the card with an exception ([[Audit-v2-Beta]] B-07).
+    // Two that came in by sync are made one first.
+    await collapseDuplicates();
     final existing = await on(day);
     final uuid = existing?.uuid ?? _uuid.v4();
 

@@ -197,4 +197,23 @@ void main() {
     final tables = (await db.select(db.outbox).get()).map((r) => r.targetTable);
     expect(tables, containsAll(['goals', 'goal_items', 'ledger']));
   });
+
+  test('achieving then deleting takes the XP back, and undo pays it again '
+      '(U6-04)', () async {
+    final repo = GoalsRepository(db);
+    final goal = await repo.create(title: 'Farm');
+    Future<int> net() async => [
+      for (final row in await db.select(db.ledger).get())
+        if (row.reason.endsWith(goal.uuid)) row.delta,
+    ].fold<int>(0, (a, b) => a + b);
+    await repo.achieve(goal.uuid);
+    expect(await net(), goalAchievedXp);
+    await repo.delete(goal.uuid);
+    expect(await net(), 0);
+    await repo.restore(goal.uuid);
+    expect(await net(), goalAchievedXp);
+    await repo.delete(goal.uuid);
+    await repo.delete(goal.uuid);
+    expect(await net(), 0);
+  });
 }

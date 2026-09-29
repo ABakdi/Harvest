@@ -48,7 +48,7 @@ export async function verifyAccessToken(key: CryptoKey, token: string): Promise<
  * rule 2). Only the SHA-256 of the whole token is stored, so a copy of
  * the database is not a copy of anyone's session.
  */
-export interface OpaqueToken {
+interface OpaqueToken {
   token: string;
   hash: string;
 }

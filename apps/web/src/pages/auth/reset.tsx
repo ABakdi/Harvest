@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { apiMessage, fieldMessage } from '@/lib/errors';
 import { AuthCard, FormError } from './auth-card';
+import { runAction } from '@/lib/actions';
 
 const schema = z
   .object({ password: passwordSchema, confirm: z.string() })
@@ -58,7 +59,7 @@ export function ResetPage() {
         onChange={() => setFailure(null)}
         onSubmit={(event) => {
           setFailure(null);
-          void submit(event);
+          runAction(() => submit(event));
         }}
         className="flex flex-col gap-4"
       >
@@ -78,6 +79,12 @@ export function ResetPage() {
           {...form.register('confirm')}
         />
         <FormError message={failure} />
+        {/* A dead link is not the end: a new one is a click away (W6-24). */}
+        {failure === t('auth.linkInvalid') && (
+          <Button asChild variant="outline">
+            <Link to="/forgot">{t('auth.sendNewLink')}</Link>
+          </Button>
+        )}
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {t('auth.setPassword')}
         </Button>

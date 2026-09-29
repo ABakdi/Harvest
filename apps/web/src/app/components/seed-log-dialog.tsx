@@ -13,6 +13,7 @@ import { useHarvest, useHarvestDay } from '../context';
 import type { HarvestDB } from '../data/db';
 import type { SeedRow } from '../data/seeds';
 import { useBusy } from './use-busy';
+import { runAction } from '@/lib/actions';
 
 /** A project's units: logged today, ever, and the room left under today's cap. */
 async function readUnits(db: HarvestDB, seed: SeedRow, dayKey: string) {
@@ -77,7 +78,7 @@ export function SeedLogDialog({ seed, onClose }: { seed: SeedRow; onClose: () =>
 
   // The dialog closes however it closes; the project goes to the barn.
   function closeFinished() {
-    void seeds.archive(seed.uuid, null);
+    runAction(() => seeds.archive(seed.uuid, null));
     onClose();
   }
 
@@ -105,13 +106,13 @@ export function SeedLogDialog({ seed, onClose }: { seed: SeedRow; onClose: () =>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('field.logProgressTitle')}</DialogTitle>
-          <DialogDescription>{seed.title}</DialogDescription>
+          <DialogDescription dir="auto">{seed.title}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-3"
           onSubmit={(event) => {
             event.preventDefault();
-            void once(log);
+            runAction(() => once(log));
           }}
         >
           <Label htmlFor="log-quantity">{t('field.howMuch')}</Label>

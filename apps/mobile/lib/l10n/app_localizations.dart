@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @undoCheckInBody.
   ///
   /// In en, this message translates to:
-  /// **'This removes what you logged for \"{title}\" today.'**
+  /// **'This removes what you logged for “{title}” today.'**
   String undoCheckInBody(String title);
 
   /// No description provided for @undo.
@@ -439,12 +439,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{done} of {total} · today {today}/{daily}'**
   String projectSubtitle(int done, int total, int today, int daily);
-
-  /// No description provided for @todoOverdue.
-  ///
-  /// In en, this message translates to:
-  /// **'Overdue'**
-  String get todoOverdue;
 
   /// No description provided for @rankSprout.
   ///
@@ -968,18 +962,6 @@ abstract class AppLocalizations {
   /// **'Monthly budget'**
   String get budgetTitle;
 
-  /// No description provided for @budgetSpentOf.
-  ///
-  /// In en, this message translates to:
-  /// **'{spent} of {budget} this month'**
-  String budgetSpentOf(String spent, String budget);
-
-  /// No description provided for @budgetFloating.
-  ///
-  /// In en, this message translates to:
-  /// **'{spent} / {limit} today'**
-  String budgetFloating(String spent, String limit);
-
   /// No description provided for @budgetSet.
   ///
   /// In en, this message translates to:
@@ -1076,18 +1058,6 @@ abstract class AppLocalizations {
   /// **'Archive'**
   String get archiveAction;
 
-  /// No description provided for @archiveConfirmTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Archive this seed?'**
-  String get archiveConfirmTitle;
-
-  /// No description provided for @archiveConfirmBody.
-  ///
-  /// In en, this message translates to:
-  /// **'\"{title}\" is archived. Its history stays.'**
-  String archiveConfirmBody(String title);
-
   /// No description provided for @projectDoneTitle.
   ///
   /// In en, this message translates to:
@@ -1097,7 +1067,7 @@ abstract class AppLocalizations {
   /// No description provided for @projectDoneBody.
   ///
   /// In en, this message translates to:
-  /// **'\"{title}\" is fully grown — {total} logged. It is archived with pride.'**
+  /// **'“{title}” is fully grown — {total} logged. It is archived with pride.'**
   String projectDoneBody(String title, int total);
 
   /// No description provided for @toTheBarn.
@@ -1298,12 +1268,6 @@ abstract class AppLocalizations {
   /// **'Insights'**
   String get insightsTab;
 
-  /// No description provided for @wishlistTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Wishlist'**
-  String get wishlistTitle;
-
   /// No description provided for @wishlistBuyList.
   ///
   /// In en, this message translates to:
@@ -1382,29 +1346,11 @@ abstract class AppLocalizations {
   /// **'Edit item'**
   String get wishlistEditItem;
 
-  /// No description provided for @wishlistMoveToBuy.
-  ///
-  /// In en, this message translates to:
-  /// **'To the buy list'**
-  String get wishlistMoveToBuy;
-
-  /// No description provided for @wishlistMoveToWish.
-  ///
-  /// In en, this message translates to:
-  /// **'To the wishlist'**
-  String get wishlistMoveToWish;
-
   /// No description provided for @wishlistDelete.
   ///
   /// In en, this message translates to:
   /// **'Delete'**
   String get wishlistDelete;
-
-  /// No description provided for @wishlistNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Something I want'**
-  String get wishlistNew;
 
   /// No description provided for @wishlistTitleHint.
   ///
@@ -1502,12 +1448,6 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get totalSpent;
 
-  /// No description provided for @avgPerDay.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} / day'**
-  String avgPerDay(String amount);
-
   /// No description provided for @noSpendingYet.
   ///
   /// In en, this message translates to:
@@ -1544,12 +1484,6 @@ abstract class AppLocalizations {
   /// **'Default currency'**
   String get defaultCurrencyLabel;
 
-  /// No description provided for @exchangeRates.
-  ///
-  /// In en, this message translates to:
-  /// **'Exchange rates'**
-  String get exchangeRates;
-
   /// No description provided for @ratesDzdUsd.
   ///
   /// In en, this message translates to:
@@ -1561,12 +1495,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DZD per 1 EUR'**
   String get ratesDzdEur;
-
-  /// No description provided for @ratesEurUsd.
-  ///
-  /// In en, this message translates to:
-  /// **'EUR → USD (fetched)'**
-  String get ratesEurUsd;
 
   /// No description provided for @fetchNow.
   ///
@@ -1627,12 +1555,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Withdraw'**
   String get savingsWithdraw;
-
-  /// No description provided for @debtsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Debts'**
-  String get debtsTitle;
 
   /// No description provided for @addDebt.
   ///
@@ -1826,23 +1748,11 @@ abstract class AppLocalizations {
   /// **'Settled'**
   String get debtSettledSection;
 
-  /// No description provided for @payFromWallet.
-  ///
-  /// In en, this message translates to:
-  /// **'Pay from the wallet?'**
-  String get payFromWallet;
-
   /// No description provided for @budgetSpentToday.
   ///
   /// In en, this message translates to:
   /// **'Spent today'**
   String get budgetSpentToday;
-
-  /// No description provided for @budgetDailyLimit.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily limit'**
-  String get budgetDailyLimit;
 
   /// No description provided for @budgetLeftToday.
   ///
@@ -1855,18 +1765,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount} over today'**
   String budgetOverToday(String amount);
-
-  /// No description provided for @budgetLeftMonth.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} left this month'**
-  String budgetLeftMonth(String amount);
-
-  /// No description provided for @budgetOverMonth.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} over budget this month'**
-  String budgetOverMonth(String amount);
 
   /// No description provided for @expensesToday.
   ///
@@ -1943,7 +1841,7 @@ abstract class AppLocalizations {
   /// No description provided for @ratesExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Used to show \$ and € amounts in your default currency.'**
+  /// **'Used to show amounts in other currencies in your default currency.'**
   String get ratesExplainer;
 
   /// No description provided for @settingsMoney.
@@ -2150,23 +2048,11 @@ abstract class AppLocalizations {
   /// **'Edit budget'**
   String get editBudget;
 
-  /// No description provided for @perDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Per day'**
-  String get perDay;
-
   /// No description provided for @todayEmptyBody.
   ///
   /// In en, this message translates to:
   /// **'Tap Log an expense to add the first one.'**
   String get todayEmptyBody;
-
-  /// No description provided for @debtRemindDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Every day at 7:00 PM until it is paid'**
-  String get debtRemindDefault;
 
   /// No description provided for @undoAction.
   ///
@@ -2179,12 +2065,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That did not save. Try again.'**
   String get saveFailed;
-
-  /// No description provided for @categoryExists.
-  ///
-  /// In en, this message translates to:
-  /// **'A category with that name already exists'**
-  String get categoryExists;
 
   /// No description provided for @withdrawToWallet.
   ///
@@ -2443,12 +2323,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Where you left off today'**
   String get seedNotesSubtitle;
-
-  /// No description provided for @seedNotesSheetSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Today\'s note, and the last one'**
-  String get seedNotesSheetSubtitle;
 
   /// No description provided for @seedNotesExplainer.
   ///
@@ -3044,18 +2918,6 @@ abstract class AppLocalizations {
   /// **'Search titles and text'**
   String get notesSearchHint;
 
-  /// No description provided for @notesAllFolders.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get notesAllFolders;
-
-  /// No description provided for @notesFolder.
-  ///
-  /// In en, this message translates to:
-  /// **'Folder'**
-  String get notesFolder;
-
   /// No description provided for @notesFolderHint.
   ///
   /// In en, this message translates to:
@@ -3104,35 +2966,11 @@ abstract class AppLocalizations {
   /// **'Nothing matches that'**
   String get notesNoMatch;
 
-  /// No description provided for @notesNoMatchBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Try another word, or a different folder.'**
-  String get notesNoMatchBody;
-
-  /// No description provided for @notesGone.
-  ///
-  /// In en, this message translates to:
-  /// **'This note is gone'**
-  String get notesGone;
-
   /// No description provided for @notesGoneBody.
   ///
   /// In en, this message translates to:
   /// **'It was deleted, or it never existed.'**
   String get notesGoneBody;
-
-  /// No description provided for @notesRead.
-  ///
-  /// In en, this message translates to:
-  /// **'Read'**
-  String get notesRead;
-
-  /// No description provided for @notesEdit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get notesEdit;
 
   /// No description provided for @notesCreate.
   ///
@@ -3143,7 +2981,7 @@ abstract class AppLocalizations {
   /// No description provided for @notesCreateLinkTitle.
   ///
   /// In en, this message translates to:
-  /// **'Write \"{title}\"?'**
+  /// **'Write “{title}”?'**
   String notesCreateLinkTitle(String title);
 
   /// No description provided for @notesCreateLinkBody.
@@ -3161,7 +2999,7 @@ abstract class AppLocalizations {
   /// No description provided for @notesDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'It leaves the vault. You can undo this straight away.'**
+  /// **'It goes to the trash with its recordings. You can undo this straight away.'**
   String get notesDeleteBody;
 
   /// No description provided for @notesBacklinks.
@@ -3385,12 +3223,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Right'**
   String get galleryCompareRight;
-
-  /// No description provided for @galleryDeleteMemoryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete this memory?'**
-  String get galleryDeleteMemoryTitle;
 
   /// No description provided for @galleryDeleteMemoryBody.
   ///
@@ -4046,12 +3878,6 @@ abstract class AppLocalizations {
   /// **'Connect'**
   String get stepsConnect;
 
-  /// No description provided for @stepsConnectTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Read steps from the phone'**
-  String get stepsConnectTitle;
-
   /// No description provided for @stepsConnectBody.
   ///
   /// In en, this message translates to:
@@ -4105,12 +3931,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional. Meeting it is worth +5 XP — a nod, not a habit. Leave it empty for no goal.'**
   String get stepsGoalHint;
-
-  /// No description provided for @stepsGoalNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No goal'**
-  String get stepsGoalNone;
 
   /// No description provided for @stepsGoalMet.
   ///
@@ -4177,12 +3997,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Best day'**
   String get stepsBestDay;
-
-  /// No description provided for @stepsCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{steps} steps'**
-  String stepsCount(String steps);
 
   /// No description provided for @weightTitle.
   ///
@@ -4316,24 +4130,6 @@ abstract class AppLocalizations {
   /// **'It leaves the chart. You can undo this straight away.'**
   String get weightDeleteBody;
 
-  /// No description provided for @gymComingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'The gym is next'**
-  String get gymComingTitle;
-
-  /// No description provided for @gymComingBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Programs, sessions and personal records are being built. Steps and weight work now.'**
-  String get gymComingBody;
-
-  /// No description provided for @gymBrowse.
-  ///
-  /// In en, this message translates to:
-  /// **'Browse exercises'**
-  String get gymBrowse;
-
   /// No description provided for @gymPickExercise.
   ///
   /// In en, this message translates to:
@@ -4367,14 +4163,14 @@ abstract class AppLocalizations {
   /// No description provided for @gymCatalogueHint.
   ///
   /// In en, this message translates to:
-  /// **'Search by name, muscle or equipment — the question mid-session is usually what else hits this.'**
+  /// **'Search by name, muscle or equipment — mid-session it is usually “what else works this?”'**
   String get gymCatalogueHint;
 
   /// No description provided for @gymExerciseCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{No exercises} =1{1 exercise} other{{count} exercises}}'**
-  String gymExerciseCount(int count);
+  /// **'{count, plural, =0{No exercises} =1{1 exercise} other{{shown} exercises}}'**
+  String gymExerciseCount(int count, String shown);
 
   /// No description provided for @gymNoExercise.
   ///
@@ -4772,12 +4568,6 @@ abstract class AppLocalizations {
   /// **'Which day?'**
   String get gymPickDay;
 
-  /// No description provided for @gymNoProgramToStart.
-  ///
-  /// In en, this message translates to:
-  /// **'No program to start'**
-  String get gymNoProgramToStart;
-
   /// No description provided for @gymNoProgramToStartBody.
   ///
   /// In en, this message translates to:
@@ -4945,12 +4735,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'seconds'**
   String get gymRestCustomHint;
-
-  /// No description provided for @gymRestNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No timer'**
-  String get gymRestNone;
 
   /// No description provided for @gymPause.
   ///
@@ -5228,12 +5012,6 @@ abstract class AppLocalizations {
   /// **'Rings at the wake time your day is already built around.'**
   String get sleepAlarmBody;
 
-  /// No description provided for @sleepAlarmExact.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow exact alarms'**
-  String get sleepAlarmExact;
-
   /// No description provided for @sleepAlarmExactBody.
   ///
   /// In en, this message translates to:
@@ -5504,18 +5282,6 @@ abstract class AppLocalizations {
   /// **'{sets, plural, =1{1 set} other{{sets} sets}} · {volume}'**
   String gymSessionSummary(int sets, String volume);
 
-  /// No description provided for @gymVolume.
-  ///
-  /// In en, this message translates to:
-  /// **'Volume'**
-  String get gymVolume;
-
-  /// No description provided for @gymBest.
-  ///
-  /// In en, this message translates to:
-  /// **'Best'**
-  String get gymBest;
-
   /// No description provided for @gymRecords.
   ///
   /// In en, this message translates to:
@@ -5702,12 +5468,6 @@ abstract class AppLocalizations {
   /// **'Drop this goal?'**
   String get goalDropTitle;
 
-  /// No description provided for @goalDropBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Its seeds keep going. A line on why, if you like.'**
-  String get goalDropBody;
-
   /// No description provided for @goalDropNoteHint.
   ///
   /// In en, this message translates to:
@@ -5855,7 +5615,7 @@ abstract class AppLocalizations {
   /// No description provided for @featurePlacesHint.
   ///
   /// In en, this message translates to:
-  /// **'Where I went, and what I did there: a trail and a pin on every action. Nothing leaves the phone.'**
+  /// **'Where you went, and what you did there: a trail and a pin on every action. It syncs only encrypted, a day at a time, and the server never sees where.'**
   String get featurePlacesHint;
 
   /// No description provided for @placesDay.
@@ -5888,23 +5648,11 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get placesNext;
 
-  /// No description provided for @placesPickDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick a day'**
-  String get placesPickDay;
-
   /// No description provided for @placesTrailOn.
   ///
   /// In en, this message translates to:
   /// **'Record my trail'**
   String get placesTrailOn;
-
-  /// No description provided for @placesTrailHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Keeps a point every 50 m while you move, with a notification on screen the whole time.'**
-  String get placesTrailHint;
 
   /// No description provided for @placesTrailRefused.
   ///
@@ -5953,12 +5701,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'High accuracy'**
   String get placesHighAccuracy;
-
-  /// No description provided for @placesHighAccuracyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Sharper trail, more battery.'**
-  String get placesHighAccuracyHint;
 
   /// No description provided for @placesDeleteDay.
   ///
@@ -6320,12 +6062,6 @@ abstract class AppLocalizations {
   /// **'Pause'**
   String get voicePause;
 
-  /// No description provided for @voiceRecordings.
-  ///
-  /// In en, this message translates to:
-  /// **'Recordings'**
-  String get voiceRecordings;
-
   /// No description provided for @voiceMissing.
   ///
   /// In en, this message translates to:
@@ -6343,12 +6079,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read aloud'**
   String get readAloud;
-
-  /// No description provided for @readAloudStop.
-  ///
-  /// In en, this message translates to:
-  /// **'Stop'**
-  String get readAloudStop;
 
   /// No description provided for @readAloudNext.
   ///
@@ -6385,12 +6115,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Summarise, rewrite, translate or transcribe a note, only when you ask. Uses your own key.'**
   String get assistHint;
-
-  /// No description provided for @assistProvider.
-  ///
-  /// In en, this message translates to:
-  /// **'Provider'**
-  String get assistProvider;
 
   /// No description provided for @assistGemini.
   ///
@@ -6734,12 +6458,6 @@ abstract class AppLocalizations {
   /// **'Not synced yet'**
   String get accountNeverSynced;
 
-  /// No description provided for @accountPending.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} changes waiting'**
-  String accountPending(int count);
-
   /// No description provided for @accountRefused.
   ///
   /// In en, this message translates to:
@@ -6749,7 +6467,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountHeldBack.
   ///
   /// In en, this message translates to:
-  /// **'Money and places wait for a sync passphrase.'**
+  /// **'Nothing syncs until you set your sync PIN.'**
   String get accountHeldBack;
 
   /// No description provided for @accountDevices.
@@ -6835,78 +6553,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong ({code}).'**
   String accountErrorOther(String code);
-
-  /// No description provided for @passphraseTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync passphrase'**
-  String get passphraseTitle;
-
-  /// No description provided for @passphraseUnset.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set: money and places stay on this phone.'**
-  String get passphraseUnset;
-
-  /// No description provided for @passphraseSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Set: money and places sync end-to-end encrypted.'**
-  String get passphraseSet;
-
-  /// No description provided for @passphraseSetAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Set the passphrase'**
-  String get passphraseSetAction;
-
-  /// No description provided for @passphraseForget.
-  ///
-  /// In en, this message translates to:
-  /// **'Forget it on this device'**
-  String get passphraseForget;
-
-  /// No description provided for @passphraseBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Money and places are encrypted on this phone with a key made from this passphrase. The server never sees it. Use the same passphrase on every device. If you lose it, the encrypted rows cannot be read on a new device — only sent again from one that still has it.'**
-  String get passphraseBody;
-
-  /// No description provided for @passphraseField.
-  ///
-  /// In en, this message translates to:
-  /// **'Passphrase'**
-  String get passphraseField;
-
-  /// No description provided for @passphraseRepeat.
-  ///
-  /// In en, this message translates to:
-  /// **'The same, again'**
-  String get passphraseRepeat;
-
-  /// No description provided for @passphraseMismatch.
-  ///
-  /// In en, this message translates to:
-  /// **'The two do not match.'**
-  String get passphraseMismatch;
-
-  /// No description provided for @passphraseShort.
-  ///
-  /// In en, this message translates to:
-  /// **'At least 12 characters.'**
-  String get passphraseShort;
-
-  /// No description provided for @passphraseWorking.
-  ///
-  /// In en, this message translates to:
-  /// **'Making the key…'**
-  String get passphraseWorking;
-
-  /// No description provided for @passphraseWrong.
-  ///
-  /// In en, this message translates to:
-  /// **'This passphrase does not open what your other devices sent. Enter the one you used there.'**
-  String get passphraseWrong;
 
   /// No description provided for @exportIncludePlaces.
   ///
@@ -7145,14 +6791,8 @@ abstract class AppLocalizations {
   /// No description provided for @ratesDzdManual.
   ///
   /// In en, this message translates to:
-  /// **'The dinar rates are typed by hand: there is no free source for the DZD market rate. Fetch only updates EUR → USD.'**
+  /// **'The dinar\'s market rate is typed by hand: no free source has it. Fetch updates every other currency.'**
   String get ratesDzdManual;
-
-  /// No description provided for @ratesFetchedEurUsd.
-  ///
-  /// In en, this message translates to:
-  /// **'EUR → USD updated. The dinar rates stay as you typed them.'**
-  String get ratesFetchedEurUsd;
 
   /// No description provided for @accountServerExample.
   ///
@@ -7729,6 +7369,954 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get mediaOther;
+
+  /// No description provided for @syncPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync PIN'**
+  String get syncPinTitle;
+
+  /// No description provided for @syncPinChooseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.'**
+  String get syncPinChooseBody;
+
+  /// No description provided for @syncPinEnterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your other devices already use a sync PIN. Enter the same one here to bring your data over.'**
+  String get syncPinEnterBody;
+
+  /// No description provided for @syncPinLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'If you lose it, what is encrypted cannot be read on a new device — only sent again from one that still has it. Nobody can reset it.'**
+  String get syncPinLoss;
+
+  /// No description provided for @syncPinCost.
+  ///
+  /// In en, this message translates to:
+  /// **'A PIN is quick to type, but it falls in minutes to someone holding the server\'s database and its keys. A passphrase holds.'**
+  String get syncPinCost;
+
+  /// No description provided for @syncPinField.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN'**
+  String get syncPinField;
+
+  /// No description provided for @syncPinRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'The same PIN, again'**
+  String get syncPinRepeat;
+
+  /// No description provided for @syncPinRule.
+  ///
+  /// In en, this message translates to:
+  /// **'6 digits is best; 4 to 6'**
+  String get syncPinRule;
+
+  /// No description provided for @syncPassphraseField.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get syncPassphraseField;
+
+  /// No description provided for @syncPassphraseRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'The same passphrase, again'**
+  String get syncPassphraseRepeat;
+
+  /// No description provided for @syncPassphraseRule.
+  ///
+  /// In en, this message translates to:
+  /// **'8 characters or more'**
+  String get syncPassphraseRule;
+
+  /// No description provided for @syncPinUsePassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a passphrase instead'**
+  String get syncPinUsePassphrase;
+
+  /// No description provided for @syncPinUsePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a PIN instead'**
+  String get syncPinUsePin;
+
+  /// No description provided for @syncPinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'A PIN is 4 to 6 digits.'**
+  String get syncPinLength;
+
+  /// No description provided for @syncPassphraseShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters.'**
+  String get syncPassphraseShort;
+
+  /// No description provided for @syncPinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two do not match.'**
+  String get syncPinMismatch;
+
+  /// No description provided for @syncPinChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the PIN'**
+  String get syncPinChoose;
+
+  /// No description provided for @syncPinEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get syncPinEnter;
+
+  /// No description provided for @syncPinWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the key…'**
+  String get syncPinWorking;
+
+  /// No description provided for @syncPinChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking it against your other devices…'**
+  String get syncPinChecking;
+
+  /// No description provided for @syncPinWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That isn\'t the PIN your other devices use.'**
+  String get syncPinWrong;
+
+  /// No description provided for @syncPinLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get syncPinLater;
+
+  /// No description provided for @syncPinWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing leaves this phone until you set your sync PIN.'**
+  String get syncPinWaiting;
+
+  /// No description provided for @syncPinIsSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set: everything syncs end-to-end encrypted.'**
+  String get syncPinIsSet;
+
+  /// No description provided for @syncPinSetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your sync PIN'**
+  String get syncPinSetAction;
+
+  /// No description provided for @syncPinForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget it on this device'**
+  String get syncPinForget;
+
+  /// No description provided for @accountCircleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account and sync'**
+  String get accountCircleLabel;
+
+  /// No description provided for @accountOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get accountOnline;
+
+  /// No description provided for @accountOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get accountOffline;
+
+  /// No description provided for @accountAllSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is sent'**
+  String get accountAllSent;
+
+  /// No description provided for @accountPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Account settings'**
+  String get accountPage;
+
+  /// No description provided for @galleryFileNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent yet from the device that took it'**
+  String get galleryFileNotSent;
+
+  /// No description provided for @galleryFileNeedsPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your sync PIN to see it'**
+  String get galleryFileNeedsPin;
+
+  /// No description provided for @galleryFileFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load'**
+  String get galleryFileFailed;
+
+  /// No description provided for @galleryFileRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get galleryFileRetry;
+
+  /// No description provided for @budgetClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear budget'**
+  String get budgetClear;
+
+  /// No description provided for @budgetCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget cleared'**
+  String get budgetCleared;
+
+  /// No description provided for @debtEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit debt'**
+  String get debtEditTitle;
+
+  /// No description provided for @debtDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this debt?'**
+  String get debtDeleteTitle;
+
+  /// No description provided for @debtDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} and the payments on it will be removed. What those payments took from the wallet stays spent. Undo is in the bar for a moment after.'**
+  String debtDeleteBody(String person);
+
+  /// No description provided for @debtAmountBelowPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Already paid {amount}; the debt can\'t be less'**
+  String debtAmountBelowPaid(String amount);
+
+  /// No description provided for @undoRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo: the debt or the wallet has changed since.'**
+  String get undoRefused;
+
+  /// No description provided for @syncPinTooSimple.
+  ///
+  /// In en, this message translates to:
+  /// **'Too easy to guess. Avoid one digit repeated, runs like 1234, and pairs like 1212.'**
+  String get syncPinTooSimple;
+
+  /// No description provided for @syncPinChosenElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device set the sync PIN a moment ago. Enter that one.'**
+  String get syncPinChosenElsewhere;
+
+  /// No description provided for @syncPinUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'The server could not be reached to check the PIN. Try again when you\'re online.'**
+  String get syncPinUnreachable;
+
+  /// No description provided for @accountLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 encrypted row could not be opened} other{{count} encrypted rows could not be opened}}'**
+  String accountLocked(int count);
+
+  /// No description provided for @accountClientWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get accountClientWeb;
+
+  /// No description provided for @accountClientPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get accountClientPhone;
+
+  /// No description provided for @accountLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'last seen {time}'**
+  String accountLastSeen(String time);
+
+  /// No description provided for @galleryFileDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading…'**
+  String get galleryFileDownloading;
+
+  /// No description provided for @importFilesTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file too large to bring in is left out} other{{count} files too large to bring in are left out}}'**
+  String importFilesTooLarge(int count);
+
+  /// No description provided for @exportLeftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file too large for an archive was left out.} other{{count} files too large for an archive were left out.}}'**
+  String exportLeftOut(int count);
+
+  /// No description provided for @weightTargetSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a target'**
+  String get weightTargetSet;
+
+  /// No description provided for @weightTargetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target weight'**
+  String get weightTargetTitle;
+
+  /// No description provided for @weightTargetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A line on the chart to aim at, and how far the latest reading is from it.'**
+  String get weightTargetHint;
+
+  /// No description provided for @weightTargetClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear target'**
+  String get weightTargetClear;
+
+  /// No description provided for @notesTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This note is longer than {max} characters. What is past that is not saved.'**
+  String notesTooLong(String max);
+
+  /// No description provided for @syncPinForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot the PIN? Start over'**
+  String get syncPinForgot;
+
+  /// No description provided for @syncPinChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get syncPinChange;
+
+  /// No description provided for @syncPinStartOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the PIN over'**
+  String get syncPinStartOver;
+
+  /// No description provided for @syncPinStartOverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes everything kept on the server for this account, and the PIN with it. This phone then sends its own again under the new PIN. Anything only another device had is lost, unless that device still has it and sends it again.'**
+  String get syncPinStartOverBody;
+
+  /// No description provided for @syncPinStartOverConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get syncPinStartOverConfirm;
+
+  /// No description provided for @syncPinChangedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Your PIN was changed on another device. Enter the new one.'**
+  String get syncPinChangedElsewhere;
+
+  /// No description provided for @syncRefusedQuota.
+  ///
+  /// In en, this message translates to:
+  /// **'The server has no room left for this account.'**
+  String get syncRefusedQuota;
+
+  /// No description provided for @syncRefusedClock.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s clock is ahead of the server\'s. Check its date and time.'**
+  String get syncRefusedClock;
+
+  /// No description provided for @syncPinWrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'That isn\'t this account\'s password.'**
+  String get syncPinWrongPassword;
+
+  /// No description provided for @exportNotHere.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 picture not downloaded to this phone yet is not in it.} other{{count} pictures not downloaded to this phone yet are not in it.}}'**
+  String exportNotHere(int count);
+
+  /// No description provided for @syncPinTriesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No tries left for now.} =1{1 try left.} other{{count} tries left.}}'**
+  String syncPinTriesLeft(int count);
+
+  /// No description provided for @syncPinTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{Too many tries. Try again in 1 minute.} other{Too many tries. Try again in {minutes} minutes.}}'**
+  String syncPinTooMany(int minutes);
+
+  /// No description provided for @syncPinTooManySoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Try again later.'**
+  String get syncPinTooManySoon;
+
+  /// No description provided for @syncPinStartedOver.
+  ///
+  /// In en, this message translates to:
+  /// **'The PIN was just started over on another device. Choose a new one.'**
+  String get syncPinStartedOver;
+
+  /// No description provided for @accountServerNotSecure.
+  ///
+  /// In en, this message translates to:
+  /// **'Use https:// for the server. Plain http:// is only for this device or the emulator (localhost, 127.0.0.1, 10.0.2.2).'**
+  String get accountServerNotSecure;
+
+  /// No description provided for @assistBaseUrlNotSecure.
+  ///
+  /// In en, this message translates to:
+  /// **'Use https:// for the assist address. Plain http:// is only for this device or the emulator.'**
+  String get assistBaseUrlNotSecure;
+
+  /// No description provided for @dataUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t open your data right now'**
+  String get dataUnavailableTitle;
+
+  /// No description provided for @dataUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone\'s secure storage did not answer. Nothing has been changed or deleted. Try again, or restart the phone if it keeps happening.'**
+  String get dataUnavailableBody;
+
+  /// No description provided for @amountLargeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}?'**
+  String amountLargeTitle(String amount);
+
+  /// No description provided for @amountLargeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'That is far more than anything usually logged at once. Is the amount right?'**
+  String get amountLargeBody;
+
+  /// No description provided for @amountLargeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, it\'s right'**
+  String get amountLargeConfirm;
+
+  /// No description provided for @perDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Per day'**
+  String get perDay;
+
+  /// No description provided for @categoryRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String categoryRemove(String name);
+
+  /// No description provided for @categoryRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed'**
+  String categoryRemoved(String name);
+
+  /// No description provided for @gymSessionMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this session'**
+  String get gymSessionMenu;
+
+  /// No description provided for @gymExerciseMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this exercise'**
+  String get gymExerciseMenu;
+
+  /// No description provided for @gymProgramMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this program'**
+  String get gymProgramMenu;
+
+  /// No description provided for @gymDayMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this day'**
+  String get gymDayMenu;
+
+  /// No description provided for @weightImplausible.
+  ///
+  /// In en, this message translates to:
+  /// **'A weight between {range}'**
+  String weightImplausible(String range);
+
+  /// No description provided for @accountDevicesRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get accountDevicesRetry;
+
+  /// No description provided for @accountEndSessionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out {name}?'**
+  String accountEndSessionTitle(String name);
+
+  /// No description provided for @accountEndSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'That device stops syncing until someone signs in on it again. Nothing on it is deleted.'**
+  String get accountEndSessionBody;
+
+  /// No description provided for @accountSessionEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed out {name}'**
+  String accountSessionEnded(String name);
+
+  /// No description provided for @accountSignedInOn.
+  ///
+  /// In en, this message translates to:
+  /// **'signed in {day}'**
+  String accountSignedInOn(String day);
+
+  /// No description provided for @accountChangesWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes waiting to sync'**
+  String get accountChangesWaiting;
+
+  /// No description provided for @syncPinForgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget the sync PIN on this phone?'**
+  String get syncPinForgetTitle;
+
+  /// No description provided for @syncPinForgetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What is already here stays. What your other devices send stays locked here, and what you change here waits, until you enter the PIN again.'**
+  String get syncPinForgetBody;
+
+  /// No description provided for @joinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone already has data'**
+  String get joinTitle;
+
+  /// No description provided for @joinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You made things on this phone before signing in. Bring them into your account, or start from what the account already has?'**
+  String get joinBody;
+
+  /// No description provided for @joinBring.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring this phone\'s data into the account'**
+  String get joinBring;
+
+  /// No description provided for @joinStartFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from the account\'s data'**
+  String get joinStartFromAccount;
+
+  /// No description provided for @joinStartFromAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s data is saved first, as an archive in Downloads, then replaced by the account\'s. Nothing is lost.'**
+  String get joinStartFromAccountNote;
+
+  /// No description provided for @joinArchiveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The archive could not be saved, so nothing was replaced. Try again, or bring the data into the account.'**
+  String get joinArchiveFailed;
+
+  /// No description provided for @joinArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s data was saved to {path}'**
+  String joinArchived(String path);
+
+  /// No description provided for @obHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account'**
+  String get obHaveAccount;
+
+  /// No description provided for @assistChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for the assist…'**
+  String get assistChecking;
+
+  /// No description provided for @dailyGoalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{actions} of {goal} actions today for the daily harvest'**
+  String dailyGoalProgress(int actions, int goal);
+
+  /// No description provided for @dailyGoalMet.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No actions — the daily harvest goal is met} =1{1 action — the daily harvest goal is met} other{{count} actions — the daily harvest goal is met}}'**
+  String dailyGoalMet(int count);
+
+  /// No description provided for @streakZeroWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'{goal, plural, =1{A day joins the streak once it has 1 action. Meet it today to start one.} other{A day joins the streak once it has {goal} actions. Meet them today to start one.}}'**
+  String streakZeroWhy(int goal);
+
+  /// No description provided for @streakHowItGrows.
+  ///
+  /// In en, this message translates to:
+  /// **'{goal, plural, =1{Each day with 1 action keeps it going.} other{Each day with {goal} actions keeps it going.}}'**
+  String streakHowItGrows(int goal);
+
+  /// No description provided for @notesPickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a note'**
+  String get notesPickTitle;
+
+  /// No description provided for @notesPickBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes are in the list, with their folders.'**
+  String get notesPickBody;
+
+  /// No description provided for @notesShowList.
+  ///
+  /// In en, this message translates to:
+  /// **'Show notes'**
+  String get notesShowList;
+
+  /// No description provided for @goalAchievedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved'**
+  String get goalAchievedLabel;
+
+  /// No description provided for @goalAchievedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved on {day}'**
+  String goalAchievedOn(String day);
+
+  /// No description provided for @goalDroppedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropped'**
+  String get goalDroppedLabel;
+
+  /// No description provided for @goalsNoActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal in progress'**
+  String get goalsNoActiveTitle;
+
+  /// No description provided for @goalDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” and its items go, with what achieving it paid. Undo brings them back.'**
+  String goalDeleteBody(String title);
+
+  /// No description provided for @cropUndoCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo today\'s check-in for {title}'**
+  String cropUndoCheckIn(String title);
+
+  /// No description provided for @seedPausedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” is resting'**
+  String seedPausedSnack(String title);
+
+  /// No description provided for @seedResumedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” is back on the field'**
+  String seedResumedSnack(String title);
+
+  /// No description provided for @geoGone.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} · no longer here'**
+  String geoGone(String kind);
+
+  /// No description provided for @accountEndOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out all other devices'**
+  String get accountEndOthers;
+
+  /// No description provided for @accountEndOthersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out every other device?'**
+  String get accountEndOthersTitle;
+
+  /// No description provided for @accountEndOthersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this phone stays signed in. The others stop syncing until someone signs in on them again. Nothing on them is deleted.'**
+  String get accountEndOthersBody;
+
+  /// No description provided for @accountOthersEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Signed out 1 other device} other{Signed out {count} other devices}}'**
+  String accountOthersEnded(int count);
+
+  /// No description provided for @syncPinTakesTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the key is slow on purpose: a few seconds, up to about 20 on an older phone.'**
+  String get syncPinTakesTime;
+
+  /// No description provided for @syncPinMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync PIN options'**
+  String get syncPinMenu;
+
+  /// No description provided for @syncPinSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone is signed out of the account. Sign in again from the account circle, then enter the PIN.'**
+  String get syncPinSignedOut;
+
+  /// No description provided for @accountNameIsPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s your password. Use a name others may see, or leave it empty.'**
+  String get accountNameIsPassword;
+
+  /// No description provided for @ratesFetched.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates updated.'**
+  String get ratesFetched;
+
+  /// No description provided for @ratesSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates by Exchange Rate API'**
+  String get ratesSource;
+
+  /// No description provided for @ratesOneUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'1 USD = {amount}'**
+  String ratesOneUsd(String amount);
+
+  /// No description provided for @ratesOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates of {day}'**
+  String ratesOn(String day);
+
+  /// No description provided for @ratesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No rates fetched yet.'**
+  String get ratesNone;
+
+  /// No description provided for @currencyPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a currency'**
+  String get currencyPickerTitle;
+
+  /// No description provided for @currencySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, code or sign'**
+  String get currencySearchHint;
+
+  /// No description provided for @currencyNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No currency matches.'**
+  String get currencyNoMatch;
+
+  /// No description provided for @currencyMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Another currency'**
+  String get currencyMore;
+
+  /// No description provided for @syncPassphraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync passphrase'**
+  String get syncPassphraseTitle;
+
+  /// No description provided for @syncPassphraseAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'A few words only you would put together, like olive river lantern, hold for thousands of years against someone holding the server\'s data.'**
+  String get syncPassphraseAdvice;
+
+  /// No description provided for @syncSecretField.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase or PIN'**
+  String get syncSecretField;
+
+  /// No description provided for @syncSecretShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get syncSecretShow;
+
+  /// No description provided for @syncSecretHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get syncSecretHide;
+
+  /// No description provided for @syncSecretWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get syncSecretWeak;
+
+  /// No description provided for @syncSecretFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get syncSecretFair;
+
+  /// No description provided for @syncSecretStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get syncSecretStrong;
+
+  /// No description provided for @syncSecretStands.
+  ///
+  /// In en, this message translates to:
+  /// **'Would hold {time} against someone with the server\'s data.'**
+  String syncSecretStands(String time);
+
+  /// No description provided for @syncSecretUnderSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'under a second'**
+  String get syncSecretUnderSecond;
+
+  /// No description provided for @syncSecretSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 second} other{{count} seconds}}'**
+  String syncSecretSeconds(int count);
+
+  /// No description provided for @syncSecretMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String syncSecretMinutes(int count);
+
+  /// No description provided for @syncSecretHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String syncSecretHours(int count);
+
+  /// No description provided for @syncSecretDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String syncSecretDays(int count);
+
+  /// No description provided for @syncSecretYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year} other{{count} years}}'**
+  String syncSecretYears(int count);
+
+  /// No description provided for @syncSecretThousands.
+  ///
+  /// In en, this message translates to:
+  /// **'thousands of years'**
+  String get syncSecretThousands;
+
+  /// No description provided for @syncSecretForever.
+  ///
+  /// In en, this message translates to:
+  /// **'for ever, near enough'**
+  String get syncSecretForever;
+
+  /// No description provided for @exportConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account password, to take your data out'**
+  String get exportConfirmPassword;
+
+  /// No description provided for @exportConfirmReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to take your data out of Harvest'**
+  String get exportConfirmReason;
+
+  /// No description provided for @exportConfirmRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Not taken: the phone\'s lock was not opened.'**
+  String get exportConfirmRefused;
+
+  /// No description provided for @exportConfirmLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many wrong passwords. Try again in {minutes} min.'**
+  String exportConfirmLimited(int minutes);
+
+  /// No description provided for @exportConfirmOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The server can\'t be reached to check the password. Try again when you\'re online.'**
+  String get exportConfirmOffline;
 }
 
 class _AppLocalizationsDelegate

@@ -38,7 +38,7 @@ the first rank. That merge is what freed the slot the body needed
 
 ## The Field (home screen)
 
-The main screen is **today's field**: every commitment due today as a crop card, ordered by urgency, with the Global Streak flame and XP bar always visible up top.
+The main screen is **today's field**: every commitment due today as a crop card, ordered by urgency, with the Global Streak flame and XP bar always visible up top. Under the XP bar a line says how far today is toward the Daily Harvest Goal — *1 of 3 actions today*, then *the goal is met* — because it is the only thing that moves the streak, and a flame still at 0 after a check-in otherwise looks broken. The streak sheet says the same, with why the flame is where it is.
 
 - A card shows what the seed asks of me, its **note**, **today's note** if I wrote one, and a live countdown to its **reminder** and its **deadline** ([[Checkpoint-3]]).
 - Tap a card → check-in ([[Productivity-Engine]]).
@@ -60,18 +60,29 @@ was put away and the date. Restore puts one back on the field; delete
 removes it for good ([[Business-Rules]] #8). Tapping one opens its
 history — an archive whose contents cannot be read is a bin.
 
-## Weekly Harvest Report (Sundays)
+## Weekly Harvest Report
 
-A shareable summary card:
-- Total XP this week; best & worst day
-- Streak status and closest calls
-- Avg sleep vs. target
-- Biggest spending category
-- Most-used app category ([[Phase-7-Screen-Time]])
+A card on the Stats screen, on the phone and on the web alike, showing
+**the week so far** — Monday to today, every day of the week rather
+than only on Sundays:
+- **XP this week**, from the ledger since Monday.
+- **The best day**, the one with the most seeds checked in; the first
+  one wins a tie.
+- **The quietest day**, counted only from the day my first seed was
+  planted (the days before were not quiet, they were not yet), and
+  only once there are two days to compare — so not on a Monday.
+- **The top spending category** this week, summed in the default
+  currency. On the web it shows only where the browser can read the
+  private tier.
+
+What the first version of this page promised and neither client
+builds: sharing the card, streak status and closest calls, average
+sleep against the target, and the most-used app category (which waits
+on [[Phase-8-Screen-Time]]).
 
 ## Home-screen widget ✅ ([[Checkpoint-3]])
 
-Shipped early, out of [[Phase-8-Social-and-Reach]]: nothing about a
+Shipped early, out of [[Phase-9-Social-and-Reach]]: nothing about a
 widget needs a sync server.
 
 A **bar, not a tile** — four cells wide, one header row, resizable both
@@ -102,9 +113,11 @@ scrolling collections ([[Checkpoint-3]]).
 The switches live in Settings → My data (a page of its own since [[Checkpoint-7]]). Everything is computed **from
 the database** with the same `isDueOn` rule the field uses, so it is
 right when no screen exists — refreshed at startup, after every
-check-in and seed edit, on resume, and by the 3 AM job. The service
-writes every number whatever the switches say; the widget decides what
-to show, so turning a section on is a redraw rather than a recompute.
+check-in and seed edit, on resume, and by the 3 AM job. What the
+widget shows is written to a file outside the encrypted database, so
+what it does not show is not written either: no money while the money
+section is off or the app lock is armed, and no task titles while the
+lock is armed.
 
 Still to come: the medium **"Vitality"** widget — four mini-gauges
 (tasks X/Y, sleep hrs, screen X/cap, spent X/limit) — once the pillars
@@ -118,6 +131,6 @@ painter with no assets, and it never causes the wait — the screen leaves
 when the tree has grown *and* startup has landed, and with reduce-motion
 on the tree is simply there.
 
-## Web dashboard (later, with [[Phase-8-Social-and-Reach]])
+## Web dashboard (later, with [[Phase-9-Social-and-Reach]])
 
 "The Field" as a bird's-eye grid, with keyboard-shortcut quick-log for desk time.

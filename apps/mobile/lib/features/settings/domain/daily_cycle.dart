@@ -70,6 +70,7 @@ class DailyCycle {
   }
 
   /// How long after waking [time] falls.
+  @visibleForTesting
   Duration afterWaking((int, int) time) {
     final offset = minutesOf(time) - minutesOf(wakeTime);
     return Duration(minutes: offset < 0 ? offset + _day : offset);

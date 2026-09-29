@@ -1,15 +1,20 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:harvest/core/db/built_in_lists.dart';
+import 'package:harvest/core/db/database_file.dart';
+import 'package:harvest/core/db/database_key.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
+part 'migrations.dart';
 
 /// Habits, projects and to-dos — the seeds.
 @DataClassName('CommitmentRow')
 class Commitments extends Table {
-  /// Client-generated UUID; will become the server `_id` when sync arrives.
+  /// Client-generated UUID; also the row's `_id` on the sync server.
   TextColumn get uuid => text()();
 
   /// `habit` | `project` | `todo`.
@@ -58,6 +63,8 @@ class Commitments extends Table {
 
 /// Append-only log of every completed action — the water.
 @DataClassName('CheckInRow')
+@TableIndex(name: 'check_ins_day', columns: {#harvestDay})
+@TableIndex(name: 'check_ins_seed', columns: {#commitmentUuid})
 class CheckIns extends Table {
   TextColumn get uuid => text()();
   TextColumn get commitmentUuid => text().references(Commitments, #uuid)();
@@ -79,6 +86,10 @@ class CheckIns extends Table {
 /// I managed, what to pick up tomorrow. A new day starts a blank one;
 /// yesterday's is still there to read.
 @DataClassName('SeedNoteRow')
+@TableIndex(
+  name: 'seed_notes_seed_day',
+  columns: {#commitmentUuid, #harvestDay},
+)
 class SeedNotes extends Table {
   TextColumn get uuid => text()();
   TextColumn get commitmentUuid => text().references(Commitments, #uuid)();
@@ -116,6 +127,8 @@ class Notes extends Table {
 /// is a query rather than a scan of every note. Rebuildable from the
 /// bodies at any time (rule N2).
 @DataClassName('NoteLinkRow')
+@TableIndex(name: 'note_links_from', columns: {#fromUuid})
+@TableIndex(name: 'note_links_to', columns: {#toUuid})
 class NoteLinks extends Table {
   TextColumn get uuid => text()();
   TextColumn get fromUuid => text().references(Notes, #uuid)();
@@ -161,6 +174,7 @@ class Albums extends Table {
 /// "gone for good" now means gone from the trash, because a picture
 /// deleted by a fat thumb was gone for good too).
 @DataClassName('MemoryRow')
+@TableIndex(name: 'memories_album_day', columns: {#albumUuid, #harvestDay})
 class Memories extends Table {
   TextColumn get uuid => text()();
   TextColumn get albumUuid => text().references(Albums, #uuid)();
@@ -178,8 +192,8 @@ class Memories extends Table {
   ///
   /// A file is named by its own contents on the server, so this is
   /// both the name to fetch it by and the proof that what arrived is
-  /// what left ([[Sync-API]]). Null means it has never been uploaded,
-  /// which is every file until sync is switched on.
+  /// what left ([[Sync-API]]). Null means it has not been uploaded yet,
+  /// which is every file while sync is off.
   TextColumn get fileHash => text().nullable()();
 
   DateTimeColumn get capturedAt => dateTime().clientDefault(DateTime.now)();
@@ -398,6 +412,7 @@ class WorkoutSessions extends Table {
 /// the exercise, not about any set — and history has to be able to say
 /// what the day was *meant* to be ([[Gym]] rule Y7).
 @DataClassName('SessionExerciseRow')
+@TableIndex(name: 'session_exercises_session', columns: {#sessionUuid})
 class SessionExercises extends Table {
   TextColumn get uuid => text()();
   TextColumn get sessionUuid => text().references(WorkoutSessions, #uuid)();
@@ -429,6 +444,7 @@ class SessionExercises extends Table {
 ///
 /// Written the moment it is ticked, never at the end of the session.
 @DataClassName('WorkoutSetRow')
+@TableIndex(name: 'workout_sets_exercise', columns: {#sessionExerciseUuid})
 class WorkoutSets extends Table {
   TextColumn get uuid => text()();
   TextColumn get sessionExerciseUuid =>
@@ -464,6 +480,8 @@ class Streaks extends Table {
 }
 
 /// XP and coin movements — balances are sums over this, never counters.
+@TableIndex(name: 'ledger_reason', columns: {#reason})
+@TableIndex(name: 'ledger_day', columns: {#harvestDay})
 class Ledger extends Table {
   TextColumn get uuid => text()();
 
@@ -509,6 +527,7 @@ class PomodoroSessions extends Table {
 /// Money out, in minor units — never floats (business rule: finances
 /// stay on-device; see the sync strategy's privacy tiers).
 @DataClassName('ExpenseRow')
+@TableIndex(name: 'expenses_day', columns: {#harvestDay})
 class Expenses extends Table {
   TextColumn get uuid => text()();
 
@@ -533,6 +552,7 @@ class Expenses extends Table {
 /// Wallet and savings movements (checkpoint round 3): a signed delta
 /// per account, so balances are sums and history is the record.
 @DataClassName('MoneyTxnRow')
+@TableIndex(name: 'money_txns_day', columns: {#harvestDay})
 class MoneyTxns extends Table {
   TextColumn get uuid => text()();
 
@@ -589,6 +609,7 @@ class Debts extends Table {
 
 /// Partial pay-offs against a debt.
 @DataClassName('DebtPaymentRow')
+@TableIndex(name: 'debt_payments_debt', columns: {#debtUuid})
 class DebtPayments extends Table {
   TextColumn get uuid => text()();
   TextColumn get debtUuid => text().references(Debts, #uuid)();
@@ -625,6 +646,7 @@ class ExpenseCategories extends Table {
 }
 
 /// Change log for the future sync client — appended on every local write.
+@TableIndex(name: 'outbox_row', columns: {#targetTable, #rowUuid})
 class Outbox extends Table {
   IntColumn get seq => integer().autoIncrement()();
   TextColumn get targetTable => text()();
@@ -709,6 +731,7 @@ class Goals extends Table {
 /// One line of what a goal takes: a `need` (to have or know) or a
 /// `step` (to do). Ticked by hand, or by the to-do it was planted as.
 @DataClassName('GoalItemRow')
+@TableIndex(name: 'goal_items_goal', columns: {#goalUuid})
 class GoalItems extends Table {
   TextColumn get uuid => text()();
   TextColumn get goalUuid => text().references(Goals, #uuid)();
@@ -831,6 +854,10 @@ class WishlistItems extends Table {
 /// trail can be deleted whole, a point is never moved.
 @DataClassName('LocationPointRow')
 @TableIndex(name: 'location_points_day', columns: {#harvestDay})
+@TableIndex(
+  name: 'location_points_day_time',
+  columns: {#harvestDay, #recordedAt},
+)
 class LocationPoints extends Table {
   TextColumn get uuid => text()();
   TextColumn get harvestDay => text()();
@@ -915,8 +942,8 @@ class NoteAttachments extends Table {
   ///
   /// A file is named by its own contents on the server, so this is
   /// both the name to fetch it by and the proof that what arrived is
-  /// what left ([[Sync-API]]). Null means it has never been uploaded,
-  /// which is every file until sync is switched on.
+  /// what left ([[Sync-API]]). Null means it has not been uploaded yet,
+  /// which is every file while sync is off.
   TextColumn get fileHash => text().nullable()();
 
   DateTimeColumn get createdAt => dateTime().clientDefault(DateTime.now)();
@@ -992,7 +1019,13 @@ const actionTables = {
   ],
 )
 class HarvestDatabase extends _$HarvestDatabase {
-  HarvestDatabase() : super(_openConnection());
+  /// A background isolate's connection: the 3 AM job, a snooze tap, the
+  /// trail recorder. It opens the file as it finds it.
+  HarvestDatabase() : super(_openConnection(primary: false));
+
+  /// The app's own connection, the one that encrypts a plain file from
+  /// v3.0.0 and recovers from a lost key ([[Local-Database]]).
+  HarvestDatabase.primary() : super(_openConnection(primary: true));
 
   HarvestDatabase.forTesting(super.e);
 
@@ -1009,7 +1042,7 @@ class HarvestDatabase extends _$HarvestDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1017,224 +1050,7 @@ class HarvestDatabase extends _$HarvestDatabase {
       await m.createAll();
       await seedBuiltInLists();
     },
-    onUpgrade: (m, from, to) async {
-      // A table created in this run already carries the newest
-      // columns; later addColumn steps must skip it.
-      final expensesJustCreated = from < 2;
-      final moneyTxnsJustCreated = from < 6;
-      final memoriesJustCreated = from < 10;
-      final sessionsJustCreated = from < 12;
-      if (from < 2) {
-        await m.createTable(expenses);
-      }
-      if (from < 3) {
-        await m.addColumn(commitments, commitments.pausedAt);
-      }
-      if (from < 4) {
-        await m.addColumn(commitments, commitments.note);
-        await m.addColumn(commitments, commitments.remindAt);
-        await m.addColumn(commitments, commitments.deadline);
-        await m.createTable(expenseCategories);
-      }
-      if (from < 5 && !expensesJustCreated) {
-        await m.addColumn(expenses, expenses.currency);
-      }
-      if (from < 6) {
-        await m.createTable(moneyTxns);
-        await m.createTable(debts);
-        await m.createTable(debtPayments);
-      }
-      if (from < 7 && !moneyTxnsJustCreated) {
-        await m.addColumn(moneyTxns, moneyTxns.kind);
-        await m.addColumn(moneyTxns, moneyTxns.reference);
-      }
-      if (from < 8 && !moneyTxnsJustCreated) {
-        await m.addColumn(moneyTxns, moneyTxns.linkUuid);
-      }
-      if (from < 9) {
-        await m.addColumn(commitments, commitments.archiveNote);
-        await m.createTable(seedNotes);
-      }
-      if (from < 10) {
-        await m.createTable(notes);
-        await m.createTable(noteLinks);
-        await m.createTable(albums);
-        await m.createTable(memories);
-      }
-      if (from < 11 && !memoriesJustCreated) {
-        await m.addColumn(memories, memories.deletedAt);
-      }
-      // Phase 4 lands as one migration rather than five: the tables
-      // are inert until the feature is switched on, and one upgrade is
-      // kinder to a phone than five.
-      if (from < 12) {
-        await m.createTable(stepDays);
-        await m.createTable(bodyWeights);
-        await m.createTable(exercises);
-        await m.createTable(programs);
-        await m.createTable(programDays);
-        await m.createTable(programSlots);
-        await m.createTable(targetSets);
-        await m.createTable(trainingMaxes);
-        await m.createTable(workoutSessions);
-        await m.createTable(sessionExercises);
-        await m.createTable(workoutSets);
-      }
-      if (from < 13) {
-        await m.createTable(sleepSessions);
-      }
-      if (from < 14 && !sessionsJustCreated) {
-        await m.addColumn(workoutSessions, workoutSessions.pausedAt);
-        await m.addColumn(workoutSessions, workoutSessions.pausedSeconds);
-      }
-      // Phase 5 in one step, as phase 4 was: goals, places and voice.
-      if (from < 15) {
-        await m.addColumn(commitments, commitments.goalUuid);
-        await m.createTable(goals);
-        await m.createTable(goalItems);
-        await m.createTable(locationPoints);
-        await m.createTable(geotags);
-        await m.createTable(savedPlaces);
-        await m.createTable(noteAttachments);
-        await m.createIndex(locationPointsDay);
-        await m.createIndex(geotagsTarget);
-        await m.createIndex(geotagsDay);
-      }
-      if (from < 16 && !sessionsJustCreated) {
-        await m.addColumn(sessionExercises, sessionExercises.skipReason);
-      }
-      // The files themselves start unsynced, so every hash starts null
-      // and is filled in by the first sync that carries the file.
-      if (from < 17) {
-        if (!memoriesJustCreated) await m.addColumn(memories, memories.fileHash);
-        if (from >= 15) {
-          await m.addColumn(noteAttachments, noteAttachments.fileHash);
-        }
-      }
-      // Saved places take a note: what I want to remember about a spot
-      // ([[Places]]). Existing rows keep a null note, which the editors
-      // treat as empty. A box created earlier in this same run (from
-      // < 15) is built with the current definition and already carries
-      // the column. From 15 to 17 the column must exist *before* the
-      // date rewrite below, because that rewrite rebuilds the table
-      // from the current definition and would otherwise read a column
-      // that is not there yet.
-      if (from >= 15 && from < 20) {
-        await m.addColumn(savedPlaces, savedPlaces.notes);
-      }
-      // Categories remember when they were made, so a restored one keeps
-      // its place in the list ([[Finances]]). The last edit is the best
-      // guess an existing row has, and it keeps today's order. Same
-      // ordering rule as above: before the rewrite, which then converts
-      // the copied value along with the one it came from.
-      if (from >= 4 && from < 21) {
-        await m.addColumn(expenseCategories, expenseCategories.createdAt);
-        await customStatement(
-          'UPDATE expense_categories SET created_at = updated_at',
-        );
-      }
-      // Subtasks ([[Goals]] GL8, M6.13): an item may belong to another
-      // item. Every existing item stays top-level, so the column starts
-      // null and nothing is rewritten. Same ordering rule as above: a
-      // box created in this run (from < 15) already has it, and from 15
-      // it is added before the v18 and v22 rebuilds, which copy the
-      // table into its current definition.
-      if (from >= 15 && from < 24) {
-        await m.addColumn(goalItems, goalItems.parentUuid);
-      }
-      // Every date becomes text, keeping the instant it already held.
-      // A table created earlier in this same run is empty and converts
-      // to nothing, which costs a statement and no data.
-      if (from < 18) {
-        await customStatement('PRAGMA foreign_keys = OFF');
-        for (final table in allTables) {
-          // Tables created later in this run (v19+) do not exist yet;
-          // theirs are already text.
-          if (table.actualTableName == wishlistItems.actualTableName ||
-              table.actualTableName == lists.actualTableName) {
-            continue;
-          }
-          await _datesToText(m, table);
-        }
-        await customStatement('PRAGMA foreign_keys = ON');
-      }
-      // The wishlist: one new table ([[Wishlist]]), inert until the tab
-      // is built on it, so exactly one step.
-      if (from < 19) {
-        await m.createTable(wishlistItems);
-      }
-      // A stamp now comes from the phone's clock, not sqlite's: the SQL
-      // default wrote UTC with no zone, which read back as a UTC clock
-      // and put every default-stamped time an hour early in Algiers.
-      // Dropping a column default means rebuilding the table; then
-      // every date that is not already in the app's own spelling is
-      // rewritten, keeping its instant.
-      // Lists' item columns ([[Lists]]). A wishlist created earlier in
-      // this run (from < 19) already has them; from 19 they are added
-      // before the v22 rebuild below, which copies each table into its
-      // current definition and would otherwise read columns that are not
-      // there yet.
-      if (from >= 19 && from < 23) {
-        await m.addColumn(wishlistItems, wishlistItems.listUuid);
-        await m.addColumn(wishlistItems, wishlistItems.mediaType);
-        await m.addColumn(wishlistItems, wishlistItems.link);
-        await m.addColumn(wishlistItems, wishlistItems.creator);
-        await m.addColumn(wishlistItems, wishlistItems.startedAt);
-        await m.addColumn(wishlistItems, wishlistItems.rating);
-        await m.addColumn(wishlistItems, wishlistItems.seedUuid);
-        await m.addColumn(wishlistItems, wishlistItems.noteUuid);
-      }
-      if (from < 22) {
-        await customStatement('PRAGMA foreign_keys = OFF');
-        for (final table in allTables) {
-          // `lists` arrives in v23, below, already in today's spelling.
-          if (table.actualTableName == lists.actualTableName) continue;
-          final stamped = table.$columns.any(
-            (c) => c.type == DriftSqlType.dateTime && c.clientDefault != null,
-          );
-          if (stamped) {
-            await m.alterTable(TableMigration(table));
-          }
-          await _datesToLocal(table);
-        }
-        await customStatement('PRAGMA foreign_keys = ON');
-      }
-      // Lists ([[Lists]], M6.12): the Wishlist's two lists become two
-      // of four built-in ones, under ids every device agrees on, and
-      // each item is told which list it is in. Someone who had items
-      // keeps seeing them: the feature starts on for them, and off, as
-      // every feature does, for everyone else.
-      if (from < 23) {
-        await m.createTable(lists);
-        await seedBuiltInLists();
-        await customStatement(
-          'UPDATE wishlist_items SET list_uuid = '
-          "CASE list WHEN 'buy' THEN ? ELSE ? END WHERE list_uuid IS NULL",
-          [BuiltInList.buy.uuid, BuiltInList.wish.uuid],
-        );
-        final items = await customSelect(
-          'SELECT COUNT(*) AS n FROM wishlist_items WHERE deleted_at IS NULL',
-        ).getSingle();
-        if (items.read<int>('n') > 0) {
-          // `FeatureKeys.lists`, and a preference like any other, so it
-          // is queued for the other devices too.
-          await into(kvSettings).insert(
-            KvSettingsCompanion.insert(
-              key: 'features.lists',
-              valueJson: '"true"',
-            ),
-            mode: InsertMode.insertOrIgnore,
-          );
-          await into(outbox).insert(
-            OutboxCompanion.insert(
-              targetTable: 'kv_settings',
-              rowUuid: 'features.lists',
-              op: 'update',
-            ),
-          );
-        }
-      }
-    },
+    onUpgrade: (m, from, to) => _upgrade(m, from),
   );
 
   /// Makes the four built-in lists that are missing ([[Lists]] L10),
@@ -1263,62 +1079,38 @@ class HarvestDatabase extends _$HarvestDatabase {
     });
   }
 
-  /// Rewrites one table's UTC dates in the spelling the app writes: the
-  /// local clock with its offset, `2026-09-25T16:21:00.000 +01:00`.
-  ///
-  /// Two spellings are UTC. sqlite's own clock — the old column
-  /// default, and the v18 rewrite — writes `2026-09-25 15:21:00`; a
-  /// pulled row wrote a `Z`. Both read back as a UTC `DateTime`, whose
-  /// clock is the wrong one to show. A date that already carries an
-  /// offset was written by the app and is left as it is.
-  Future<void> _datesToLocal(TableInfo<Table, Object?> table) async {
-    final name = table.actualTableName;
-    for (final column in table.$columns) {
-      if (column.type != DriftSqlType.dateTime) continue;
-      final col = '"${column.name}"';
-      final rows = await customSelect(
-        'SELECT rowid AS r, $col AS v FROM "$name" '
-        "WHERE typeof($col) = 'text' AND ($col GLOB '*Z' OR $col GLOB "
-        "'[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] "
-        "[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')",
-      ).get();
-      if (rows.isEmpty) continue;
-      await batch((b) {
-        for (final row in rows) {
-          b.customStatement('UPDATE "$name" SET $col = ? WHERE rowid = ?', [
-            typeMapping.mapToSqlVariable(
-              readUtcText(row.read<String>('v')).toLocal(),
+  /// The file is `harvest.sqlite` in the app's documents directory, as
+  /// it always was; what changed is that it is encrypted
+  /// ([[Local-Database]], S-04). The key is read before drift opens it,
+  /// and `setup` unlocks every connection before its first query.
+  static QueryExecutor _openConnection({required bool primary}) =>
+      DatabaseConnection.delayed(
+        Future(() async {
+          final path = p.join(
+            (await getApplicationDocumentsDirectory()).path,
+            'harvest.sqlite',
+          );
+          final key = await prepareDatabaseFile(
+            path,
+            const KeystoreDatabaseKeys(),
+            primary: primary,
+          );
+          return driftDatabase(
+            name: 'harvest',
+            native: DriftNativeOptions(
+              databasePath: () async => path,
+              setup: (db) {
+                if (key != null) unlockDatabase(db, key);
+                // Four isolates open this file (the app, the trail
+                // recorder, the 3 AM job, a reminder's action): a write
+                // that meets another's lock waits for it rather than
+                // failing at once (Q6-08).
+                db.execute('PRAGMA busy_timeout = 5000');
+              },
             ),
-            row.read<int>('r'),
-          ]);
-        }
-      });
-    }
-  }
-
-  /// Rewrites one table's date columns from unix seconds to text.
-  ///
-  /// `datetime(col, 'unixepoch')` is sqlite's own conversion, so the
-  /// instant is the one that was stored; only its spelling changes.
-  static Future<void> _datesToText(
-    Migrator m,
-    TableInfo<Table, Object?> table,
-  ) async {
-    final transformer = <GeneratedColumn<Object>, Expression<Object>>{};
-    for (final column in table.$columns) {
-      if (column.type == DriftSqlType.dateTime) {
-        transformer[column] = DateTimeExpressions.fromUnixEpoch(
-          column.dartCast<int>(),
-        );
-      }
-    }
-    if (transformer.isEmpty) return;
-    await m.alterTable(
-      TableMigration(table, columnTransformer: transformer),
-    );
-  }
-
-  static QueryExecutor _openConnection() => driftDatabase(name: 'harvest');
+          );
+        }),
+      );
 
   /// Whether an insert into an action table also writes a pending
   /// geotag ([[Places]] PL2). Set from the `features.places` setting by

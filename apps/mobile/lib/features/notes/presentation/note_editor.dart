@@ -12,6 +12,7 @@ import 'package:harvest/features/notes/presentation/live_markdown_controller.dar
 import 'package:harvest/features/notes/presentation/notes_providers.dart';
 import 'package:harvest/features/notes/presentation/voice_widgets.dart';
 import 'package:harvest/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 /// One note, written and read in the same place.
 ///
@@ -58,6 +59,16 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
   late final NoteAttachmentsRepository _attachments;
   late final WritingNote _writing;
 
+  // For the save that runs from `dispose`, when `context` is gone: a
+  // failed save is said out loud, never lost in silence ([[Audit-v3]]
+  // Q5-04).
+  ScaffoldMessengerState? _messenger;
+  String _saveFailed = '';
+
+  /// Said once per editor: text past [NotesRepository.maxBody] is not
+  /// kept (Q5-60).
+  var _warnedTooLong = false;
+
   @override
   void initState() {
     super.initState();
@@ -84,10 +95,16 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
       final uuid = widget.uuid;
       final body = _lastBody;
       final attachments = _attachments;
-      _repository
-          .update(uuid, title: _title.text, body: body)
-          .then((_) => attachments.reconcile(uuid, body))
-          .ignore();
+      final messenger = _messenger;
+      final failed = _saveFailed;
+      unawaited(
+        _repository
+            .update(uuid, title: _title.text, body: body)
+            .then((_) => attachments.reconcile(uuid, body))
+            .catchError((Object _) {
+              messenger?.showSnackBar(SnackBar(content: Text(failed)));
+            }),
+      );
     }
     _title.dispose();
     // Leaving the editor puts the toolbar away with it — after the
@@ -95,6 +112,13 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
     final writing = _writing;
     unawaited(Future.microtask(writing.release));
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+    _saveFailed = AppLocalizations.of(context).saveFailed;
   }
 
   void _onFocusChanged() => _writing.set(_bodyFocus.hasFocus);
@@ -123,10 +147,30 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
   Future<void> _save() async {
     if (!mounted) return;
     final body = widget.controller.text;
-    await _repository.update(widget.uuid, title: _title.text, body: body);
-    // A recording whose line was deleted goes to the trash with this
-    // save; one pasted back comes out of it.
-    await _attachments.reconcile(widget.uuid, body);
+    final l10n = AppLocalizations.of(context);
+    final messenger = _messenger;
+    if (body.length > NotesRepository.maxBody && !_warnedTooLong) {
+      // The repository keeps the first 100,000 characters; the rest
+      // would vanish without a word while the field still shows it.
+      _warnedTooLong = true;
+      messenger?.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.notesTooLong(
+              NumberFormat.decimalPattern('en').format(NotesRepository.maxBody),
+            ),
+          ),
+        ),
+      );
+    }
+    try {
+      await _repository.update(widget.uuid, title: _title.text, body: body);
+      // A recording whose line was deleted goes to the trash with this
+      // save; one pasted back comes out of it.
+      await _attachments.reconcile(widget.uuid, body);
+    } on Object {
+      messenger?.showSnackBar(SnackBar(content: Text(_saveFailed)));
+    }
   }
 
   /// Tells the controller which links lead somewhere.

@@ -46,8 +46,7 @@ final builtInListsStampedAt = DateTime.utc(2020);
 /// The list an item belongs to: [listUuid] when it has one, else the
 /// shopping list its old `list` column names (a row from before lists).
 String listUuidOfItem({required String list, String? listUuid}) =>
-    listUuid ??
-    (list == 'buy' ? BuiltInList.buy.uuid : BuiltInList.wish.uuid);
+    listUuid ?? (list == 'buy' ? BuiltInList.buy.uuid : BuiltInList.wish.uuid);
 
 /// The old `list` column for an item in [listUuid]: `buy` only for
 /// *To buy*, so a client from before lists shows every other item as a

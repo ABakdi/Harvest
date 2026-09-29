@@ -9,13 +9,14 @@ import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
 import 'package:harvest/features/gallery/domain/gallery.dart';
 import 'package:harvest/features/gamification/domain/activity.dart';
+import 'package:harvest/features/gamification/domain/streak_rules.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'streak_service.g.dart';
+export 'package:harvest/features/gamification/domain/streak_rules.dart'
+    show streakMilestoneCoins;
 
-/// Coin rewards for global streak milestones.
-const streakMilestoneCoins = {7: 50, 30: 200, 100: 1000};
+part 'streak_service.g.dart';
 
 /// Streak Freeze economy: price in coins and the storage cap.
 const freezeCost = 100;
@@ -113,19 +114,35 @@ class StreakService {
 
   // -------------------------------------------------------- live updates
 
+  /// Runs inside the check-in's own transaction (the caller's), so two
+  /// quick taps cannot both see the day short of the goal and both pay
+  /// its milestone ([[Audit-v3]] Q5-29).
   Future<void> onCheckIn(Commitment commitment, HarvestDay day) async {
-    // Individual habit streaks count each completed day.
+    // Individual habit streaks count each completed day; a due day
+    // missed since the last one starts the run again (Q5-02).
     if (commitment.type == CommitmentType.habit) {
-      final streak = await _row(commitment.uuid);
-      if (streak.lastEarnedDay != day.key) {
-        await _write(
-          scope: commitment.uuid,
-          current: streak.current + 1,
-          best: _max(streak.best, streak.current + 1),
-          lastEarnedDay: day.key,
-          freezesStored: streak.freezesStored,
-        );
-      }
+      final row = await _row(commitment.uuid);
+      final excused =
+          [
+                commitment.pausedAt,
+                commitment.archivedAt,
+              ].nonNulls
+              .map(HarvestDay.of)
+              .fold<HarvestDay?>(
+                null,
+                (earliest, d) => earliest == null || d.compareTo(earliest) < 0
+                    ? d
+                    : earliest,
+              );
+      final next = StreakRules.earnHabitDay(
+        _state(row),
+        day.key,
+        habit: HabitCalendar(
+          schedule: commitment.schedule,
+          pausedDay: excused,
+        ),
+      );
+      if (next != null) await _writeState(commitment.uuid, next);
     }
     await _refreshGlobal(day);
   }
@@ -161,50 +178,59 @@ class StreakService {
     await _refreshGlobal(day);
   }
 
+  /// Runs inside the undo's own transaction, like [onCheckIn].
   Future<void> onUndo(Commitment commitment, HarvestDay day) async {
     if (commitment.type == CommitmentType.habit) {
-      final streak = await _row(commitment.uuid);
-      if (streak.lastEarnedDay == day.key) {
-        await _write(
-          scope: commitment.uuid,
-          current: math.max(0, streak.current - 1),
-          best: streak.best,
-          lastEarnedDay: _earnedBefore(day, streak.current - 1),
-          freezesStored: streak.freezesStored,
-        );
-      }
+      final next = StreakRules.retractHabitDay(
+        _state(await _row(commitment.uuid)),
+        day.key,
+        day.previous.key,
+      );
+      if (next != null) await _writeState(commitment.uuid, next);
     }
     await _refreshGlobal(day);
   }
 
-  /// Extends or retracts the global streak based on [day]'s actions.
+  /// Extends or retracts the global streak based on [day]'s actions
+  /// ([StreakRules.refreshGlobal], shared with the web).
   Future<void> _refreshGlobal(HarvestDay day) async {
-    final goal = await dailyGoal();
-    final actions = await productiveActions(day);
-    final streak = await _row(globalScope);
-
-    if (actions >= goal && streak.lastEarnedDay != day.key) {
-      final current = streak.current + 1;
-      await _write(
-        scope: globalScope,
-        current: current,
-        best: _max(streak.best, current),
-        lastEarnedDay: day.key,
-        freezesStored: streak.freezesStored,
-      );
-      final coins = streakMilestoneCoins[current];
-      if (coins != null) await _grantCoins(coins, 'streak:$current', day);
-    } else if (actions < goal && streak.lastEarnedDay == day.key) {
-      // Same-day undo dropped the day below the goal.
-      await _write(
-        scope: globalScope,
-        current: math.max(0, streak.current - 1),
-        best: streak.best,
-        lastEarnedDay: _earnedBefore(day, streak.current - 1),
-        freezesStored: streak.freezesStored,
-      );
+    final paid =
+        await (_db.select(_db.ledger)..where(
+              (l) => l.kind.equals('coin') & l.reason.like('streak:%'),
+            ))
+            .get();
+    final refresh = StreakRules.refreshGlobal(
+      _state(await _row(globalScope)),
+      actions: await productiveActions(day),
+      goal: await dailyGoal(),
+      dayKey: day.key,
+      previousDayKey: day.previous.key,
+      paid: [
+        for (final row in paid)
+          (reason: row.reason, harvestDay: row.harvestDay),
+      ],
+    );
+    if (refresh.next != null) await _writeState(globalScope, refresh.next!);
+    final milestone = refresh.milestone;
+    if (milestone != null) {
+      await _grantCoins(milestone.coins, milestone.reason, day);
     }
   }
+
+  StreakState _state(StreakRow row) => StreakState(
+    current: row.current,
+    best: row.best,
+    lastEarnedDay: row.lastEarnedDay,
+    freezesStored: row.freezesStored,
+  );
+
+  Future<void> _writeState(String scope, StreakState state) => _write(
+    scope: scope,
+    current: state.current,
+    best: state.best,
+    lastEarnedDay: state.lastEarnedDay,
+    freezesStored: state.freezesStored,
+  );
 
   /// After an undo on [day]: a streak that still stands is consecutive,
   /// so its last earned day is the day before; a streak that fell to
@@ -371,7 +397,10 @@ class StreakService {
     final streak = await _row(globalScope);
     if (streak.lastEarnedDay != null &&
         HarvestDay.parse(streak.lastEarnedDay!).compareTo(day) >= 0) {
-      return; // already earned live
+      // Already judged live: a live update covers the closed days before
+      // it too (freezes, or a fresh run), so judging them again here
+      // would spend a freeze twice ([[Audit-v3]] Q5-02).
+      return;
     }
     final goal = await dailyGoal();
     final actions = await productiveActions(day);

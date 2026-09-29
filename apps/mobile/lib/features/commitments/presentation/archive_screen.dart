@@ -39,20 +39,26 @@ class ArchiveScreen extends ConsumerWidget {
               title: l10n.archiveEmpty,
               body: l10n.archiveEmptyBody,
             )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(
-                HarvestSpacing.md,
-                HarvestSpacing.md,
-                HarvestSpacing.md,
-                HarvestSpacing.lg,
-              ),
-              children: [
-                for (final commitment in archived)
-                  _ArchivedCard(
-                    key: ValueKey(commitment.uuid),
-                    commitment: commitment,
+          : Builder(
+              builder: (context) {
+                final rows = <Widget>[
+                  for (final commitment in archived)
+                    _ArchivedCard(
+                      key: ValueKey(commitment.uuid),
+                      commitment: commitment,
+                    ),
+                ];
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(
+                    HarvestSpacing.md,
+                    HarvestSpacing.md,
+                    HarvestSpacing.md,
+                    HarvestSpacing.lg,
                   ),
-              ],
+                  itemCount: rows.length,
+                  itemBuilder: (_, i) => rows[i],
+                );
+              },
             ),
     );
   }

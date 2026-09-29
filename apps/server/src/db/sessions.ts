@@ -1,5 +1,8 @@
 import { ObjectId, type Collection } from 'mongodb';
-import type { RefreshTokenDoc, SessionDoc } from './types.js';
+import type { RefreshTokenDoc, SealedBytes, SessionDoc } from './types.js';
+
+/** The accounts' collection, which a caller's session is joined to. */
+export const usersCollection = 'users';
 
 export class SessionsRepository {
   constructor(
@@ -21,6 +24,28 @@ export class SessionsRepository {
       revokedAt: null,
       expiresAt: { $gt: now },
     });
+  }
+
+  /**
+   * Whether the session is live and its account has confirmed its email,
+   * in one round trip: what every request behind sign-in needs to know
+   * before its handler (SV-11). Null when the session or the account is
+   * gone.
+   */
+  async findLiveCaller(userId: ObjectId, sessionId: ObjectId, now: Date): Promise<{ verified: boolean } | null> {
+    const [row] = await this.sessions
+      .aggregate<{ user: { verifiedAt?: Date | null }[] }>([
+        { $match: { _id: sessionId, userId, revokedAt: null, expiresAt: { $gt: now } } },
+        { $limit: 1 },
+        // The plain form of $lookup: a pipeline beside localField and
+        // foreignField needs MongoDB 5, and a server without AVX runs 4.4.
+        { $lookup: { from: usersCollection, localField: 'userId', foreignField: '_id', as: 'user' } },
+        { $project: { _id: 0, 'user.verifiedAt': 1 } },
+      ])
+      .toArray();
+    const user = row?.user[0];
+    if (!user) return null;
+    return { verified: user.verifiedAt !== null && user.verifiedAt !== undefined };
   }
 
   listLive(userId: ObjectId, now: Date): Promise<SessionDoc[]> {
@@ -77,17 +102,28 @@ export class SessionsRepository {
   }
 
   /**
-   * Marks the token used, atomically, and returns it, or null when there
+   * Marks the token used and keeps, on it, the token it was exchanged
+   * for (sealed), in one atomic write, and returns it; null when there
    * is no unused token by that hash. Two requests racing with the same
-   * token get one success and one null, and the null is then treated as
-   * reuse.
+   * token get one success and one null. A used token therefore always
+   * names its successor: a retry never finds one half exchanged (Q6-16).
    */
-  consumeToken(userId: ObjectId, tokenHash: string, now: Date): Promise<RefreshTokenDoc | null> {
+  consumeToken(
+    userId: ObjectId,
+    tokenHash: string,
+    now: Date,
+    successor: SealedBytes,
+  ): Promise<RefreshTokenDoc | null> {
     return this.tokens.findOneAndUpdate(
       { userId, tokenHash, usedAt: null },
-      { $set: { usedAt: now } },
+      { $set: { usedAt: now, successor } },
       { returnDocument: 'after' },
     );
+  }
+
+  /** Lets go of an unused token nobody was given (a lost race). */
+  async dropUnused(userId: ObjectId, tokenHash: string): Promise<void> {
+    await this.tokens.deleteOne({ userId, tokenHash, usedAt: null });
   }
 
   findToken(userId: ObjectId, tokenHash: string): Promise<RefreshTokenDoc | null> {

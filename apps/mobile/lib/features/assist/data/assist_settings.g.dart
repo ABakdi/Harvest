@@ -62,7 +62,7 @@ final class ServerAssistProvider
   }
 }
 
-String _$serverAssistHash() => r'348c46c7cd46e8a084913d9a048c2cc9efc19e08';
+String _$serverAssistHash() => r'04d5ac83272569f57e85b9ef71616949924af1b5';
 
 /// The provider that answers: mine where I set one, the server's
 /// otherwise, and none at all when neither is there.
@@ -140,7 +140,7 @@ final class AssistSettingsProvider
   AssistSettings create() => AssistSettings();
 }
 
-String _$assistSettingsHash() => r'32ec167037614ae2eebe81ec423370ac17f828f4';
+String _$assistSettingsHash() => r'3a383630bb8376e4baef286be33a6f6d7b305f56';
 
 /// Reads and writes the assist's configuration.
 

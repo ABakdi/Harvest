@@ -3,14 +3,9 @@
   "uuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
   "updatedAt": "2026-09-06T17:50:00.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "7e1d4a8f-6c2b-4f5e-9a7d-2b8e5f1c4a67",
-    "name": "Gym",
-    "scheduleJson": "{\"type\":\"interval\",\"everyDays\":7,\"anchorDay\":\"2026-09-06\"}",
-    "remindAt": "18:00",
-    "note": "Same mirror, same light",
-    "createdAt": "2026-09-06T17:50:00.000Z",
-    "updatedAt": "2026-09-06T17:50:00.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "+1y8vyCaThq0HxBT",
+    "ct": "sjpM1IVQR6d2TslR8svKldZoD96GdwFuWnyAQuz2zQtved84evwC1RzQOuCFAG0QejQnjmQMCqmzystHtqe/ubbYIqwpfNOesyHIPxm27Oo6x4YXDotkGetOsJj9Kgst2hkTrF4q8O8QZJ3Bnu+l0sFkrz0XqjHiwPPmhffXIVYxxGUSmN/3oxo1nhelXaMn0SyF3IKfZackgVU5rrn15iM0O7teqndwpVVcRn/4dG3UKUl9L9KpHkr96FNQu8fs8jf3qJid8B2a28M9yJHl/2cZMwjiLBpp1eq6Mk/h2VuJqB+5rrjQLN2EiDObLantYpVz+cQKDjvrGRF+GqKZK5M7Zsci6zMYC5QsHcSEOGUpcQPeeY0cYkUi2uG4xqcK6jQXa5cRJymjfXA96ifo9H0+fm7ysXc/zRZ1CTBgWqM="
   }
 }

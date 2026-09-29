@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { isIosSafari, promptInstall, useInstallState } from '@/lib/pwa';
+import { runAction } from '@/lib/actions';
 
 /**
  * "Open Harvest in the browser", which becomes "Install Harvest" where
@@ -14,11 +15,22 @@ export function InstallButton({ size = 'lg' }: { size?: 'lg' | 'default' }) {
   const { t } = useTranslation();
   const { canPrompt, installed } = useInstallState();
   const [showSteps, setShowSteps] = useState(false);
+  // Accepted: Android builds the app on Google's side first, which can
+  // take a minute, so the page says so rather than seem to do nothing.
+  const [accepted, setAccepted] = useState(false);
   const ios = isIosSafari();
+
+  if (accepted && !installed) {
+    return (
+      <p role="status" className="max-w-sm text-sm font-semibold text-muted-foreground">
+        {t('site.installing')}
+      </p>
+    );
+  }
 
   if (canPrompt && !installed) {
     return (
-      <Button variant="brand" size={size} onClick={() => void promptInstall()}>
+      <Button variant="brand" size={size} onClick={() => runAction(() => promptInstall().then(setAccepted))}>
         <DownloadIcon />
         {t('site.install')}
       </Button>

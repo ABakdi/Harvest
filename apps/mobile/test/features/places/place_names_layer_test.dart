@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:harvest/features/places/domain/place.dart';
-import 'package:harvest/features/places/presentation/places_screen.dart';
+import 'package:harvest/features/places/presentation/places_map.dart';
 
 /// How the saved places' names reach the map ([[Places]]).
 ///

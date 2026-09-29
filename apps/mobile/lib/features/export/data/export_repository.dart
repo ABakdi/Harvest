@@ -147,7 +147,7 @@ class ExportRepository {
     }
 
     final albumNames = {for (final row in albumRows) row.uuid: row.name};
-    final memoryFiles = <({String path, String storedPath})>[];
+    final memoryFiles = <({String path, String storedPath, String? hash})>[];
     final memoryRowsOut = <List<Object?>>[];
     for (final row in memoryRows) {
       // A memory in the trash keeps its row and its file: the archive
@@ -159,7 +159,7 @@ class ExportRepository {
         storedPath: row.path,
         taken: taken,
       );
-      memoryFiles.add((path: path, storedPath: row.path));
+      memoryFiles.add((path: path, storedPath: row.path, hash: row.fileHash));
       memoryRowsOut.add([
         row.uuid,
         row.albumUuid,
@@ -247,7 +247,7 @@ class ExportRepository {
             row.kind,
             row.body,
             row.note,
-            _at(row.doneAt),
+            _at(_drawnDoneAt(row, goalItemRows)),
             row.position,
             row.commitmentUuid,
             row.parentUuid,
@@ -638,3 +638,17 @@ class ExportRepository {
 @Riverpod(keepAlive: true)
 ExportRepository exportRepository(Ref ref) =>
     ExportRepository(ref.watch(databaseProvider));
+
+/// A parent's tick as its live subtasks draw it (`parentDoneAt`, GL8),
+/// not as stored: a sync merge or an import can leave the stored one
+/// behind ([[Audit-v3]] Q5-44). Any other item keeps its own.
+DateTime? _drawnDoneAt(GoalItemRow row, List<GoalItemRow> all) {
+  if (row.deletedAt != null || row.parentUuid != null) return row.doneAt;
+  final subtasks = [
+    for (final other in all)
+      if (other.parentUuid == row.uuid && other.deletedAt == null) other.doneAt,
+  ];
+  if (subtasks.isEmpty) return row.doneAt;
+  if (subtasks.any((at) => at == null)) return null;
+  return subtasks.cast<DateTime>().reduce((a, b) => a.isAfter(b) ? a : b);
+}

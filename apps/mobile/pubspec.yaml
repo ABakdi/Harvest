@@ -1,7 +1,7 @@
 name: harvest
-description: "A new Flutter project."
+description: "Harvest: habits, projects, goals, money, gym, notes and memories in one offline-first app."
 publish_to: 'none'
-version: 3.0.0+20
+version: 3.2.0+27
 
 environment:
   sdk: ^3.13.2
@@ -46,6 +46,7 @@ dependencies:
   riverpod_annotation: ^4.0.6
   share_plus: ^13.3.0
   speech_to_text: ^7.5.0
+  sqlite3: ^3.5.2
   table_calendar: ^3.2.1
   timezone: ^0.11.1
   url_launcher: ^6.3.2
@@ -62,6 +63,14 @@ dev_dependencies:
     sdk: flutter
   riverpod_generator: ^4.0.8
   very_good_analysis: ^10.3.0
+# The database file is encrypted at rest ([[Local-Database]]): sqlite3's
+# build hook links SQLCipher instead of plain SQLite, on the phone and in
+# the host tests alike.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlcipher
+
 flutter:
   generate: true
   uses-material-design: true

@@ -33,8 +33,9 @@ export default tseslint.config(
     },
   },
   {
-    // Config files sit outside every tsconfig; they get the plain rules.
-    files: ['**/*.config.{js,ts}', 'eslint.config.js'],
+    // Config files and scripts sit outside every tsconfig; they get the
+    // plain rules.
+    files: ['**/*.config.{js,ts}', 'eslint.config.js', '**/scripts/*.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
   },
 );

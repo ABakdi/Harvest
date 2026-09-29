@@ -1,6 +1,6 @@
 import { planCheckIn, type CheckInPlan, type HarvestDay } from '@harvest/core';
 import type { SeedRow } from './seeds';
-import { tickGoalItem } from './goals';
+import { tickGoalItem, untickGoalItem } from './goals';
 import { onCheckIn, onUndo } from './streaks';
 import type { Tx, Writer } from './writer';
 
@@ -16,11 +16,6 @@ async function loggedEver(tx: Tx, seedUuid: string): Promise<number> {
   return rows.reduce((sum, row) => (row.deletedAt === null ? sum + row.quantity : sum), 0);
 }
 
-/** What is left of a project's target after [logged] units; never below zero. */
-export function projectLeft(seed: Pick<SeedRow, 'totalTarget'>, logged: number): number {
-  return Math.max((seed.totalTarget ?? 0) - logged, 0);
-}
-
 /**
  * A planted to-do ticks the goal item it came from, and an undone
  * check-in un-ticks it ([[Goals]] GL3): the only change an item gets
@@ -28,14 +23,26 @@ export function projectLeft(seed: Pick<SeedRow, 'totalTarget'>, logged: number):
  * settles its parent, which it may complete; a planted parent takes its
  * subtasks with it, as my hand would (GL8).
  */
-async function tickGoalItems(tx: Tx, seedUuid: string, done: boolean): Promise<void> {
+async function tickGoalItems(tx: Tx, seedUuid: string, at: string): Promise<void> {
   const items = await tx.rows('goal_items').where('commitmentUuid').equals(seedUuid).toArray();
   // Re-read each one: ticking one may have settled another (a subtask
   // and its parent planted as the same seed), and a stale copy would
   // write the older tick back.
   for (const { uuid } of items) {
     const item = await tx.get('goal_items', uuid);
-    if (item) await tickGoalItem(tx, item, done);
+    if (item) await tickGoalItem(tx, item, true, at);
+  }
+}
+
+/**
+ * Takes back only the ticks the undone check-ins gave: theirs carry the
+ * check-in's `loggedAt`, a tick by hand does not ([[Audit-v3]] Q5-43).
+ */
+async function untickGoalItems(tx: Tx, seedUuid: string, stamps: readonly string[]): Promise<void> {
+  const items = await tx.rows('goal_items').where('commitmentUuid').equals(seedUuid).toArray();
+  for (const { uuid } of items) {
+    const item = await tx.get('goal_items', uuid);
+    if (item) await untickGoalItem(tx, item, stamps);
   }
 }
 
@@ -67,7 +74,9 @@ export class CheckInsRepository {
         updatedAt: now,
       });
       await tx.ledger({ kind: 'xp', delta: plan.xpEarned, reason: `checkin:${uuid}`, harvestDay: day.key });
-      if (seed.type === 'todo') await tickGoalItems(tx, seed.uuid, true);
+      // The tick carries the check-in's moment, which is how its undo
+      // finds it again (Q5-43).
+      if (seed.type === 'todo') await tickGoalItems(tx, seed.uuid, now);
       await onCheckIn(tx, seed, day);
       return plan;
     });
@@ -94,7 +103,13 @@ export class CheckInsRepository {
           await tx.ledger({ kind: 'xp', delta: -earned, reason: `undo:${row.uuid}`, harvestDay: day.key });
         }
       }
-      if (rows.length > 0 && seed.type === 'todo') await tickGoalItems(tx, seed.uuid, false);
+      if (rows.length > 0 && seed.type === 'todo') {
+        await untickGoalItems(
+          tx,
+          seed.uuid,
+          rows.map((row) => row.loggedAt),
+        );
+      }
       await onUndo(tx, seed, day);
     });
   }

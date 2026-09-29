@@ -4,7 +4,7 @@
 
 The question I asked: does the app keep the promise in [[Finances]] — money data never leaves the device in plaintext — and is the attack surface as small as a local-first app can make it?
 
-Scope: `/home/abakdi/Dev-Home/Harvest` at commit `0f929f3` (main, clean tree). All line numbers refer to the current files. 
+Scope: the repository at commit `0f929f3` (main, clean tree). All line numbers refer to the current files. 
 
 ## Findings (ordered by severity)
 
@@ -87,6 +87,9 @@ body: l10n.notifDebtBody('${row.currency} ${row.amountMinor ~/ 100}'),
 If you want the name after unlock, the plugin has no `publicVersion` support, so private visibility with a neutral title is the practical option.
 
 ### S-04 — Medium — Financial data at rest is an unencrypted SQLite file
+
+> **Fixed in v3.1** ([[Audit-v3]]): the file is encrypted with SQLCipher under a random key kept in the Android Keystore, and an existing file is converted in place on first start ([[Local-Database]]).
+
 **Files:** `lib/core/db/database.dart:270-312`; `pubspec.yaml:11` (`drift_flutter`); `pubspec.lock:893-900` (`sqlcipher_flutter_libs 0.7.0+eol` is a no-op placeholder pulled by `drift_flutter`, not an encrypted build).
 
 Tables `expenses`, `money_txns`, `debts` (with `person`), `debt_payments`, `expense_categories` and the snooze/notification copies in `kv_settings` are stored in plaintext. Android's file-based encryption protects the file only while the device is locked-at-boot; it does not protect against backups (S-01), rooted devices, `adb backup` on API 26-30, or forensic extraction. Given the spec's "never leaves the device in plaintext", S-01 is the urgent half; encryption is defence in depth.

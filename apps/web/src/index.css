@@ -73,10 +73,10 @@
 }
 
 :root[data-preset='dusk'] {
-  --p-primary: #8b5cf6;
+  --p-primary: #7c3aed;
   --p-strong: #6d3fd9;
   --p-primary-dark: #a78bfa;
-  --p-secondary: #ec4899;
+  --p-secondary: #db2777;
   --p-tertiary: #38bdf8;
   --p-surface-light: #f6f1ff;
   --p-on-light: #2c2350;
@@ -105,7 +105,8 @@
   --secondary: color-mix(in oklab, var(--p-secondary) 22%, var(--p-surface-light));
   --secondary-foreground: var(--p-on-light);
   --muted: color-mix(in oklab, var(--p-on-light) 7%, var(--p-surface-light));
-  --muted-foreground: color-mix(in oklab, var(--p-on-light) 72%, var(--p-surface-light));
+  /* 4.5:1 or better on --muted too, where the bottom bar and tab rows put it (W6-12). */
+  --muted-foreground: color-mix(in oklab, var(--p-on-light) 78%, var(--p-surface-light));
   --accent: color-mix(in oklab, var(--p-secondary) 16%, var(--p-surface-light));
   --accent-foreground: var(--p-on-light);
   --destructive: #c62828;
@@ -117,6 +118,8 @@
   --sun: var(--p-tertiary);
   --gradient-from: var(--p-primary);
   --gradient-to: var(--p-tertiary);
+  --scrollbar-thumb: color-mix(in oklab, var(--p-on-light) 24%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--p-on-light) 40%, transparent);
 }
 
 .dark {
@@ -126,7 +129,9 @@
   --card-foreground: var(--p-on-dark);
   --popover: color-mix(in oklab, white 9%, var(--p-surface-dark));
   --popover-foreground: var(--p-on-dark);
-  --primary: var(--p-primary-dark);
+  /* Lifted toward white so primary text reads at 4.5:1 on a dark card, as
+     --p-strong does in light (W6-12); dark text on it stays readable. */
+  --primary: color-mix(in oklab, var(--p-primary-dark) 70%, white);
   --primary-foreground: #16182a;
   --secondary: color-mix(in oklab, var(--p-secondary) 26%, var(--p-surface-dark));
   --secondary-foreground: var(--p-on-dark);
@@ -134,12 +139,14 @@
   --muted-foreground: color-mix(in oklab, var(--p-on-dark) 72%, var(--p-surface-dark));
   --accent: color-mix(in oklab, var(--p-secondary) 20%, var(--p-surface-dark));
   --accent-foreground: var(--p-on-dark);
-  --destructive: #ef7070;
+  --destructive: #f48a8a;
   --destructive-foreground: #16182a;
   --border: color-mix(in oklab, white 14%, var(--p-surface-dark));
   --input: color-mix(in oklab, white 11%, var(--p-surface-dark));
   --ring: var(--p-primary-dark);
   --success: var(--p-secondary);
+  --scrollbar-thumb: color-mix(in oklab, var(--p-on-dark) 22%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--p-on-dark) 38%, transparent);
 }
 
 @theme inline {
@@ -204,6 +211,68 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /*
+   * Scrollbars as Obsidian draws them: thin, in the theme's colours, no
+   * arrows, and only while the pointer is over what scrolls. The page's
+   * own bar stays in view where the page scrolls. A strip that scrolls
+   * by swipe hides its bar altogether (`no-scrollbar`). Chrome and
+   * Safari draw them from `::-webkit-scrollbar` (setting the standard
+   * properties would switch that off, arrows and all); Firefox, which
+   * has no such pseudo-element, from `scrollbar-*`.
+   */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+    *:hover {
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
+    html {
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background: transparent;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-button {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+    background-color: transparent;
+  }
+  /* The window's own bar is drawn from the body's rules in Chrome. */
+  :hover::-webkit-scrollbar-thumb,
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* A strip that scrolls sideways by swipe or wheel: no bar at all. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @utility bg-harvest-gradient {
@@ -212,6 +281,232 @@
 
 @utility bg-brand-gradient {
   background-image: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand-mid) 55%, var(--brand-light) 100%);
+}
+
+/*
+ * A hit area of at least 44 px around a control drawn smaller, as the
+ * phone gives its switches and checkboxes a 48 dp target around a
+ * smaller mark. The element becomes the positioning box for it.
+ */
+@utility touch-target {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  &:dir(rtl)::after {
+    transform: translate(50%, -50%);
+  }
+}
+
+/*
+ * A note as it is read, with Obsidian's rhythm: a readable column, the
+ * headings stepping down from the title, quiet lists, quotes with a bar
+ * at their start, code and tables on the muted ground. Unlayered, so it
+ * sets the renderer's own utility classes aside inside a note.
+ */
+.note-prose {
+  min-width: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.note-prose > * + * {
+  margin-top: 0.85em;
+}
+.note-prose :is(h2, h3, h4, h5, h6) {
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.note-prose > :is(h2, h3, h4, h5, h6):not(:first-child) {
+  margin-top: 1.4em;
+}
+.note-prose h2 {
+  font-size: 1.75em;
+}
+.note-prose h3 {
+  font-size: 1.45em;
+}
+.note-prose h4 {
+  font-size: 1.25em;
+  font-weight: 700;
+}
+.note-prose h5 {
+  font-size: 1.12em;
+  font-weight: 700;
+}
+.note-prose h6 {
+  font-size: 1em;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+.note-prose :is(ul, ol) {
+  padding-inline-start: 1.6em;
+}
+.note-prose li + li {
+  margin-top: 0.2em;
+}
+.note-prose li::marker {
+  color: var(--muted-foreground);
+}
+.note-prose li:has(> input[type='checkbox']) {
+  margin-inline-start: -1.35em;
+  gap: 0.5em;
+}
+.note-prose input[type='checkbox'] {
+  appearance: none;
+  display: inline-grid;
+  flex-shrink: 0;
+  place-content: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin-top: 0.33em;
+  border: 1.5px solid var(--muted-foreground);
+  border-radius: 4px;
+  background: transparent;
+  opacity: 1;
+}
+.note-prose input[type='checkbox']:checked {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.note-prose input[type='checkbox']:checked::before {
+  content: '';
+  width: 0.55em;
+  height: 0.3em;
+  margin-top: -0.12em;
+  border-bottom: 2px solid var(--primary-foreground);
+  /* A tick is not mirrored in Arabic. */
+  border-left: 2px solid var(--primary-foreground);
+  transform: rotate(-45deg);
+}
+.note-prose blockquote {
+  border-inline-start: 3px solid var(--primary);
+  padding-block: 0.1em;
+  padding-inline-start: 1em;
+  color: color-mix(in oklab, var(--foreground) 82%, transparent);
+}
+.note-prose pre {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--muted);
+  padding: 0.75em 1em;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+.note-prose :not(pre) > code {
+  border-radius: 4px;
+  background: var(--muted);
+  padding: 0.1em 0.35em;
+  font-size: 0.875em;
+}
+.note-prose table {
+  width: auto;
+  min-width: 50%;
+  font-size: 0.9375em;
+}
+.note-prose :is(th, td) {
+  padding: 0.35em 0.8em;
+}
+.note-prose th {
+  background: var(--muted);
+}
+.note-prose hr {
+  margin-block: 1.8em;
+}
+
+/*
+ * The note being written: the text area grows with the note, so the
+ * pane scrolls and not the field, and it reads as the page it is.
+ */
+.note-source {
+  display: block;
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  outline: none;
+  field-sizing: content;
+}
+
+@media (width < 48rem) {
+  /* Notes fills the window above the bar, which drops to 3.5 rem on a
+     short window and goes while the keyboard is up. */
+  @media (height < 31rem) {
+    #app-main[data-fill] {
+      padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+    }
+  }
+  html[data-keyboard] #app-main[data-fill] {
+    padding-bottom: 0;
+  }
+
+  /* The map's zoom buttons get the same 44 px on a phone-width window. */
+  .maplibregl-ctrl.maplibregl-ctrl-group button {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* A toast sits just above the bottom bar, or above the floating
+     action where a screen has one: the action stays where the thumb
+     expects it, and the page's end stays clear of it (W6-09, W6-29). */
+  [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important;
+  }
+  body:has([data-fab]) [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(10.5rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* A short window — a phone on its side, or 200% zoom — keeps its
+     height for the content: the bar drops its labels and the floating
+     action its words (W6-22). */
+  @media (height < 31rem) {
+    [data-bottom-bar] a {
+      height: 3.5rem;
+    }
+    [data-bottom-bar] [data-bar-label] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    [data-fab] {
+      bottom: calc(4.5rem + env(safe-area-inset-bottom));
+      height: 3rem;
+      width: 3rem;
+      padding: 0;
+    }
+    [data-fab] [data-fab-label] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    #app-main {
+      padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* While the on-screen keyboard is up the bar and the floating action
+     go, so a field is not typed under them. */
+  html[data-keyboard] [data-bottom-bar],
+  html[data-keyboard] [data-fab] {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

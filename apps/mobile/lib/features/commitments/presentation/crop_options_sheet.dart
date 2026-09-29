@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/core/platform/haptics.dart';
 import 'package:harvest/core/ui/tokens.dart';
+import 'package:harvest/core/ui/widgets/action_snack_bar.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/presentation/archive_sheet.dart';
@@ -61,6 +62,8 @@ class _OptionsSheet extends ConsumerWidget {
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          // Titles sit at the start, as in every other sheet (U6-31).
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
               padding: const EdgeInsets.all(HarvestSpacing.md),
@@ -117,12 +120,34 @@ class _OptionsSheet extends ConsumerWidget {
                   commitment.isPaused ? l10n.resumeHabit : l10n.pauseHabit,
                 ),
                 onTap: () {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final pausing = !commitment.isPaused;
                   Navigator.of(context).pop();
                   unawaited(
-                    editor.setPaused(
-                      commitment.uuid,
-                      paused: !commitment.isPaused,
-                    ),
+                    editor.setPaused(commitment.uuid, paused: pausing).then((
+                      _,
+                    ) {
+                      // Said, with the way back (U6-15).
+                      messenger.showSnackBar(
+                        actionSnackBar(
+                          messenger,
+                          content: Text(
+                            pausing
+                                ? l10n.seedPausedSnack(commitment.title)
+                                : l10n.seedResumedSnack(commitment.title),
+                          ),
+                          action: SnackBarAction(
+                            label: l10n.undoAction,
+                            onPressed: () => unawaited(
+                              editor.setPaused(
+                                commitment.uuid,
+                                paused: !pausing,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
                   );
                 },
               ),

@@ -53,7 +53,11 @@ void main() {
     test('opens, and every sheet the phone writes is in it', () {
       final bundle = readArchive(File('$_fixtures/web.zip').readAsBytesSync());
       for (final sheet in harvestSheets(_empty()).skip(1)) {
-        expect(bundle.sheets.containsKey(sheet.name), isTrue, reason: sheet.name);
+        expect(
+          bundle.sheets.containsKey(sheet.name),
+          isTrue,
+          reason: sheet.name,
+        );
       }
     });
 
@@ -454,7 +458,10 @@ Future<void> _seed(
           updatedAt: Value(at),
         ),
       );
-  final recording = await attachments.reserve('p-note-1', '2026-09-18 0600.m4a');
+  final recording = await attachments.reserve(
+    'p-note-1',
+    '2026-09-18 0600.m4a',
+  );
   await recording.file.writeAsBytes(List.filled(32, 7));
   await db
       .into(db.noteAttachments)

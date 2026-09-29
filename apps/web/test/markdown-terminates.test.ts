@@ -4,19 +4,20 @@ import { parseBlocks } from '../src/lib/markdown';
 describe('parseBlocks always moves on', () => {
   it('reads a heading holding a line separator', () => {
     const blocks = parseBlocks('# a b');
-    expect(blocks).toEqual([{ kind: 'heading', level: 1, text: 'a b' }]);
+    expect(blocks).toEqual([{ line: 0, kind: 'heading', level: 1, text: 'a b' }]);
   });
 
   it('reads a heading holding a paragraph separator', () => {
     const blocks = parseBlocks('## a b\nafter');
-    expect(blocks[0]).toEqual({ kind: 'heading', level: 2, text: 'a b' });
-    expect(blocks[1]).toEqual({ kind: 'paragraph', lines: ['after'] });
+    expect(blocks[0]).toEqual({ line: 0, kind: 'heading', level: 2, text: 'a b' });
+    expect(blocks[1]).toEqual({ line: 1, kind: 'paragraph', lines: ['after'] });
   });
 
   it('reads list and task items holding separators', () => {
     const blocks = parseBlocks('- one two\n- [x] done now');
     expect(blocks).toEqual([
       {
+        line: 0,
         kind: 'list',
         ordered: false,
         items: [

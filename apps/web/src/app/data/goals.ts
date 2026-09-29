@@ -50,14 +50,17 @@ export class GoalsRepository {
     });
   }
 
-  /** Marks a goal achieved and pays for it, once (GL4). Always my click. */
-  achieve(uuid: string): Promise<void> {
+  /**
+   * Marks a goal achieved and pays for it, once (GL4). Always my click.
+   * Answers the XP it paid now: 0 when it was paid before.
+   */
+  achieve(uuid: string): Promise<number> {
     return this.writer.run(async (tx) => {
       const now = tx.clockNow();
       await tx.patch('goals', uuid, { status: 'achieved', achievedAt: now.toISOString(), updatedAt: now.toISOString() });
-      if ((await xpNet(tx, uuid)) <= 0) {
-        await tx.ledger({ kind: 'xp', delta: Xp.goalAchieved, reason: `goal:${uuid}`, harvestDay: HarvestDay.of(now).key });
-      }
+      if ((await xpNet(tx, uuid)) > 0) return 0;
+      await tx.ledger({ kind: 'xp', delta: Xp.goalAchieved, reason: `goal:${uuid}`, harvestDay: HarvestDay.of(now).key });
+      return Xp.goalAchieved;
     });
   }
 
@@ -90,13 +93,39 @@ export class GoalsRepository {
     return this.write(uuid, { status: 'dropped', statusNote: note?.trim() || null });
   }
 
-  /** Soft delete, with its items (GL7); [restore] undoes it. */
+  /**
+   * Soft delete, with its items (GL7); [restore] undoes it. What
+   * achieving paid goes with the goal, as on reopening, and comes back
+   * with it: achieving and deleting over and over earns nothing
+   * ([[Audit-v3]] U6-04).
+   */
   delete(uuid: string): Promise<void> {
-    return this.writer.run((tx) => setDeleted(tx, uuid, tx.now()));
+    return this.writer.run(async (tx) => {
+      await setDeleted(tx, uuid, tx.now());
+      if ((await xpNet(tx, uuid)) > 0) {
+        await tx.ledger({
+          kind: 'xp',
+          delta: -Xp.goalAchieved,
+          reason: `goal-undo:${uuid}`,
+          harvestDay: HarvestDay.of(tx.clockNow()).key,
+        });
+      }
+    });
   }
 
   restore(uuid: string): Promise<void> {
-    return this.writer.run((tx) => setDeleted(tx, uuid, null));
+    return this.writer.run(async (tx) => {
+      await setDeleted(tx, uuid, null);
+      const goal = await tx.get('goals', uuid);
+      if (goal?.status === 'achieved' && (await xpNet(tx, uuid)) <= 0) {
+        await tx.ledger({
+          kind: 'xp',
+          delta: Xp.goalAchieved,
+          reason: `goal:${uuid}`,
+          harvestDay: HarvestDay.of(tx.clockNow()).key,
+        });
+      }
+    });
   }
 
   // ------------------------------------------------------------- items
@@ -222,9 +251,15 @@ export class GoalsRepository {
       const stamp = item.deletedAt;
       const now = tx.now();
       const subtasks = (await itemsOf(tx, item.goalUuid)).filter((other) => parentOf(other) === uuid && other.deletedAt === stamp);
-      await tx.put('goal_items', { ...item, deletedAt: null, updatedAt: now });
+      // Still one level deep (GL8): if its parent became a subtask
+      // meanwhile, it comes back as an item of its own ([[Audit-v3]] G5-08).
+      const from = parentOf(item);
+      const parent = from === null ? undefined : await tx.get('goal_items', from);
+      const lifted = parent !== undefined && parentOf(parent) !== null;
+      await tx.put('goal_items', { ...item, ...(lifted ? { parentUuid: null } : {}), deletedAt: null, updatedAt: now });
       for (const subtask of subtasks) await tx.put('goal_items', { ...subtask, deletedAt: null, updatedAt: now });
-      await settleParent(tx, parentOf(item) ?? uuid);
+      await settleParent(tx, uuid);
+      if (from !== null && !lifted) await settleParent(tx, from);
     });
   }
 
@@ -288,20 +323,65 @@ async function settleParent(tx: Tx, uuid: string): Promise<void> {
  * subtask settles its parent, which it may complete (GL8). An item
  * already in that state is left as it is, keeping its stamp.
  */
-export async function tickGoalItem(tx: Tx, item: GoalItemRow, done: boolean): Promise<void> {
+export async function tickGoalItem(tx: Tx, item: GoalItemRow, done: boolean, at?: string): Promise<void> {
   if (item.deletedAt !== null) return;
   const now = tx.now();
+  const stamp = at ?? now;
   const subtasks = (await itemsOf(tx, item.goalUuid)).filter((other) => parentOf(other) === item.uuid && other.deletedAt === null);
   if (subtasks.length > 0) {
     for (const subtask of subtasks) {
-      if ((subtask.doneAt !== null) !== done) await tx.put('goal_items', { ...subtask, doneAt: done ? now : null, updatedAt: now });
+      if ((subtask.doneAt !== null) !== done) await tx.put('goal_items', { ...subtask, doneAt: done ? stamp : null, updatedAt: now });
     }
     await settleParent(tx, item.uuid);
     return;
   }
-  if ((item.doneAt !== null) !== done) await tx.put('goal_items', { ...item, doneAt: done ? now : null, updatedAt: now });
+  if ((item.doneAt !== null) !== done) await tx.put('goal_items', { ...item, doneAt: done ? stamp : null, updatedAt: now });
   const parent = parentOf(item);
   if (parent !== null) await settleParent(tx, parent);
+}
+
+/** Two stamps for one moment, however each side wrote it. */
+function sameMoment(a: string, b: string): boolean {
+  return a === b || new Date(a).getTime() === new Date(b).getTime();
+}
+
+/**
+ * Un-ticks what an undone check-in ticked, and only that: the item, or
+ * the subtasks of a parent, whose tick is the check-in's own moment
+ * ([stamps], its `loggedAt`). A subtask ticked by hand stays ticked
+ * ([[Goals]] GL3, [[Audit-v3]] Q5-43); the phone's `untickFrom`.
+ */
+export async function untickGoalItem(tx: Tx, item: GoalItemRow, stamps: readonly string[]): Promise<void> {
+  if (item.deletedAt !== null) return;
+  const ticked = (doneAt: string | null) => doneAt !== null && stamps.some((stamp) => sameMoment(doneAt, stamp));
+  const now = tx.now();
+  const subtasks = (await itemsOf(tx, item.goalUuid)).filter((other) => parentOf(other) === item.uuid && other.deletedAt === null);
+  if (subtasks.length > 0) {
+    for (const subtask of subtasks) {
+      if (ticked(subtask.doneAt)) await tx.put('goal_items', { ...subtask, doneAt: null, updatedAt: now });
+    }
+    await settleParent(tx, item.uuid);
+    return;
+  }
+  if (!ticked(item.doneAt)) return;
+  await tx.put('goal_items', { ...item, doneAt: null, updatedAt: now });
+  const parent = parentOf(item);
+  if (parent !== null) await settleParent(tx, parent);
+}
+
+/**
+ * Settles every live parent at once: after a sync pull or an import,
+ * which write rows one by one and can leave a parent's stored tick
+ * behind its subtasks' ([[Audit-v3]] Q5-44). A parent already right is
+ * not written. The phone's `settleAllParents`.
+ */
+export async function settleAllParents(tx: Tx): Promise<void> {
+  const parents = new Set<string>();
+  for (const item of await tx.rows('goal_items').toArray()) {
+    const parent = parentOf(item);
+    if (parent !== null && item.deletedAt === null) parents.add(parent);
+  }
+  for (const uuid of parents) await settleParent(tx, uuid);
 }
 
 /** What achieving this goal has paid, net of its mirror rows. */
@@ -325,4 +405,12 @@ async function setDeleted(tx: Tx, uuid: string, at: string | null): Promise<void
   const now = tx.now();
   await tx.put('goals', { ...goal, deletedAt: at, updatedAt: now });
   for (const item of items) await tx.put('goal_items', { ...item, deletedAt: at, updatedAt: now });
+}
+
+/**
+ * [settleAllParents] in a write of its own: what a pull and an import
+ * call once their rows are in (Q5-44).
+ */
+export function settleGoalParents(writer: Writer): Promise<void> {
+  return writer.run((tx) => settleAllParents(tx));
 }

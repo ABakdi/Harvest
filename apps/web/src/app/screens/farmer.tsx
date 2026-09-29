@@ -1,12 +1,4 @@
-import {
-  farmerRankForXp,
-  farmerRanks,
-  freezeCost,
-  globalStreakScope,
-  maxFreezesStored,
-  streakMilestoneCoins,
-  xpPerRank,
-} from '@harvest/core';
+import { farmerRankForXp, farmerRanks, maxFreezesStored, xpPerRank } from '@harvest/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   ArchiveRestoreIcon,
@@ -17,116 +9,18 @@ import {
   SparklesIcon,
   TrophyIcon,
 } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { formatDate, formatNumber } from '@/lib/format';
-import { cn } from '@/lib/utils';
+import { formatDate, formatNumber, shortName } from '@/lib/format';
 import { StreakChip } from '../components/bits';
+import { FreezeShop } from '../components/streak-dialog';
+import { FarmerTabs } from '../components/screen-tabs';
 import { categoryLabel } from '../components/category';
 import { useHarvest, useHarvestDay } from '../context';
-import type { HarvestDB } from '../data/db';
 import { readStats, type HeatDay, type StatsView } from '../data/stats';
-import { buyFreeze } from '../data/streaks';
-
-/** The global streak and the coin balance, the two things a freeze is bought with. */
-async function readShed(db: HarvestDB) {
-  const [global, coins] = await Promise.all([
-    db.rows('streaks').get(globalStreakScope),
-    db.rows('ledger').where('kind').equals('coin').toArray(),
-  ]);
-  return {
-    current: global?.current ?? 0,
-    best: global?.best ?? 0,
-    freezes: global?.freezesStored ?? 0,
-    coins: coins.reduce((sum, entry) => sum + entry.delta, 0),
-  };
-}
-
-/**
- * Buying a freeze, as the phone's streak sheet does: a button that is
- * only live with coins enough and room in the shed, and a hint for
- * where coins come from when there are not enough. Spending one on a
- * missed day is the phone's 3 AM judging, never this.
- */
-function FreezeShop({ coins, freezes }: { coins: number; freezes: number }) {
-  const { t } = useTranslation();
-  const { writer } = useHarvest();
-  const today = useHarvestDay();
-  const [buying, setBuying] = useState(false);
-  const canBuy = freezes < maxFreezesStored && coins >= freezeCost && !buying;
-  const first = Math.min(...Object.keys(streakMilestoneCoins).map(Number));
-
-  async function buy() {
-    setBuying(true);
-    try {
-      const bought = await buyFreeze(writer, today);
-      if (bought) toast.success(t('streak.freezeBought'));
-      else toast(t('streak.freezeUnavailable'));
-    } finally {
-      setBuying(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      <Button disabled={!canBuy} onClick={() => void buy()}>
-        <SnowflakeIcon />
-        {t('streak.buyFreeze', { cost: formatNumber(freezeCost) })}
-      </Button>
-      {coins < freezeCost && (
-        <p className="text-center text-xs text-muted-foreground">
-          {t('streak.earnHint', { coins: formatNumber(streakMilestoneCoins[first] ?? 0), days: formatNumber(first) })}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/** The streak up close: the run, the best, the freezes in the shed, and the shop. */
-export function StreakDialog({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation();
-  const { db } = useHarvest();
-  const shed = useLiveQuery(() => readShed(db), [db]);
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{t('streak.sheetTitle')}</DialogTitle>
-          <DialogDescription className="flex items-center gap-1 font-extrabold text-foreground">
-            <CoinsIcon className="size-4 text-sun" aria-hidden />
-            {t('farmer.coinCount', { count: shed?.coins ?? 0, formatted: formatNumber(shed?.coins ?? 0) })}
-          </DialogDescription>
-        </DialogHeader>
-        {shed && (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <FlameIcon className={cn('size-12', shed.current > 0 ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
-              <div className="flex flex-col">
-                <span className="text-2xl font-extrabold tabular">{t('streak.days', { count: shed.current })}</span>
-                <span className="text-sm text-muted-foreground">{t('streak.best', { count: shed.best })}</span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-extrabold">{t('streak.freezes', { count: shed.freezes, max: maxFreezesStored })}</span>
-              <span className="text-xs text-muted-foreground">{t('streak.freezeExplainer')}</span>
-            </div>
-            <FreezeShop coins={shed.coins} freezes={shed.freezes} />
-            <p className="text-xs text-muted-foreground">{t('streak.phoneJudges')}</p>
-          </div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            {t('common.close')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+import { runAction } from '@/lib/actions';
 
 /**
  * The farmer: rank, XP, coins and the streak, all sums over the ledger
@@ -161,6 +55,7 @@ export function FarmerScreen() {
 
   return (
     <div className="flex flex-col gap-4">
+      <FarmerTabs />
       <h1 className="text-2xl font-extrabold">{user.displayName ?? t('nav.farmer')}</h1>
       <section className="flex flex-col gap-3 rounded-2xl border bg-card p-5">
         <div className="flex items-center gap-3">
@@ -216,7 +111,8 @@ export function FarmerScreen() {
 
       <StatsSection />
 
-      <section aria-labelledby="archive-heading" className="flex flex-col gap-2">
+      {/* On a phone the archive is its own screen, from the Field's app bar. */}
+      <section aria-labelledby="archive-heading" className="flex flex-col gap-2 max-md:hidden">
         <h2 id="archive-heading" className="text-lg font-extrabold">
           {t('farmer.archive')}
         </h2>
@@ -227,7 +123,7 @@ export function FarmerScreen() {
             {data.archived.map((seed) => (
               <li key={seed.uuid} className="flex items-center gap-3 rounded-xl border bg-card p-3">
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate font-bold">{seed.title}</span>
+                  <span dir="auto" className="truncate font-bold">{seed.title}</span>
                   <span className="text-xs text-muted-foreground">
                     {t('farmer.archivedOn', { date: formatDate(seed.archivedAt!) })}
                     {seed.archiveNote ? ` · ${seed.archiveNote}` : ''}
@@ -236,7 +132,11 @@ export function FarmerScreen() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => void seeds.restore(seed.uuid).then(() => toast.success(t('farmer.restoredToField', { title: seed.title })))}
+                  onClick={() =>
+                    runAction(() =>
+                      seeds.restore(seed.uuid).then(() => toast.success(t('farmer.restoredToField', { title: shortName(seed.title) }))),
+                    )
+                  }
                 >
                   <ArchiveRestoreIcon />
                   {t('farmer.restore')}
@@ -250,7 +150,7 @@ export function FarmerScreen() {
   );
 }
 
-/** A square per day, a column per week: the run of the last four months. */
+/** A square per day, a column per week: the run of the last six months. */
 function Heat({ stats }: { stats: StatsView }) {
   const { t } = useTranslation();
   const weeks: HeatDay[][] = [];
@@ -259,25 +159,30 @@ function Heat({ stats }: { stats: StatsView }) {
   }
   // Two things are said at once, so they are said differently, as on
   // the phone: a day of the current streak is simply on; any other
-  // day is shaded by how much was done on it.
+  // day is faded to how close it came to the goal (`activityShade`,
+  // the phone's shading too: G5-11).
   const shade = (day: HeatDay) => {
-    if (stats.streakDays.has(day.key)) return 'bg-success';
-    if (day.actions === 0) return 'bg-muted';
-    const step = stats.busiest === 0 ? 1 : day.actions / stats.busiest;
-    if (step > 0.66) return 'bg-primary';
-    if (step > 0.33) return 'bg-primary/70';
-    return 'bg-primary/40';
+    if (day.future) return { className: 'bg-transparent' };
+    if (stats.streakDays.has(day.key)) return { className: 'bg-success' };
+    if (day.shade === 0) return { className: 'bg-muted' };
+    return { className: 'bg-success', style: { opacity: day.shade } };
   };
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-1 overflow-x-auto pb-1" role="img" aria-label={t('stats.heatLabel', { count: stats.heat.length })}>
+      <div
+        className="no-scrollbar flex gap-1 overflow-x-auto pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        tabIndex={0}
+        role="img"
+        aria-label={t('stats.heatLabel', { count: stats.heat.length })}
+      >
         {weeks.map((week) => (
           <div key={week[0]!.key} className="flex flex-col gap-1">
             {week.map((day) => (
               <span
                 key={day.key}
                 title={`${formatDate(day.day.toDate())} · ${t('stats.actions', { count: day.actions })}`}
-                className={`size-3 rounded-[3px] ${shade(day)}`}
+                className={`size-3 rounded-[3px] ${shade(day).className}`}
+                style={shade(day).style}
               />
             ))}
           </div>
@@ -289,7 +194,7 @@ function Heat({ stats }: { stats: StatsView }) {
           {t('stats.legendStreak')}
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-[3px] bg-primary/70" aria-hidden />
+          <span className="size-2.5 rounded-[3px] bg-success opacity-30" aria-hidden />
           {t('stats.legendActive')}
         </li>
         <li className="flex items-center gap-1.5">
@@ -414,7 +319,7 @@ function StatsSection() {
                   to={`/app/field/seed/${seed.uuid}`}
                   className="flex items-center gap-3 px-4 py-2.5 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <span className="min-w-0 flex-1 truncate font-bold">{seed.title}</span>
+                  <span dir="auto" className="min-w-0 flex-1 truncate font-bold">{seed.title}</span>
                   <StreakChip count={seed.current} />
                   <span className="text-xs text-muted-foreground tabular">{t('streak.best', { count: seed.best })}</span>
                   <ChevronRightIcon className="size-4 text-muted-foreground rtl:rotate-180" aria-hidden />

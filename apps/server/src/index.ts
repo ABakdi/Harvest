@@ -12,7 +12,7 @@ async function main(): Promise<void> {
   const logger = createLogger(config.logLevel);
 
   const mongo = await connectMongo(config.mongoUrl);
-  const repos = await createRepositories(mongo.db);
+  const repos = await createRepositories(mongo.db, config.keyShareKey);
   const mailer = config.smtp ? new SmtpMailer(config.smtp, config.mailFrom) : new LogMailer(logger);
   if (!config.smtp) logger.warn('no SMTP configured: emails go to the log');
 
@@ -23,6 +23,7 @@ async function main(): Promise<void> {
     mailer,
     releases: new ReleaseSource({ repo: config.githubRepo, token: config.githubToken }),
     logger,
+    fileSweepIntervalMs: 24 * 60 * 60_000,
   });
 
   const server = app.listen(config.port, () => {

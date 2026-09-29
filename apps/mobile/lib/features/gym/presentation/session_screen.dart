@@ -59,6 +59,10 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   /// Whether the left-behind question has been asked on this visit.
   var _askedStale = false;
 
+  /// Finish is on its way: a second tap neither finishes twice nor pops
+  /// a second route ([[Audit-v3]] Q5-39).
+  var _finishing = false;
+
   @override
   void initState() {
     super.initState();
@@ -70,7 +74,9 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       if (!session.staleOn(ref.read(currentHarvestDayProvider))) return;
       _askedStale = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_settleStale(session));
+        if (mounted) {
+          unawaited(_finishingOnce(() => _settleStale(session)));
+        }
       });
     }, fireImmediately: true);
   }
@@ -171,6 +177,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         ),
         actions: [
           PopupMenuButton<String>(
+            tooltip: l10n.gymSessionMenu,
             onSelected: (value) => switch (value) {
               'note' => unawaited(_sessionNote(session)),
               'add' => unawaited(_addExercise(session)),
@@ -198,7 +205,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           _SessionBar(
             session: session,
             onPause: () => unawaited(_togglePause(session)),
-            onFinish: () => unawaited(_finish(session)),
+            onFinish: () => unawaited(_finishingOnce(() => _finish(session))),
           ),
         ],
       ),
@@ -270,6 +277,17 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         .addExercise(session.uuid, exerciseId: exercise.id);
   }
 
+  /// Runs one finishing flow at a time: the tap, the stale question.
+  Future<void> _finishingOnce(Future<void> Function() flow) async {
+    if (_finishing) return;
+    _finishing = true;
+    try {
+      await flow();
+    } finally {
+      _finishing = false;
+    }
+  }
+
   Future<void> _finish(WorkoutSession session) async {
     // Left running past its day: the question is which day, not
     // whether the sets are all ticked.
@@ -280,11 +298,10 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     final l10n = AppLocalizations.of(context);
     // Sets on exercises I skipped were never going to happen; the
     // rest are the ones worth a question.
-    final planned = session.exercises
-        .where((exercise) => !exercise.skipped)
-        .fold(0, (sum, exercise) => sum + exercise.sets.length);
-    final left = planned - session.doneSets;
-    if (session.doneSets == 0) {
+    final question = session.finishQuestion;
+    final left = question.left;
+    final planned = question.planned;
+    if (question.empty) {
       final ok = await confirm(
         context,
         title: l10n.gymFinishEmptyTitle,
@@ -292,7 +309,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         confirmLabel: l10n.gymFinish,
       );
       if (!ok) return;
-    } else if (left > 0) {
+    } else if (question.incomplete) {
       // Finishing is what checks the habit in, so leaving sets behind
       // is a choice to make with the eyes open ([[Checkpoint-6]]).
       final ok = await confirm(
@@ -459,7 +476,7 @@ class _ClockState extends State<_Clock> {
         ? AppLocalizations.of(context).gymClockDays(
             session.day.daysUntil(today),
           )
-        : formatSessionClock(session.elapsed);
+        : formatDuration(session.elapsed);
     return Text(text, style: widget.style);
   }
 }
@@ -693,6 +710,7 @@ class _ExerciseCard extends ConsumerWidget {
                   onLongPress: () => unawaited(_setRest(context, ref)),
                 ),
                 PopupMenuButton<String>(
+                  tooltip: l10n.gymExerciseMenu,
                   onSelected: (value) => switch (value) {
                     'swap' => unawaited(_swap(context, ref)),
                     'skip' => unawaited(_skip(context, ref)),
@@ -742,10 +760,11 @@ class _ExerciseCard extends ConsumerWidget {
             if (!exercise.skipped) ...[
               const Divider(height: HarvestSpacing.md),
               _SetHeader(unit: unit),
-              for (final set in exercise.sets)
+              for (final (index, set) in exercise.sets.indexed)
                 SetRow(
                   key: ValueKey(set.uuid),
                   set: set,
+                  number: index + 1,
                   exercise: exercise,
                   unit: unit,
                   onTicked: () =>

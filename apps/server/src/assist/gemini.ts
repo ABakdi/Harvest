@@ -7,7 +7,12 @@ export interface UpstreamOptions {
   apiKey: string;
   model: string;
   fetch?: Fetch;
+  /** How long one answer may take, start to end. */
+  timeoutMs?: number;
 }
+
+/** A minute for one answer: past that the model is stuck, not thinking (Q6-17). */
+export const assistTimeoutMs = 60_000;
 
 /**
  * The model the server holds a key for ([[ADR-013-Assist-Providers]]).
@@ -25,9 +30,14 @@ export class GeminiUpstream {
     return this.options.model;
   }
 
-  /** The answer's text, chunk by chunk. */
-  async *stream(request: AssistRequest): AsyncGenerator<string> {
+  /**
+   * The answer's text, chunk by chunk. [signal] stops it early (the
+   * caller went away); so does the timeout, which answers `unavailable`.
+   */
+  async *stream(request: AssistRequest, signal?: AbortSignal): AsyncGenerator<string> {
     const send = this.options.fetch ?? fetch;
+    const timeout = AbortSignal.timeout(this.options.timeoutMs ?? assistTimeoutMs);
+    const stop = signal ? AbortSignal.any([signal, timeout]) : timeout;
     const url = new URL(
       `https://generativelanguage.googleapis.com/v1beta/models/${this.options.model}:streamGenerateContent`,
     );
@@ -42,6 +52,7 @@ export class GeminiUpstream {
           'x-goog-api-key': this.options.apiKey,
         },
         body: JSON.stringify(bodyOf(request)),
+        signal: stop,
       });
     } catch {
       throw new HttpError('unavailable', 'The model could not be reached');
@@ -58,17 +69,22 @@ export class GeminiUpstream {
 
     const decoder = new TextDecoder();
     let buffer = '';
-    for await (const part of response.body as unknown as AsyncIterable<Uint8Array>) {
-      buffer += decoder.decode(part, { stream: true });
-      let newline = buffer.indexOf('\n');
-      while (newline !== -1) {
-        const line = buffer.slice(0, newline).trim();
-        buffer = buffer.slice(newline + 1);
-        newline = buffer.indexOf('\n');
-        if (!line.startsWith('data:')) continue;
-        const text = textOf(line.slice(5).trim());
-        if (text) yield text;
+    try {
+      for await (const part of response.body as unknown as AsyncIterable<Uint8Array>) {
+        buffer += decoder.decode(part, { stream: true });
+        let newline = buffer.indexOf('\n');
+        while (newline !== -1) {
+          const line = buffer.slice(0, newline).trim();
+          buffer = buffer.slice(newline + 1);
+          newline = buffer.indexOf('\n');
+          if (!line.startsWith('data:')) continue;
+          const text = textOf(line.slice(5).trim());
+          if (text) yield text;
+        }
       }
+    } catch {
+      // Stopped, timed out, or cut off half way.
+      throw new HttpError('unavailable', 'The model stopped answering');
     }
   }
 }

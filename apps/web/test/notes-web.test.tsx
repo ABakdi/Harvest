@@ -223,6 +223,47 @@ describe('the notes screen', () => {
     await waitFor(() => expect(screen.queryByTestId('note-print')).not.toBeInTheDocument());
   });
 
+  it('prints what was just typed, not the copy before it (Q5-53)', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'print',
+      vi.fn(() => seen.push(document.querySelector('[data-testid="note-print"]')?.textContent ?? '')),
+    );
+    await open('/app/records', async (h) => {
+      await h.notes.update((await h.notes.create({ title: 'Draft' })).uuid, { body: 'first' });
+    });
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('link', { name: /Draft/ }));
+    await user.click(await screen.findByRole('tab', { name: 'Write' }));
+    await user.type(screen.getByLabelText('Note'), ' and the last words');
+    (await screen.findByRole('button', { name: 'More' })).focus();
+    await user.keyboard('{Enter}');
+    await user.click(await screen.findByRole('menuitem', { name: 'Print or save as PDF' }));
+    await waitFor(() => expect(seen).toHaveLength(1));
+    expect(seen[0]).toContain('the last words');
+  });
+
+  it('asks before writing a linked note, and writes it once (G5-09)', async () => {
+    const h = await open('/app/records', async (h) => {
+      await h.notes.update((await h.notes.create({ title: 'Log', folder: 'Daily' })).uuid, { body: 'see [[Ideas]]' });
+    });
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('link', { name: /Log/ }));
+    await user.click(await screen.findByRole('tab', { name: 'Read' }));
+    await user.click(await screen.findByRole('button', { name: 'Ideas' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Write “Ideas”?')).toBeInTheDocument();
+    expect((await h.db.rows('notes').toArray()).map((row) => row.title)).not.toContain('Ideas');
+    const create = within(dialog).getByRole('button', { name: 'Create' });
+    await user.dblClick(create);
+    await waitFor(async () => {
+      const made = (await h.db.rows('notes').toArray()).filter((row) => row.title === 'Ideas');
+      expect(made).toHaveLength(1);
+      // At the top of the vault, where the phone puts it.
+      expect(made[0]!.folder).toBe('');
+    });
+  });
+
   it('hides dictation and read aloud where the browser cannot do them on this computer', async () => {
     await open('/app/records', async (h) => {
       await h.notes.create({ title: 'Quiet' });

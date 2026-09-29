@@ -9,10 +9,22 @@ services:
   mongo:
     # 7 wants a CPU with AVX; on one without (some virtual servers),
     # HARVEST_MONGO_VERSION=4.4 — deploy.sh sets it when it sees none.
+    # 4.4 is a stopgap: it gets no security fixes ([[Deployment]]).
     image: mongo:${HARVEST_MONGO_VERSION:-7}
     restart: unless-stopped
+    # With a root user named, the image starts mongod with --auth. On a
+    # new volume it makes that user, and the script below makes the
+    # server's own; deploy.sh makes both on a volume from before.
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD is required}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?MONGO_APP_PASSWORD is required}
     volumes:
       - mongo-data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    # Only the server reaches it, over a network with no way out.
+    networks:
+      - db
     healthcheck:
       # mongosh from 5 on; 4.4 ships the older mongo shell.
       test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok' 2>/dev/null || mongo --quiet --eval 'db.adminCommand(\"ping\").ok'"]
@@ -31,7 +43,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8080
-      MONGO_URL: mongodb://mongo:27017/harvest
+      MONGO_URL: mongodb://harvest:${MONGO_APP_PASSWORD}@mongo:27017/harvest?authSource=harvest
+      KEY_SHARE_KEY: ${KEY_SHARE_KEY:?KEY_SHARE_KEY is required}
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:?JWT_PRIVATE_KEY is required}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY is required}
       CORS_ORIGINS: https://${HARVEST_DOMAIN:?HARVEST_DOMAIN is required}
@@ -40,14 +53,19 @@ services:
       SMTP_HOST: ${SMTP_HOST:?SMTP_HOST is required}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_ALLOW_PLAINTEXT: ${SMTP_ALLOW_PLAINTEXT:-false}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-Harvest <no-reply@example.com>}
       ASSIST_API_KEY: ${ASSIST_API_KEY:-}
       ASSIST_MODEL: ${ASSIST_MODEL:-gemini-2.5-flash}
       ASSIST_DAILY_LIMIT: ${ASSIST_DAILY_LIMIT:-50}
+      ASSIST_GLOBAL_DAILY_LIMIT: ${ASSIST_GLOBAL_DAILY_LIMIT:-1000}
       GITHUB_REPO: ${GITHUB_REPO:-ABakdi/Harvest}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    networks:
+      - db
+      - default
 
   web:
     build:
@@ -66,6 +84,10 @@ services:
     volumes:
       - caddy-data:/data
       - caddy-config:/config
+
+networks:
+  db:
+    internal: true
 
 volumes:
   mongo-data:

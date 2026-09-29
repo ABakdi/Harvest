@@ -223,7 +223,7 @@ class _ProjectProgress extends StatelessWidget {
                 Text(
                   '${(logged * 100 / target).clamp(0, 100).floor()}%',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: scheme.secondary,
+                    color: scheme.secondaryText,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

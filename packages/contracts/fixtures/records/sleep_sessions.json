@@ -3,16 +3,9 @@
   "uuid": "4a7c1e9f-2b6d-4d3a-9e8c-6f2b8d4a1c75",
   "updatedAt": "2026-09-19T07:01:12.000Z",
   "deletedAt": null,
-  "data": {
-    "uuid": "4a7c1e9f-2b6d-4d3a-9e8c-6f2b8d4a1c75",
-    "harvestDay": "2026-09-19",
-    "fellAsleepAt": "2026-09-18T23:40:00.000Z",
-    "wokeAt": "2026-09-19T06:55:00.000Z",
-    "targetMinutes": 480,
-    "restedStars": 4,
-    "note": null,
-    "createdAt": "2026-09-19T07:01:12.000Z",
-    "updatedAt": "2026-09-19T07:01:12.000Z",
-    "deletedAt": null
+  "enc": {
+    "v": 2,
+    "iv": "SBwS0Andm4Tl81CP",
+    "ct": "+XOde8xWAHvUPaOgCOWFlr+BGw7lv5uZRLES7JcjrTgnZX51ORR0RIqZ02uTKCsYGJ+k+FUhbztpCK5y6GB5KdYkBVVyhDcjr5F3X8koZ1K6i3t58HF93zD0F4gs4bSIukXB6EweTjPACBMzmT46EUO/AV9wDorqc72EQqss1F+dtbaWYLvXpGzWHkDvMnTGxgom462H8qL3MCknuOUui292vyxfC6tOH3IfD2HmusQ5BP0xdzR7a+POy8yPqYLRuOvG7yLyzbmKOwsvgbWjufyqaN9B9VQhR7u7XFW5qF7hmR56zKWu5Xhqbaz5EpRZCpBwllePO80O0bW5fp3ffFbRlZd7hUHZQLX5L5AkzXvgw2S3TdEeptliuSumSijZbmeJuLVj7YX19ZizdvPQwcvL8p+8S4H3XaEORUBEvD8="
   }
 }

@@ -29,12 +29,25 @@ export interface GoalProgress {
 const isLive = (item: GoalItemLike) => item.deletedAt === null || item.deletedAt === undefined;
 const epoch = (at: string | Date) => (at instanceof Date ? at.getTime() : Date.parse(at));
 
+/**
+ * The live task [item] is drawn under, or null when it reads as
+ * top-level: it has no parent, its parent is gone, or its parent is a
+ * subtask itself. Subtasks are one level deep (GL8), and two devices
+ * disagreeing must not hide an item two levels down ([[Audit-v3]] G5-08).
+ */
+export function liveParentOf(item: GoalItemLike, live: readonly GoalItemLike[]): string | null {
+  const parent = item.parentUuid ? live.find((other) => other.uuid === item.parentUuid) : undefined;
+  if (parent === undefined) return null;
+  const grand = parent.parentUuid ? live.some((other) => other.uuid === parent.parentUuid) : false;
+  return grand ? null : parent.uuid!;
+}
+
 /** The uuids of live items that have at least one live subtask. */
 function parentsOf(live: readonly GoalItemLike[]): Set<string> {
-  const uuids = new Set(live.map((item) => item.uuid).filter((uuid) => uuid !== undefined));
   const parents = new Set<string>();
   for (const item of live) {
-    if (item.parentUuid && uuids.has(item.parentUuid)) parents.add(item.parentUuid);
+    const parent = liveParentOf(item, live);
+    if (parent !== null) parents.add(parent);
   }
   return parents;
 }
@@ -82,14 +95,14 @@ function inOrder<T extends GoalItemLike>(items: readonly T[]): T[] {
  * task, or its first open subtask when it has subtasks. With every task
  * done, the same for requirements. A parent is open while any of its
  * live subtasks is, whatever its own stored tick says. A subtask whose
- * parent is gone reads as top-level, so nothing is lost from view.
+ * parent is gone, or is a subtask itself, reads as top-level, so nothing
+ * is lost from view.
  */
 export function nextGoalItem<T extends GoalItemLike>(items: readonly T[]): T | null {
   const live = items.filter(isLive);
-  const uuids = new Set(live.map((item) => item.uuid).filter((uuid) => uuid !== undefined));
-  const topLevel = (item: T) => !item.parentUuid || !uuids.has(item.parentUuid);
+  const topLevel = (item: T) => liveParentOf(item, live) === null;
   const subtasksOf = (item: T) =>
-    item.uuid === undefined ? [] : inOrder(live.filter((child) => child.parentUuid === item.uuid));
+    item.uuid === undefined ? [] : inOrder(live.filter((child) => liveParentOf(child, live) === item.uuid));
   for (const kind of ['step', 'need'] as const) {
     for (const item of inOrder(live.filter((it) => topLevel(it) && (it.kind ?? 'step') === kind))) {
       const subtasks = subtasksOf(item);

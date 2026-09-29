@@ -1,3 +1,4 @@
+import { buyListId, wishListId } from '@harvest/contracts';
 import Dexie from 'dexie';
 import { describe, expect, it } from 'vitest';
 import { HarvestDB, tableSchemas } from '@/app/data/db';
@@ -8,12 +9,13 @@ import { device } from './helpers';
 describe('the wishlist order', () => {
   it('a moved item joins the bottom of the other list, as on the phone (W4)', async () => {
     const h = await device(new FakeServer());
-    const kettle = await h.wishlist.add({ list: 'buy', title: 'Kettle' });
-    const bread = await h.wishlist.add({ list: 'buy', title: 'Bread' });
-    const coat = await h.wishlist.add({ list: 'wish', title: 'Winter coat' });
+    await h.lists.ensureBuiltIns();
+    const kettle = await h.lists.addItem(buyListId, { title: 'Kettle' });
+    const bread = await h.lists.addItem(buyListId, { title: 'Bread' });
+    const coat = await h.lists.addItem(wishListId, { title: 'Winter coat' });
     expect(coat.position).toBe(0);
 
-    await h.wishlist.move(coat.uuid, 'buy');
+    await h.lists.moveItem(coat.uuid, buyListId);
     const buy = (await h.db.rows('wishlist_items').toArray())
       .filter((row) => row.list === 'buy')
       .sort((a, b) => a.position - b.position);
@@ -23,9 +25,10 @@ describe('the wishlist order', () => {
 
   it('moving to the list it is already on changes nothing', async () => {
     const h = await device(new FakeServer());
-    const kettle = await h.wishlist.add({ list: 'buy', title: 'Kettle' });
+    await h.lists.ensureBuiltIns();
+    const kettle = await h.lists.addItem(buyListId, { title: 'Kettle' });
     const before = await h.db.rows('wishlist_items').get(kettle.uuid);
-    await h.wishlist.move(kettle.uuid, 'buy');
+    await h.lists.moveItem(kettle.uuid, buyListId);
     expect(await h.db.rows('wishlist_items').get(kettle.uuid)).toEqual(before);
   });
 });
@@ -49,7 +52,7 @@ describe('the browser store', () => {
 
     const db = new HarvestDB(name);
     await db.open();
-    expect(db.verno).toBe(4);
+    expect(db.verno).toBe(6);
     expect(await db.meta.get('kept')).toEqual({ key: 'kept', value: 42 });
     // A row as a v3 store held it, before lists.
     await db.table('wishlist_items').put({

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
+import 'package:harvest/features/account/domain/account.dart';
+import 'package:harvest/features/account/presentation/account_circle.dart'
+    show AccountPage;
 import 'package:harvest/features/commitments/data/commitments_repository.dart';
 import 'package:harvest/features/commitments/domain/commitment.dart';
 import 'package:harvest/features/commitments/domain/schedule.dart';
@@ -102,6 +105,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await _markDone();
   }
 
+  /// Signs in straight away; once signed in, the onboarding is done with
+  /// nothing planted, and the account's data comes down.
+  Future<void> _signIn() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const AccountPage()),
+    );
+    if (!mounted) return;
+    final me = (await ref.read(accountControllerProvider.future)).me;
+    if (me != null) await _skip();
+  }
+
   Future<void> _markDone() async {
     await ref
         .read(settingsRepositoryProvider)
@@ -163,124 +177,171 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final theme = Theme.of(context);
     final isLast = _page == _pages - 1;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: TextButton(
-                onPressed: _finishing ? null : _skip,
-                child: Text(l10n.skip),
-              ),
-            ),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (page) => setState(() => _page = page),
+    // Back steps to the page before, and only leaves from the first
+    // (U6-28).
+    return PopScope(
+      canPop: _page == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _pageController.previousPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  _WelcomePage(l10n: l10n),
-                  _TemplatesPage(
-                    l10n: l10n,
-                    picked: _picked,
-                    onToggle: (id) => setState(() {
-                      if (!_picked.add(id)) _picked.remove(id);
-                    }),
+                  // A returning user signs in first, and plants no
+                  // templates next to the account's own seeds (U6-05).
+                  // Shrinks before it pushes Skip off a narrow screen.
+                  Flexible(
+                    child: TextButton(
+                      onPressed: _finishing ? null : () => unawaited(_signIn()),
+                      child: Text(
+                        l10n.obHaveAccount,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                  _GoalPage(
-                    l10n: l10n,
-                    goal: _goal,
-                    onChanged: (goal) => setState(() => _goal = goal),
-                  ),
-                  _RemindersPage(
-                    l10n: l10n,
-                    enabled: _remindersOn,
-                    onChanged: (on) => setState(() => _remindersOn = on),
-                  ),
-                  _ExtrasPage(
-                    l10n: l10n,
-                    notes: _notesOn,
-                    gallery: _galleryOn,
-                    health: _healthOn,
-                    gym: _gymOn,
-                    places: _placesOn,
-                    lists: _listsOn,
-                    onNotes: (on) => setState(() => _notesOn = on),
-                    onGallery: (on) => setState(() => _galleryOn = on),
-                    onHealth: (on) => setState(() => _healthOn = on),
-                    onGym: (on) => setState(() => _gymOn = on),
-                    onPlaces: (on) => setState(() => _placesOn = on),
-                    onLists: (on) => setState(() => _listsOn = on),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _finishing ? null : _skip,
+                    child: Text(l10n.skip),
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(HarvestSpacing.lg),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (var i = 0; i < _pages; i++)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Icon(
-                            Icons.circle,
-                            size: 8,
-                            color: i == _page
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.2,
-                                  ),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (page) => setState(() => _page = page),
+                  children: [
+                    _WelcomePage(l10n: l10n),
+                    _TemplatesPage(
+                      l10n: l10n,
+                      picked: _picked,
+                      onToggle: (id) => setState(() {
+                        if (!_picked.add(id)) _picked.remove(id);
+                      }),
+                    ),
+                    _GoalPage(
+                      l10n: l10n,
+                      goal: _goal,
+                      onChanged: (goal) => setState(() => _goal = goal),
+                    ),
+                    _RemindersPage(
+                      l10n: l10n,
+                      enabled: _remindersOn,
+                      onChanged: (on) => setState(() => _remindersOn = on),
+                    ),
+                    _ExtrasPage(
+                      l10n: l10n,
+                      notes: _notesOn,
+                      gallery: _galleryOn,
+                      health: _healthOn,
+                      gym: _gymOn,
+                      places: _placesOn,
+                      lists: _listsOn,
+                      onNotes: (on) => setState(() => _notesOn = on),
+                      onGallery: (on) => setState(() => _galleryOn = on),
+                      onHealth: (on) => setState(() => _healthOn = on),
+                      onGym: (on) => setState(() => _gymOn = on),
+                      onPlaces: (on) => setState(() => _placesOn = on),
+                      onLists: (on) => setState(() => _listsOn = on),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(HarvestSpacing.lg),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (var i = 0; i < _pages; i++)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Icon(
+                              Icons.circle,
+                              size: 8,
+                              color: i == _page
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurface.withValues(
+                                      alpha: 0.2,
+                                    ),
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: HarvestSpacing.md),
-                  BigBouncySheetButton(
-                    onPressed: _finishing ? null : () => unawaited(_next()),
-                    child: Text(isLast ? l10n.startGrowing : l10n.next),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: HarvestSpacing.md),
+                    BigBouncySheetButton(
+                      onPressed: _finishing ? null : () => unawaited(_next()),
+                      child: Text(isLast ? l10n.startGrowing : l10n.next),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _WelcomePage extends StatelessWidget {
+class _WelcomePage extends ConsumerWidget {
   const _WelcomePage({required this.l10n});
 
   final AppLocalizations l10n;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(HarvestSpacing.xl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.grass, size: 120, color: theme.colorScheme.secondary),
-          const SizedBox(height: HarvestSpacing.lg),
-          Text(
-            l10n.obWelcomeTitle,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
+    final locale = ref.watch(localeSettingProvider).value;
+    // Scrolls rather than overflowing on a short screen or large text.
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(HarvestSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.grass, size: 120, color: theme.colorScheme.secondary),
+            const SizedBox(height: HarvestSpacing.lg),
+            Text(
+              l10n.obWelcomeTitle,
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: HarvestSpacing.md),
-          Text(
-            l10n.obWelcomeBody,
-            style: theme.textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: HarvestSpacing.md),
+            Text(
+              l10n.obWelcomeBody,
+              style: theme.textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: HarvestSpacing.lg),
+            // The language first: the phone's may not be mine (U6-28).
+            SegmentedButton<String>(
+              segments: [
+                ButtonSegment(
+                  value: LocaleSetting.system,
+                  label: Text(l10n.langSystem),
+                ),
+                ButtonSegment(value: 'en', label: Text(l10n.langEnglish)),
+                ButtonSegment(value: 'ar', label: Text(l10n.langArabic)),
+              ],
+              selected: {locale?.languageCode ?? LocaleSetting.system},
+              showSelectedIcon: false,
+              onSelectionChanged: (selection) => unawaited(
+                ref.read(localeSettingProvider.notifier).set(selection.first),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -395,6 +456,7 @@ class _GoalPage extends StatelessWidget {
             children: [
               IconButton.filledTonal(
                 onPressed: goal > 1 ? () => onChanged(goal - 1) : null,
+                tooltip: l10n.decrease,
                 icon: const Icon(Icons.remove),
               ),
               Padding(
@@ -410,6 +472,7 @@ class _GoalPage extends StatelessWidget {
               ),
               IconButton.filledTonal(
                 onPressed: goal < 10 ? () => onChanged(goal + 1) : null,
+                tooltip: l10n.increase,
                 icon: const Icon(Icons.add),
               ),
             ],

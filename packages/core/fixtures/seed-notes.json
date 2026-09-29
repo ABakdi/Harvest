@@ -1,0 +1,89 @@
+{
+  "about": "One note per seed per Harvest Day (seedNoteOfDay, oneNotePerDay). The newest updatedAt wins; on a tie the greater uuid, so every device picks the same. Deleted rows never count; the others are extras to fold into the note on the next write.",
+  "cases": [
+    { "why": "no note that day", "rows": [], "seed": "s", "day": "2026-09-27", "note": null, "extras": [] },
+    {
+      "why": "the newest write is the day's note",
+      "rows": [
+        {
+          "uuid": "a",
+          "commitmentUuid": "s",
+          "harvestDay": "2026-09-27",
+          "updatedAt": "2026-09-27T10:00:00.000Z",
+          "deletedAt": null
+        },
+        {
+          "uuid": "b",
+          "commitmentUuid": "s",
+          "harvestDay": "2026-09-27",
+          "updatedAt": "2026-09-27T11:00:00.000Z",
+          "deletedAt": null
+        }
+      ],
+      "seed": "s",
+      "day": "2026-09-27",
+      "note": "b",
+      "extras": ["a"]
+    },
+    {
+      "why": "a tie goes to the greater uuid",
+      "rows": [
+        {
+          "uuid": "b",
+          "commitmentUuid": "s",
+          "harvestDay": "2026-09-27",
+          "updatedAt": "2026-09-27T10:00:00.000Z",
+          "deletedAt": null
+        },
+        {
+          "uuid": "c",
+          "commitmentUuid": "s",
+          "harvestDay": "2026-09-27",
+          "updatedAt": "2026-09-27T10:00:00.000Z",
+          "deletedAt": null
+        }
+      ],
+      "seed": "s",
+      "day": "2026-09-27",
+      "note": "c",
+      "extras": ["b"]
+    },
+    {
+      "why": "a deleted row, another day and another seed never count",
+      "rows": [
+        {
+          "uuid": "a",
+          "commitmentUuid": "s",
+          "harvestDay": "2026-09-27",
+          "updatedAt": "2026-09-27T10:00:00.000Z",
+          "deletedAt": null
+        },
+        {
+          "uuid": "z",
+          "commitmentUuid": "s",
+          "harvestDay": "2026-09-27",
+          "updatedAt": "2026-09-27T12:00:00.000Z",
+          "deletedAt": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "uuid": "y",
+          "commitmentUuid": "s",
+          "harvestDay": "2026-09-26",
+          "updatedAt": "2026-09-27T12:00:00.000Z",
+          "deletedAt": null
+        },
+        {
+          "uuid": "x",
+          "commitmentUuid": "t",
+          "harvestDay": "2026-09-27",
+          "updatedAt": "2026-09-27T12:00:00.000Z",
+          "deletedAt": null
+        }
+      ],
+      "seed": "s",
+      "day": "2026-09-27",
+      "note": "a",
+      "extras": []
+    }
+  ]
+}
