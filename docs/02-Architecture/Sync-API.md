@@ -558,6 +558,7 @@ auth bodies are strict: a key the contract does not name is refused.
 | `GET /v1/me/sessions` · `DELETE /v1/me/sessions/:id` | ✓ | Devices |
 | `GET /v1/me/sync-key` · `PUT /v1/me/sync-key/check` · `DELETE /v1/me/sync-key` | ✓ | The sync key (above) |
 | `GET /v1/releases/latest` | – | The newest APK, for the download page ([[Web]]), and the newest pre-release above it when there is one |
+| `GET /v1/releases/download/:name` | – | One APK the download page offers (`apk` or `legacyApk` of either release), fetched from GitHub and handed on as an attachment; any other name is 404. Twenty an hour per address (Checkpoint 12, B12-05) |
 | `POST /v1/assist` | ✓ | The server assist ([[ADR-013-Assist-Providers]]), in a later milestone |
 
 Related: [[Sync-Strategy]] · [[Accounts]] · [[ADR-011-Backend]] · [[ADR-005-Local-First-Sync]]

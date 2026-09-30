@@ -72,7 +72,7 @@ describe('the download page', () => {
     );
     renderAt('/download');
     expect(await screen.findByText('ab'.repeat(32))).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /download harvest-2.0.0.apk/i })).toHaveAttribute('href', 'https://example/harvest.apk');
+    expect(screen.getByRole('link', { name: /download harvest-2.0.0.apk/i })).toHaveAttribute('href', '/v1/releases/download/harvest-2.0.0.apk');
     expect(screen.getByText('the gym')).toBeInTheDocument();
   });
 
@@ -89,10 +89,10 @@ describe('the download page', () => {
       }),
     );
     renderAt('/download');
-    expect(await screen.findByRole('link', { name: /download harvest-3.3.1.apk/i })).toHaveAttribute('href', 'https://example/harvest-3.3.1.apk');
+    expect(await screen.findByRole('link', { name: /download harvest-3.3.1.apk/i })).toHaveAttribute('href', '/v1/releases/download/harvest-3.3.1.apk');
     expect(screen.getByRole('link', { name: /download harvest-3.3.1-armv7.apk/i })).toHaveAttribute(
       'href',
-      'https://example/harvest-3.3.1-armv7.apk',
+      '/v1/releases/download/harvest-3.3.1-armv7.apk',
     );
     expect(screen.getByText(/not compatible with your phone/i)).toBeInTheDocument();
   });

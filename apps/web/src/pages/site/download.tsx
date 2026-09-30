@@ -12,6 +12,13 @@ import { useDocumentTitle } from '@/lib/title';
 
 const releasesPage = 'https://github.com/ABakdi/Harvest/releases';
 
+/**
+ * An APK from the site's own address, which fetches it from GitHub (B12-05).
+ * Linked to GitHub straight, the installed web app sent the download to a
+ * custom tab, where it sat finished at 100 % behind a question it never showed.
+ */
+const viaSite = (apk: { name: string }) => `/v1/releases/download/${encodeURIComponent(apk.name)}`;
+
 function CopyButton({ value, label }: { value: string; label: string }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -101,7 +108,7 @@ export function DownloadPage() {
             {release.data.apk ? (
               <>
                 <Button asChild variant="brand" size="lg" className="w-full sm:w-fit">
-                  <a href={release.data.apk.url} download>
+                  <a href={viaSite(release.data.apk)} download>
                     <DownloadIcon />
                     {t('download.apk', { name: release.data.apk.name })}
                   </a>
@@ -110,7 +117,7 @@ export function DownloadPage() {
                   <div className="flex flex-col gap-1 text-sm">
                     <p className="text-muted-foreground">{t('download.legacyBody')}</p>
                     <a
-                      href={release.data.legacyApk.url}
+                      href={viaSite(release.data.legacyApk)}
                       download
                       className="flex w-fit items-center gap-1 font-bold text-primary underline-offset-4 hover:underline"
                     >
@@ -165,7 +172,7 @@ export function DownloadPage() {
                 </h2>
                 <p className="text-muted-foreground">{t('download.betaBody')}</p>
                 <a
-                  href={release.data.prerelease.apk?.url ?? release.data.prerelease.htmlUrl}
+                  href={release.data.prerelease.apk ? viaSite(release.data.prerelease.apk) : release.data.prerelease.htmlUrl}
                   {...(release.data.prerelease.apk ? { download: true } : { target: '_blank', rel: 'noreferrer noopener' })}
                   className="flex w-fit items-center gap-1 font-bold text-primary underline-offset-4 hover:underline"
                 >

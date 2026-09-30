@@ -329,7 +329,7 @@
     "betaPage": "{{tag}} on GitHub",
     "copySha": "Copy the SHA-256",
     "date": "Released",
-    "how1": "Download the APK on your Android phone.",
+    "how1": "Download the APK on your Android phone. Your browser warns about any app from outside the Play Store: choose Download anyway.",
     "how2": "Open it. Android asks to allow installs from this source: allow it for your browser or file manager.",
     "how3": "Tap Install. Updates install the same way, over the old version, and keep your data.",
     "how4": "Open Harvest and plant your first seed.",

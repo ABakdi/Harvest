@@ -159,6 +159,32 @@ describe('the latest release', () => {
     expect(gh.calls).toEqual(['https://api.github.com/repos/ABakdi/Harvest/releases?per_page=20']);
   });
 
+  it('hands on an APK of the current release from its own address, and nothing else', async () => {
+    const bytes = new Uint8Array([0x50, 0x4b, 3, 4, 9, 9]);
+    const withSize = { ...github, assets: [{ ...github.assets[1]!, size: bytes.length }] };
+    const gh = fakeGitHub([() => Response.json([withSize]), () => new Response(bytes, { status: 200 })]);
+    h = await harness({ fetch: gh.fetch });
+    const res = await request(h.app)
+      .get('/v1/releases/download/harvest-2.0.0.apk')
+      .buffer(true)
+      .parse((response, done) => {
+        const chunks: Buffer[] = [];
+        response.on('data', (chunk: Buffer) => chunks.push(chunk));
+        response.on('end', () => done(null, Buffer.concat(chunks)));
+      })
+      .expect(200);
+    expect(res.headers['content-type']).toBe('application/vnd.android.package-archive');
+    expect(res.headers['content-disposition']).toBe('attachment; filename="harvest-2.0.0.apk"');
+    expect(res.headers['content-length']).toBe(String(bytes.length));
+    expect([...(res.body as Buffer)]).toEqual([...bytes]);
+    expect(gh.calls).toEqual(['https://api.github.com/repos/ABakdi/Harvest/releases?per_page=20', 'https://example/harvest-2.0.0.apk']);
+
+    // Any other name is refused before anything is fetched.
+    await request(h.app).get('/v1/releases/download/checksums.txt').expect(404);
+    await request(h.app).get('/v1/releases/download/..%2F..%2Fetc').expect(404);
+    expect(gh.calls).toHaveLength(2);
+  });
+
   it('offers the 64-bit APK first and the 32-bit one beside it, whatever order GitHub lists them in', async () => {
     const split = {
       ...github,

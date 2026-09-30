@@ -40,6 +40,8 @@ export interface RateLimitSettings {
   newsRequests: number;
   /** Reports of problems per network per hour, counted in memory only ([[Admin]]). */
   reports: number;
+  /** APK downloads through the site per address per hour (B12-05). */
+  apkDownloads: number;
 }
 
 export const defaultRateLimits: RateLimitSettings = {
@@ -59,6 +61,7 @@ export const defaultRateLimits: RateLimitSettings = {
   adminRequests: 300,
   newsRequests: 60,
   reports: 5,
+  apkDownloads: 20,
 };
 
 function limiter(limit: number, windowMs: number, extra: Partial<Options> = {}) {
@@ -121,6 +124,7 @@ export function authLimiters(settings: RateLimitSettings) {
     admin: byAccount(settings.adminRequests, settings.windowMs),
     news: limiter(settings.newsRequests, settings.windowMs),
     reports: limiter(settings.reports, 60 * 60_000),
+    apkDownloads: limiter(settings.apkDownloads, 60 * 60_000),
   };
 }
 

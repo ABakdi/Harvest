@@ -134,7 +134,7 @@ export function createApp(deps: AppDeps): Express {
     res.set('Cache-Control', 'no-store');
     next();
   });
-  v1.use(publicRoutes(deps.db, deps.releases));
+  v1.use(publicRoutes(deps.db, deps.releases, limits.apkDownloads));
   v1.use('/auth', express.json({ limit: smallBody }), authRoutes(auth, limits, cookies));
   v1.use(
     '/me/sync-key',

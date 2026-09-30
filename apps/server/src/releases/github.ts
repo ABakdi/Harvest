@@ -139,6 +139,41 @@ export class ReleaseSource {
     return release;
   }
 
+  /**
+   * One APK of the releases the download page offers, fetched from
+   * GitHub for the site to hand on from its own address (B12-05); null
+   * for a name that is none of them, so the route can never be made to
+   * fetch anything else.
+   */
+  async openApk(
+    name: string,
+    signal: AbortSignal,
+  ): Promise<{ name: string; size: number; body: ReadableStream<Uint8Array> } | null> {
+    const release = await this.latest();
+    const apk = [release, release.prerelease]
+      .flatMap((one) => (one ? [one.apk, one.legacyApk] : []))
+      .find((candidate) => candidate?.name === name);
+    if (!apk) return null;
+    // Thirty seconds for GitHub to start answering; the file itself takes
+    // as long as the phone takes, and stops when the phone goes.
+    const slow = new AbortController();
+    const timer = setTimeout(() => slow.abort(), 30_000);
+    let response: Response;
+    try {
+      response = await this.fetch(apk.url, {
+        headers: { 'user-agent': 'harvest-server' },
+        redirect: 'follow',
+        signal: AbortSignal.any([signal, slow.signal]),
+      });
+    } catch {
+      throw new HttpError('unavailable', 'GitHub is not answering right now');
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!response.ok || !response.body) throw new HttpError('unavailable', 'GitHub is not answering right now');
+    return { name: apk.name, size: apk.size, body: response.body };
+  }
+
   private counted: { downloads: Downloads; at: number } | null = null;
 
   /**
