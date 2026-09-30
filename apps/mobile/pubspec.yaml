@@ -1,7 +1,7 @@
 name: harvest
 description: "Harvest: habits, projects, goals, money, gym, notes and memories in one offline-first app."
 publish_to: 'none'
-version: 3.2.0+27
+version: 3.3.0+28
 
 environment:
   sdk: ^3.13.2
