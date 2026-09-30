@@ -241,6 +241,7 @@ that sends other digits is read as those.
 | AC7 | The sync secret is a passphrase of 8 characters or more, recommended, or a PIN of 4–6 digits (not a trivially guessable one), the same rule on every client (`packages/contracts` `syncSecretProblem`, `syncSecretStrength`). A device without it sends nothing, and says so. |
 | AC9 | The server keeps no address, no name and no IP address readable from its database or its logs: addresses and names are sealed under keys from its environment, the request logs keep none (Phase 7). |
 | AC10 | My data is written out only after the password (or, signed out, the device's lock) is given again. |
+| AC11 | An account is what the server counts as a user; the admin panel sees the account's address, its last active day, platform and version, and its streak only while shared ([[Admin]]). |
 | AC8 | Whether a device chooses the PIN or enters it is decided by the account's key check on the server, and a PIN that does not open the check is never kept. |
 
 Related: [[Sync-API]] · [[Sync-Strategy]] · [[ADR-011-Backend]] · [[Web]]

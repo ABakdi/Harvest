@@ -49,3 +49,20 @@ export function authOf(res: Response): AccessClaims {
   if (!auth) throw new Error('authOf used on a route without requireAuth');
   return auth;
 }
+
+/**
+ * The caller when there is one: a valid access token sets it, as
+ * [requireAuth] would; none, or one that is no longer valid, leaves the
+ * request anonymous rather than refusing it. For a route that answers
+ * everyone and a signed-in device a little more (the news, [[Admin]]).
+ */
+export function optionalAuth(auth: AuthService): RequestHandler {
+  return async (req, res, next) => {
+    const match = /^Bearer\s+(\S+)$/i.exec(req.get('authorization') ?? '');
+    if (match?.[1]) {
+      const claims = await auth.authenticate(match[1]).catch(() => null);
+      if (claims) res.locals.auth = claims;
+    }
+    next();
+  };
+}

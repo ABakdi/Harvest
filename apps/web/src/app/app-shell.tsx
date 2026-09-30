@@ -43,6 +43,7 @@ import { SyncIndicator } from './components/sync-indicator';
 import { useHarvest, useSyncStatus } from './context';
 import { usePrivateKey } from './hooks';
 import { DialogsProvider, useDialogs } from './dialogs';
+import { NewsPopup } from './components/news-popup';
 import { FieldScreen } from './screens/field';
 import { RecordsView } from './screens/records';
 import { OnboardingGate } from './screens/onboarding-gate';
@@ -70,6 +71,7 @@ const OnboardingScreen = lazy(async () => ({ default: (await import('./screens/o
 const PomodoroScreen = lazy(async () => ({ default: (await import('./screens/pomodoro')).PomodoroScreen }));
 const SeedScreen = lazy(async () => ({ default: (await import('./screens/seed')).SeedScreen }));
 const SettingsScreen = lazy(async () => ({ default: (await import('./screens/settings')).SettingsScreen }));
+const AdminScreen = lazy(async () => ({ default: (await import('./screens/admin')).AdminScreen }));
 
 interface Tab {
   to: string;
@@ -363,6 +365,7 @@ function PinBanner() {
 
 function Shell({ startedOffline }: { startedOffline: boolean }) {
   const { t } = useTranslation();
+  const { user } = useHarvest();
   const byId = useTabs();
   const on = useFeaturesOrOff();
   const { pathname } = useLocation();
@@ -565,6 +568,8 @@ function Shell({ startedOffline }: { startedOffline: boolean }) {
                       <Route path="granary" element={<GranaryScreen />} />
                       <Route path="farmer" element={<FarmerScreen />} />
                       <Route path="settings" element={<SettingsScreen />} />
+                      {/* Only for an account the server names an admin ([[Admin]]); anyone else lands on the field. */}
+                      <Route path="admin" element={user.admin === true ? <AdminScreen /> : <Navigate to="/app/field" replace />} />
                       <Route path="welcome" element={<OnboardingScreen />} />
                       <Route path="*" element={<Navigate to="/app/field" replace />} />
                     </Routes>
@@ -592,6 +597,7 @@ export function AppShell({ startedOffline }: { startedOffline: boolean }) {
   return (
     <DialogsProvider>
       <FileUploads />
+      <NewsPopup />
       <Shell startedOffline={startedOffline} />
     </DialogsProvider>
   );

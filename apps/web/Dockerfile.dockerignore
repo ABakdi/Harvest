@@ -4,7 +4,9 @@
 **/.turbo
 **/coverage
 **/*.tsbuildinfo
-apps/mobile
+apps/mobile/**
+# But the release number the web reports as its version.
+!apps/mobile/pubspec.yaml
 apps/server
 docs
 .git

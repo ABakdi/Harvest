@@ -72,7 +72,6 @@ class ApiClient {
     required this.tokens,
     http.Client? client,
     this.onSignedOut,
-    this.ready,
     Future<void> Function(Duration)? pause,
   }) : _client = client ?? http.Client(),
        _pause = pause ?? Future<void>.delayed;
@@ -80,9 +79,6 @@ class ApiClient {
   /// Up to the host, e.g. `https://harvest.example.org`.
   final Uri Function() baseUrl;
 
-  /// Done once [baseUrl] holds the saved address; every request waits
-  /// for it, so the first one after a start never goes to the default.
-  final Future<void> Function()? ready;
   final TokenStore tokens;
   final http.Client _client;
 
@@ -118,6 +114,12 @@ class ApiClient {
   /// the emailed links.
   Future<Map<String, Object?>> postAnonymous(String path, Object? body) =>
       _send('POST', path, body: body, authenticated: false);
+
+  /// A read that carries no session: the news asked for in the
+  /// background, where refreshing a session beside the app could spend
+  /// the same refresh token twice ([[Admin]]).
+  Future<Map<String, Object?>> getAnonymous(String path) =>
+      _send('GET', path, authenticated: false);
 
   /// Sends raw bytes and reads the JSON answer: the file routes, whose
   /// bodies are ciphertext rather than JSON ([[Sync-API]]).
@@ -282,7 +284,6 @@ class ApiClient {
     String? bearer,
     String accept = 'application/json',
   }) async {
-    await ready?.call();
     final base = baseUrl();
     final url = base.replace(
       path: '${base.path.replaceAll(RegExp(r'/$'), '')}$path',

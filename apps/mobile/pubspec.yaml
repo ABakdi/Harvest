@@ -38,6 +38,7 @@ dependencies:
   local_auth: ^3.0.2
   maplibre_gl: ^0.25.0
   meta: ^1.19.0
+  package_info_plus: ^10.2.1
   path: ^1.9.1
   path_provider: ^2.1.6
   pdf: ^3.12.0

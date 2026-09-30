@@ -34,6 +34,10 @@ export interface RateLimitSettings {
   /** Failed sign-ins per email per hour from anywhere: the ceiling many networks share. */
   emailGlobalLoginFailures: number;
   emailWindowMs: number;
+  /** Admin requests per account per window ([[Admin]]). */
+  adminRequests: number;
+  /** News fetches per address per window: a phone asks every few hours. */
+  newsRequests: number;
 }
 
 export const defaultRateLimits: RateLimitSettings = {
@@ -50,6 +54,8 @@ export const defaultRateLimits: RateLimitSettings = {
   emailLoginFailures: 20,
   emailGlobalLoginFailures: 200,
   emailWindowMs: 60 * 60_000,
+  adminRequests: 300,
+  newsRequests: 60,
 };
 
 function limiter(limit: number, windowMs: number, extra: Partial<Options> = {}) {
@@ -109,6 +115,8 @@ export function authLimiters(settings: RateLimitSettings) {
     sync: byAccount(settings.syncRequests, 60_000),
     files: byAccount(settings.fileRequests, 60_000),
     syncKey: byAccount(settings.syncKeyRequests, settings.windowMs),
+    admin: byAccount(settings.adminRequests, settings.windowMs),
+    news: limiter(settings.newsRequests, settings.windowMs),
   };
 }
 

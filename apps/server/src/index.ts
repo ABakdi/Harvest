@@ -24,6 +24,7 @@ async function main(): Promise<void> {
     releases: new ReleaseSource({ repo: config.githubRepo, token: config.githubToken }),
     logger,
     fileSweepIntervalMs: 24 * 60 * 60_000,
+    statsIntervalMs: 60 * 60_000,
   });
 
   const server = app.listen(config.port, () => {

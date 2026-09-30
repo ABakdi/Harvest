@@ -9,6 +9,7 @@ import 'package:harvest/features/health/data/health_repository.dart';
 import 'package:harvest/features/health/data/steps_source.dart';
 import 'package:harvest/features/health/domain/steps_sync.dart';
 import 'package:harvest/features/health/presentation/health_providers.dart';
+import 'package:harvest/features/news/data/news_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/settings/data/settings_repository.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
@@ -36,12 +37,46 @@ abstract final class DayResetJob {
       initialDelay: nextReset.difference(at),
       existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
     );
+    await NewsJob.register();
+  }
+}
+
+/// Asks for the news every few hours, with the app closed ([[Admin]]):
+/// a push not yet shown becomes a notification. It runs whatever the
+/// setting, and does nothing when *News from Harvest* is off.
+abstract final class NewsJob {
+  static const taskName = 'harvest.news';
+  static const every = Duration(hours: 3);
+
+  static Future<void> register() => Workmanager().registerPeriodicTask(
+    taskName,
+    taskName,
+    frequency: every,
+    constraints: Constraints(networkType: NetworkType.connected),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+  );
+
+  /// One background run: the news, asked without a session.
+  static Future<void> run() async {
+    final db = HarvestDatabase();
+    try {
+      await backgroundNewsService(db).check(signedIn: false, force: true);
+    } on Object catch (error) {
+      debugPrint('[news] background check failed: ${error.runtimeType}');
+    } finally {
+      await db.close();
+    }
   }
 }
 
 @pragma('vm:entry-point')
 void _dispatcher() {
   Workmanager().executeTask((task, inputData) async {
+    if (task == NewsJob.taskName) {
+      DartPluginRegistrant.ensureInitialized();
+      await NewsJob.run();
+      return true;
+    }
     if (task != DayResetJob.taskName) return true;
     DartPluginRegistrant.ensureInitialized();
     // Runs in a background isolate: open a fresh database connection,

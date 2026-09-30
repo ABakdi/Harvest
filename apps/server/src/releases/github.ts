@@ -17,6 +17,7 @@ const githubReleaseSchema = z.object({
         name: z.string(),
         browser_download_url: z.string(),
         size: z.number(),
+        download_count: z.number().default(0),
         // "sha256:<hex>", on assets uploaded since GitHub began hashing them.
         digest: z.string().nullable().optional(),
       }),
@@ -27,6 +28,12 @@ const githubReleaseSchema = z.object({
 type GitHubRelease = z.infer<typeof githubReleaseSchema>;
 
 export type Fetch = typeof fetch;
+
+/** APK downloads, all told and per release, newest first. */
+export interface Downloads {
+  total: number;
+  releases: { tag: string; name: string; publishedAt: string; downloads: number }[];
+}
 
 /** The hex digest out of GitHub's `sha256:<hex>`; anything else is no digest. */
 function sha256Of(digest: string | null | undefined): string | null {
@@ -114,6 +121,47 @@ export class ReleaseSource {
     const release: Release = { ...published(out[stable]!), prerelease: beta ? published(beta) : null };
     this.cached = { release, at: this.now() };
     return release;
+  }
+
+  private counted: { downloads: Downloads; at: number } | null = null;
+
+  /**
+   * How many times each release's APK was downloaded, by GitHub's own
+   * count, newest release first ([[Admin]]: people without an account
+   * are downloads, never users). Cached ten minutes; null when GitHub
+   * cannot be asked and nothing was counted before.
+   */
+  async downloads(): Promise<Downloads | null> {
+    if (this.counted && this.now() - this.counted.at < 10 * 60_000) return this.counted.downloads;
+    try {
+      const response = await this.fetch(`https://api.github.com/repos/${this.options.repo}/releases?per_page=100`, {
+        headers: {
+          accept: 'application/vnd.github+json',
+          'user-agent': 'harvest-server',
+          'x-github-api-version': '2022-11-28',
+          ...(this.options.token ? { authorization: `Bearer ${this.options.token}` } : {}),
+        },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) return this.counted?.downloads ?? null;
+      const parsed = z.array(githubReleaseSchema).safeParse(await response.json().catch(() => null));
+      if (!parsed.success) return this.counted?.downloads ?? null;
+      const releases = parsed.data
+        .filter((release) => !release.draft)
+        .map((release) => ({
+          tag: release.tag_name,
+          name: release.name ?? release.tag_name,
+          publishedAt: release.published_at ?? new Date(0).toISOString(),
+          downloads: release.assets
+            .filter((asset) => asset.name.toLowerCase().endsWith('.apk'))
+            .reduce((sum, asset) => sum + asset.download_count, 0),
+        }));
+      const downloads = { total: releases.reduce((sum, release) => sum + release.downloads, 0), releases };
+      this.counted = { downloads, at: this.now() };
+      return downloads;
+    } catch {
+      return this.counted?.downloads ?? null;
+    }
   }
 
   private stale(): Release {

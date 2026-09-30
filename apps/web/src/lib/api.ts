@@ -1,4 +1,12 @@
 import type {
+  AdminHistory,
+  AdminOverview,
+  AdminUsers,
+  Announcement,
+  AnnouncementBody,
+  AnnouncementsResult,
+  HeartbeatBody,
+  PushSubscriptionBody,
   AssistRequest,
   AssistStatus,
   AuthResult,
@@ -469,6 +477,58 @@ export const api = {
    * `forbidden` when it is not, 429 with `Retry-After` past the limit.
    */
   reauth: (password: string) => request<void>('/v1/me/reauth', { method: 'POST', body: { password } satisfies ReauthBody }),
+
+  // ------------------------------------------------ the news and the admin ([[Admin]])
+
+  /** Once a day from this browser, signed in: the platform, the version, and the streak while it is shared. */
+  heartbeat: (body: HeartbeatBody) => request<void>('/v1/me/heartbeat', { method: 'POST', body }),
+
+  /**
+   * The news live now: with the session when there is one (so the news
+   * for account holders comes too), and without it otherwise, when it
+   * carries nothing at all.
+   */
+  async announcements(): Promise<AnnouncementsResult> {
+    if (currentUser !== null) {
+      try {
+        return await request<AnnouncementsResult>('/v1/announcements');
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 401) throw error;
+      }
+    }
+    return request<AnnouncementsResult>('/v1/announcements', { auth: false });
+  },
+
+  /** The server's Web Push key, or null when it sends no push (404). */
+  async pushKey(): Promise<string | null> {
+    try {
+      return (await request<{ publicKey: string }>('/v1/push/key', { auth: false })).publicKey;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null;
+      throw error;
+    }
+  },
+  subscribePush: (body: PushSubscriptionBody) => request<void>('/v1/me/push-subscription', { method: 'POST', body }),
+  unsubscribePush: (endpoint: string) => request<void>('/v1/me/push-subscription', { method: 'DELETE', body: { endpoint } }),
+
+  adminOverview: () => request<AdminOverview>('/v1/admin/overview'),
+  adminHistory: (days: number) => request<AdminHistory>(`/v1/admin/history?days=${days}`),
+  adminUsers(query: { q?: string; cursor?: string; limit?: number } = {}) {
+    const params = new URLSearchParams();
+    if (query.q) params.set('q', query.q);
+    if (query.cursor) params.set('cursor', query.cursor);
+    if (query.limit) params.set('limit', String(query.limit));
+    const search = params.toString();
+    return request<AdminUsers>(`/v1/admin/users${search ? `?${search}` : ''}`);
+  },
+  adminAnnouncements: () =>
+    request<{ announcements: (Announcement & { pushed: number })[] }>('/v1/admin/announcements'),
+  createAnnouncement: (body: AnnouncementBody) =>
+    request<Announcement>('/v1/admin/announcements', { method: 'POST', body }),
+  endAnnouncement: (id: string, endsAt: string | null) =>
+    request<Announcement>(`/v1/admin/announcements/${encodeURIComponent(id)}`, { method: 'PATCH', body: { endsAt } }),
+  deleteAnnouncement: (id: string) =>
+    request<void>(`/v1/admin/announcements/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   revokeSession: (id: string) => request<void>(`/v1/me/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   latestRelease: (signal?: AbortSignal) =>

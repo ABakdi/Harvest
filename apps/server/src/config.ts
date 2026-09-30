@@ -78,6 +78,18 @@ const envSchema = z.object({
     .refine((value) => Buffer.from(value, 'base64').length === 32, { message: 'Must be 32 bytes' })
     .optional(),
 
+  /**
+   * The accounts that may open the admin panel ([[Admin]]), by email,
+   * comma-separated. Empty: nobody.
+   */
+  ADMIN_EMAILS: z.string().default(''),
+  /**
+   * Who the browsers' push services may contact about this server's
+   * pushes (VAPID's `subject`): a `mailto:` or `https:` address. Defaults
+   * to APP_URL.
+   */
+  WEB_PUSH_SUBJECT: z.string().optional(),
+
   GITHUB_REPO: z
     .string()
     .regex(/^[\w.-]+\/[\w.-]+$/, { message: 'owner/name' })
@@ -108,6 +120,9 @@ export interface Config {
   bodyLimit: string;
   smtp: SmtpConfig | null;
   mailFrom: string;
+  /** Normalised (trimmed, lowercase) admin emails. */
+  adminEmails: string[];
+  webPushSubject: string;
   appUrl: string;
   /** The server-held assist; `apiKey` null means it offers none. */
   assist: { apiKey: string | null; model: string; dailyLimit: number; globalDailyLimit: number };
@@ -204,6 +219,10 @@ export async function loadConfig(source: Record<string, string | undefined> = pr
       globalDailyLimit: env.ASSIST_GLOBAL_DAILY_LIMIT,
     },
     keyShareKey: env.KEY_SHARE_KEY ? Buffer.from(env.KEY_SHARE_KEY, 'base64') : developmentKeyShareKey,
+    adminEmails: env.ADMIN_EMAILS.split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email.length > 0),
+    webPushSubject: env.WEB_PUSH_SUBJECT || env.APP_URL.replace(/\/+$/, ''),
     githubRepo: env.GITHUB_REPO,
     githubToken: env.GITHUB_TOKEN,
   };

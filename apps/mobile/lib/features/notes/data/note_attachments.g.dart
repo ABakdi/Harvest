@@ -54,7 +54,7 @@ final class AttachmentStorageProvider
   }
 }
 
-String _$attachmentStorageHash() => r'412e1345dc0bde76c0b31716409333250db9d7ae';
+String _$attachmentStorageHash() => r'321f5d06477f31b50588215de35670758b64d94e';
 
 @ProviderFor(noteAttachmentsRepository)
 final noteAttachmentsRepositoryProvider = NoteAttachmentsRepositoryProvider._();

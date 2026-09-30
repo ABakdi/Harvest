@@ -241,6 +241,13 @@ class StreakService {
   /// The current global streak length.
   Future<int> currentGlobal() async => (await _row(globalScope)).current;
 
+  /// The global streak, now and at its longest: what the heartbeat
+  /// shares while *Share my streak* is on ([[Admin]]).
+  Future<({int current, int best})> global() async {
+    final row = await _row(globalScope);
+    return (current: row.current, best: row.best);
+  }
+
   /// Buys one Streak Freeze with coins. Returns false when the balance
   /// is short or the shed is full (max [maxFreezesStored]).
   Future<bool> buyFreeze({HarvestDay? day}) async {

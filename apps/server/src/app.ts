@@ -1,3 +1,5 @@
+import { WebPush, type PushSend } from './admin/web-push.js';
+import { adminRoutes, newsRoutes, requireAdmin } from './routes/admin.js';
 import { fileIvHeader, filePlainBytesHeader, maxAssistAudioBytes } from '@harvest/contracts';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -10,7 +12,7 @@ import type { Config } from './config.js';
 import { KeyShares } from './auth/key-shares.js';
 import { AuthService } from './auth/service.js';
 import type { Repositories } from './db/index.js';
-import { requireAuth, requireVerified } from './http/authenticate.js';
+import { optionalAuth, requireAuth, requireVerified } from './http/authenticate.js';
 import { errorHandler, notFoundHandler } from './http/errors.js';
 import { authLimiters, defaultRateLimits, type RateLimitSettings } from './http/rate-limits.js';
 import type { Mailer } from './mail/mailer.js';
@@ -32,7 +34,7 @@ export const assistBodyLimit = Math.ceil((maxAssistAudioBytes * 4) / 3) + 4 * 10
 export interface AppDeps {
   config: Pick<
     Config,
-    'corsOrigins' | 'cookieSecure' | 'trustProxy' | 'bodyLimit' | 'appUrl' | 'jwt' | 'assist' | 'keyShareKey'
+    'corsOrigins' | 'cookieSecure' | 'trustProxy' | 'bodyLimit' | 'appUrl' | 'jwt' | 'assist' | 'keyShareKey' | 'adminEmails' | 'webPushSubject'
   >;
   db: Db;
   repos: Repositories;
@@ -48,6 +50,10 @@ export interface AppDeps {
    * tests leave it off and sweep by hand.
    */
   fileSweepIntervalMs?: number;
+  /** How often to write the day's totals ([[Admin]]); the entry point sets it. */
+  statsIntervalMs?: number;
+  /** Web Push's one delivery, for tests: the real one reaches the browsers' push services. */
+  pushSend?: PushSend;
 }
 
 /** The small JSON bodies: sign-in, the account, the key check. */
@@ -106,6 +112,7 @@ export function createApp(deps: AppDeps): Express {
     keys: config.jwt,
     appUrl: config.appUrl,
     accountLock: sync.accountLock,
+    adminEmails: config.adminEmails,
     emailLimit: {
       failures: settings.emailLoginFailures,
       globalFailures: settings.emailGlobalLoginFailures,
@@ -139,6 +146,30 @@ export function createApp(deps: AppDeps): Express {
       auth,
       limits.deleteAccount,
     ),
+  );
+  const push = new WebPush(
+    deps.repos.serverSettings,
+    deps.repos.pushSubscriptions,
+    config.keyShareKey,
+    config.webPushSubject,
+    deps.pushSend,
+    logger,
+  );
+  v1.use(newsRoutes(deps.repos, push, [limits.news, optionalAuth(auth)], deps.now));
+  v1.use(
+    '/admin',
+    requireAuth(auth),
+    limits.admin,
+    requireAdmin(auth),
+    express.json({ limit: smallBody }),
+    adminRoutes({
+      repos: deps.repos,
+      releases: deps.releases,
+      push,
+      logger,
+      ...(deps.now ? { now: deps.now } : {}),
+      later: (work) => auth.later(work),
+    }),
   );
   v1.use('/me', requireAuth(auth), express.json({ limit: smallBody }), meRoutes(auth, deps.repos, cookies, limits));
   v1.use(
@@ -198,6 +229,14 @@ export function createApp(deps: AppDeps): Express {
     // The first a few minutes after start, then on the interval.
     setTimeout(sweep, 10 * 60_000).unref();
     setInterval(sweep, deps.fileSweepIntervalMs).unref();
+  }
+  if (deps.statsIntervalMs) {
+    const snapshot = () =>
+      void deps.repos.adminStats
+        .snapshot(deps.now?.() ?? new Date())
+        .catch((error: unknown) => logger.error({ err: error }, 'daily totals failed'));
+    setTimeout(snapshot, 60_000).unref();
+    setInterval(snapshot, deps.statsIntervalMs).unref();
   }
   return app;
 }

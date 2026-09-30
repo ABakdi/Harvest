@@ -5,10 +5,12 @@ import 'package:harvest/core/ui/widgets/big_bouncy_button.dart';
 /// The one bottom-sheet body: title, optional subtitle, the form, and
 /// the bouncy confirm pinned under it.
 ///
-/// The body always scrolls and always reserves the keyboard's height,
-/// so however tall the form grows and however short the screen is it
-/// can never overflow, and the confirm button stays reachable instead
-/// of sitting behind the keyboard.
+/// The form scrolls in whatever height is left; the confirm button sits
+/// outside it, at the foot of the sheet, right above the keyboard and
+/// the gesture bar. However long the form and however short the screen,
+/// nothing overflows and the button is never behind the keyboard
+/// ([[Checkpoint-12]] B12-01): it used to be the last thing inside the
+/// scrolling form, reachable only by scrolling past the keyboard.
 class HarvestSheet extends StatelessWidget {
   const HarvestSheet({
     required this.title,
@@ -37,6 +39,7 @@ class HarvestSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final action = actionLabel;
     return Padding(
       // The keyboard, then the gesture bar below it. MediaQuery zeroes
       // the padding an inset already covers, so the two never stack.
@@ -45,53 +48,67 @@ class HarvestSheet extends StatelessWidget {
             MediaQuery.viewInsetsOf(context).bottom +
             MediaQuery.paddingOf(context).bottom,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          HarvestSpacing.lg,
-          0,
-          HarvestSpacing.lg,
-          HarvestSpacing.lg,
-        ),
-        // Dragging the form pushes the keyboard away.
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                HarvestSpacing.lg,
+                0,
+                HarvestSpacing.lg,
+                action == null ? HarvestSpacing.lg : HarvestSpacing.md,
+              ),
+              // Dragging the form pushes the keyboard away.
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      ?trailing,
+                    ],
+                  ),
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        subtitle!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                ?trailing,
-              ],
+                  const SizedBox(height: HarvestSpacing.md),
+                  ...children,
+                ],
+              ),
             ),
-            if (subtitle != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(
-                  subtitle!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+          ),
+          if (action != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                HarvestSpacing.lg,
+                HarvestSpacing.sm,
+                HarvestSpacing.lg,
+                HarvestSpacing.lg,
               ),
-            const SizedBox(height: HarvestSpacing.md),
-            ...children,
-            if (actionLabel != null) ...[
-              const SizedBox(height: HarvestSpacing.lg),
-              BigBouncySheetButton(
+              child: BigBouncySheetButton(
                 onPressed: onAction,
-                child: Text(actionLabel!),
+                child: Text(action),
               ),
-            ],
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

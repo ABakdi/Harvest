@@ -6,13 +6,12 @@ import 'package:harvest/features/account/presentation/account_card.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 import 'package:harvest/l10n/app_localizations_en.dart';
 
-/// Signed out, with a server set; counts the calls that would reach it.
+/// Signed out; counts the calls that would reach the server.
 class _Account extends AccountController {
   int calls = 0;
 
   @override
-  Future<AccountState> build() async =>
-      const AccountState(serverUrl: 'https://harvest.example.com');
+  Future<AccountState> build() async => const AccountState();
 
   @override
   Future<void> login({required String email, required String password}) async {
@@ -34,14 +33,12 @@ void main() {
 
   group('signInProblem', () {
     String? problem({
-      String server = 'https://harvest.example.com',
       String email = 'me@example.com',
       String password = 'correct horse',
       bool creating = false,
       String name = '',
     }) => signInProblem(
       l10n,
-      server: server,
       email: email,
       password: password,
       creating: creating,
@@ -54,8 +51,6 @@ void main() {
     });
 
     test('names what is missing or malformed, before any request', () {
-      expect(problem(server: ''), l10n.accountServerInvalid);
-      expect(problem(server: 'harvest.example.com'), l10n.accountServerInvalid);
       expect(problem(email: ''), l10n.accountEmailMissing);
       expect(problem(email: 'me@'), l10n.accountEmailInvalid);
       expect(problem(password: ''), l10n.accountPasswordMissing);
@@ -94,8 +89,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The server field shows an example without being focused.
-    expect(find.textContaining('harvest.example.com'), findsWidgets);
+    // The server is built in: nothing to type but who I am (B12-02).
+    expect(find.byType(TextField), findsNWidgets(2));
+    expect(find.textContaining('https://'), findsNothing);
 
     await tester.tap(find.widgetWithText(FilledButton, l10n.accountSignIn));
     await tester.pump();

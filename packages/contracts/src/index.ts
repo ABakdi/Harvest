@@ -11,3 +11,4 @@ export * from './assist.js';
 export * from './sync-secret.js';
 export * from './sync-key.js';
 export * from './paths.js';
+export * from './admin.js';

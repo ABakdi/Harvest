@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:harvest/core/domain/harvest_day.dart';
-import 'package:harvest/core/domain/secure_address.dart';
 import 'package:harvest/core/ui/format.dart';
 import 'package:harvest/core/ui/tokens.dart';
 import 'package:harvest/core/ui/widgets/confirm_dialog.dart';
@@ -11,7 +10,9 @@ import 'package:harvest/core/ui/widgets/harvest_sheet.dart';
 import 'package:harvest/core/ui/widgets/text_prompt.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
+import 'package:harvest/features/account/domain/heartbeat.dart';
 import 'package:harvest/features/account/presentation/sync_pin_sheet.dart';
+import 'package:harvest/features/settings/presentation/setting_switch.dart';
 import 'package:harvest/features/sync/presentation/sync_controller.dart';
 import 'package:harvest/l10n/app_localizations.dart';
 
@@ -29,7 +30,7 @@ class AccountCard extends ConsumerWidget {
     if (account == null) return const SizedBox.shrink();
     return account.signedIn
         ? _SignedIn(state: account)
-        : _SignedOut(serverUrl: account.serverUrl, creating: creating);
+        : _SignedOut(creating: creating);
   }
 }
 
@@ -48,25 +49,16 @@ String accountError(AppLocalizations l10n, Object error) => switch (error) {
 
 /// What is wrong with the sign-in form before it is sent, in words, or
 /// null when it may go: the same checks the server's contract makes —
-/// an https server (plain http only to this device or the emulator,
-/// S6-12), an address with an @ and a dot after it, a
-/// password (ten characters or more for a new account).
+/// an address with an @ and a dot after it, a password (ten characters
+/// or more for a new account). The server itself is built in (B12-02).
 @visibleForTesting
 String? signInProblem(
   AppLocalizations l10n, {
-  required String server,
   required String email,
   required String password,
   required bool creating,
   String name = '',
 }) {
-  final url = Uri.tryParse(server.trim());
-  if (url == null ||
-      !(url.isScheme('http') || url.isScheme('https')) ||
-      url.host.isEmpty) {
-    return l10n.accountServerInvalid;
-  }
-  if (!isSecureAddress(server)) return l10n.accountServerNotSecure;
   final address = email.trim();
   if (address.isEmpty) return l10n.accountEmailMissing;
   if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(address) ||
@@ -85,9 +77,8 @@ String? signInProblem(
 }
 
 class _SignedOut extends ConsumerStatefulWidget {
-  const _SignedOut({required this.serverUrl, this.creating = false});
+  const _SignedOut({this.creating = false});
 
-  final String serverUrl;
   final bool creating;
 
   @override
@@ -95,7 +86,6 @@ class _SignedOut extends ConsumerStatefulWidget {
 }
 
 class _SignedOutState extends ConsumerState<_SignedOut> {
-  late final _server = TextEditingController(text: widget.serverUrl);
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _name = TextEditingController();
@@ -105,7 +95,6 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
 
   @override
   void dispose() {
-    _server.dispose();
     _email.dispose();
     _password.dispose();
     _name.dispose();
@@ -118,7 +107,6 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
     // to say, not a request to send ([[Accounts]]).
     final problem = signInProblem(
       l10n,
-      server: _server.text,
       email: _email.text,
       password: _password.text,
       creating: _creating,
@@ -134,9 +122,6 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
     });
     final controller = ref.read(accountControllerProvider.notifier);
     try {
-      if (_server.text.trim() != widget.serverUrl) {
-        await controller.setServerUrl(_server.text);
-      }
       if (_creating) {
         await controller.register(
           email: _email.text,
@@ -172,20 +157,6 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
                 ),
               ),
               const SizedBox(height: HarvestSpacing.md),
-              TextField(
-                controller: _server,
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  labelText: l10n.accountServer,
-                  hintText: l10n.accountServerHint,
-                  // The hint only shows on an empty, focused field; the
-                  // example stays in view underneath.
-                  helperText: l10n.accountServerExample,
-                  helperMaxLines: 2,
-                ),
-              ),
-              const SizedBox(height: HarvestSpacing.sm),
               // The name before the email and password: the field right
               // after a new password is taken for its confirmation by
               // password managers, and filled with it.
@@ -205,12 +176,18 @@ class _SignedOutState extends ConsumerState<_SignedOut> {
                 keyboardType: TextInputType.emailAddress,
                 autocorrect: false,
                 autofillHints: const [AutofillHints.email],
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(labelText: l10n.accountEmail),
               ),
               const SizedBox(height: HarvestSpacing.sm),
               TextField(
                 controller: _password,
                 obscureText: true,
+                // The keyboard's own button signs in, as the button does.
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) {
+                  if (!_busy) unawaited(_submit());
+                },
                 autofillHints: [
                   if (_creating)
                     AutofillHints.newPassword
@@ -280,11 +257,7 @@ class _SignedIn extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.account_circle_outlined),
               title: Text(me.displayName ?? me.email),
-              subtitle: Text(
-                me.displayName == null
-                    ? state.serverUrl
-                    : '${me.email} · ${state.serverUrl}',
-              ),
+              subtitle: me.displayName == null ? null : Text(me.email),
               // A label, not something to tap (U6-20).
               trailing: me.verified
                   ? Row(
@@ -382,6 +355,12 @@ class _SignedIn extends ConsumerWidget {
             ],
             const Divider(height: HarvestSpacing.lg),
             const SyncPinTile(),
+            // What this phone tells the server once a day ([[Admin]]).
+            SettingSwitchTile(
+              settingKey: HeartbeatKeys.shareStreak,
+              title: l10n.shareStreakSetting,
+              subtitle: l10n.shareStreakBody,
+            ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.devices_outlined),

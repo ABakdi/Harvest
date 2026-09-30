@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
@@ -11,7 +12,21 @@ const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 // on a laptop exactly as it does behind the production proxy.
 const apiTarget = process.env.HARVEST_API_URL ?? 'http://localhost:4000';
 
+// The release this build is: the phone's version for the same release,
+// so both say the same number in the heartbeat ([[Admin]]).
+function releaseVersion(): string {
+  try {
+    const pubspec = readFileSync(here('../mobile/pubspec.yaml'), 'utf8');
+    return /^version:\s*([^+\s]+)/m.exec(pubspec)?.[1] ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
 export default defineConfig(({ mode }) => ({
+  define: {
+    __HARVEST_VERSION__: JSON.stringify(releaseVersion()),
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -59,6 +74,9 @@ export default defineConfig(({ mode }) => ({
           },
         ],
         cleanupOutdatedCaches: true,
+        // Web Push ([[Admin]]): shows what the server sends, and opens
+        // the app, or the news's link, on a tap.
+        importScripts: ['push-sw.js'],
       },
       devOptions: { enabled: false },
     }),

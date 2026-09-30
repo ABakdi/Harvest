@@ -418,7 +418,12 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
         actionLabel: switch (_phase) {
           _Phase.deriving =>
             entering ? l10n.syncPinChecking : l10n.syncPinWorking,
-          _Phase.typing => entering ? l10n.syncPinEnter : l10n.syncPinChoose,
+          _Phase.typing =>
+            entering
+                ? l10n.syncPinEnter
+                : _passphrase
+                ? l10n.syncPassphraseChoose
+                : l10n.syncPinChoose,
         },
         onAction: working || _first.text.isEmpty
             ? null
@@ -437,12 +442,6 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: HarvestSpacing.sm),
-          ],
-          Text(entering ? l10n.syncPinEnterBody : l10n.syncPinChooseBody),
-          const SizedBox(height: HarvestSpacing.md),
-          if (!entering && _passphrase) ...[
-            Text(l10n.syncPassphraseAdvice, style: muted),
             const SizedBox(height: HarvestSpacing.sm),
           ],
           _field(
@@ -515,6 +514,16 @@ class _SyncPinSheetState extends ConsumerState<SyncPinSheet> {
                 child: Text(l10n.syncPinForgot),
               ),
             ),
+          // What it is, after the fields rather than before them, so
+          // the fields and the button sit together above the keyboard
+          // ([[Checkpoint-12]] B12-01).
+          const SizedBox(height: HarvestSpacing.sm),
+          Text(entering ? l10n.syncPinEnterBody : l10n.syncPinChooseBody),
+          const SizedBox(height: HarvestSpacing.sm),
+          if (!entering && _passphrase) ...[
+            Text(l10n.syncPassphraseAdvice, style: muted),
+            const SizedBox(height: HarvestSpacing.sm),
+          ],
           // Said plainly, and said twice ([[Accounts]]): once here, once
           // in what it costs.
           Text(l10n.syncPinLoss, style: muted),

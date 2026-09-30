@@ -1,4 +1,4 @@
-import { KeyRoundIcon, LogOutIcon, RefreshCwIcon, SettingsIcon, ShieldCheckIcon } from 'lucide-react';
+import { ChartColumnIcon, KeyRoundIcon, LogOutIcon, RefreshCwIcon, SettingsIcon, ShieldCheckIcon } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -250,12 +250,22 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
               <LogOutIcon />
               {t('settings.signOutHere')}
             </Button>
-            <Button asChild variant="link" size="sm">
-              <Link to="/app/settings" onClick={onClose}>
-                <SettingsIcon />
-                {t('account.allSettings')}
-              </Link>
-            </Button>
+            <div className="flex flex-wrap items-center gap-1">
+              {user.admin === true && (
+                <Button asChild variant="link" size="sm">
+                  <Link to="/app/admin" onClick={onClose}>
+                    <ChartColumnIcon />
+                    {t('admin.title')}
+                  </Link>
+                </Button>
+              )}
+              <Button asChild variant="link" size="sm">
+                <Link to="/app/settings" onClick={onClose}>
+                  <SettingsIcon />
+                  {t('account.allSettings')}
+                </Link>
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

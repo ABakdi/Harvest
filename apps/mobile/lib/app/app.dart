@@ -6,6 +6,7 @@ import 'package:harvest/app/bootstrap.dart';
 import 'package:harvest/app/router.dart';
 import 'package:harvest/app/splash_screen.dart';
 import 'package:harvest/core/app/current_day.dart';
+import 'package:harvest/core/ui/keyboard_reveal.dart';
 import 'package:harvest/core/ui/scroll_behavior.dart';
 import 'package:harvest/core/ui/theme.dart';
 import 'package:harvest/core/ui/tokens.dart';
@@ -126,9 +127,12 @@ class _HarvestAppState extends ConsumerState<HarvestApp> {
       scrollBehavior: const HarvestScrollBehavior(),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       // Above the navigator, so the lock covers every route, sheet and
-      // dialog at once instead of being one screen among many.
-      builder: (context, child) =>
-          LockGate(child: child ?? const SizedBox.shrink()),
+      // dialog at once instead of being one screen among many; and so
+      // does the field brought back into view once the keyboard is up
+      // (B12-01).
+      builder: (context, child) => KeyboardReveal(
+        child: LockGate(child: child ?? const SizedBox.shrink()),
+      ),
       routerConfig: ref.watch(routerProvider),
       theme: HarvestTheme.light(preset),
       darkTheme: HarvestTheme.dark(preset),

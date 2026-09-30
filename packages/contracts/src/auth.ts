@@ -196,6 +196,11 @@ export const meSchema = z.object({
   /** Base64; the public half of the private tier's key derivation. */
   syncSalt: z.string(),
   createdAt: isoInstant,
+  /**
+   * The account is one the server's `ADMIN_EMAILS` names ([[Admin]]).
+   * Absent from a server before it, which reads as not an admin.
+   */
+  admin: z.boolean().optional(),
 });
 export type Me = z.infer<typeof meSchema>;
 

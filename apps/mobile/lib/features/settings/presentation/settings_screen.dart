@@ -18,6 +18,7 @@ import 'package:harvest/features/finances/presentation/finance_providers.dart';
 import 'package:harvest/features/gym/presentation/media_card.dart';
 import 'package:harvest/features/health/presentation/sleep_settings_card.dart';
 import 'package:harvest/features/import/presentation/import_card.dart';
+import 'package:harvest/features/news/domain/news.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
 import 'package:harvest/features/security/presentation/app_lock_card.dart';
@@ -25,6 +26,7 @@ import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/daily_cycle_card.dart';
 import 'package:harvest/features/settings/presentation/features_card.dart';
 import 'package:harvest/features/settings/presentation/rates_card.dart';
+import 'package:harvest/features/settings/presentation/setting_switch.dart';
 import 'package:harvest/features/settings/presentation/settings_controllers.dart';
 import 'package:harvest/features/widget/presentation/widget_card.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -225,7 +227,7 @@ class SettingsSectionScreen extends ConsumerWidget {
         const ExerciseMediaCard(),
       ],
     ],
-    SettingsSection.reminders => const [_RemindersCard()],
+    SettingsSection.reminders => const [_RemindersCard(), _NewsCard()],
     SettingsSection.pomodoro => const [_PomodoroCard()],
     SettingsSection.money => const [
       _DefaultCurrencyCard(),
@@ -735,6 +737,29 @@ class _PresetSwatch extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// *News from Harvest* ([[Admin]]): on unless turned off, this phone
+/// only. Turning it on asks to post notifications, and nothing more.
+class _NewsCard extends ConsumerWidget {
+  const _NewsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return Card(
+      child: SettingSwitchTile(
+        settingKey: NewsKeys.enabled,
+        title: l10n.newsSetting,
+        subtitle: l10n.newsSettingBody,
+        onChanged: ({required on}) async {
+          if (on) {
+            await ref.read(notificationServiceProvider).requestPostPermission();
+          }
+        },
       ),
     );
   }
