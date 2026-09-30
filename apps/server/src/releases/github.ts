@@ -171,7 +171,10 @@ export class ReleaseSource {
       clearTimeout(timer);
     }
     if (!response.ok || !response.body) throw new HttpError('unavailable', 'GitHub is not answering right now');
-    return { name: apk.name, size: apk.size, body: response.body };
+    // GitHub's own length, not the listed one: an asset replaced within
+    // the hour is still listed at its old size.
+    const length = Number(response.headers.get('content-length'));
+    return { name: apk.name, size: Number.isFinite(length) && length > 0 ? length : apk.size, body: response.body };
   }
 
   private counted: { downloads: Downloads; at: number } | null = null;
