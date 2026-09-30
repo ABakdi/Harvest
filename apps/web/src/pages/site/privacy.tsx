@@ -8,9 +8,9 @@ import { useDocumentTitle } from '@/lib/title';
  * for item, plus what the web adds by being a web page. If the rule's
  * list grows, or the data map changes, so does this page.
  */
-const outbound = ['rates', 'exercise', 'tiles', 'assist', 'sync', 'mail', 'news', 'push'] as const;
+const outbound = ['rates', 'exercise', 'tiles', 'assist', 'sync', 'mail', 'news', 'push', 'report'] as const;
 const webOnly = ['site', 'fonts'] as const;
-const server = ['rows', 'files', 'account', 'password', 'activity', 'admin', 'logs', 'backups'] as const;
+const server = ['rows', 'files', 'account', 'password', 'activity', 'admin', 'reports', 'logs', 'backups'] as const;
 const devices = ['phone', 'browser', 'exports'] as const;
 const kept = ['rows', 'sessions', 'counts', 'account'] as const;
 

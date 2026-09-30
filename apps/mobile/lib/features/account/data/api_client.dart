@@ -93,6 +93,9 @@ class ApiClient {
   static const paceAttempts = 3;
   static const longestWait = Duration(seconds: 60);
 
+  /// How long a call may take before it counts as offline.
+  static const requestTimeout = Duration(seconds: 30);
+
   Future<void>? _refreshing;
 
   Future<Map<String, Object?>> get(String path, {Map<String, String>? query}) =>
@@ -111,9 +114,13 @@ class ApiClient {
       _send('DELETE', path, body: body);
 
   /// A call that must not carry or refresh a session: sign-in, sign-up,
-  /// the emailed links.
-  Future<Map<String, Object?>> postAnonymous(String path, Object? body) =>
-      _send('POST', path, body: body, authenticated: false);
+  /// the emailed links, a report ([[Admin]]). A large body — a report's
+  /// pictures and recording — takes a longer [timeout].
+  Future<Map<String, Object?>> postAnonymous(
+    String path,
+    Object? body, {
+    Duration timeout = requestTimeout,
+  }) => _send('POST', path, body: body, authenticated: false, timeout: timeout);
 
   /// A read that carries no session: the news asked for in the
   /// background, where refreshing a session beside the app could spend
@@ -178,6 +185,7 @@ class ApiClient {
     Map<String, String>? query,
     bool authenticated = true,
     bool retried = false,
+    Duration timeout = requestTimeout,
   }) async {
     if (authenticated && tokens.access == null && !retried) {
       await _refreshOnce();
@@ -190,6 +198,7 @@ class ApiClient {
       extraHeaders: extraHeaders,
       query: query,
       bearer: authenticated ? tokens.access : null,
+      timeout: timeout,
     );
     if (response.statusCode == 401 && authenticated && !retried) {
       await _refreshOnce();
@@ -219,6 +228,7 @@ class ApiClient {
     Map<String, String>? query,
     String? bearer,
     String accept = 'application/json',
+    Duration timeout = requestTimeout,
   }) async {
     for (var attempt = 1; ; attempt++) {
       final response = await _raw(
@@ -230,6 +240,7 @@ class ApiClient {
         query: query,
         bearer: bearer,
         accept: accept,
+        timeout: timeout,
       );
       final paced =
           path.startsWith('/v1/sync/') || path.startsWith('/v1/files');
@@ -283,6 +294,7 @@ class ApiClient {
     Map<String, String>? query,
     String? bearer,
     String accept = 'application/json',
+    Duration timeout = requestTimeout,
   }) async {
     final base = baseUrl();
     final url = base.replace(
@@ -301,7 +313,7 @@ class ApiClient {
     }
     try {
       return await http.Response.fromStream(
-        await _client.send(request).timeout(const Duration(seconds: 30)),
+        await _client.send(request).timeout(timeout),
       );
     } on SocketException {
       throw const ApiException('offline', 0);

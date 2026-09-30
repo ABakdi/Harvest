@@ -60,6 +60,7 @@ envelope, the sync key protects what is inside it.
 | Heartbeat ([[Admin]]) | The last day active, the platform and app version, and the streak while I share it — only the latest, no history | The same |
 | Daily totals | Counts only: accounts, sign-ups, active accounts, shared streaks' median and mean | The same |
 | News | What the admin wrote | The same |
+| Reports of a problem | The words, pictures (re-encoded, without their metadata) and recording someone chose to send, with the platform and version; no account, no address | The same |
 | Web Push subscriptions | A browser's push endpoint (at its push service) and its public keys, for an account that allowed notifications | The same |
 | Sign-in failures | A keyed hash of the email (and of the email with the network), gone within the hour | Nothing it can reverse |
 | Assist use | A count a day per account, gone after 60 days | The same |

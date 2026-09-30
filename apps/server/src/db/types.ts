@@ -277,3 +277,17 @@ export interface ServerSettingDoc {
   /** Sealed with KEY_SHARE_KEY (additional data `vapid`). */
   privateKey?: SealedBytes;
 }
+
+/**
+ * A report of a problem ([[Admin]] F12-5): anonymous — no account, no
+ * address — with its attachments' bytes in the `report_files` bucket.
+ */
+export interface ReportDoc {
+  _id: ObjectId;
+  text: string;
+  platform: string;
+  appVersion: string;
+  status: 'new' | 'read' | 'done';
+  createdAt: Date;
+  attachments: { _id: ObjectId; kind: 'image' | 'audio'; type: string; bytes: number; gridId: ObjectId }[];
+}

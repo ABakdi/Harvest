@@ -1,5 +1,6 @@
 import type { Collection, Db } from 'mongodb';
 import type {
+  ReportDoc,
   AnnouncementDoc,
   DailyStatsDoc,
   PushSubscriptionDoc,
@@ -34,6 +35,7 @@ export interface Collections {
   pushSubscriptions: Collection<PushSubscriptionDoc>;
   dailyStats: Collection<DailyStatsDoc>;
   serverSettings: Collection<ServerSettingDoc>;
+  reports: Collection<ReportDoc>;
   /** GridFS's own `files` collection of the file bytes' bucket. */
   fileBlobs: Collection;
 }
@@ -55,6 +57,7 @@ export function collections(db: Db): Collections {
     pushSubscriptions: db.collection<PushSubscriptionDoc>('push_subscriptions'),
     dailyStats: db.collection<DailyStatsDoc>('daily_stats'),
     serverSettings: db.collection<ServerSettingDoc>('server_settings'),
+    reports: db.collection<ReportDoc>('reports'),
     fileBlobs: db.collection('file_blobs.files'),
   };
 }
@@ -115,6 +118,8 @@ export async function ensureIndexes(c: Collections): Promise<void> {
     // A browser subscribes once; an account's go with it.
     c.pushSubscriptions.createIndex({ endpoint: 1 }, { unique: true, name: 'push_endpoint', ...building }),
     c.pushSubscriptions.createIndex({ userId: 1 }, { name: 'push_user', ...building }),
+    // The reports still to read.
+    c.reports.createIndex({ status: 1, _id: -1 }, { name: 'reports_status', ...building }),
     // The admin's counts over the accounts.
     c.users.createIndex({ lastActiveAt: 1 }, { name: 'users_last_active', ...building }),
     c.users.createIndex({ createdAt: 1 }, { name: 'users_created', ...building }),

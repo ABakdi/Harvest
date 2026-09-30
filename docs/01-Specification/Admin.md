@@ -111,6 +111,30 @@ of who asked.
   the asking and the notifications on that device; the web's browser
   permission does the same for push.
 
+## Reports
+
+*Report a problem* — in Settings on the phone and on the web, for
+everyone, account or not — is how someone tells me what went wrong, in
+their own words ([[Checkpoint-12]] F12-5).
+
+- **What goes**: the text (up to 5,000 characters), up to four pictures
+  and one recording (a few minutes at most), and the platform and app
+  version, so I know which build it is about. About 20 MB at most, all
+  told.
+- **Anonymous**: the report is not tied to an account — the server does
+  not read the session even when there is one — and no address is kept;
+  the only limit is a count per network in memory (five an hour). If
+  they want an answer, they write how to reach them in the text.
+- **Not encrypted end to end**, unlike what syncs: a report is written
+  to me, to be read. The form says so beside the send button.
+- **Pictures lose their metadata**: each is re-encoded on the device
+  before it goes, so a photo's GPS position, camera and time never leave
+  with it.
+- **In the admin panel**, a *Reports* tab: newest first, each with its
+  text, its pictures and its recording, the platform, the version and
+  when it came; marked *new*, *read* or *done*; deleted by me, and with
+  it every file. Nothing is deleted on its own.
+
 ## Who is an admin
 
 An account whose email is in `ADMIN_EMAILS` (the server's environment,
@@ -130,5 +154,6 @@ the phone.
 | AD4 | No history is kept per account; history is daily totals. |
 | AD5 | News is fetched without identity unless the device is signed in, and can be turned off on every device. |
 | AD6 | Only accounts named in `ADMIN_EMAILS` reach `/v1/admin`; anyone else gets 404. |
+| AD7 | A report carries no account and no address; its pictures leave the device re-encoded, without their metadata. |
 
 Related: [[Accounts]] · [[Sync-API]] · [[Data-Map]] · [[Business-Rules]] #13 · [[Notifications]]

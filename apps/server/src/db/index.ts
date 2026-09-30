@@ -1,3 +1,4 @@
+import { ReportsRepository } from './reports.js';
 import { AdminStatsRepository } from './admin-stats.js';
 import { AnnouncementsRepository, PushSubscriptionsRepository, ServerSettingsRepository } from './announcements.js';
 import { peopleKeys } from '../auth/people-keys.js';
@@ -27,6 +28,7 @@ export interface Repositories {
   announcements: AnnouncementsRepository;
   pushSubscriptions: PushSubscriptionsRepository;
   serverSettings: ServerSettingsRepository;
+  reports: ReportsRepository;
 }
 
 /**
@@ -52,6 +54,7 @@ export async function createRepositories(db: Db, secret: Buffer): Promise<Reposi
     announcements: new AnnouncementsRepository(c.announcements),
     pushSubscriptions: new PushSubscriptionsRepository(c.pushSubscriptions),
     serverSettings: new ServerSettingsRepository(c.serverSettings),
+    reports: new ReportsRepository(c.reports, db),
   };
 }
 

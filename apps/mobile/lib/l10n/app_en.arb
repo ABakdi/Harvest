@@ -2065,5 +2065,38 @@
       }
     }
   },
-  "exportConfirmOffline": "The server can't be reached to check the password. Try again when you're online."
+  "exportConfirmOffline": "The server can't be reached to check the password. Try again when you're online.",
+  "reportTitle": "Report a problem",
+  "reportSettingsHint": "Tell Harvest what went wrong, with pictures or a recording.",
+  "reportTextLabel": "What happened?",
+  "reportTextHint": "What you did, what you expected, and what happened instead.",
+  "reportTakePhoto": "Take a picture",
+  "reportPickPhoto": "Choose a picture",
+  "reportPicturesNote": "Pictures are made smaller and saved again on this phone first, so their location, camera and time never leave with them.",
+  "reportRecord": "Record a voice note",
+  "reportStopRecording": "Stop",
+  "reportRecordingLabel": "Voice note",
+  "reportRemove": "Remove",
+  "reportPrivacy": "This goes to Harvest's team as you wrote it, without your name or your account. It is not end-to-end encrypted: it is meant to be read. To get an answer, say how to reach you.",
+  "reportSend": "Send",
+  "reportSending": "Sending…",
+  "reportSent": "Thank you. Your report is on its way.",
+  "reportOffline": "The report could not go: this phone seems to be offline. It is still here.",
+  "reportTooLarge": "Too large to send. Take out a picture or the recording.",
+  "reportFailed": "The report could not go. Try again in a moment.",
+  "reportEmpty": "Write what happened first.",
+  "reportTextTooLong": "5,000 characters at most.",
+  "reportTooManyImages": "Four pictures at most.",
+  "reportImageTooLarge": "That picture is too large, even made smaller.",
+  "reportAudioTooLarge": "The recording is too long to send.",
+  "reportNotAPicture": "That file is not a picture Harvest can read.",
+  "reportNoMic": "Harvest needs the microphone to record.",
+  "reportLimited": "{minutes, plural, =1{Too many reports from here just now. Try again in a minute.} other{Too many reports from here just now. Try again in {minutes} minutes.}}",
+  "@reportLimited": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  }
 }

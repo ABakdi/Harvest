@@ -19,6 +19,7 @@ import { authOf } from '../http/authenticate.js';
 import { HttpError } from '../http/errors.js';
 import { validated } from '../http/validate.js';
 import type { ReleaseSource } from '../releases/github.js';
+import { adminReportRoutes } from './reports.js';
 
 /**
  * Only an admin gets past: anyone else, signed in or not, is answered
@@ -82,6 +83,8 @@ export function adminRoutes({ repos, releases, push, logger, now = () => new Dat
       res.json(body);
     }),
   );
+
+  router.use('/reports', adminReportRoutes(repos));
 
   router.get('/announcements', async (_req, res) => {
     const docs = await repos.announcements.all();

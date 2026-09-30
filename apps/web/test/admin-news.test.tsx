@@ -139,6 +139,10 @@ function fakeAdmin(overrides: Partial<AdminApi> = {}): AdminApi {
     createAnnouncement: vi.fn((body) => Promise.resolve({ ...news('n2'), ...body } as Announcement)),
     endAnnouncement: vi.fn(() => Promise.resolve(news('n1'))),
     deleteAnnouncement: vi.fn(() => Promise.resolve()),
+    adminReports: vi.fn(() => Promise.resolve({ reports: [], next: null, unread: 0 })),
+    setReportStatus: vi.fn(() => Promise.reject(new Error('no reports here'))),
+    deleteReport: vi.fn(() => Promise.resolve()),
+    reportAttachment: vi.fn(() => Promise.resolve(new Blob())),
     ...overrides,
   };
 }

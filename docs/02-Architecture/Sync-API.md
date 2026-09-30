@@ -553,6 +553,7 @@ auth bodies are strict: a key the contract does not name is refused.
 | `POST /v1/me/heartbeat` | ✓ | Once a day: platform, version, the streak while shared ([[Admin]]) |
 | `GET /v1/announcements` | optional | The news live now; with a session, the account holders' too |
 | `GET /v1/push/key` · `POST`/`DELETE /v1/me/push-subscription` | – / ✓ | Web Push: the server's VAPID key, a browser's subscription |
+| `POST /v1/reports` | – | A report of a problem, anonymous: no session read, no address kept, 5 an hour per network ([[Admin]]) |
 | `GET /v1/admin/overview` · `history` · `users` · `announcements` (+ `POST`, `PATCH`, `DELETE`) | admin | The admin panel ([[Admin]]); 404 to anyone else |
 | `GET /v1/me/sessions` · `DELETE /v1/me/sessions/:id` | ✓ | Devices |
 | `GET /v1/me/sync-key` · `PUT /v1/me/sync-key/check` · `DELETE /v1/me/sync-key` | ✓ | The sync key (above) |

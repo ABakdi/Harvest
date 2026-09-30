@@ -8,7 +8,7 @@ import {
   type DailyStats,
 } from '@harvest/contracts';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { MegaphoneIcon, SearchIcon, Trash2Icon, UsersIcon, ChartColumnIcon } from 'lucide-react';
+import { LifeBuoyIcon, MegaphoneIcon, SearchIcon, Trash2Icon, UsersIcon, ChartColumnIcon } from 'lucide-react';
 import { useId, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ import { api } from '@/lib/api';
 import { formatDate, formatDay, formatNumber } from '@/lib/format';
 import { useDocumentTitle } from '@/lib/title';
 import { cn } from '@/lib/utils';
+import { Reports, useUnreadReports, type ReportsApi } from './admin-reports';
 
 /**
  * The admin panel ([[Admin]]): how Harvest is used, from the server's
@@ -53,11 +54,13 @@ export type AdminApi = Pick<
   | 'createAnnouncement'
   | 'endAnnouncement'
   | 'deleteAnnouncement'
->;
+> &
+  ReportsApi;
 
 export function AdminScreen({ source = api }: { source?: AdminApi }) {
   const { t } = useTranslation();
   useDocumentTitle(t('admin.title'));
+  const unread = useUnreadReports(source);
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-extrabold">{t('admin.title')}</h1>
@@ -75,6 +78,15 @@ export function AdminScreen({ source = api }: { source?: AdminApi }) {
             <MegaphoneIcon />
             {t('admin.tab.news')}
           </TabsTrigger>
+          <TabsTrigger value="reports">
+            <LifeBuoyIcon />
+            {t('admin.tab.reports')}
+            {unread > 0 && (
+              <Badge className="ms-1 px-1.5 tabular" aria-label={t('admin.reports.unread', { count: unread })}>
+                {formatNumber(unread)}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <Overview source={source} />
@@ -84,6 +96,9 @@ export function AdminScreen({ source = api }: { source?: AdminApi }) {
         </TabsContent>
         <TabsContent value="news">
           <News source={source} />
+        </TabsContent>
+        <TabsContent value="reports">
+          <Reports source={source} />
         </TabsContent>
       </Tabs>
     </div>

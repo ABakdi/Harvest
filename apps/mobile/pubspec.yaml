@@ -32,6 +32,7 @@ dependencies:
     path: packages/harvest_steps
   home_widget: ^0.9.4
   http: ^1.6.0
+  image: ^4.3.0
   image_picker: ^1.2.3
   intl: ^0.20.3
   just_audio: ^0.10.6

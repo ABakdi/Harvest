@@ -4,6 +4,7 @@ import {
   heartbeatBodySchema,
   meSchema,
   pushSubscriptionBodySchema,
+  reportBodySchema,
   streakBandOf,
 } from '../src/index.js';
 
@@ -53,5 +54,27 @@ describe('web push and the admin flag', () => {
     expect([0, 1, 2, 3, 6, 7, 13, 14, 29, 30, 99, 100, 400].map(streakBandOf)).toEqual([
       '0', '1–2', '1–2', '3–6', '3–6', '7–13', '7–13', '14–29', '14–29', '30–99', '30–99', '100+', '100+',
     ]);
+  });
+});
+
+describe('a report (Admin F12-5)', () => {
+  const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex').toString('base64');
+  const body = { text: 'The keyboard hides the button', platform: 'android', appVersion: '3.3.0' };
+
+  it('takes text alone, or with up to four pictures and one recording', () => {
+    expect(reportBodySchema.parse(body).attachments).toEqual([]);
+    const image = { kind: 'image', type: 'image/png', data: png };
+    const audio = { kind: 'audio', type: 'audio/mp4', data: png };
+    expect(reportBodySchema.safeParse({ ...body, attachments: [image, image, image, image, audio] }).success).toBe(true);
+    expect(reportBodySchema.safeParse({ ...body, attachments: [image, image, image, image, image] }).success).toBe(false);
+    expect(reportBodySchema.safeParse({ ...body, attachments: [audio, audio] }).success).toBe(false);
+  });
+
+  it('refuses no words, too many words, an unknown type, and an empty file', () => {
+    expect(reportBodySchema.safeParse({ ...body, text: '   ' }).success).toBe(false);
+    expect(reportBodySchema.safeParse({ ...body, text: 'x'.repeat(5001) }).success).toBe(false);
+    expect(reportBodySchema.safeParse({ ...body, attachments: [{ kind: 'image', type: 'image/gif', data: png }] }).success).toBe(false);
+    expect(reportBodySchema.safeParse({ ...body, attachments: [{ kind: 'image', type: 'image/png', data: '' }] }).success).toBe(false);
+    expect(reportBodySchema.safeParse({ ...body, email: 'a@b.c' }).success).toBe(false);
   });
 });

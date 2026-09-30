@@ -1,5 +1,6 @@
 import { WebPush, type PushSend } from './admin/web-push.js';
 import { adminRoutes, newsRoutes, requireAdmin } from './routes/admin.js';
+import { reportRoutes } from './routes/reports.js';
 import { fileIvHeader, filePlainBytesHeader, maxAssistAudioBytes } from '@harvest/contracts';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -171,6 +172,10 @@ export function createApp(deps: AppDeps): Express {
       later: (work) => auth.later(work),
     }),
   );
+  // Anonymous: no session is read here ([[Admin]] AD7). A report with
+  // its pictures and a recording is the second largest body after the
+  // assist's.
+  v1.use('/reports', limits.reports, express.json({ limit: '30mb' }), reportRoutes(deps.repos, deps.now));
   v1.use('/me', requireAuth(auth), express.json({ limit: smallBody }), meRoutes(auth, deps.repos, cookies, limits));
   v1.use(
     '/sync',

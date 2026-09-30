@@ -1,5 +1,8 @@
 import type {
   AdminHistory,
+  AdminReport,
+  AdminReports,
+  ReportBody,
   AdminOverview,
   AdminUsers,
   Announcement,
@@ -529,6 +532,42 @@ export const api = {
     request<Announcement>(`/v1/admin/announcements/${encodeURIComponent(id)}`, { method: 'PATCH', body: { endsAt } }),
   deleteAnnouncement: (id: string) =>
     request<void>(`/v1/admin/announcements/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  /**
+   * A report of a problem ([[Admin]], F12-5): never with the session,
+   * even when there is one, so it carries no account. 201 `{id}`; 429
+   * with `Retry-After` past five an hour from one network.
+   */
+  report: (body: ReportBody) => request<{ id: string }>('/v1/reports', { method: 'POST', auth: false, body }),
+
+  adminReports(query: { status?: AdminReport['status']; cursor?: string; limit?: number } = {}) {
+    const params = new URLSearchParams();
+    if (query.status) params.set('status', query.status);
+    if (query.cursor) params.set('cursor', query.cursor);
+    if (query.limit) params.set('limit', String(query.limit));
+    const search = params.toString();
+    return request<AdminReports>(`/v1/admin/reports${search ? `?${search}` : ''}`);
+  },
+  setReportStatus: (id: string, status: AdminReport['status']) =>
+    request<AdminReport>(`/v1/admin/reports/${encodeURIComponent(id)}`, { method: 'PATCH', body: { status } }),
+  deleteReport: (id: string) => request<void>(`/v1/admin/reports/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  /** A report's picture or recording, as its bytes: shown through an object URL, never a link to the API. */
+  async reportAttachment(id: string, attachment: string): Promise<Blob> {
+    const path = `/v1/admin/reports/${encodeURIComponent(id)}/attachments/${encodeURIComponent(attachment)}`;
+    const init = (token: string | null): RequestInit => ({
+      method: 'GET',
+      headers: { accept: '*/*', ...(token ? { authorization: `Bearer ${token}` } : {}) },
+    });
+    let response = await send(path, init(await accessToken()));
+    if (response.status === 401) {
+      const result = await refreshSession();
+      if (!result) throw new ApiError(401, 'unauthorized', 'Signed out');
+      response = await send(path, init(result.accessToken));
+    }
+    if (!response.ok) throw await toError(response);
+    return response.blob();
+  },
+
   revokeSession: (id: string) => request<void>(`/v1/me/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   latestRelease: (signal?: AbortSignal) =>

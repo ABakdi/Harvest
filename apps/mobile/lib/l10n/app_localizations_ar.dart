@@ -5286,4 +5286,98 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get exportConfirmOffline =>
       'تعذّر الوصول إلى الخادم للتحقق من كلمة المرور. حاول مجددًا حين تتصل بالإنترنت.';
+
+  @override
+  String get reportTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get reportSettingsHint =>
+      'أخبر Harvest بما حدث، مع صور أو تسجيل صوتي.';
+
+  @override
+  String get reportTextLabel => 'ماذا حدث؟';
+
+  @override
+  String get reportTextHint => 'ما فعلته، وما كنت تتوقعه، وما حدث بدلًا منه.';
+
+  @override
+  String get reportTakePhoto => 'التقط صورة';
+
+  @override
+  String get reportPickPhoto => 'اختر صورة';
+
+  @override
+  String get reportPicturesNote =>
+      'تُصغَّر الصور وتُحفظ من جديد على هذا الهاتف أولًا، فلا يغادر معها موقعها ولا الكاميرا ولا الوقت.';
+
+  @override
+  String get reportRecord => 'سجّل ملاحظة صوتية';
+
+  @override
+  String get reportStopRecording => 'إيقاف';
+
+  @override
+  String get reportRecordingLabel => 'ملاحظة صوتية';
+
+  @override
+  String get reportRemove => 'إزالة';
+
+  @override
+  String get reportPrivacy =>
+      'يصل هذا إلى فريق Harvest كما كتبته، دون اسمك ودون حسابك. وهو غير مشفّر من الطرف إلى الطرف: إنه مكتوب ليُقرأ. إن أردت ردًا، فاذكر كيف نصل إليك.';
+
+  @override
+  String get reportSend => 'إرسال';
+
+  @override
+  String get reportSending => 'جارٍ الإرسال…';
+
+  @override
+  String get reportSent => 'شكرًا لك. بلاغك في طريقه.';
+
+  @override
+  String get reportOffline =>
+      'تعذّر إرسال البلاغ: يبدو أن هذا الهاتف غير متصل. ما زال هنا.';
+
+  @override
+  String get reportTooLarge => 'أكبر من أن يُرسَل. احذف صورة أو التسجيل.';
+
+  @override
+  String get reportFailed => 'تعذّر إرسال البلاغ. حاول بعد قليل.';
+
+  @override
+  String get reportEmpty => 'اكتب ما حدث أولًا.';
+
+  @override
+  String get reportTextTooLong => '5,000 حرف على الأكثر.';
+
+  @override
+  String get reportTooManyImages => 'أربع صور على الأكثر.';
+
+  @override
+  String get reportImageTooLarge => 'هذه الصورة كبيرة جدًا حتى بعد تصغيرها.';
+
+  @override
+  String get reportAudioTooLarge => 'التسجيل أطول من أن يُرسَل.';
+
+  @override
+  String get reportNotAPicture => 'هذا الملف ليس صورة يستطيع Harvest قراءتها.';
+
+  @override
+  String get reportNoMic => 'يحتاج Harvest إلى الميكروفون للتسجيل.';
+
+  @override
+  String reportLimited(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'بلاغات كثيرة من هنا الآن. حاول بعد $minutes دقيقة.',
+      many: 'بلاغات كثيرة من هنا الآن. حاول بعد $minutes دقيقة.',
+      few: 'بلاغات كثيرة من هنا الآن. حاول بعد $minutes دقائق.',
+      two: 'بلاغات كثيرة من هنا الآن. حاول بعد دقيقتين.',
+      one: 'بلاغات كثيرة من هنا الآن. حاول بعد دقيقة.',
+      zero: 'بلاغات كثيرة من هنا الآن. حاول بعد قليل.',
+    );
+    return '$_temp0';
+  }
 }

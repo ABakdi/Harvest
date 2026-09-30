@@ -21,6 +21,7 @@ import 'package:harvest/features/import/presentation/import_card.dart';
 import 'package:harvest/features/news/domain/news.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
 import 'package:harvest/features/pomodoro/domain/pomodoro_service.dart';
+import 'package:harvest/features/report/presentation/report_screen.dart';
 import 'package:harvest/features/security/presentation/app_lock_card.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/settings/presentation/daily_cycle_card.dart';
@@ -143,6 +144,27 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
               ],
+            ),
+          ),
+          const SizedBox(height: HarvestSpacing.md),
+          // For everyone, account or not ([[Admin]], F12-5).
+          Card(
+            child: ListTile(
+              leading: IconBadge(
+                Icons.feedback_outlined,
+                color: scheme.tertiary,
+              ),
+              title: Text(
+                l10n.reportTitle,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              subtitle: Text(l10n.reportSettingsHint),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const ReportScreen()),
+              ),
             ),
           ),
           if (startupProblem != null) ...[

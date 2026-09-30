@@ -5108,4 +5108,99 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get exportConfirmOffline =>
       'The server can\'t be reached to check the password. Try again when you\'re online.';
+
+  @override
+  String get reportTitle => 'Report a problem';
+
+  @override
+  String get reportSettingsHint =>
+      'Tell Harvest what went wrong, with pictures or a recording.';
+
+  @override
+  String get reportTextLabel => 'What happened?';
+
+  @override
+  String get reportTextHint =>
+      'What you did, what you expected, and what happened instead.';
+
+  @override
+  String get reportTakePhoto => 'Take a picture';
+
+  @override
+  String get reportPickPhoto => 'Choose a picture';
+
+  @override
+  String get reportPicturesNote =>
+      'Pictures are made smaller and saved again on this phone first, so their location, camera and time never leave with them.';
+
+  @override
+  String get reportRecord => 'Record a voice note';
+
+  @override
+  String get reportStopRecording => 'Stop';
+
+  @override
+  String get reportRecordingLabel => 'Voice note';
+
+  @override
+  String get reportRemove => 'Remove';
+
+  @override
+  String get reportPrivacy =>
+      'This goes to Harvest\'s team as you wrote it, without your name or your account. It is not end-to-end encrypted: it is meant to be read. To get an answer, say how to reach you.';
+
+  @override
+  String get reportSend => 'Send';
+
+  @override
+  String get reportSending => 'Sending…';
+
+  @override
+  String get reportSent => 'Thank you. Your report is on its way.';
+
+  @override
+  String get reportOffline =>
+      'The report could not go: this phone seems to be offline. It is still here.';
+
+  @override
+  String get reportTooLarge =>
+      'Too large to send. Take out a picture or the recording.';
+
+  @override
+  String get reportFailed => 'The report could not go. Try again in a moment.';
+
+  @override
+  String get reportEmpty => 'Write what happened first.';
+
+  @override
+  String get reportTextTooLong => '5,000 characters at most.';
+
+  @override
+  String get reportTooManyImages => 'Four pictures at most.';
+
+  @override
+  String get reportImageTooLarge =>
+      'That picture is too large, even made smaller.';
+
+  @override
+  String get reportAudioTooLarge => 'The recording is too long to send.';
+
+  @override
+  String get reportNotAPicture =>
+      'That file is not a picture Harvest can read.';
+
+  @override
+  String get reportNoMic => 'Harvest needs the microphone to record.';
+
+  @override
+  String reportLimited(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'Too many reports from here just now. Try again in $minutes minutes.',
+      one: 'Too many reports from here just now. Try again in a minute.',
+    );
+    return '$_temp0';
+  }
 }

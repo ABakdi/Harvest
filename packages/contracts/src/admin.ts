@@ -223,3 +223,102 @@ export function streakBandOf(days: number): (typeof streakBands)[number] {
   if (days <= 99) return '30–99';
   return '100+';
 }
+
+// --------------------------------------------------------------- reports
+
+/**
+ * *Report a problem* ([[Admin]], F12-5): anonymous, read by the admin.
+ * The attachments travel as base64 in the one body; their bytes are
+ * checked by the server against their type.
+ */
+export const reportTextMax = 5000;
+export const reportImagesMax = 4;
+/** One picture, already re-encoded on the device (no metadata). */
+export const reportImageMaxBytes = 5 * 1024 * 1024;
+/** The one recording: a few minutes of speech. */
+export const reportAudioMaxBytes = 10 * 1024 * 1024;
+/** Everything a report may carry, decoded. */
+export const reportMaxBytes = 21 * 1024 * 1024;
+
+export const reportImageTypes = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const reportAudioTypes = ['audio/mp4', 'audio/aac', 'audio/webm', 'audio/ogg', 'audio/mpeg', 'audio/wav'] as const;
+
+const base64Data = z.base64({ message: 'Not base64' });
+
+export const reportAttachmentSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('image'), type: z.enum(reportImageTypes), data: base64Data }),
+  z.strictObject({ kind: z.literal('audio'), type: z.enum(reportAudioTypes), data: base64Data }),
+]);
+export type ReportAttachment = z.infer<typeof reportAttachmentSchema>;
+
+/** How many bytes a base64 string decodes to. */
+export function base64Bytes(value: string): number {
+  const padding = value.endsWith('==') ? 2 : value.endsWith('=') ? 1 : 0;
+  return Math.floor((value.length * 3) / 4) - padding;
+}
+
+/** `POST /v1/reports`: no session read, no address kept. 201 `{id}`. */
+export const reportBodySchema = z
+  .strictObject({
+    text: z.string().trim().min(1).max(reportTextMax),
+    platform: platformSchema,
+    appVersion: z.string().trim().min(1).max(40),
+    attachments: z.array(reportAttachmentSchema).max(reportImagesMax + 1).default([]),
+  })
+  .superRefine((body, ctx) => {
+    const images = body.attachments.filter((a) => a.kind === 'image');
+    const audio = body.attachments.filter((a) => a.kind === 'audio');
+    if (images.length > reportImagesMax) {
+      ctx.addIssue({ code: 'custom', path: ['attachments'], message: `At most ${reportImagesMax} pictures` });
+    }
+    if (audio.length > 1) ctx.addIssue({ code: 'custom', path: ['attachments'], message: 'At most one recording' });
+    let total = 0;
+    for (const [index, attachment] of body.attachments.entries()) {
+      const bytes = base64Bytes(attachment.data);
+      total += bytes;
+      const max = attachment.kind === 'image' ? reportImageMaxBytes : reportAudioMaxBytes;
+      if (bytes === 0 || bytes > max) {
+        ctx.addIssue({ code: 'custom', path: ['attachments', index, 'data'], message: 'Empty or too large' });
+      }
+    }
+    if (total > reportMaxBytes) ctx.addIssue({ code: 'custom', path: ['attachments'], message: 'Too large all told' });
+  });
+export type ReportBody = z.input<typeof reportBodySchema>;
+
+export const reportStatuses = ['new', 'read', 'done'] as const;
+
+/** A report as the admin reads it. */
+export const adminReportSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  platform: z.string(),
+  appVersion: z.string(),
+  status: z.enum(reportStatuses),
+  createdAt: isoInstant,
+  attachments: z.array(
+    z.object({ id: z.string(), kind: z.enum(['image', 'audio']), type: z.string(), bytes: z.int() }),
+  ),
+});
+export type AdminReport = z.infer<typeof adminReportSchema>;
+
+/** `GET /v1/admin/reports?status=&cursor=&limit=`. */
+export const adminReportsQuerySchema = z.object({
+  status: z.enum(reportStatuses).optional(),
+  cursor: z.string().regex(/^[0-9a-f]{24}$/).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(30),
+});
+export const adminReportsSchema = z.object({
+  reports: z.array(adminReportSchema),
+  next: z.string().nullable(),
+  /** How many are still new, whatever the page. */
+  unread: z.int(),
+});
+export type AdminReports = z.infer<typeof adminReportsSchema>;
+
+/** `PATCH /v1/admin/reports/:id`. */
+export const reportPatchSchema = z.strictObject({ status: z.enum(reportStatuses) });
+/** `GET /v1/admin/reports/:id/attachments/:attachment` answers the bytes, with their type. */
+export const reportAttachmentParamsSchema = z.object({
+  id: z.string().regex(/^[0-9a-f]{24}$/),
+  attachment: z.string().regex(/^[0-9a-f]{24}$/),
+});

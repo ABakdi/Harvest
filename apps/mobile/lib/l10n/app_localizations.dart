@@ -8335,6 +8335,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The server can\'t be reached to check the password. Try again when you\'re online.'**
   String get exportConfirmOffline;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportTitle;
+
+  /// No description provided for @reportSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell Harvest what went wrong, with pictures or a recording.'**
+  String get reportSettingsHint;
+
+  /// No description provided for @reportTextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportTextLabel;
+
+  /// No description provided for @reportTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What you did, what you expected, and what happened instead.'**
+  String get reportTextHint;
+
+  /// No description provided for @reportTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a picture'**
+  String get reportTakePhoto;
+
+  /// No description provided for @reportPickPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a picture'**
+  String get reportPickPhoto;
+
+  /// No description provided for @reportPicturesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures are made smaller and saved again on this phone first, so their location, camera and time never leave with them.'**
+  String get reportPicturesNote;
+
+  /// No description provided for @reportRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a voice note'**
+  String get reportRecord;
+
+  /// No description provided for @reportStopRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get reportStopRecording;
+
+  /// No description provided for @reportRecordingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get reportRecordingLabel;
+
+  /// No description provided for @reportRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get reportRemove;
+
+  /// No description provided for @reportPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'This goes to Harvest\'s team as you wrote it, without your name or your account. It is not end-to-end encrypted: it is meant to be read. To get an answer, say how to reach you.'**
+  String get reportPrivacy;
+
+  /// No description provided for @reportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get reportSend;
+
+  /// No description provided for @reportSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get reportSending;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you. Your report is on its way.'**
+  String get reportSent;
+
+  /// No description provided for @reportOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The report could not go: this phone seems to be offline. It is still here.'**
+  String get reportOffline;
+
+  /// No description provided for @reportTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large to send. Take out a picture or the recording.'**
+  String get reportTooLarge;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The report could not go. Try again in a moment.'**
+  String get reportFailed;
+
+  /// No description provided for @reportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what happened first.'**
+  String get reportEmpty;
+
+  /// No description provided for @reportTextTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'5,000 characters at most.'**
+  String get reportTextTooLong;
+
+  /// No description provided for @reportTooManyImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Four pictures at most.'**
+  String get reportTooManyImages;
+
+  /// No description provided for @reportImageTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture is too large, even made smaller.'**
+  String get reportImageTooLarge;
+
+  /// No description provided for @reportAudioTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The recording is too long to send.'**
+  String get reportAudioTooLarge;
+
+  /// No description provided for @reportNotAPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a picture Harvest can read.'**
+  String get reportNotAPicture;
+
+  /// No description provided for @reportNoMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest needs the microphone to record.'**
+  String get reportNoMic;
+
+  /// No description provided for @reportLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{Too many reports from here just now. Try again in a minute.} other{Too many reports from here just now. Try again in {minutes} minutes.}}'**
+  String reportLimited(int minutes);
 }
 
 class _AppLocalizationsDelegate

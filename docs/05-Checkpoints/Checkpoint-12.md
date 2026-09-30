@@ -63,6 +63,7 @@ from this PIN". **Fix:** it says *secret* in both modes.
 | F12-2 | Push notifications I write, to everyone or account holders | phone (background check, local notification), web (Web Push) |
 | F12-3 | A pop-up I write, shown once when the app opens | phone and web |
 | F12-4 | Users are accounts; people without one are downloads only | server, spec |
+| F12-5 | *Report a problem*: text, pictures and a recording, anonymous, read in the admin panel | phone, web, server |
 
 With them: the heartbeat, *Share my streak*, *News from Harvest*, the
 privacy page and the data map saying what the server now learns.
@@ -92,6 +93,12 @@ privacy page and the data map saying what the server now learns.
   reaching the web as a pop-up once and the phone as a pop-up once and as
   a notification, the phone's heartbeat counted once a day with the
   web's.
+- [x] F12-5 — reports: from Settings on the phone and the web, for
+  anyone; anonymous (no session read, no address kept); pictures
+  re-encoded without their metadata (checked: no Exif left in the stored
+  picture); read, marked and deleted in the admin panel's *Reports* tab.
+  Tested on the emulator (text and a camera picture), in the browser
+  (text), and by the server's tests (185).
 - [ ] Web Push from a real browser: the permission prompt is Chrome's
   own and was not driven by hand; the subscription and the service
   worker are covered by tests.

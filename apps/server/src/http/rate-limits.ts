@@ -38,6 +38,8 @@ export interface RateLimitSettings {
   adminRequests: number;
   /** News fetches per address per window: a phone asks every few hours. */
   newsRequests: number;
+  /** Reports of problems per network per hour, counted in memory only ([[Admin]]). */
+  reports: number;
 }
 
 export const defaultRateLimits: RateLimitSettings = {
@@ -56,6 +58,7 @@ export const defaultRateLimits: RateLimitSettings = {
   emailWindowMs: 60 * 60_000,
   adminRequests: 300,
   newsRequests: 60,
+  reports: 5,
 };
 
 function limiter(limit: number, windowMs: number, extra: Partial<Options> = {}) {
@@ -117,6 +120,7 @@ export function authLimiters(settings: RateLimitSettings) {
     syncKey: byAccount(settings.syncKeyRequests, settings.windowMs),
     admin: byAccount(settings.adminRequests, settings.windowMs),
     news: limiter(settings.newsRequests, settings.windowMs),
+    reports: limiter(settings.reports, 60 * 60_000),
   };
 }
 
