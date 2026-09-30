@@ -4,6 +4,7 @@ import type { Express } from 'express';
 import type { Db } from 'mongodb';
 import request, { type Response } from 'supertest';
 import { expect, inject } from 'vitest';
+import type { PushSend } from '../src/admin/web-push.js';
 import { createApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
 import { createRepositories, type Repositories } from '../src/db/index.js';
@@ -33,6 +34,8 @@ export interface HarnessOptions {
   assistFetch?: typeof fetch;
   /** The server's clock, for the tests that move it. */
   now?: () => Date;
+  /** Web Push's delivery, which is otherwise over the network. */
+  pushSend?: PushSend;
 }
 
 /**
@@ -65,6 +68,7 @@ export async function harness(options: HarnessOptions = {}): Promise<Harness> {
     rateLimits: { registrations: 1000, ...options.rateLimits },
     ...(options.assistFetch ? { assistFetch: options.assistFetch } : {}),
     ...(options.now ? { now: options.now } : {}),
+    pushSend: options.pushSend ?? (() => Promise.reject(new Error('no network in tests'))),
   });
   return {
     app,

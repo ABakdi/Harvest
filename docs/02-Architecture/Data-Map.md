@@ -57,6 +57,11 @@ envelope, the sync key protects what is inside it.
 | Password | An argon2id hash | The same |
 | Sync secret | A sealed verifier, and the key share sealed, both under `KEY_SHARE_KEY` | Nothing it can use |
 | Sessions | Device name, client kind, first and last seen | The same |
+| Heartbeat ([[Admin]]) | The last day active, the platform and app version, and the streak while I share it — only the latest, no history | The same |
+| Daily totals | Counts only: accounts, sign-ups, active accounts, shared streaks' median and mean | The same |
+| News | What the admin wrote | The same |
+| Reports of a problem | The words, pictures (re-encoded, without their metadata) and recording someone chose to send, with the platform and version; no account, no address | The same |
+| Web Push subscriptions | A browser's push endpoint (at its push service) and its public keys, for an account that allowed notifications | The same |
 | Sign-in failures | A keyed hash of the email (and of the email with the network), gone within the hour | Nothing it can reverse |
 | Assist use | A count a day per account, gone after 60 days | The same |
 | Request log | Method, path, status, time. No address, no body, no query | — |
@@ -65,8 +70,12 @@ envelope, the sync key protects what is inside it.
 
 What the operator still learns: that an account exists, when its
 devices sync and when rows change, roughly how much each holds, and how
-many pictures it keeps. Not what any of them says, not where I was,
-not what I weigh.
+many pictures it keeps; and, from the heartbeat, the last day it was
+active, on what platform and version, and its streak while it shares
+one. On the admin panel ([[Admin]]) the running server also shows each
+account's address, which it opens for that. Not what any row says, not
+where I was, not what I weigh. Someone without an account is none of
+this: only a download.
 
 ## Leaving the device for someone else
 
@@ -77,5 +86,7 @@ not what I weigh.
 | The exercise animations' host | A request for one animation | When I open it |
 | The assist's provider | Exactly what its sheet shows | When I tap an assist action |
 | The mail provider | My address and a link | Verification and password reset |
+| My server | A request for the news, with nothing of mine when signed out | When the app opens and every few hours, while *News from Harvest* is on |
+| The browser's push service (Google's, Mozilla's, Apple's) | The push, encrypted to my browser | When the admin sends one, to a browser I allowed |
 
 Related: [[Sync-API]] · [[Accounts]] · [[Deployment]] · [[Business-Rules]] #13

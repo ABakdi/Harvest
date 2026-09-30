@@ -11,6 +11,7 @@ import 'package:harvest/features/finances/data/vault_repository.dart';
 import 'package:harvest/features/gamification/domain/streak_service.dart';
 import 'package:harvest/features/lists/data/lists_repository.dart';
 import 'package:harvest/features/lists/data/share_inbox.dart';
+import 'package:harvest/features/news/presentation/news_popups.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
 import 'package:harvest/features/places/presentation/places_providers.dart';
 import 'package:harvest/features/planner/domain/notification_planner.dart';
@@ -58,7 +59,7 @@ Future<void> appBootstrap(Ref ref) async {
   // Assigned separately (no cascade): the snooze handler refers back to
   // the service itself.
   // ignore: cascade_invocations
-  notifications.onTap = (route) => ref.read(routerProvider).go(routeFor(route));
+  notifications.onTap = (route) => openReminderRoute(ref, route);
   // A snooze tapped while the app is open; the closed-app case runs in
   // its own isolate (reminderBackgroundHandler).
   notifications.onSnooze = (response) =>
@@ -133,11 +134,17 @@ Future<void> appBootstrap(Ref ref) async {
     step('launch route', () async {
       // Launched by tapping a reminder while closed: land where it points.
       final launchRoute = await notifications.launchRoute();
-      if (launchRoute != null) {
-        ref.read(routerProvider).go(routeFor(launchRoute));
-      }
+      if (launchRoute != null) openReminderRoute(ref, launchRoute);
     }),
   );
+}
+
+/// Where a tapped notification lands; a piece of news with a link opens
+/// the link as well ([[Admin]]).
+void openReminderRoute(Ref ref, String route) {
+  ref.read(routerProvider).go(routeFor(route));
+  final link = ReminderRoutes.newsLink(route);
+  if (link != null) unawaited(openNewsLink(link));
 }
 
 /// The app route behind a reminder route; anything unknown goes home.

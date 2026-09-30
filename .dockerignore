@@ -4,7 +4,8 @@
 **/.env
 **/.env.*
 !**/.env.example
-apps/mobile
+apps/mobile/**
+!apps/mobile/pubspec.yaml
 docs
 .git
 .github

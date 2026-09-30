@@ -20,6 +20,9 @@ abstract final class NotificationChannels {
   static const reminders = 'reminders_alarm';
   static const streak = 'streak';
   static const pomodoro = 'pomodoro';
+
+  /// News from Harvest ([[Admin]]).
+  static const news = 'news';
 }
 
 /// Where a tapped reminder lands. Kept as plain strings because they
@@ -29,6 +32,13 @@ abstract final class ReminderRoutes {
   static const planner = 'planner';
   static const finances = 'finances';
   static const sleep = 'sleep';
+
+  /// A piece of news: `news` alone, or `news:<https link>` to open.
+  static const news = 'news';
+
+  /// The link a news route carries, or null.
+  static String? newsLink(String route) =>
+      route.startsWith('$news:') ? route.substring(news.length + 1) : null;
 }
 
 /// Snooze actions carried by every reminder: `snooze:<minutes>`.
@@ -268,6 +278,23 @@ class NotificationService implements NotificationGateway {
     return ReminderPermission.unavailable;
   }
 
+  /// Asks only to post notifications — not for exact alarms or the lock
+  /// screen, which news does not need ([[Admin]]). True when allowed.
+  Future<bool> requestPostPermission() async {
+    try {
+      await initialize();
+      final android = _android;
+      if (android != null) {
+        return await android.requestNotificationsPermission() ?? false;
+      }
+    } on PlatformException catch (error) {
+      _log('post permission', error);
+    } on MissingPluginException catch (error) {
+      _log('post permission', error);
+    }
+    return false;
+  }
+
   /// Convenience for callers that only care whether we may ring.
   Future<bool> requestPermission() async =>
       await requestPermissionStatus() == ReminderPermission.granted;
@@ -348,6 +375,46 @@ class NotificationService implements NotificationGateway {
       // Tests and background isolates without the plugin: reminders are
       // best-effort and must never break the caller.
       _log('schedule #$id', error);
+    }
+  }
+
+  /// Shows a piece of news now, on its own channel, at an ordinary
+  /// importance: news is not an alarm. Its route opens the app, and its
+  /// link if it has one ([[Admin]]).
+  Future<void> showNews({
+    required int id,
+    required String title,
+    required String body,
+    String? link,
+  }) async {
+    try {
+      await initialize();
+      final route = link == null
+          ? ReminderRoutes.news
+          : '${ReminderRoutes.news}:$link';
+      await _plugin.show(
+        id: id,
+        title: title,
+        body: body,
+        payload: ReminderPayload(
+          title: title,
+          body: body,
+          channelId: NotificationChannels.news,
+          route: route,
+        ).encode(),
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            NotificationChannels.news,
+            channelNames[NotificationChannels.news] ?? 'News from Harvest',
+            styleInformation: BigTextStyleInformation(body),
+          ),
+          iOS: const DarwinNotificationDetails(),
+        ),
+      );
+    } on PlatformException catch (error) {
+      _log('news #$id', error);
+    } on MissingPluginException catch (error) {
+      _log('news #$id', error);
     }
   }
 

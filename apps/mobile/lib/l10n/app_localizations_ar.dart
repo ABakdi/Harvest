@@ -1049,6 +1049,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String get channelPomodoro => 'مؤقت التركيز';
 
   @override
+  String get channelNews => 'أخبار Harvest';
+
+  @override
+  String get newsSetting => 'أخبار Harvest';
+
+  @override
+  String get newsSettingBody =>
+      'التحديثات وما يستحق المعرفة، إشعارًا أو مرة واحدة عند فتح التطبيق. يُطلَب كل بضع ساعات، ولا يحمل شيئًا عنك.';
+
+  @override
+  String get newsOpenLink => 'افتح';
+
+  @override
+  String get newsDismiss => 'حسنًا';
+
+  @override
+  String get shareStreakSetting => 'شارك سلسلتي';
+
+  @override
+  String get shareStreakBody =>
+      'مرة في اليوم يخبر هذا الهاتف خادم Harvest أنه قيد الاستعمال: إصدار التطبيق، وسلسلتك ما دام هذا مفعّلًا. ولا شيء آخر منك.';
+
+  @override
   String remindersStreakHint(String time) {
     return 'عند $time، فقط إن لم يُكسب اليوم بعد';
   }
@@ -3904,12 +3927,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'الحساب لا يفعل سوى مزامنة بياناتك بين هاتفك والويب. Harvest يعمل كاملًا بدونه، دائمًا.';
 
   @override
-  String get accountServer => 'الخادم';
-
-  @override
-  String get accountServerHint => 'https://your-harvest-server';
-
-  @override
   String get accountEmail => 'البريد الإلكتروني';
 
   @override
@@ -4162,13 +4179,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get ratesDzdManual =>
       'سعر الدينار في السوق يُكتب يدويًا: لا يوجد مصدر مجاني له. الجلب يحدّث كل العملات الأخرى.';
-
-  @override
-  String get accountServerExample =>
-      'عنوان خادم Harvest الخاص بك، مثل https://harvest.example.com';
-
-  @override
-  String get accountServerInvalid => 'أدخل عنوان الخادم، يبدأ بـ https://';
 
   @override
   String get accountEmailMissing => 'أدخل بريدك الإلكتروني.';
@@ -4552,11 +4562,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncPinChooseBody =>
-      'يُشفَّر كل شيء على هذا الهاتف بمفتاح مصنوع من هذا الرمز قبل أن يُزامَن: الملاحظات والمال والصحة والأماكن والصور. لا يراه الخادم أبدًا. استخدم الرمز نفسه على كل جهاز.';
+      'يُشفَّر كل شيء على هذا الهاتف قبل أن يُزامَن، بمفتاح مصنوع من هذا السرّ: الملاحظات والمال والصحة والأماكن والصور. لا يراه الخادم أبدًا. استخدم السرّ نفسه على كل جهاز.';
 
   @override
   String get syncPinEnterBody =>
-      'أجهزتك الأخرى تستخدم رمز مزامنة بالفعل. أدخل الرمز نفسه هنا لتصلك بياناتك.';
+      'أجهزتك الأخرى تستخدم سرّ مزامنة بالفعل. أدخل السرّ نفسه هنا لتصلك بياناتك.';
 
   @override
   String get syncPinLoss =>
@@ -4601,6 +4611,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncPinChoose => 'اضبط الرمز';
+
+  @override
+  String get syncPassphraseChoose => 'اضبط عبارة المرور';
 
   @override
   String get syncPinEnter => 'افتح';
@@ -4852,10 +4865,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get syncPinStartedOver =>
       'بدأ رمز المزامنة من جديد على جهاز آخر للتو. اختر رمزًا جديدًا.';
-
-  @override
-  String get accountServerNotSecure =>
-      'استخدم https:// للخادم. عنوان http:// العادي لهذا الجهاز أو المحاكي فقط (localhost و127.0.0.1 و10.0.2.2).';
 
   @override
   String get assistBaseUrlNotSecure =>
@@ -5277,4 +5286,98 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get exportConfirmOffline =>
       'تعذّر الوصول إلى الخادم للتحقق من كلمة المرور. حاول مجددًا حين تتصل بالإنترنت.';
+
+  @override
+  String get reportTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get reportSettingsHint =>
+      'أخبر Harvest بما حدث، مع صور أو تسجيل صوتي.';
+
+  @override
+  String get reportTextLabel => 'ماذا حدث؟';
+
+  @override
+  String get reportTextHint => 'ما فعلته، وما كنت تتوقعه، وما حدث بدلًا منه.';
+
+  @override
+  String get reportTakePhoto => 'التقط صورة';
+
+  @override
+  String get reportPickPhoto => 'اختر صورة';
+
+  @override
+  String get reportPicturesNote =>
+      'تُصغَّر الصور وتُحفظ من جديد على هذا الهاتف أولًا، فلا يغادر معها موقعها ولا الكاميرا ولا الوقت.';
+
+  @override
+  String get reportRecord => 'سجّل ملاحظة صوتية';
+
+  @override
+  String get reportStopRecording => 'إيقاف';
+
+  @override
+  String get reportRecordingLabel => 'ملاحظة صوتية';
+
+  @override
+  String get reportRemove => 'إزالة';
+
+  @override
+  String get reportPrivacy =>
+      'يصل هذا إلى فريق Harvest كما كتبته، دون اسمك ودون حسابك. وهو غير مشفّر من الطرف إلى الطرف: إنه مكتوب ليُقرأ. إن أردت ردًا، فاذكر كيف نصل إليك.';
+
+  @override
+  String get reportSend => 'إرسال';
+
+  @override
+  String get reportSending => 'جارٍ الإرسال…';
+
+  @override
+  String get reportSent => 'شكرًا لك. بلاغك في طريقه.';
+
+  @override
+  String get reportOffline =>
+      'تعذّر إرسال البلاغ: يبدو أن هذا الهاتف غير متصل. ما زال هنا.';
+
+  @override
+  String get reportTooLarge => 'أكبر من أن يُرسَل. احذف صورة أو التسجيل.';
+
+  @override
+  String get reportFailed => 'تعذّر إرسال البلاغ. حاول بعد قليل.';
+
+  @override
+  String get reportEmpty => 'اكتب ما حدث أولًا.';
+
+  @override
+  String get reportTextTooLong => '5,000 حرف على الأكثر.';
+
+  @override
+  String get reportTooManyImages => 'أربع صور على الأكثر.';
+
+  @override
+  String get reportImageTooLarge => 'هذه الصورة كبيرة جدًا حتى بعد تصغيرها.';
+
+  @override
+  String get reportAudioTooLarge => 'التسجيل أطول من أن يُرسَل.';
+
+  @override
+  String get reportNotAPicture => 'هذا الملف ليس صورة يستطيع Harvest قراءتها.';
+
+  @override
+  String get reportNoMic => 'يحتاج Harvest إلى الميكروفون للتسجيل.';
+
+  @override
+  String reportLimited(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'بلاغات كثيرة من هنا الآن. حاول بعد $minutes دقيقة.',
+      many: 'بلاغات كثيرة من هنا الآن. حاول بعد $minutes دقيقة.',
+      few: 'بلاغات كثيرة من هنا الآن. حاول بعد $minutes دقائق.',
+      two: 'بلاغات كثيرة من هنا الآن. حاول بعد دقيقتين.',
+      one: 'بلاغات كثيرة من هنا الآن. حاول بعد دقيقة.',
+      zero: 'بلاغات كثيرة من هنا الآن. حاول بعد قليل.',
+    );
+    return '$_temp0';
+  }
 }

@@ -27,6 +27,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Goals]] — the board on the field: what it takes, and the seeds that get me there
 - [[Places]] — the trail, a geotag on every action, and the map
 - [[Accounts]] — the optional account, and what it holds
+- [[Admin]] — the admin panel, the heartbeat, and news by push and pop-up
 - [[Web]] — the home page, the PWA, and the app in a browser
 - [[Screen-Time]] — usage caps and interventions
 - [[Onboarding]] — first-run experience
@@ -70,6 +71,7 @@ This vault holds everything about Harvest: what it is, how it works, how it's bu
 - [[Checkpoint-9]] — the browser does what the phone does
 - [[Checkpoint-10]] — the sync PIN, the phone layout on the web, and audit 5
 - [[Checkpoint-11]] — a PIN the server checks, sync under a real account, and audit 6
+- [[Checkpoint-12]] — the keyboard, the server built in, and the owner's view: admin and news
 
 ### 🔍 Audit
 - [[Audit-Home]] — the code, security and UX audit and its status board

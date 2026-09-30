@@ -10,6 +10,7 @@ import 'package:harvest/features/commitments/presentation/commitment_editor_shee
 import 'package:harvest/features/finances/presentation/expense_sheet.dart';
 import 'package:harvest/features/lists/data/share_inbox.dart';
 import 'package:harvest/features/lists/presentation/share_flow.dart';
+import 'package:harvest/features/news/presentation/news_popups.dart';
 import 'package:harvest/features/settings/domain/feature_switches.dart';
 import 'package:harvest/features/widget/domain/widget_actions.dart';
 import 'package:harvest/l10n/app_localizations.dart';
@@ -183,49 +184,53 @@ class _HarvestShellState extends ConsumerState<HarvestShell> {
       // The sync PIN is asked for here, above every tab, straight after
       // signing in and at a start without one ([[Accounts]]).
       child: SyncPinPrompt(
-        child: Scaffold(
-          // The tabs keep their own messenger, so a snack bar shows in
-          // the tab's Scaffold and lifts its floating button, not over
-          // it (U6-16).
-          body: ScaffoldMessenger(
-            key: _tabMessenger,
-            child: widget.navigationShell,
-          ),
-          bottomNavigationBar: typing
-              ? null
-              // Too narrow for a word under every icon, the icons carry
-              // the bar alone (their tooltips still name them), and the
-              // labels never grow past 1.15× at a large font: "Granary"
-              // broke as "Granar/y" (U6-12).
-              : LayoutBuilder(
-                  builder: (context, constraints) =>
-                      MediaQuery.withClampedTextScaling(
-                        maxScaleFactor: 1.15,
-                        child: NavigationBar(
-                          selectedIndex: current < 0 ? 0 : current,
-                          labelBehavior: constraints.maxWidth / tabs.length < 64
-                              ? NavigationDestinationLabelBehavior.alwaysHide
-                              : null,
-                          onDestinationSelected: (index) {
-                            unawaited(HarvestHaptics.tick());
-                            final branch = tabs[index].branch;
-                            widget.navigationShell.goBranch(
-                              branch,
-                              initialLocation:
-                                  branch == widget.navigationShell.currentIndex,
-                            );
-                          },
-                          destinations: [
-                            for (final tab in tabs)
-                              NavigationDestination(
-                                icon: Icon(tab.icon),
-                                selectedIcon: Icon(tab.active),
-                                label: tab.label,
-                              ),
-                          ],
+        child: NewsPopups(
+          child: Scaffold(
+            // The tabs keep their own messenger, so a snack bar shows in
+            // the tab's Scaffold and lifts its floating button, not over
+            // it (U6-16).
+            body: ScaffoldMessenger(
+              key: _tabMessenger,
+              child: widget.navigationShell,
+            ),
+            bottomNavigationBar: typing
+                ? null
+                // Too narrow for a word under every icon, the icons carry
+                // the bar alone (their tooltips still name them), and the
+                // labels never grow past 1.15× at a large font: "Granary"
+                // broke as "Granar/y" (U6-12).
+                : LayoutBuilder(
+                    builder: (context, constraints) =>
+                        MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: 1.15,
+                          child: NavigationBar(
+                            selectedIndex: current < 0 ? 0 : current,
+                            labelBehavior:
+                                constraints.maxWidth / tabs.length < 64
+                                ? NavigationDestinationLabelBehavior.alwaysHide
+                                : null,
+                            onDestinationSelected: (index) {
+                              unawaited(HarvestHaptics.tick());
+                              final branch = tabs[index].branch;
+                              widget.navigationShell.goBranch(
+                                branch,
+                                initialLocation:
+                                    branch ==
+                                    widget.navigationShell.currentIndex,
+                              );
+                            },
+                            destinations: [
+                              for (final tab in tabs)
+                                NavigationDestination(
+                                  icon: Icon(tab.icon),
+                                  selectedIcon: Icon(tab.active),
+                                  label: tab.label,
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                ),
+                  ),
+          ),
         ),
       ),
     );

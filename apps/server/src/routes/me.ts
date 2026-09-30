@@ -1,4 +1,7 @@
 import {
+  heartbeatBodySchema,
+  pushSubscriptionBodySchema,
+  pushUnsubscribeBodySchema,
   deleteMeBodySchema,
   patchMeBodySchema,
   reauthBodySchema,
@@ -12,6 +15,7 @@ import type { Repositories } from '../db/index.js';
 import { authOf } from '../http/authenticate.js';
 import { HttpError, unauthorized } from '../http/errors.js';
 import { validated } from '../http/validate.js';
+import { startOfUtcDay } from '../db/admin-stats.js';
 import type { Limiters } from '../http/rate-limits.js';
 import { clearRefreshCookies, type CookiePolicy } from './auth.js';
 
@@ -20,7 +24,8 @@ export function meRoutes(auth: AuthService, repos: Repositories, policy: CookieP
   const router = Router();
 
   router.get('/', async (_req, res) => {
-    res.json(toMe(await auth.me(authOf(res).userId)));
+    const user = await auth.me(authOf(res).userId);
+    res.json(toMe(user, auth.isAdmin(user)));
   });
 
   router.patch(
@@ -32,7 +37,7 @@ export function meRoutes(auth: AuthService, repos: Repositories, policy: CookieP
           ? await auth.me(userId)
           : await repos.users.setDisplayName(userId, body.displayName);
       if (!user) throw unauthorized();
-      res.json(toMe(user));
+      res.json(toMe(user, auth.isAdmin(user)));
     }),
   );
 
@@ -55,6 +60,36 @@ export function meRoutes(auth: AuthService, repos: Repositories, policy: CookieP
     limits.deleteAccount,
     ...validated({ body: reauthBodySchema }, async ({ body }, _req, res) => {
       await auth.reauth(authOf(res).userId, body.password);
+      res.status(204).end();
+    }),
+  );
+
+  // The daily heartbeat ([[Admin]]): the latest platform, version and
+  // shared streak, and the first of a day counted once in the day's totals.
+  router.post(
+    '/heartbeat',
+    ...validated({ body: heartbeatBodySchema }, async ({ body }, _req, res) => {
+      const at = new Date();
+      const { found, lastActiveAt } = await repos.users.heartbeat(authOf(res).userId, body, at);
+      if (!found) throw unauthorized();
+      if (!lastActiveAt || lastActiveAt < startOfUtcDay(at)) await repos.adminStats.countActive(at);
+      res.status(204).end();
+    }),
+  );
+
+  // A browser's Web Push subscription, kept for this account.
+  router.post(
+    '/push-subscription',
+    ...validated({ body: pushSubscriptionBodySchema }, async ({ body }, _req, res) => {
+      await repos.pushSubscriptions.save(authOf(res).userId, body.endpoint, body.keys, new Date());
+      res.status(204).end();
+    }),
+  );
+
+  router.delete(
+    '/push-subscription',
+    ...validated({ body: pushUnsubscribeBodySchema }, async ({ body }, _req, res) => {
+      await repos.pushSubscriptions.remove(authOf(res).userId, body.endpoint);
       res.status(204).end();
     }),
   );

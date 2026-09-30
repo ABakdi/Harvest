@@ -80,9 +80,11 @@ export interface AuthDeps {
   accountLock?: KeyedMutex;
   /** The soft per-email sign-in limit (audit S5-06). */
   emailLimit?: EmailLimit;
+  /** The emails of the accounts that are admins ([[Admin]]), normalised. */
+  adminEmails?: readonly string[];
 }
 
-export function toMe(user: UserDoc): Me {
+export function toMe(user: UserDoc, admin = false): Me {
   return {
     id: user._id.toHexString(),
     email: user.email,
@@ -90,6 +92,7 @@ export function toMe(user: UserDoc): Me {
     verifiedAt: user.verifiedAt?.toISOString() ?? null,
     syncSalt: user.syncSalt,
     createdAt: user.createdAt.toISOString(),
+    admin,
   };
 }
 
@@ -288,7 +291,7 @@ export class AuthService {
           expiresIn: accessTokenSeconds,
           refreshToken: next.token,
           client: session.client,
-          user: toMe(user),
+          user: toMe(user, this.isAdmin(user)),
         };
       }
       // Another request exchanged it a moment ago: this successor was
@@ -337,7 +340,7 @@ export class AuthService {
       expiresIn: accessTokenSeconds,
       refreshToken: successor,
       client: session.client,
-      user: toMe(user),
+      user: toMe(user, this.isAdmin(user)),
     };
   }
 
@@ -459,6 +462,7 @@ export class AuthService {
       await this.repos.records.deleteAll(userId);
       await this.repos.files.deleteAllFor(userId);
       await this.repos.assistUsage.deleteAllFor(userId);
+      await this.repos.pushSubscriptions.deleteAllFor(userId);
       await this.repos.users.delete(userId);
     });
   }
@@ -488,6 +492,11 @@ export class AuthService {
 
   // ---------------------------------------------------------- helpers
 
+  /** Whether [user] is one of the server's admins ([[Admin]] AD6). */
+  isAdmin(user: Pick<UserDoc, 'email'>): boolean {
+    return (this.deps.adminEmails ?? []).includes(user.email.trim().toLowerCase());
+  }
+
   /**
    * A sign-in's per-email key: the address under the server's lookup
    * key, so none is kept as itself and none can be found by hashing a
@@ -516,7 +525,7 @@ export class AuthService {
       expiresIn: accessTokenSeconds,
       refreshToken: refresh.token,
       client,
-      user: toMe(user),
+      user: toMe(user, this.isAdmin(user)),
     };
   }
 

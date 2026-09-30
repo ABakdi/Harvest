@@ -1,5 +1,10 @@
 import type { Collection, Db } from 'mongodb';
 import type {
+  ReportDoc,
+  AnnouncementDoc,
+  DailyStatsDoc,
+  PushSubscriptionDoc,
+  ServerSettingDoc,
   AssistDayDoc,
   AssistUsageDoc,
   CounterDoc,
@@ -26,6 +31,11 @@ export interface Collections {
   assistDays: Collection<AssistDayDoc>;
   loginFailures: Collection<LoginFailureDoc>;
   windowedCounts: Collection<WindowedCountDoc>;
+  announcements: Collection<AnnouncementDoc>;
+  pushSubscriptions: Collection<PushSubscriptionDoc>;
+  dailyStats: Collection<DailyStatsDoc>;
+  serverSettings: Collection<ServerSettingDoc>;
+  reports: Collection<ReportDoc>;
   /** GridFS's own `files` collection of the file bytes' bucket. */
   fileBlobs: Collection;
 }
@@ -43,6 +53,11 @@ export function collections(db: Db): Collections {
     assistDays: db.collection<AssistDayDoc>('assist_days'),
     loginFailures: db.collection<LoginFailureDoc>('login_failures'),
     windowedCounts: db.collection<WindowedCountDoc>('windowed_counts'),
+    announcements: db.collection<AnnouncementDoc>('announcements'),
+    pushSubscriptions: db.collection<PushSubscriptionDoc>('push_subscriptions'),
+    dailyStats: db.collection<DailyStatsDoc>('daily_stats'),
+    serverSettings: db.collection<ServerSettingDoc>('server_settings'),
+    reports: db.collection<ReportDoc>('reports'),
     fileBlobs: db.collection('file_blobs.files'),
   };
 }
@@ -97,6 +112,17 @@ export async function ensureIndexes(c: Collections): Promise<void> {
     c.loginFailures.createIndex({ resetAt: 1 }, { expireAfterSeconds: 0, name: 'login_failures_ttl', ...building }),
     c.loginFailures.createIndex({ emailKey: 1 }, { name: 'login_failures_email', ...building }),
     c.windowedCounts.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'windowed_counts_ttl', ...building }),
+
+    // The news live now, newest first ([[Admin]]).
+    c.announcements.createIndex({ startsAt: 1, endsAt: 1 }, { name: 'announcements_live', ...building }),
+    // A browser subscribes once; an account's go with it.
+    c.pushSubscriptions.createIndex({ endpoint: 1 }, { unique: true, name: 'push_endpoint', ...building }),
+    c.pushSubscriptions.createIndex({ userId: 1 }, { name: 'push_user', ...building }),
+    // The reports still to read.
+    c.reports.createIndex({ status: 1, _id: -1 }, { name: 'reports_status', ...building }),
+    // The admin's counts over the accounts.
+    c.users.createIndex({ lastActiveAt: 1 }, { name: 'users_last_active', ...building }),
+    c.users.createIndex({ createdAt: 1 }, { name: 'users_created', ...building }),
 
     // A file's bytes by their owner, to sweep up after a delete.
     c.fileBlobs.createIndex({ 'metadata.userId': 1 }, { name: 'file_blobs_owner', ...building }),

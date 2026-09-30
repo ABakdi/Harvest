@@ -1,7 +1,7 @@
 name: harvest
 description: "Harvest: habits, projects, goals, money, gym, notes and memories in one offline-first app."
 publish_to: 'none'
-version: 3.2.0+27
+version: 3.3.0+28
 
 environment:
   sdk: ^3.13.2
@@ -32,12 +32,14 @@ dependencies:
     path: packages/harvest_steps
   home_widget: ^0.9.4
   http: ^1.6.0
+  image: ^4.3.0
   image_picker: ^1.2.3
   intl: ^0.20.3
   just_audio: ^0.10.6
   local_auth: ^3.0.2
   maplibre_gl: ^0.25.0
   meta: ^1.19.0
+  package_info_plus: ^10.2.1
   path: ^1.9.1
   path_provider: ^2.1.6
   pdf: ^3.12.0

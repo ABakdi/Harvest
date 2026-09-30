@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Link, type RouteObject } from 'react-router';
+import { Link, Navigate, type RouteObject } from 'react-router';
 import { RouteErrorScreen } from '@/components/error-screen';
 import { Button } from '@/components/ui/button';
 import { DownloadPage } from '@/pages/site/download';
@@ -48,6 +48,8 @@ export const routes: RouteObject[] = [
       { path: 'forgot', HydrateFallback: Blank, lazy: async () => ({ Component: (await import('@/pages/auth/forgot')).ForgotPage }) },
       { path: 'reset/:token', HydrateFallback: Blank, lazy: async () => ({ Component: (await import('@/pages/auth/reset')).ResetPage }) },
       { path: 'verify/:token', HydrateFallback: Blank, lazy: async () => ({ Component: (await import('@/pages/auth/verify')).VerifyPage }) },
+      // The admin panel lives inside the app, behind its session ([[Admin]]).
+      { path: 'admin', element: <Navigate to="/app/admin" replace /> },
       { path: '*', element: <NotFound /> },
     ],
   },

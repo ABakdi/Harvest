@@ -72,7 +72,6 @@ class ApiClient {
     required this.tokens,
     http.Client? client,
     this.onSignedOut,
-    this.ready,
     Future<void> Function(Duration)? pause,
   }) : _client = client ?? http.Client(),
        _pause = pause ?? Future<void>.delayed;
@@ -80,9 +79,6 @@ class ApiClient {
   /// Up to the host, e.g. `https://harvest.example.org`.
   final Uri Function() baseUrl;
 
-  /// Done once [baseUrl] holds the saved address; every request waits
-  /// for it, so the first one after a start never goes to the default.
-  final Future<void> Function()? ready;
   final TokenStore tokens;
   final http.Client _client;
 
@@ -96,6 +92,9 @@ class ApiClient {
   /// longest wait taken: past that, the answer is the failure.
   static const paceAttempts = 3;
   static const longestWait = Duration(seconds: 60);
+
+  /// How long a call may take before it counts as offline.
+  static const requestTimeout = Duration(seconds: 30);
 
   Future<void>? _refreshing;
 
@@ -115,9 +114,19 @@ class ApiClient {
       _send('DELETE', path, body: body);
 
   /// A call that must not carry or refresh a session: sign-in, sign-up,
-  /// the emailed links.
-  Future<Map<String, Object?>> postAnonymous(String path, Object? body) =>
-      _send('POST', path, body: body, authenticated: false);
+  /// the emailed links, a report ([[Admin]]). A large body — a report's
+  /// pictures and recording — takes a longer [timeout].
+  Future<Map<String, Object?>> postAnonymous(
+    String path,
+    Object? body, {
+    Duration timeout = requestTimeout,
+  }) => _send('POST', path, body: body, authenticated: false, timeout: timeout);
+
+  /// A read that carries no session: the news asked for in the
+  /// background, where refreshing a session beside the app could spend
+  /// the same refresh token twice ([[Admin]]).
+  Future<Map<String, Object?>> getAnonymous(String path) =>
+      _send('GET', path, authenticated: false);
 
   /// Sends raw bytes and reads the JSON answer: the file routes, whose
   /// bodies are ciphertext rather than JSON ([[Sync-API]]).
@@ -176,6 +185,7 @@ class ApiClient {
     Map<String, String>? query,
     bool authenticated = true,
     bool retried = false,
+    Duration timeout = requestTimeout,
   }) async {
     if (authenticated && tokens.access == null && !retried) {
       await _refreshOnce();
@@ -188,6 +198,7 @@ class ApiClient {
       extraHeaders: extraHeaders,
       query: query,
       bearer: authenticated ? tokens.access : null,
+      timeout: timeout,
     );
     if (response.statusCode == 401 && authenticated && !retried) {
       await _refreshOnce();
@@ -217,6 +228,7 @@ class ApiClient {
     Map<String, String>? query,
     String? bearer,
     String accept = 'application/json',
+    Duration timeout = requestTimeout,
   }) async {
     for (var attempt = 1; ; attempt++) {
       final response = await _raw(
@@ -228,6 +240,7 @@ class ApiClient {
         query: query,
         bearer: bearer,
         accept: accept,
+        timeout: timeout,
       );
       final paced =
           path.startsWith('/v1/sync/') || path.startsWith('/v1/files');
@@ -281,8 +294,8 @@ class ApiClient {
     Map<String, String>? query,
     String? bearer,
     String accept = 'application/json',
+    Duration timeout = requestTimeout,
   }) async {
-    await ready?.call();
     final base = baseUrl();
     final url = base.replace(
       path: '${base.path.replaceAll(RegExp(r'/$'), '')}$path',
@@ -300,7 +313,7 @@ class ApiClient {
     }
     try {
       return await http.Response.fromStream(
-        await _client.send(request).timeout(const Duration(seconds: 30)),
+        await _client.send(request).timeout(timeout),
       );
     } on SocketException {
       throw const ApiException('offline', 0);

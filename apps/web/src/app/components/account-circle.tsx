@@ -1,5 +1,6 @@
-import { KeyRoundIcon, LogOutIcon, RefreshCwIcon, SettingsIcon, ShieldCheckIcon } from 'lucide-react';
+import { ChartColumnIcon, KeyRoundIcon, LifeBuoyIcon, LogOutIcon, RefreshCwIcon, SettingsIcon, ShieldCheckIcon } from 'lucide-react';
 import { useId, useState } from 'react';
+import { ReportProblemDialog } from './report-problem';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
@@ -119,6 +120,7 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
   const [unlocking, setUnlocking] = useState(false);
   const [forgetting, setForgetting] = useState(false);
   const [changing, setChanging] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [warning, setWarning] = useState<number | null>(null);
   const online = useOnline();
   const offline = status.phase === 'offline' || !online;
@@ -250,17 +252,32 @@ function AccountSheet({ onClose }: { onClose: () => void }) {
               <LogOutIcon />
               {t('settings.signOutHere')}
             </Button>
-            <Button asChild variant="link" size="sm">
-              <Link to="/app/settings" onClick={onClose}>
-                <SettingsIcon />
-                {t('account.allSettings')}
-              </Link>
-            </Button>
+            <div className="flex flex-wrap items-center gap-1">
+              {user.admin === true && (
+                <Button asChild variant="link" size="sm">
+                  <Link to="/app/admin" onClick={onClose}>
+                    <ChartColumnIcon />
+                    {t('admin.title')}
+                  </Link>
+                </Button>
+              )}
+              <Button variant="link" size="sm" onClick={() => setReporting(true)}>
+                <LifeBuoyIcon />
+                {t('report.open')}
+              </Button>
+              <Button asChild variant="link" size="sm">
+                <Link to="/app/settings" onClick={onClose}>
+                  <SettingsIcon />
+                  {t('account.allSettings')}
+                </Link>
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {unlocking && <SyncPinDialog onClose={() => setUnlocking(false)} />}
+      <ReportProblemDialog open={reporting} onOpenChange={setReporting} />
       {changing && (
         <StartOverDialog
           changing

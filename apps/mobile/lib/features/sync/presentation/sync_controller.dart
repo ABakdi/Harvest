@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:harvest/core/db/database_provider.dart';
 import 'package:harvest/features/account/data/api_client.dart';
 import 'package:harvest/features/account/domain/account.dart';
+import 'package:harvest/features/account/domain/heartbeat.dart';
 import 'package:harvest/features/gallery/data/gallery_storage.dart';
 import 'package:harvest/features/gallery/data/memory_files.dart';
 import 'package:harvest/features/notes/data/note_attachments.dart';
@@ -152,6 +153,9 @@ class SyncController extends _$SyncController {
         // sign-in does for now, and the run goes on to say what it can.
       }
     }
+    // Once a day, this phone says it is in use ([[Admin]]); the first
+    // run of a new day sends it, and it never holds the sync up.
+    unawaited(ref.read(heartbeatProvider).beat());
     if (!me.verified) {
       // The link was likely opened somewhere else since: ask again,
       // or this phone would wait for a restart that changes nothing.

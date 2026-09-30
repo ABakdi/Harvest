@@ -1,3 +1,6 @@
+import { ReportsRepository } from './reports.js';
+import { AdminStatsRepository } from './admin-stats.js';
+import { AnnouncementsRepository, PushSubscriptionsRepository, ServerSettingsRepository } from './announcements.js';
 import { peopleKeys } from '../auth/people-keys.js';
 import type { Db } from 'mongodb';
 import { collections, ensureIndexes } from './collections.js';
@@ -21,6 +24,11 @@ export interface Repositories {
   totals: TotalsRepository;
   loginFailures: LoginFailuresRepository;
   windowedCounts: WindowedCountsRepository;
+  adminStats: AdminStatsRepository;
+  announcements: AnnouncementsRepository;
+  pushSubscriptions: PushSubscriptionsRepository;
+  serverSettings: ServerSettingsRepository;
+  reports: ReportsRepository;
 }
 
 /**
@@ -42,6 +50,11 @@ export async function createRepositories(db: Db, secret: Buffer): Promise<Reposi
     totals: new TotalsRepository(c.counters),
     loginFailures: new LoginFailuresRepository(c.loginFailures),
     windowedCounts: new WindowedCountsRepository(c.windowedCounts),
+    adminStats: new AdminStatsRepository(c.users, c.dailyStats),
+    announcements: new AnnouncementsRepository(c.announcements),
+    pushSubscriptions: new PushSubscriptionsRepository(c.pushSubscriptions),
+    serverSettings: new ServerSettingsRepository(c.serverSettings),
+    reports: new ReportsRepository(c.reports, db),
   };
 }
 

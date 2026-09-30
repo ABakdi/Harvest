@@ -31,11 +31,13 @@ import { SettingsRow as Row, SettingsSection as Section, Stepper, FeatureSwitchL
 import { DailyCycleCard, SleepNightsCard } from '../components/settings-cycle';
 import { CategoryManager } from '../components/money-categories';
 import { RatesCard } from '../components/settings-rates';
+import { ReportSection } from '../components/report-problem';
 import { FarmerTabs } from '../components/screen-tabs';
 import { featureKeys, pomodoroSettings, settingKeys } from '../data/settings';
 import { useDefaultCurrency, usePrivateKey, useSetting } from '../hooks';
 import { runAction } from '@/lib/actions';
 import { CurrencyPicker } from '../components/currency-picker';
+import { NewsSection } from '../components/news-settings';
 
 function SyncSection() {
   const { t } = useTranslation();
@@ -414,6 +416,8 @@ export function SettingsScreen() {
       <SyncSection />
       <DataCard />
       <AccountSection />
+      <NewsSection />
+      <ReportSection />
       <Section title={t('settings.keyboard')} id="settings-keys">
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
           {shortcutList.map(([keys, label]) => (

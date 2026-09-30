@@ -1544,6 +1544,18 @@
       "mail": {
         "title": "Two emails, and only two",
         "body": "To verify your address and to reset your password, the server hands your address and a link to its mail provider. Nothing else is ever emailed."
+      },
+      "news": {
+        "title": "News from Harvest, while it is on",
+        "body": "When the app opens, and in the phone's background every few hours, a request for the news that is live. Without an account it carries nothing about you; signed in, it carries your session, so news meant for account holders comes too. Turn it off in Settings and it never asks."
+      },
+      "push": {
+        "title": "Notifications, if you allow them",
+        "body": "In a browser, the server hands the news to your browser's own push service (Google's, Mozilla's or Apple's), encrypted so only your browser can read it. The phone asks for the news itself instead: nothing goes through Google."
+      },
+      "report": {
+        "title": "A report of a problem, when you send one",
+        "body": "What you wrote, the pictures and the recording you added, and the platform and app version, to Harvest's team. Without your name or account and without your address; pictures are saved again on your device first, so their location and time stay behind. It is not end-to-end encrypted: it is written to be read."
       }
     },
     "server": {
@@ -1557,7 +1569,7 @@
       },
       "account": {
         "title": "Your email and name",
-        "body": "Encrypted with a key kept outside the database, and found by a keyed hash, so a copy of the database holds no readable address. The server opens it only to send the two emails."
+        "body": "Encrypted with a key kept outside the database, and found by a keyed hash, so a copy of the database holds no readable address. The running server opens it to send the two emails, and to show it on its admin page."
       },
       "password": {
         "title": "Your password",
@@ -1570,6 +1582,18 @@
       "backups": {
         "title": "Its backups",
         "body": "Encrypted before they touch the disk, to a key that is not on the server."
+      },
+      "activity": {
+        "title": "That you use it, and your streak if you share it",
+        "body": "Once a day a signed-in device says it was used: its platform and app version, and your current and best streak while Share my streak is on. The server keeps only the latest of each, and daily totals for everyone together; it keeps no history of you."
+      },
+      "admin": {
+        "title": "What whoever runs the server can see",
+        "body": "An admin page shows how many people use Harvest and, for each account, its email, name, when it was made and last active, its platform and version, and its streak if shared. Never your notes, money, places, health or pictures. Without an account you are not counted at all: only as a download."
+      },
+      "reports": {
+        "title": "Reports of problems",
+        "body": "What people chose to report, with its pictures and recording, tied to no account and to no address, kept until the admin deletes it."
       }
     },
     "devices": {
@@ -2264,5 +2288,186 @@
     "pick": "Choose a currency",
     "search": "Search by name, code or sign",
     "none": "No currency by that name."
+  },
+  "news": {
+    "title": "News and notifications",
+    "lead": "What Harvest may tell you, and what this browser tells it. Both switches are this browser's own.",
+    "fromHarvest": "News from Harvest",
+    "fromHarvestHint": "Asks the server for news when the app opens, and shows what is new once. Off, it never asks.",
+    "shareStreak": "Share my streak",
+    "shareStreakHint": "Once a day this browser tells the server it was used, with its version. On, your streak goes with it, for Harvest's counts; off, only that it was used.",
+    "push": "Notifications",
+    "pushOffer": "Let the news reach you as a notification, even with the app closed.",
+    "pushOn": "This browser shows the news as notifications.",
+    "pushDenied": "This browser blocks notifications from Harvest; allow them in its site settings to turn them on.",
+    "pushUnsupported": "This browser, or this server, cannot send notifications. The news still shows when the app opens.",
+    "pushAllow": "Allow notifications",
+    "pushTurnOff": "Turn off",
+    "open": "Open",
+    "gotIt": "Got it"
+  },
+  "admin": {
+    "title": "Admin",
+    "tab": {
+      "overview": "Overview",
+      "users": "Users",
+      "news": "News",
+      "reports": "Reports"
+    },
+    "accounts": "Accounts",
+    "accountsDetail": "{{verified}} verified · new: {{today}} today, {{week}} this week, {{month}} this month",
+    "activeToday": "Active today",
+    "activeDetail": "{{week}} in the last 7 days · {{month}} in the last 30",
+    "streaks": "Sharing their streak",
+    "streaksDetail": "median {{median}} · mean {{mean}} · longest {{longest}} days",
+    "downloads": "APK downloads",
+    "downloadsDetail": "across {{releases}} releases",
+    "downloadsUnknown": "GitHub could not be asked just now.",
+    "streakBands": "Current streaks",
+    "band": "{{band}} days",
+    "platforms": "Platforms",
+    "platform": {
+      "android": "Android",
+      "web": "Web"
+    },
+    "versions": "App versions",
+    "releases": "Downloads by release",
+    "generated": "Counted {{at}}.",
+    "nothingYet": "Nothing yet.",
+    "overTime": "Over time",
+    "span": "Span",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "measure": {
+      "accounts": "Accounts",
+      "signups": "New accounts",
+      "active": "Active that day",
+      "active7": "Active in 7 days",
+      "active30": "Active in 30 days",
+      "streakMedian": "Median streak"
+    },
+    "chartLabel": "{{label}} from {{from}} to {{to}}: highest {{peak}}, last {{last}}",
+    "searchUsers": "Search by email",
+    "search": "Search",
+    "noUsers": "No accounts yet.",
+    "noMatch": "No account matches.",
+    "col": {
+      "email": "Email",
+      "created": "Created",
+      "lastActive": "Last active",
+      "platform": "Platform",
+      "streak": "Streak"
+    },
+    "unverified": "Unverified",
+    "never": "Never",
+    "notShared": "Not shared",
+    "streakCell": "{{current}} (best {{best}})",
+    "more": "Show more",
+    "failed": "The server did not answer. Try again in a moment.",
+    "news": {
+      "write": "Write news",
+      "all": "All news",
+      "none": "No news written yet.",
+      "title": "Title",
+      "body": "Message",
+      "link": "Link (optional)",
+      "push": "Send as a notification",
+      "popup": "Show as a pop-up when the app opens",
+      "audienceLabel": "Who",
+      "audience": {
+        "everyone": "Everyone",
+        "accounts": "Account holders"
+      },
+      "from": "From",
+      "fromHint": "Empty: now.",
+      "until": "Until",
+      "untilHint": "Empty: until I end it.",
+      "send": "Publish",
+      "sent": "Published.",
+      "ended": "Ended.",
+      "deleted": "Deleted.",
+      "endNow": "End now",
+      "delete": "Delete",
+      "deleteTitle": "Delete this news?",
+      "deleteBody": "“{{title}}” stops showing, and is gone from this list. A notification already shown stays where it is.",
+      "forever": "until I end it",
+      "when": "From {{from}}, {{until}}",
+      "state": {
+        "live": "Live",
+        "scheduled": "Scheduled",
+        "ended": "Ended"
+      },
+      "pushBadge": "Push · {{count}} sent",
+      "popupBadge": "Pop-up",
+      "problem": {
+        "title": "A title of up to 80 characters.",
+        "body": "A message of up to 1,000 characters.",
+        "link": "An address starting with https://, or nothing.",
+        "push": "A notification, a pop-up, or both.",
+        "endsAt": "It ends before it starts."
+      }
+    },
+    "reports": {
+      "filter": "Which reports",
+      "status": {
+        "all": "All",
+        "new": "New",
+        "read": "Read",
+        "done": "Done"
+      },
+      "mark": {
+        "new": "Mark new",
+        "read": "Mark read",
+        "done": "Done"
+      },
+      "none": "No reports here.",
+      "deleted": "Report deleted.",
+      "delete": "Delete",
+      "deleteTitle": "Delete this report?",
+      "deleteBody": "Its words, pictures and recording go for good.",
+      "files_one": "1 file",
+      "files_other": "{{count}} files",
+      "fileFailed": "This file could not be fetched.",
+      "recording": "Recording",
+      "picture": "Picture from a report",
+      "openPicture": "Open the picture",
+      "unread_one": "1 new report",
+      "unread_other": "{{count}} new reports"
+    }
+  },
+  "report": {
+    "title": "Report a problem",
+    "lead": "Something went wrong, or could be better? Say it in your own words. It comes to me as you write it, and helps make Harvest better.",
+    "open": "Report a problem",
+    "what": "What happened",
+    "placeholder": "What you were doing, what you expected, and what happened instead. If you want an answer, say how to reach you.",
+    "addPicture": "Add a picture ({{count}}/{{max}})",
+    "addPictureLabel": "Pictures to add",
+    "pictureHint": "Each picture is saved again here before it goes, so where and when it was taken stays on your device.",
+    "unreadable": "That picture could not be read here. Try a JPEG or a PNG.",
+    "picture": "Picture {{n}}",
+    "removePicture": "Remove picture {{n}}",
+    "recording": "The recording",
+    "removeRecording": "Remove the recording",
+    "attachSound": "Attach a sound file",
+    "record": "Record your voice",
+    "stop": "Stop ({{time}})",
+    "micDenied": "The microphone is not allowed on this page. Allow it in the browser, or attach a file.",
+    "howItGoes": "It goes to Harvest's team as you wrote it, with the platform and the app's version and nothing else: not your name, not your account. It is not end-to-end encrypted, since it is meant to be read.",
+    "send": "Send the report",
+    "sending": "Sending…",
+    "sent": "Thank you. The report is on its way.",
+    "tooMany_one": "Too many reports from here just now. Try again in a minute.",
+    "tooMany_other": "Too many reports from here just now. Try again in {{count}} minutes.",
+    "offline": "No connection. The report is still here; send it when you are back online.",
+    "failed": "The report did not go. Try again in a moment.",
+    "problem": {
+      "text": "Write what happened, up to 5,000 characters.",
+      "images": "Four pictures at most.",
+      "audio": "One recording at most, as an audio file the server takes (M4A, MP3, WebM, Ogg or WAV).",
+      "tooLarge": "All of it together is too large. Remove a picture or the recording.",
+      "imageTooLarge": "A picture is larger than 5 MB, even saved again.",
+      "audioTooLarge": "The recording is larger than 10 MB."
+    }
   }
 }

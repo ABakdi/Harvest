@@ -19,17 +19,23 @@ part 'account.g.dart';
 /// Account bookkeeping in `kv_settings`: none of it is a preference,
 /// so none of it syncs or exports.
 abstract final class AccountKeys {
+  /// Where an earlier version kept a typed-in server address; removed
+  /// on start, since the address is now built in ([[Checkpoint-12]] B12-02).
   static const serverUrl = 'account.serverUrl';
   static const me = 'account.me';
 }
 
-/// Where the Harvest server is, unless Settings says otherwise.
-/// Filled at build time for a release; empty in development.
-const defaultServerUrl = String.fromEnvironment('HARVEST_API_URL');
+/// Where the Harvest server is: built into the app (B12-02). A move of
+/// the server is a new release; a build for development or the
+/// emulator points elsewhere with `--dart-define=HARVEST_SERVER=…`.
+const harvestServerUrl = String.fromEnvironment(
+  'HARVEST_SERVER',
+  defaultValue: 'https://harvest.abakdi.com',
+);
 
 @immutable
 class AccountState {
-  const AccountState({required this.serverUrl, this.me});
+  const AccountState({this.serverUrl = harvestServerUrl, this.me});
 
   final String serverUrl;
 
@@ -42,49 +48,15 @@ class AccountState {
 @Riverpod(keepAlive: true)
 TokenStore tokenStore(Ref ref) => TokenStore(ref.watch(secretStoreProvider));
 
-/// The server address as the client uses it, held in memory so a
-/// sign-in straight after typing a new one goes there and not to the
-/// old one (the setting itself is only read back asynchronously).
-class ServerAddress {
-  Uri value = Uri.parse(defaultServerUrl);
-
-  /// Done once the saved address has been read, or one was set.
-  final loaded = Completer<void>();
-
-  void set(String? url) {
-    value = Uri.parse(
-      url == null || url.trim().isEmpty ? defaultServerUrl : url.trim(),
-    );
-    if (!loaded.isCompleted) loaded.complete();
-  }
-}
-
+/// The server every request goes to: the built-in one, always.
 @Riverpod(keepAlive: true)
-ServerAddress serverAddress(Ref ref) {
-  final settings = ref.watch(settingsRepositoryProvider);
-  final address = ServerAddress();
-  unawaited(
-    settings
-        .getString(AccountKeys.serverUrl)
-        .then(
-          address.set,
-          // Unreadable: the default, rather than every request waiting.
-          onError: (Object _) => address.set(null),
-        ),
-  );
-  final subscription = settings
-      .watchAll([AccountKeys.serverUrl])
-      .listen((values) => address.set(values[AccountKeys.serverUrl]));
-  ref.onDispose(subscription.cancel);
-  return address;
-}
+Uri serverAddress(Ref ref) => Uri.parse(harvestServerUrl);
 
 @Riverpod(keepAlive: true)
 ApiClient apiClient(Ref ref) {
   final address = ref.watch(serverAddressProvider);
   return ApiClient(
-    baseUrl: () => address.value,
-    ready: () => address.loaded.future,
+    baseUrl: () => address,
     tokens: ref.watch(tokenStoreProvider),
     onSignedOut: () => unawaited(
       ref.read(accountControllerProvider.notifier).forget(),
@@ -569,7 +541,11 @@ class AccountController extends _$AccountController {
   @override
   Future<AccountState> build() async {
     final settings = ref.watch(settingsRepositoryProvider);
-    final url = await settings.getString(AccountKeys.serverUrl);
+    // An address typed into an earlier version goes: the built-in one
+    // is where the account is now (B12-02).
+    if (await settings.getString(AccountKeys.serverUrl) != null) {
+      await settings.remove(AccountKeys.serverUrl);
+    }
     final cached = await settings.getString(AccountKeys.me);
     Me? me;
     if (cached != null &&
@@ -580,22 +556,10 @@ class AccountController extends _$AccountController {
         me = null;
       }
     }
-    return AccountState(
-      serverUrl: url == null || url.isEmpty ? defaultServerUrl : url,
-      me: me,
-    );
+    return AccountState(me: me);
   }
 
   ApiClient get _api => ref.read(apiClientProvider);
-
-  Future<void> setServerUrl(String url) async {
-    ref.read(serverAddressProvider).set(url);
-    await ref
-        .read(settingsRepositoryProvider)
-        .setString(AccountKeys.serverUrl, url.trim());
-    ref.invalidateSelf();
-    await future;
-  }
 
   Future<void> register({
     required String email,

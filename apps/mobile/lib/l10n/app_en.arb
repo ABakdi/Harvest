@@ -584,6 +584,13 @@
   "channelReminders": "Reminders",
   "channelStreak": "Streak",
   "channelPomodoro": "Focus timer",
+  "channelNews": "News from Harvest",
+  "newsSetting": "News from Harvest",
+  "newsSettingBody": "Updates and things worth knowing, as a notification or once when the app opens. Asked for every few hours, carrying nothing about you.",
+  "newsOpenLink": "Open",
+  "newsDismiss": "Got it",
+  "shareStreakSetting": "Share my streak",
+  "shareStreakBody": "Once a day this phone tells Harvest's server it is in use: the app's version and, while this is on, your streak. Nothing else of yours.",
   "remindersStreakHint": "At {time}, only when the day is not yet earned",
   "@remindersStreakHint": {
     "placeholders": {
@@ -1615,8 +1622,6 @@
   "settingsAccount": "Account",
   "settingsSectionAccountHint": "Optional: sync with your other devices and the web",
   "accountWhy": "An account only syncs your data between your phone and the web. Harvest works fully without one, forever.",
-  "accountServer": "Server",
-  "accountServerHint": "https://your-harvest-server",
   "accountEmail": "Email",
   "accountPassword": "Password",
   "accountDisplayName": "Name (optional)",
@@ -1697,8 +1702,6 @@
   "gymRestOverBody": "Next set.",
   "stepsDeniedHealthConnect": "Not allowed yet. Health Connect's settings can always allow it: open them, allow Steps for Harvest, and come back.",
   "ratesDzdManual": "The dinar's market rate is typed by hand: no free source has it. Fetch updates every other currency.",
-  "accountServerExample": "Your Harvest server's address, like https://harvest.example.com",
-  "accountServerInvalid": "Enter the server's address, starting with https://",
   "accountEmailMissing": "Enter your email.",
   "accountEmailInvalid": "That doesn't look like an email address.",
   "accountPasswordMissing": "Enter your password.",
@@ -1814,8 +1817,8 @@
   "mediaPodcast": "Podcast",
   "mediaOther": "Other",
   "syncPinTitle": "Sync PIN",
-  "syncPinChooseBody": "Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.",
-  "syncPinEnterBody": "Your other devices already use a sync PIN. Enter the same one here to bring your data over.",
+  "syncPinChooseBody": "Everything is encrypted on this phone before it syncs, with a key made from this secret: notes, money, health, places and pictures. The server never sees it. Use the same secret on every device.",
+  "syncPinEnterBody": "Your other devices already use a sync secret. Enter the same one here to bring your data over.",
   "syncPinLoss": "If you lose it, what is encrypted cannot be read on a new device — only sent again from one that still has it. Nobody can reset it.",
   "syncPinCost": "A PIN is quick to type, but it falls in minutes to someone holding the server's database and its keys. A passphrase holds.",
   "syncPinField": "PIN",
@@ -1830,6 +1833,7 @@
   "syncPassphraseShort": "At least 8 characters.",
   "syncPinMismatch": "The two do not match.",
   "syncPinChoose": "Set the PIN",
+  "syncPassphraseChoose": "Set the passphrase",
   "syncPinEnter": "Unlock",
   "syncPinWorking": "Making the key…",
   "syncPinChecking": "Checking it against your other devices…",
@@ -1894,7 +1898,6 @@
   "@syncPinTooMany": { "placeholders": { "minutes": { "type": "int" } } },
   "syncPinTooManySoon": "Too many tries. Try again later.",
   "syncPinStartedOver": "The PIN was just started over on another device. Choose a new one.",
-  "accountServerNotSecure": "Use https:// for the server. Plain http:// is only for this device or the emulator (localhost, 127.0.0.1, 10.0.2.2).",
   "assistBaseUrlNotSecure": "Use https:// for the assist address. Plain http:// is only for this device or the emulator.",
   "dataUnavailableTitle": "Can't open your data right now",
   "dataUnavailableBody": "The phone's secure storage did not answer. Nothing has been changed or deleted. Try again, or restart the phone if it keeps happening.",
@@ -2062,5 +2065,38 @@
       }
     }
   },
-  "exportConfirmOffline": "The server can't be reached to check the password. Try again when you're online."
+  "exportConfirmOffline": "The server can't be reached to check the password. Try again when you're online.",
+  "reportTitle": "Report a problem",
+  "reportSettingsHint": "Tell Harvest what went wrong, with pictures or a recording.",
+  "reportTextLabel": "What happened?",
+  "reportTextHint": "What you did, what you expected, and what happened instead.",
+  "reportTakePhoto": "Take a picture",
+  "reportPickPhoto": "Choose a picture",
+  "reportPicturesNote": "Pictures are made smaller and saved again on this phone first, so their location, camera and time never leave with them.",
+  "reportRecord": "Record a voice note",
+  "reportStopRecording": "Stop",
+  "reportRecordingLabel": "Voice note",
+  "reportRemove": "Remove",
+  "reportPrivacy": "This goes to Harvest's team as you wrote it, without your name or your account. It is not end-to-end encrypted: it is meant to be read. To get an answer, say how to reach you.",
+  "reportSend": "Send",
+  "reportSending": "Sending…",
+  "reportSent": "Thank you. Your report is on its way.",
+  "reportOffline": "The report could not go: this phone seems to be offline. It is still here.",
+  "reportTooLarge": "Too large to send. Take out a picture or the recording.",
+  "reportFailed": "The report could not go. Try again in a moment.",
+  "reportEmpty": "Write what happened first.",
+  "reportTextTooLong": "5,000 characters at most.",
+  "reportTooManyImages": "Four pictures at most.",
+  "reportImageTooLarge": "That picture is too large, even made smaller.",
+  "reportAudioTooLarge": "The recording is too long to send.",
+  "reportNotAPicture": "That file is not a picture Harvest can read.",
+  "reportNoMic": "Harvest needs the microphone to record.",
+  "reportLimited": "{minutes, plural, =1{Too many reports from here just now. Try again in a minute.} other{Too many reports from here just now. Try again in {minutes} minutes.}}",
+  "@reportLimited": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  }
 }

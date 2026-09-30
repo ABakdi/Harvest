@@ -1874,6 +1874,48 @@ abstract class AppLocalizations {
   /// **'Focus timer'**
   String get channelPomodoro;
 
+  /// No description provided for @channelNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News from Harvest'**
+  String get channelNews;
+
+  /// No description provided for @newsSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'News from Harvest'**
+  String get newsSetting;
+
+  /// No description provided for @newsSettingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates and things worth knowing, as a notification or once when the app opens. Asked for every few hours, carrying nothing about you.'**
+  String get newsSettingBody;
+
+  /// No description provided for @newsOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get newsOpenLink;
+
+  /// No description provided for @newsDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get newsDismiss;
+
+  /// No description provided for @shareStreakSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my streak'**
+  String get shareStreakSetting;
+
+  /// No description provided for @shareStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day this phone tells Harvest\'s server it is in use: the app\'s version and, while this is on, your streak. Nothing else of yours.'**
+  String get shareStreakBody;
+
   /// No description provided for @remindersStreakHint.
   ///
   /// In en, this message translates to:
@@ -6350,18 +6392,6 @@ abstract class AppLocalizations {
   /// **'An account only syncs your data between your phone and the web. Harvest works fully without one, forever.'**
   String get accountWhy;
 
-  /// No description provided for @accountServer.
-  ///
-  /// In en, this message translates to:
-  /// **'Server'**
-  String get accountServer;
-
-  /// No description provided for @accountServerHint.
-  ///
-  /// In en, this message translates to:
-  /// **'https://your-harvest-server'**
-  String get accountServerHint;
-
   /// No description provided for @accountEmail.
   ///
   /// In en, this message translates to:
@@ -6793,18 +6823,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The dinar\'s market rate is typed by hand: no free source has it. Fetch updates every other currency.'**
   String get ratesDzdManual;
-
-  /// No description provided for @accountServerExample.
-  ///
-  /// In en, this message translates to:
-  /// **'Your Harvest server\'s address, like https://harvest.example.com'**
-  String get accountServerExample;
-
-  /// No description provided for @accountServerInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the server\'s address, starting with https://'**
-  String get accountServerInvalid;
 
   /// No description provided for @accountEmailMissing.
   ///
@@ -7379,13 +7397,13 @@ abstract class AppLocalizations {
   /// No description provided for @syncPinChooseBody.
   ///
   /// In en, this message translates to:
-  /// **'Everything is encrypted on this phone with a key made from this PIN before it syncs: notes, money, health, places and pictures. The server never sees it. Use the same PIN on every device.'**
+  /// **'Everything is encrypted on this phone before it syncs, with a key made from this secret: notes, money, health, places and pictures. The server never sees it. Use the same secret on every device.'**
   String get syncPinChooseBody;
 
   /// No description provided for @syncPinEnterBody.
   ///
   /// In en, this message translates to:
-  /// **'Your other devices already use a sync PIN. Enter the same one here to bring your data over.'**
+  /// **'Your other devices already use a sync secret. Enter the same one here to bring your data over.'**
   String get syncPinEnterBody;
 
   /// No description provided for @syncPinLoss.
@@ -7471,6 +7489,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set the PIN'**
   String get syncPinChoose;
+
+  /// No description provided for @syncPassphraseChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the passphrase'**
+  String get syncPassphraseChoose;
 
   /// No description provided for @syncPinEnter.
   ///
@@ -7795,12 +7819,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The PIN was just started over on another device. Choose a new one.'**
   String get syncPinStartedOver;
-
-  /// No description provided for @accountServerNotSecure.
-  ///
-  /// In en, this message translates to:
-  /// **'Use https:// for the server. Plain http:// is only for this device or the emulator (localhost, 127.0.0.1, 10.0.2.2).'**
-  String get accountServerNotSecure;
 
   /// No description provided for @assistBaseUrlNotSecure.
   ///
@@ -8317,6 +8335,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The server can\'t be reached to check the password. Try again when you\'re online.'**
   String get exportConfirmOffline;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportTitle;
+
+  /// No description provided for @reportSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell Harvest what went wrong, with pictures or a recording.'**
+  String get reportSettingsHint;
+
+  /// No description provided for @reportTextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportTextLabel;
+
+  /// No description provided for @reportTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What you did, what you expected, and what happened instead.'**
+  String get reportTextHint;
+
+  /// No description provided for @reportTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a picture'**
+  String get reportTakePhoto;
+
+  /// No description provided for @reportPickPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a picture'**
+  String get reportPickPhoto;
+
+  /// No description provided for @reportPicturesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures are made smaller and saved again on this phone first, so their location, camera and time never leave with them.'**
+  String get reportPicturesNote;
+
+  /// No description provided for @reportRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a voice note'**
+  String get reportRecord;
+
+  /// No description provided for @reportStopRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get reportStopRecording;
+
+  /// No description provided for @reportRecordingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get reportRecordingLabel;
+
+  /// No description provided for @reportRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get reportRemove;
+
+  /// No description provided for @reportPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'This goes to Harvest\'s team as you wrote it, without your name or your account. It is not end-to-end encrypted: it is meant to be read. To get an answer, say how to reach you.'**
+  String get reportPrivacy;
+
+  /// No description provided for @reportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get reportSend;
+
+  /// No description provided for @reportSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get reportSending;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you. Your report is on its way.'**
+  String get reportSent;
+
+  /// No description provided for @reportOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The report could not go: this phone seems to be offline. It is still here.'**
+  String get reportOffline;
+
+  /// No description provided for @reportTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large to send. Take out a picture or the recording.'**
+  String get reportTooLarge;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The report could not go. Try again in a moment.'**
+  String get reportFailed;
+
+  /// No description provided for @reportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what happened first.'**
+  String get reportEmpty;
+
+  /// No description provided for @reportTextTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'5,000 characters at most.'**
+  String get reportTextTooLong;
+
+  /// No description provided for @reportTooManyImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Four pictures at most.'**
+  String get reportTooManyImages;
+
+  /// No description provided for @reportImageTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That picture is too large, even made smaller.'**
+  String get reportImageTooLarge;
+
+  /// No description provided for @reportAudioTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The recording is too long to send.'**
+  String get reportAudioTooLarge;
+
+  /// No description provided for @reportNotAPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a picture Harvest can read.'**
+  String get reportNotAPicture;
+
+  /// No description provided for @reportNoMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest needs the microphone to record.'**
+  String get reportNoMic;
+
+  /// No description provided for @reportLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{Too many reports from here just now. Try again in a minute.} other{Too many reports from here just now. Try again in {minutes} minutes.}}'**
+  String reportLimited(int minutes);
 }
 
 class _AppLocalizationsDelegate

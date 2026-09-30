@@ -132,6 +132,7 @@ class NotificationPlanner {
         NotificationChannels.reminders: l10n.channelReminders,
         NotificationChannels.streak: l10n.channelStreak,
         NotificationChannels.pomodoro: l10n.channelPomodoro,
+        NotificationChannels.news: l10n.channelNews,
       };
 
     final lastActive = await _lastActiveDay(at);

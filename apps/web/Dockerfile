@@ -16,6 +16,8 @@ RUN pnpm install --frozen-lockfile --filter @harvest/web...
 COPY packages/contracts packages/contracts
 COPY packages/core packages/core
 COPY apps/web apps/web
+# The release's version number, which the phone's pubspec holds.
+COPY apps/mobile/pubspec.yaml apps/mobile/pubspec.yaml
 RUN pnpm --filter @harvest/web build
 
 FROM caddy:2-alpine AS run

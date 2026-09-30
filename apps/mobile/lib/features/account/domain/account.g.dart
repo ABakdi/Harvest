@@ -50,12 +50,16 @@ final class TokenStoreProvider
 
 String _$tokenStoreHash() => r'14e198bdbd97ac84b018a8e32a5e894f2564e61a';
 
+/// The server every request goes to: the built-in one, always.
+
 @ProviderFor(serverAddress)
 final serverAddressProvider = ServerAddressProvider._();
 
-final class ServerAddressProvider
-    extends $FunctionalProvider<ServerAddress, ServerAddress, ServerAddress>
-    with $Provider<ServerAddress> {
+/// The server every request goes to: the built-in one, always.
+
+final class ServerAddressProvider extends $FunctionalProvider<Uri, Uri, Uri>
+    with $Provider<Uri> {
+  /// The server every request goes to: the built-in one, always.
   ServerAddressProvider._()
     : super(
         from: null,
@@ -72,24 +76,24 @@ final class ServerAddressProvider
 
   @$internal
   @override
-  $ProviderElement<ServerAddress> $createElement($ProviderPointer pointer) =>
+  $ProviderElement<Uri> $createElement($ProviderPointer pointer) =>
       $ProviderElement(pointer);
 
   @override
-  ServerAddress create(Ref ref) {
+  Uri create(Ref ref) {
     return serverAddress(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ServerAddress value) {
+  Override overrideWithValue(Uri value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<ServerAddress>(value),
+      providerOverride: $SyncValueProvider<Uri>(value),
     );
   }
 }
 
-String _$serverAddressHash() => r'49f520cfd8fcda8d44d26caea458d1f618951dfa';
+String _$serverAddressHash() => r'c86e583895fb42f2a2ae9d1a745323fea8663112';
 
 @ProviderFor(apiClient)
 final apiClientProvider = ApiClientProvider._();
@@ -130,7 +134,7 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'e3021e6c48785be6ccfd16fcb415fcadec1d6af6';
+String _$apiClientHash() => r'91984f2d6f1850a20c13947e96c69e882a60a5cf';
 
 @ProviderFor(syncKeyRemote)
 final syncKeyRemoteProvider = SyncKeyRemoteProvider._();
@@ -267,7 +271,7 @@ final class FileSyncProvider
   }
 }
 
-String _$fileSyncHash() => r'6b8e569faaa809679272d86fbb07cbf2a59c40bf';
+String _$fileSyncHash() => r'423518cd8c9e91bc442f13ac3116bec1ba038335';
 
 @ProviderFor(syncService)
 final syncServiceProvider = SyncServiceProvider._();
@@ -440,7 +444,7 @@ final class AccountControllerProvider
   AccountController create() => AccountController();
 }
 
-String _$accountControllerHash() => r'0eb2958e1554069702e8b4c49d49f1a174cc9681';
+String _$accountControllerHash() => r'b3f6249ee6dbaeb0d9b694f03c2c91274eede564';
 
 /// Signing in, out and away ([[Accounts]]). An account is optional
 /// forever (AC1): nothing here runs until I ask for it.

@@ -139,6 +139,59 @@ export class UsersRepository {
     return epoch;
   }
 
+  /**
+   * Keeps a heartbeat's fields, the latest only ([[Admin]] AD4), and
+   * answers when the account was last active before it, to count the
+   * first heartbeat of a day once.
+   */
+  async heartbeat(
+    userId: ObjectId,
+    beat: { platform: string; appVersion: string; streak: { current: number; best: number } | null },
+    at: Date,
+  ): Promise<{ found: boolean; lastActiveAt: Date | null }> {
+    const before = await this.users.findOneAndUpdate(
+      { _id: userId },
+      {
+        $set: {
+          lastActiveAt: at,
+          lastPlatform: beat.platform,
+          lastAppVersion: beat.appVersion,
+          streak: beat.streak,
+        },
+      },
+      { returnDocument: 'before', projection: { lastActiveAt: 1 } },
+    );
+    return { found: before !== null, lastActiveAt: before?.lastActiveAt ?? null };
+  }
+
+  /**
+   * A page of accounts for the admin, newest first, after [cursor] (an
+   * id). [q] matches part of the email or the name: both are sealed, so
+   * the search opens them here, one account at a time, which is fine for
+   * the thousands, not the millions.
+   */
+  async page(q: string | undefined, cursor: string | undefined, limit: number): Promise<{ users: UserDoc[]; next: string | null }> {
+    const filter = cursor ? { _id: { $lt: new ObjectId(cursor) } } : {};
+    const needle = q?.trim().toLowerCase() ?? '';
+    const found: UserDoc[] = [];
+    let last: ObjectId | null = null;
+    for await (const doc of this.users.find(filter).sort({ _id: -1 })) {
+      const user = this.opened(doc)!;
+      last = doc._id;
+      if (
+        needle &&
+        !user.email.toLowerCase().includes(needle) &&
+        !(user.displayName ?? '').toLowerCase().includes(needle)
+      ) {
+        continue;
+      }
+      found.push(user);
+      if (found.length === limit) break;
+    }
+    const more = found.length === limit && last !== null && (await this.users.countDocuments({ _id: { $lt: last } }, { limit: 1 })) > 0;
+    return { users: found, next: more && last ? last.toHexString() : null };
+  }
+
   async delete(userId: ObjectId): Promise<void> {
     await this.users.deleteOne({ _id: userId });
   }

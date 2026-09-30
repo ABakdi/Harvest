@@ -619,12 +619,12 @@ void main() {
       await tester.enterText(fields.first, '739051');
       await tester.enterText(fields.last, '739051');
       await tester.pump();
-      await tester.ensureVisible(find.text(l10n.syncPinChoose));
-      await tester.tap(find.text(l10n.syncPinChoose));
+      await tester.ensureVisible(find.text(l10n.syncPassphraseChoose));
+      await tester.tap(find.text(l10n.syncPassphraseChoose));
       await tester.pumpAndSettle();
       expect(find.byType(SyncPinSheet), findsOneWidget);
       expect(find.text(l10n.accountErrorOther('StateError')), findsOneWidget);
-      expect(find.text(l10n.syncPinChoose), findsOneWidget);
+      expect(find.text(l10n.syncPassphraseChoose), findsOneWidget);
     });
 
     testWidgets('a passphrase first: text, 8 characters, how long it would '
@@ -674,16 +674,16 @@ void main() {
       await tester.enterText(fields.first, 'short');
       await tester.enterText(fields.last, 'short');
       await tester.pump();
-      await tester.ensureVisible(find.text(l10n.syncPinChoose));
-      await tester.tap(find.text(l10n.syncPinChoose));
+      await tester.ensureVisible(find.text(l10n.syncPassphraseChoose));
+      await tester.tap(find.text(l10n.syncPassphraseChoose));
       await tester.pumpAndSettle();
       expect(find.text(l10n.syncPassphraseShort), findsOneWidget);
 
       await tester.enterText(fields.first, 'olive grove');
       await tester.enterText(fields.last, 'olive grove');
       await tester.pump();
-      await tester.ensureVisible(find.text(l10n.syncPinChoose));
-      await tester.tap(find.text(l10n.syncPinChoose));
+      await tester.ensureVisible(find.text(l10n.syncPassphraseChoose));
+      await tester.tap(find.text(l10n.syncPassphraseChoose));
       await tester.pumpAndSettle();
       expect(pin.secrets, ['olive grove']);
     });

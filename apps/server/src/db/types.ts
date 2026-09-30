@@ -41,6 +41,15 @@ export interface UserDoc {
   pinVerifier?: SealedBytes;
   /** Which key the private tier is under; 1 until the first start over. */
   keyEpoch?: number;
+  /**
+   * The last heartbeat ([[Admin]]): only the latest of each, never a
+   * history. Absent until the first.
+   */
+  lastActiveAt?: Date;
+  lastPlatform?: string;
+  lastAppVersion?: string;
+  /** The streak the last heartbeat shared, or null when it shared none. */
+  streak?: { current: number; best: number } | null;
 }
 
 /**
@@ -217,4 +226,68 @@ export interface CounterDoc {
   seq: number;
   recordBytes?: number;
   fileBytes?: number;
+}
+
+/** A piece of news ([[Admin]]). */
+export interface AnnouncementDoc {
+  _id: ObjectId;
+  title: string;
+  body: string;
+  link: string | null;
+  push: boolean;
+  popup: boolean;
+  audience: 'everyone' | 'accounts';
+  startsAt: Date;
+  endsAt: Date | null;
+  createdAt: Date;
+  /** Web Push deliveries that went through. */
+  pushed: number;
+}
+
+/** A browser's Web Push subscription, for one account. */
+export interface PushSubscriptionDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  createdAt: Date;
+}
+
+/**
+ * One day's totals ([[Admin]]), `_id` the UTC day. Written every hour for
+ * the day under way; `active` is counted by the heartbeats themselves.
+ */
+export interface DailyStatsDoc {
+  _id: string;
+  accounts: number;
+  verified: number;
+  signups: number;
+  active: number;
+  active7: number;
+  active30: number;
+  sharing: number;
+  streakMedian: number;
+  streakMean: number;
+}
+
+/** What the server keeps of its own, by name: the Web Push key pair. */
+export interface ServerSettingDoc {
+  _id: string;
+  publicKey?: string;
+  /** Sealed with KEY_SHARE_KEY (additional data `vapid`). */
+  privateKey?: SealedBytes;
+}
+
+/**
+ * A report of a problem ([[Admin]] F12-5): anonymous — no account, no
+ * address — with its attachments' bytes in the `report_files` bucket.
+ */
+export interface ReportDoc {
+  _id: ObjectId;
+  text: string;
+  platform: string;
+  appVersion: string;
+  status: 'new' | 'read' | 'done';
+  createdAt: Date;
+  attachments: { _id: ObjectId; kind: 'image' | 'audio'; type: string; bytes: number; gridId: ObjectId }[];
 }

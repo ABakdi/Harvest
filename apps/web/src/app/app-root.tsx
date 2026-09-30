@@ -19,6 +19,7 @@ import { AppShell } from './app-shell';
 import { createHarvest, HarvestContext, type Harvest } from './context';
 import { getMeta, HarvestDB, metaKeys, setMeta } from './data/db';
 import { startSyncTriggers } from './sync/triggers';
+import { disablePush, sendHeartbeat } from './data/news';
 import { wipeDrafts } from '@/lib/note-drafts';
 import { background } from '@/lib/actions';
 
@@ -152,6 +153,9 @@ export function AppRoot() {
       // Remembered until the server has heard it: offline, the cookie and
       // the session would otherwise outlive the sign-out (S6-02).
       markSignOut(true);
+      // This browser's push subscription goes with the session, while
+      // there is still a session to tell the server with ([[Admin]]).
+      await Promise.race([disablePush(api), new Promise((resolve) => setTimeout(resolve, 3000))]);
       await finishSignOut();
       await wipeLocal();
       setState({ kind: 'left' });
@@ -197,6 +201,8 @@ export function AppRoot() {
     });
     // Ask the browser not to evict the store under storage pressure.
     background(navigator.storage?.persist?.());
+    // Once a day, the account's hello ([[Admin]]); a failure waits for tomorrow's opening.
+    background(sendHeartbeat(harvest.db, api));
     return () => {
       stop();
       offWrite();

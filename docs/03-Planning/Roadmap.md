@@ -28,7 +28,8 @@ flowchart LR
 | [[Phase-6-Sync-Accounts-and-Web]] | The monorepo's other two programs: an Express + MongoDB server with accounts and sync, and the whole app on the web (React, shadcn/ui, a PWA) with a home page and the APK download | **Shipped 2026-09-26 as v3.0.0**, after four betas, a fourth audit by hand ([[Audit-v3-Beta]]), Lists and goals with subtasks — and with it Phase 5's goals, places and voice |
 | **v3.1** | A sync PIN in place of the passphrase, with a key the database alone cannot open; the account circle; the web laid out like the phone on a phone; the phone's database encrypted; the fifth audit, every finding closed ([[Checkpoint-10]], [[Audit-v3]]) | **Beta 2026-09-27 as v3.1.0-beta.1**; the sixth audit, every finding closed, as **v3.1.0-beta.2** 2026-09-28 ([[Checkpoint-11]], [[Audit-v3.1]]) |
 | [[Phase-7-Privacy-and-Currencies]] | Every synced row sealed on the device, files the server cannot recognise, no trail of where I am, encrypted at rest everywhere, a passphrase first, a password to export; every currency, the local one by default; the privacy statement rewritten | **Shipped 2026-09-29 as v3.2.0**, after one beta the same day: the upgrade from 3.1 run on a phone and a browser, and the operator's view of the database after it reading nothing |
-| [[Phase-8-Screen-Time]] | Usage caps, weed-pull interventions (Android) | Caps enforce reliably through a full week; `v3.3.0` |
+| **v3.3** | [[Checkpoint-12]]: the keyboard fixed, the server built in, and the owner's view — the admin panel, news by push and pop-up ([[Admin]]) | **Shipped 2026-09-30 as v3.3.0**, with *Report a problem* beside it |
+| [[Phase-8-Screen-Time]] | Usage caps, weed-pull interventions (Android) | Caps enforce reliably through a full week; `v3.4.0` |
 | [[Phase-9-Social-and-Reach]] | Rankings, the share card, iOS polish | Leaderboard live |
 
 **Phase 4 makes it v2, not v1.2.** The number is a judgement about how
