@@ -334,6 +334,8 @@
     "how3": "Tap Install. Updates install the same way, over the old version, and keep your data.",
     "how4": "Open Harvest and plant your first seed.",
     "howTitle": "How to install it",
+    "legacyApk": "Download {{name}} ({{size}})",
+    "legacyBody": "For older phones. If Android says Harvest is not compatible with your phone, it is a 32-bit one: use this APK instead.",
     "lead": "The latest release, straight from GitHub. No store, no tracking.",
     "loading": "Looking up the latest release…",
     "noApk": "This release has no APK attached.",

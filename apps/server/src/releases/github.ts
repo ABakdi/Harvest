@@ -49,15 +49,31 @@ export interface ReleaseSourceOptions {
   now?: () => number;
 }
 
+/** The APK for older 32-bit phones, beside the 64-bit one: `harvest-3.3.1-armv7.apk`. */
+const legacyApkName = /-armv7\.apk$/i;
+
+function apkOf(asset: GitHubRelease['assets'][number] | undefined): PublishedRelease['apk'] {
+  return asset ? { name: asset.name, url: asset.browser_download_url, size: asset.size, sha256: sha256Of(asset.digest) } : null;
+}
+
+/**
+ * Since v3.3.1 a release carries one APK per kind of phone instead of one
+ * for every kind (a 135 MB file, which phones struggled to finish): the
+ * plain name is the 64-bit ARM one, `-armv7` the 32-bit one. An older
+ * release's single APK is the plain one.
+ */
 function published(release: GitHubRelease): PublishedRelease {
-  const apk = release.assets.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
+  const apks = release.assets.filter((asset) => asset.name.toLowerCase().endsWith('.apk'));
+  const apk = apks.find((asset) => !legacyApkName.test(asset.name));
+  const legacy = apks.find((asset) => legacyApkName.test(asset.name));
   return {
     tag: release.tag_name,
     name: release.name ?? null,
     publishedAt: release.published_at ?? null,
     htmlUrl: release.html_url,
     notes: release.body?.trim() || null,
-    apk: apk ? { name: apk.name, url: apk.browser_download_url, size: apk.size, sha256: sha256Of(apk.digest) } : null,
+    apk: apkOf(apk),
+    legacyApk: apkOf(legacy),
   };
 }
 

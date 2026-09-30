@@ -152,10 +152,26 @@ describe('the latest release', () => {
         size: 48_000_000,
         sha256: 'ab'.repeat(32),
       },
+      legacyApk: null,
       prerelease: null,
     });
     await request(h.app).get('/v1/releases/latest').expect(200);
     expect(gh.calls).toEqual(['https://api.github.com/repos/ABakdi/Harvest/releases?per_page=20']);
+  });
+
+  it('offers the 64-bit APK first and the 32-bit one beside it, whatever order GitHub lists them in', async () => {
+    const split = {
+      ...github,
+      tag_name: 'v3.3.1',
+      assets: [
+        { name: 'harvest-3.3.1-armv7.apk', browser_download_url: 'https://example/harvest-3.3.1-armv7.apk', size: 40_000_000 },
+        { name: 'harvest-3.3.1.apk', browser_download_url: 'https://example/harvest-3.3.1.apk', size: 45_000_000 },
+      ],
+    };
+    const source = new ReleaseSource({ repo: 'ABakdi/Harvest', fetch: fakeGitHub([() => Response.json([split])]).fetch });
+    const latest = await source.latest();
+    expect(latest.apk?.name).toBe('harvest-3.3.1.apk');
+    expect(latest.legacyApk?.name).toBe('harvest-3.3.1-armv7.apk');
   });
 
   it('names the newest beta beside the latest release, and never a draft or an older beta', async () => {

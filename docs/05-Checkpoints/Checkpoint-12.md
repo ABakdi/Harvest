@@ -55,6 +55,35 @@ an earlier version is replaced by the built-in one.
 **Seen:** in passphrase mode the sync secret sheet says "a key made
 from this PIN". **Fix:** it says *secret* in both modes.
 
+### B12-04 — The APK download stalls at the end (site, phone)
+
+**Seen** by me and two testers, on `v3.2.0` and `v3.3.0`: *Download*
+on the download page fills the bar, then sits at the end and never
+offers to open the file.
+
+**Why:** the APK was 135 MB. It carried the native libraries of every
+kind of phone (64-bit ARM, 32-bit ARM, x86), stored uncompressed:
+`--target-platform` narrowed only Flutter's own, and Flutter's Gradle
+plugin put every kind back for the plugins' (MapLibre, SQLCipher). When
+a download ends, Chrome on the phone checks an APK before handing it
+over; on a file that size, that check is the likeliest thing that never
+finishes. I could not watch it: on the emulator, which has no Play
+services, the same download ended cleanly in 15 s. So the fix below is
+checked on a real phone before I call this closed.
+
+**Fix:** one APK per kind of phone. `app/build.gradle.kts` narrows
+`abiFilters` to what `--target-platform` asks for, and Flutter's reset
+is off (`disable-abi-filtering=true`). A release carries
+`harvest-<version>.apk` (64-bit, 48 MB) and `harvest-<version>-armv7.apk`
+(32-bit, 42 MB), with the same version code. The server answers both
+(`apk`, `legacyApk`), and the page offers the second beneath the first,
+for a phone Android calls incompatible with it.
+
+**Tests:** the server picks the 64-bit APK whatever order GitHub lists
+them in; the page shows the 32-bit link; on the emulator the 64-bit APK
+installs over the old one, opens, and draws the Places map (MapLibre)
+from its encrypted database (SQLCipher).
+
 ## Features ([[Admin]])
 
 | # | What | Where |
@@ -99,6 +128,8 @@ privacy page and the data map saying what the server now learns.
   picture); read, marked and deleted in the admin panel's *Reports* tab.
   Tested on the emulator (text and a camera picture), in the browser
   (text), and by the server's tests (185).
+- [ ] B12-04 — one APK per kind of phone, 48 MB instead of 135 MB;
+  built and tried on the emulator, not yet on a real phone.
 - [ ] Web Push from a real browser: the permission prompt is Chrome's
   own and was not driven by hand; the subscription and the service
   worker are covered by tests.

@@ -327,8 +327,15 @@ anyway (never for distribution). Release builds
 shrink and obfuscate; keep the symbol map with the tag you ship:
 
 ```sh
-flutter build apk --release --obfuscate --split-debug-info=build/symbols
+flutter build apk --release --obfuscate --split-debug-info=build/symbols --target-platform android-arm64
+flutter build apk --release --obfuscate --split-debug-info=build/symbols --target-platform android-arm
 ```
+
+A release carries one APK per kind of phone: `harvest-<version>.apk`
+(64-bit ARM, nearly every phone) and `harvest-<version>-armv7.apk`
+(older 32-bit ones); the download page offers both. One APK for every
+kind was 135 MB, and phones stalled at the end of downloading it. Both
+keep the same version code, so either installs over the other.
 
 Toolchain pinned for reproducible builds: Flutter 3.47.2 (Dart 3.13),
 JDK 21, Android minSdk 26.

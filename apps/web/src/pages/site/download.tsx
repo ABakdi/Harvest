@@ -106,6 +106,19 @@ export function DownloadPage() {
                     {t('download.apk', { name: release.data.apk.name })}
                   </a>
                 </Button>
+                {release.data.legacyApk && (
+                  <div className="flex flex-col gap-1 text-sm">
+                    <p className="text-muted-foreground">{t('download.legacyBody')}</p>
+                    <a
+                      href={release.data.legacyApk.url}
+                      download
+                      className="flex w-fit items-center gap-1 font-bold text-primary underline-offset-4 hover:underline"
+                    >
+                      <DownloadIcon className="size-4" aria-hidden />
+                      {t('download.legacyApk', { name: release.data.legacyApk.name, size: formatBytes(release.data.legacyApk.size) })}
+                    </a>
+                  </div>
+                )}
                 {release.data.apk.sha256 && (
                   <div className="flex flex-col gap-1">
                     <span className="flex items-center gap-1 text-sm font-bold">
