@@ -72,8 +72,29 @@ describe('the download page', () => {
     );
     renderAt('/download');
     expect(await screen.findByText('ab'.repeat(32))).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /download harvest-2.0.0.apk/i })).toHaveAttribute('href', 'https://example/harvest.apk');
+    expect(screen.getByRole('link', { name: /download harvest-2.0.0.apk/i })).toHaveAttribute('href', '/v1/releases/download/harvest-2.0.0.apk');
     expect(screen.getByText('the gym')).toBeInTheDocument();
+  });
+
+  it('offers the 32-bit APK beside the main one, when the release has it', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({
+        tag: 'v3.3.1',
+        name: 'Harvest 3.3.1',
+        publishedAt: '2026-09-30T12:00:00Z',
+        htmlUrl: 'https://github.com/ABakdi/Harvest/releases/tag/v3.3.1',
+        notes: null,
+        apk: { name: 'harvest-3.3.1.apk', url: 'https://example/harvest-3.3.1.apk', size: 45_000_000, sha256: null },
+        legacyApk: { name: 'harvest-3.3.1-armv7.apk', url: 'https://example/harvest-3.3.1-armv7.apk', size: 40_000_000, sha256: null },
+      }),
+    );
+    renderAt('/download');
+    expect(await screen.findByRole('link', { name: /download harvest-3.3.1.apk/i })).toHaveAttribute('href', '/v1/releases/download/harvest-3.3.1.apk');
+    expect(screen.getByRole('link', { name: /download harvest-3.3.1-armv7.apk/i })).toHaveAttribute(
+      'href',
+      '/v1/releases/download/harvest-3.3.1-armv7.apk',
+    );
+    expect(screen.getByText(/not compatible with your phone/i)).toBeInTheDocument();
   });
 
   it('says so, gracefully, when the list is unavailable', async () => {

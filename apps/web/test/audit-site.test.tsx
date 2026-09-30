@@ -43,9 +43,9 @@ describe('the download page and a beta', () => {
     );
     renderAt('/download');
     expect(await screen.findByRole('heading', { name: 'A beta, v3.0.0-beta.2, is out' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /download harvest-3.0.0-beta.2.apk/i })).toHaveAttribute('href', 'https://example/beta.apk');
+    expect(screen.getByRole('link', { name: /download harvest-3.0.0-beta.2.apk/i })).toHaveAttribute('href', '/v1/releases/download/harvest-3.0.0-beta.2.apk');
     // The release itself is still the one offered first.
-    expect(screen.getByRole('link', { name: /download harvest-2.0.0.apk/i })).toHaveAttribute('href', 'https://example/harvest.apk');
+    expect(screen.getByRole('link', { name: /download harvest-2.0.0.apk/i })).toHaveAttribute('href', '/v1/releases/download/harvest-2.0.0.apk');
   });
 
   it('says nothing of a beta when there is none, or the server is older', async () => {

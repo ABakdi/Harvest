@@ -230,6 +230,14 @@ export type Session = z.infer<typeof sessionSchema>;
 export const sessionsResultSchema = z.object({ sessions: z.array(sessionSchema) });
 export type SessionsResult = z.infer<typeof sessionsResultSchema>;
 
+const apkSchema = z.object({
+  name: z.string(),
+  url: z.string(),
+  size: z.number().int().nonnegative(),
+  /** Hex SHA-256 of the file, as GitHub computed it; null when GitHub has none. */
+  sha256: z.string().nullable(),
+});
+
 const publishedReleaseSchema = z.object({
   tag: z.string(),
   name: z.string().nullable(),
@@ -237,15 +245,13 @@ const publishedReleaseSchema = z.object({
   htmlUrl: z.string(),
   /** The release notes as written on GitHub (markdown), for the download page. */
   notes: z.string().nullable(),
-  apk: z
-    .object({
-      name: z.string(),
-      url: z.string(),
-      size: z.number().int().nonnegative(),
-      /** Hex SHA-256 of the file, as GitHub computed it; null when GitHub has none. */
-      sha256: z.string().nullable(),
-    })
-    .nullable(),
+  /** The APK for today's phones (64-bit ARM), or the one APK of a release built for every kind. */
+  apk: apkSchema.nullable(),
+  /**
+   * The APK for older 32-bit phones (`-armv7.apk`), on releases built one
+   * APK per kind of phone; absent from servers older than it.
+   */
+  legacyApk: apkSchema.nullable().optional(),
 });
 
 /**

@@ -55,6 +55,56 @@ an earlier version is replaced by the built-in one.
 **Seen:** in passphrase mode the sync secret sheet says "a key made
 from this PIN". **Fix:** it says *secret* in both modes.
 
+### B12-04 — The APK carries every kind of phone (release)
+
+**Seen** while chasing B12-05: the APK is 135 MB. It carried the native
+libraries of every kind of phone (64-bit ARM, 32-bit ARM, x86), stored
+uncompressed: `--target-platform` narrowed only Flutter's own, and
+Flutter's Gradle plugin put every kind back for the plugins' (MapLibre,
+SQLCipher).
+
+**Fix:** one APK per kind of phone. `app/build.gradle.kts` narrows
+`abiFilters` to what `--target-platform` asks for, and Flutter's reset
+is off (`disable-abi-filtering=true`). A release carries
+`harvest-<version>.apk` (64-bit, 48 MB) and `harvest-<version>-armv7.apk`
+(32-bit, 42 MB), with the same version code. The server answers both
+(`apk`, `legacyApk`), and the page offers the second beneath the first,
+for a phone Android calls incompatible with it.
+
+**Tests:** the server picks the 64-bit APK whatever order GitHub lists
+them in; the page shows the 32-bit link; on the emulator the 64-bit APK
+installs over the old one, opens, and draws the Places map (MapLibre)
+from its encrypted database (SQLCipher).
+
+### B12-05 — The APK download sits at 100 % (installed web app)
+
+**Seen** by me and two testers, on `v3.2.0` and `v3.3.0`: *Download* on
+the download page fills the bar to 141.80 / 141.80 MB, then shows
+*Downloading…* forever. From GitHub's own page the same file comes down
+fine, and so it does on a computer.
+
+**Why:** it happens in the **installed** web app. The link went straight
+to GitHub, another site, so the browser opened it in a custom tab over
+the app. At the end of an APK's download the browser asks *File might
+be harmful — download anyway?*, and the file waits, finished, as
+`.pending-…apk` until it is answered. The custom tab (seen in Brave)
+shows only *Downloading…*, never the question, so it waits for good.
+Reproduced on the emulator: the whole file there, pending, behind the
+question.
+
+**Fix:** the page links to the site's own
+`/v1/releases/download/<name>`, which fetches that APK from GitHub and
+hands it on as it comes (nginx does not buffer it). The download stays
+in the app's own window, where the question shows. Only the APKs the
+page offers can be asked for; twenty an hour per address. The install
+steps now say to choose *Download anyway*.
+
+**Tests:** the server hands on the APK with its type, name and length,
+and refuses any other name without fetching anything; the page's links
+point at the site. On the emulator, in the web app installed from a
+local build: the download stayed in the app, the question showed, and
+the file arrived with the release's SHA-256.
+
 ## Features ([[Admin]])
 
 | # | What | Where |
@@ -99,6 +149,11 @@ privacy page and the data map saying what the server now learns.
   picture); read, marked and deleted in the admin panel's *Reports* tab.
   Tested on the emulator (text and a camera picture), in the browser
   (text), and by the server's tests (185).
+- [x] B12-04 — one APK per kind of phone, 48 MB instead of 135 MB;
+  built and tried on the emulator, not released yet.
+- [x] B12-05 — the APK from the site's own address; the download and
+  its question stay in the installed app. Seen on the emulator (Chrome);
+  still to see in Brave on a phone.
 - [ ] Web Push from a real browser: the permission prompt is Chrome's
   own and was not driven by hand; the subscription and the service
   worker are covered by tests.

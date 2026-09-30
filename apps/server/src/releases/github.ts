@@ -49,15 +49,31 @@ export interface ReleaseSourceOptions {
   now?: () => number;
 }
 
+/** The APK for older 32-bit phones, beside the 64-bit one: `harvest-3.3.1-armv7.apk`. */
+const legacyApkName = /-armv7\.apk$/i;
+
+function apkOf(asset: GitHubRelease['assets'][number] | undefined): PublishedRelease['apk'] {
+  return asset ? { name: asset.name, url: asset.browser_download_url, size: asset.size, sha256: sha256Of(asset.digest) } : null;
+}
+
+/**
+ * Since v3.3.1 a release carries one APK per kind of phone instead of one
+ * for every kind (a 135 MB file, which phones struggled to finish): the
+ * plain name is the 64-bit ARM one, `-armv7` the 32-bit one. An older
+ * release's single APK is the plain one.
+ */
 function published(release: GitHubRelease): PublishedRelease {
-  const apk = release.assets.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
+  const apks = release.assets.filter((asset) => asset.name.toLowerCase().endsWith('.apk'));
+  const apk = apks.find((asset) => !legacyApkName.test(asset.name));
+  const legacy = apks.find((asset) => legacyApkName.test(asset.name));
   return {
     tag: release.tag_name,
     name: release.name ?? null,
     publishedAt: release.published_at ?? null,
     htmlUrl: release.html_url,
     notes: release.body?.trim() || null,
-    apk: apk ? { name: apk.name, url: apk.browser_download_url, size: apk.size, sha256: sha256Of(apk.digest) } : null,
+    apk: apkOf(apk),
+    legacyApk: apkOf(legacy),
   };
 }
 
@@ -121,6 +137,44 @@ export class ReleaseSource {
     const release: Release = { ...published(out[stable]!), prerelease: beta ? published(beta) : null };
     this.cached = { release, at: this.now() };
     return release;
+  }
+
+  /**
+   * One APK of the releases the download page offers, fetched from
+   * GitHub for the site to hand on from its own address (B12-05); null
+   * for a name that is none of them, so the route can never be made to
+   * fetch anything else.
+   */
+  async openApk(
+    name: string,
+    signal: AbortSignal,
+  ): Promise<{ name: string; size: number; body: ReadableStream<Uint8Array> } | null> {
+    const release = await this.latest();
+    const apk = [release, release.prerelease]
+      .flatMap((one) => (one ? [one.apk, one.legacyApk] : []))
+      .find((candidate) => candidate?.name === name);
+    if (!apk) return null;
+    // Thirty seconds for GitHub to start answering; the file itself takes
+    // as long as the phone takes, and stops when the phone goes.
+    const slow = new AbortController();
+    const timer = setTimeout(() => slow.abort(), 30_000);
+    let response: Response;
+    try {
+      response = await this.fetch(apk.url, {
+        headers: { 'user-agent': 'harvest-server' },
+        redirect: 'follow',
+        signal: AbortSignal.any([signal, slow.signal]),
+      });
+    } catch {
+      throw new HttpError('unavailable', 'GitHub is not answering right now');
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!response.ok || !response.body) throw new HttpError('unavailable', 'GitHub is not answering right now');
+    // GitHub's own length, not the listed one: an asset replaced within
+    // the hour is still listed at its old size.
+    const length = Number(response.headers.get('content-length'));
+    return { name: apk.name, size: Number.isFinite(length) && length > 0 ? length : apk.size, body: response.body };
   }
 
   private counted: { downloads: Downloads; at: number } | null = null;

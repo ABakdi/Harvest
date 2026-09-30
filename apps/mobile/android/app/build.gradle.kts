@@ -62,6 +62,18 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // `--target-platform` only narrows Flutter's own libraries; the
+        // plugins' (MapLibre's, SQLCipher's) came for every kind of phone,
+        // which made a 135 MB APK. Keep only the kinds asked for.
+        (project.findProperty("target-platform") as String?)?.let { platforms ->
+            val abis = mapOf(
+                "android-arm" to "armeabi-v7a",
+                "android-arm64" to "arm64-v8a",
+                "android-x64" to "x86_64",
+            )
+            ndk { abiFilters += platforms.split(",").mapNotNull { abis[it.trim()] } }
+        }
     }
 
     signingConfigs {
